@@ -188,6 +188,7 @@ def get_matching_filters(
     """
     # At the moment, input filters do not have a column type when sent from the client, so simplify the set
     name_set = get_filter_name_set(filter_columns)
+    print("get_matching_filters", name_set, filters)
     return {column: filter for column, filter in filters.items() if column in name_set}
 
 
@@ -335,6 +336,18 @@ class DeephavenFigureNode(DeephavenNode):
             copied_args["args"]["table"] = self.table
             if self.filters is not None:
                 filter_set = get_filter_set(self.filter_columns, self.filters)
+
+                print(
+                    get_matching_filters(self.filter_columns, self.filters),
+                    self.filters,
+                    self.filter_columns,
+                )
+
+                copied_args["args"]["filters"] = get_matching_filters(
+                    self.filter_columns, self.filters
+                )
+                new_figure = self.func(**copied_args)
+                """
                 if filter_set != self.prev_filter_set:
                     # when filters are passed in, only update the chart when the filters change
                     self.prev_filter_set = filter_set
@@ -345,6 +358,7 @@ class DeephavenFigureNode(DeephavenNode):
                 else:
                     # if the filters haven't changed, just use the cached figure
                     new_figure = self.cached_figure
+                """
             else:
                 new_figure = self.func(**copied_args)
 
@@ -407,6 +421,7 @@ class DeephavenFigureNode(DeephavenNode):
     def update_filters(self, filters: dict[str, Any]) -> None:
         self.filters = filters
         # don't update the parent as it will be updated after the figure is recreated
+        print("update_filters", filters, self.filters)
         self.recreate_figure(update_parent=False)
 
     @property

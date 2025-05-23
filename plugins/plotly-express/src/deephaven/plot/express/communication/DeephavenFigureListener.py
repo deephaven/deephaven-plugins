@@ -175,6 +175,7 @@ class DeephavenFigureListener:
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
         elif message["type"] == "FILTER":
+            print("Filter message", message)
             self._figure.update_filters(message["filterMap"])
             revision = self._revision_manager.get_revision()
             self._figure.get_head_node().recreate_figure()

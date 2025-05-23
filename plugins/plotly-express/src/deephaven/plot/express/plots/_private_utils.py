@@ -310,7 +310,7 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
 
 def retrieve_input_filter_columns(
     render_args: dict[str, Any]
-) -> tuple[bool, set[FilterColumn]]:
+) -> tuple[bool, set[FilterColumn], list[str]]:
     """
     Retrieve the input filter columns from the render args
 
@@ -329,7 +329,7 @@ def retrieve_input_filter_columns(
 
     filter_by = render_args["args"].get("filter_by", None)
     if filter_by is None:
-        return False, set()
+        return False, set(), []
     if filter_by is True and isinstance(table, PartitionedTable):
         # if the table is already partitioned and filter_by is True,
         # use the key columns as the filter
@@ -342,7 +342,7 @@ def retrieve_input_filter_columns(
 
     filter_columns = set(
         [
-            FilterColumn(column.name, str(column.data_type), require_filters)
+            FilterColumn(column.name, str(column.data_type))
             for column in columns
             if column.name in filter_by
         ]
@@ -383,7 +383,9 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
-    require_filters, filter_columns, filter_by = retrieve_input_filter_columns(render_args)
+    require_filters, filter_columns, filter_by = retrieve_input_filter_columns(
+        render_args
+    )
     render_args["args"]["filter_by"] = filter_by
 
     orig_process_args = args_copy(render_args)

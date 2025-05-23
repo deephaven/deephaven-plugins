@@ -177,7 +177,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   filterMap: FilterMap | null = null;
 
+
   override getData(): Partial<Data>[] {
+    console.log('getData');
     const hydratedData = [...this.plotlyData];
 
     this.tableColumnReplacementMap.forEach((columnReplacements, tableId) => {
@@ -257,6 +259,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     // Without this, the chart shows an infinite loader if there are no tables
     if (this.tableColumnReplacementMap.size === 0) {
       this.fireUpdate(this.getData());
+    }
+
+    if (this.filterColumnMap != null) {
+      // there are filters, so the server expects the filter to be sent
+      this.fireFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -471,6 +478,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
   ): void {
+    console.log('handleWidgetUpdated', data, references);
     log.debug('handleWidgetUpdated', data, references);
     const {
       figure,
@@ -480,6 +488,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     const { plotly, deephaven } = figure;
     const { layout: plotlyLayout = {} } = plotly;
     this.tableColumnReplacementMap = getDataMappings(data);
+    console.log('tableColumnReplacementMap', plotly.data);
 
     this.plotlyData = plotly.data;
 
@@ -828,7 +837,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.filterMap = filterMap;
 
     this.fireFilterUpdated(filterMap);
-
   }
 
   fireFilterUpdated(filterMap: FilterMap): void {
