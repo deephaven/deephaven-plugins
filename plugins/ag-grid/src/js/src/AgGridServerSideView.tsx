@@ -80,7 +80,6 @@ export function AgGridServerSideView({
   );
 
   const treeCellRenderer = useMemo(
-    // eslint-disable-next-line react/no-unstable-nested-components, react/display-name, react/function-component-definition, react/jsx-props-no-spreading
     () =>
       datasource instanceof TreeViewportDatasource
         ? (props: CustomCellRendererProps) => (
@@ -95,12 +94,10 @@ export function AgGridServerSideView({
   );
 
   const autoGroupColumnDef = useMemo(
-    () => ({
-      cellRendererParams: {
-        suppressCount: true,
-        innerRenderer: treeCellRenderer,
-      },
-    }),
+    () =>
+      ({
+        cellRenderer: treeCellRenderer,
+      }) satisfies ColDef,
     [treeCellRenderer]
   );
 
