@@ -13,11 +13,9 @@ import {
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
 import { useMemo } from 'react';
-import ServerSideDatasource from './datasources/ServerSideDatasource';
 import ViewportDatasource from './datasources/ViewportRowDataSource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeTableServerSideDatasource from './datasources/TreeTableServerSideDatasource';
 import TreeViewportDatasource from './datasources/TreeViewportRowDataSource';
 import TreeCellRenderer from './TreeCellRenderer';
 
@@ -73,13 +71,6 @@ export function AgGridServerSideView({
         : new ViewportDatasource(dh, table),
     [dh, table]
   );
-  // const serverSideDatasource = useMemo(
-  //   () =>
-  //     TableUtils.isTreeTable(table)
-  //       ? new TreeTableServerSideDatasource(dh, table)
-  //       : new ServerSideDatasource(dh, table),
-  //   [dh, table]
-  // );
 
   // Create the formatter used to format cell values, currently just a
   // wrapper around jsapi-utils Formatter, but more functionality could be added.
@@ -117,18 +108,11 @@ export function AgGridServerSideView({
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
-      // onGridReady={event => {
-      //   log.debug('Grid ready', event);
-      //   datasource.setGridApi(event.api);
-      // }}
       autoGroupColumnDef={autoGroupColumnDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
-      // serverSideDatasource={serverSideDatasource}
-      // groupRowRenderer={groupRowRenderer}
       rowModelType="viewport"
-      // rowModelType="serverSide"
     />
   );
 }

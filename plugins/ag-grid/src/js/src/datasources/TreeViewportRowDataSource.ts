@@ -13,13 +13,13 @@ const log = Log.module(
   '@deephaven/js-plugin-ag-grid/TreeViewportRowDataSource'
 );
 
-export const TREE_NODE_KEY = '__treeNode';
+export const TREE_NODE_KEY = '__dhTreeNodeKey__';
 export type TreeNode = {
-  depth: number;
-  isExpanded: boolean;
   hasChildren: boolean;
+  isExpanded: boolean;
+  depth: number;
+  index: number;
 };
-
 export class TreeViewportDatasource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
 
@@ -104,12 +104,12 @@ export class TreeViewportDatasource implements IViewportDatasource {
       data[column.name] = row.get(column);
     }
 
-    // eslint-disable-next-line no-underscore-dangle
     data[TREE_NODE_KEY] = {
-      depth: row.depth,
-      isExpanded: row.isExpanded,
       hasChildren: row.hasChildren,
-    };
+      isExpanded: row.isExpanded,
+      depth: row.depth,
+      index: row.index.asNumber(),
+    } satisfies TreeNode;
 
     return data;
   }
@@ -125,9 +125,6 @@ export class TreeViewportDatasource implements IViewportDatasource {
     this.gridApi = gridApi;
     this.gridApi.addEventListener('filterChanged', this.handleFilterChanged);
     this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
-    this.gridApi.addEventListener('expandedChanged', e =>
-      console.log('xxx expandedChanged', e)
-    );
   }
 
   private handleFilterChanged(event: unknown): void {
@@ -172,9 +169,15 @@ export class TreeViewportDatasource implements IViewportDatasource {
     this.table.close();
   }
 
-  setExpanded(rowIndex: number, isExpanded: boolean): void {
-    log.debug('setExpanded', rowIndex);
-    this.table.setExpanded(rowIndex, isExpanded);
+  /**
+   * Expand or collapse a row in the tree table.
+   *
+   * @param row Row to expand or collapse
+   * @param isExpanded Whether to expand or collapse the row
+   */
+  setExpanded(row: DhType.TreeRow | number, isExpanded: boolean): void {
+    log.debug('setExpanded', row);
+    this.table.setExpanded(row, isExpanded);
   }
 }
 
