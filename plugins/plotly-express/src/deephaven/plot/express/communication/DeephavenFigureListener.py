@@ -143,6 +143,8 @@ class DeephavenFigureListener:
 
             new_objects, new_references, removed_references = exporter.references()
 
+            print("New references", new_references, new_figure["deephaven"])
+
             message = {
                 "type": "NEW_FIGURE",
                 "figure": new_figure,
