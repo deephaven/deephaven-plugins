@@ -6,17 +6,17 @@ import {
   createFormatterFromSettings,
   TableUtils,
 } from '@deephaven/jsapi-utils';
-import { ColDef } from '@ag-grid-community/core';
+import { ColDef, GridReadyEvent } from '@ag-grid-community/core';
 import {
   AgGridReact,
   AgGridReactProps,
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
-import { useMemo } from 'react';
-import ViewportDatasource from './datasources/ViewportRowDataSource';
+import { useCallback, useMemo } from 'react';
+import ViewportDatasource from './datasources/ViewportRowDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeViewportDatasource from './datasources/TreeViewportRowDataSource';
+import TreeViewportDatasource from './datasources/TreeViewportRowDatasource';
 import TreeCellRenderer from './TreeCellRenderer';
 
 type AgGridServerSideViewProps = {
@@ -53,7 +53,6 @@ export function AgGridServerSideView({
           ? {
               field: c.name,
               rowGroup: true,
-              // cellRenderer: CustomRowRenderer,
             }
           : {
               field: c.name,
@@ -101,10 +100,19 @@ export function AgGridServerSideView({
     [treeCellRenderer]
   );
 
+  const handleGridReady = useCallback(
+    (event: GridReadyEvent) => {
+      log.debug('handleGridReady', event);
+      datasource.setGridApi(event.api);
+    },
+    [datasource]
+  );
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
+      onGridReady={handleGridReady}
       autoGroupColumnDef={autoGroupColumnDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
