@@ -9,9 +9,7 @@ import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 
-const log = Log.module(
-  '@deephaven/js-plugin-ag-grid/TreeViewportRowDataSource'
-);
+const log = Log.module('@deephaven/js-plugin-ag-grid/TreeViewportDatasource');
 
 export const TREE_NODE_KEY = '__dhTreeNodeKey__';
 export type TreeNode = {
@@ -49,7 +47,7 @@ export class TreeViewportDatasource implements IViewportDatasource {
   }
 
   init(params: IViewportDatasourceParams): void {
-    log.debug('Initializing TreeViewportDataSource', params);
+    log.debug('Initializing TreeViewportDatasource', params);
     this.params = params;
     this.startListening();
     // Set the initial size

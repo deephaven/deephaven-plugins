@@ -13,13 +13,13 @@ import {
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
 import { useCallback, useMemo } from 'react';
-import ViewportDatasource from './datasources/ViewportRowDatasource';
+import TableViewportDatasource from './datasources/TableViewportDatasource';
+import TreeViewportDatasource from './datasources/TreeViewportDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeViewportDatasource from './datasources/TreeViewportRowDatasource';
 import TreeCellRenderer from './TreeCellRenderer';
 
-type AgGridServerSideViewProps = {
+type AgGridViewProps = {
   table: DhType.Table | DhType.TreeTable;
   settings?: WorkspaceSettings;
   agGridProps?: AgGridReactProps;
@@ -31,11 +31,11 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
  * AgGrid view that uses the Server-Side Row Model and a Deephaven table as a data source to display
  * in AG Grid, with support for value formatting, sorting, and basic filtering operations.
  */
-export function AgGridServerSideView({
+export function AgGridView({
   table,
   settings,
   agGridProps,
-}: AgGridServerSideViewProps): JSX.Element | null {
+}: AgGridViewProps): JSX.Element | null {
   const dh = useApi();
 
   log.debug('AgGridView rendering', table, table?.columns);
@@ -67,7 +67,7 @@ export function AgGridServerSideView({
     () =>
       TableUtils.isTreeTable(table)
         ? new TreeViewportDatasource(dh, table)
-        : new ViewportDatasource(dh, table),
+        : new TableViewportDatasource(dh, table),
     [dh, table]
   );
 
@@ -122,4 +122,4 @@ export function AgGridServerSideView({
   );
 }
 
-export default AgGridServerSideView;
+export default AgGridView;

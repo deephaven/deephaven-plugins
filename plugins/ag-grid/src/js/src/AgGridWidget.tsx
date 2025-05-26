@@ -8,11 +8,9 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
-// import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
-import AgGridServerSideView from './AgGridServerSideView';
+import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
 import customStyles from './AgGridCustomStyles.css?inline';
 
@@ -38,11 +36,7 @@ export function AgGridWidget(
 
   const agGridProps: AgGridReactProps = useMemo(
     () => ({
-      modules: [
-        RowGroupingModule,
-        ServerSideRowModelModule,
-        ViewportRowModelModule,
-      ],
+      modules: [RowGroupingModule, ViewportRowModelModule],
       defaultColDef: {
         filterParams: {
           buttons: ['reset', 'apply'],
@@ -84,11 +78,7 @@ export function AgGridWidget(
   return table != null ? (
     <div className="ui-table-container">
       <style>{customStyles}</style>
-      <AgGridServerSideView
-        table={table}
-        settings={settings}
-        agGridProps={agGridProps}
-      />
+      <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
     </div>
   ) : (
     <LoadingOverlay />

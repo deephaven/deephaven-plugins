@@ -9,9 +9,9 @@ import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 
-const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportRowDataSource');
+const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
 
-export class ViewportDatasource implements IViewportDatasource {
+export class TableViewportDatasource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
 
   private gridApi?: GridApi;
@@ -40,7 +40,7 @@ export class ViewportDatasource implements IViewportDatasource {
   }
 
   init(params: IViewportDatasourceParams): void {
-    log.debug('Initializing ViewportDataSource', params);
+    log.debug('Initializing ViewportDatasource', params);
     this.params = params;
     this.startListening();
     // Set the initial size
@@ -151,4 +151,4 @@ export class ViewportDatasource implements IViewportDatasource {
   }
 }
 
-export default ViewportDatasource;
+export default TableViewportDatasource;

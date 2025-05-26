@@ -7,13 +7,13 @@ import {
 } from '@ag-grid-community/core';
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
-import { ViewportDatasource } from './ViewportRowDatasource';
+import { TableViewportDatasource } from './TableViewportDatasource';
 
 describe('ViewportDatasource', () => {
   let mockDh: typeof DhType;
   let mockTable: DhType.Table;
   let mockGridApi: GridApi;
-  let datasource: ViewportDatasource;
+  let datasource: TableViewportDatasource;
   let mockInitParams: IViewportDatasourceParams;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,7 +40,7 @@ describe('ViewportDatasource', () => {
       getRow: jest.fn(),
     };
 
-    datasource = new ViewportDatasource(mockDh, mockTable);
+    datasource = new TableViewportDatasource(mockDh, mockTable);
     datasource.init(mockInitParams);
     datasource.setGridApi(mockGridApi);
   });
