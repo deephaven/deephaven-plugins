@@ -69,10 +69,10 @@ export interface PlotlyChartDeephavenData {
     name: string;
   };
   filterColumns: {
-    requireAllFilters: boolean;
     columns: Array<{
       type: string;
       name: string;
+      required: boolean;
     }>;
   };
   mappings: Array<{

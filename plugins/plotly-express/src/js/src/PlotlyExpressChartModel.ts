@@ -177,9 +177,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   filterMap: FilterMap | null = null;
 
+  requiredColumns: Set<string> = new Set();
 
   override getData(): Partial<Data>[] {
-    console.log('getData');
     const hydratedData = [...this.plotlyData];
 
     this.tableColumnReplacementMap.forEach((columnReplacements, tableId) => {
@@ -417,19 +417,20 @@ export class PlotlyExpressChartModel extends ChartModel {
   updateFilterColumns(data: PlotlyChartWidgetData): void {
     const { deephaven } = data.figure;
     const { filterColumns } = deephaven;
-    console.log(deephaven);
 
     if (filterColumns != null) {
       this.filterColumnMap = new Map(
         filterColumns.columns.map(({ name, type }) => [name, { name, type }])
       );
 
-      this.filterRequired = filterColumns.requireAllFilters;
+      this.filterRequired = false;
 
-      // immediately request the filter update as the full chart is not sent the first time
-      // since filters are sent after initial chart creation
-      // this might fire when input filters exist but have not yet been passed to this chart model
-      //this.fireFilterUpdated(this.filterMap ?? new Map());
+      // get all columns that have required = true
+      this.requiredColumns = new Set(
+        filterColumns.columns
+          .filter(({ required }) => required)
+          .map(({ name }) => name)
+      );
     }
   }
 
@@ -478,7 +479,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
   ): void {
-    console.log('handleWidgetUpdated', data, references);
     log.debug('handleWidgetUpdated', data, references);
     const {
       figure,
@@ -488,7 +488,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     const { plotly, deephaven } = figure;
     const { layout: plotlyLayout = {} } = plotly;
     this.tableColumnReplacementMap = getDataMappings(data);
-    console.log('tableColumnReplacementMap', plotly.data, newReferences);
 
     this.plotlyData = plotly.data;
 
@@ -808,7 +807,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     // isSubscribed can also be checked before calling fireUpdate, but this is a
     // subtle bug that is good to check for here just in case
     if (!this.hasInitialLoadCompleted && this.isSubscribed) {
-      console.log('fireLoadFinished');
       this.fireLoadFinished();
       this.hasInitialLoadCompleted = true;
     }
@@ -826,12 +824,23 @@ export class PlotlyExpressChartModel extends ChartModel {
     return this.filterColumnMap;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   override isFilterRequired(): boolean {
-    return this.filterRequired;
+    console.log(
+      'isFilterRequired called',
+      Array.from(this.requiredColumns).some(
+        column => !this.filterMap || !this.filterMap.has(column)
+      ),
+      this.filterMap,
+      this.requiredColumns
+    );
+    // true if all requiredColumns are in the filterColumnMap
+    return Array.from(this.requiredColumns).some(
+      column => !this.filterMap || !this.filterMap.has(column)
+    );
   }
 
   override setFilter(filterMap: FilterMap): void {
-    console.log('setFilter', filterMap);
     super.setFilter(filterMap);
 
     this.filterMap = filterMap;
@@ -844,15 +853,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   fireFilterUpdated(filterMap: FilterMap): void {
     // Only send the filter update if filters are not required or all filters are set
     // to prevent unnecessary updates
-    console.log(
-      'fireFilterUpdated',
-      filterMap,
-      this.filterRequired,
-      filterMap.size === this.filterColumnMap.size
-    );
-
     if (!this.filterRequired || filterMap.size === this.filterColumnMap.size) {
-      console.log('fireFilterUpdated', filterMap);
       this.widget?.sendMessage(
         JSON.stringify({
           type: 'FILTER',

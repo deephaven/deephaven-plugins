@@ -310,7 +310,7 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
 
 def retrieve_input_filter_columns(
     render_args: dict[str, Any]
-) -> tuple[bool, set[FilterColumn], list[str]]:
+) -> tuple[set[FilterColumn], list[str], list[str]]:
     """
     Retrieve the input filter columns from the render args
 
@@ -327,9 +327,9 @@ def retrieve_input_filter_columns(
     else:
         columns = table.columns
 
-    filter_by = render_args["args"].get("filter_by", None)
-    if filter_by is None:
-        return False, set(), []
+    filter_by = render_args["args"].get("filter_by", [])
+    required_filter_by = render_args["args"].get("required_filter_by", [])
+
     if filter_by is True and isinstance(table, PartitionedTable):
         # if the table is already partitioned and filter_by is True,
         # use the key columns as the filter
@@ -338,17 +338,33 @@ def retrieve_input_filter_columns(
     elif not isinstance(filter_by, list):
         filter_by = [filter_by]
 
-    require_filters = render_args["args"]["require_filters"]
+    if required_filter_by is True and isinstance(table, PartitionedTable):
+        # if the table is already partitioned and filter_by is True,
+        # use the key columns as the filter
+        # this is a replacement for one_click_partitioned_table
+        required_filter_by = table.key_columns
+    elif not isinstance(required_filter_by, list):
+        required_filter_by = [required_filter_by]
 
     filter_columns = set(
         [
-            FilterColumn(column.name, str(column.data_type))
+            FilterColumn(column.name, str(column.data_type), False)
             for column in columns
             if column.name in filter_by
         ]
     )
 
-    return require_filters, filter_columns, filter_by
+    required_filter_columns = set(
+        [
+            FilterColumn(column.name, str(column.data_type), True)
+            for column in columns
+            if column.name in required_filter_by
+        ]
+    )
+
+    all_filter_column = filter_columns.union(required_filter_columns)
+
+    return all_filter_column, filter_by, required_filter_by
 
 
 def process_args(
@@ -383,10 +399,11 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
-    require_filters, filter_columns, filter_by = retrieve_input_filter_columns(
+    filter_columns, filter_by, required_filter_by = retrieve_input_filter_columns(
         render_args
     )
     render_args["args"]["filter_by"] = filter_by
+    render_args["args"]["required_filter_by"] = required_filter_by
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
@@ -405,7 +422,6 @@ def process_args(
         key_column_table,
         orig_process_func,
         filter_columns,
-        require_filters,
     )
 
     new_fig.calendar = calendar

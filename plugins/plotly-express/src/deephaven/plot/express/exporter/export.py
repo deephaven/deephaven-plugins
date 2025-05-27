@@ -84,8 +84,6 @@ class Exporter:
                 removed_references.append(ref.id)
                 self._references.pop(obj)
 
-        print(self._used_references)
-
         new_references = self._new_references
         new_objects = self._new_objects
         self._new_objects = []

@@ -483,30 +483,32 @@ class PartitionManager:
             self.by_vars = set()
 
         filter_by = args.pop("filter_by", [])
-
-        filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
+        required_filter_by = args.pop("required_filter_by", [])
 
         partition_cols.update(filter_by)
+        partition_cols.update(required_filter_by)
 
         # todo - pull to function
         filters = args.pop("filters", None)
-        require_filters = args.pop("require_filters", False)
-        print(filters, filter_by, require_filters)
-        if filters is None and filter_by:
+        if filters is None and (filter_by or required_filter_by):
             # if there are input filters wait for them before creating the proper chart
             # the python figure is created, then the filters are sent from the client
             self.send_default_figure = True
         elif filters is not None:
-            if require_filters and len(filter_by) != len(filters):
-                # if all filters are required, make sure all filters are applied before creating the chart
-                self.send_default_figure = True
-
-        print("default to send", self.send_default_figure)
+            for required_filter in required_filter_by:
+                if (filters and required_filter not in filters) or not filters:
+                    self.send_default_figure = True
 
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
-            if filters and (not require_filters or len(filter_by) == len(filters)):
+            has_required_filters = True
+            print(required_filter_by)
+            for required_filter in required_filter_by:
+                if (filters and required_filter not in filters) or not filters:
+                    has_required_filters = False
+
+            if filters and has_required_filters:
                     built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
                     partitioned_table = partitioned_table.filter(built_filter)
 
@@ -756,7 +758,6 @@ class PartitionManager:
         Returns:
             The new figure
         """
-        print(self.send_default_figure)
         if self.send_default_figure:
             return self.default_figure()
 

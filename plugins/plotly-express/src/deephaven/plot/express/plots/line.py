@@ -24,7 +24,10 @@ def line(
     | list[str]
     | bool
     | None = None,  # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
-    require_filters: bool = False,
+    required_filter_by: str
+    | list[str]
+    | bool
+    | None = None, # bool PartitionedTable only, in which case all partitions are a required filter
     size: str | list[str] | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
