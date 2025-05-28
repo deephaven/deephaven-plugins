@@ -44,6 +44,7 @@ import {
   CALLABLE_KEY,
   wrapTextChildren,
   isPrimitive,
+  getElementKey,
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/utils/HTMLElementUtils';
@@ -248,24 +249,47 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
 /**
  * Deeply transform a given object depth-first and return a new object given a transform function.
  * Useful for iterating through an object and converting values.
+ * Also adds __dhId prop to any element nodes to uniquely identify them.
  *
  * @param value The object to transform.
  * @param transform Function to be called for each key-value pair in the object, allowing for the value to be transformed.
+ * @param id The dhId of the current object. Used as a unique ID for elements.
  * @param key The key of the current object.
  * @returns A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
  */
 export function transformNode(
   value: unknown,
   transform: (key: string, value: unknown) => unknown,
+  id: string,
   key = ''
 ): unknown {
   // We initialize the result to the same value, but if any of the children values change, we'll shallow copy it
   let result = value;
+
+  let nextId = id.replaceAll('/props/children', ''); // The component name is added instead of props/children;
+  if (isElementNode(result)) {
+    const elementKey = getElementKey(result, key);
+    nextId += `/${result[ELEMENT_KEY]}${elementKey ? `:${elementKey}` : ''}`;
+    if (result.props) {
+      // eslint-disable-next-line no-underscore-dangle
+      result.props.__dhId = nextId;
+    } else {
+      result.props = { __dhId: nextId };
+    }
+  } else {
+    nextId += `/${key}`;
+  }
+
   // First check if it's an object or an array - if it is then we need to encode the children first
   if (Array.isArray(result)) {
     let arrayResult: unknown[] = result;
     arrayResult.forEach((childValue, i) => {
-      const newChildValue = transformNode(childValue, transform, `${i}`);
+      const newChildValue = transformNode(
+        childValue,
+        transform,
+        nextId,
+        `${i}`
+      );
       if (newChildValue !== childValue) {
         if (arrayResult === value) {
           arrayResult = [...arrayResult];
@@ -277,7 +301,12 @@ export function transformNode(
   } else if (typeof result === 'object' && result != null) {
     let objResult = result as Record<string, unknown>;
     Object.entries(result).forEach(([childKey, childValue]) => {
-      const newChildValue = transformNode(childValue, transform, childKey);
+      const newChildValue = transformNode(
+        childValue,
+        transform,
+        nextId,
+        childKey
+      );
       if (newChildValue !== childValue) {
         if (objResult === value) {
           objResult = { ...objResult };

@@ -1,17 +1,19 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { dh } from '@deephaven/jsapi-types';
-import { nanoid } from 'nanoid';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
-export type ObjectViewProps = { object: dh.WidgetExportedObject };
+export type ObjectViewProps = {
+  object: dh.WidgetExportedObject;
+  __dhId?: string;
+};
+
 function ObjectView(props: ObjectViewProps): JSX.Element {
-  const { object } = props;
+  const { object, __dhId } = props;
   log.info('Object is', object);
   const { type } = object;
-  const [__dhId] = useState(() => nanoid());
 
   const fetch = useCallback(async () => {
     // We re-export the object in case this object is used in multiple places or closed/opened multiple times
