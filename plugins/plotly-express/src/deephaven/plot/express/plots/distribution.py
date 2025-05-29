@@ -317,7 +317,11 @@ def histogram(
                | bool
                | None = None,
     # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
-    require_filters: bool = False,
+    required_filter_by: str
+                        | list[str]
+                        | bool
+                        | None = None,
+    # bool PartitionedTable only, in which case all partitions are a required filter
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     labels: dict[str, str] | None = None,
