@@ -241,10 +241,10 @@ class DeephavenNode:
     @abstractmethod
     def update_filters(self, filters: dict[str, Any]) -> None:
         """
-        Update the input filters for this node.
+        Update filters on the node.
 
         Args:
-            filters: The input filters to update
+            filters: A dict with column name keys and values that are categories within the columns
         """
         pass
 
@@ -392,6 +392,12 @@ class DeephavenFigureNode(DeephavenNode):
         return self.cached_figure
 
     def update_filters(self, filters: dict[str, Any]) -> None:
+        """
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
         self.filters = filters
         # don't update the parent as it will be updated after the figure is recreated
         self.recreate_figure(update_parent=False)
@@ -510,11 +516,10 @@ class DeephavenLayerNode(DeephavenNode):
 
     def update_filters(self, filters: dict[str, Any]) -> None:
         """
-        Update the input filters for this node. This is called when the underlying partition
-        or a child node changes
+        Update filters on the node.
 
         Args:
-            filters: The input filters to update
+            filters: A dict with column name keys and values that are categories within the columns
         """
         for node in self.nodes:
             node.update_filters(filters)
@@ -593,8 +598,10 @@ class DeephavenHeadNode:
 
     def update_filters(self, filters: dict[str, Any]) -> None:
         """
-        Update the input filters for this node. This is called when the underlying partition
-        or a child node changes
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
         """
         if self.node:
             self.node.update_filters(filters)
@@ -612,7 +619,6 @@ class DeephavenHeadNode:
         if self.node:
             return self.node.filter_columns
         return set()
-
 
 
 class DeephavenFigure:
@@ -1151,7 +1157,13 @@ class DeephavenFigure:
     def update_filters(
         self,
         filters: dict[str, Any],
-    ):
+    ) -> None:
+        """
+        Update filters on the chart.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
         self._head_node.update_filters(filters)
 
     @property
