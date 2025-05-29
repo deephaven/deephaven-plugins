@@ -422,6 +422,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.filterColumnMap = new Map(
         filterColumns.columns.map(({ name, type }) => [name, { name, type }])
       );
+      console.log('filterColumnMap', this.filterColumnMap, filterColumns);
 
       this.filterRequired = false;
 
@@ -824,16 +825,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     return this.filterColumnMap;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   override isFilterRequired(): boolean {
-    console.log(
-      'isFilterRequired called',
-      Array.from(this.requiredColumns).some(
-        column => !this.filterMap || !this.filterMap.has(column)
-      ),
-      this.filterMap,
-      this.requiredColumns
-    );
     // true if all requiredColumns are in the filterColumnMap
     return Array.from(this.requiredColumns).some(
       column => !this.filterMap || !this.filterMap.has(column)
@@ -841,6 +833,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setFilter(filterMap: FilterMap): void {
+    console.log('setFilter', filterMap);
     super.setFilter(filterMap);
 
     this.filterMap = filterMap;

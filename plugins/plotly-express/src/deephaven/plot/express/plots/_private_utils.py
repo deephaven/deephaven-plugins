@@ -335,6 +335,8 @@ def retrieve_input_filter_columns(
         # use the key columns as the filter
         # this is a replacement for one_click_partitioned_table
         filter_by = table.key_columns
+    elif filter_by is None:
+        filter_by = []
     elif not isinstance(filter_by, list):
         filter_by = [filter_by]
 
@@ -343,6 +345,8 @@ def retrieve_input_filter_columns(
         # use the key columns as the filter
         # this is a replacement for one_click_partitioned_table
         required_filter_by = table.key_columns
+    elif required_filter_by is None:
+        required_filter_by = []
     elif not isinstance(required_filter_by, list):
         required_filter_by = [required_filter_by]
 

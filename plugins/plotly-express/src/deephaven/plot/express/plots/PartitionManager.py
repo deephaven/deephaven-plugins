@@ -487,6 +487,7 @@ class PartitionManager:
 
         partition_cols.update(filter_by)
         partition_cols.update(required_filter_by)
+        print(f"Partition cols: {partition_cols}")
 
         # todo - pull to function
         filters = args.pop("filters", None)
