@@ -7,7 +7,8 @@ import pandas as pd
 from deephaven.plot.express import DeephavenFigure
 from typing import List
 
-
+# Deephaven's NULL_INT and NULL_DOUBLE, converted with Plotly's base64 API
+# https://github.com/plotly/plotly.py/pull/4470
 PLOTLY_NULL_INT = {"dtype": "i4", "bdata": "AAAAgA=="}
 PLOTLY_NULL_DOUBLE = {"dtype": "f8", "bdata": "////////7/8="}
 
