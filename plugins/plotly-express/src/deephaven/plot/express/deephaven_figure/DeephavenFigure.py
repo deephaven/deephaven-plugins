@@ -777,7 +777,6 @@ class DeephavenFigure:
                 ],
             }
             self._sent_filter_columns = True
-            print("Sent filter columns:", deephaven["filterColumns"])
 
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)

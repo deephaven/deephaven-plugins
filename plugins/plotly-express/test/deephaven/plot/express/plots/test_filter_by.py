@@ -32,11 +32,26 @@ class LineTestCase(BaseTestCase):
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
+        print("first")
+        import pprint
+
+        pprint.pprint(plotly, deephaven)
+
         chart.update_filters({
             "cat_one": "A"
         })
 
         exported_chart = chart.to_dict(self.exporter)
+
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
+
+        print("second")
+        import pprint
+
+        pprint.pprint(plotly, deephaven)
 
     def test_filters(self):
         import src.deephaven.plot.express as dx

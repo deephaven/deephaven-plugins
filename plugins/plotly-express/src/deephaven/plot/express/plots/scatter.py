@@ -20,9 +20,14 @@ def scatter(
     error_y_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str | list[str] | bool | None = None,
-    # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
-    require_filters: bool = False,
+    filter_by: str
+    | list[str]
+    | bool
+    | None = None,
+    required_filter_by: str
+    | list[str]
+    | bool
+    | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -78,6 +83,15 @@ def scatter(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -206,6 +220,14 @@ def scatter_3d(
     error_z_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str
+               | list[str]
+               | bool
+               | None = None,
+    required_filter_by: str
+                        | list[str]
+                        | bool
+                        | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,
@@ -256,6 +278,15 @@ def scatter_3d(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -352,6 +383,14 @@ def scatter_polar(
     theta: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str
+               | list[str]
+               | bool
+               | None = None,
+    required_filter_by: str
+                        | list[str]
+                        | bool
+                        | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,
@@ -401,6 +440,15 @@ def scatter_polar(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -478,6 +526,14 @@ def scatter_ternary(
     c: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str
+               | list[str]
+               | bool
+               | None = None,
+    required_filter_by: str
+                        | list[str]
+                        | bool
+                        | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,
@@ -522,6 +578,15 @@ def scatter_ternary(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is

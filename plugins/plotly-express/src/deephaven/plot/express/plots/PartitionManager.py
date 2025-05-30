@@ -487,7 +487,6 @@ class PartitionManager:
 
         partition_cols.update(filter_by)
         partition_cols.update(required_filter_by)
-        print(f"Partition cols: {partition_cols}")
 
         # todo - pull to function
         filters = args.pop("filters", None)
@@ -504,7 +503,6 @@ class PartitionManager:
             partitioned_table = args["table"]
 
             has_required_filters = True
-            print(required_filter_by)
             for required_filter in required_filter_by:
                 if (filters and required_filter not in filters) or not filters:
                     has_required_filters = False
