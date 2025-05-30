@@ -36,7 +36,7 @@ jest.mock('./PlotlyExpressChartUtils', () => ({
 function createMockWidget(
   tables: DhType.Table[],
   plotType = 'scatter',
-  title: string | Partial<Layout['title']> = 'Test'
+  title: Partial<Layout['title']> = { text: "Title" }
 ) {
   const layoutAxes: Partial<Layout> = {};
   tables.forEach((_, i) => {

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class LineTestCase(BaseTestCase):
@@ -23,7 +23,6 @@ class LineTestCase(BaseTestCase):
 
     def test_basic_line(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.line(self.source, x="X", y="Y").to_dict(self.exporter)
 
@@ -36,9 +35,9 @@ class LineTestCase(BaseTestCase):
                 "mode": "lines",
                 "name": "",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             }
