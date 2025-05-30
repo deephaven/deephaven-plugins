@@ -1,13 +1,14 @@
 import {
-  GridApi,
-  IViewportDatasource,
+  FilterModel,
   IViewportDatasourceParams,
+  SortModelItem,
 } from '@ag-grid-community/core';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
-import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
+import AgGridSortUtils from '../utils/AgGridSortUtils';
+import AbstractViewportDatasource from './AbstractViewportDatasource';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/TreeViewportDatasource');
 
@@ -18,16 +19,7 @@ export type TreeNode = {
   depth: number;
   index: number;
 };
-export class TreeViewportDatasource implements IViewportDatasource {
-  private params?: IViewportDatasourceParams;
-
-  private gridApi?: GridApi;
-
-  private currentViewport?: {
-    firstRow: number;
-    lastRow: number;
-  };
-
+export class TreeViewportDatasource extends AbstractViewportDatasource {
   /**
    * Create a Viewport Row Model data source that can be used with AG Grid.
    *
@@ -40,17 +32,16 @@ export class TreeViewportDatasource implements IViewportDatasource {
     private dh: typeof DhType,
     private table: DhType.TreeTable
   ) {
+    super();
     this.handleUpdate = this.handleUpdate.bind(this);
     this.handleDisconnect = this.handleDisconnect.bind(this);
-    this.handleFilterChanged = this.handleFilterChanged.bind(this);
-    this.handleSortChanged = this.handleSortChanged.bind(this);
   }
 
   init(params: IViewportDatasourceParams): void {
-    log.debug('Initializing TreeViewportDatasource', params);
-    this.params = params;
+    super.init(params);
     this.startListening();
-    // Set the initial size
+
+    // If we set the size to 0 right away, AG Grid never gives us a viewport to listen to.
     this.params?.setRowCount(Math.max(this.table.size, 1));
   }
 
@@ -112,21 +103,13 @@ export class TreeViewportDatasource implements IViewportDatasource {
     return data;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private handleDisconnect(): void {
     log.info('Table disconnected, stopping listening');
     this.stopListening();
   }
 
-  setGridApi(gridApi: GridApi): void {
-    log.debug('Setting grid API', gridApi);
-    this.gridApi = gridApi;
-    this.gridApi.addEventListener('filterChanged', this.handleFilterChanged);
-    this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
-  }
-
-  private handleFilterChanged(event: unknown): void {
-    log.debug('Filter changed', event);
+  applyFilter(filterModel: FilterModel): void {
+    log.debug('Applying filter', filterModel);
     assertNotNull(this.gridApi);
     this.table.applyFilter(
       AgGridFilterUtils.parseFilterModel(
@@ -135,34 +118,20 @@ export class TreeViewportDatasource implements IViewportDatasource {
         this.gridApi.getFilterModel()
       )
     );
-    this.refreshViewport();
   }
 
-  private handleSortChanged(event: unknown): void {
-    log.debug('Sort changed', event);
-    assertNotNull(this.gridApi);
-    const columnState = this.gridApi.getColumnState();
-    const sortModel = columnState.filter(isSortModelItem);
+  applySort(sortModel: SortModelItem[]): void {
+    log.debug('Applying sort model', sortModel);
     this.table.applySort(AgGridSortUtils.parseSortModel(this.table, sortModel));
-    this.refreshViewport();
   }
 
-  refreshViewport(): void {
-    if (this.currentViewport == null) {
-      log.warn('No current viewport to refresh');
-      return;
-    }
-    const { firstRow, lastRow } = this.currentViewport;
-    this.table.setViewport(firstRow, lastRow);
-  }
-
-  setViewportRange(firstRow: number, lastRow: number): void {
-    log.debug('setViewportRange', firstRow, lastRow);
-    this.currentViewport = { firstRow, lastRow };
+  applyViewport(firstRow: number, lastRow: number): void {
+    log.debug('Applying viewport', firstRow, lastRow);
     this.table.setViewport(firstRow, lastRow);
   }
 
   destroy(): void {
+    super.destroy();
     this.stopListening();
     this.table.close();
   }
