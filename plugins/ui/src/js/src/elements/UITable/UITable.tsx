@@ -528,7 +528,10 @@ export function UITable({
     };
   }, [irisGridServerProps, initialHydratedState]);
 
-  const inputFilters = useDashboardColumnFilters(model?.columns ?? EMPTY_ARRAY);
+  const inputFilters = useDashboardColumnFilters(
+    model?.columns ?? EMPTY_ARRAY,
+    model?.table
+  );
 
   return model ? (
     <div

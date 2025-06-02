@@ -266,9 +266,16 @@ export function transformNode(
   // We initialize the result to the same value, but if any of the children values change, we'll shallow copy it
   let result = value;
 
-  let nextId = id.replaceAll('/props/children', ''); // The component name is added instead of props/children;
+  let nextId = id;
+
+  // The component names will be added instead of props/children
+  if (key === 'children' && id.endsWith('/props')) {
+    nextId = nextId.slice(0, -1 * '/props'.length);
+  }
+
   if (isElementNode(result)) {
-    const elementKey = getElementKey(result, key);
+    // Don't fallback to key if it's children, only fallback should be an array or object index
+    const elementKey = getElementKey(result, key === 'children' ? '' : key);
     nextId += `/${result[ELEMENT_KEY]}${elementKey ? `:${elementKey}` : ''}`;
     if (result.props) {
       // eslint-disable-next-line no-underscore-dangle
@@ -276,7 +283,9 @@ export function transformNode(
     } else {
       result.props = { __dhId: nextId };
     }
-  } else {
+  } else if (key !== 'children') {
+    // We have already removed trailing /props if we are at /props/children, so don't add /children
+    // The next item (children) must be either a child element or an array of children
     nextId += `/${key}`;
   }
 

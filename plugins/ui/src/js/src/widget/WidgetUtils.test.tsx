@@ -344,16 +344,40 @@ describe('transformNode', () => {
     expect((result as any).b).toBe(value.b);
   });
 
-  it('adds dhId to elements', () => {
+  it('adds dhId to root and nested child elements', () => {
     const transform = jest.fn((k, v) => v);
     const value = {
       [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        children: {
+          [ELEMENT_KEY]: ELEMENT_NAME.button,
+          props: {
+            children: {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: { textValue: 'Click me' },
+            },
+          },
+        },
+      },
     };
     const result = transformNode(value, transform, 'testRoot');
     expect(result).toEqual({
       [ELEMENT_KEY]: ELEMENT_NAME.flex,
       props: {
         __dhId: `testRoot/${ELEMENT_NAME.flex}`,
+        children: {
+          [ELEMENT_KEY]: ELEMENT_NAME.button,
+          props: {
+            __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}`,
+            children: {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: {
+                textValue: 'Click me',
+                __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}/${ELEMENT_NAME.text}`,
+              },
+            },
+          },
+        },
       },
     });
     expect(transform).toHaveBeenCalledWith('', value);
@@ -367,7 +391,13 @@ describe('transformNode', () => {
         children: [
           {
             [ELEMENT_KEY]: ELEMENT_NAME.button,
-            props: { key: 'buttonKey', textValue: 'button' },
+            props: {
+              key: 'buttonKey',
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: { textValue: 'button' },
+              },
+            },
           },
           {
             [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
@@ -387,8 +417,14 @@ describe('transformNode', () => {
             [ELEMENT_KEY]: ELEMENT_NAME.button,
             props: {
               key: 'buttonKey',
-              textValue: 'button',
               __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}:buttonKey`,
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: {
+                  textValue: 'button',
+                  __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}:buttonKey/${ELEMENT_NAME.text}`,
+                },
+              },
             },
           },
           {
@@ -413,7 +449,13 @@ describe('transformNode', () => {
         other: [
           {
             [ELEMENT_KEY]: ELEMENT_NAME.button,
-            props: { key: 'buttonKey', textValue: 'button' },
+            props: {
+              key: 'buttonKey',
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: { textValue: 'button' },
+              },
+            },
           },
           {
             [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
@@ -439,8 +481,14 @@ describe('transformNode', () => {
             [ELEMENT_KEY]: ELEMENT_NAME.button,
             props: {
               key: 'buttonKey',
-              textValue: 'button',
               __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/${ELEMENT_NAME.button}:buttonKey`,
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: {
+                  textValue: 'button',
+                  __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/${ELEMENT_NAME.button}:buttonKey/${ELEMENT_NAME.text}`,
+                },
+              },
             },
           },
           {
