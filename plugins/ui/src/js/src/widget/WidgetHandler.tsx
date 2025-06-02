@@ -58,6 +58,9 @@ export interface WidgetHandlerProps {
   /** Widget for this to handle */
   widgetDescriptor: WidgetDescriptor;
 
+  /** Widget ID maintained by the DashboardPlugin */
+  id: string;
+
   /** Widget data to display */
   initialData?: ReadonlyWidgetData;
 
@@ -73,6 +76,7 @@ function WidgetHandler({
   onDataChange = EMPTY_FUNCTION,
   widgetDescriptor,
   initialData: initialDataProp,
+  id,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
   const [isLoading, setIsLoading] = useState(true);
@@ -208,49 +212,53 @@ function WidgetHandler({
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
       const deadCallableMap = new Map(renderedCallableMap.current);
-      const hydratedDocument = transformNode(doc, (key, value) => {
-        // Need to re-hydrate any objects that are defined
-        if (isCallableNode(value)) {
-          const callableId = value[CALLABLE_KEY];
-          deadCallableMap.delete(callableId);
-          if (renderedCallableMap.current.has(callableId)) {
-            log.debug2('Reusing callableId', callableId);
-            return renderedCallableMap.current.get(callableId);
+      const hydratedDocument = transformNode(
+        doc,
+        (key, value) => {
+          // Need to re-hydrate any objects that are defined
+          if (isCallableNode(value)) {
+            const callableId = value[CALLABLE_KEY];
+            deadCallableMap.delete(callableId);
+            if (renderedCallableMap.current.has(callableId)) {
+              log.debug2('Reusing callableId', callableId);
+              return renderedCallableMap.current.get(callableId);
+            }
+            log.debug2('Registering callableId', callableId);
+            const callable = wrapCallable(
+              jsonClient,
+              callableId,
+              callableFinalizationRegistry,
+              false
+            );
+            renderedCallableMap.current.set(callableId, callable);
+            return callable;
           }
-          log.debug2('Registering callableId', callableId);
-          const callable = wrapCallable(
-            jsonClient,
-            callableId,
-            callableFinalizationRegistry,
-            false
-          );
-          renderedCallableMap.current.set(callableId, callable);
-          return callable;
-        }
-        if (isObjectNode(value)) {
-          // Replace this node with the exported object
-          const objectKey = value[OBJECT_KEY];
-          const exportedObject = exportedObjectMap.current.get(objectKey);
-          if (exportedObject === undefined) {
-            // The map should always have the exported object for a key, otherwise the protocol is broken
-            throw new Error(`Invalid exported object key ${objectKey}`);
+          if (isObjectNode(value)) {
+            // Replace this node with the exported object
+            const objectKey = value[OBJECT_KEY];
+            const exportedObject = exportedObjectMap.current.get(objectKey);
+            if (exportedObject === undefined) {
+              // The map should always have the exported object for a key, otherwise the protocol is broken
+              throw new Error(`Invalid exported object key ${objectKey}`);
+            }
+            deadObjectMap.delete(objectKey);
+            return exportedObject;
           }
-          deadObjectMap.delete(objectKey);
-          return exportedObject;
-        }
 
-        if (isElementNode(value)) {
-          // Replace the elements node with the Component it maps to
-          try {
-            return getComponentForElement(value);
-          } catch (e) {
-            log.warn('Error getting component for element', e);
-            return value;
+          if (isElementNode(value)) {
+            // Replace the elements node with the Component it maps to
+            try {
+              return getComponentForElement(value);
+            } catch (e) {
+              log.warn('Error getting component for element', e);
+              return value;
+            }
           }
-        }
 
-        return value;
-      });
+          return value;
+        },
+        id
+      );
 
       // Close any objects that are no longer referenced
       deadObjectMap.forEach((deadObject, objectKey) => {
@@ -275,7 +283,13 @@ function WidgetHandler({
       );
       return hydratedDocument;
     },
-    [callableFinalizationRegistry, document, jsonClient, renderEmptyDocument]
+    [
+      callableFinalizationRegistry,
+      document,
+      jsonClient,
+      renderEmptyDocument,
+      id,
+    ]
   );
 
   const updateExportedObjects = useCallback(

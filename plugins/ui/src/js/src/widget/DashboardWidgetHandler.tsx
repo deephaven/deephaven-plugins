@@ -41,6 +41,7 @@ function DashboardWidgetHandler({
 
   return (
     <WidgetHandler
+      id={id}
       onDataChange={handleDataChange}
       onClose={handleClose}
       // eslint-disable-next-line react/jsx-props-no-spreading
