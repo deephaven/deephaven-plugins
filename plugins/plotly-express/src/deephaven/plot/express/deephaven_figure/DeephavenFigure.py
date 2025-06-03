@@ -250,7 +250,7 @@ class DeephavenNode:
 
     @property
     @abstractmethod
-    def filter_columns(self) -> set:
+    def filter_columns(self) -> set[FilterColumn]:
         """
         Get the input filter columns for this node
 
@@ -300,7 +300,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.func = func if func else lambda **kwargs: None
         self.cached_figure = None
         self.revision_manager = RevisionManager()
-        self._filter_columns = filter_columns
+        self._filter_columns = filter_columns if filter_columns else set()
         self.filters = None
         self.prev_filter_set = None
 
@@ -403,7 +403,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.recreate_figure(update_parent=False)
 
     @property
-    def filter_columns(self) -> set:
+    def filter_columns(self) -> set[FilterColumn]:
         """
         Get the input filter columns for this node
 
@@ -527,7 +527,7 @@ class DeephavenLayerNode(DeephavenNode):
         self.recreate_figure(update_parent=False)
 
     @property
-    def filter_columns(self) -> set:
+    def filter_columns(self) -> set[FilterColumn]:
         """
         Get the input filter columns for this node
 
@@ -537,8 +537,10 @@ class DeephavenLayerNode(DeephavenNode):
         new_filter_columns = set()
         for node in self.nodes:
             new_filter_columns.update(node.filter_columns)
-        return new_filter_columns
 
+        print(f"DeephavenLayerNode.filter_columns {new_filter_columns}")
+
+        return new_filter_columns
 
 
 class DeephavenHeadNode:
@@ -609,7 +611,7 @@ class DeephavenHeadNode:
         self.recreate_figure()
 
     @property
-    def filter_columns(self) -> set:
+    def filter_columns(self) -> set[FilterColumn]:
         """
         Get the input filter columns for this node
 
@@ -769,11 +771,13 @@ class DeephavenFigure:
             self._sent_calendar = True
 
         # the input filters do not update so they only need to be sent once
-        # TODO fix - this is not really set once because a new figure was generated to send it
         if not self._sent_filter_columns and (filter_columns := self.filter_columns):
             deephaven["filterColumns"] = {
                 "columns": [
-                    filter_column._asdict() for filter_column in filter_columns
+                    # _asdict is not actually protected, it is just given an underscore
+                    # to prevent conflicts with field names
+                    filter_column._asdict()
+                    for filter_column in filter_columns
                 ],
             }
             self._sent_filter_columns = True
@@ -830,7 +834,7 @@ class DeephavenFigure:
         table: Table | PartitionedTable,
         key_column_table: Table | None,
         func: Callable,
-        filter_columns: dict | None = None,
+        filter_columns: set[FilterColumn] | None = None,
     ) -> None:
         """
         Add a figure to the graph. It is assumed that this is the first figure
@@ -841,6 +845,7 @@ class DeephavenFigure:
             table: The table to pull data from
             key_column_table: The table with partitions, used by the DeephavenFigureListener
             func: The function to call
+            filter_columns: The filter columns to use for this figure node
 
         """
         if isinstance(table, Table) and not table.is_refreshing:
@@ -1166,7 +1171,7 @@ class DeephavenFigure:
         self._head_node.update_filters(filters)
 
     @property
-    def filter_columns(self) -> set[FilterColumn] | None:
+    def filter_columns(self) -> set[FilterColumn]:
         """
         Get the input filter columns for this figure
 
@@ -1179,5 +1184,11 @@ class DeephavenFigure:
         return figure.filter_columns
 
     @filter_columns.setter
-    def filter_columns(self, value):
+    def filter_columns(self, value: set[FilterColumn]) -> None:
+        """
+        Set the input filter columns for this figure.
+
+        Args:
+            value: The input filter columns to set
+        """
         self._filter_columns = value
