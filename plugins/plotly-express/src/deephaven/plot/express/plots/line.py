@@ -20,14 +20,8 @@ def line(
     error_y_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-    | list[str]
-    | bool
-    | None = None,
-    required_filter_by: str
-    | list[str]
-    | bool
-    | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | list[str] | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -227,14 +221,8 @@ def line_3d(
     error_z_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -397,14 +385,8 @@ def line_polar(
     theta: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -553,14 +535,8 @@ def line_ternary(
     c: str | None = None,
     by: str | None | list[str] = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,

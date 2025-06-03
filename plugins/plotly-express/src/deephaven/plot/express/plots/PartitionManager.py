@@ -488,7 +488,6 @@ class PartitionManager:
         partition_cols.update(filter_by)
         partition_cols.update(required_filter_by)
 
-        # todo - pull to function
         filters = args.pop("filters", None)
         if filters is None and (filter_by or required_filter_by):
             # if there are input filters wait for them before creating the proper chart
@@ -508,8 +507,8 @@ class PartitionManager:
                     has_required_filters = False
 
             if filters and has_required_filters:
-                    built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
-                    partitioned_table = partitioned_table.filter(built_filter)
+                built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
+                partitioned_table = partitioned_table.filter(built_filter)
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden

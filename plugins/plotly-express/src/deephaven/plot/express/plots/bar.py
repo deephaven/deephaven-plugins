@@ -19,14 +19,8 @@ def bar(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     error_x: str | None = None,
@@ -237,14 +231,8 @@ def timeline(
     y: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     text: str | None = None,

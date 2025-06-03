@@ -308,6 +308,32 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     return calendar
 
 
+def get_filter_columns(
+    table: PartitionableTableLike, filter_by: bool | str | list[str] | None
+) -> list[str]:
+    """
+    Convert the filter_by argument to a list of columns to filter by.
+
+    Args:
+        table: if the table is a PartitionedTable, the key columns may be the filter
+        filter_by: the filter by before conversion
+
+    Returns:
+        A list of columns to filter by
+    """
+    if filter_by is True and isinstance(table, PartitionedTable):
+        # if the table is already partitioned and filter_by is True,
+        # use the key columns as the filter
+        # this is a replacement for one_click_partitioned_table
+        filter_by = table.key_columns
+    elif filter_by is None or isinstance(filter_by, bool):
+        filter_by = []
+    elif isinstance(filter_by, str):
+        filter_by = [filter_by]
+
+    return filter_by
+
+
 def retrieve_input_filter_columns(
     render_args: dict[str, Any]
 ) -> tuple[set[FilterColumn], list[str], list[str]]:
@@ -327,28 +353,10 @@ def retrieve_input_filter_columns(
     else:
         columns = table.columns
 
-    filter_by = render_args["args"].get("filter_by", [])
-    required_filter_by = render_args["args"].get("required_filter_by", [])
-
-    if filter_by is True and isinstance(table, PartitionedTable):
-        # if the table is already partitioned and filter_by is True,
-        # use the key columns as the filter
-        # this is a replacement for one_click_partitioned_table
-        filter_by = table.key_columns
-    elif filter_by is None:
-        filter_by = []
-    elif not isinstance(filter_by, list):
-        filter_by = [filter_by]
-
-    if required_filter_by is True and isinstance(table, PartitionedTable):
-        # if the table is already partitioned and filter_by is True,
-        # use the key columns as the filter
-        # this is a replacement for one_click_partitioned_table
-        required_filter_by = table.key_columns
-    elif required_filter_by is None:
-        required_filter_by = []
-    elif not isinstance(required_filter_by, list):
-        required_filter_by = [required_filter_by]
+    filter_by = get_filter_columns(table, render_args["args"].get("filter_by", []))
+    required_filter_by = get_filter_columns(
+        table, render_args["args"].get("required_filter_by", [])
+    )
 
     filter_columns = set(
         [

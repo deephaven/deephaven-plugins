@@ -20,14 +20,8 @@ def scatter(
     error_y_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-    | list[str]
-    | bool
-    | None = None,
-    required_filter_by: str
-    | list[str]
-    | bool
-    | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -220,14 +214,8 @@ def scatter_3d(
     error_z_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,
@@ -383,14 +371,8 @@ def scatter_polar(
     theta: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,
@@ -526,14 +508,8 @@ def scatter_ternary(
     c: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | None = None,

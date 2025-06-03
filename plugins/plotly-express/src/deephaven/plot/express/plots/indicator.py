@@ -15,14 +15,8 @@ def indicator(
     text: str | Literal[False] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | tuple[str, ...] = "gauge_color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     increasing_color: str | list[str] | None = None,
     decreasing_color: str | list[str] | None = None,
     gauge_color: str | list[str] | None = None,

@@ -16,14 +16,8 @@ def area(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] | None = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     symbol: str | list[str] | None = None,

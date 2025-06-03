@@ -22,34 +22,28 @@ from ..types import PartitionableTableLike, Orientation
 
 
 def violin(
-        table: PartitionableTableLike,
-        x: str | list[str] | None = None,
-        y: str | list[str] | None = None,
-        by: str | list[str] | None = None,
-        by_vars: str | list[str] = VIOLIN_DEFAULTS["by_vars"],
-        filter_by: str
-                   | list[str]
-                   | bool
-                   | None = None,
-        required_filter_by: str
-                            | list[str]
-                            | bool
-                            | None = None,
-        color: str | list[str] | None = None,
-        hover_name: str | None = None,
-        labels: dict[str, str] | None = None,
-        color_discrete_sequence: list[str] | None = None,
-        color_discrete_map: dict[str | tuple[str], str] | None = None,
-        violinmode: str = VIOLIN_DEFAULTS["violinmode"],
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] | None = None,
-        range_y: list[int] | None = None,
-        points: bool | str = VIOLIN_DEFAULTS["points"],
-        box: bool = False,
-        title: str | None = None,
-        template: str | None = None,
-        unsafe_update_figure: Callable = VIOLIN_DEFAULTS["unsafe_update_figure"],
+    table: PartitionableTableLike,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] = VIOLIN_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
+    color: str | list[str] | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    violinmode: str = VIOLIN_DEFAULTS["violinmode"],
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    points: bool | str = VIOLIN_DEFAULTS["points"],
+    box: bool = False,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = VIOLIN_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a violin chart
 
@@ -120,34 +114,28 @@ def violin(
 
 
 def box(
-        table: PartitionableTableLike,
-        x: str | list[str] | None = None,
-        y: str | list[str] | None = None,
-        by: str | list[str] | None = None,
-        by_vars: str | list[str] = BOX_DEFAULTS["by_vars"],
-        filter_by: str
-                   | list[str]
-                   | bool
-                   | None = None,
-        required_filter_by: str
-                            | list[str]
-                            | bool
-                            | None = None,
-        color: str | list[str] | None = None,
-        hover_name: str | None = None,
-        labels: dict[str, str] | None = None,
-        color_discrete_sequence: list[str] | None = None,
-        color_discrete_map: dict[str | tuple[str], str] | None = None,
-        boxmode: str = BOX_DEFAULTS["boxmode"],
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] | None = None,
-        range_y: list[int] | None = None,
-        points: bool | str = BOX_DEFAULTS["points"],
-        notched: bool = False,
-        title: str | None = None,
-        template: str | None = None,
-        unsafe_update_figure: Callable = BOX_DEFAULTS["unsafe_update_figure"],
+    table: PartitionableTableLike,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] = BOX_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
+    color: str | list[str] | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    boxmode: str = BOX_DEFAULTS["boxmode"],
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    points: bool | str = BOX_DEFAULTS["points"],
+    notched: bool = False,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = BOX_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a box chart
 
@@ -218,32 +206,26 @@ def box(
 
 
 def strip(
-        table: PartitionableTableLike,
-        x: str | list[str] | None = None,
-        y: str | list[str] | None = None,
-        by: str | list[str] | None = None,
-        by_vars: str | list[str] = STRIP_DEFAULTS["by_vars"],
-        filter_by: str
-                   | list[str]
-                   | bool
-                   | None = None,
-        required_filter_by: str
-                            | list[str]
-                            | bool
-                            | None = None,
-        color: str | list[str] | None = None,
-        hover_name: str | None = None,
-        labels: dict[str, str] | None = None,
-        color_discrete_sequence: list[str] | None = None,
-        color_discrete_map: dict[str | tuple[str], str] | None = None,
-        stripmode: bool | str = STRIP_DEFAULTS["stripmode"],
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] | None = None,
-        range_y: list[int] | None = None,
-        title: str | None = None,
-        template: str | None = None,
-        unsafe_update_figure: Callable = STRIP_DEFAULTS["unsafe_update_figure"],
+    table: PartitionableTableLike,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] = STRIP_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
+    color: str | list[str] | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    stripmode: bool | str = STRIP_DEFAULTS["stripmode"],
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = STRIP_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a strip chart
 
@@ -310,24 +292,24 @@ def strip(
 
 
 def _ecdf(
-        table: Table | None = None,
-        x: str | list[str] | None = None,
-        y: str | list[str] | None = None,
-        markers: bool = False,
-        lines: bool = True,
-        color_discrete_sequence: list[str] | None = None,
-        line_dash_sequence: list[str] | None = None,
-        symbol_sequence: list[str] | None = None,
-        opacity: float | None = None,
-        ecdfnorm: str = "probability",
-        ecdfmode: str = "standard",
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] | None = None,
-        range_y: list[int] | None = None,
-        title: str | None = None,
-        template: str | None = None,
-        unsafe_update_figure: Callable = default_callback,
+    table: Table | None = None,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    markers: bool = False,
+    lines: bool = True,
+    color_discrete_sequence: list[str] | None = None,
+    line_dash_sequence: list[str] | None = None,
+    symbol_sequence: list[str] | None = None,
+    opacity: float | None = None,
+    ecdfnorm: str = "probability",
+    ecdfmode: str = "standard",
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
 
@@ -358,44 +340,38 @@ def _ecdf(
 
 
 def histogram(
-        table: PartitionableTableLike,
-        x: str | list[str] | None = None,
-        y: str | list[str] | None = None,
-        by: str | list[str] | None = None,
-        by_vars: str | list[str] = HISTOGRAM_DEFAULTS["by_vars"],
-        filter_by: str
-                   | list[str]
-                   | bool
-                   | None = None,
-        required_filter_by: str
-                            | list[str]
-                            | bool
-                            | None = None,
-        color: str | list[str] | None = None,
-        pattern_shape: str | list[str] | None = None,
-        labels: dict[str, str] | None = None,
-        color_discrete_sequence: list[str] | None = None,
-        color_discrete_map: dict[str | tuple[str], str] | None = None,
-        pattern_shape_sequence: list[str] | None = None,
-        pattern_shape_map: dict[str | tuple[str], str] | None = None,
-        marginal: str | None = None,
-        opacity: float | None = None,
-        orientation: Orientation | None = None,
-        barmode: str = HISTOGRAM_DEFAULTS["barmode"],
-        barnorm: str = HISTOGRAM_DEFAULTS["barnorm"],
-        histnorm: str = HISTOGRAM_DEFAULTS["histnorm"],
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] | None = None,
-        range_y: list[int] | None = None,
-        range_bins: list[int] = HISTOGRAM_DEFAULTS["range_bins"],
-        histfunc: str = HISTOGRAM_DEFAULTS["histfunc"],
-        cumulative: bool = HISTOGRAM_DEFAULTS["cumulative"],
-        nbins: int = HISTOGRAM_DEFAULTS["nbins"],
-        text_auto: bool | str = False,
-        title: str | None = None,
-        template: str | None = None,
-        unsafe_update_figure: Callable = default_callback,
+    table: PartitionableTableLike,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] = HISTOGRAM_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
+    color: str | list[str] | None = None,
+    pattern_shape: str | list[str] | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    pattern_shape_sequence: list[str] | None = None,
+    pattern_shape_map: dict[str | tuple[str], str] | None = None,
+    marginal: str | None = None,
+    opacity: float | None = None,
+    orientation: Orientation | None = None,
+    barmode: str = HISTOGRAM_DEFAULTS["barmode"],
+    barnorm: str = HISTOGRAM_DEFAULTS["barnorm"],
+    histnorm: str = HISTOGRAM_DEFAULTS["histnorm"],
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    range_bins: list[int] = HISTOGRAM_DEFAULTS["range_bins"],
+    histfunc: str = HISTOGRAM_DEFAULTS["histfunc"],
+    cumulative: bool = HISTOGRAM_DEFAULTS["cumulative"],
+    nbins: int = HISTOGRAM_DEFAULTS["nbins"],
+    text_auto: bool | str = False,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a histogram
 

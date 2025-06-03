@@ -139,7 +139,7 @@ def has_arg(call_args: dict[str, Any] | None, check: str | Callable) -> bool:
 
 def get_filter_name_set(
     filter_columns: set[FilterColumn],
-):
+) -> set[str]:
     """
     Get the filter name set for the given filter columns.
 
@@ -188,7 +188,9 @@ def get_matching_filters(
     """
     # At the moment, input filters do not have a column type when sent from the client, so simplify the set
     name_set = get_filter_name_set(filter_columns)
-    return {column: filter for column, filter in filters.items() if column in name_set}
+    return {
+        column: filter_ for column, filter_ in filters.items() if column in name_set
+    }
 
 
 class DeephavenNode:

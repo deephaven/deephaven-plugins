@@ -20,14 +20,8 @@ def scatter_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-        filter_by: str
-                   | list[str]
-                   | bool
-                   | None = None,
-        required_filter_by: str
-                            | list[str]
-                            | bool
-                            | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -171,14 +165,8 @@ def scatter_mapbox(
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -306,14 +294,8 @@ def line_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -465,14 +447,8 @@ def line_mapbox(
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
-    required_filter_by: str
-                        | list[str]
-                        | bool
-                        | None = None,
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     text: str | None = None,
     size: str | list[str] | None = None,
