@@ -27,6 +27,31 @@ def remap_types(
             df[col] = df[col].astype("Float64")
 
 
+DEFAULT_PLOTLY_TRACE = {
+    "hovertemplate": "x=%{x}<br>y=%{y}<extra></extra>",
+    "legendgroup": "",
+    "marker": {"color": "#636efa", "symbol": "circle"},
+    "mode": "markers",
+    "name": "",
+    "orientation": "v",
+    "showlegend": False,
+    "type": "scatter",
+    "x": [],
+    "xaxis": "x",
+    "y": [],
+    "yaxis": "y",
+}
+
+DEFAULT_PLOTLY_DATA = [DEFAULT_PLOTLY_TRACE]
+
+DEFAULT_PLOTLY_LAYOUT = {
+    "legend": {"tracegroupgap": 0},
+    "margin": {"t": 60},
+    "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
+    "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "y"}},
+}
+
+
 class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

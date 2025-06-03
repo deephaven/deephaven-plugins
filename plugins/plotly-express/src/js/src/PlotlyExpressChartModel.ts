@@ -33,7 +33,6 @@ import {
   IS_WEBGL_SUPPORTED,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
-import { LayoutUtils } from '@deephaven/dashboard';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
@@ -173,8 +172,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   dataTypeMap: Map<string, string> = new Map();
 
   filterColumnMap: FilterColumnMap = new Map();
-
-  filterRequired = false;
 
   filterMap: FilterMap | null = null;
 
@@ -423,8 +420,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.filterColumnMap = new Map(
         filterColumns.columns.map(({ name, type }) => [name, { name, type }])
       );
-
-      this.filterRequired = false;
 
       // get all columns that have required = true
       this.requiredColumns = new Set(
@@ -826,14 +821,13 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override isFilterRequired(): boolean {
-    // true if all requiredColumns are in the filterColumnMap
+    // if any of the required columns are not in the filter map, then filters are still required
     return Array.from(this.requiredColumns).some(
       column => !this.filterMap || !this.filterMap.has(column)
     );
   }
 
   override setFilter(filterMap: FilterMap): void {
-    console.log('setFilter', filterMap);
     super.setFilter(filterMap);
 
     this.filterMap = filterMap;
@@ -843,10 +837,17 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  /**
+   * Fire an event to update the filters on the chart.
+   * @param filterMap The filter map to send to the server
+   */
   fireFilterUpdated(filterMap: FilterMap): void {
     // Only send the filter update if filters are not required or all filters are set
     // to prevent unnecessary updates
-    if (!this.filterRequired || filterMap.size === this.filterColumnMap.size) {
+    if (
+      !this.isFilterRequired() ||
+      filterMap.size === this.filterColumnMap.size
+    ) {
       this.widget?.sendMessage(
         JSON.stringify({
           type: 'FILTER',

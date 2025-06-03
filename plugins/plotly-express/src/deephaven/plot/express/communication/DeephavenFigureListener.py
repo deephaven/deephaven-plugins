@@ -176,7 +176,7 @@ class DeephavenFigureListener:
         elif message["type"] == "FILTER":
             self._figure.update_filters(message["filterMap"])
             revision = self._revision_manager.get_revision()
-            # self._figure.get_head_node().recreate_figure()
+            # updating the filters automatically recreates the figure, so it's ready to send
             figure = self._get_figure()
             try:
                 self._connection.on_data(*self._build_figure_message(figure, revision))

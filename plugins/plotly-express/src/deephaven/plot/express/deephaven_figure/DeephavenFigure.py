@@ -540,8 +540,6 @@ class DeephavenLayerNode(DeephavenNode):
         for node in self.nodes:
             new_filter_columns.update(node.filter_columns)
 
-        print(f"DeephavenLayerNode.filter_columns {new_filter_columns}")
-
         return new_filter_columns
 
 

@@ -59,10 +59,10 @@ def indicator(
         create the partitions are used.
         If no filters are specified, all partitions are shown on the chart.
       required_filter_by: A column or list of columns that contain values to filter the chart by.
-        Values set in input filters for the relevant columns determine the exact values to display.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
         If a boolean is passed and the table is partitioned, all partition key columns used to
         create the partitions are used.
-        All required input filters must be set for the chart to display any data.
+        All required input filters or linkers must be set for the chart to display any data.
       increasing_color: A column or list of columns used for a plot by on delta increasing color.
         Only valid if reference is not None.
         See increasing_color_map for additional behaviors.

@@ -1,6 +1,6 @@
 # Filter By
 
-To plot a subset of a table based on a column value, use the `filter_by` and `required_filter_by` parameters. These parameters accept column(s) denoting variables to filter on in the dataset. The plot shows only the data that matches the filter criteria. `filter_by` does not require the input filter to be set on that column whereas `required_filter_by` does.
+To plot a subset of a table based on a column value, use the `filter_by` and `required_filter_by` parameters. These parameters accept column(s) denoting variables to filter on in the dataset. The plot shows only the data that matches the filter criteria. `filter_by` does not require the [input filter](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#input-filters) or [linker](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#linker) to be set on that column whereas `required_filter_by` does.
 
 Under the hood, the Deephaven query engine performs a `partition_by` table operation on the given filter column. This efficient implementation means that plots with many groups can be filtered and redrawn quickly, even with large datasets.
 
@@ -8,7 +8,7 @@ Under the hood, the Deephaven query engine performs a `partition_by` table opera
 
 ### Filter by a categorical variable
 
-To filter on a single column, provide a column to `filter_by`. The chart is filtered to match the value of the filter variable entered in the corresponding input filter. If the input filter is empty, all groups within the column are shown.
+To filter on a single column, provide a column to `filter_by`. The chart is filtered to match the value of the filter variable from the corresponding input filter or link. If the input filter or link is not set, all groups within the column are shown.
 
 ```python
 import deephaven.plot.express as dx
@@ -21,7 +21,7 @@ filtered_line_plot = dx.line(stocks, x="Timestamp", y="Price", filter_by="Sym")
 
 ### Filter by multiple categorical variables
 
-To filter on multiple columns, provide columns to `filter_by`. The chart is filtered to match the values of the filter variables entered in the corresponding input filters. If the input filters are empty, all groups of variables are shown.
+To filter on multiple columns, provide columns to `filter_by`. The chart is filtered to match the values of the filter variables from the corresponding input filters or links. If the input filters or links are not set, all groups of variables are shown.
 
 ```python
 import deephaven.plot.express as dx
@@ -36,7 +36,7 @@ filtered_line_plot = dx.line(
 
 ### Filter by a required variable
 
-To require a filter on a column, provide a column to `required_filter_by`. The chart is filtered to match the value of the filter variable entered in the corresponding input filter. If the input filter is empty, no data is shown.
+To require a filter on a column, provide a column to `required_filter_by`. The chart is filtered to match the value of the filter variable from the corresponding input filter or link. If the input filter or link is not set, no data is shown.
 
 ```python
 import deephaven.plot.express as dx
@@ -49,7 +49,7 @@ filtered_line_plot = dx.line(stocks, x="Timestamp", y="Price", required_filter_b
 
 ### Filter by optional and required variables
 
-To mix optional and required filters, provide columns to both `filter_by` and `required_filter_by`. The chart is filtered to match the values of the filter variables entered in the corresponding input filters. If only the `required_filter_by` input filter is empty, no data is shown. If only the `filter_by` input filter is empty, all groups within the `filter_by` column are shown.
+To mix optional and required filters, provide columns to both `filter_by` and `required_filter_by`. The chart is filtered to match the values of the filter variables from the corresponding input filters or links. If only the `required_filter_by` input filter or link is not set, no data is shown. If only the `filter_by` input filter or link is not set, all groups within the `filter_by` column are shown.
 
 > [!NOTE]
 > Currently, mixing optional and required filters displays a message that all filters are required. Only the `required_filter_by` filters are actually required and the message is dismissed when all of those are provided.
