@@ -6,6 +6,7 @@ import { type WidgetPanelProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
+import { LayoutUtils } from '@deephaven/dashboard';
 
 export function PlotlyExpressChartPanel(
   props: WidgetPanelProps<dh.Widget>

@@ -33,6 +33,7 @@ import {
   IS_WEBGL_SUPPORTED,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
+import { LayoutUtils } from '@deephaven/dashboard';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
@@ -422,7 +423,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.filterColumnMap = new Map(
         filterColumns.columns.map(({ name, type }) => [name, { name, type }])
       );
-      console.log('filterColumnMap', this.filterColumnMap, filterColumns);
 
       this.filterRequired = false;
 
