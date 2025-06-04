@@ -10,7 +10,6 @@ import {
   PlotlyChartWidgetData,
   setDefaultValueFormat,
 } from './PlotlyExpressChartUtils';
-import { l } from 'vite/dist/node/types.d-aGj9QkWt';
 
 const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
