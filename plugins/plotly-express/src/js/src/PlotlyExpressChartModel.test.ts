@@ -5,10 +5,12 @@ import { ChartModel } from '@deephaven/chart';
 import { Formatter } from '@deephaven/jsapi-utils';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import {
+  FilterColumns,
   getWidgetData,
   PlotlyChartWidgetData,
   setDefaultValueFormat,
 } from './PlotlyExpressChartUtils';
+import { l } from 'vite/dist/node/types.d-aGj9QkWt';
 
 const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
@@ -36,7 +38,9 @@ jest.mock('./PlotlyExpressChartUtils', () => ({
 function createMockWidget(
   tables: DhType.Table[],
   plotType = 'scatter',
-  title: string | Partial<Layout['title']> = 'Test'
+  title: string | Partial<Layout['title']> | undefined = 'Test',
+  filterColumns: FilterColumns | undefined = undefined,
+  layoutTitle: string | undefined = undefined
 ) {
   const layoutAxes: Partial<Layout> = {};
   tables.forEach((_, i) => {
@@ -75,6 +79,7 @@ function createMockWidget(
           businessPeriods: [{ open: '08:00', close: '17:00' }],
           name: 'Test',
         },
+        filterColumns,
       },
       plotly: {
         data: tables.map((_, i) => ({
@@ -85,6 +90,11 @@ function createMockWidget(
         })),
         layout: {
           title,
+          legend: {
+            title: {
+              text: layoutTitle,
+            },
+          },
           ...layoutAxes,
         },
       },
@@ -102,6 +112,7 @@ function createMockWidget(
       close: jest.fn(),
     })),
     addEventListener: jest.fn(),
+    sendMessage: jest.fn(),
   } satisfies Partial<DhType.Widget> as unknown as DhType.Widget;
 }
 
@@ -461,6 +472,118 @@ describe('PlotlyExpressChartModel', () => {
     const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', {
       text: 'Test',
     });
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+    if (chartModel.widget instanceof Object) {
+      chartModel.handleWidgetUpdated(
+        getWidgetData(chartModel.widget),
+        chartModel.widget.exportedObjects
+      );
+    }
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_LAYOUT_UPDATED)
+    );
+  });
+
+  it('should fire a widget sendMessage initially and when filters are provided when none are required', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', 'Test', {
+      columns: [
+        { name: 'category', type: 'java.lang.String', required: false },
+      ],
+    });
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(1);
+    expect(mockWidget.sendMessage).toHaveBeenLastCalledWith(
+      '{"type":"FILTER","filterMap":{}}'
+    );
+    chartModel.setFilter(new Map([['category', 'Test']]));
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(2);
+    expect(mockWidget.sendMessage).toHaveBeenLastCalledWith(
+      '{"type":"FILTER","filterMap":{"category":"Test"}}'
+    );
+  });
+
+  it('should fire a widget sendMessage only when all filters are provided when all are required', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', 'Test', {
+      columns: [{ name: 'category', type: 'java.lang.String', required: true }],
+    });
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(0);
+    chartModel.setFilter(new Map([['category', 'Test']]));
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(1);
+    expect(mockWidget.sendMessage).toHaveBeenLastCalledWith(
+      '{"type":"FILTER","filterMap":{"category":"Test"}}'
+    );
+  });
+
+  it('should fire a widget sendMessage only when all required filters are provided when some are required', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', 'Test', {
+      columns: [
+        { name: 'category', type: 'java.lang.String', required: true },
+        { name: 'other', type: 'java.lang.String', required: false },
+      ],
+    });
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(0);
+    chartModel.setFilter(new Map([['other', 'Test']]));
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(0);
+    chartModel.setFilter(
+      new Map([
+        ['other', 'Test'],
+        ['category', 'Test'],
+      ])
+    );
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(1);
+    expect(mockWidget.sendMessage).toHaveBeenLastCalledWith(
+      '{"type":"FILTER","filterMap":{"other":"Test","category":"Test"}}'
+    );
+    chartModel.setFilter(new Map([['other', 'Test']]));
+    expect(mockWidget.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('should emit layout update events if a widget is updated and has a legend title', async () => {
+    const mockWidget = createMockWidget(
+      [SMALL_TABLE],
+      'scatter',
+      undefined,
+      undefined,
+      'Test Legend Title'
+    );
     const chartModel = new PlotlyExpressChartModel(
       mockDh,
       mockWidget,

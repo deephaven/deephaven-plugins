@@ -521,12 +521,24 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     removedReferences.forEach(id => this.removeTable(id));
 
-    // title is the only thing expected to be updated after init from the layout
+    // title and legend title are the only things expected to be updated after init from the layout
     if (
       typeof plotlyLayout.title === 'object' &&
       plotlyLayout.title.text != null
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
+    }
+
+    if (plotlyLayout.legend?.title?.text != null) {
+      this.fireLayoutUpdated({
+        legend: {
+          title: {
+            text: plotlyLayout.legend.title.text,
+            ...plotlyLayout.legend.title,
+          },
+          ...plotlyLayout.legend,
+        },
+      });
     }
   }
 
@@ -842,12 +854,9 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param filterMap The filter map to send to the server
    */
   fireFilterUpdated(filterMap: FilterMap): void {
-    // Only send the filter update if filters are not required or all filters are set
-    // to prevent unnecessary updates
-    if (
-      !this.isFilterRequired() ||
-      filterMap.size === this.filterColumnMap.size
-    ) {
+    // Only send the filter update if filters are not required
+    // They will either be set or none are required
+    if (!this.isFilterRequired()) {
       this.widget?.sendMessage(
         JSON.stringify({
           type: 'FILTER',

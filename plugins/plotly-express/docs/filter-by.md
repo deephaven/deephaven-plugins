@@ -52,7 +52,7 @@ filtered_line_plot = dx.line(stocks, x="Timestamp", y="Price", required_filter_b
 To mix optional and required filters, provide columns to both `filter_by` and `required_filter_by`. The chart is filtered to match the values of the filter variables from the corresponding input filters or links. If only the `required_filter_by` input filter or link is not set, no data is shown. If only the `filter_by` input filter or link is not set, all groups within the `filter_by` column are shown.
 
 > [!NOTE]
-> Currently, mixing optional and required filters displays a message that all filters are required. Only the `required_filter_by` filters are actually required and the message is dismissed when all of those are provided.
+> Mixing optional and required filters displays overlays to enter filters for all columns. Only the `required_filter_by` filters are actually required and the message is dismissed when all of those are provided.
 
 ```python
 import deephaven.plot.express as dx
@@ -145,16 +145,19 @@ stocks = dx.data.stocks()  # import the example stocks data set
 
 # specify `x` and `y` columns, as well as additional filter variables with `filter_by`
 filtered_sym_line_plot = dx.line(
-    stocks, x="Timestamp", y="Price", filter_by="Sym", required_filter_by="Exchange"
+    stocks,
+    x="Timestamp",
+    y="Price",
+    filter_by="Sym",
 )
 
 # specify `x` and `y` columns, as well as additional required filter variables with `required_filter_by`
 filtered_exchange_line_plot = dx.line(
-    stocks, x="Timestamp", y="Price", required_filter_by="Exchange"
+    stocks, x="Timestamp", y="Price", by="Sym", required_filter_by="Exchange"
 )
 
 # make subplots, maintaining the filters
 filtered_plots = dx.make_subplots(
-    filtered_sym_line_plot, filtered_exchange_line_plot, num_rows=2
+    filtered_sym_line_plot, filtered_exchange_line_plot, rows=2
 )
 ```

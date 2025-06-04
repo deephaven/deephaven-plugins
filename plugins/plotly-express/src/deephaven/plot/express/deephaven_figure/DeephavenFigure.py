@@ -327,6 +327,7 @@ class DeephavenFigureNode(DeephavenNode):
 
                 if filter_set != self.prev_filter_set:
                     # when filters are passed in, only update the chart when the filters change
+                    # otherwise, subplots would be recreated unnecessarily
                     self.prev_filter_set = filter_set
                     copied_args["args"]["filters"] = get_matching_filters(
                         self.filter_columns, self.filters

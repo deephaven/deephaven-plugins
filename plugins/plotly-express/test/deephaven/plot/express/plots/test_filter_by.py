@@ -89,7 +89,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top", "text": "cat_one"}, "tracegroupgap": 0},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -146,7 +146,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top", "text": "cat_one"}, "tracegroupgap": 0},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -246,7 +246,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -303,7 +306,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -356,7 +362,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -454,7 +463,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top", "text": "cat_one"}, "tracegroupgap": 0},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -572,7 +581,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -655,30 +667,8 @@ class FilterByTestCase(BaseTestCase):
 
         exported_chart = chart.get_figure().to_dict(self.exporter)
 
-        expected_data = [
-            {
-                "hovertemplate": "x=%{x}<br>y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "marker": {"color": "#636efa", "symbol": "circle"},
-                "mode": "markers",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "type": "scatter",
-                "x": [],
-                "xaxis": "x",
-                "y": [],
-                "yaxis": "y",
-            }
-        ]
-
-        expected_layout = {
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
-            "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
-            "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "y"}},
-        }
-
+        expected_data = DEFAULT_PLOTLY_DATA
+        expected_layout = DEFAULT_PLOTLY_LAYOUT
         expected_mappings = []
 
         self.assert_chart_equals(
@@ -712,7 +702,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -765,7 +758,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -860,7 +856,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -917,7 +916,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1018,7 +1020,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1114,7 +1119,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1171,7 +1179,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1224,7 +1235,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1327,29 +1341,9 @@ class FilterByTestCase(BaseTestCase):
 
         exported_chart = chart.get_figure().to_dict(self.exporter)
 
-        expected_data = [
-            {
-                "hovertemplate": "x=%{x}<br>y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "marker": {"color": "#636efa", "symbol": "circle"},
-                "mode": "markers",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "type": "scatter",
-                "x": [],
-                "xaxis": "x",
-                "y": [],
-                "yaxis": "y",
-            }
-        ]
+        expected_data = DEFAULT_PLOTLY_DATA
 
-        expected_layout = {
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
-            "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
-            "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "y"}},
-        }
+        expected_layout = DEFAULT_PLOTLY_LAYOUT
 
         expected_mappings = []
 
@@ -1384,7 +1378,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1457,7 +1454,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1514,7 +1514,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1621,7 +1624,10 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "cat_one, cat_two"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1765,7 +1771,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top"}, "tracegroupgap": 0},
             "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
             "xaxis2": {
@@ -1839,7 +1845,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top"}, "tracegroupgap": 0},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1994,7 +2000,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top"}, "tracegroupgap": 0},
             "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
             "xaxis2": {
@@ -2068,7 +2074,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top"}, "tracegroupgap": 0},
             "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
             "xaxis2": {
@@ -2138,7 +2144,7 @@ class FilterByTestCase(BaseTestCase):
         ]
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {"title": {"side": "top"}, "tracegroupgap": 0},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
