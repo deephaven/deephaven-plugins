@@ -296,6 +296,8 @@ def atomic_make_subplots(
             shared_yaxes,
         ),
         unsafe_update_figure=unsafe_update_figure,
+        # remove the legend title as it is likely incorrect
+        remove_legend_title=True,
     )
 
 

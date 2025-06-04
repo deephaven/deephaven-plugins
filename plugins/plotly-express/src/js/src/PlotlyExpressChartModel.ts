@@ -1,7 +1,12 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
-import { ChartModel, ChartUtils } from '@deephaven/chart';
+import {
+  ChartModel,
+  ChartUtils,
+  FilterColumnMap,
+  FilterMap,
+} from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import memoize from 'memoizee';
@@ -72,6 +77,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // The calendar is only fetched once at init.
     this.updateCalendar(widgetData);
+
+    // The input filter columns are set once at init.
+    this.updateFilterColumns(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -163,6 +171,12 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   dataTypeMap: Map<string, string> = new Map();
 
+  filterColumnMap: FilterColumnMap = new Map();
+
+  filterMap: FilterMap | null = null;
+
+  requiredColumns: Set<string> = new Set();
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -243,6 +257,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     // Without this, the chart shows an infinite loader if there are no tables
     if (this.tableColumnReplacementMap.size === 0) {
       this.fireUpdate(this.getData());
+    }
+
+    if (this.filterColumnMap != null) {
+      // there are filters, so the server expects the filter to be sent
+      this.fireFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -393,6 +412,24 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  updateFilterColumns(data: PlotlyChartWidgetData): void {
+    const { deephaven } = data.figure;
+    const { filterColumns } = deephaven;
+
+    if (filterColumns != null) {
+      this.filterColumnMap = new Map(
+        filterColumns.columns.map(({ name, type }) => [name, { name, type }])
+      );
+
+      // get all columns that have required = true
+      this.requiredColumns = new Set(
+        filterColumns.columns
+          .filter(({ required }) => required)
+          .map(({ name }) => name)
+      );
+    }
+  }
+
   /**
    * Unsubscribe from a table.
    * @param id The table ID to unsubscribe from
@@ -484,12 +521,24 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     removedReferences.forEach(id => this.removeTable(id));
 
-    // title is the only thing expected to be updated after init from the layout
+    // title and legend title are the only things expected to be updated after init from the layout
     if (
       typeof plotlyLayout.title === 'object' &&
       plotlyLayout.title.text != null
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
+    }
+
+    if (plotlyLayout.legend?.title?.text != null) {
+      this.fireLayoutUpdated({
+        legend: {
+          title: {
+            text: plotlyLayout.legend.title.text,
+            ...plotlyLayout.legend.title,
+          },
+          ...plotlyLayout.legend,
+        },
+      });
     }
   }
 
@@ -777,6 +826,44 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.downsampleMap.forEach((_, id) => {
       this.updateDownsampledTable(id);
     });
+  }
+
+  override getFilterColumnMap(): FilterColumnMap {
+    return this.filterColumnMap;
+  }
+
+  override isFilterRequired(): boolean {
+    // if any of the required columns are not in the filter map, then filters are still required
+    return Array.from(this.requiredColumns).some(
+      column => !this.filterMap || !this.filterMap.has(column)
+    );
+  }
+
+  override setFilter(filterMap: FilterMap): void {
+    super.setFilter(filterMap);
+
+    this.filterMap = filterMap;
+
+    if (this.isSubscribed) {
+      this.fireFilterUpdated(filterMap);
+    }
+  }
+
+  /**
+   * Fire an event to update the filters on the chart.
+   * @param filterMap The filter map to send to the server
+   */
+  fireFilterUpdated(filterMap: FilterMap): void {
+    // Only send the filter update if filters are not required
+    // They will either be set or none are required
+    if (!this.isFilterRequired()) {
+      this.widget?.sendMessage(
+        JSON.stringify({
+          type: 'FILTER',
+          filterMap: Object.fromEntries(filterMap),
+        })
+      );
+    }
   }
 
   pauseUpdates(): void {

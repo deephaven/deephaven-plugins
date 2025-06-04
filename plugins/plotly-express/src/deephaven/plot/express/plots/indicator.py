@@ -15,6 +15,8 @@ def indicator(
     text: str | Literal[False] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | tuple[str, ...] = "gauge_color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     increasing_color: str | list[str] | None = None,
     decreasing_color: str | list[str] | None = None,
     gauge_color: str | list[str] | None = None,
@@ -52,6 +54,15 @@ def indicator(
         Can contain increasing_color and decreasing_color
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       increasing_color: A column or list of columns used for a plot by on delta increasing color.
         Only valid if reference is not None.
         See increasing_color_map for additional behaviors.

@@ -554,7 +554,10 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "bargap": 0,
             "barmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -639,7 +642,10 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "bargap": 0,
             "barmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -724,7 +730,10 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "bargap": 0,
             "barmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -809,7 +818,10 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "bargap": 0,
             "barmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1239,7 +1251,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1316,7 +1331,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -1395,7 +1413,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1487,7 +1508,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1581,7 +1605,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1658,7 +1685,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -1739,7 +1769,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1829,7 +1862,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1908,7 +1944,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -1989,7 +2028,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -2086,7 +2128,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -2355,7 +2400,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2430,7 +2478,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -2507,7 +2558,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2597,7 +2651,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2689,7 +2746,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2764,7 +2824,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -2841,7 +2904,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2927,7 +2993,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3002,7 +3071,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -3081,7 +3153,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3177,7 +3252,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -3458,7 +3536,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3539,7 +3620,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -3622,7 +3706,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3713,7 +3800,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -3812,7 +3902,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3893,7 +3986,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -3978,7 +4074,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4072,7 +4171,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4153,7 +4255,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -4238,7 +4343,10 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "boxmode": "group",
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4331,7 +4439,10 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",

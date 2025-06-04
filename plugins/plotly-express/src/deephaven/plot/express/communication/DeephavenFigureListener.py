@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from functools import partial
 from typing import Any
+import io
 
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
@@ -169,9 +170,19 @@ class DeephavenFigureListener:
 
         """
         # need to create a new exporter for each message
-        message = json.loads(payload.decode())
+        message = json.loads(io.BytesIO(payload).read().decode())
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
+        elif message["type"] == "FILTER":
+            self._figure.update_filters(message["filterMap"])
+            revision = self._revision_manager.get_revision()
+            # updating the filters automatically recreates the figure, so it's ready to send
+            figure = self._get_figure()
+            try:
+                self._connection.on_data(*self._build_figure_message(figure, revision))
+            except RuntimeError:
+                # trying to send data when the connection is closed, ignore
+                pass
         return b"", []
 
     def __del__(self):

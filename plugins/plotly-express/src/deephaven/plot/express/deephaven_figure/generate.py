@@ -962,7 +962,7 @@ def create_hover_and_axis_titles(
     custom_call_args: dict[str, Any],
     hover_mapping: list[dict[str, str]],
     types: set[str],
-) -> Generator[dict[str, Any], None, None]:
+) -> tuple[Generator[dict[str, Any], None, None], str | None]:
     """Create hover text and axis titles. There are three main behaviors.
     First is "current_col", "current_var", and "stacked_column_names" are specified in
     "custom_call_args".
@@ -992,7 +992,7 @@ def create_hover_and_axis_titles(
       types: Any types of this chart that require special processing
 
     Yields:
-      Dicts containing hover updates
+      Dicts containing hover updates and a legend title if applicable.
     """
 
     labels = custom_call_args.get("labels", None)
@@ -1027,7 +1027,11 @@ def create_hover_and_axis_titles(
         heatmap_agg_label,
     )
 
-    return hover_text
+    legend_title = None
+    if current_partition:
+        legend_title = ", ".join([f"{col}" for col in current_partition])
+
+    return hover_text, legend_title
 
 
 def generate_figure(
@@ -1070,7 +1074,9 @@ def generate_figure(
 
     types = get_hovertext_types(data_cols)
 
-    hover_text = create_hover_and_axis_titles(custom_call_args, hover_mapping, types)
+    hover_text, legend_title = create_hover_and_axis_titles(
+        custom_call_args, hover_mapping, types
+    )
 
     trace_generator = handle_custom_args(
         px_fig,
@@ -1090,6 +1096,12 @@ def generate_figure(
     if not is_indicator:
         px_fig.update_layout(
             margin_t=None,
+        )
+
+    if legend_title and not is_indicator:
+        px_fig.update_layout(
+            legend_title_text=legend_title,
+            legend_title_side="top",
         )
 
     dh_fig = DeephavenFigure(
