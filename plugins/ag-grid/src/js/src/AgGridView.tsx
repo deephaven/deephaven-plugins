@@ -13,11 +13,10 @@ import {
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
 import { useCallback, useMemo } from 'react';
-import TableViewportDatasource from './datasources/TableViewportDatasource';
-import TreeViewportDatasource from './datasources/TreeViewportDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import TreeCellRenderer from './TreeCellRenderer';
+import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 
 type AgGridViewProps = {
   table: DhType.Table | DhType.TreeTable;
@@ -56,6 +55,7 @@ export function AgGridView({
             }
           : {
               field: c.name,
+              enableRowGroup: true,
             };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
       }) ?? [];
@@ -64,10 +64,7 @@ export function AgGridView({
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () =>
-      TableUtils.isTreeTable(table)
-        ? new TreeViewportDatasource(dh, table)
-        : new TableViewportDatasource(dh, table),
+    () => new DeephavenViewportDatasource(dh, table),
     [dh, table]
   );
 
@@ -80,15 +77,15 @@ export function AgGridView({
 
   const treeCellRenderer = useMemo(
     () =>
-      datasource instanceof TreeViewportDatasource
-        ? (props: CustomCellRendererProps) => (
-            <TreeCellRenderer
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...props}
-              datasource={datasource}
-            />
-          )
-        : undefined,
+      function customTreeCellRenderer(props: CustomCellRendererProps) {
+        return (
+          <TreeCellRenderer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            datasource={datasource}
+          />
+        );
+      },
     [datasource]
   );
 
@@ -108,6 +105,22 @@ export function AgGridView({
     [datasource]
   );
 
+  const sideBar = useMemo(
+    () => ({
+      toolPanels: [
+        {
+          id: 'columns',
+          labelDefault: 'Columns',
+          labelKey: 'columns',
+          iconKey: 'columns',
+          toolPanel: 'agColumnsToolPanel',
+        },
+      ],
+      defaultToolPanel: 'columns',
+    }),
+    []
+  );
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -118,6 +131,7 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
+      sideBar={sideBar}
     />
   );
 }

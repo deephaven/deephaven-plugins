@@ -1,4 +1,5 @@
 import {
+  Column,
   FilterModel,
   IViewportDatasourceParams,
   SortModelItem,
@@ -10,7 +11,7 @@ import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils from '../utils/AgGridSortUtils';
 import AbstractViewportDatasource from './AbstractViewportDatasource';
 
-const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
+const log = Log.module('@deephaven/js-plugin-ag-grid/TableViewportDatasource');
 
 export class TableViewportDatasource extends AbstractViewportDatasource {
   /**
@@ -114,7 +115,7 @@ export class TableViewportDatasource extends AbstractViewportDatasource {
   destroy(): void {
     super.destroy();
     this.stopListening();
-    this.table.close();
+    // this.table.close();
   }
 }
 

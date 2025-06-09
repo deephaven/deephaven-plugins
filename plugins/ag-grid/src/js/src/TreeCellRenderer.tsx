@@ -6,9 +6,10 @@ import TreeViewportDatasource, {
   TREE_NODE_KEY,
   TreeNode,
 } from './datasources/TreeViewportDatasource';
+import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 
 export type TreeCellRendererProps = CustomCellRendererProps & {
-  datasource: TreeViewportDatasource;
+  datasource: DeephavenViewportDatasource;
 };
 
 export default function TreeCellRenderer(
@@ -20,10 +21,17 @@ export default function TreeCellRenderer(
   const { hasChildren = false, depth = 0, isExpanded = false } = treeNode ?? {};
 
   const handleClick = useCallback(() => {
-    if (treeNode != null) {
-      datasource.setExpanded(treeNode.index, !treeNode.isExpanded);
+    const { currentDatasource } = datasource;
+    if (
+      treeNode != null &&
+      currentDatasource instanceof TreeViewportDatasource
+    ) {
+      currentDatasource.setExpanded(treeNode.index, !treeNode.isExpanded);
     }
   }, [datasource, treeNode]);
+
+  // TODO: How do we get the row group name? Not very efficient calling Object.values
+  const groupName = hasChildren ? Object.values(data)[depth - 2] : undefined;
 
   return (
     <>
@@ -44,7 +52,9 @@ export default function TreeCellRenderer(
             textAlign: 'left',
             justifyContent: 'left',
           }}
-        />
+        >
+          {groupName}
+        </Button>
       )}
       &nbsp;
       {value}
