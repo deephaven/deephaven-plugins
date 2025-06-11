@@ -18,6 +18,7 @@ export function getRootChildren(
   children: React.ReactNode,
   widget: WidgetDescriptor
 ): React.ReactNode {
+  console.log('getRootChildren', { children, widget });
   if (children == null) {
     return null;
   }

@@ -206,14 +206,23 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
 
 export function getComponentTypeForElement<P extends Record<string, unknown>>(
-  element: ElementNode<string, P>
+  element: ElementNode<string, P>,
+  elementPluginMapping: Map<string, ComponentType>
 ): ComponentType<P> | null {
+  const key = element[ELEMENT_KEY];
+  console.log('elementPluginMapping', key, elementPluginMapping, element);
+  if (elementPluginMapping.has(key)) {
+    return elementPluginMapping.get(key) as ComponentType<P> | null;
+  }
   return (elementComponentMap[
     element[ELEMENT_KEY] as keyof typeof elementComponentMap
   ] ?? null) as ComponentType<P> | null;
 }
 
-export function getComponentForElement(element: ElementNode): React.ReactNode {
+export function getComponentForElement(
+  element: ElementNode,
+  elementPluginMapping: Map<string, ComponentType>
+): JSX.Element | null {
   const newElement = wrapElementChildren({ ...element });
 
   if (isHTMLElementNode(newElement)) {
@@ -223,7 +232,11 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     return IconElementView({ element: newElement });
   }
   if (isElementNode(newElement)) {
-    const Component = getComponentTypeForElement(newElement);
+    const Component = getComponentTypeForElement(
+      newElement,
+      elementPluginMapping
+    );
+    console.log('component now', Component, newElement[ELEMENT_KEY]);
 
     if (Component != null) {
       const props = { ...newElement.props };
@@ -238,6 +251,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
           <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
+
       return <Component {...props} />;
     }
   }
