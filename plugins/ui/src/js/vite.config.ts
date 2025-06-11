@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/components',
         '@deephaven/console',
         '@deephaven/dashboard',
+        '@deephaven/dashboard-core-plugins',
         '@deephaven/icons',
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',
