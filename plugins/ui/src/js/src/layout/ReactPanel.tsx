@@ -10,7 +10,7 @@ import { nanoid } from 'nanoid';
 import {
   LayoutUtils,
   PanelEvent,
-  DhIdContext,
+  PanelIdContext,
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
@@ -219,7 +219,7 @@ function ReactPanel({
   return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
-          <DhIdContext.Provider value={panelId}>
+          <PanelIdContext.Provider value={panelId}>
             <View
               height="100%"
               width="100%"
@@ -264,7 +264,7 @@ function ReactPanel({
                 </ReactPanelErrorBoundary>
               </Flex>
             </View>
-          </DhIdContext.Provider>
+          </PanelIdContext.Provider>
         </ReactPanelContext.Provider>,
         portal,
         contentKey

@@ -27,7 +27,10 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
-import { useDashboardColumnFilters } from '@deephaven/dashboard-core-plugins';
+import {
+  useDashboardColumnFilters,
+  useGridLinker,
+} from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
@@ -286,6 +289,14 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  const {
+    alwaysFetchColumns: linkerAlwaysFetchColumns,
+    columnSelectionValidator,
+    isSelectingColumn,
+    onColumnSelected,
+    onDataSelected,
+  } = useGridLinker(model, irisGrid);
+
   const [dehydratedState, setDehydratedState] = usePersistentState<
     (DehydratedIrisGridState & DehydratedGridState) | undefined
   >(undefined, { type: 'UITable', version: 1 });
@@ -370,8 +381,12 @@ export function UITable({
   }, [format, columns]);
 
   const alwaysFetchColumnsArray = useMemo(
-    () => [...ensureArray(alwaysFetchColumnsProp), ...formatColumnSources],
-    [alwaysFetchColumnsProp, formatColumnSources]
+    () => [
+      ...ensureArray(alwaysFetchColumnsProp),
+      ...formatColumnSources,
+      ...linkerAlwaysFetchColumns,
+    ],
+    [alwaysFetchColumnsProp, formatColumnSources, linkerAlwaysFetchColumns]
   );
 
   const alwaysFetchColumns = useMemo(() => {
@@ -389,10 +404,15 @@ export function UITable({
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
-    return alwaysFetchColumnsArray.filter(
-      // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
-      (v): v is string => typeof v === 'string'
-    );
+    return [
+      // Deduplicate the alwaysFetchColumnsArray
+      ...new Set(
+        alwaysFetchColumnsArray.filter(
+          // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
+          (v): v is string => typeof v === 'string'
+        )
+      ),
+    ];
   }, [alwaysFetchColumnsArray, columns, throwError]);
 
   const mouseHandlers = useMemo(
@@ -529,7 +549,7 @@ export function UITable({
   }, [irisGridServerProps, initialHydratedState]);
 
   const inputFilters = useDashboardColumnFilters(
-    model?.columns ?? EMPTY_ARRAY,
+    model?.columns ?? null,
     model?.table
   );
 
@@ -543,6 +563,10 @@ export function UITable({
         ref={ref => setIrisGrid(ref)}
         model={model}
         onStateChange={onStateChange}
+        columnSelectionValidator={columnSelectionValidator}
+        isSelectingColumn={isSelectingColumn}
+        onColumnSelected={onColumnSelected}
+        onDataSelected={onDataSelected}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
         inputFilters={inputFilters}
