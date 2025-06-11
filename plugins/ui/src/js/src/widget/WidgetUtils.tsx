@@ -277,12 +277,7 @@ export function transformNode(
     // Don't fallback to key if it's children, only fallback should be an array or object index
     const elementKey = getElementKey(result, key === 'children' ? '' : key);
     nextId += `/${result[ELEMENT_KEY]}${elementKey ? `:${elementKey}` : ''}`;
-    if (result.props) {
-      // eslint-disable-next-line no-underscore-dangle
-      result.props.__dhId = nextId;
-    } else {
-      result.props = { __dhId: nextId };
-    }
+    result = { ...result, props: { ...result.props, __dhId: nextId } };
   } else if (key !== 'children') {
     // We have already removed trailing /props if we are at /props/children, so don't add /children
     // The next item (children) must be either a child element or an array of children
