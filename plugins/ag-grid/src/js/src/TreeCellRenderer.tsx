@@ -15,7 +15,7 @@ export type TreeCellRendererProps = CustomCellRendererProps & {
 export default function TreeCellRenderer(
   props: TreeCellRendererProps
 ): JSX.Element {
-  const { node, value, datasource } = props;
+  const { node, datasource, api } = props;
   const { data } = node;
   const treeNode: TreeNode | undefined = data?.[TREE_NODE_KEY];
   const { hasChildren = false, depth = 0, isExpanded = false } = treeNode ?? {};
@@ -30,8 +30,12 @@ export default function TreeCellRenderer(
     }
   }, [datasource, treeNode]);
 
-  // TODO: How do we get the row group name? Not very efficient calling Object.values
-  const groupName = hasChildren ? Object.values(data)[depth - 2] : undefined;
+  const rowGroupColumns = api.getRowGroupColumns();
+  // If we're on a leaf row, show the last row group column as the group name instead of an empty string.
+  const colDef =
+    rowGroupColumns[hasChildren ? depth - 2 : rowGroupColumns.length - 1];
+  const colId = colDef?.getId();
+  const groupName = data?.[colId];
 
   return (
     <>
@@ -56,8 +60,7 @@ export default function TreeCellRenderer(
           {groupName}
         </Button>
       )}
-      &nbsp;
-      {value}
+      {!hasChildren && groupName}
     </>
   );
 }
