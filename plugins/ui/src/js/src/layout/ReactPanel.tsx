@@ -10,6 +10,7 @@ import { nanoid } from 'nanoid';
 import {
   LayoutUtils,
   PanelEvent,
+  PanelIdContext,
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
@@ -218,52 +219,52 @@ function ReactPanel({
   return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
-          <View
-            height="100%"
-            width="100%"
-            backgroundColor={backgroundColor}
-            padding={padding}
-            paddingTop={paddingTop}
-            paddingBottom={paddingBottom}
-            paddingStart={paddingStart}
-            paddingEnd={paddingEnd}
-            paddingX={paddingX}
-            paddingY={paddingY}
-            overflow={overflow}
-            UNSAFE_style={UNSAFE_style}
-            UNSAFE_className={
-              UNSAFE_className == null
-                ? 'dh-react-panel'
-                : `${UNSAFE_className} dh-react-panel`
-            }
-          >
-            <Flex
-              UNSAFE_className="dh-inner-react-panel"
-              wrap={wrap}
-              direction={direction}
-              justifyContent={justifyContent}
-              alignContent={alignContent}
-              alignItems={alignItems}
-              gap={gap}
-              rowGap={rowGap}
-              columnGap={columnGap}
+          <PanelIdContext.Provider value={panelId}>
+            <View
+              height="100%"
+              width="100%"
+              backgroundColor={backgroundColor}
+              padding={padding}
+              paddingTop={paddingTop}
+              paddingBottom={paddingBottom}
+              paddingStart={paddingStart}
+              paddingEnd={paddingEnd}
+              paddingX={paddingX}
+              paddingY={paddingY}
+              overflow={overflow}
+              UNSAFE_style={UNSAFE_style}
+              UNSAFE_className={
+                UNSAFE_className == null
+                  ? 'dh-react-panel'
+                  : `${UNSAFE_className} dh-react-panel`
+              }
             >
-              <ReactPanelErrorBoundary onReset={onErrorReset}>
-                {/**
-                 * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
-                 * but we still want the panels to appear so things don't disappear/jump around.
-                 */}
-                <PersistentStateProvider
-                  initialState={initialData}
-                  onChange={onDataChange}
-                >
-                  {React.Children.map(renderedChildren, child =>
-                    React.cloneElement(child as React.ReactElement)
-                  )}
-                </PersistentStateProvider>
-              </ReactPanelErrorBoundary>
-            </Flex>
-          </View>
+              <Flex
+                UNSAFE_className="dh-inner-react-panel"
+                wrap={wrap}
+                direction={direction}
+                justifyContent={justifyContent}
+                alignContent={alignContent}
+                alignItems={alignItems}
+                gap={gap}
+                rowGap={rowGap}
+                columnGap={columnGap}
+              >
+                <ReactPanelErrorBoundary onReset={onErrorReset}>
+                  {/**
+                   * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
+                   * but we still want the panels to appear so things don't disappear/jump around.
+                   */}
+                  <PersistentStateProvider
+                    initialState={initialData}
+                    onChange={onDataChange}
+                  >
+                    {renderedChildren ?? null}
+                  </PersistentStateProvider>
+                </ReactPanelErrorBoundary>
+              </Flex>
+            </View>
+          </PanelIdContext.Provider>
         </ReactPanelContext.Provider>,
         portal,
         contentKey
