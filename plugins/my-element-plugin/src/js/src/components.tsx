@@ -64,8 +64,7 @@ export function FishTable(props: { table: unknown }) {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function ElementPanel() {
-  const greeting = 'Hello Element!';
-
-  return <h1>hi!</h1>;
+export function ElementPanel(props) {
+  const { name } = props;
+  return <h1>Hello {name}!</h1>;
 }
