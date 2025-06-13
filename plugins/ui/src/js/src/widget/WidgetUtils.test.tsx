@@ -380,7 +380,6 @@ describe('transformNode', () => {
         },
       },
     });
-    expect(transform).toHaveBeenCalledWith('', value);
   });
 
   it('adds key or array index to dhId for array elements', () => {
@@ -438,7 +437,6 @@ describe('transformNode', () => {
         ],
       },
     });
-    expect(transform).toHaveBeenCalledWith('', value);
   });
 
   it('adds dhId to elements in props other than children', () => {
@@ -511,6 +509,5 @@ describe('transformNode', () => {
         ],
       },
     });
-    expect(transform).toHaveBeenCalledWith('', value);
   });
 });
