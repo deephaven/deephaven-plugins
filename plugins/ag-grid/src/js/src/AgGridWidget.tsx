@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
+import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
 import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
@@ -36,7 +37,11 @@ export function AgGridWidget(
 
   const agGridProps: AgGridReactProps = useMemo(
     () => ({
-      modules: [RowGroupingModule, ViewportRowModelModule],
+      modules: [
+        RowGroupingModule,
+        ViewportRowModelModule,
+        ColumnsToolPanelModule,
+      ],
       defaultColDef: {
         filterParams: {
           buttons: ['reset', 'apply'],
