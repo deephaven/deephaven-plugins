@@ -22,6 +22,10 @@
         "path": "architecture.md"
       },
       {
+        "label": "fake",
+        "path": "fake.md"
+      },
+      {
         "label": "User Guide",
         "collapsible": false,
         "items": [
