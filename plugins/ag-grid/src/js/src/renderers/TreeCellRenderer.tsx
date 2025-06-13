@@ -5,8 +5,8 @@ import { vsTriangleDown, vsTriangleRight } from '@deephaven/icons';
 import TreeViewportDatasource, {
   TREE_NODE_KEY,
   TreeNode,
-} from './datasources/TreeViewportDatasource';
-import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
+} from '../datasources/TreeViewportDatasource';
+import DeephavenViewportDatasource from '../datasources/DeephavenViewportDatasource';
 
 export type TreeCellRendererProps = CustomCellRendererProps & {
   datasource: DeephavenViewportDatasource;

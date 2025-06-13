@@ -25,6 +25,12 @@ export default class AgGridSortUtils {
     return true;
   }
 
+  /**
+   * Parses the sort model items into Deephaven Sorts to apply on a table.
+   * @param table Deephaven table or tree table to use
+   * @param sortModelItems SortModelItem array to parse
+   * @returns An array of Deephaven Sort objects parsed from the SortModelItem array.
+   */
   static parseSortModel(
     table: DhType.Table | DhType.TreeTable,
     sortModelItems: readonly SortModelItem[]

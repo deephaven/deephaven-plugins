@@ -2,10 +2,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import {
-  createFormatterFromSettings,
-  TableUtils,
-} from '@deephaven/jsapi-utils';
+import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 import { ColDef, GridReadyEvent } from '@ag-grid-community/core';
 import {
   AgGridReact,
@@ -13,9 +10,9 @@ import {
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
 import { useCallback, useMemo } from 'react';
-import AgGridTableUtils from './utils/AgGridTableUtils';
+import { getColumnDefs } from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeCellRenderer from './TreeCellRenderer';
+import TreeCellRenderer from './renderers/TreeCellRenderer';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 
 type AgGridViewProps = {
@@ -40,27 +37,7 @@ export function AgGridView({
   log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(() => {
-    const groupedColSet = new Set(
-      (TableUtils.isTreeTable(table) ? table.groupedColumns : []).map(
-        c => c.name
-      )
-    );
-    const newDefs =
-      table?.columns.map(c => {
-        const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
-          ? {
-              field: c.name,
-              rowGroup: true,
-            }
-          : {
-              field: c.name,
-              enableRowGroup: true,
-            };
-        return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
-      }) ?? [];
-    return newDefs;
-  }, [table]);
+  const colDefs: ColDef[] = useMemo(() => getColumnDefs(table), [table]);
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
