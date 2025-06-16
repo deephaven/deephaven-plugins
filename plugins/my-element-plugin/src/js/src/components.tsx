@@ -1,4 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  MouseEventHandler,
+} from 'react';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 
@@ -64,7 +69,12 @@ export function FishTable(props: { table: unknown }) {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function ElementPanel(props) {
-  const { name } = props;
-  return <h1>Hello {name}!</h1>;
+export function ElementPanel({
+  name,
+  onClick,
+}: {
+  name: string;
+  onClick: (value: string) => Promise<void>;
+}): JSX.Element {
+  return <h1 onClick={e => onClick('hello')}>Hello {name}!</h1>;
 }
