@@ -18,6 +18,6 @@ px_fig = px.line(x=x, y=y)
 dx_fig = dx.line(t, x="x", y="y")
 
 
-ui_basic_fig = ui.view(basic_fig)
-ui_px_fig = ui.view(px_fig)
-ui_dx_fig = ui.view(dx_fig)
+ui_basic_fig = ui.panel(basic_fig)
+ui_px_fig = ui.panel(px_fig)
+ui_dx_fig = ui.panel(dx_fig)
