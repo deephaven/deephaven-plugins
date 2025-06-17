@@ -191,7 +191,15 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
   const wrappedChildren = children.map(child => {
     // Exported objects need to be converted to `ObjectView` to be rendered
     if (isExportedObject(child)) {
-      return <ObjectView key={getChildKey(child.type)} object={child} />;
+      const key = getChildKey(child.type);
+      return (
+        <ObjectView
+          key={key}
+          object={child}
+          // eslint-disable-next-line no-underscore-dangle
+          __dhId={`${element.props?.__dhId}/${key}`}
+        />
+      );
     }
 
     // Auto wrap primitive children of `Item` elements in `Text` elements

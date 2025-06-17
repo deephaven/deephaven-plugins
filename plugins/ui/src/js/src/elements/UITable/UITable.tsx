@@ -27,6 +27,11 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
+import {
+  InputFilterEvent,
+  useDashboardColumnFilters,
+} from '@deephaven/dashboard-core-plugins';
+import { useLayoutManager, useListener } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
@@ -213,6 +218,7 @@ export function UITable({
   );
 
   const dh = useApi();
+  const { eventHub } = useLayoutManager();
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
@@ -527,6 +533,24 @@ export function UITable({
     };
   }, [irisGridServerProps, initialHydratedState]);
 
+  const inputFilters = useDashboardColumnFilters(
+    model?.columns ?? EMPTY_ARRAY,
+    model?.table
+  );
+
+  const handleClearAllFilters = useCallback(() => {
+    if (irisGrid == null) {
+      return;
+    }
+    irisGrid.clearAllFilters();
+  }, [irisGrid]);
+
+  useListener(
+    eventHub,
+    InputFilterEvent.CLEAR_ALL_FILTERS,
+    handleClearAllFilters
+  );
+
   return model ? (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -539,6 +563,7 @@ export function UITable({
         onStateChange={onStateChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
+        inputFilters={inputFilters}
       />
     </div>
   ) : null;
