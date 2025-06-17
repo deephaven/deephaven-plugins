@@ -403,6 +403,10 @@ class UtilsTest(BaseTestCase):
         self.assertFalse(is_primitive(Exception()))
 
     def test_is_iterable(self):
+        class CustomIterable:
+            def __iter__(self):
+                return iter([1, 2, 3])
+
         self.assertTrue(is_iterable([]))
         self.assertTrue(is_iterable({}))
         self.assertTrue(is_iterable(()))
@@ -411,7 +415,7 @@ class UtilsTest(BaseTestCase):
         self.assertTrue(is_iterable(map(lambda x: x, [1, 2, 3])))
         self.assertTrue(is_iterable(filter(lambda x: x, [1, 2, 3])))
         self.assertTrue(is_iterable(range(10)))
-        self.assertTrue(is_iterable("foo", ()))
+        self.assertFalse(is_iterable(CustomIterable()))
         self.assertFalse(is_iterable(1))
         self.assertFalse(is_iterable("a"))
         self.assertFalse(is_iterable(None))
