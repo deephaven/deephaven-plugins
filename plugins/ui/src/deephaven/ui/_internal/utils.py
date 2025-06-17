@@ -941,12 +941,12 @@ def is_primitive(value: Any) -> bool:
 
 def is_iterable(value: Any) -> bool:
     """
-    Check if a value is iterable.
+    Check if a value is standard iterable type.
 
     Args:
         value: The value to check.
 
     Returns:
-        True if the value is iterable and not an excluded type, False otherwise.
+        True if the value is a standard iterable type.
     """
     return isinstance(value, (list, tuple, set, dict, map, filter, range))
