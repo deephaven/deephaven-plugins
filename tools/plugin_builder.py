@@ -482,7 +482,6 @@ def handle_args(
 )
 @click.option(
     "--snapshots",
-    "-s",
     is_flag=True,
     help="Generate snapshots for all plugins that have a make_docs.py. "
     "The docs should be updated before generating snapshots."
