@@ -9,6 +9,8 @@ import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils from '../utils/AgGridSortUtils';
 import AbstractViewportDatasource from './AbstractViewportDatasource';
+import { AggregatedColumn } from '../utils/AgGridAggUtils';
+import { assert } from 'console';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/TreeViewportDatasource');
 
@@ -128,6 +130,12 @@ export class TreeViewportDatasource extends AbstractViewportDatasource {
   applyViewport(firstRow: number, lastRow: number): void {
     log.debug('Applying viewport', firstRow, lastRow);
     this.table.setViewport(firstRow, lastRow);
+  }
+
+  applyAggregatedColumns(aggregatedColumns: AggregatedColumn[]): void {
+    // TODO: Need to remove this
+    // log.debug('Applying aggregated columns', aggregatedColumns);
+    // assertNotNull(this.gridApi);
   }
 
   destroy(): void {

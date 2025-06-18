@@ -40,7 +40,6 @@ export abstract class AbstractViewportDatasource
   constructor() {
     this.handleFilterChanged = this.handleFilterChanged.bind(this);
     this.handleSortChanged = this.handleSortChanged.bind(this);
-    this.handleColumnValueChanged = this.handleColumnValueChanged.bind(this);
   }
 
   init(params: IViewportDatasourceParams): void {
@@ -56,18 +55,10 @@ export abstract class AbstractViewportDatasource
         this.handleFilterChanged
       );
       this.gridApi.removeEventListener('sortChanged', this.handleSortChanged);
-      this.gridApi.removeEventListener(
-        'columnValueChanged',
-        this.handleColumnValueChanged
-      );
     }
     this.gridApi = gridApi;
     this.gridApi.addEventListener('filterChanged', this.handleFilterChanged);
     this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
-    this.gridApi.addEventListener(
-      'columnValueChanged',
-      this.handleColumnValueChanged
-    );
   }
 
   private handleFilterChanged(event: FilterChangedEvent): void {
@@ -83,15 +74,6 @@ export abstract class AbstractViewportDatasource
     const columnState = this.gridApi.getColumnState();
     const sortModel = columnState.filter(isSortModelItem);
     this.applySort(sortModel);
-    this.refreshViewport();
-  }
-
-  private handleColumnValueChanged(event: ColumnValueChangedEvent): void {
-    log.debug('Column value changed', event);
-    assertNotNull(this.gridApi);
-    const columnState = this.gridApi.getColumnState();
-    const aggregatedColumns = columnState.filter(isAggregatedColumn);
-    this.applyAggregatedColumns(aggregatedColumns);
     this.refreshViewport();
   }
 

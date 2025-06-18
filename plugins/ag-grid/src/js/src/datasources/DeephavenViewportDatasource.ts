@@ -1,8 +1,8 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import {
-  Column,
   ColumnRowGroupChangedEvent,
+  ColumnValueChangedEvent,
   FilterModel,
   GridApi,
   IViewportDatasourceParams,
@@ -13,6 +13,11 @@ import { assertNotNull } from '@deephaven/utils';
 import AbstractViewportDatasource from './AbstractViewportDatasource';
 import TreeViewportDatasource from './TreeViewportDatasource';
 import TableViewportDatasource from './TableViewportDatasource';
+import {
+  AggregatedColumn,
+  getAggregatedColumns,
+  getRollupConfig,
+} from '../utils/AgGridAggUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
 
@@ -36,6 +41,7 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
 
     this.handleColumnRowGroupChanged =
       this.handleColumnRowGroupChanged.bind(this);
+    this.handleColumnValueChanged = this.handleColumnValueChanged.bind(this);
 
     this.currentDatasource = TableUtils.isTreeTable(table)
       ? new TreeViewportDatasource(dh, table)
@@ -55,11 +61,19 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
         'columnRowGroupChanged',
         this.handleColumnRowGroupChanged
       );
+      this.gridApi.removeEventListener(
+        'columnValueChanged',
+        this.handleColumnValueChanged
+      );
     }
     super.setGridApi(gridApi);
     gridApi.addEventListener(
       'columnRowGroupChanged',
       this.handleColumnRowGroupChanged
+    );
+    gridApi.addEventListener(
+      'columnValueChanged',
+      this.handleColumnValueChanged
     );
   }
 
@@ -67,9 +81,14 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
     event: ColumnRowGroupChangedEvent
   ): Promise<void> {
     log.debug('Column row group changed', event);
+    await this.updateAggregations();
+    this.currentDatasource.refreshViewport();
+  }
+
+  private async handleColumnValueChanged(event: ColumnValueChangedEvent): void {
+    log.debug('Column value changed', event);
     assertNotNull(this.gridApi);
-    const rowGroupColumns = this.gridApi.getRowGroupColumns();
-    await this.applyRowGroupColumns(rowGroupColumns);
+    await this.updateAggregations();
     this.currentDatasource.refreshViewport();
   }
 
@@ -85,27 +104,34 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
     this.currentDatasource.applyViewport(firstRow, lastRow);
   }
 
+  applyAggregatedColumns(aggregatedColumns: AggregatedColumn[]): void {
+    log.debug('Applying aggregated columns', aggregatedColumns);
+    assertNotNull(this.gridApi);
+    this.currentDatasource.applyAggregatedColumns(aggregatedColumns);
+  }
+
   /**
-   * Apply the row group state to the data source.
-   * All columns passed in are grouped columns.
-   *
-   * @param rowGroupState The row group state to apply.
+   * Get the current row group columns and aggregations and apply them.
    */
-  private async applyRowGroupColumns(
-    columnRowGroupState: Column[]
-  ): Promise<void> {
-    log.debug('Applying row group columns', columnRowGroupState);
+  private async updateAggregations(): Promise<void> {
+    assertNotNull(this.gridApi);
+    const rowGroupColumns = this.gridApi.getRowGroupColumns();
+    const aggregatedColumns = getAggregatedColumns(this.gridApi);
+    log.debug('Updating aggregations', rowGroupColumns, aggregatedColumns);
+
     if (TableUtils.isTreeTable(this.table)) {
-      throw new Error('Cannot apply row group columns to a tree table.');
+      throw new Error('Cannot apply aggregations to a tree table.');
     }
 
-    if (columnRowGroupState.length === 0) {
+    if (rowGroupColumns.length === 0) {
       log.debug('No row group columns, using TableViewportDatasource');
       const newDatasource = new TableViewportDatasource(this.dh, this.table);
       assertNotNull(this.params);
       assertNotNull(this.gridApi);
       newDatasource.init(this.params);
       newDatasource.setGridApi(this.gridApi);
+
+      // TODO: Should apply aggregations as well
 
       this.currentDatasource.destroy();
 
@@ -114,9 +140,12 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
       return;
     }
 
-    const rollupConfig = new this.dh.RollupConfig();
-    rollupConfig.groupingColumns = columnRowGroupState.map(c => c.getId());
-    rollupConfig.includeConstituents = true;
+    const rollupConfig = getRollupConfig(
+      rowGroupColumns,
+      aggregatedColumns,
+      this.dh
+    );
+
     const treeTable = await this.table.rollup(rollupConfig);
     const treeDatasource = new TreeViewportDatasource(this.dh, treeTable);
 
@@ -137,6 +166,7 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
     log.debug('Destroying DeephavenViewportDatasource');
     super.destroy();
     this.currentDatasource.destroy();
+    this.table.close();
   }
 }
 
