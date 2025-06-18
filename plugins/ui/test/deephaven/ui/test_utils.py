@@ -411,7 +411,6 @@ class UtilsTest(BaseTestCase):
         self.assertTrue(is_iterable(map(lambda x: x, [1, 2, 3])))
         self.assertTrue(is_iterable(filter(lambda x: x, [1, 2, 3])))
         self.assertTrue(is_iterable(range(10)))
-        self.assertTrue(is_iterable("foo", ()))
         self.assertFalse(is_iterable(1))
         self.assertFalse(is_iterable("a"))
         self.assertFalse(is_iterable(None))
@@ -419,6 +418,14 @@ class UtilsTest(BaseTestCase):
         self.assertFalse(is_iterable(object()))
         self.assertFalse(is_iterable(Exception()))
         self.assertFalse(is_iterable(lambda: None))
+
+        # We don't want to treat custom iterables as iterable in this context
+        # Some classes implement the __iter__ method but we just want to check for standard iterables
+        class CustomIterable:
+            def __iter__(self):
+                return iter([1, 2, 3])
+
+        self.assertFalse(is_iterable(CustomIterable()))
 
 
 if __name__ == "__main__":
