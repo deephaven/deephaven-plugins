@@ -438,6 +438,7 @@ def atomic_layer(
     which_layout: int | None = None,
     specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
+    remove_legend_title: bool = False,
 ) -> DeephavenFigure:
     """
     Layers the provided figures. This is an atomic version of layer, so the
@@ -453,6 +454,12 @@ def atomic_layer(
             See layer
         unsafe_update_figure:
             See layer
+        remove_legend_title:
+            If True, the legend title will be removed from the resulting figure.
+            This shouldn't always happen as plot by calls atomic_layer and the title
+            should be kept, but is necessary for other layering and subplotting as
+            they may not use the same plot by (and similar) columns, so the legend
+            title would be incorrect.
 
     Returns:
         The layered chart
@@ -517,6 +524,9 @@ def atomic_layer(
 
     new_fig = Figure(data=new_data, layout=new_layout)
 
+    if remove_legend_title:
+        new_fig.update_layout(legend_title_text=None)
+
     update_wrapper = partial(unsafe_figure_update_wrapper, unsafe_update_figure)
 
     return update_wrapper(
@@ -575,6 +585,8 @@ def layer(
         *figs,
         which_layout=which_layout,
         specs=specs,
+        # remove the legend title as it is likely incorrect
+        remove_legend_title=True,
         unsafe_update_figure=unsafe_update_figure,
     )
 
