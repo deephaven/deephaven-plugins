@@ -1,4 +1,7 @@
 import {
+  AgColumn,
+  Column,
+  ColumnValueChangedEvent,
   FilterChangedEvent,
   FilterModel,
   GridApi,
@@ -10,8 +13,11 @@ import {
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import { isSortModelItem } from '../utils/AgGridSortUtils';
+import { AggregatedColumn, isAggregatedColumn } from '../utils/AgGridAggUtils';
 
-const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
+const log = Log.module(
+  '@deephaven/js-plugin-ag-grid/AbstractViewportDatasource'
+);
 
 export abstract class AbstractViewportDatasource
   implements IViewportDatasource
@@ -71,11 +77,35 @@ export abstract class AbstractViewportDatasource
     this.refreshViewport();
   }
 
+  /**
+   * Apply the filter model to the data source.
+   *
+   * @param filterModel The filter model to apply.
+   */
   abstract applyFilter(filterModel: FilterModel): void;
 
+  /**
+   * Apply the sort model to the data source.
+   *
+   * @param sortModel The sort model to apply.
+   */
   abstract applySort(sortModel: SortModelItem[]): void;
 
+  /**
+   * Apply the viewport to the data source.
+   *
+   * @param firstRow The first row index of the viewport.
+   * @param lastRow The last row index of the viewport.
+   */
   abstract applyViewport(firstRow: number, lastRow: number): void;
+
+  /**
+   * Apply the aggregated columns to the data source.
+   * All columns passed in are aggregated columns.
+   *
+   * @param aggregatedColumns The aggregated columns to apply.
+   */
+  abstract applyAggregatedColumns(aggregatedColumns: AggregatedColumn[]): void;
 
   refreshViewport(): void {
     if (this.currentViewport == null) {
