@@ -200,7 +200,9 @@ t_top = ui.table(
 
 ## Events
 
-You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
+### Press Events
+
+You can listen for different user press events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
 
 Note that there is no row index in event data because the row index is not a safe way to reference a row between the client and server since the user could have manipulated the table, resulting in a different client order.
 
@@ -220,6 +222,26 @@ t = ui.table(
     on_cell_double_press=lambda data: print(f"Cell Double Press: {data}"),
     on_column_press=lambda column: print(f"Column Press: {column}"),
     on_column_double_press=lambda column: print(f"Column Double Press: {column}"),
+)
+```
+
+### Selection Event
+
+The `on_selection_change` event is triggered when the user selects or deselects a row. The event data will contain all selected rows within the viewport as a list of dictionaries keyed by column name. There are a few caveats to the selection event.
+
+1. The event will **only** send data from columns in the `always_fetch_columns` prop.
+2. The event will **only** send data from rows that are visible in the viewport.
+3. The event will **not** be triggered if a ticking table row is replaced or shifted. This may cause what the user sees after row shifts to differ from the selection event data.
+
+With these caveats in mind, it is highly recommended that the `on_selection_change` event be used only with static tables. It is also recommended to only use this event for relatively small actions where you can see all selected rows at once.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    on_selection_change=lambda data: print(f"Selection: {data}"),
 )
 ```
 
@@ -391,7 +413,7 @@ Deephaven only fetches data for visible rows and columns within a window around 
 
 The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g. `on_row_press`) and context menu callbacks.
 
-> [!WARNING]  
+> [!WARNING]
 > Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
 
 This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
