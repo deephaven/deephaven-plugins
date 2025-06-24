@@ -242,6 +242,7 @@ import deephaven.plot.express as dx
 t = ui.table(
     dx.data.stocks(),
     on_selection_change=lambda data: print(f"Selection: {data}"),
+    always_fetch_columns=["Sym", "Exchange"],
 )
 ```
 

@@ -1,0 +1,1 @@
+{"file":"components/table.md","objects":{"t":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"deephaven.ui.elements.UITable","props":{"table":{"__dhObid":0},"onSelectionChange":{"__dhCbid":"cb0"},"alwaysFetchColumns":["Sym","Exchange"],"showQuickFilters":false,"showGroupingColumn":true,"showSearch":false,"reverse":false}},"state":"{}"}}}}
