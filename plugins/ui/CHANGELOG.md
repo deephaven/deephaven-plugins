@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.29.3 - 2025-06-24
+#### Bug Fixes
+- DH-19705: Query restart broke ui.dashboards (#1190) - (c57be53) - mofojed
+- DH-19696: Plotly objects were not loading correctly in deephaven… (#1192) - (a98604e) - mofojed
+
+- - -
+
 ## ui-v0.29.2 - 2025-04-08
 #### Bug Fixes
 - remove incorrect defaults in ui.grid to fix auto (#1154) - (684e5fc) - dgodinez-dh
