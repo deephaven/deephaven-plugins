@@ -45,7 +45,7 @@ memo_plot_app = ui_memo_plot_app()
 
 This example demonstrates how to create a simple line plot that updates based on user input. The plot will display the price of a stock filtered based on the stock symbol entered by the user. Here, we have used a `ui.text_field` to get the value, but it could be driven by any deephaven.ui input, including double clicking on a value from a `ui.table`. We've previously referred to this sort of behavior as a "one-click" component in Enterprise, as the plot updates as soon as the user enters a filter.
 
-```python
+```python order=p,_stocks
 import deephaven.plot.express as dx
 import deephaven.ui as ui
 
@@ -75,7 +75,7 @@ p = plot_filtered_table(_stocks, "DOG")
 
 Using a partitioned table, as opposed to a `where` statement, can be more efficient if you filter the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using `where`, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this trade-off can be worthwhile.
 
-```python
+```python order=p,_stocks
 import deephaven.plot.express as dx
 import deephaven.ui as ui
 
@@ -113,7 +113,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
-```python
+```python order=wtp,ptf,_stocks
 import deephaven.plot.express as dx
 import deephaven.ui as ui
 
@@ -166,7 +166,7 @@ wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 
 In response to user events, you can change data for a plot and you can change the plot itself. In this example, the plot type changes by selecting it from a picker.
 
-```python
+```python order=change_plot_type_example,_stocks
 import deephaven.plot.express as dx
 import deephaven.ui as ui
 

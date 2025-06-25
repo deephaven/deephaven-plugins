@@ -51,3 +51,7 @@ playwright/.cache/
 
 # Ignore docs
 **/*.md
+**/docs/
+
+# Ignore test cache
+**/.tox/

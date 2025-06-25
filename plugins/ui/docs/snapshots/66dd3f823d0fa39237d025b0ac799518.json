@@ -1,0 +1,1 @@
+{"file":"components/slider.md","objects":{"my_slider_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"labelPosition":"top","orientation":"horizontal","minValue":0,"maxValue":100,"step":1,"defaultValue":12,"label":"Cookies to buy"},"__dhElemName":"deephaven.ui.components.Slider"},"state":"{}"}}}}

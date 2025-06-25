@@ -32,7 +32,7 @@ List view items can also be generated from a table directly or using `item_table
 
 This method is ideal for quickly displaying a static dataset. By default, the first column is used as the key and label.
 
-```python
+```python order=my_list_view_table,_colors
 from deephaven import ui, new_table
 from deephaven.column import string_col
 
@@ -55,7 +55,7 @@ my_list_view_table = ui_list_view_table()
 
 `item_table_source` is used to create complex items from a table (ie., defining which columns are the keys/labels of the data).
 
-```python
+```python order=my_list_view_table_source,_table
 from deephaven import ui, new_table
 from deephaven.column import string_col
 
@@ -153,7 +153,7 @@ my_list_view = ui_list_view()
 
 List view accepts an action that can be triggered when a user performs an action on an item.
 
-```python
+```python order=my_list_view_actions,_table
 from deephaven import ui, new_table
 from deephaven.column import string_col
 
@@ -195,7 +195,7 @@ my_list_view_actions = ui_list_view_actions()
 
 List view can also accept a handler that is called when the selection is changed.
 
-```python
+```python order=my_list_view_selection,_table
 from deephaven import ui, new_table
 from deephaven.column import string_col
 
@@ -232,7 +232,7 @@ my_list_view_selection = ui_list_view_selection()
 
 To disable certain rows in the `ListView` component, use the `disabled_keys` prop. By setting this prop with an array of keys, you can prevent interaction with those rows, providing greater control and customization options for the `ListView` behavior.
 
-```python
+```python order=my_list_view_disabled,_table
 from deephaven import ui, new_table
 from deephaven.column import string_col
 

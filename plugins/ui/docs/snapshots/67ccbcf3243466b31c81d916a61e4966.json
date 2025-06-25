@@ -1,0 +1,1 @@
+{"file":"components/action_menu.md","objects":{"my_action_menu_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"align":"start","direction":"bottom","shouldFlip":true,"closeOnSelect":true,"trigger":"press","children":["Cut","Copy","Paste"]},"__dhElemName":"deephaven.ui.components.ActionMenu"},"state":"{}"}}}}

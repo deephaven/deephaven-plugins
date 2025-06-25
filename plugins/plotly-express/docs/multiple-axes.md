@@ -19,8 +19,6 @@ brazil = gapminder.where("Country == `Brazil`")
 line_plot_shared = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"])
 ```
 
-![Multiple Axes Plot Basic Example](./_assets/multiple_axes_plot.png)
-
 The `xaxis_sequence` or `yaxis_sequence` arguments can be used to create multiple axes.
 
 ```python order=line_plot_multi,brazil,gapminder

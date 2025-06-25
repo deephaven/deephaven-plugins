@@ -1,0 +1,1 @@
+{"file":"describing/ui_with_tables.md","objects":{"_source":{"type":"Table","data":{"columns":[{"name":"Timestamp","type":"java.time.Instant"},{"name":"X","type":"int"}],"rows":[]}},"table_monitor":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhObid":0}},"__dhElemName":"__main__.ui_table_monitor"},"state":"{}"}}}}

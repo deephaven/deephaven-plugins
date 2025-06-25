@@ -1,0 +1,1 @@
+{"file":"components/slider.md","objects":{"my_slider_disabled_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"labelPosition":"top","orientation":"horizontal","isDisabled":true,"minValue":0,"maxValue":100,"step":1,"defaultValue":0,"label":"Cookies to share"},"__dhElemName":"deephaven.ui.components.Slider"},"state":"{}"}}}}

@@ -1,0 +1,1 @@
+{"file":"components/table.md","objects":{"t":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"deephaven.ui.elements.UITable","props":{"table":{"__dhObid":0},"format_":[{"cols":["Price","Dollars"],"value":"$#,##0.00"},{"cols":"Random","value":"#.000"}],"showQuickFilters":false,"showGroupingColumn":true,"showSearch":false,"reverse":false}},"state":"{}"}}}}

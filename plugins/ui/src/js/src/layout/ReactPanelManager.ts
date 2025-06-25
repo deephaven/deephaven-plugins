@@ -20,6 +20,20 @@ export interface ReactPanelManager {
   onClose: (panelId: string) => void;
 
   /**
+   * Must be called when client data that should be persisted is changed.
+   * @param panelId The panelId for the changed data
+   * @param data The data to persist. Must be JSON serializable.
+   */
+  onDataChange: (panelId: string, data: unknown[]) => void;
+
+  /**
+   * Gets the initial persisted data for a panel.
+   * @param panelId The panelId for the data to be retrieved.
+   * @returns Data that was persisted for the panelId.
+   */
+  getInitialData: (panelId: string) => unknown[];
+
+  /**
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
    */
   getPanelId: () => string;
@@ -40,6 +54,18 @@ export interface ReactPanelControl {
   /** Must be called when the panel is closed */
   onClose: () => void;
 
+  /**
+   * Must be called when client data that should be persisted is changed.
+   * @param data The data to persist. Must be JSON serializable.
+   */
+  onDataChange: (data: unknown[]) => void;
+
+  /**
+   * Gets the initial persisted data for a panel.
+   * @returns Data that was persisted for the panel.
+   */
+  getInitialData: () => unknown[];
+
   /** The panelId for this react panel */
   panelId: string;
 }
@@ -56,16 +82,33 @@ export function useReactPanelManager(): ReactPanelManager {
 }
 
 /**
+ * DO NOT call this hook anywhere except once in ReactPanel.
  * Use the controls for a single react panel.
+ * Otherwise panelIds will be generated/rehydrated incorrectly.
  */
 export function useReactPanel(): ReactPanelControl {
-  const { metadata, onClose, onOpen, getPanelId } = useReactPanelManager();
+  const {
+    metadata,
+    onClose,
+    onOpen,
+    onDataChange,
+    getPanelId,
+    getInitialData,
+  } = useReactPanelManager();
   const panelId = useMemo(() => getPanelId(), [getPanelId]);
 
   return {
     metadata,
     onClose: useCallback(() => onClose(panelId), [onClose, panelId]),
     onOpen: useCallback(() => onOpen(panelId), [onOpen, panelId]),
+    onDataChange: useCallback(
+      (data: unknown[]) => onDataChange(panelId, data),
+      [onDataChange, panelId]
+    ),
+    getInitialData: useCallback(
+      () => getInitialData(panelId),
+      [getInitialData, panelId]
+    ),
     panelId,
   };
 }

@@ -45,6 +45,7 @@ function makeWidgetHandler({
 }: Partial<WidgetHandlerProps> = {}) {
   return (
     <WidgetHandler
+      id="test-widget-handler"
       widgetDescriptor={widget}
       onClose={onClose}
       initialData={initialData}

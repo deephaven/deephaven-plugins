@@ -25,6 +25,11 @@
       "name": "example-theme",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"
+    },
+    {
+      "name": "simple-pivot",
+      "version": "0.0.0",
+      "main": "src/js/dist/index.js"
     }
   ]
 }

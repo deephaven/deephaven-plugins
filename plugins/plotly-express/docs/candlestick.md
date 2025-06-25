@@ -46,13 +46,11 @@ candlestick_plot = dx.candlestick(
 )
 ```
 
-![Candlestick Plot Basic Example](./_assets/candlestick_plot.png)
-
 ### Calendar
 
 Candlestick plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=candlestick_plot_default,candlestick_plot_cal_name,candlestick_plot_cal,dog_prices,stocks_1min_dog,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
 from deephaven.calendar import calendar, set_calendar

@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests
-        run: './tools/run_docker.sh e2e-tests'
+        run: './tools/run_docker.sh ./tests/docker-compose.yml e2e-tests'
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

@@ -1,0 +1,1 @@
+{"file":"components/switch.md","objects":{"my_switch_name_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":[{"__dhElemName":"deephaven.ui.components.Switch","props":{"value":"low","name":"power","children":"Low Power Mode"}}],"validationBehavior":"aria","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.Form"},"state":"{}"}}}}

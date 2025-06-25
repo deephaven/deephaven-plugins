@@ -1,0 +1,1 @@
+{"file":"components/time_field.md","objects":{"my_time_field_is_quiet_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.TimeField","props":{"granularity":"SECOND","hideTimeZone":false,"isQuiet":true}}},"__dhElemName":"deephaven.ui.components.time_field.time_field"},"state":"{}"}}}}

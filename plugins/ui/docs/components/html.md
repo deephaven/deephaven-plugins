@@ -18,7 +18,7 @@ basic_html_example = ui.html.div("basic html example")
 
 The `html_element` method allows you to specify any html `tag` along with any `children` and `attributes`.
 
-```python
+```python order=simple_html,nested_html
 from deephaven import ui
 
 simple_html = ui.html.html_element("div", "Welcome to Deephaven", id="simple")
@@ -35,7 +35,7 @@ nested_html = ui.html.html_element(
 
 `ui.html` also provides methods for common tags.
 
-```python
+```python order=simple_html,nested_html
 from deephaven import ui
 
 simple_html = ui.html.div("Welcome to Deephaven", id="simple")
@@ -53,7 +53,7 @@ For a full list of methods, see the API reference below.
 
 The `ui.html` component can be nested inside other `deephaven.ui` components and vice versa.
 
-```python
+```python order=component,html
 from deephaven import ui
 
 component = ui.view(
@@ -67,34 +67,64 @@ html = ui.html.div(ui.html.h1("Component inside html"), ui.text("this is a compo
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.html.html_element
+
 .. dhautofunction:: deephaven.ui.html.a
+
 .. dhautofunction:: deephaven.ui.html.button
+
 .. dhautofunction:: deephaven.ui.html.code
+
 .. dhautofunction:: deephaven.ui.html.div
+
 .. dhautofunction:: deephaven.ui.html.form
+
 .. dhautofunction:: deephaven.ui.html.h1
+
 .. dhautofunction:: deephaven.ui.html.h2
+
 .. dhautofunction:: deephaven.ui.html.h3
+
 .. dhautofunction:: deephaven.ui.html.h4
+
 .. dhautofunction:: deephaven.ui.html.h5
+
 .. dhautofunction:: deephaven.ui.html.h6
+
 .. dhautofunction:: deephaven.ui.html.i
+
 .. dhautofunction:: deephaven.ui.html.img
+
 .. dhautofunction:: deephaven.ui.html.input
+
 .. dhautofunction:: deephaven.ui.html.label
+
 .. dhautofunction:: deephaven.ui.html.li
+
 .. dhautofunction:: deephaven.ui.html.ol
+
 .. dhautofunction:: deephaven.ui.html.option
+
 .. dhautofunction:: deephaven.ui.html.p
+
 .. dhautofunction:: deephaven.ui.html.pre
-.. dhautofunction:: deephaven.ui.html.selection
+
+.. dhautofunction:: deephaven.ui.html.select
+
 .. dhautofunction:: deephaven.ui.html.span
+
 .. dhautofunction:: deephaven.ui.html.table
+
 .. dhautofunction:: deephaven.ui.html.tbody
+
 .. dhautofunction:: deephaven.ui.html.td
+
 .. dhautofunction:: deephaven.ui.html.textarea
+
 .. dhautofunction:: deephaven.ui.html.th
-.. dhautofunction:: deephaven.ui.html.thread
+
+.. dhautofunction:: deephaven.ui.html.thead
+
 .. dhautofunction:: deephaven.ui.html.tr
+
 .. dhautofunction:: deephaven.ui.html.ul
 ```

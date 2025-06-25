@@ -1,5 +1,9 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { SortModelItem } from '@ag-grid-community/core';
+import { ColumnState, SortModelItem } from '@ag-grid-community/core';
+
+export function isSortModelItem(item: ColumnState): item is SortModelItem {
+  return item.sort != null;
+}
 
 export default class AgGridSortUtils {
   /**
@@ -22,7 +26,7 @@ export default class AgGridSortUtils {
   }
 
   static parseSortModel(
-    table: DhType.Table,
+    table: DhType.Table | DhType.TreeTable,
     sortModelItems: readonly SortModelItem[]
   ): DhType.Sort[] {
     return sortModelItems.map(item => {

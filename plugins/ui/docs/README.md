@@ -32,13 +32,13 @@ You'll need to find the link to open the UI in the Docker logs:
 
 Get started by importing the `deephaven.ui` package as `ui`:
 
-```python test-set=0
+```python test-set=readme
 from deephaven import ui
 ```
 
 The `ui` package contains many _components_, which you can display in the UI:
 
-```python test-set=0
+```python test-set=readme
 hello_world = ui.heading("Hello World!")
 ```
 
@@ -50,7 +50,7 @@ By assigning the component to the `hello_world` variable, it displays in the UI 
 
 Write functions to handle events. To write a button that will print event details to the console when clicked:
 
-```python test-set=0
+```python test-set=readme
 my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked! {e}"))
 ```
 
@@ -62,7 +62,7 @@ Use the `@ui.component` decorator to create your own custom components. This dec
 
 We can display a heading above a button as our custom component:
 
-```python test-set=0
+```python test-set=readme
 @ui.component
 def ui_foo_bar():
     return [
@@ -102,7 +102,7 @@ When state is updated, deephaven.ui will call your component again to re-render 
 
 Each individual component has its own state:
 
-```python test-set=0
+```python test-set=readme order=c1,c2
 @ui.component
 def ui_counter():
     count, set_count = ui.use_state(0)

@@ -73,7 +73,7 @@ The following layouts can be returned by a component and used inside a `panel` t
 
 The top-level return of a `@ui.component` is automatically wrapped in a `panel` with a `flex` layout. Returning a single component or a list of components will have this default layout.
 
-```python
+```python order=single_example,list_example
 from deephaven import ui
 
 
@@ -189,7 +189,7 @@ implicit_grid_example = implicit_grid()
 
 The [`view`](../components/view.md) component is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Deephaven UI style props to ensure consistency with other components and is analogous to an HTML `<div>`.
 
-```python
+```python order=view,view_overflow
 from deephaven import ui
 
 view = ui.view(

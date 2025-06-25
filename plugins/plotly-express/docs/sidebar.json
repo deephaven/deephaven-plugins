@@ -140,6 +140,10 @@
             "path": "multiple-axes.md"
           },
           {
+            "label": "Titles and Legends",
+            "path": "titles-legends.md"
+          },
+          {
             "label": "Chart Customization",
             "path": "unsafe-update-figure.md"
           },

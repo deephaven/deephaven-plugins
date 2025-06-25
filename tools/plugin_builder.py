@@ -363,6 +363,7 @@ def handle_args(
     install: bool,
     reinstall: bool,
     docs: bool,
+    snapshots: bool,
     server: bool,
     server_arg: tuple[str],
     js: bool,
@@ -417,6 +418,9 @@ def handle_args(
 
     if stop_event.is_set():
         return
+
+    if snapshots:
+        run_command("npm run update-doc-snapshots")
 
     if docs:
         run_docs(plugins, len(plugins) > 0)
@@ -477,6 +481,13 @@ def handle_args(
     "Consider using the --reinstall or --install flags to update the plugin before generating the docs.",
 )
 @click.option(
+    "--snapshots",
+    is_flag=True,
+    help="Generate snapshots for all plugins that have a make_docs.py. "
+    "The docs should be updated before generating snapshots."
+    "Consider using the --docs flags to build the docs before updating the snapshots.",
+)
+@click.option(
     "--server",
     "-s",
     is_flag=True,
@@ -516,6 +527,7 @@ def builder(
     install: bool,
     reinstall: bool,
     docs: bool,
+    snapshots: bool,
     server: bool,
     server_arg: tuple[str],
     js: bool,
@@ -531,6 +543,7 @@ def builder(
         install: True to install the plugins
         reinstall: True to reinstall the plugins
         docs: True to generate the docs
+        snapshots: True to generate the snapshots
         server: True to run the deephaven server after building and installing the plugins
         server_arg: The arguments to pass to the server
         js: True to build the JS files for the plugins
@@ -553,6 +566,7 @@ def builder(
             install,
             reinstall,
             docs,
+            snapshots,
             server,
             server_arg,
             js,

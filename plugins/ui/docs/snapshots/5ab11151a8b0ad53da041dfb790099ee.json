@@ -1,0 +1,1 @@
+{"file":"components/toast.md","objects":{"_source":{"type":"Table","data":{"columns":[{"name":"Timestamp","type":"java.time.Instant"},{"name":"X","type":"int"}],"rows":[]}},"my_toast_table":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhObid":0}},"__dhElemName":"__main__.toast_table"},"state":"{}"}}}}
