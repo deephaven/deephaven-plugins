@@ -174,10 +174,28 @@ t_single_agg = ui.table(
     aggregations=ui.TableAgg("sum"),
 )
 
-t_selection = ui.table(
-    _stocks,
-    on_selection_change=lambda d: print(
-        "Selection:", [[row["Sym"]["text"], row["Exchange"]["text"]] for row in d]
-    ),
-    always_fetch_columns=["Sym", "Exchange"],
-)
+
+@ui.component
+def t_selection_component():
+    selection, set_selection = ui.use_state([])
+    selection_str = (
+        ", ".join(
+            [f"{row['Sym']['text']}/{row['Exchange']['text']}" for row in selection]
+        )
+        if len(selection) > 0
+        else "None"
+    )
+    return ui.flex(
+        ui.text(
+            f"Selection: {selection_str}",
+        ),
+        ui.table(
+            _stocks,
+            on_selection_change=lambda d: set_selection(d),
+            always_fetch_columns=["Sym", "Exchange"],
+        ),
+        direction="column",
+    )
+
+
+t_selection = t_selection_component()

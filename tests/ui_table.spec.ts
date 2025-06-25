@@ -48,13 +48,11 @@ test('UI table on_selection_change', async ({ page }) => {
   const locator = page.locator(REACT_PANEL_VISIBLE);
 
   await clickGridRow(locator, 3);
-  await expect(page.getByText("Selection: [['CAT', 'NYPE']]")).toBeVisible();
+  await expect(page.getByText('Selection: CAT/NYPE')).toBeVisible();
 
   await clickGridRow(locator, 0, { modifiers: ['ControlOrMeta'] });
-  await expect(
-    page.getByText("Selection: [['FISH', 'TPET'], ['CAT', 'NYPE']]")
-  ).toBeVisible();
+  await expect(page.getByText('Selection: FISH/TPET, CAT/NYPE')).toBeVisible();
 
   await page.keyboard.press('Escape');
-  await expect(page.getByText('Selection: []')).toBeVisible();
+  await expect(page.getByText('Selection: None')).toBeVisible();
 });
