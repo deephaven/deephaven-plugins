@@ -1,7 +1,4 @@
 import {
-  AgColumn,
-  Column,
-  ColumnValueChangedEvent,
   FilterChangedEvent,
   FilterModel,
   GridApi,
@@ -13,7 +10,7 @@ import {
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import { isSortModelItem } from '../utils/AgGridSortUtils';
-import { AggregatedColumn, isAggregatedColumn } from '../utils/AgGridAggUtils';
+import { AggregatedColumn } from '../utils/AgGridAggUtils';
 
 const log = Log.module(
   '@deephaven/js-plugin-ag-grid/AbstractViewportDatasource'
