@@ -1179,6 +1179,9 @@ class DeephavenFigure:
         Returns:
             The input filter columns
         """
+        if self._is_plotly_fig:
+            # if this is a plotly figure, it does not have filter columns
+            return set()
         figure = self.get_figure()
         if not figure:
             return self._filter_columns
