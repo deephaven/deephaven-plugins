@@ -501,12 +501,12 @@ class PartitionManager:
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
-            has_required_filters = True
+            required_filters_available = True
             for required_filter in required_filter_by:
                 if (filters and required_filter not in filters) or not filters:
-                    has_required_filters = False
+                    required_filters_available = False
 
-            if filters and has_required_filters:
+            if filters and required_filters_available:
                 built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
                 partitioned_table = partitioned_table.filter(built_filter)
 
@@ -746,6 +746,7 @@ class PartitionManager:
         title = self.title
         default_fig = px.scatter(x=[0], y=[0], title=title)
         default_fig.update_traces(x=[], y=[])
+        default_fig.update_layout(margin=None)
         return DeephavenFigure(default_fig)
 
     def create_figure(self) -> DeephavenFigure:

@@ -374,6 +374,17 @@ def retrieve_input_filter_columns(
         ]
     )
 
+    filter_name_set = set([column.name for column in filter_columns])
+
+    required_name_set = set([column.name for column in required_filter_columns])
+
+    filter_union = filter_name_set.intersection(required_name_set)
+    if filter_union:
+        # filter columns and required filter columns are mutually exclusive
+        raise ValueError(
+            f"Overlapping filter_by and required_filter_by columns found: {filter_union}"
+        )
+
     all_filter_column = filter_columns.union(required_filter_columns)
 
     return all_filter_column, filter_by, required_filter_by

@@ -261,7 +261,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     if (this.filterColumnMap != null) {
       // there are filters, so the server expects the filter to be sent
-      this.fireFilterUpdated(this.filterMap ?? new Map());
+      this.sendFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -539,6 +539,13 @@ export class PlotlyExpressChartModel extends ChartModel {
           ...plotlyLayout.legend,
         },
       });
+    }
+
+    // If there are no tables to fetch data from, the chart is ready to render
+    // Normally this event only fires once at least 1 table has fetched data
+    // Without this, the chart shows an infinite loader if there are no tables
+    if (this.tableColumnReplacementMap.size === 0) {
+      this.fireUpdate(this.getData());
     }
   }
 
@@ -845,7 +852,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.filterMap = filterMap;
 
     if (this.isSubscribed) {
-      this.fireFilterUpdated(filterMap);
+      this.sendFilterUpdated(filterMap);
     }
   }
 
@@ -853,7 +860,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    * Fire an event to update the filters on the chart.
    * @param filterMap The filter map to send to the server
    */
-  fireFilterUpdated(filterMap: FilterMap): void {
+  sendFilterUpdated(filterMap: FilterMap): void {
     // Only send the filter update if filters are not required
     // They will either be set or none are required
     if (!this.isFilterRequired()) {

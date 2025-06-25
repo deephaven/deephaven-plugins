@@ -4,6 +4,12 @@ To plot a subset of a table based on a column value, use the `filter_by` and `re
 
 Under the hood, the Deephaven query engine performs a `partition_by` table operation on the given filter column. This efficient implementation means that plots with many groups can be filtered and redrawn quickly, even with large datasets.
 
+> [!NOTE]
+> If you are familiar with the `one_click` API it works similarly to `filter_by`, but there are some differences in behavior:
+> In the `one_click` API, if filters are provided but not set then one trace is charted.
+> In the `filter_by` API, if filters are provided but not set then all values within the filter columns are charted on separate traces.
+> This provides a consistent experience with plot by behavior, but may not be optimal if filtering on numeric columns with many unique values.
+
 ## Examples
 
 ### Filter by a categorical variable
@@ -38,7 +44,7 @@ filtered_line_plot = dx.line(
 
 To require a filter on a column, provide a column to `required_filter_by`. The chart is filtered to match the value of the filter variable from the corresponding input filter or link. If the input filter or link is not set, no data is shown.
 
-```python
+```python skip-test
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set
@@ -54,7 +60,7 @@ To mix optional and required filters, provide columns to both `filter_by` and `r
 > [!NOTE]
 > Mixing optional and required filters displays overlays to enter filters for all columns. Only the `required_filter_by` filters are actually required and the message is dismissed when all of those are provided.
 
-```python
+```python skip-test
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set
@@ -101,7 +107,7 @@ filtered_line_plot = dx.line(
 
 Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `required_filter_by=True` to make the columns required filters instead.
 
-```python
+```python skip-test
 import deephaven.plot.express as dx
 
 # import and partitioned the example stocks data set
@@ -138,7 +144,7 @@ filtered_line_plot = dx.line(
 > [!WARNING]
 > Multiple filters with the same name but different types are not currently supported. Rename columns so that they are unique if necessary.
 
-```python
+```python skip-test
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set

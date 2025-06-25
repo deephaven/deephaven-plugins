@@ -46,7 +46,7 @@ DEFAULT_PLOTLY_DATA = [DEFAULT_PLOTLY_TRACE]
 
 DEFAULT_PLOTLY_LAYOUT = {
     "legend": {"tracegroupgap": 0},
-    "margin": {"t": 60},
+    "margin": {},
     "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
     "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "y"}},
 }
