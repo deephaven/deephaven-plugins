@@ -45,7 +45,7 @@ test('UI table on_selection_change', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 't_selection', REACT_PANEL_VISIBLE);
 
-  const locator = page.locator(REACT_PANEL_VISIBLE);
+  const locator = page.locator(`${REACT_PANEL_VISIBLE} .iris-grid`);
 
   await clickGridRow(locator, 3);
   await expect(page.getByText('Selection: CAT/NYPE')).toBeVisible();
