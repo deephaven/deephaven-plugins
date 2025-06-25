@@ -173,3 +173,11 @@ t_single_agg = ui.table(
     _stocks,
     aggregations=ui.TableAgg("sum"),
 )
+
+t_selection = ui.table(
+    _stocks,
+    on_selection_change=lambda d: print(
+        "Selection:", [[row["Sym"]["text"], row["Exchange"]["text"]] for row in d]
+    ),
+    always_fetch_columns=["Sym", "Exchange"],
+)
