@@ -16,7 +16,7 @@ Under the hood, the Deephaven query engine performs a `partition_by` table opera
 
 To filter on a single column, provide a column to `filter_by`. The chart is filtered to match the value of the filter variable from the corresponding input filter or link. If the input filter or link is not set, all groups within the column are shown.
 
-```python
+```python order=filtered_line_plot,stocks
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set
@@ -29,7 +29,7 @@ filtered_line_plot = dx.line(stocks, x="Timestamp", y="Price", filter_by="Sym")
 
 To filter on multiple columns, provide columns to `filter_by`. The chart is filtered to match the values of the filter variables from the corresponding input filters or links. If the input filters or links are not set, all groups of variables are shown.
 
-```python
+```python order=filtered_line_plot,stocks
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set
@@ -75,7 +75,7 @@ filtered_line_plot = dx.line(
 
 To mix a filter and [plot by](plot-by.md), provide columns to both `filter_by` and `by`. By default, all grouping variables within the columns are shown for `by` and `filter_by`.
 
-```python
+```python order=filtered_line_plot,stocks
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()  # import the example stocks data set
@@ -90,7 +90,7 @@ filtered_line_plot = dx.line(
 
 Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `filter_by=True` to make the columns filters instead.
 
-```python
+```python order=filtered_line_plot,stocks
 import deephaven.plot.express as dx
 
 # import and partitioned the example stocks data set
@@ -124,7 +124,7 @@ filtered_line_plot = dx.line(
 
 Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `filter_by` to a subset of the key columns to make those columns filters instead.
 
-```python
+```python order=filtered_line_plot,stocks
 import deephaven.plot.express as dx
 
 # import and partitioned the example stocks data set
