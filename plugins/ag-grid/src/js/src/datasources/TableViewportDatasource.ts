@@ -1,5 +1,4 @@
 import {
-  Column,
   FilterModel,
   IViewportDatasourceParams,
   SortModelItem,
@@ -126,14 +125,14 @@ export class TableViewportDatasource extends AbstractViewportDatasource {
       ];
     });
 
-    const totalsConfig: DhType.TotalsTableConfig = {
-      defaultOperation: this.dh.AggregationOperation.SKIP,
-      operationMap,
-      showTotalsByDefault: false,
-      showGrandTotalsByDefault: false,
-      groupBy: [],
-    };
-    const totalsTablePromise = this.table.getTotalsTable(totalsConfig);
+    // const totalsConfig: DhType.TotalsTableConfig = {
+    //   defaultOperation: this.dh.AggregationOperation.SKIP,
+    //   operationMap,
+    //   showTotalsByDefault: false,
+    //   showGrandTotalsByDefault: false,
+    //   groupBy: [],
+    // };
+    // const totalsTablePromise = this.table.getTotalsTable(totalsConfig);
     // TODO: We need to keep track of the totals table, and use it as the last row? There doesn't seem to be a way to 'virtualize' the totals row in AG Grid...
     // There is no way to use totals row from viewport data model, so this would be impossible
     // We can just show it as a row at the end...

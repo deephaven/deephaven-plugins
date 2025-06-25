@@ -10,7 +10,6 @@ import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils from '../utils/AgGridSortUtils';
 import AbstractViewportDatasource from './AbstractViewportDatasource';
 import { AggregatedColumn } from '../utils/AgGridAggUtils';
-import { assert } from 'console';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/TreeViewportDatasource');
 
@@ -132,6 +131,7 @@ export class TreeViewportDatasource extends AbstractViewportDatasource {
     this.table.setViewport(firstRow, lastRow);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   applyAggregatedColumns(aggregatedColumns: AggregatedColumn[]): void {
     // TODO: Need to remove this
     // log.debug('Applying aggregated columns', aggregatedColumns);
