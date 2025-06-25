@@ -70,12 +70,6 @@ export function AgGridView({
     () =>
       ({
         cellRenderer: treeCellRenderer,
-        cellRendererParams: {
-          totalValueGetter: params => {
-            log.debug('autoGroupColumnDef cellRendererParams', params);
-            return `xxx ${params.value} (${params.node.allChildrenCount})`;
-          },
-        },
       }) satisfies ColDef,
     [treeCellRenderer]
   );

@@ -85,7 +85,9 @@ class DeephavenViewportDatasource extends AbstractViewportDatasource {
     this.currentDatasource.refreshViewport();
   }
 
-  private async handleColumnValueChanged(event: ColumnValueChangedEvent): void {
+  private async handleColumnValueChanged(
+    event: ColumnValueChangedEvent
+  ): Promise<void> {
     log.debug('Column value changed', event);
     assertNotNull(this.gridApi);
     await this.updateAggregations();
