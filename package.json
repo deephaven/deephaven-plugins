@@ -106,5 +106,10 @@
     "@swc/core-win32-ia32-msvc": "1.3.99",
     "@swc/core-win32-x64-msvc": "1.3.99"
   },
+  "overrides": {
+    "@deephaven/eslint-config": {
+      "eslint-import-resolver-typescript": "3.5.0"
+    }
+  },
   "prettier": "@deephaven/prettier-config"
 }
