@@ -1,7 +1,7 @@
 {
-  "name": "@deephaven/my-element-plugin",
+  "name": "@deephaven/confetti-plugin",
   "version": "0.1.0",
-  "description": "My element plugin",
+  "description": "Confetti plugin",
   "keywords": [
     "Deephaven",
     "plugin",

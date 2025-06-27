@@ -1,11 +1,11 @@
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
 
-PACKAGE_NAMESPACE = "deephaven.my_element_plugin"
+PACKAGE_NAMESPACE = "deephaven.confetti_plugin"
 JS_NAME = "_js"
 
 
-class MyElementRegistration(Registration):
+class ConfettiPluginRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
 
