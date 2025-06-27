@@ -27,6 +27,31 @@ def remap_types(
             df[col] = df[col].astype("Float64")
 
 
+DEFAULT_PLOTLY_TRACE = {
+    "hovertemplate": "x=%{x}<br>y=%{y}<extra></extra>",
+    "legendgroup": "",
+    "marker": {"color": "#636efa", "symbol": "circle"},
+    "mode": "markers",
+    "name": "",
+    "orientation": "v",
+    "showlegend": False,
+    "type": "scatter",
+    "x": [],
+    "xaxis": "x",
+    "y": [],
+    "yaxis": "y",
+}
+
+DEFAULT_PLOTLY_DATA = [DEFAULT_PLOTLY_TRACE]
+
+DEFAULT_PLOTLY_LAYOUT = {
+    "legend": {"tracegroupgap": 0},
+    "margin": {},
+    "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "title": {"text": "x"}},
+    "yaxis": {"anchor": "x", "domain": [0.0, 1.0], "title": {"text": "y"}},
+}
+
+
 class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -52,6 +77,7 @@ class BaseTestCase(unittest.TestCase):
         expected_is_user_set_template: bool = None,
         expected_is_user_set_color: bool = None,
         expected_calendar: dict = None,
+        expected_filter_columns: dict = None,
         pop_template: bool = True,
     ) -> None:
         """
@@ -69,6 +95,7 @@ class BaseTestCase(unittest.TestCase):
             expected_is_user_set_template: The expected is_user_set_template
             expected_is_user_set_color: The expected is_user_set_color
             expected_calendar: The expected calendar
+            expected_filter_columns: The expected filter columns
             pop_template: Whether to pop the template from the chart.
                 Pops from both the chart and the expected values, if provided.
         """
@@ -128,6 +155,10 @@ class BaseTestCase(unittest.TestCase):
         if expected_calendar is not None:
             self.assert_calendar_equal(deephaven["calendar"], expected_calendar)
             asserted = True
+
+        if expected_filter_columns is not None:
+            # use assertCountEqual since filter columns can be in any order
+            self.assertCountEqual(deephaven["filterColumns"], expected_filter_columns)
 
         if not asserted:
             raise ValueError("No comparisons were made in assert_chart_equals")

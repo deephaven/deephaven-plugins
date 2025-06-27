@@ -12,3 +12,4 @@ from .preprocessor import (
     AttachedTransforms,
     HierarchicalTransforms,
 )
+from .utility import FilterColumn

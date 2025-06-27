@@ -20,6 +20,8 @@ def line(
     error_y_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | list[str] | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -74,6 +76,15 @@ def line(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       size: A column or list of columns that contain size values.
         If only one column is passed, and it contains numeric values, the value
         is used as a size. Otherwise, the value is used for a plot by on size.
@@ -210,6 +221,8 @@ def line_3d(
     error_z_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -260,6 +273,15 @@ def line_3d(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       size: A column or list of columns that contain size values.
         If only one column is passed, and it contains numeric values, the value
         is used as a size. Otherwise, the value is used for a plot by on size.
@@ -363,6 +385,8 @@ def line_polar(
     theta: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -414,6 +438,15 @@ def line_polar(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       size: A column or list of columns that contain size values.
         If only one column is passed, and it contains numeric values, the value
         is used as a size. Otherwise, the value is used for a plot by on size.
@@ -502,6 +535,8 @@ def line_ternary(
     c: str | None = None,
     by: str | None | list[str] = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     size: str | None = None,
     line_dash: str | list[str] | None = None,
     width: str | list[str] | None = None,
@@ -547,6 +582,15 @@ def line_ternary(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       size: A column or list of columns that contain size values.
         If only one column is passed, and it contains numeric values, the value
         is used as a size. Otherwise, the value is used for a plot by on size.
