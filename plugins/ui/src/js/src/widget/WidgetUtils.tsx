@@ -210,7 +210,6 @@ export function getComponentTypeForElement<P extends Record<string, unknown>>(
   elementPluginMapping: Map<string, ComponentType>
 ): ComponentType<P> | null {
   const key = element[ELEMENT_KEY];
-  console.log('elementPluginMapping', key, elementPluginMapping, element);
   if (elementPluginMapping.has(key)) {
     return elementPluginMapping.get(key) as ComponentType<P> | null;
   }
@@ -236,7 +235,6 @@ export function getComponentForElement(
       newElement,
       elementPluginMapping
     );
-    console.log('component now', Component, newElement[ELEMENT_KEY]);
 
     if (Component != null) {
       const props = { ...newElement.props };
