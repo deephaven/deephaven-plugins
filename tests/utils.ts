@@ -7,6 +7,9 @@ export const SELECTORS = {
   REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
 };
 
+const ROW_HEIGHT = 19;
+const COLUMN_HEADER_HEIGHT = 30;
+
 /**
  * Goes to a page and waits for the progress bar to disappear
  * @param page The page
@@ -167,4 +170,25 @@ export async function pasteInMonaco(
     // Sanity check the paste happened
     await expect(locator.locator('textarea')).not.toBeEmpty();
   }
+}
+
+/**
+ * Clicks the specified row for the grid.
+ * Clicks in the first column of the row as column width is variable.
+ * Assumes there is only one level of column headers (i.e., no column groups).
+ * @param gridContainer The Playwright Locator of the grid container
+ * @param row The row index to click
+ * @param clickOptions The Locator click options such as modifies to use
+ */
+export async function clickGridRow(
+  gridContainer: Locator,
+  row: number,
+  clickOptions?: Parameters<Locator['click']>[0]
+): Promise<void> {
+  const x = 1;
+  const y = COLUMN_HEADER_HEIGHT + (row + 0.5) * ROW_HEIGHT;
+  await gridContainer.click({
+    ...clickOptions,
+    position: { x, y },
+  });
 }

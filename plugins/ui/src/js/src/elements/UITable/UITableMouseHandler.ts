@@ -2,57 +2,9 @@ import {
   EventHandlerResult,
   GridMouseHandler,
   GridPoint,
-  isExpandableGridModel,
-  type ModelIndex,
 } from '@deephaven/grid';
 import { IrisGridModel, type IrisGridType } from '@deephaven/iris-grid';
-import { CellData, RowDataMap, UITableProps } from './UITableUtils';
-
-function getCellData(
-  columnIndex: ModelIndex,
-  rowIndex: ModelIndex,
-  model: IrisGridModel
-): CellData {
-  const column = model.columns[columnIndex];
-  const { type } = column;
-  const value = model.valueForCell(columnIndex, rowIndex);
-  const text = model.textForCell(columnIndex, rowIndex);
-  return {
-    value,
-    text,
-    type,
-  };
-}
-
-/**
- * Get the data map for the given row
- * @param rowIndex Row to get the data map for
- * @returns Data map for the row
- */
-export function getRowDataMap(
-  rowIndex: ModelIndex,
-  model: IrisGridModel
-): RowDataMap {
-  const { columns, groupedColumns } = model;
-  const dataMap: RowDataMap = {};
-  for (let i = 0; i < columns.length; i += 1) {
-    const column = columns[i];
-    const { name } = column;
-    const isExpandable =
-      isExpandableGridModel(model) && model.isRowExpandable(rowIndex);
-    const isGrouped = groupedColumns.find(c => c.name === name) != null;
-    const cellData = getCellData(i, rowIndex, model);
-    // If the cellData.value is undefined, that means we don't have any data for that column (i.e. the column is not visible), don't send it back
-    if (cellData.value !== undefined) {
-      dataMap[name] = {
-        ...cellData,
-        isGrouped,
-        isExpandable,
-      };
-    }
-  }
-  return dataMap;
-}
+import { getCellData, getRowDataMap, UITableProps } from './UITableUtils';
 
 /**
  * Mouse handler for UITable. Will call the appropriate callbacks when a cell, row, or column is clicked or double clicked with the data structure expected.

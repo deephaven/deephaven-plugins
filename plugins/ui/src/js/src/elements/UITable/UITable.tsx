@@ -36,13 +36,15 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler, GridState } from '@deephaven/grid';
+import { GridMouseHandler, GridRange, GridState } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
   FormattingRule,
   getAggregationOperation,
+  getSelectionDataMap,
   UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
@@ -159,6 +161,7 @@ export function UITable({
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
+  onSelectionChange,
   quickFilters,
   sorts,
   aggregations,
@@ -374,13 +377,8 @@ export function UITable({
     return alwaysFetch;
   }, [format, columns]);
 
-  const alwaysFetchColumnsArray = useMemo(
-    () => [...ensureArray(alwaysFetchColumnsProp), ...formatColumnSources],
-    [alwaysFetchColumnsProp, formatColumnSources]
-  );
-
-  const alwaysFetchColumns = useMemo(() => {
-    if (alwaysFetchColumnsArray[0] === true) {
+  const alwaysFetchColumnsPropArray = useMemo(() => {
+    if (alwaysFetchColumnsProp === true) {
       if (columns.length > ALWAYS_FETCH_COLUMN_LIMIT) {
         throwError(
           `Table has ${columns.length} columns, which is too many to always fetch. ` +
@@ -391,14 +389,16 @@ export function UITable({
       }
       return columns.map(column => column.name);
     }
-    if (alwaysFetchColumnsArray[0] === false) {
+    if (alwaysFetchColumnsProp === false || alwaysFetchColumnsProp == null) {
       return [];
     }
-    return alwaysFetchColumnsArray.filter(
-      // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
-      (v): v is string => typeof v === 'string'
-    );
-  }, [alwaysFetchColumnsArray, columns, throwError]);
+    return [...ensureArray(alwaysFetchColumnsProp)];
+  }, [alwaysFetchColumnsProp, columns, throwError]);
+
+  const alwaysFetchColumns = useMemo(
+    () => [...alwaysFetchColumnsPropArray, ...formatColumnSources],
+    [alwaysFetchColumnsPropArray, formatColumnSources]
+  );
 
   const mouseHandlers = useMemo(
     () =>
@@ -512,6 +512,29 @@ export function UITable({
 
   const initialIrisGridServerProps = useRef(irisGridServerProps);
 
+  const handleSelectionChanged = useCallback(
+    async (ranges: readonly GridRange[]) => {
+      if (model == null || irisGrid == null || onSelectionChange == null) {
+        return;
+      }
+
+      const selected = getSelectionDataMap(
+        ranges,
+        model,
+        irisGrid,
+        alwaysFetchColumnsPropArray
+      );
+
+      onSelectionChange(selected);
+    },
+    [irisGrid, model, onSelectionChange, alwaysFetchColumnsPropArray]
+  );
+
+  const debouncedHandleSelectionChanged = useDebouncedCallback(
+    handleSelectionChanged,
+    250
+  );
+
   /**
    * We want to set the props based on a combination of server state and client state.
    * If the server state is the same as its initial state, then we are rehydrating and
@@ -561,6 +584,7 @@ export function UITable({
         ref={ref => setIrisGrid(ref)}
         model={model}
         onStateChange={onStateChange}
+        onSelectionChanged={debouncedHandleSelectionChanged}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
         inputFilters={inputFilters}
