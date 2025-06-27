@@ -9,8 +9,12 @@ import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils from '../utils/AgGridSortUtils';
 import AbstractViewportDatasource from './AbstractViewportDatasource';
+import {
+  AggregatedColumn,
+  getAggregationOperation,
+} from '../utils/AgGridAggUtils';
 
-const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
+const log = Log.module('@deephaven/js-plugin-ag-grid/TableViewportDatasource');
 
 export class TableViewportDatasource extends AbstractViewportDatasource {
   /**
@@ -111,10 +115,33 @@ export class TableViewportDatasource extends AbstractViewportDatasource {
     this.table.setViewport(firstRow, lastRow);
   }
 
+  applyAggregatedColumns(aggregatedColumns: AggregatedColumn[]): void {
+    log.debug('Applying aggregated columns', aggregatedColumns);
+    assertNotNull(this.gridApi);
+    const operationMap: Record<string, DhType.AggregationOperationType[]> = {};
+    aggregatedColumns.forEach(aggregatedColumn => {
+      operationMap[aggregatedColumn.colId] = [
+        getAggregationOperation(this.dh, aggregatedColumn.aggFunc),
+      ];
+    });
+
+    // const totalsConfig: DhType.TotalsTableConfig = {
+    //   defaultOperation: this.dh.AggregationOperation.SKIP,
+    //   operationMap,
+    //   showTotalsByDefault: false,
+    //   showGrandTotalsByDefault: false,
+    //   groupBy: [],
+    // };
+    // const totalsTablePromise = this.table.getTotalsTable(totalsConfig);
+    // TODO: We need to keep track of the totals table, and use it as the last row? There doesn't seem to be a way to 'virtualize' the totals row in AG Grid...
+    // There is no way to use totals row from viewport data model, so this would be impossible
+    // We can just show it as a row at the end...
+  }
+
   destroy(): void {
     super.destroy();
     this.stopListening();
-    this.table.close();
+    // this.table.close();
   }
 }
 
