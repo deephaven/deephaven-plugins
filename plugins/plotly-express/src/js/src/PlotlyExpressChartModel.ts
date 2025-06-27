@@ -791,24 +791,22 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   shouldPauseOnUserInteraction(): boolean {
-    return (
-      this.hasScene() || this.hasGeo() || this.hasMapbox() || this.hasPolar()
-    );
+    return this.hasScene() || this.hasGeo() || this.hasMap() || this.hasPolar();
   }
 
-  hasScene(): boolean {
+  private hasScene(): boolean {
     return this.plotlyData.some(d => 'scene' in d && d.scene != null);
   }
 
-  hasGeo(): boolean {
+  private hasGeo(): boolean {
     return this.plotlyData.some(d => 'geo' in d && d.geo != null);
   }
 
-  hasMapbox(): boolean {
-    return this.plotlyData.some(({ type }) => type?.includes('mapbox'));
+  private hasMap(): boolean {
+    return this.plotlyData.some(({ type }) => type?.includes('map'));
   }
 
-  hasPolar(): boolean {
+  private hasPolar(): boolean {
     return this.plotlyData.some(({ type }) => type?.includes('polar'));
   }
 
