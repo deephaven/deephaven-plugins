@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.29.4 - 2025-06-27
+#### Bug Fixes
+- DH-18073: ui.image convert bytes to str (#1167) (#1199) - (b6d3230) - mofojed
+
+- - -
+
 ## ui-v0.29.3 - 2025-06-24
 #### Bug Fixes
 - DH-19705: Query restart broke ui.dashboards (#1190) - (c57be53) - mofojed
