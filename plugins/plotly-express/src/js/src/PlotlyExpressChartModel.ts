@@ -412,6 +412,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  /**
+   * Update the filter columns from the data.
+
+   * @param data The new data to update the filter columns from
+   */
   updateFilterColumns(data: PlotlyChartWidgetData): void {
     const { deephaven } = data.figure;
     const { filterColumns } = deephaven;
