@@ -293,6 +293,11 @@ class table(Element):
         right: DimensionValue | None = None,
         z_index: int | None = None,
     ) -> None:
+        if on_selection_change is not None and always_fetch_columns is None:
+            raise ValueError(
+                "ui.table on_selection_change requires always_fetch_columns to be set"
+            )
+
         props = locals()
         del props["self"]
         self._props = props

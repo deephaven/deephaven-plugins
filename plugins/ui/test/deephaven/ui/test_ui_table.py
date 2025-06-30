@@ -226,3 +226,30 @@ class UITableTestCase(BaseTestCase):
                 ],
             },
         )
+
+    def test_on_selection_change(self):
+        import deephaven.ui as ui
+
+        on_change = Mock()
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(
+                self.source,
+                on_selection_change=on_change,
+            ),
+        )
+
+        t = ui.table(
+            self.source,
+            on_selection_change=on_change,
+            always_fetch_columns=["X"],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "alwaysFetchColumns": ["X"],
+                "onSelectionChange": on_change,
+            },
+        )
