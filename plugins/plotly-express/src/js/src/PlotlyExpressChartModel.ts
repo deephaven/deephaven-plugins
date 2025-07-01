@@ -171,10 +171,22 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   dataTypeMap: Map<string, string> = new Map();
 
+  /**
+   * Map of filter column names to their metadata.
+   */
+
   filterColumnMap: FilterColumnMap = new Map();
 
+  /**
+   * The filter map that is sent to the server.
+   * This is a map of column names to filter values.
+   */
   filterMap: FilterMap | null = null;
 
+  /**
+   * A set of column names that are required for the chart to render.
+   * If any of these columns are not in the filter map, the chart will not render.
+   */
   requiredColumns: Set<string> = new Set();
 
   override getData(): Partial<Data>[] {
@@ -866,9 +878,9 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param filterMap The filter map to send to the server
    */
   sendFilterUpdated(filterMap: FilterMap): void {
-    // Only send the filter update if filters are not required
+    // Only send the filter update if filters are not required and the filter columns are set
     // They will either be set or none are required
-    if (!this.isFilterRequired()) {
+    if (!this.isFilterRequired() && this.filterColumnMap.size > 0) {
       this.widget?.sendMessage(
         JSON.stringify({
           type: 'FILTER',
