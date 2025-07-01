@@ -93,7 +93,7 @@ Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key c
 ```python skip-test
 import deephaven.plot.express as dx
 
-# import and partitioned the example stocks data set
+# import and partition on example stocks data set
 stocks = dx.data.stocks()
 partitioned_stocks = stocks.partition_by(["Sym", "Exchange"])
 
@@ -110,7 +110,7 @@ Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key c
 ```python skip-test
 import deephaven.plot.express as dx
 
-# import and partitioned the example stocks data set
+# import and partition on example stocks data set
 stocks = dx.data.stocks()
 partitioned_stocks = stocks.partition_by(["Sym", "Exchange"])
 
@@ -127,7 +127,7 @@ Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key c
 ```python skip-test
 import deephaven.plot.express as dx
 
-# import and partitioned the example stocks data set
+# import and partition on example stocks data set
 stocks = dx.data.stocks()
 partitioned_stocks = stocks.partition_by(["Sym", "Exchange"])
 
