@@ -2,10 +2,7 @@ import React, { useCallback } from 'react';
 import { CustomCellRendererProps } from '@ag-grid-community/react';
 import { Button } from '@deephaven/components';
 import { vsTriangleDown, vsTriangleRight } from '@deephaven/icons';
-import TreeViewportDatasource, {
-  TREE_NODE_KEY,
-  TreeNode,
-} from '../datasources/TreeViewportDatasource';
+import { TREE_NODE_KEY, TreeNode } from '../utils/AgGridTableUtils';
 import DeephavenViewportDatasource from '../datasources/DeephavenViewportDatasource';
 
 export type TreeCellRendererProps = CustomCellRendererProps & {
@@ -21,12 +18,8 @@ export default function TreeCellRenderer(
   const { hasChildren = false, depth = 0, isExpanded = false } = treeNode ?? {};
 
   const handleClick = useCallback(() => {
-    const { currentDatasource } = datasource;
-    if (
-      treeNode != null &&
-      currentDatasource instanceof TreeViewportDatasource
-    ) {
-      currentDatasource.setExpanded(treeNode.index, !treeNode.isExpanded);
+    if (treeNode != null && datasource instanceof DeephavenViewportDatasource) {
+      datasource.setExpanded(treeNode.index, !treeNode.isExpanded);
     }
   }, [datasource, treeNode]);
 

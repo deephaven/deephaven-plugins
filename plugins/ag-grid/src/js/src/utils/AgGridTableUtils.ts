@@ -3,6 +3,14 @@ import { ColDef } from '@ag-grid-community/core';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
 
+export const TREE_NODE_KEY = '__dhTreeNodeKey__';
+export type TreeNode = {
+  hasChildren: boolean;
+  isExpanded: boolean;
+  depth: number;
+  index: number;
+};
+
 /**
  * Converts a Deephaven column to an AG Grid ColDef with appropriate properties.
  *
@@ -98,4 +106,30 @@ export function getColumnDefs(
       return convertColumnToColDef(c, templateColDef);
     }) ?? [];
   return newDefs;
+}
+
+function isTreeRow(row: DhType.Row | DhType.TreeRow): row is DhType.TreeRow {
+  return 'hasChildren' in row && 'isExpanded' in row && 'depth' in row;
+}
+
+export function extractViewportRow(
+  row: DhType.Row,
+  columns: DhType.Column[]
+): { [key: string]: unknown } {
+  const data: Record<string, unknown> = {};
+  for (let c = 0; c < columns.length; c += 1) {
+    const column = columns[c];
+    data[column.name] = row.get(column);
+  }
+
+  if (isTreeRow(row)) {
+    data[TREE_NODE_KEY] = {
+      hasChildren: row.hasChildren,
+      isExpanded: row.isExpanded,
+      depth: row.depth,
+      index: row.index.asNumber(),
+    } satisfies TreeNode;
+  }
+
+  return data;
 }
