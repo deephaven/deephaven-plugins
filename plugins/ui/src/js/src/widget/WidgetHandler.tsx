@@ -51,8 +51,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import { usePlugins, getElementPluginMapping } from '@deephaven/plugin';
-import { get } from 'http';
+import { useElementPluginMapping } from '@deephaven/plugin';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -161,7 +160,7 @@ function WidgetHandler({
     [jsonClient]
   );
 
-  const plugins = usePlugins();
+  const elementPluginMapping = useElementPluginMapping();
 
   const renderEmptyDocument = useCallback(
     /**
@@ -246,10 +245,7 @@ function WidgetHandler({
         if (isElementNode(value)) {
           // Replace the elements node with the Component it maps to
           try {
-            return getComponentForElement(
-              value,
-              getElementPluginMapping(plugins)
-            );
+            return getComponentForElement(value, elementPluginMapping);
           } catch (e) {
             log.warn('Error getting component for element', e);
             return value;
