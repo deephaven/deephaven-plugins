@@ -24,7 +24,7 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
  * Class that takes the input table and provides a viewport data source for AG Grid.
  * Also listens for grouping to change from a table to a tree table and vice versa.
  */
-class DeephavenViewportDatasource implements IViewportDatasource {
+export class DeephavenViewportDatasource implements IViewportDatasource {
   /** The current parameters for the viewport datasource */
   private params!: IViewportDatasourceParams;
 
