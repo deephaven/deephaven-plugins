@@ -2,10 +2,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import {
-  createFormatterFromSettings,
-  TableUtils,
-} from '@deephaven/jsapi-utils';
+import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 import { ColDef, GridReadyEvent } from '@ag-grid-community/core';
 import {
   AgGridReact,
@@ -13,11 +10,10 @@ import {
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
 import { useCallback, useMemo } from 'react';
-import TableViewportDatasource from './datasources/TableViewportDatasource';
-import TreeViewportDatasource from './datasources/TreeViewportDatasource';
-import AgGridTableUtils from './utils/AgGridTableUtils';
+import { getColumnDefs } from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeCellRenderer from './TreeCellRenderer';
+import TreeCellRenderer from './renderers/TreeCellRenderer';
+import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 
 type AgGridViewProps = {
   table: DhType.Table | DhType.TreeTable;
@@ -41,33 +37,11 @@ export function AgGridView({
   log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(() => {
-    const groupedColSet = new Set(
-      (TableUtils.isTreeTable(table) ? table.groupedColumns : []).map(
-        c => c.name
-      )
-    );
-    const newDefs =
-      table?.columns.map(c => {
-        const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
-          ? {
-              field: c.name,
-              rowGroup: true,
-            }
-          : {
-              field: c.name,
-            };
-        return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
-      }) ?? [];
-    return newDefs;
-  }, [table]);
+  const colDefs: ColDef[] = useMemo(() => getColumnDefs(table), [table]);
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () =>
-      TableUtils.isTreeTable(table)
-        ? new TreeViewportDatasource(dh, table)
-        : new TableViewportDatasource(dh, table),
+    () => new DeephavenViewportDatasource(dh, table),
     [dh, table]
   );
 
@@ -80,15 +54,15 @@ export function AgGridView({
 
   const treeCellRenderer = useMemo(
     () =>
-      datasource instanceof TreeViewportDatasource
-        ? (props: CustomCellRendererProps) => (
-            <TreeCellRenderer
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...props}
-              datasource={datasource}
-            />
-          )
-        : undefined,
+      function customTreeCellRenderer(props: CustomCellRendererProps) {
+        return (
+          <TreeCellRenderer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            datasource={datasource}
+          />
+        );
+      },
     [datasource]
   );
 
@@ -108,6 +82,22 @@ export function AgGridView({
     [datasource]
   );
 
+  const sideBar = useMemo(
+    () => ({
+      toolPanels: [
+        {
+          id: 'columns',
+          labelDefault: 'Columns',
+          labelKey: 'columns',
+          iconKey: 'columns',
+          toolPanel: 'agColumnsToolPanel',
+        },
+      ],
+      defaultToolPanel: 'columns',
+    }),
+    []
+  );
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -118,6 +108,7 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
+      sideBar={sideBar}
     />
   );
 }
