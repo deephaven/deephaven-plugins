@@ -1,13 +1,13 @@
 # Filter By
 
-To plot a subset of a table based on a column value, use the `filter_by` and `required_filter_by` parameters. These parameters accept column(s) denoting variables to filter on in the dataset. The plot shows only the data that matches the filter criteria. `filter_by` does not require the [input filter](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#input-filters) or [linker](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#linker) to be set on that column whereas `required_filter_by` does.
+To plot a subset of a table based on a column value, use the `filter_by` and `required_filter_by` parameters. These parameters accept column(s) denoting variables to filter on in the dataset. The plot shows only the data that matches the filter criteria. `filter_by` does not require the [input filter](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#input-filters) or [Linker](https://deephaven.io/core/docs/how-to-guides/user-interface/filters/#linker) to be set on that column, whereas `required_filter_by` does.
 
 Under the hood, the Deephaven query engine performs a `partition_by` table operation on the given filter column. This efficient implementation means that plots with many groups can be filtered and redrawn quickly, even with large datasets.
 
 > [!NOTE]
-> If you are familiar with the `one_click` API it works similarly to `filter_by`, but there are some differences in behavior:
-> In the `one_click` API, if filters are provided but not set then one trace is charted.
-> In the `filter_by` API, if filters are provided but not set then all values within the filter columns are charted on separate traces.
+> `filter_by` works similarly to the `one_click` API, although there are some differences in behavior:
+> In the `one_click` API, if filters are provided but not set, then one trace is charted.
+> In the `filter_by` API, if filters are provided but not set, then all values within the filter columns are charted on separate traces.
 > This provides a consistent experience with plot by behavior, but may not be optimal if filtering on numeric columns with many unique values.
 
 ## Examples
@@ -88,7 +88,7 @@ filtered_line_plot = dx.line(
 
 ### `PartitionedTable` filter by
 
-Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `filter_by=True` to make the columns filters instead.
+Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns on which the table is partitioned. Set `filter_by=True` to make the columns filters instead.
 
 ```python skip-test
 import deephaven.plot.express as dx
@@ -105,7 +105,7 @@ filtered_line_plot = dx.line(
 
 ### `PartitionedTable` required filter by
 
-Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `required_filter_by=True` to make the columns required filters instead.
+Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns on which the table is partitioned. Set `required_filter_by=True` to make the columns required filters instead.
 
 ```python skip-test
 import deephaven.plot.express as dx
@@ -122,7 +122,7 @@ filtered_line_plot = dx.line(
 
 ### `PartitionedTable` filter by and plot by
 
-Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns that the table is partitioned on. Set `filter_by` to a subset of the key columns to make those columns filters instead.
+Providing a `PartitionedTable` defaults to a [plot by](plot-by.md) for the key columns on which the table is partitioned. Set `filter_by` to a subset of the key columns to make those columns filters instead.
 
 ```python skip-test
 import deephaven.plot.express as dx
@@ -142,7 +142,7 @@ filtered_line_plot = dx.line(
 `make_subplots` maintains any `filter_by` and `required_filter_by` filter columns originally passed into the subplots.
 
 > [!WARNING]
-> Multiple filters with the same name but different types are not currently supported. Rename columns so that they are unique if necessary.
+> Using multiple filters with the same name but different types is not currently supported. Rename columns to ensure they are unique, if necessary.
 
 ```python skip-test
 import deephaven.plot.express as dx
