@@ -10,10 +10,20 @@
   ],
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "dist/bundle/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/bundle/index.js",
+      "default": "./dist/bundle/index.js"
+    },
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
   },
   "bugs": {
     "url": "https://github.com/deephaven/deephaven-plugins/issues"
@@ -21,7 +31,9 @@
   "homepage": "https://github.com/deephaven/deephaven-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "run-s build:*",
+    "build:transpile": "tsc",
+    "build:bundle": "vite build"
   },
   "devDependencies": {
     "@deephaven/jsapi-types": "^1.0.0-dev0.39.1",
