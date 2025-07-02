@@ -20,3 +20,8 @@ Currently, we offer the following templates:
 
 This creates a basic bidirectional widget plugin for Deephaven.
 A bidirectional plugin can send and receive messages on both the client and server.
+
+## element
+
+This creates a basic element plugin for Deephaven.
+An element plugin extends `deephaven.ui` with custom React components.
