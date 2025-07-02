@@ -437,6 +437,7 @@ RowDataMap = Dict[ColumnName, RowDataValue]
 RowPressCallback = Callable[[RowDataMap], None]
 CellPressCallback = Callable[[CellData], None]
 ColumnPressCallback = Callable[[ColumnName], None]
+SelectionChangeCallback = Callable[[List[RowDataMap]], None]
 AggregationOperation = Literal[
     "COUNT",
     "COUNT_DISTINCT",

@@ -4,7 +4,16 @@ import {
   type ColumnName,
   type DehydratedSort,
   AggregationOperation,
+  type IrisGridModel,
+  IrisGridType,
 } from '@deephaven/iris-grid';
+import {
+  BoundedGridRange,
+  GridRange,
+  isExpandableGridModel,
+  type ModelIndex,
+} from '@deephaven/grid';
+import { assertNotNull } from '@deephaven/utils';
 import {
   ELEMENT_KEY,
   type ElementNode,
@@ -71,6 +80,7 @@ export type UITableProps = StyleProps & {
   onRowDoublePress?: (rowData: RowDataMap) => void;
   onColumnPress?: (columnName: ColumnName) => void;
   onColumnDoublePress?: (columnName: ColumnName) => void;
+  onSelectionChange?: (selectedRows: RowDataMap[]) => void;
   alwaysFetchColumns?: string | string[] | boolean;
   quickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
@@ -126,4 +136,104 @@ export function getAggregationOperation(agg: string): AggregationOperation {
   }
 
   return operation;
+}
+
+export function getCellData(
+  columnIndex: ModelIndex,
+  rowIndex: ModelIndex,
+  model: IrisGridModel
+): CellData {
+  const column = model.columns[columnIndex];
+  const { type } = column;
+  const value = model.valueForCell(columnIndex, rowIndex);
+  const text = model.textForCell(columnIndex, rowIndex);
+  return {
+    value,
+    text,
+    type,
+  };
+}
+
+/**
+ * Get the data map for the given row
+ * @param rowIndex Row to get the data map for
+ * @param model The IrisGridModel to get the data from
+ * @param columnNames Optional array of column names to filter the data map.
+ *                    If not provided, all columns in the viewport will be included.
+ * @returns Data map for the row
+ */
+export function getRowDataMap(
+  rowIndex: ModelIndex,
+  model: IrisGridModel,
+  columnNames?: string[]
+): RowDataMap {
+  const { columns, groupedColumns } = model;
+  const columnNamesSet = new Set(columnNames);
+  const dataMap: RowDataMap = {};
+  for (let i = 0; i < columns.length; i += 1) {
+    const column = columns[i];
+    const { name } = column;
+    if (columnNames == null || columnNamesSet.has(name)) {
+      const isExpandable =
+        isExpandableGridModel(model) && model.isRowExpandable(rowIndex);
+      const isGrouped = groupedColumns.find(c => c.name === name) != null;
+      const cellData = getCellData(i, rowIndex, model);
+      // If the cellData.value is undefined, that means we don't have any data for that column (i.e. the column is not visible), don't send it back
+      if (cellData.value !== undefined) {
+        dataMap[name] = {
+          ...cellData,
+          isGrouped,
+          isExpandable,
+        };
+      }
+    }
+  }
+
+  return dataMap;
+}
+
+export function getSelectionDataMap(
+  ranges: readonly GridRange[],
+  model: IrisGridModel,
+  irisGrid: IrisGridType,
+  columnNames?: string[]
+): RowDataMap[] {
+  const dataMaps: RowDataMap[] = [];
+
+  const boundedSortedRanges = (
+    GridRange.boundedRanges(
+      GridRange.consolidate(ranges),
+      model.columnCount,
+      model.rowCount
+    ) as BoundedGridRange[]
+  ).sort((a, b) => a.startRow - b.startRow); // Ensure we're in ascending order by row
+
+  const { metrics } = irisGrid.state;
+  assertNotNull(metrics);
+  const { top, bottomViewport } = metrics;
+
+  for (let i = 0; i < boundedSortedRanges.length; i += 1) {
+    const visibleRange = GridRange.intersection(
+      boundedSortedRanges[i],
+      GridRange.makeNormalized(null, top, null, bottomViewport)
+    ) as BoundedGridRange;
+
+    if (visibleRange == null) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    for (
+      let row = visibleRange.startRow;
+      row <= visibleRange.endRow;
+      row += 1
+    ) {
+      const modelRow = irisGrid.getModelRow(row);
+      if (modelRow != null) {
+        const rowDataMap = getRowDataMap(modelRow, model, columnNames);
+        dataMaps.push(rowDataMap);
+      }
+    }
+  }
+  return dataMaps;
 }
