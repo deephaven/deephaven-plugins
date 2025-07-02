@@ -93,7 +93,6 @@ export function AgGridView({
           toolPanel: 'agColumnsToolPanel',
         },
       ],
-      defaultToolPanel: 'columns',
     }),
     []
   );
