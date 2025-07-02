@@ -279,7 +279,7 @@ def atomic_make_subplots(
     if row_heights is None:
         row_heights = [1.0 / rows for _ in range(rows)]
 
-    row_heights.reverse()
+    row_heights = list(reversed(row_heights))
 
     col_starts, col_ends = get_domains(column_widths, horizontal_spacing)
     row_starts, row_ends = get_domains(row_heights, vertical_spacing)
