@@ -249,7 +249,7 @@ def atomic_make_subplots(
     grid = grid if grid else make_grid(list(figs), rows, cols)
 
     # reverse rows as plotly goes bottom to top
-    grid.reverse()
+    grid = list(reversed(grid))
 
     # grid must have identical number of columns per row at this point
     rows, cols = len(grid), len(grid[0])
@@ -262,7 +262,7 @@ def atomic_make_subplots(
         else:
             specs = cast(List[SubplotSpecDict], specs)
             spec_grid = cast(Grid[Any], make_grid(specs, rows, cols, fill={}))
-        spec_grid.reverse()
+        spec_grid = list(reversed(spec_grid))
     elif specs:
         raise ValueError("specs must be a list or a grid")
 
