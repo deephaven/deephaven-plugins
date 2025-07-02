@@ -8,7 +8,7 @@ Under the hood, the Deephaven query engine performs a `partition_by` table opera
 > `filter_by` works similarly to the `one_click` API, although there are some differences in behavior:
 > In the `one_click` API, if filters are provided but not set, then one trace is charted.
 > In the `filter_by` API, if filters are provided but not set, then all values within the filter columns are charted on separate traces.
-> This provides a consistent experience with plot by behavior, but may not be optimal if filtering on numeric columns with many unique values.
+> This provides a consistent experience with `by` behavior on `dx` charts, but may not be optimal if filtering on numeric columns with many unique values.
 
 ## Examples
 
