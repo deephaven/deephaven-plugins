@@ -30,9 +30,15 @@ export function AgGridWidget(
   const [table, setTable] = useState<DhType.Table>();
 
   const gridDensity = settings?.gridDensity;
-  const theme = useMemo(
-    () => themeQuartz.withParams(AgGridDhTheme.getThemeParams(gridDensity)),
+
+  const themeParams = useMemo(
+    () => AgGridDhTheme.getThemeParams(gridDensity),
     [gridDensity]
+  );
+
+  const theme = useMemo(
+    () => themeQuartz.withParams(themeParams),
+    [themeParams]
   );
 
   const agGridProps: AgGridReactProps = useMemo(
@@ -55,8 +61,9 @@ export function AgGridWidget(
       },
       suppressCellFocus: true,
       theme,
+      rowHeight: themeParams.rowHeight as number,
     }),
-    [theme]
+    [theme, themeParams]
   );
 
   /** First we load the widget object. This is the object that is sent from the server in AgGridMessageStream. */
