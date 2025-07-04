@@ -3,13 +3,19 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
-import { ColDef, GridReadyEvent } from '@ag-grid-community/core';
+import {
+  ColDef,
+  GridReadyEvent,
+  GridApi,
+  GridSizeChangedEvent,
+  FirstDataRenderedEvent,
+} from '@ag-grid-community/core';
 import {
   AgGridReact,
   AgGridReactProps,
   CustomCellRendererProps,
 } from '@ag-grid-community/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getColumnDefs } from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import TreeCellRenderer from './renderers/TreeCellRenderer';
@@ -74,10 +80,12 @@ export function AgGridView({
     [treeCellRenderer]
   );
 
+  const gridApiRef = useRef<GridApi | null>(null);
   const handleGridReady = useCallback(
     (event: GridReadyEvent) => {
       log.debug('handleGridReady', event);
       datasource.setGridApi(event.api);
+      gridApiRef.current = event.api;
     },
     [datasource]
   );
@@ -97,18 +105,71 @@ export function AgGridView({
     []
   );
 
+  // Workaround to auto-size columns based on their contents, as agGrid ignores virtual columns that
+  // are not visible in the viewport
+  // TODO: add better filtering rather then autosizing all columns
+  const autoSizeAllColumns = () => {
+    const gridApi = gridApiRef.current;
+    if (!gridApi) return;
+    gridApi.sizeColumnsToFit();
+    const columns = gridApi.getColumns();
+    if (!columns) return;
+    const allColumnIds = columns.map(col => col.getColId());
+    gridApi.autoSizeColumns(allColumnIds);
+  };
+
+  const [isVisible, setIsVisible] = useState(false);
+  const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
+
+  const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
+    log.debug('handleFirstDataRendered data', datasource);
+    log.debug('handleFirstDataRendered event', event);
+    log.debug('handleFirstDataRenderd nodes', event.api.getRenderedNodes());
+    log.debug(
+      'handleFirstDataRenderd nodes',
+      event.api.getRenderedNodes().length
+    );
+    setIsFirstDataRendered(true);
+  };
+
+  const handleGridSizeChanged = (event: GridSizeChangedEvent) => {
+    log.debug('GridSizeChanged data', datasource);
+    log.debug('GridSizechagned event', event);
+    log.debug('GridSizeChanged', event.api.getRenderedNodes());
+    setIsVisible(event.clientHeight > 0 && event.clientWidth > 0);
+  };
+
+  useEffect(() => {
+    if (isVisible && isFirstDataRendered) {
+      log.debug('isVisible & isFirstDataRendered');
+      autoSizeAllColumns();
+    }
+  }, [isVisible, isFirstDataRendered]);
+
   return (
-    <AgGridReact
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...agGridProps}
-      onGridReady={handleGridReady}
-      autoGroupColumnDef={autoGroupColumnDef}
-      columnDefs={colDefs}
-      dataTypeDefinitions={formatter.cellDataTypeDefinitions}
-      viewportDatasource={datasource}
-      rowModelType="viewport"
-      sideBar={sideBar}
-    />
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          autoSizeAllColumns();
+        }}
+      >
+        Autosize
+      </button>
+      <AgGridReact
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...agGridProps}
+        onGridReady={handleGridReady}
+        onFirstDataRendered={handleFirstDataRendered}
+        onGridSizeChanged={handleGridSizeChanged}
+        autoGroupColumnDef={autoGroupColumnDef}
+        columnDefs={colDefs}
+        dataTypeDefinitions={formatter.cellDataTypeDefinitions}
+        viewportDatasource={datasource}
+        rowModelType="viewport"
+        sideBar={sideBar}
+      />
+    </>
   );
 }
 
