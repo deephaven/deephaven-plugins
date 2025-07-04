@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class BarTestCase(BaseTestCase):
@@ -23,7 +23,7 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.bar(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -33,17 +33,15 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -88,7 +86,7 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.bar(self.source, y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -98,19 +96,17 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "count=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -153,7 +149,6 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.bar(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -163,19 +158,17 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
