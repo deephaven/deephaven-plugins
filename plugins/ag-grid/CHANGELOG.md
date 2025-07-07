@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.1.1 - 2025-07-07
+#### Bug Fixes
+- DH-19685: Auto-size AG Grid to fit cell content (#1205) - (2ed2d7f) - Germain Zhang-Houle
+
+- - -
+
 ## ag-grid-v0.1.0 - 2025-07-03
 #### Features
 
