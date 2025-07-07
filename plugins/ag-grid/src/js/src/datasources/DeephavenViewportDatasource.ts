@@ -235,8 +235,8 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     if (this.currentViewport == null) {
       log.debug('Setting default viewport');
       this.currentViewport = {
-        firstRow: 0,
-        lastRow: 100, // Default to the first 100 rows
+        firstRow: this.gridApi.getFirstDisplayedRowIndex(),
+        lastRow: this.gridApi.getLastDisplayedRowIndex(),
       };
     }
     const { firstRow, lastRow } = this.currentViewport;
