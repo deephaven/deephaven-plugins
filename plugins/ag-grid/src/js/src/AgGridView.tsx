@@ -40,6 +40,12 @@ export function AgGridView({
 }: AgGridViewProps): JSX.Element | null {
   const dh = useApi();
 
+  const gridApiRef = useRef<GridApi | null>(null);
+
+  const [isVisible, setIsVisible] = useState(false);
+  const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
+  const [isAutoSized, setIsAutoSized] = useState(false);
+
   log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
@@ -80,16 +86,6 @@ export function AgGridView({
     [treeCellRenderer]
   );
 
-  const gridApiRef = useRef<GridApi | null>(null);
-  const handleGridReady = useCallback(
-    (event: GridReadyEvent) => {
-      log.debug('handleGridReady', event);
-      datasource.setGridApi(event.api);
-      gridApiRef.current = event.api;
-    },
-    [datasource]
-  );
-
   const sideBar = useMemo(
     () => ({
       toolPanels: [
@@ -105,9 +101,8 @@ export function AgGridView({
     []
   );
 
-  // Workaround to auto-size columns based on their contents, as agGrid ignores virtual columns that
-  // are not visible in the viewport
-  // TODO: add better filtering rather then autosizing all columns
+  // Workaround to auto-size columns based on their contents, as ag-grid ignores virtual columns
+  // that are not visible in the viewport
   const autoSizeAllColumns = () => {
     const gridApi = gridApiRef.current;
     if (!gridApi) return;
@@ -118,61 +113,46 @@ export function AgGridView({
     gridApi.autoSizeColumns(allColumnIds);
   };
 
-  const [isVisible, setIsVisible] = useState(false);
-  const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
-  const [isAutoSized, setIsAutoSized] = useState(false);
+  const handleGridReady = useCallback(
+    (event: GridReadyEvent) => {
+      log.debug('handleGridReady', event);
+      datasource.setGridApi(event.api);
+      gridApiRef.current = event.api;
+    },
+    [datasource]
+  );
 
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
-    log.debug('handleFirstDataRendered data', datasource);
-    log.debug('handleFirstDataRendered event', event);
-    log.debug('handleFirstDataRenderd nodes', event.api.getRenderedNodes());
-    log.debug(
-      'handleFirstDataRenderd nodes',
-      event.api.getRenderedNodes().length
-    );
+    log.debug('handleFirstDataRendered', event);
     setIsFirstDataRendered(true);
   };
 
   const handleGridSizeChanged = (event: GridSizeChangedEvent) => {
-    log.debug('GridSizeChanged data', datasource);
-    log.debug('GridSizechagned event', event);
-    log.debug('GridSizeChanged', event.api.getRenderedNodes());
+    log.debug('handleGridSizeChanged', event);
     setIsVisible(event.clientHeight > 0 && event.clientWidth > 0);
   };
 
   useEffect(() => {
     if (isVisible && isFirstDataRendered && !isAutoSized) {
-      log.debug('isVisible & isFirstDataRendered');
-      log.debug('USEEFFECT AUTOSIZED', isAutoSized);
       setIsAutoSized(true);
       autoSizeAllColumns();
     }
   }, [isVisible, isFirstDataRendered, isAutoSized]);
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => {
-          autoSizeAllColumns();
-        }}
-      >
-        Autosize
-      </button>
-      <AgGridReact
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...agGridProps}
-        onGridReady={handleGridReady}
-        onFirstDataRendered={handleFirstDataRendered}
-        onGridSizeChanged={handleGridSizeChanged}
-        autoGroupColumnDef={autoGroupColumnDef}
-        columnDefs={colDefs}
-        dataTypeDefinitions={formatter.cellDataTypeDefinitions}
-        viewportDatasource={datasource}
-        rowModelType="viewport"
-        sideBar={sideBar}
-      />
-    </>
+    <AgGridReact
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...agGridProps}
+      onGridReady={handleGridReady}
+      onFirstDataRendered={handleFirstDataRendered}
+      onGridSizeChanged={handleGridSizeChanged}
+      autoGroupColumnDef={autoGroupColumnDef}
+      columnDefs={colDefs}
+      dataTypeDefinitions={formatter.cellDataTypeDefinitions}
+      viewportDatasource={datasource}
+      rowModelType="viewport"
+      sideBar={sideBar}
+    />
   );
 }
 
