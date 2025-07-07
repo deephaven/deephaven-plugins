@@ -44,7 +44,7 @@ export function AgGridView({
 
   const [isVisible, setIsVisible] = useState(false);
   const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
-  const [isAutoSized, setIsAutoSized] = useState(false);
+  const [isColumnsSized, setIsColumnsSized] = useState(false);
 
   log.debug('AgGridView rendering', table, table?.columns);
 
@@ -133,11 +133,11 @@ export function AgGridView({
   };
 
   useEffect(() => {
-    if (isVisible && isFirstDataRendered && !isAutoSized) {
-      setIsAutoSized(true);
+    if (isVisible && isFirstDataRendered && !isColumnsSized) {
+      setIsColumnsSized(true);
       autoSizeAllColumns();
     }
-  }, [isVisible, isFirstDataRendered, isAutoSized]);
+  }, [isVisible, isFirstDataRendered, isColumnsSized]);
 
   return (
     <AgGridReact
