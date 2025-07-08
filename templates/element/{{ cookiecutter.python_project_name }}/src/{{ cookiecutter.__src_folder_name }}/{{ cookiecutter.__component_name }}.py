@@ -14,7 +14,7 @@ def {{ cookiecutter.__component_name }}(
 
     Args:
         text: A string that can be displayed in the component.
-        callback: A callback function that can be used to handle events or actions within the component.
+        on_click: A callback function that can be used to handle events or actions within the component.
 
     Returns:
         A simple component that displays the properties passed to it

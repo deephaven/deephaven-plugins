@@ -208,7 +208,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
 
 export function getComponentTypeForElement<P extends Record<string, unknown>>(
   element: ElementNode<string, P>,
-  elementPluginMapping: Map<string, ComponentType>
+  elementPluginMapping: Map<string, ComponentType> = new Map()
 ): ComponentType<P> | null {
   const key = element[ELEMENT_KEY];
   if (elementPluginMapping.has(key)) {
@@ -221,7 +221,7 @@ export function getComponentTypeForElement<P extends Record<string, unknown>>(
 
 export function getComponentForElement(
   element: ElementNode,
-  elementPluginMapping: Map<string, ComponentType>
+  elementPluginMapping: Map<string, ComponentType> = new Map()
 ): JSX.Element | null {
   const newElement = wrapElementChildren({ ...element });
 
@@ -250,7 +250,6 @@ export function getComponentForElement(
           <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
-
       return <Component {...props} />;
     }
   }

@@ -133,7 +133,7 @@ component = {{ cookiecutter.__component_name }}()
 
 A panel should appear. The panel can send messages back to the Python side by using the input field.
 You can optionally provide arguments to the component. `text` is displayed on the panel and `on_click` is called when the button is clicked.
-
+Props are automatically converted from snake_case to camelCase, so `on_click` becomes `onClick` on the JavaScript side.
 ```python
 component = {{ cookiecutter.__component_name }}(text="Text", on_click=lambda: print("Button clicked!"))
 ```
