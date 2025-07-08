@@ -1,5 +1,5 @@
 """
-This is a plugin for Deephaven that provides a simple object that can send messages to and from the client.
+This is a plugin for Deephaven that provides a simple element plugin
 """
 
-from .{{ cookiecutter.__object_file_name }} import *
+from .{{ cookiecutter.__component_name }} import *

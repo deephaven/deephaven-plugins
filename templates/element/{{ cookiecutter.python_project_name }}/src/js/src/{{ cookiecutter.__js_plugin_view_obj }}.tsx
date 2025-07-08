@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { CSSProperties, useState } from 'react';
 import { Button, TextField } from '@deephaven/components';
 
 // Create a custom style for the component
@@ -14,32 +14,39 @@ export const {{ cookiecutter.__js_plugin_view_obj_style }}: CSSProperties = {
   flexDirection: "column"
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export default function {{ cookiecutter.__js_plugin_view_obj }}(
-  props: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
-): JSX.Element {
-    const [formText, setFormText] = useState('');
-
-   const {
-       text,
-       callback,
-   } = props;
+/**
+ * A React component that displays a message and allows the user to send a message to the server.
+ * @param text The text to display in the component.
+ * @param onClick The callback function to call when the button is clicked.
+ * @returns A JSX element representing the component.
+ */
+export default function {{ cookiecutter.__js_plugin_view_obj }}({
+  text,
+  onClick,
+}: {
+  text: string;
+  onClick: (value: string) => Promise<void>;
+}): JSX.Element {
+  // State to hold the text input value until it is sent to the server
+  const [formText, setFormText] = useState('');
 
   return (
     <div style={{ "{" }}{{ cookiecutter.__js_plugin_view_obj_style }}{{ "}" }}>
       <div>{text}</div>
       <div>Send a message to the server:</div>
       <TextField
-          value={formText}
-          onChange={(value) => setFormText(value)}
-          marginBottom='size-50'
+        value={formText}
+        onChange={(value: string) => setFormText(value)}
+        marginBottom="size-50"
+        aria-label="Message input"
       />
       <Button
-        kind='primary'
-        onClick={() => {
+        kind="primary"
+        onClick={e => {
           // Send the message to the server via the callback
-          callback(formText)
-        }}>
+          onClick(formText);
+        }}
+      >
         Send
       </Button>
     </div>

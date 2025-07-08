@@ -2,7 +2,8 @@
 
 This is a Python plugin for Deephaven generated from a [deephaven-plugin](https://github.com/deephaven/deephaven-plugins) template.
 
-Specifically, this plugin is a bidirectional widget plugin, which can send and receive messages on both the client and server.  
+Specifically, this plugin is an element plugin, which extends `deephaven.ui` with new functionality. 
+With an element plugin, names are assigned to React components, which can be called from the Python side of the plugin.
 The plugin works out of the box, demonstrates basic plugin structure, and can be used as a starting point for building more complex plugins.  
 
 ## Plugin Structure
@@ -11,16 +12,12 @@ The `src` directory contains the Python and JavaScript code for the plugin.
 Within the `src` directory, the {{ cookiecutter.python_project_name }} directory contains the Python code, and the `js` directory contains the JavaScript code.  
 
 The Python files have the following structure:  
-`{{ cookiecutter.__object_file_name }}.py` defines a simple Python class that can send messages to the client. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
-`{{ cookiecutter.__type_file_name }}.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
+`{{ cookiecutter.__component_name }}.py` defines a simple Python component that maps to a React element. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
 `register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
 The JavaScript files have the following structure:  
-`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `{{ cookiecutter.__type_file_name }}.py` and these should be kept in sync.  
-`{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. This file is a good starting point for adding more complex plugin functionality.  
-
-Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.  
-It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
+`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains a mapping of names to React elements and the initial name should match the one in `{{ cookiecutter.__component_name }}.py`.
+`{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the React element that the name maps to. This file is a good starting point for adding more complex plugin functionality.
 
 ## Using plugin_builder.py
 The `plugin_builder.py` script is the recommended way to build the plugin.
@@ -129,18 +126,17 @@ See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/use
 Once the Deephaven server is running, the plugin should be available to use.
 
 ```python
-from {{ cookiecutter.python_project_name }} import {{ cookiecutter.__object_name }}
+from {{ cookiecutter.python_project_name }} import {{ cookiecutter.__component_name }}
 
-obj = {{ cookiecutter.__object_name }}()
+component = {{ cookiecutter.__component_name }}()
 ```
 
-A panel should appear. You can now use the object to send messages to the client.
+A panel should appear. The panel can send messages back to the Python side by using the input field.
+You can optionally provide arguments to the component. `text` is displayed on the panel and `on_click` is called when the button is clicked.
 
 ```python
-obj.send_message("Hello, world!")
+component = {{ cookiecutter.__component_name }}(text="Text", on_click=lambda: print("Button clicked!"))
 ```
-
-The panel can also send messages back to the Python client by using the input field.
 
 ## Debugging the Plugin
 It's recommended to run through all the steps in [Using plugin_builder.py](#Using-plugin_builder.py) and [Using the Plugin](#Using-the-plugin) to ensure the plugin is working correctly.  

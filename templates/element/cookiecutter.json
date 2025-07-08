@@ -6,12 +6,7 @@
   "__py_namespace": "{{ cookiecutter.python_project_name }}",
   "__src_folder_name": "{{ cookiecutter.python_project_name }}",
   "__name_pascal_case": "{{ cookiecutter.python_project_name.replace('_', ' ') .title().replace(' ', '') }}",
-  "__registered_object_name": "{{ cookiecutter.__name_pascal_case }}",
-  "__object_name": "{{ cookiecutter.__name_pascal_case }}Object",
-  "__object_file_name": "{{ cookiecutter.python_project_name }}_object",
-  "__type_name": "{{ cookiecutter.__name_pascal_case }}Type",
-  "__type_file_name": "{{ cookiecutter.python_project_name }}_type",
-  "__message_stream_name": "{{ cookiecutter.__name_pascal_case }}MessageStream",
+  "__component_name": "{{ cookiecutter.python_project_name }}_component",
   "__py_js_plugin_obj_name": "{{ cookiecutter.__name_pascal_case }}JsPlugin",
   "__registration_name": "{{ cookiecutter.__name_pascal_case }}Registration",
   "__js_plugin_name_pascal_case": "{{ cookiecutter.javascript_project_name.replace('-', ' ') .title().replace(' ', '') }}",
@@ -19,5 +14,5 @@
   "__js_plugin_view_obj": "{{ cookiecutter.__js_plugin_name_pascal_case }}View",
   "__js_plugin_view_obj_style": "{{ cookiecutter.__js_plugin_view_obj }}Style",
   "__js_plugin_obj": "{{ cookiecutter.__js_plugin_name_pascal_case }}Plugin",
-  "__element_name": "{{ cookiecutter.__src_folder_name }}.{{ cookiecutter.__object_name }}"
+  "__element_name": "{{ cookiecutter.__py_namespace }}.{{ cookiecutter.__component_name }}"
 }
