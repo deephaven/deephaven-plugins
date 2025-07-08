@@ -32,8 +32,6 @@ gapminder_recent = (
 treemap_plot = dx.treemap(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
-![Treemap Plot Basic Example](./_assets/treemap_plot.png)
-
 ### A treemap plot with `path`
 
 Instead of manually aggregating and passing in `names` and `parents`, use the `path` argument to specify the hierarchy of the data. The first column is the root category, and the last column is the leaf category. The values are automatically summed up.
@@ -52,7 +50,7 @@ By default, the `branchvalues` argument is set to `"remainder"`.
 Keep the default if the values column should be added to the sum of its children to get the value for a node.
 If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
 
-```python
+```python order=treemap_nested,merged_gapminder,world,continents,countries,data
 import deephaven.plot.express as dx
 from deephaven import merge
 

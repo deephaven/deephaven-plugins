@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage } from './utils';
+import { openPanel, gotoPage, clickGridRow } from './utils';
 
 const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
 
@@ -39,4 +39,20 @@ test('UI table responds to prop changes', async ({ page }) => {
   await expect(locator).toHaveScreenshot();
   await locator.getByRole('button', { name: 'case' }).click();
   await expect(locator).toHaveScreenshot();
+});
+
+test('UI table on_selection_change', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_selection', REACT_PANEL_VISIBLE);
+
+  const locator = page.locator(`${REACT_PANEL_VISIBLE} .iris-grid`);
+
+  await clickGridRow(locator, 3);
+  await expect(page.getByText('Selection: CAT/NYPE')).toBeVisible();
+
+  await clickGridRow(locator, 0, { modifiers: ['ControlOrMeta'] });
+  await expect(page.getByText('Selection: FISH/TPET, CAT/NYPE')).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByText('Selection: None')).toBeVisible();
 });

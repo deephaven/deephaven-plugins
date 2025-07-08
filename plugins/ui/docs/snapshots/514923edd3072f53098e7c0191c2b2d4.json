@@ -1,0 +1,1 @@
+{"file":"components/text.md","objects":{"my_text_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":["Hello world"],"slot":"text"},"__dhElemName":"deephaven.ui.components.Text"},"state":"{}"}}}}

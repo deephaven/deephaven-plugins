@@ -5,9 +5,13 @@ import type { dh } from '@deephaven/jsapi-types';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
-export type ObjectViewProps = { object: dh.WidgetExportedObject };
+export type ObjectViewProps = {
+  object: dh.WidgetExportedObject;
+  __dhId?: string;
+};
+
 function ObjectView(props: ObjectViewProps): JSX.Element {
-  const { object } = props;
+  const { object, __dhId } = props;
   log.info('Object is', object);
   const { type } = object;
 
@@ -32,7 +36,7 @@ function ObjectView(props: ObjectViewProps): JSX.Element {
   if (plugin != null) {
     const Component = plugin.component;
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Component {...props} fetch={fetch} />;
+    return <Component {...props} fetch={fetch} __dhId={__dhId} />;
   }
 
   log.warn('Unknown object type', object.type);

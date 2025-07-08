@@ -1,0 +1,1 @@
+{"file":"components/range_slider.md","objects":{"my_range_slider_disabled_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"labelPosition":"top","orientation":"horizontal","isDisabled":true,"minValue":0,"maxValue":100,"step":1,"defaultValue":{"start":25,"end":50},"label":"Price filter"},"__dhElemName":"deephaven.ui.components.RangeSlider"},"state":"{}"}}}}

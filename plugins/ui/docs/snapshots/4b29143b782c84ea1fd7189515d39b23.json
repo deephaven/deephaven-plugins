@@ -1,0 +1,1 @@
+{"file":"components/badge.md","objects":{"my_badge_context_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"variant":"negative","children":[{"__dhElemName":"deephaven.ui.icons.vsWarning","props":{"name":"vsWarning","slot":"icon"}},"Rejected"]},"__dhElemName":"deephaven.ui.components.Badge"},"state":"{}"}}}}

@@ -8,7 +8,7 @@ import React, {
 import { nanoid } from 'nanoid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { ReactPanelManagerContext } from '../layout/ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
 import {
@@ -97,6 +97,18 @@ function DocumentHandler({
     [panelIds]
   );
 
+  const handleDataChange = useCallback(
+    (panelId: string, panelData: unknown[]) => {
+      onDataChange({
+        panelStates: {
+          ...widgetData.panelStates,
+          [panelId]: panelData,
+        },
+      });
+    },
+    [onDataChange, widgetData]
+  );
+
   /**
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
    * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
@@ -137,14 +149,30 @@ function DocumentHandler({
     return panelId;
   }, [widgetData]);
 
+  const getInitialData = useCallback(
+    (panelId: string) =>
+      widgetData.panelStates?.[panelId] ??
+      (EMPTY_ARRAY as unknown as unknown[]),
+    [widgetData]
+  );
+
   const panelManager = useMemo(
     () => ({
       metadata: widget,
       onOpen: handleOpen,
       onClose: handleClose,
+      onDataChange: handleDataChange,
       getPanelId,
+      getInitialData,
     }),
-    [widget, getPanelId, handleClose, handleOpen]
+    [
+      widget,
+      getPanelId,
+      handleClose,
+      handleOpen,
+      handleDataChange,
+      getInitialData,
+    ]
   );
 
   return (

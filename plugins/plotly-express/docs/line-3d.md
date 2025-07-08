@@ -33,8 +33,6 @@ spiral = time_table("PT0.01s").update_view(
 line_plot_3D = dx.line_3d(spiral, x="X", y="Y", z="Z")
 ```
 
-![3D Line Plot Basic Example](./_assets/line_plot_3d.png)
-
 ## API Reference
 
 ```{eval-rst}

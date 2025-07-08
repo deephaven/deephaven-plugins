@@ -14,6 +14,7 @@ from ..types import (
     QuickFilterExpression,
     RowPressCallback,
     ResolvableContextMenuItem,
+    SelectionChangeCallback,
 )
 from .._internal import dict_to_react_props, RenderContext
 
@@ -144,6 +145,8 @@ class table(Element):
             The callback is invoked with the column name.
         on_column_double_press: The callback function to run when a column is double clicked.
             The callback is invoked with the column name.
+        on_selection_change: The callback function to run when the selection changes.
+            The callback is invoked with the selected rows with data from the columns in `always_fetch_columns`.
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
@@ -230,6 +233,7 @@ class table(Element):
         on_cell_double_press: CellPressCallback | None = None,
         on_column_press: ColumnPressCallback | None = None,
         on_column_double_press: ColumnPressCallback | None = None,
+        on_selection_change: SelectionChangeCallback | None = None,
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         show_quick_filters: bool = False,
@@ -289,6 +293,11 @@ class table(Element):
         right: DimensionValue | None = None,
         z_index: int | None = None,
     ) -> None:
+        if on_selection_change is not None and always_fetch_columns is None:
+            raise ValueError(
+                "ui.table on_selection_change requires always_fetch_columns to be set"
+            )
+
         props = locals()
         del props["self"]
         self._props = props

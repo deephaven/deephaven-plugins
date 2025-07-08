@@ -1,0 +1,1 @@
+{"file":"components/action_button.md","objects":{"counter_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.ActionButton","props":{"type":"button","onPress":{"__dhCbid":"cb0"},"children":"Pressed 0 times"}}},"__dhElemName":"__main__.counter"},"state":"{\"state\": {\"0\": 0}}"}}}}

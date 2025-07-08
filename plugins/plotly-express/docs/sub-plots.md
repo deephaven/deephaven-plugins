@@ -34,7 +34,108 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
-![Sub Plot Basic Example](./_assets/sub_plot.png)
+### Share Axes
+
+Share axes between plots with the `shared_xaxes` and `shared_yaxes` parameters.
+
+#### Share All Axes
+
+When `shared_xaxes` or `shared_yaxes` is set to `"all"`, all axes of the same type are shared.
+When one axis is adjusted, all axes are adjusted to match.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# filter the tips dataset for separate lunch and dinner charts
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# create chart that shares all axes
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
+    dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
+    rows=2, shared_yaxes="all", shared_xaxes="all"
+)
+```
+
+#### Share Y Axes
+
+When `shared_yaxis` is set to `True`, all y axes are shared along the same row.
+When one y-axis is adjusted, all axes along the same row are adjusted to match.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# filter the tips dataset for separate lunch and dinner charts
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# create chart that shares y axes along the row
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
+     dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
+    cols=2, shared_yaxes=True
+)
+```
+
+To share the y axes along the same column, set `shared_yaxes` to `"columns"`.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# filter the tips dataset for separate lunch and dinner charts
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# create chart that shares y axes along the column
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
+     dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
+    rows=2, shared_yaxes="columns"
+)
+```
+
+#### Share X Axes
+
+When `shared_xaxis` is set to `True`, all x axes are shared along the same column.
+When one x-axis is adjusted, all axes along the same column are adjusted to match.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# filter the tips dataset for separate lunch and dinner charts
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# create chart that shares x axes along the column
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
+     dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
+    rows=2, shared_xaxes=True
+)
+```
+
+To share the x axes along the same column, set `shared_yaxes` to `"columns"`.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# filter the tips dataset for separate lunch and dinner charts
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# create chart that shares x axes along the row
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
+     dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
+    cols=2, shared_xaxes="rows"
+)
+```
 
 ## API Reference
 

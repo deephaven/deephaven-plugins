@@ -27,6 +27,7 @@ extensions = [
     "sphinx_markdown_builder",
     "sphinx_autodoc_typehints",
     "deephaven_autodoc",
+    "deephaven_code_block",
 ]
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
@@ -45,6 +46,7 @@ strip_signature_backslash = True
 from deephaven_server import Server
 
 myst_all_links_external = True
+myst_fence_as_directive = ("python", "groovy")
 
 # need a server instance to pull types from the autodocs
 Server(port=10075)

@@ -43,7 +43,7 @@ Recommendations for creating pickers:
 
 We can use a Deephaven table as a data source to populate the options for pickers. A table automatically uses the first column as both the key and label. If there are duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table before using it as a picker data source.
 
-```python
+```python order=my_picker_table_source_example,stocks
 from deephaven import ui
 from deephaven.plot import express as dx
 
@@ -54,7 +54,7 @@ my_picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
 
 If you wish to specify the keys and labels manually, you can use a `ui.item_table_source` to dynamically derive the options from a table.
 
-```python
+```python order=my_picker_item_table_source_example,column_types
 from deephaven import ui, empty_table
 
 icon_names = ["vsAccount"]

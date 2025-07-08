@@ -1,0 +1,1 @@
+{"file":"components/number_field.md","objects":{"my_number_field":{"type":"deephaven.ui.Element","data":{"document":{"props":{"defaultValue":1024,"label":"Width","labelPosition":"top","onChange":{"__dhCbid":"cb0"}},"__dhElemName":"deephaven.ui.components.NumberField"},"state":"{}"}}}}

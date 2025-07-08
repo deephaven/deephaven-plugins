@@ -1,5 +1,9 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { SortModelItem } from '@ag-grid-community/core';
+import { ColumnState, SortModelItem } from '@ag-grid-community/core';
+
+export function isSortModelItem(item: ColumnState): item is SortModelItem {
+  return item.sort != null;
+}
 
 export default class AgGridSortUtils {
   /**
@@ -21,8 +25,14 @@ export default class AgGridSortUtils {
     return true;
   }
 
+  /**
+   * Parses the sort model items into Deephaven Sorts to apply on a table.
+   * @param table Deephaven table or tree table to use
+   * @param sortModelItems SortModelItem array to parse
+   * @returns An array of Deephaven Sort objects parsed from the SortModelItem array.
+   */
   static parseSortModel(
-    table: DhType.Table,
+    table: DhType.Table | DhType.TreeTable,
     sortModelItems: readonly SortModelItem[]
   ): DhType.Sort[] {
     return sortModelItems.map(item => {

@@ -1,0 +1,1 @@
+{"file":"components/avatar.md","objects":{"my_avatar_is_disabled_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"src":"https://github.com/deephaven.png","isDisabled":true,"size":"avatar-size-100","alt":"default avatar"},"__dhElemName":"deephaven.ui.components.Avatar"},"state":"{}"}}}}

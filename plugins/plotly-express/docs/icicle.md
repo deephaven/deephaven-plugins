@@ -31,11 +31,12 @@ gapminder_recent = (
 
 icicle_plot = dx.icicle(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
+
 ### An icicle plot with `path`
 
 Instead of manually aggregating and passing in `names` and `parents`, use the `path` argument to specify the hierarchy of the data. The first column is the root category, and the last column is the leaf category. The values are automatically summed up.
 
-```python order=treemap_path_plot,gapminder
+```python order=icicle_path_plot,gapminder
 import deephaven.plot.express as dx
 
 gapminder = dx.data.gapminder().update_view("World = `World`")
@@ -43,15 +44,13 @@ gapminder = dx.data.gapminder().update_view("World = `World`")
 icicle_path_plot = dx.icicle(gapminder, path=["World", "Continent", "Country"], values="Pop")
 ```
 
-![Icicle Plot Basic Example](./_assets/icicle_plot.png)
-
 # A nested icicle plot with branch values
 
 By default, the `branchvalues` argument is set to `"remainder"`.
 Keep the default if the values column should be added to the sum of its children to get the value for a node.
 If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
 
-```python
+```python order=icicle_nested,merged_gapminder,world,continents,countries
 import deephaven.plot.express as dx
 from deephaven import merge
 

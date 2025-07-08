@@ -2,14 +2,16 @@
 
 Convert a `DeephavenFigure` to a static image using the `to_image_uri` method.
 In order to use this feature, you need to have the `kaleido` package installed.
-Either install will `all` extras or install `kaleido` separately.
+Either install with `all` extras or install `kaleido` separately.
 
 ```sh
 pip install 'deephaven-plugin-plotly-express[all]'
 ```
+
 or
+
 ```sh
-pip install kaleido
+pip install "kaleido<1.0.0"
 ```
 
 > [!WARNING]
@@ -37,8 +39,15 @@ line_plot_image = ui.image(src=line_plot_bytes)
 
 ## Theme Template
 
-Customize the theme with the `template` argument. 
-Default options are `"plotly"`, `"plotly_white"`, `"plotly_dark"`, `"ggplot2"`, `"seaborn"`, and `"simple_white"`.
+Customize the theme with the `template` argument.
+Default options are:
+
+- `"plotly"`
+- `"plotly_white"`
+- `"plotly_dark"`
+- `"ggplot2"`
+- `"seaborn"`
+- `"simple_white"`.
 
 ```python order=line_plot_image
 import deephaven.plot.express as dx
@@ -57,7 +66,7 @@ line_plot_image = ui.image(src=line_plot_bytes)
 
 ## Image Format
 
-Customize the format with the `format` argument. 
+Customize the format with the `format` argument.
 Options are `"png"`, `"jpg"`, `"jpeg"`, `"webp"`, `"svg"`, and `"pdf"`.
 
 ```python order=line_plot_image

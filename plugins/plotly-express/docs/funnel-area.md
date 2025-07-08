@@ -26,8 +26,6 @@ marketing = dx.data.marketing()
 funnel_area_plot = dx.funnel_area(marketing, names="Stage", values="Count")
 ```
 
-![Funnel Area Basic Example](./_assets/funnel_area.png)
-
 ## API Reference
 
 ```{eval-rst}

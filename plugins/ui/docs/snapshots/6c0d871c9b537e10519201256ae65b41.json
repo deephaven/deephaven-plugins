@@ -1,0 +1,1 @@
+{"file":"add-interactivity/respond-to-events.md","objects":{"no_button_event":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Button","props":{"variant":"accent","style":"fill","type":"button","children":"I don't do anything"}}},"__dhElemName":"__main__.my_button"},"state":"{}"}}}}
