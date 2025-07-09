@@ -55,7 +55,7 @@ describe('getComponentTypeForElement', () => {
     }
   );
 
-  it('should return an element plugin component when it matches)', () => {
+  it('should return an element plugin component when it matches', () => {
     const elementKey = `custom.element`;
     const actual = getComponentTypeForElement(
       { [ELEMENT_KEY]: elementKey },

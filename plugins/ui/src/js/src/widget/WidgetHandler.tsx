@@ -20,6 +20,7 @@ import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { useElementPluginMapping } from '@deephaven/plugin';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 
 import {
@@ -52,7 +53,6 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import { useElementPluginMapping } from '@deephaven/plugin';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -299,11 +299,12 @@ function WidgetHandler({
       return hydratedDocument;
     },
     [
-      callableFinalizationRegistry,
       document,
       jsonClient,
-      renderEmptyDocument,
       id,
+      renderEmptyDocument,
+      callableFinalizationRegistry,
+      elementPluginMapping,
     ]
   );
 

@@ -1,5 +1,3 @@
-import sys
-
 python_project_name = '{{ cookiecutter.python_project_name }}'
 
 if not python_project_name.isidentifier():
