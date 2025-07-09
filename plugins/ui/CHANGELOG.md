@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.30.0 - 2025-07-09
+#### Bug Fixes
+- DH-19705: Query restart broke ui.dashboards (#1191) - (c38b786) - mofojed
+- DH-19696: Plotly objects were not loading correctly in deephaven.ui (#1189) - (e6af7dc) - mofojed
+#### Build system
+- Add snapshot generator (#1183) - (5b5ee61) - mofojed
+#### Documentation
+- DOC-759: warnings when building deephaven UI docs (#1182) - (d1d7e00) - Germain Zhang-Houle
+- Fix tutorial doc to not display error (#1169) - (766ec08) - mofojed
+- Fix deephaven.ui code blocks that have errors (#1166) - (51be97d) - mofojed
+- Apply miscellaneous fixes to deephaven.ui docs (#1162) - (01693d7) - arman-ddl
+- Add ui component overview page, adjust sidebar (#1161) - (9ba7f2c) - Don
+- escape hatches (#1158) - (4b40e2c) - dgodinez-dh
+- size and theme (#1156) - (d564c2d) - dgodinez-dh
+#### Features
+- DH-19292 Add ui.table selection event (#1196) - (85db04b) - Matthew Runyon
+- DH-18354 Add input filter support to UITable (#1180) - (edd9397) - Matthew Runyon
+- DH-19000: Persist deephaven UI table client-side state (#1152) - (e1a9971) - Matthew Runyon
+- DH-18349: Keep ui.tabs mounted when not active (#1177) - (c3c15e0) - Matthew Runyon
+- DH-18073: Static image creation for dx (#1167) - (650d496) - Joe
+
+- - -
+
 ## ui-v0.29.2 - 2025-04-08
 #### Bug Fixes
 - remove incorrect defaults in ui.grid to fix auto (#1154) - (684e5fc) - dgodinez-dh
