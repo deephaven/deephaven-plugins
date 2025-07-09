@@ -34,7 +34,6 @@ export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
         <Button
           icon={isExpanded ? vsTriangleDown : vsTriangleRight}
           kind="ghost"
-          tooltip={isExpanded ? 'Collapse' : 'Expand'}
           onClick={handleClick}
           style={{
             width: 'calc(100% - 5px)',
