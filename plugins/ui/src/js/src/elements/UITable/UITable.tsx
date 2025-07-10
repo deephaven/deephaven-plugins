@@ -301,7 +301,7 @@ export function UITable({
     isSelectingColumn,
     onColumnSelected,
     onDataSelected,
-  } = useGridLinker(model, irisGrid);
+  } = useGridLinker(model ?? null, irisGrid);
 
   const [dehydratedState, setDehydratedState] = usePersistentState<
     (DehydratedIrisGridState & DehydratedGridState) | undefined
