@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class PieTestCase(BaseTestCase):
@@ -21,7 +21,6 @@ class PieTestCase(BaseTestCase):
 
     def test_basic_pie(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.pie(self.source, names="names", values="values").to_dict(
             self.exporter
@@ -36,7 +35,7 @@ class PieTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": True,
                 "type": "pie",
-                "values": [NULL_INT],
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -63,7 +62,6 @@ class PieTestCase(BaseTestCase):
 
     def test_pie_colors(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.pie(
             self.source, names="names", values="values", color="colors"
@@ -79,7 +77,7 @@ class PieTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": True,
                 "type": "pie",
-                "values": [NULL_INT],
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
