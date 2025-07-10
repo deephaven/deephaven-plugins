@@ -20,7 +20,7 @@ import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { useElementPluginMapping } from '@deephaven/plugin';
+import { usePluginsElementMap } from '@deephaven/plugin';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 
 import {
@@ -177,7 +177,7 @@ function WidgetHandler({
     [jsonClient]
   );
 
-  const elementPluginMapping = useElementPluginMapping();
+  const pluginsElementMap = usePluginsElementMap();
 
   const renderEmptyDocument = useCallback(
     /**
@@ -263,7 +263,7 @@ function WidgetHandler({
           if (isElementNode(value)) {
             // Replace the elements node with the Component it maps to
             try {
-              return getComponentForElement(value, elementPluginMapping);
+              return getComponentForElement(value, pluginsElementMap);
             } catch (e) {
               log.warn('Error getting component for element', e);
               return value;
@@ -304,7 +304,7 @@ function WidgetHandler({
       id,
       renderEmptyDocument,
       callableFinalizationRegistry,
-      elementPluginMapping,
+      pluginsElementMap,
     ]
   );
 
