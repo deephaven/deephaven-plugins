@@ -7,7 +7,6 @@ from typing import Callable, Any
 from plotly.graph_objects import Figure
 from abc import abstractmethod
 from copy import copy
-import base64
 
 from deephaven.table import PartitionedTable, Table
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
@@ -19,6 +18,7 @@ from ..data_mapping import DataMapping
 from ..exporter import Exporter
 from .RevisionManager import RevisionManager
 from .FigureCalendar import FigureCalendar, Calendar
+from ..types import FilterColumn
 
 SINGLE_VALUE_REPLACEMENTS = {
     "indicator": {"value", "delta/reference", "title/text"},
@@ -137,6 +137,62 @@ def has_arg(call_args: dict[str, Any] | None, check: str | Callable) -> bool:
     # check is either a function or string
 
 
+def get_filter_name_set(
+    filter_columns: set[FilterColumn],
+) -> set[str]:
+    """
+    Get the filter name set for the given filter columns.
+
+    Args:
+        filter_columns: The filter columns to match against
+
+    Returns:
+        The matching input filters
+    """
+    # At the moment, input filters do not have a column type when sent from the client, so simplify the set
+    return {filter_column.name for filter_column in filter_columns}
+
+
+def get_filter_set(
+    filter_columns: set[FilterColumn],
+    filters: dict[str, Any],
+) -> set[tuple[str, Any]]:
+    """
+    Get the filter set for the given filter columns.
+
+    Args:
+        filters: The input filters to match against
+        filter_columns: The filter columns to match against
+
+    Returns:
+        The matching input filters
+    """
+    # At the moment, input filters do not have a column type when sent from the client, so simplify the set
+    name_set = get_filter_name_set(filter_columns)
+    return {(column, value) for column, value in filters.items() if column in name_set}
+
+
+def get_matching_filters(
+    filter_columns: set[FilterColumn],
+    filters: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Get the matching input filters for the given filter columns.
+
+    Args:
+        filters: The input filters to match against
+        filter_columns: The filter columns to match against
+
+    Returns:
+        The matching input filters
+    """
+    # At the moment, input filters do not have a column type when sent from the client, so simplify the set
+    name_set = get_filter_name_set(filter_columns)
+    return {
+        column: filter_ for column, filter_ in filters.items() if column in name_set
+    }
+
+
 class DeephavenNode:
     """
     A node in the DeephavenFigure graph. This is an abstract class that
@@ -184,6 +240,27 @@ class DeephavenNode:
         """
         pass
 
+    @abstractmethod
+    def update_filters(self, filters: dict[str, Any]) -> None:
+        """
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def filter_columns(self) -> set[FilterColumn]:
+        """
+        Get the input filter columns for this node
+
+        Returns:
+            The input filter columns
+        """
+        pass
+
 
 class DeephavenFigureNode(DeephavenNode):
     """
@@ -206,6 +283,7 @@ class DeephavenFigureNode(DeephavenNode):
         args: dict[str, Any] | None = None,
         table: Table | PartitionedTable | None = None,
         func: Callable | None = None,
+        filter_columns: set[FilterColumn] | None = None,
     ):
         """
         Create a new DeephavenFigureNode
@@ -224,6 +302,9 @@ class DeephavenFigureNode(DeephavenNode):
         self.func = func if func else lambda **kwargs: None
         self.cached_figure = None
         self.revision_manager = RevisionManager()
+        self._filter_columns = filter_columns if filter_columns else set()
+        self.filters = None
+        self.prev_filter_set = None
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -237,11 +318,26 @@ class DeephavenFigureNode(DeephavenNode):
 
         # release the lock to ensure there is no deadlock
         # as for some table operations an exclusive lock is required
+        new_figure = None
         with self.exec_ctx:
-            table = self.table
             copied_args = args_copy(self.args)
-            copied_args["args"]["table"] = table
-            new_figure = self.func(**copied_args)
+            copied_args["args"]["table"] = self.table
+            if self.filters is not None:
+                filter_set = get_filter_set(self.filter_columns, self.filters)
+
+                if filter_set != self.prev_filter_set:
+                    # when filters are passed in, only update the chart when the filters change
+                    # otherwise, subplots would be recreated unnecessarily
+                    self.prev_filter_set = filter_set
+                    copied_args["args"]["filters"] = get_matching_filters(
+                        self.filter_columns, self.filters
+                    )
+                    new_figure = self.func(**copied_args)
+                else:
+                    # if the filters haven't changed, just use the cached figure
+                    new_figure = self.cached_figure
+            else:
+                new_figure = self.func(**copied_args)
 
         with self.revision_manager:
             if self.revision_manager.updated_revision(revision):
@@ -269,7 +365,12 @@ class DeephavenFigureNode(DeephavenNode):
         # args need to be copied as the table key is modified
         new_args = args_copy(self.args)
         new_node = DeephavenFigureNode(
-            self.parent, self.exec_ctx, new_args, self.table, self.func
+            self.parent,
+            self.exec_ctx,
+            new_args,
+            self.table,
+            self.func,
+            self.filter_columns,
         )
 
         if id(self) in partitioned_tables:
@@ -292,6 +393,27 @@ class DeephavenFigureNode(DeephavenNode):
             self.recreate_figure(update_parent=False)
 
         return self.cached_figure
+
+    def update_filters(self, filters: dict[str, Any]) -> None:
+        """
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
+        self.filters = filters
+        # don't update the parent as it will be updated after the figure is recreated
+        self.recreate_figure(update_parent=False)
+
+    @property
+    def filter_columns(self) -> set[FilterColumn]:
+        """
+        Get the input filter columns for this node
+
+        Returns:
+            The input filter columns
+        """
+        return self._filter_columns
 
 
 class DeephavenLayerNode(DeephavenNode):
@@ -395,6 +517,32 @@ class DeephavenLayerNode(DeephavenNode):
 
         return self.cached_figure
 
+    def update_filters(self, filters: dict[str, Any]) -> None:
+        """
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
+        for node in self.nodes:
+            node.update_filters(filters)
+
+        self.recreate_figure(update_parent=False)
+
+    @property
+    def filter_columns(self) -> set[FilterColumn]:
+        """
+        Get the input filter columns for this node
+
+        Returns:
+            The input filter columns
+        """
+        new_filter_columns = set()
+        for node in self.nodes:
+            new_filter_columns.update(node.filter_columns)
+
+        return new_filter_columns
+
 
 class DeephavenHeadNode:
     """
@@ -451,6 +599,30 @@ class DeephavenHeadNode:
             self.cached_figure = self.node.get_figure()
         return self.cached_figure
 
+    def update_filters(self, filters: dict[str, Any]) -> None:
+        """
+        Update filters on the node.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
+        if self.node:
+            self.node.update_filters(filters)
+
+        self.recreate_figure()
+
+    @property
+    def filter_columns(self) -> set[FilterColumn]:
+        """
+        Get the input filter columns for this node
+
+        Returns:
+            The input filter columns
+        """
+        if self.node:
+            return self.node.filter_columns
+        return set()
+
 
 class DeephavenFigure:
     """A DeephavenFigure that contains a plotly figure and mapping from Deephaven
@@ -478,6 +650,7 @@ class DeephavenFigure:
         has_subplots: bool = False,
         is_plotly_fig: bool = False,
         calendar: Calendar = False,
+        filter_columns: set[FilterColumn] | None = None,
     ):
         """
         Create a new DeephavenFigure
@@ -522,6 +695,10 @@ class DeephavenFigure:
         self._figure_calendar = FigureCalendar(calendar)
 
         self._sent_calendar = False
+
+        self._filter_columns = filter_columns if filter_columns else set()
+
+        self._sent_filter_columns = False
 
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
@@ -594,6 +771,18 @@ class DeephavenFigure:
             deephaven["calendar"] = calendar_dict
             self._sent_calendar = True
 
+        # the input filters do not update so they only need to be sent once
+        if not self._sent_filter_columns and (filter_columns := self.filter_columns):
+            deephaven["filterColumns"] = {
+                "columns": [
+                    # _asdict is not actually protected, it is just given an underscore
+                    # to prevent conflicts with field names
+                    filter_column._asdict()
+                    for filter_column in filter_columns
+                ],
+            }
+            self._sent_filter_columns = True
+
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
 
@@ -646,6 +835,7 @@ class DeephavenFigure:
         table: Table | PartitionedTable,
         key_column_table: Table | None,
         func: Callable,
+        filter_columns: set[FilterColumn] | None = None,
     ) -> None:
         """
         Add a figure to the graph. It is assumed that this is the first figure
@@ -656,6 +846,7 @@ class DeephavenFigure:
             table: The table to pull data from
             key_column_table: The table with partitions, used by the DeephavenFigureListener
             func: The function to call
+            filter_columns: The filter columns to use for this figure node
 
         """
         if isinstance(table, Table) and not table.is_refreshing:
@@ -665,7 +856,14 @@ class DeephavenFigure:
         else:
             self._liveness_scope.manage(table)
 
-        node = DeephavenFigureNode(self._head_node, exec_ctx, args, table, func)
+        node = DeephavenFigureNode(
+            self._head_node,
+            exec_ctx,
+            args,
+            table,
+            func,
+            filter_columns,
+        )
 
         partitioned_tables = {}
         if isinstance(table, PartitionedTable):
@@ -702,6 +900,10 @@ class DeephavenFigure:
             # there is currently only one calendar for the entire figure, so it's stored in the top level
             # and attached as needed
             figure.calendar = self._calendar
+
+        if figure is not None:
+            # filters are managed through the nodes, so attach them when creating the figure
+            figure.filter_columns = self._head_node.filter_columns
 
         return figure
 
@@ -799,6 +1001,7 @@ class DeephavenFigure:
             self._has_subplots,
             self._is_plotly_fig,
             self._calendar,
+            self._filter_columns,
         )
         new_figure._head_node = self._head_node.copy_graph()
         return new_figure
@@ -955,3 +1158,41 @@ class DeephavenFigure:
             scale=scale,
             validate=validate,
         )
+
+    def update_filters(
+        self,
+        filters: dict[str, Any],
+    ) -> None:
+        """
+        Update filters on the chart.
+
+        Args:
+            filters: A dict with column name keys and values that are categories within the columns
+        """
+        self._head_node.update_filters(filters)
+
+    @property
+    def filter_columns(self) -> set[FilterColumn]:
+        """
+        Get the input filter columns for this figure
+
+        Returns:
+            The input filter columns
+        """
+        if self._is_plotly_fig:
+            # if this is a plotly figure, it does not have filter columns
+            return set()
+        figure = self.get_figure()
+        if not figure:
+            return self._filter_columns
+        return figure.filter_columns
+
+    @filter_columns.setter
+    def filter_columns(self, value: set[FilterColumn]) -> None:
+        """
+        Set the input filter columns for this figure.
+
+        Args:
+            value: The input filter columns to set
+        """
+        self._filter_columns = value

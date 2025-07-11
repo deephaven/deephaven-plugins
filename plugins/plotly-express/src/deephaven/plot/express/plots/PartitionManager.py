@@ -8,7 +8,7 @@ import plotly.express as px
 from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
-from deephaven import pandas as dhpd
+from deephaven import pandas as dhpd, empty_table
 from deephaven import merge
 
 from ._layer import atomic_layer
@@ -245,6 +245,7 @@ class PartitionManager:
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
         self.key_column_table = None
+        self.send_default_figure = False
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
         self.constituents = []
@@ -481,8 +482,33 @@ class PartitionManager:
         else:
             self.by_vars = set()
 
+        filter_by = args.pop("filter_by", [])
+        required_filter_by = args.pop("required_filter_by", [])
+
+        partition_cols.update(filter_by)
+        partition_cols.update(required_filter_by)
+
+        filters = args.pop("filters", None)
+        if filters is None and (filter_by or required_filter_by):
+            # if there are input filters wait for them before creating the proper chart
+            # the python figure is created, then the filters are sent from the client
+            self.send_default_figure = True
+        elif filters is not None:
+            for required_filter in required_filter_by:
+                if (filters and required_filter not in filters) or not filters:
+                    self.send_default_figure = True
+
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
+
+            required_filters_available = True
+            for required_filter in required_filter_by:
+                if (filters and required_filter not in filters) or not filters:
+                    required_filters_available = False
+
+            if filters and required_filters_available:
+                built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
+                partitioned_table = partitioned_table.filter(built_filter)
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden
@@ -532,6 +558,7 @@ class PartitionManager:
                 partitioned_table = cast(Table, args["table"]).partition_by(
                     list(partition_cols)
                 )
+
             if not self.key_column_table:
                 self.key_column_table = partitioned_table.table.drop_columns(
                     "__CONSTITUENT__"
@@ -719,6 +746,7 @@ class PartitionManager:
         title = self.title
         default_fig = px.scatter(x=[0], y=[0], title=title)
         default_fig.update_traces(x=[], y=[])
+        default_fig.update_layout(margin=None)
         return DeephavenFigure(default_fig)
 
     def create_figure(self) -> DeephavenFigure:
@@ -729,6 +757,9 @@ class PartitionManager:
         Returns:
             The new figure
         """
+        if self.send_default_figure:
+            return self.default_figure()
+
         if isinstance(self.partitioned_table, PartitionedTable):
             # lock constituents in case they are deleted
             self.constituents = [*self.partitioned_table.constituent_tables]
