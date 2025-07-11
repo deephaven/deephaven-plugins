@@ -30,6 +30,7 @@ import {
 import {
   InputFilterEvent,
   useDashboardColumnFilters,
+  useGridLinker,
 } from '@deephaven/dashboard-core-plugins';
 import { useLayoutManager, useListener } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
@@ -294,6 +295,14 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  const {
+    alwaysFetchColumns: linkerAlwaysFetchColumns,
+    columnSelectionValidator,
+    isSelectingColumn,
+    onColumnSelected,
+    onDataSelected,
+  } = useGridLinker(model ?? null, irisGrid);
+
   const [dehydratedState, setDehydratedState] = usePersistentState<
     (DehydratedIrisGridState & DehydratedGridState) | undefined
   >(undefined, { type: 'UITable', version: 1 });
@@ -396,8 +405,15 @@ export function UITable({
   }, [alwaysFetchColumnsProp, columns, throwError]);
 
   const alwaysFetchColumns = useMemo(
-    () => [...alwaysFetchColumnsPropArray, ...formatColumnSources],
-    [alwaysFetchColumnsPropArray, formatColumnSources]
+    () => [
+      // Deduplicate alwaysFetchColumns
+      ...new Set([
+        ...alwaysFetchColumnsPropArray,
+        ...formatColumnSources,
+        ...linkerAlwaysFetchColumns,
+      ]),
+    ],
+    [alwaysFetchColumnsPropArray, formatColumnSources, linkerAlwaysFetchColumns]
   );
 
   const mouseHandlers = useMemo(
@@ -557,7 +573,7 @@ export function UITable({
   }, [irisGridServerProps, initialHydratedState]);
 
   const inputFilters = useDashboardColumnFilters(
-    model?.columns ?? EMPTY_ARRAY,
+    model?.columns ?? null,
     model?.table
   );
 
@@ -585,6 +601,10 @@ export function UITable({
         model={model}
         onStateChange={onStateChange}
         onSelectionChanged={debouncedHandleSelectionChanged}
+        columnSelectionValidator={columnSelectionValidator}
+        isSelectingColumn={isSelectingColumn}
+        onColumnSelected={onColumnSelected}
+        onDataSelected={onDataSelected}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
         inputFilters={inputFilters}
