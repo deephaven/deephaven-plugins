@@ -1,0 +1,13 @@
+{
+  "extends": "@deephaven/tsconfig",
+  "compilerOptions": {
+    "composite": false,
+    "rootDir": "src/",
+    "outDir": "dist/",
+    "types": [],
+    "emitDeclarationOnly": false,
+    "noEmit": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["**/node_modules/**/*", "dist/**/*"]
+}

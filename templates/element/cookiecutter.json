@@ -1,0 +1,16 @@
+{
+  "python_project_name": "deephaven_plugin_template",
+  "javascript_project_name": "{{ cookiecutter.python_project_name.lower().replace('_', '-') }}",
+  "author_name": "Anonymous",
+  "author_email": "Anonymous",
+  "__py_namespace": "{{ cookiecutter.python_project_name }}",
+  "__src_folder_name": "{{ cookiecutter.python_project_name }}",
+  "__name_pascal_case": "{{ cookiecutter.python_project_name.replace('_', ' ') .title().replace(' ', '') }}",
+  "__component_name": "{{ cookiecutter.python_project_name }}_component",
+  "__registration_name": "{{ cookiecutter.__name_pascal_case }}Registration",
+  "__js_plugin_name_pascal_case": "{{ cookiecutter.javascript_project_name.replace('-', ' ') .title().replace(' ', '') }}",
+  "__js_plugin_view_obj": "{{ cookiecutter.__js_plugin_name_pascal_case }}View",
+  "__js_plugin_view_obj_style": "{{ cookiecutter.__js_plugin_view_obj }}Style",
+  "__js_plugin_obj": "{{ cookiecutter.__js_plugin_name_pascal_case }}Plugin",
+  "__element_name": "{{ cookiecutter.__py_namespace }}.{{ cookiecutter.__component_name }}"
+}
