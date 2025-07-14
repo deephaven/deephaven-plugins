@@ -1,0 +1,1 @@
+{"file":"hooks/use_effect.md","objects":{"effect_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Text","props":{"children":["Effect Example"],"slot":"text"}}},"__dhElemName":"__main__.ui_effect_example"},"state":"{}"}},":log":{"type":"Log","data":"Mounted\nUnmounted\n"}}}

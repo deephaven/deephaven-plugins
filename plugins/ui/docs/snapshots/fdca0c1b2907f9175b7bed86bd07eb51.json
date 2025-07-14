@@ -1,0 +1,1 @@
+{"file":"components/checkbox_group.md","objects":{"my_checkbox_group_is_read_only_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":["Soccer","Basketball","Baseball"],"orientation":"vertical","isReadOnly":true,"label":"Favorite sports","validationBehavior":"aria"},"__dhElemName":"deephaven.ui.components.CheckboxGroup"},"state":"{}"}}}}

@@ -6,7 +6,7 @@ Funnel plots differ from [funnel area plots](funnel-area.md) in that they displa
 
 Funnel plots are appropriate when the data contain a categorical variable where the frequencies of each category can be computed, and the categories can be ordered. Additionally, funnel plots assume a particular relationship between levels of the categorical variable, where each category is a proper subset of the previous category. If the data contain an unordered categorical variable, or the categories are better conceptualized as parts of a whole, consider a pie plot instead of a funnel plot.
 
-### What are funnel plots useful for?
+## What are funnel plots useful for?
 
 - **Visualizing sequential data**: Data that are staged or sequential in some way are often visualized with funnel plots, yielding insight on the absolute changes between each stage.
 - **Comparing categories**: Funnel plots can be broken down into categories to produce insights into the distribution of data at each stage within a process. Then
@@ -25,8 +25,6 @@ marketing = dx.data.marketing()
 # `Count` is the frequency/value column, and `Stage` is the category column
 funnel_plot = dx.funnel(marketing, x="Count", y="Stage")
 ```
-
-![Funnel Plot Basic Example](./_assets/funnel_plot.png)
 
 ## API Reference
 

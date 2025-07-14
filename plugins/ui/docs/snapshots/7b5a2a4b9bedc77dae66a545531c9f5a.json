@@ -1,0 +1,1 @@
+{"file":"components/button.md","objects":{"btn":{"type":"deephaven.ui.Element","data":{"document":{"props":{"variant":"accent","style":"fill","type":"button","isDisabled":true,"children":"Disabled button"},"__dhElemName":"deephaven.ui.components.Button"},"state":"{}"}}}}

@@ -18,6 +18,8 @@ export type WidgetData = {
 
   /** State of the widget on the Python side */
   state?: Record<string, unknown>;
+
+  panelStates?: Record<string, unknown[]>;
 };
 
 export type ReadonlyWidgetData = Readonly<WidgetData>;

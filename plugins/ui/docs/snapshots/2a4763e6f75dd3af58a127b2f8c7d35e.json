@@ -1,0 +1,1 @@
+{"file":"components/text_field.md","objects":{"my_text_field_is_read_only_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"isReadOnly":true,"defaultValue":"Panda","label":"Favorite animal","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.TextField"},"state":"{}"}}}}

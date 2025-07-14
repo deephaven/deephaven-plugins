@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.16.1 - 2025-06-24
+#### Bug Fixes
+- DH-19036: Fix failing subplot creation (#1176) - (e53b165) - Joe
+#### Build system
+- Add snapshot generator (#1183) - (5b5ee61) - mofojed
+#### Documentation
+- Update our instructions for installing kaleido (#1195) - (106b74c) - mofojed
+- DOC-574: Titles and Legends doc (#1174) - (9df65df) - Joe
+- DOC-684: add webgl chrome limitations (#1181) - (542cb81) - Joe
+- DOC-754: Fix header levels causing warnings (#1178) - (da5d339) - Germain Zhang-Houle
+
+- - -
+
 ## plotly-express-v0.16.0 - 2025-05-06
 #### Bug Fixes
 - fix hovertext logic for hierarchical plots (#1159) - (fddd6de) - Joe

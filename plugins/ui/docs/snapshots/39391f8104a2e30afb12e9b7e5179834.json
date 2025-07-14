@@ -1,0 +1,1 @@
+{"file":"components/table.md","objects":{"t":{"type":"deephaven.ui.Element","data":{"document":{"props":{"table":{"__dhObid":0},"format_":[{"cols":"Timestamp","value":"E, dd MMM yyyy HH:mm:ss.SSSSSS z"}],"showQuickFilters":false,"showGroupingColumn":true,"showSearch":false,"reverse":false},"__dhElemName":"deephaven.ui.elements.UITable"},"state":"{}"}}}}

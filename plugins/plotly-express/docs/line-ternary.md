@@ -4,7 +4,7 @@ Ternary line plots are a data visualization technique that represents data in a 
 
 Ternary line plots are appropriate when the data contain three interrelated mutually exclusive categories whose relationships can be quantified with a continuous variable. Further, ternary line plots are preferable to [ternary scatter plots](scatter-ternary.md) when the explanatory variables are ordered.
 
-### What are ternary line plots useful for?
+## What are ternary line plots useful for?
 
 - **Compositional data representation**: Ternary line plots are suitable for representing compositional data where the total proportion remains constant, allowing for the visualization of how components change relative to one another.
 - **Multivariate data analysis**: They are useful in multivariate data analysis to visualize relationships and trends among three variables or components that are interrelated.
@@ -23,10 +23,8 @@ election = dx.data.election()
 ternary_line_plot = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
 
-![Ternary Line Plot Basic Example](./_assets/line_plot_ternary.png)
-
-
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.line_ternary
 ```

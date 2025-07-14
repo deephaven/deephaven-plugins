@@ -202,7 +202,7 @@ my_dismissable_callback = dismissable_callback()
 
 Dialogs can be rendered as modals, popovers, or trays. See the [`dialog_trigger`](dialog_trigger.md) docs for more information.
 
-```python
+```python order=my_modal,my_popover,my_tray
 from deephaven import ui
 
 
@@ -245,7 +245,7 @@ my_tray = ui.dialog_trigger(
 
 Only `modal` type dialogs support a user defined size prop. Note that the `fullscreen` and `fullscreenTakeover` sizes require the `dialog_trigger` `type` prop to be set to `fullscreen` or `fullscreenTakeover` respectively for container sizing considerations.
 
-```python
+```python order=my_small_example,my_medium_example,my_large_example
 from deephaven import ui
 
 
@@ -320,8 +320,11 @@ my_large_example = large_example()
 
 ## API Reference
 
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.dialog
+
 .. dhautofunction:: deephaven.ui.content
+
 .. dhautofunction:: deephaven.ui.footer
 ```

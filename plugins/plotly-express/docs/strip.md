@@ -4,7 +4,7 @@ In a strip plot, individual data points are displayed along a single axis, provi
 
 Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, [box plots](box.md) or [violin plots](violin.md) may be more appropriate.
 
-### What are strip plots useful for?
+## What are strip plots useful for?
 
 - **Comparing data categories**: Strip plots effectively present the distribution of a dataset, and make it easy to compare the distributions of different categories of data.
 - **Identifying outliers**: Because strip plots are made up of individual points, they are well-suited for identifying potential outliers in datasets.
@@ -25,8 +25,6 @@ thursday_tips = tips.where("Day == `Thur`")
 
 strip_plot = dx.strip(thursday_tips, x="TotalBill", color_discrete_sequence=["lightgreen"])
 ```
-
-![Strip Plot Basic Example](./_assets/strip_plot.png)
 
 ### Distributions for multiple groups
 

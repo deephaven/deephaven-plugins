@@ -15,7 +15,7 @@ Every `dx` chart is backed by a Plotly [`Figure`](https://plotly.com/python/figu
 
 Add a line to bars in a bar plot with `update_traces`.
 
-```python
+```python order=bar_lined_plot,tips
 import deephaven.plot.express as dx
 
 tips = dx.data.tips()
@@ -29,36 +29,11 @@ def update(figure):
 bar_lined_plot = dx.bar(tips, x="Day", unsafe_update_figure=update)
 ```
 
-![Unsafe Update Figure Example](./_assets/unsafe_update_figure.png)
-
-### Legend Location
-
-Change the location of the legend to the bottom of the plot by updating the layout.
-
-```python
-import deephaven.plot.express as dx
-
-tips = dx.data.tips()
-
-
-def update(figure):
-    # Update the layout to move the legend to the bottom
-    # y is negative to move the legend outside the plot area
-    figure.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="left", x=0.3)
-    )
-
-
-legend_bottom_plot = dx.scatter(
-    tips, x="TotalBill", y="Tip", color="Day", unsafe_update_figure=update
-)
-```
-
 ### Vertical Line
 
 Add a vertical line to a plot with `add_vline`.
 
-```python
+```python order=scatter_vline_plot,tips
 import deephaven.plot.express as dx
 
 tips = dx.data.tips()
@@ -78,7 +53,7 @@ scatter_vline_plot = dx.scatter(
 
 Fill the area between lines in a line plot with `fill="tonexty"`.
 
-```python
+```python order=filled_line_plot,dog_prices,my_table
 import deephaven.plot.express as dx
 
 my_table = dx.data.stocks()

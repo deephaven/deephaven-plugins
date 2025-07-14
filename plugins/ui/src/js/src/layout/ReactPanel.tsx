@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import { nanoid } from 'nanoid';
 import {
   LayoutUtils,
   PanelEvent,
+  PanelIdContext,
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
@@ -15,6 +22,7 @@ import {
   LoadingOverlay,
 } from '@deephaven/components';
 import Log from '@deephaven/log';
+import { PersistentStateProvider } from '@deephaven/plugin';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
@@ -89,10 +97,17 @@ function ReactPanel({
   UNSAFE_className,
 }: Props): JSX.Element | null {
   const layoutManager = useLayoutManager();
-  const { metadata, onClose, onOpen, panelId } = useReactPanel();
+  const { metadata, onClose, onOpen, panelId, onDataChange, getInitialData } =
+    useReactPanel();
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle = title ?? metadata?.name ?? '';
+  const [initialData, setInitialData] = useState(getInitialData());
+  const onErrorReset = useCallback(() => {
+    // Not EMPTY_ARRAY, because we always want to trigger a re-render
+    // in case a panel is reloaded and errors again
+    setInitialData([]);
+  }, []);
 
   // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
@@ -204,45 +219,52 @@ function ReactPanel({
   return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
-          <View
-            height="100%"
-            width="100%"
-            backgroundColor={backgroundColor}
-            padding={padding}
-            paddingTop={paddingTop}
-            paddingBottom={paddingBottom}
-            paddingStart={paddingStart}
-            paddingEnd={paddingEnd}
-            paddingX={paddingX}
-            paddingY={paddingY}
-            overflow={overflow}
-            UNSAFE_style={UNSAFE_style}
-            UNSAFE_className={
-              UNSAFE_className == null
-                ? 'dh-react-panel'
-                : `${UNSAFE_className} dh-react-panel`
-            }
-          >
-            <Flex
-              UNSAFE_className="dh-inner-react-panel"
-              wrap={wrap}
-              direction={direction}
-              justifyContent={justifyContent}
-              alignContent={alignContent}
-              alignItems={alignItems}
-              gap={gap}
-              rowGap={rowGap}
-              columnGap={columnGap}
+          <PanelIdContext.Provider value={panelId}>
+            <View
+              height="100%"
+              width="100%"
+              backgroundColor={backgroundColor}
+              padding={padding}
+              paddingTop={paddingTop}
+              paddingBottom={paddingBottom}
+              paddingStart={paddingStart}
+              paddingEnd={paddingEnd}
+              paddingX={paddingX}
+              paddingY={paddingY}
+              overflow={overflow}
+              UNSAFE_style={UNSAFE_style}
+              UNSAFE_className={
+                UNSAFE_className == null
+                  ? 'dh-react-panel'
+                  : `${UNSAFE_className} dh-react-panel`
+              }
             >
-              <ReactPanelErrorBoundary>
-                {/**
-                 * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
-                 * but we still want the panels to appear so things don't disappear/jump around.
-                 */}
-                {renderedChildren ?? null}
-              </ReactPanelErrorBoundary>
-            </Flex>
-          </View>
+              <Flex
+                UNSAFE_className="dh-inner-react-panel"
+                wrap={wrap}
+                direction={direction}
+                justifyContent={justifyContent}
+                alignContent={alignContent}
+                alignItems={alignItems}
+                gap={gap}
+                rowGap={rowGap}
+                columnGap={columnGap}
+              >
+                <ReactPanelErrorBoundary onReset={onErrorReset}>
+                  {/**
+                   * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
+                   * but we still want the panels to appear so things don't disappear/jump around.
+                   */}
+                  <PersistentStateProvider
+                    initialState={initialData}
+                    onChange={onDataChange}
+                  >
+                    {renderedChildren ?? null}
+                  </PersistentStateProvider>
+                </ReactPanelErrorBoundary>
+              </Flex>
+            </View>
+          </PanelIdContext.Provider>
         </ReactPanelContext.Provider>,
         portal,
         contentKey

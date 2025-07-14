@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
@@ -8,6 +14,10 @@ import {
   type IrisGridContextMenuData,
   IrisGridProps,
   IrisGridUtils,
+  IrisGridCacheUtils,
+  IrisGridState,
+  type DehydratedIrisGridState,
+  type DehydratedGridState,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -17,17 +27,25 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
+import {
+  InputFilterEvent,
+  useDashboardColumnFilters,
+  useGridLinker,
+} from '@deephaven/dashboard-core-plugins';
+import { useLayoutManager, useListener } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler } from '@deephaven/grid';
+import { GridMouseHandler, GridRange, GridState } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { useDebouncedCallback } from '@deephaven/react-hooks';
+import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
   FormattingRule,
   getAggregationOperation,
+  getSelectionDataMap,
   UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
@@ -144,6 +162,7 @@ export function UITable({
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
+  onSelectionChange,
   quickFilters,
   sorts,
   aggregations,
@@ -203,6 +222,7 @@ export function UITable({
   );
 
   const dh = useApi();
+  const { eventHub } = useLayoutManager();
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
@@ -275,6 +295,43 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  const {
+    alwaysFetchColumns: linkerAlwaysFetchColumns,
+    columnSelectionValidator,
+    isSelectingColumn,
+    onColumnSelected,
+    onDataSelected,
+  } = useGridLinker(model ?? null, irisGrid);
+
+  const [dehydratedState, setDehydratedState] = usePersistentState<
+    (DehydratedIrisGridState & DehydratedGridState) | undefined
+  >(undefined, { type: 'UITable', version: 1 });
+  const initialState = useRef(dehydratedState);
+
+  const memoizedStateFn = useMemo(
+    () => IrisGridCacheUtils.makeMemoizedCombinedGridStateDehydrator(),
+    []
+  );
+
+  const onStateChange = useCallback(
+    (irisGridState: IrisGridState, gridState: GridState) => {
+      if (model == null) {
+        return;
+      }
+      setDehydratedState(memoizedStateFn(model, irisGridState, gridState));
+    },
+    [memoizedStateFn, model, setDehydratedState]
+  );
+
+  const initialHydratedState = useMemo(() => {
+    if (model && initialState.current != null) {
+      return {
+        ...utils.hydrateIrisGridState(model, initialState.current),
+        ...IrisGridUtils.hydrateGridState(model, initialState.current),
+      };
+    }
+  }, [model, utils]);
+
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
@@ -329,13 +386,8 @@ export function UITable({
     return alwaysFetch;
   }, [format, columns]);
 
-  const alwaysFetchColumnsArray = useMemo(
-    () => [...ensureArray(alwaysFetchColumnsProp), ...formatColumnSources],
-    [alwaysFetchColumnsProp, formatColumnSources]
-  );
-
-  const alwaysFetchColumns = useMemo(() => {
-    if (alwaysFetchColumnsArray[0] === true) {
+  const alwaysFetchColumnsPropArray = useMemo(() => {
+    if (alwaysFetchColumnsProp === true) {
       if (columns.length > ALWAYS_FETCH_COLUMN_LIMIT) {
         throwError(
           `Table has ${columns.length} columns, which is too many to always fetch. ` +
@@ -346,14 +398,23 @@ export function UITable({
       }
       return columns.map(column => column.name);
     }
-    if (alwaysFetchColumnsArray[0] === false) {
+    if (alwaysFetchColumnsProp === false || alwaysFetchColumnsProp == null) {
       return [];
     }
-    return alwaysFetchColumnsArray.filter(
-      // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
-      (v): v is string => typeof v === 'string'
-    );
-  }, [alwaysFetchColumnsArray, columns, throwError]);
+    return [...ensureArray(alwaysFetchColumnsProp)];
+  }, [alwaysFetchColumnsProp, columns, throwError]);
+
+  const alwaysFetchColumns = useMemo(
+    () => [
+      // Deduplicate alwaysFetchColumns
+      ...new Set([
+        ...alwaysFetchColumnsPropArray,
+        ...formatColumnSources,
+        ...linkerAlwaysFetchColumns,
+      ]),
+    ],
+    [alwaysFetchColumnsPropArray, formatColumnSources, linkerAlwaysFetchColumns]
+  );
 
   const mouseHandlers = useMemo(
     () =>
@@ -401,58 +462,132 @@ export function UITable({
     [contextMenu, alwaysFetchColumns]
   );
 
-  const irisGridProps = useMemo(
-    () =>
-      ({
-        mouseHandlers,
-        alwaysFetchColumns,
-        showSearchBar,
-        sorts: hydratedSorts,
-        quickFilters: hydratedQuickFilters,
-        isFilterBarShown: showQuickFilters,
-        reverseType: reverse
-          ? TableUtils.REVERSE_TYPE.POST_SORT
-          : TableUtils.REVERSE_TYPE.NONE,
-        density,
-        settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
-        onContextMenu,
-        aggregationSettings: {
-          aggregations:
-            aggregations != null
-              ? ensureArray(aggregations).map(agg => {
-                  if (agg.cols != null && agg.ignore_cols != null) {
-                    throw new Error(
-                      'Cannot specify both cols and ignore_cols in a UI table aggregation'
-                    );
-                  }
-                  return {
-                    operation: getAggregationOperation(agg.agg),
-                    selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
-                    // If agg.cols is set, we don't want to invert
-                    // If it is not set, then the only other options are ignore_cols or neither
-                    // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
-                    invert: agg.cols == null,
-                  };
-                })
-              : [],
-          showOnTop: aggregationsPosition === 'top',
-        },
-      }) satisfies Partial<IrisGridProps>,
-    [
+  const irisGridServerProps = useMemo(() => {
+    const props = {
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      showQuickFilters,
-      hydratedSorts,
-      hydratedQuickFilters,
+      sorts: hydratedSorts,
+      quickFilters: hydratedQuickFilters,
+      isFilterBarShown: showQuickFilters,
       reverse,
       density,
-      settings,
-      showGroupingColumn,
+      settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
       onContextMenu,
-      aggregations,
-      aggregationsPosition,
-    ]
+      aggregationSettings: {
+        aggregations:
+          aggregations != null
+            ? ensureArray(aggregations).map(agg => {
+                if (agg.cols != null && agg.ignore_cols != null) {
+                  throw new Error(
+                    'Cannot specify both cols and ignore_cols in a UI table aggregation'
+                  );
+                }
+                return {
+                  operation: getAggregationOperation(agg.agg),
+                  selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
+                  // If agg.cols is set, we don't want to invert
+                  // If it is not set, then the only other options are ignore_cols or neither
+                  // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
+                  invert: agg.cols == null,
+                };
+              })
+            : [],
+        showOnTop: aggregationsPosition === 'top',
+      },
+    } satisfies Partial<IrisGridProps>;
+
+    // Remove any explicit undefined values so we can use client state if available
+    (
+      Object.entries(props) as [
+        keyof typeof props,
+        (typeof props)[keyof typeof props],
+      ][]
+    ).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete props[key];
+      }
+    });
+
+    return props;
+  }, [
+    mouseHandlers,
+    alwaysFetchColumns,
+    showSearchBar,
+    showQuickFilters,
+    hydratedSorts,
+    hydratedQuickFilters,
+    reverse,
+    density,
+    settings,
+    showGroupingColumn,
+    onContextMenu,
+    aggregations,
+    aggregationsPosition,
+  ]);
+
+  const initialIrisGridServerProps = useRef(irisGridServerProps);
+
+  const handleSelectionChanged = useCallback(
+    async (ranges: readonly GridRange[]) => {
+      if (model == null || irisGrid == null || onSelectionChange == null) {
+        return;
+      }
+
+      const selected = getSelectionDataMap(
+        ranges,
+        model,
+        irisGrid,
+        alwaysFetchColumnsPropArray
+      );
+
+      onSelectionChange(selected);
+    },
+    [irisGrid, model, onSelectionChange, alwaysFetchColumnsPropArray]
+  );
+
+  const debouncedHandleSelectionChanged = useDebouncedCallback(
+    handleSelectionChanged,
+    250
+  );
+
+  /**
+   * We want to set the props based on a combination of server state and client state.
+   * If the server state is the same as its initial state, then we are rehydrating and
+   * the client state should take precedence.
+   * Otherwise, we have received changes from the server and we should use those over client state.
+   * In the future we may want to do a smarter merge of these.
+   */
+  const mergedIrisGridProps = useMemo(() => {
+    if (initialIrisGridServerProps.current === irisGridServerProps) {
+      return {
+        ...irisGridServerProps,
+        ...initialHydratedState,
+      };
+    }
+
+    return {
+      ...initialHydratedState,
+      ...irisGridServerProps,
+    };
+  }, [irisGridServerProps, initialHydratedState]);
+
+  const inputFilters = useDashboardColumnFilters(
+    model?.columns ?? null,
+    model?.table
+  );
+
+  const handleClearAllFilters = useCallback(() => {
+    if (irisGrid == null) {
+      return;
+    }
+    irisGrid.clearAllFilters();
+  }, [irisGrid]);
+
+  useListener(
+    eventHub,
+    InputFilterEvent.CLEAR_ALL_FILTERS,
+    handleClearAllFilters
   );
 
   return model ? (
@@ -464,8 +599,15 @@ export function UITable({
       <IrisGrid
         ref={ref => setIrisGrid(ref)}
         model={model}
+        onStateChange={onStateChange}
+        onSelectionChanged={debouncedHandleSelectionChanged}
+        columnSelectionValidator={columnSelectionValidator}
+        isSelectingColumn={isSelectingColumn}
+        onColumnSelected={onColumnSelected}
+        onDataSelected={onDataSelected}
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...irisGridProps}
+        {...mergedIrisGridProps}
+        inputFilters={inputFilters}
       />
     </div>
   ) : null;

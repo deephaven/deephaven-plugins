@@ -1,0 +1,1 @@
+{"file":"add-interactivity/update-tables-in-state.md","objects":{"resetable_table":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":[{"__dhElemName":"deephaven.ui.components.ActionButton","props":{"type":"button","onPress":{"__dhCbid":"cb0"},"children":"Reset"}},{"__dhObid":0}]},"__dhElemName":"__main__.ui_resetable_table"},"state":"{}"}}}}

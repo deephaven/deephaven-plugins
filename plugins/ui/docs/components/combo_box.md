@@ -49,7 +49,7 @@ Recommendations for creating clear and effective combo boxes:
 
 For combo boxes, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a combo box data source.
 
-```python
+```python order=my_combo_box_table_source_example,countries
 from deephaven import ui, empty_table
 from deephaven.plot import express as dx
 
@@ -64,7 +64,7 @@ my_combo_box_table_source_example = ui.combo_box(countries, label="Sample Combo 
 
 If you wish to manually specify the keys and labels, use a `ui.item_table_source` to dynamically derive the options from a table.
 
-```python
+```python order=my_combo_box_item_table_source_example,column_types
 from deephaven import ui, empty_table
 
 account_icon = "vsAccount"
@@ -93,7 +93,7 @@ my_combo_box_item_table_source_example = ui.combo_box(
 
 By default, when a combo box loses focus, it resets its input value to match the selected option's text or clears the input if no option is selected. To allow users to enter a custom value, use the `allows_custom_value` prop to override this behavior.
 
-```python
+```python order=my_combo_box_custom_value_examples,countries
 from deephaven import ui
 from deephaven.plot import express as dx
 

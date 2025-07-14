@@ -1,0 +1,1 @@
+{"file":"add-interactivity/render-cycle.md","objects":{"example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Text","props":{"children":["Initial Render"],"slot":"text"}}},"__dhElemName":"__main__.example_renderer"},"state":"{}"}}}}

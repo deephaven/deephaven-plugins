@@ -156,7 +156,7 @@ DHC and DHE can be configured when running locally to target the local `plugins`
 
 ##### Build deephaven-core
 
-Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/how-to-guides/launch-build/#build-and-run-deephaven).
+Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/getting-started/launch-build/#build-and-run-deephaven).
 
 ##### Install python plugin wheels
 
@@ -289,6 +289,14 @@ python tools/plugin_builder.py --docs --install ui
 
 After the first time install, you can drop the `--install` flag and just run the script with `--docs` unless you have plugin changes.
 
+You can also re-generate the snapshots for the docs by passing the `--snapshots` flag. This should be done when new code blocks are added to the docs.
+
+This example will build the docs for the `ui` plugin and re-generate the snapshots:
+
+```shell
+python tools/plugin_builder.py --docs --snapshots ui
+```
+
 To run the server, pass the `--server` flag.  
 First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
 
@@ -356,6 +364,10 @@ To build and preview docs from the `build` directory, run the following commands
 python tools/plugin_builder.py -d ui plotly-express
 BUILT=true npm run docs
 ```
+
+### Snapshotting docs with npm
+
+You can also use `npm` to snapshot the docs instead of using the `--snapshots` flag in `plugin_builder.py`. Just run `npm run update-doc-snapshots` from the root directory of this repo. This will run the snapshotting script and update the snapshots in the `docs` directory.
 
 ## Release Management
 

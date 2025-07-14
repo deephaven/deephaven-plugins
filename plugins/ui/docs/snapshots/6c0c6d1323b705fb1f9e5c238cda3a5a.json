@@ -1,0 +1,1 @@
+{"file":"components/number_field.md","objects":{"my_number_field_is_quiet_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"isQuiet":true,"label":"Age","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.NumberField"},"state":"{}"}}}}

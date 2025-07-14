@@ -1,0 +1,1 @@
+{"file":"components/checkbox.md","objects":{"my_checkbox_name_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":[{"__dhElemName":"deephaven.ui.components.Checkbox","props":{"children":["Sample Label"],"name":"Sample Name"}}],"validationBehavior":"aria","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.Form"},"state":"{}"}}}}

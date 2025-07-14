@@ -12,10 +12,9 @@ import {
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
 import { ensureArray } from '@deephaven/utils';
-import { RowDataMap, type UITableProps } from './UITableUtils';
+import { getRowDataMap, RowDataMap, type UITableProps } from './UITableUtils';
 import { getIcon } from '../utils/IconElementUtils';
 import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
-import { getRowDataMap } from './UITableMouseHandler';
 
 interface UIContextItemParams {
   value: unknown;

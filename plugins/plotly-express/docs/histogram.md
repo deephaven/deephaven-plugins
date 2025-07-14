@@ -4,7 +4,7 @@ A histogram plot is a data visualization technique commonly used in statistics a
 
 Histograms are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, layered histograms may be appropriate using the `by` argument.
 
-### What are histograms useful for?
+## What are histograms useful for?
 
 - **Data distribution analysis**: Histograms are a valuable tool to gain insights into the distribution of a dataset, making it easier to understand the central tendencies, spread, and skewness of the data.
 - **Identifying outliers**: Histograms help in detecting outliers or anomalies in a dataset by highlighting data points that fall outside the typical distribution.
@@ -28,8 +28,6 @@ hist_plot_x = dx.histogram(setosa, x="SepalLength")
 hist_plot_y = dx.histogram(setosa, y="SepalLength")
 ```
 
-![Histogram Plot Basic Example](./_assets/histogram_plot.png)
-
 Modify the bin size by setting `nbins` equal to the number of desired bins.
 
 ```python order=hist_20_bins,hist_3_bins,hist_8_bins,virginica,iris
@@ -40,13 +38,13 @@ iris = dx.data.iris()
 virginica = iris.where("Species == `virginica`")
 
 # too many bins will produce jagged, disconnected histograms
-hist_20_bins = dx.histogram(setosa, x="SepalLength", nbins=20)
+hist_20_bins = dx.histogram(virginica, x="SepalLength", nbins=20)
 
 # too few bins will mask distributional information
-hist_3_bins = dx.histogram(setosa, x="SepalLength", nbins=3)
+hist_3_bins = dx.histogram(virginica, x="SepalLength", nbins=3)
 
 # play with the `nbins` parameter to get a good visualization
-hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
+hist_8_bins = dx.histogram(virginica, x="SepalLength", nbins=8)
 ```
 
 ### Bin and aggregate on different columns

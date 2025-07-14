@@ -51,7 +51,7 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler passes a range of `LocalTime`.
 
-```python
+```python order=zoned_time_field,instant_time_field,local_time_field
 from deephaven import ui
 from deephaven.time import to_j_local_time, dh_now, to_j_instant, to_j_zdt
 
@@ -107,7 +107,7 @@ In most cases, your data will come from and be sent to a server as an `ISO 8601`
 - For `ZonedTimeTime` objects, the time field displays the specified time zone.
 - For `Instant` objects, the time field displays the time zone from the user settings.
 
-```python
+```python order=my_zoned_time_time,my_instant
 from deephaven import ui
 from deephaven.time import to_j_instant
 
@@ -403,7 +403,7 @@ time_field_hour_cycle_example = ui.time_field(label="Time field", hour_cycle=24)
 
 Time fields can be used to filter tables with time columns.
 
-```python
+```python order=time_filter,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 

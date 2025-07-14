@@ -4,7 +4,7 @@
 
 3D line plots are appropriate when a continuous response variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
 
-### What are 3D line plots useful for?
+## What are 3D line plots useful for?
 
 - **Multidimensional data visualization**: 3D line plots allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
 - **Trend exploration**: 3D line plots are useful for exploring and understanding trends, patterns, and variations in data within a 3D space, making them valuable in scientific and engineering fields.
@@ -32,8 +32,6 @@ spiral = time_table("PT0.01s").update_view(
 
 line_plot_3D = dx.line_3d(spiral, x="X", y="Y", z="Z")
 ```
-
-![3D Line Plot Basic Example](./_assets/line_plot_3d.png)
 
 ## API Reference
 

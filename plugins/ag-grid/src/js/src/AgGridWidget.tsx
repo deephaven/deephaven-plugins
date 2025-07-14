@@ -8,8 +8,10 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
-import AgGridServerSideView from './AgGridServerSideView';
+import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
+import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
+import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
+import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
 import customStyles from './AgGridCustomStyles.css?inline';
 
@@ -28,14 +30,24 @@ export function AgGridWidget(
   const [table, setTable] = useState<DhType.Table>();
 
   const gridDensity = settings?.gridDensity;
-  const theme = useMemo(
-    () => themeQuartz.withParams(AgGridDhTheme.getThemeParams(gridDensity)),
+
+  const themeParams = useMemo(
+    () => AgGridDhTheme.getThemeParams(gridDensity),
     [gridDensity]
+  );
+
+  const theme = useMemo(
+    () => themeQuartz.withParams(themeParams),
+    [themeParams]
   );
 
   const agGridProps: AgGridReactProps = useMemo(
     () => ({
-      modules: [ServerSideRowModelModule],
+      modules: [
+        RowGroupingModule,
+        ViewportRowModelModule,
+        ColumnsToolPanelModule,
+      ],
       defaultColDef: {
         filterParams: {
           buttons: ['reset', 'apply'],
@@ -49,8 +61,9 @@ export function AgGridWidget(
       },
       suppressCellFocus: true,
       theme,
+      rowHeight: themeParams.rowHeight as number,
     }),
-    [theme]
+    [theme, themeParams]
   );
 
   /** First we load the widget object. This is the object that is sent from the server in AgGridMessageStream. */
@@ -77,11 +90,7 @@ export function AgGridWidget(
   return table != null ? (
     <div className="ui-table-container">
       <style>{customStyles}</style>
-      <AgGridServerSideView
-        table={table}
-        settings={settings}
-        agGridProps={agGridProps}
-      />
+      <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
     </div>
   ) : (
     <LoadingOverlay />

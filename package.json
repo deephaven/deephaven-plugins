@@ -22,10 +22,12 @@
     "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
-    "e2e:docker": "DEEPHAVEN_PORT=10001 ./tools/run_docker.sh e2e-tests",
-    "e2e:update-snapshots": "./tools/run_docker.sh update-snapshots",
+    "e2e:docker": "DEEPHAVEN_PORT=10001 ./tools/run_docker.sh ./tests/docker-compose.yml e2e-tests",
+    "e2e:update-snapshots": "./tools/run_docker.sh ./tests/docker-compose.yml update-snapshots",
     "update-dh-packages": "lerna run --concurrency 1 update-dh-packages",
-    "update-dh-packages:ui": "npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui --"
+    "update-dh-packages:ui": "npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui --",
+    "update-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-snapshotter",
+    "validate-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-validator"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.72.0",
@@ -103,6 +105,11 @@
     "@swc/core-win32-arm64-msvc": "1.3.99",
     "@swc/core-win32-ia32-msvc": "1.3.99",
     "@swc/core-win32-x64-msvc": "1.3.99"
+  },
+  "overrides": {
+    "@deephaven/eslint-config": {
+      "eslint-import-resolver-typescript": "3.5.0"
+    }
   },
   "prettier": "@deephaven/prettier-config"
 }

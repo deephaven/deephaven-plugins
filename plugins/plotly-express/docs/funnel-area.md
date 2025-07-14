@@ -6,7 +6,7 @@ Funnel area plots differ from [funnel plots](funnel.md) in that they display the
 
 Funnel area plots are appropriate when the data contain a categorical variable where the frequencies of each category can be computed, and the categories can be ordered. Additionally, funnel plots assume a particular relationship between levels of the categorical variable, where each category is a proper subset of the previous category. If the data contain an unordered categorical variable, or the categories are better conceptualized as parts of a whole, consider a pie plot instead of a funnel area plot.
 
-### What are funnel area plots useful for?
+## What are funnel area plots useful for?
 
 - **Visualizing sequential data**: Data that are staged or sequential in some way are often visualized with funnel area plots, yielding insight on the rate of change from one stage to the next.
 - **Analyzing data progression**: Funnel area plots may be used for analyzing attrition, conversion rates, or transitions between stages.
@@ -25,8 +25,6 @@ marketing = dx.data.marketing()
 # `Count` is the frequency/value column, and `Stage` is the category column
 funnel_area_plot = dx.funnel_area(marketing, names="Stage", values="Count")
 ```
-
-![Funnel Area Basic Example](./_assets/funnel_area.png)
 
 ## API Reference
 

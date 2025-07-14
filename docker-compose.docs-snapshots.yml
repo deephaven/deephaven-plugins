@@ -1,0 +1,63 @@
+services:
+  # Test server that has all the plugins loaded. Test sets are run against this server.
+  deephaven-plugins-docs-test-server:
+    container_name: deephaven-plugins
+    build:
+      dockerfile: ./Dockerfile
+      pull: true # We need to always pull the latest server image used in the Dockerfile
+    ports:
+      - '${DEEPHAVEN_SNAPSHOT_PORT:-10090}:10000'
+    environment:
+      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
+
+  # Extract the code blocks from the docs in the plugins directories and output them ssto a results directory.
+  deephaven-plugins-docs-extractor:
+    image: ghcr.io/deephaven/salmon-extractor
+    pull_policy: always
+    container_name: deephaven-plugins-docs-extractor
+    command:
+      [
+        'sh',
+        '-c',
+        'node extract.cjs --directory /extract/plotly-express --output /results/plotly-express; node extract.cjs --directory /extract/ui --output /results/ui',
+      ]
+    volumes:
+      - ./plugins/ui/docs:/extract/ui
+      - ./plugins/plotly-express/docs:/extract/plotly-express
+      # exclude doc build directories by overriding with empty volumes
+      # We could extract from the build directories, but we need to output the snapshots to the build directory itself for Salmon to pick up...
+      - /extract/plotly-express/build/
+      - /extract/ui/build/
+      - ./docker/build/test-sets:/results # Output to a temporary build directory
+
+  # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
+  deephaven-plugins-docs-snapshotter:
+    image: ghcr.io/deephaven/salmon-snapshotter
+    pull_policy: always
+    depends_on:
+      deephaven-plugins-docs-test-server:
+        condition: service_healthy
+      deephaven-plugins-docs-extractor:
+        condition: service_completed_successfully
+    environment:
+      HOST_URL: 'http://deephaven-plugins-docs-test-server:10000'
+    command:
+      [
+        'sh',
+        '-c',
+        'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui',
+      ]
+    volumes:
+      - ./docker/build/test-sets:/test-sets
+      # Map all the results back to the snapshots directory for those docs
+      - ./plugins/ui/docs/snapshots:/results/ui
+      - ./plugins/plotly-express/docs/snapshots:/results/plotly-express
+
+  # Validate MDX and the snapshots that were written are valid
+  deephaven-plugins-docs-validator:
+    image: ghcr.io/deephaven/salmon-validator
+    pull_policy: always
+    volumes:
+      - ./plugins/ui/docs/build/markdown:/validate/ui
+      - ./plugins/plotly-express/docs/build/markdown:/validate/plotly-express
+      - ./docker/build/validator-results:/results

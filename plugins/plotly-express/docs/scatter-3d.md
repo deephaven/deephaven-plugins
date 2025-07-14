@@ -4,7 +4,7 @@ A 3D scatter plot is a type of data visualization that displays data points in t
 
 3D scatter plots are appropriate when a continuous response variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories.
 
-### What are 3D scatter plots useful for?
+## What are 3D scatter plots useful for?
 
 - **Visualizing multivariate data**: When you have three variables of interest, a 3D scatter plot allows you to visualize and explore their relationships in a single plot. It enables you to see how changes in one variable affect the other two, providing a more comprehensive understanding of the data.
 - **Identifying clusters and patterns**: In some datasets, 3D scatter plots can reveal clusters or patterns that might not be evident in 2D scatter plots. The added dimensionality can help identify complex structures and relationships that exist in the data.
@@ -22,8 +22,6 @@ iris = dx.data.iris()
 
 scatter_plot_3D = dx.scatter_3d(iris, x="SepalWidth", y="SepalLength", z="PetalWidth")
 ```
-
-![3D Scatter Plot Basic Example](./_assets/scatter_plot_3d.png)
 
 ### Create a bubble plot
 

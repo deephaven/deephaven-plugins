@@ -4,7 +4,7 @@ Polar scatter plots are a data visualization method that represents data points 
 
 Polar scatter plots are appropriate when the data contain a continuous variable represented in polar coordinates, with a radial and an angular component instead of the typical x and y components.
 
-### What are polar scatter plots useful for?
+## What are polar scatter plots useful for?
 
 - **Analyzing cyclical data**: Polar scatter plots are valuable for analyzing data with cyclical or periodic patterns, as they enable the visualization of cyclic trends and periodic variations within the data.
 - **Representing directional data**: They are used to represent directional data, such as wind directions, compass bearings, or angular measurements, providing a visual means to explore data with specific orientations.
@@ -23,8 +23,6 @@ wind = dx.data.wind()
 # `by` is used to separate data by groups
 polar_scatter_plot = dx.scatter_polar(wind, r="Frequency", theta="Direction", by="Strength")
 ```
-
-![Polar Scatter Plot Basic Example](./_assets/scatter_plot_polar.png)
 
 ## API Reference
 

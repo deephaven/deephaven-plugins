@@ -1,0 +1,1 @@
+{"file":"components/search_field.md","objects":{"my_search_field_on_submit":{"type":"deephaven.ui.Element","data":{"document":{"props":{"type":"search","labelPosition":"top","onSubmit":{"__dhCbid":"cb0"}},"__dhElemName":"deephaven.ui.components.SearchField"},"state":"{}"}}}}

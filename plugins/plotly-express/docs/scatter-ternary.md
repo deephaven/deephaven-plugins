@@ -4,7 +4,7 @@ Ternary scatter plots are a data visualization method used to represent data wit
 
 Ternary scatter plots are appropriate when the data contain three interrelated mutually exclusive categories whose relationships can be quantified with a continuous variable.
 
-### What are ternary scatter plots useful for?
+## What are ternary scatter plots useful for?
 
 - **Compositional data analysis**: Ternary scatter plots are useful for analyzing data where proportions of three components add up to a constant total. They help visualize the distribution of these components and their relationships within the composition.
 - **Exploring multivariate data**: They can be applied in multivariate data analysis to visualize relationships, patterns, and trends among three variables or components, particularly when these components are interrelated.
@@ -23,8 +23,6 @@ election = dx.data.election()
 # create a ternary scatter plot by specifying the columns for the three points of the triangle
 ternary_scatter_plot = dx.scatter_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
-
-![Ternary Scatter Plot Basic Example](./_assets/scatter_plot_ternary.png)
 
 ## API Reference
 

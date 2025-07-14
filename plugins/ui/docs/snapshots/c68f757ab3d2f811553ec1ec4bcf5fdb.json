@@ -1,0 +1,1 @@
+{"file":"components/text_field.md","objects":{"my_text_field_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"label":"Description","labelPosition":"top","onChange":{"__dhCbid":"cb0"}},"__dhElemName":"deephaven.ui.components.TextField"},"state":"{}"}}}}

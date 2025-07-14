@@ -122,7 +122,7 @@ pip install deephaven-server
 pip install dist/{{ cookiecutter.python_project_name }}-0.0.1.dev0-py3-none-any.whl
 deephaven server
 ```
-See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/use-plugins/) for more information.
+See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/install-use-plugins/) for more information.
 
 ## Using the Plugin
 

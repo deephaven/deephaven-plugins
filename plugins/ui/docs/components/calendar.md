@@ -42,7 +42,7 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler passes a range of `Instant`.
 
-```python
+```python order=zoned_calendar,instant_calendar,local_calendar
 from deephaven import ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
@@ -214,7 +214,7 @@ my_calendar_page_behavior_example = ui.calendar(
 
 Calendars can be used to filter tables with time columns.
 
-```python
+```python order=date_filter,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 

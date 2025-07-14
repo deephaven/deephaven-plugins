@@ -674,7 +674,7 @@ def _wrap_date_range_callable(
 
 
 def _date_range_converter(
-    converter: Callable[[Date], Any]
+    converter: Callable[[Date], Any],
 ) -> Callable[[DateRange], DateRange]:
     """
     Get a converter for a DateRange.
@@ -939,19 +939,14 @@ def is_primitive(value: Any) -> bool:
     return isinstance(value, (bool, float, int, str, type(None)))
 
 
-def is_iterable(value: Any, excluded_types: tuple[type] = (str,)) -> bool:
+def is_iterable(value: Any) -> bool:
     """
-    Check if a value is iterable.
+    Check if a value is standard iterable type.
 
     Args:
         value: The value to check.
-        excluded_types: Types to exclude as iterable. Defaults to excluding strings.
 
     Returns:
-        True if the value is iterable and not an excluded type, False otherwise.
+        True if the value is a standard iterable type.
     """
-    try:
-        iter(value)
-    except TypeError:
-        return False
-    return not isinstance(value, excluded_types)
+    return isinstance(value, (list, tuple, set, dict, map, filter, range))

@@ -1,0 +1,1 @@
+{"file":"components/link.md","objects":{"my_link_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"variant":"primary","href":"https://deephaven.io/","children":"Learn more about Deephaven"},"__dhElemName":"deephaven.ui.components.Link"},"state":"{}"}}}}

@@ -132,6 +132,7 @@ def combo_box(
 ) -> ComboBoxElement:
     """
     A combo box that can be used to search or select from a list. Children should be one of five types:
+
     1. If children are of type `Item`, they are the dropdown options.
     2. If children are of type `SectionElement`, they are the dropdown sections.
     3. If children are of type `Table`, the values in the table are the dropdown options.

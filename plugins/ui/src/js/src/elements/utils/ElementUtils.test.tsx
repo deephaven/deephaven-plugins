@@ -68,32 +68,41 @@ describe('wrapElementChildren', () => {
 
   it.each([
     [
+      'single',
       mock.exportedA1,
-      <ObjectView key={`${mock.exportedA1.type}-0`} object={mock.exportedA1} />,
+      <ObjectView
+        key={`${mock.exportedA1.type}-0`}
+        object={mock.exportedA1}
+        __dhId={`test-root/${mock.exportedA1.type}-0`}
+      />,
     ],
     [
+      'multiple',
       [mock.exportedA1, mock.exportedA2, mock.exportedB1],
       [
         <ObjectView
           key={`${mock.exportedA1.type}-0`}
           object={mock.exportedA1}
+          __dhId={`test-root/${mock.exportedA1.type}-0`}
         />,
         <ObjectView
           key={`${mock.exportedA1.type}-1`}
           object={mock.exportedA1}
+          __dhId={`test-root/${mock.exportedA1.type}-1`}
         />,
         <ObjectView
           key={`${mock.exportedB1.type}-0`}
           object={mock.exportedB1}
+          __dhId={`test-root/${mock.exportedB1.type}-0`}
         />,
       ],
     ],
   ])(
-    'should wrap exported object children in ObjectView: %s, %s',
-    (children, expectedChildren) => {
+    'should wrap exported object children in ObjectView: %s',
+    (testName, children, expectedChildren) => {
       const actual = wrapElementChildren({
         [ELEMENT_KEY]: 'mock.element',
-        props: { children },
+        props: { children, __dhId: 'test-root' },
       });
 
       expect(actual.props?.children).toEqual(expectedChildren);
@@ -119,7 +128,7 @@ describe('wrapElementChildren', () => {
         ],
       ],
     ])(
-      'should wrap primitive item element children in Text elements: %s, %s',
+      'should wrap primitive item element children in Text elements: %s',
       (children, expectedChildren) => {
         const givenProps: Record<string, unknown> = { children };
         if (textValue != null) {

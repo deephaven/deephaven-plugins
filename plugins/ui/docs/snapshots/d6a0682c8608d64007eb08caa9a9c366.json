@@ -1,0 +1,1 @@
+{"file":"components/checkbox.md","objects":{"my_checkbox_is_indeterminate_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":["Indeterminate State"],"isIndeterminate":true},"__dhElemName":"deephaven.ui.components.Checkbox"},"state":"{}"}}}}

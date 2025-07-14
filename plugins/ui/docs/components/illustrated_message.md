@@ -60,7 +60,7 @@ my_illustrated_message_labeling_example = ui.illustrated_message(
 
 Using an illustrated message as a placeholder for a table or list can clearly indicate the absence of data and provide context-specific guidance.
 
-```python
+```python order=my_illustrated_message_placeholder_example,_stocks
 from deephaven import ui
 import deephaven.plot.express as dx
 

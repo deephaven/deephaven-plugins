@@ -124,6 +124,10 @@
             "path": "plot-by.md"
           },
           {
+            "label": "Filter",
+            "path": "filter.md"
+          },
+          {
             "label": "Sub plot",
             "path": "sub-plots.md"
           },
@@ -136,6 +140,10 @@
             "path": "multiple-axes.md"
           },
           {
+            "label": "Titles and Legends",
+            "path": "titles-legends.md"
+          },
+          {
             "label": "Chart Customization",
             "path": "unsafe-update-figure.md"
           },
@@ -144,6 +152,10 @@
             "path": "static-image-export.md"
           }
         ]
+      },
+      {
+        "label": "Limitations",
+        "path": "limitations.md"
       }
     ]
   }

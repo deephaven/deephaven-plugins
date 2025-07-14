@@ -1,0 +1,1 @@
+{"file":"hooks/use_ref.md","objects":{"ref_counter":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Button","props":{"variant":"accent","style":"fill","type":"button","onPress":{"__dhCbid":"cb0"},"children":"Click me!"}}},"__dhElemName":"__main__.ui_ref_counter"},"state":"{}"}}}}

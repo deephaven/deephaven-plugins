@@ -1,0 +1,1 @@
+{"file":"components/search_field.md","objects":{"my_search_field_icon":{"type":"deephaven.ui.Element","data":{"document":{"props":{"icon":{"__dhElemName":"deephaven.ui.icons.vsAccount","props":{"name":"account","slot":"icon"}},"label":"User","type":"search","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.SearchField"},"state":"{}"}}}}

@@ -2,7 +2,7 @@
 
 An indicator plot is a type of plot that highlights a collection of numeric values.
 
-### What are indicator plots useful for?
+## What are indicator plots useful for?
 
 - **Highlight specific metrics**: Indicator plots are useful when you want to highlight specific numeric metrics in a visually appealing way.
 - **Compare metrics to a reference value**: Indicator plots are useful to compare metrics to a reference value, such as a starting value or a target value.
@@ -14,7 +14,7 @@ An indicator plot is a type of plot that highlights a collection of numeric valu
 
 Visualize a single numeric value by passing the column name to the `value` argument. The table should contain only one row.
 
-```python
+```python order=indicator_plot,dog_avg,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
 
@@ -25,8 +25,6 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 
 indicator_plot = dx.indicator(dog_avg, value="Price")
 ```
-
-![Indicator Plot Basic Example](./_assets/indicator_plot.png)
 
 ### A delta indicator plot
 
@@ -78,7 +76,7 @@ dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first
 indicator_plot = dx.indicator(dog_agg, value="Price", reference="StartingPrice", number=False)
 ```
 
-### An angular indicator plot
+## An angular indicator plot
 
 Visualize a single numeric value with an angular gauge by passing `gauge="angular"`.
 
@@ -94,7 +92,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price", gauge="angular")
 ```
 
-### A hidden axis bullet indicator plot
+## A hidden axis bullet indicator plot
 
 Visualize a single numeric value with a bullet gauge by passing `gauge="bullet"`. Hide the axis by passing `axis=False`.
 
@@ -110,7 +108,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price", gauge="bullet", axis=False)
 ```
 
-### Prefixes and suffixes
+## Prefixes and suffixes
 
 Add a prefix and suffix to the numeric value by passing `prefix` and `suffix`.
 
@@ -134,7 +132,7 @@ The default format is set within the Settings panel. If only `value` is specifie
 If `reference` is specified, the default format is the `Integer` format if they are both integers. Otherwise, the default format is the `Decimal` format.  
 If a prefix or suffix is passed within the format string, it will be overridden by the `prefix` and `suffix` arguments.
 
-```python
+```python order=indicator_plot_prefix,indicator_plot,dog_avg,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
 
@@ -243,7 +241,7 @@ indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym", cols=2)
 Change the color of the delta value based on whether it is increasing or decreasing by passing `increasing_color_sequence` and `decreasing_color_sequence`.
 These colors are applied sequentially to the indicators and looped if there are more indicators than colors.
 
-```python
+```python order=indicator_plot,sym_agg,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
 
@@ -268,7 +266,7 @@ indicator_plot = dx.indicator(
 Change the color of the gauge based on the value by passing `gauge_color_sequence`.
 These colors are applied sequentially to the indicators and looped if there are more indicators than colors.
 
-```python
+```python order=indicator_plot,sym_agg,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
 
@@ -287,7 +285,7 @@ indicator_plot = dx.indicator(
 Create groups of styled indicators by passing the grouping categorical column name to the `by` argument.
 `increasing_color_map` and `decreasing_color_map` can be used to style the indicators based on the group.
 
-```python
+```python order=indicator_plot,sym_agg,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
 

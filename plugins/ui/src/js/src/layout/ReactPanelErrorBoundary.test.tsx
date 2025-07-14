@@ -3,14 +3,6 @@ import { TestUtils } from '@deephaven/test-utils';
 import { render, screen } from '@testing-library/react';
 import { ReactPanelErrorBoundary } from './ReactPanelErrorBoundary';
 
-// Mock the WidgetErrorView component
-jest.mock('../widget/WidgetErrorView', () => ({
-  __esModule: true,
-  default: function MockWidgetErrorView({ error }: { error: Error }) {
-    return <div data-testid="mock-error-view">{error.message}</div>;
-  },
-}));
-
 describe('ReactPanelErrorBoundary', () => {
   // Suppress console.error for our intentional errors
   beforeAll(() => {
@@ -44,8 +36,25 @@ describe('ReactPanelErrorBoundary', () => {
       </ReactPanelErrorBoundary>
     );
 
-    expect(screen.getByTestId('mock-error-view')).toBeInTheDocument();
     expect(screen.getByText('Test error message')).toBeInTheDocument();
+  });
+
+  it('renders error view with reload button when using onReset', () => {
+    const ErrorComponent = () => {
+      throw new Error('Test error message');
+    };
+
+    const onReset = jest.fn();
+
+    render(
+      <ReactPanelErrorBoundary onReset={onReset}>
+        <ErrorComponent />
+      </ReactPanelErrorBoundary>
+    );
+
+    expect(screen.getByText('Test error message')).toBeInTheDocument();
+    screen.getByRole('button', { name: 'Reload' }).click();
+    expect(onReset).toHaveBeenCalled();
   });
 
   it('recovers when children are updated after error', () => {
@@ -60,7 +69,6 @@ describe('ReactPanelErrorBoundary', () => {
     );
 
     // Verify error state
-    expect(screen.getByTestId('mock-error-view')).toBeInTheDocument();
     expect(screen.getByText('Test error message')).toBeInTheDocument();
 
     // Update with working component
@@ -73,7 +81,7 @@ describe('ReactPanelErrorBoundary', () => {
     // Verify recovery
     expect(screen.getByTestId('working-component')).toBeInTheDocument();
     expect(screen.getByText('Working Content')).toBeInTheDocument();
-    expect(screen.queryByTestId('mock-error-view')).not.toBeInTheDocument();
+    expect(screen.queryByText('Test error message')).not.toBeInTheDocument();
   });
 
   it('maintains error state when props update does not include children change', () => {
@@ -88,7 +96,7 @@ describe('ReactPanelErrorBoundary', () => {
     );
 
     // Verify initial error state
-    expect(screen.getByTestId('mock-error-view')).toBeInTheDocument();
+    expect(screen.getByText('Test error message')).toBeInTheDocument();
 
     // Rerender with same children
     rerender(
@@ -98,7 +106,6 @@ describe('ReactPanelErrorBoundary', () => {
     );
 
     // Error view should still be present
-    expect(screen.getByTestId('mock-error-view')).toBeInTheDocument();
     expect(screen.getByText('Test error message')).toBeInTheDocument();
   });
 

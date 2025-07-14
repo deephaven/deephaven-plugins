@@ -37,8 +37,6 @@ financial_plot = dx.layer(
 )
 ```
 
-![Layer Plot Basic Example](./_assets/layer_plot.png)
-
 ## API Reference
 
 ```{eval-rst}

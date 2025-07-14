@@ -236,7 +236,7 @@ my_breadcrumbs_overflow_example = breadcrumbs_overflow_example()
 
 Below is an example using the generated `tips` dataset from the Deephaven Express API. It allows you to explore the data in a hierarchical order of day, time, sex, and smoker status.
 
-```python
+```python order=my_tips,_tips
 import deephaven.plot.express as dx
 from deephaven.table import Table
 from deephaven import ui

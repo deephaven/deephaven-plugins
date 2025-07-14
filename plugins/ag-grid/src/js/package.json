@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ag-grid",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Deephaven AG Grid plugin",
   "keywords": [
     "Deephaven",
@@ -10,10 +10,20 @@
   ],
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "dist/bundle/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/bundle/index.js",
+      "default": "./dist/bundle/index.js"
+    },
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
   },
   "bugs": {
     "url": "https://github.com/deephaven/deephaven-plugins/issues"
@@ -21,26 +31,30 @@
   "homepage": "https://github.com/deephaven/deephaven-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "run-s build:*",
+    "build:transpile": "tsc",
+    "build:bundle": "vite build"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "^1.0.0-dev0.37.2",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.1",
+    "@deephaven/test-utils": "^0.106.0",
     "@types/react": "^17.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "typescript": "^4.5.4"
   },
   "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react": "^17.0.2 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
     "@ag-grid-community/core": "32.3.4",
     "@ag-grid-community/react": "32.3.4",
     "@ag-grid-community/styles": "32.3.4",
     "@ag-grid-community/theming": "32.3.4",
+    "@ag-grid-enterprise/column-tool-panel": "32.3.4",
     "@ag-grid-enterprise/core": "32.3.4",
-    "@ag-grid-enterprise/server-side-row-model": "32.3.4",
+    "@ag-grid-enterprise/row-grouping": "32.3.4",
     "@ag-grid-enterprise/viewport-row-model": "32.3.4",
     "@deephaven/components": "^0.106.2",
     "@deephaven/icons": "^0.106.0",
@@ -50,6 +64,7 @@
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4",
     "@deephaven/utils": "^0.106.0",
+    "lodash.throttle": "^4.1.1",
     "react-redux": "^7.x"
   },
   "publishConfig": {

@@ -1,0 +1,1 @@
+{"file":"hooks/use_row_data.md","objects":{"table_row":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Heading","props":{"children":["No data yet."],"level":3}}},"__dhElemName":"__main__.ui_table_row"},"state":"{\"state\": {\"1\": true}}"}}}}

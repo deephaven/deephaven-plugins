@@ -42,7 +42,7 @@ export default class AgGridFilterUtils {
   // Not handling AdvancedFilterModel yet
   static parseFilterModel(
     dh: typeof DhType,
-    table: DhType.Table,
+    table: DhType.Table | DhType.TreeTable,
     filterModel: FilterModel | AdvancedFilterModel | null
   ): DhType.FilterCondition[] {
     if (filterModel == null) {

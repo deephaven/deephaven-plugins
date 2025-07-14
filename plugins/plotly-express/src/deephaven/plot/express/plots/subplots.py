@@ -296,6 +296,8 @@ def atomic_make_subplots(
             shared_yaxes,
         ),
         unsafe_update_figure=unsafe_update_figure,
+        # remove the legend title as it is likely incorrect
+        remove_legend_title=True,
     )
 
 
@@ -357,9 +359,9 @@ def make_subplots(
         calculated from rows and number of figs provided if not passed
         but rows is.
         One of rows or cols should be provided if passing figs directly.
-      shared_xaxes: "rows", "cols"/True, "all" or None depending on what axes
+      shared_xaxes: "rows", "columns"/True, "all" or None depending on what axes
         should be shared
-      shared_yaxes: "rows"/True, "cols", "all" or None depending on what axes
+      shared_yaxes: "rows"/True, "columns", "all" or None depending on what axes
         should be shared
       grid: A grid (list of lists) of figures to draw. None can be
         provided in a grid entry

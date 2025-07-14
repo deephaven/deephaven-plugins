@@ -1,0 +1,1 @@
+{"file":"components/switch.md","objects":{"my_switch_is_disabled_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"isDisabled":true,"children":"Switch Label"},"__dhElemName":"deephaven.ui.components.Switch"},"state":"{}"}}}}

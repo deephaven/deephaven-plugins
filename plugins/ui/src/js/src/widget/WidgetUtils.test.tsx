@@ -253,7 +253,7 @@ describe('transformNode', () => {
     'should handle primitive values: %s',
     value => {
       const transform = jest.fn((k, v) => v);
-      expect(transformNode(value, transform)).toBe(value);
+      expect(transformNode(value, transform, '')).toBe(value);
       expect(transform).toHaveBeenCalledWith('', value);
     }
   );
@@ -263,7 +263,7 @@ describe('transformNode', () => {
       const transform = jest.fn((k, v) => v);
       const value = ['test', 'test2'];
       const valueCopy = [...value];
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toBe(value);
       expect(result).toEqual(valueCopy);
       expect(transform).toHaveBeenCalledTimes(3);
@@ -276,7 +276,7 @@ describe('transformNode', () => {
       const transform = jest.fn((k, v) => (k === '0' ? 'modified' : v));
       const value = ['test', 'test2'];
       const expected = ['modified', 'test2'];
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toEqual(expected);
       expect(result).not.toBe(value);
     });
@@ -284,7 +284,7 @@ describe('transformNode', () => {
     it('handles the empty array', () => {
       const transform = jest.fn((k, v) => v);
       const value: unknown[] = [];
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toEqual([]);
       expect(result).toBe(value);
     });
@@ -295,7 +295,7 @@ describe('transformNode', () => {
       const transform = jest.fn((k, v) => v);
       const value = { a: 'test', b: 'test2' };
       const valueCopy = { ...value };
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toBe(value);
       expect(result).toStrictEqual(valueCopy);
       expect(transform).toHaveBeenCalledTimes(3);
@@ -308,7 +308,7 @@ describe('transformNode', () => {
       const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
       const value = { a: 'test', b: 'test2' };
       const expected = { a: 'modified', b: 'test2' };
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toEqual(expected);
       expect(result).not.toBe(value);
     });
@@ -316,7 +316,7 @@ describe('transformNode', () => {
     it('handles the empty object', () => {
       const transform = jest.fn((k, v) => v);
       const value: Record<string, unknown> = {};
-      const result = transformNode(value, transform);
+      const result = transformNode(value, transform, '');
       expect(result).toStrictEqual({});
       expect(result).toBe(value);
     });
@@ -326,7 +326,7 @@ describe('transformNode', () => {
     const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
     const value = { a: 'test', b: { c: 'test2' } };
     const expected = { a: 'modified', b: { c: 'test2' } };
-    const result = transformNode(value, transform);
+    const result = transformNode(value, transform, '');
     expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -337,10 +337,177 @@ describe('transformNode', () => {
     const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
     const value = { a: 'test', b: ['test2'] };
     const expected = { a: 'modified', b: ['test2'] };
-    const result = transformNode(value, transform);
+    const result = transformNode(value, transform, '');
     expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result as any).b).toBe(value.b);
+  });
+
+  it('adds dhId to root and nested child elements', () => {
+    const transform = jest.fn((k, v) => v);
+    const value = {
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        children: {
+          [ELEMENT_KEY]: ELEMENT_NAME.button,
+          props: {
+            children: {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: { textValue: 'Click me' },
+            },
+          },
+        },
+      },
+    };
+    const result = transformNode(value, transform, 'testRoot');
+    expect(result).toEqual({
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        __dhId: `testRoot/${ELEMENT_NAME.flex}`,
+        children: {
+          [ELEMENT_KEY]: ELEMENT_NAME.button,
+          props: {
+            __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}`,
+            children: {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: {
+                textValue: 'Click me',
+                __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}/${ELEMENT_NAME.text}`,
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('adds key or array index to dhId for array elements', () => {
+    const transform = jest.fn((k, v) => v);
+    const value = {
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        children: [
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.button,
+            props: {
+              key: 'buttonKey',
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: { textValue: 'button' },
+              },
+            },
+          },
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
+            props: { textValue: 'actionButton' },
+          },
+          'string child',
+        ],
+      },
+    };
+    const result = transformNode(value, transform, 'testRoot');
+    expect(result).toEqual({
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        __dhId: `testRoot/${ELEMENT_NAME.flex}`,
+        children: [
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.button,
+            props: {
+              key: 'buttonKey',
+              __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}:buttonKey`,
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: {
+                  textValue: 'button',
+                  __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.button}:buttonKey/${ELEMENT_NAME.text}`,
+                },
+              },
+            },
+          },
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
+            props: {
+              textValue: 'actionButton',
+              __dhId: `testRoot/${ELEMENT_NAME.flex}/${ELEMENT_NAME.actionButton}:1`,
+            },
+          },
+          'string child',
+        ],
+      },
+    });
+  });
+
+  it('adds dhId to elements in props other than children', () => {
+    const transform = jest.fn((k, v) => v);
+    const value = {
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        other: [
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.button,
+            props: {
+              key: 'buttonKey',
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: { textValue: 'button' },
+              },
+            },
+          },
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
+            props: { textValue: 'actionButton' },
+          },
+          'string child',
+          [
+            {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: { textValue: 'text child' },
+            },
+          ],
+        ],
+      },
+    };
+    const result = transformNode(value, transform, 'testRoot');
+    expect(result).toEqual({
+      [ELEMENT_KEY]: ELEMENT_NAME.flex,
+      props: {
+        __dhId: `testRoot/${ELEMENT_NAME.flex}`,
+        other: [
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.button,
+            props: {
+              key: 'buttonKey',
+              __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/${ELEMENT_NAME.button}:buttonKey`,
+              children: {
+                [ELEMENT_KEY]: ELEMENT_NAME.text,
+                props: {
+                  textValue: 'button',
+                  __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/${ELEMENT_NAME.button}:buttonKey/${ELEMENT_NAME.text}`,
+                },
+              },
+            },
+          },
+          {
+            [ELEMENT_KEY]: ELEMENT_NAME.actionButton,
+            props: {
+              textValue: 'actionButton',
+              __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/${ELEMENT_NAME.actionButton}:1`,
+            },
+          },
+          'string child',
+          [
+            {
+              [ELEMENT_KEY]: ELEMENT_NAME.text,
+              props: {
+                textValue: 'text child',
+                __dhId: `testRoot/${ELEMENT_NAME.flex}/props/other/3/${ELEMENT_NAME.text}:0`,
+              },
+            },
+          ],
+        ],
+      },
+    });
   });
 });

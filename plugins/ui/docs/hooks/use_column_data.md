@@ -30,7 +30,7 @@ In the above example, `ui_table_column` is a component that listens to the last 
 
 In the example below, use the `use_column_data` hook to get all the options for the `Exchange` columns, then build tabs for each option. When you click on a tab, the table is filtered to show only the rows where the `Exchange` column matches the tab name.
 
-```python
+```python order=table_tabs,_stocks
 from deephaven import ui
 from deephaven.table import Table
 from deephaven.plot import express as dx

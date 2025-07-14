@@ -12,7 +12,7 @@ To follow along, you need the [`deephaven.ui`](https://pypi.org/project/deephave
 
 Import the simulated `iris` data with this script:
 
-```py test-set=0
+```python test-set=tutorial
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -40,7 +40,7 @@ With `iris`, create a `ui.table` that:
 3. Hides the `PetalLength`, `PetalWidth`, and `SpeciesID` columns.
 4. Uses the compact table density so you can see as many rows as possible.
 
-```py test-set=0
+```python test-set=tutorial
 ui_iris = ui.table(
   iris,
   reverse=True,
@@ -56,7 +56,7 @@ ui_iris = ui.table(
 
 Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](/core/plotly/docs/scatter) chart that compares `SepalLength` and `SepalWidth` by `Species`.
 
-```py test-set=0
+```python test-set=tutorial
 scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="Species")
 ```
 
@@ -66,7 +66,7 @@ scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="S
 
 The [`ui.text`](components/text.md) component adds basic text. Create text to accompany the chart and table.
 
-```py test-set=0
+```python test-set=tutorial
 sepal_text = ui.text("SepalLength vs. SepalWidth By Species")
 ```
 
@@ -77,7 +77,7 @@ sepal_text = ui.text("SepalLength vs. SepalWidth By Species")
 Wrap your chart and `ui.table` in a [`ui.flex`](components/flex.md) component. `ui.flex` is an implementation of [Flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox) that enables responsive layouts that adjust as you resize panels.
 Items within a `ui.flex` component stretch and shrink based on available space.
 
-```py test-set=0
+```python test-set=tutorial
 sepal_flex = ui.flex(ui_iris, scatter_by_species)
 ```
 
@@ -85,7 +85,7 @@ sepal_flex = ui.flex(ui_iris, scatter_by_species)
 
 The `direction` of `sepal_flex` is `"row"`. Add `sepal_text` and `sepal_flex` to another panel, with a `direction` of `"column"`.
 
-```py test-set=0
+```python test-set=tutorial
 sepal_flex_column = ui.flex(sepal_text, sepal_flex, direction="column")
 ```
 
@@ -97,7 +97,7 @@ The [`ui.tabs`](components/tabs.md) component enables tabs within a panel. Creat
 Histograms are useful to display comparisons of data distributions, so create [`dx.histogram`](/core/plotly/docs/histogram) charts of the columns of interest, `SepalLength` and `SepalWidth`, by `Species`.
 Create `ui.tab` elements for `sepal_flex`, `sepal_length_hist`, and `sepal_width_hist`, then pass them to `ui.tabs` to switch between different views.
 
-```py test-set=0
+```python test-set=tutorial order=sepal_flex_tabs,sepal_tabs,sepal_width_hist,sepal_length_hist
 sepal_length_hist = dx.histogram(iris, x="SepalLength", by="Species")
 sepal_width_hist = dx.histogram(iris, x="SepalWidth", by="Species")
 
@@ -115,7 +115,7 @@ sepal_flex_tabs = ui.flex(sepal_text, sepal_tabs, direction="column")
 
 [`ui.markdown`](components/markdown.md) components allow you to provide text in a markdown format. Create an informational panel with markdown text.
 
-```py test-set=0
+```python test-set=tutorial
 about_markdown = ui.markdown(r"""
 ### Iris Dashboard
 
@@ -138,7 +138,7 @@ When you have multiple panels, you can create a dashboard to contain them so tha
 <details>
 <summary>Expand for complete code up to this point</summary>
 
-```py skip-test
+```python skip-test
 from deephaven import ui
 import deephaven.plot.express as dx
 from deephaven import agg
@@ -186,7 +186,7 @@ Explore the Iris dataset with **deephaven.ui**
 
 Before that, create a `ui.panel` manually to provide a `title`.
 
-```py test-set=0
+```python test-set=tutorial order=iris_dashboard
 sepal_panel = ui.panel(sepal_flex_tabs, title="Sepal Panel")
 iris_dashboard = ui.dashboard(sepal_panel)
 ```
@@ -197,7 +197,7 @@ You now have a one-panel dashboard.
 
 You can create a default layout with multiple panels. Create a panel for `about_markdown` so you can give it a `title`.
 
-```py test-set=0
+```python test-set=tutorial
 about_panel = ui.panel(about_markdown, title="About")
 ```
 
@@ -207,7 +207,7 @@ about_panel = ui.panel(about_markdown, title="About")
 
 One way to create a default layout is by wrapping your panels in a [`ui.row`](components/dashboard.md) component.
 
-```py test-set=0
+```python test-set=tutorial
 iris_dashboard_row = ui.dashboard(ui.row(about_panel, sepal_panel))
 ```
 
@@ -217,7 +217,7 @@ iris_dashboard_row = ui.dashboard(ui.row(about_panel, sepal_panel))
 
 Another way to create a default layout is with [`ui.column`](components/dashboard.md).
 
-```py test-set=0
+```python test-set=tutorial
 iris_dashboard_column = ui.dashboard(ui.column(about_panel, sepal_panel))
 ```
 
@@ -230,7 +230,7 @@ One more way to create a default layout is with [`ui.stack`](components/dashboar
 Create tabs that show the average, max, and min values of `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` by `Species`.
 You can compare a specific statistic across the different `Species` within the same panel or move between panels to compare different statistics across `Species`.
 
-```py test-set=0
+```python test-set=tutorial order=iris_dashboard_stack
 from deephaven import agg
 
 iris_avg = iris.agg_by([agg.avg(cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"])], by=["Species"])
@@ -255,7 +255,7 @@ Since this walkthrough investigates `SepalLength` and `SepalWidth`, this section
 
 A custom component uses the `ui.component` decorator. The decorator signals to the `deephaven.ui` rendering engine that this component needs to be rendered. Create a function with the `ui.component` decorator that returns `"Hello, World!"`.
 
-```py test-set=0
+```python test-set=tutorial
 @ui.component
 def custom_component():
   return "Hello, World!"
@@ -269,7 +269,7 @@ custom_panel = custom_component()
 
 A [`ui.picker`](components/picker.md) allows you to select options from a list.
 
-```py test-set=0
+```python test-set=tutorial
 @ui.component
 def species_panel():
   species_picker = ui.picker("setosa", "versicolor", "virginica")
@@ -288,7 +288,7 @@ A `ui.picker` can pull directly from a table so they update automatically based 
 > [!NOTE]
 > It’s important to filter your table down to the distinct values you want. The `ui.picker` does not do this for you.
 
-```py test-set=0
+```python test-set=tutorial order=species_picker_panel,species_table
 species_table = iris.view("Species").select_distinct()
 
 @ui.component
@@ -311,7 +311,7 @@ Next, modify your picker to take the `species` and `set_species` from the hook y
 > Hooks like `ui.use_state` are only available in components decorated with `ui.component`.
 > Additionally, hooks should not be called conditionally within a component. Create a new component if conditional rendering is needed.
 
-```py test-set=0
+```python test-set=tutorial
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -331,7 +331,7 @@ Now, your picker is controlled by the rendering engine and updates as you pick v
 Now, add a table filtered on this value and a chart that uses this filtered table. Return them with the picker.
 You'll create a `dx.heatmap`, which shows the joint density of `SepalLength` and `SepalWidth` (the variables of interest) filtered by `Species`.
 
-```py test-set=0
+```python test-set=tutorial
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -357,7 +357,7 @@ species_picker_panel = species_panel()
 
 Currently, an empty table and chart appear if no species is selected. For a more user-friendly experience, add a [`ui.illustrated_message`](components/illustrated_message.md) component to display instead if no `species` is selected.
 
-```py test-set=0
+```python test-set=tutorial
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -391,7 +391,7 @@ species_picker_panel = species_panel()
 
 Next, embed your custom component in your dashboard.
 
-```python test-set=0
+```python test-set=tutorial
 iris_species_dashboard = ui.dashboard(
     ui.column(
         ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)), ui.row(sepal_panel, species_picker_panel)
@@ -403,7 +403,7 @@ iris_species_dashboard = ui.dashboard(
 
 The top row contains lots of empty space. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.
 
-```py test-set=0
+```python test-set=tutorial
 iris_species_dashboard_resized = ui.dashboard(
     ui.column(
         ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
@@ -424,7 +424,7 @@ Recreate the `sepal_flex_tabs` panel within the `create_sepal_panel` function, w
 - Pull the `Species` value from the row data and set it with `set_species`.
 - Then, create `sepal_panel` with `create_sepal_panel`, passing `set_species` to it.
 
-```python test-set=0
+```python test-set=tutorial
 def create_sepal_panel(set_species):
     ui_iris = ui.table(
         iris,
@@ -507,7 +507,7 @@ The hooks are:
 Create a custom component that pulls the min, max, and average values for `SepalLength` and `SepalWidth` for the selected `Species`.
 To display the values, wrap them in [`ui.badge`](components/badge.md) components, which draw attention to specific values.
 
-```python test-set=0
+```python test-set=tutorial
 @ui.component
 def summary_badges(species):
     # Filter the tables to the selected species
@@ -586,7 +586,7 @@ iris_species_dashboard_badge = ui.dashboard(create_species_dashboard())
 Since you've added badges to the dashboard, the `dx.heatmap` is recreated every time any of the badges change, but only needs to be recreated when the `Species` changes.
 Heatmap is a fairly expensive chart to create (it requires a filtered table in this case) and changes rarely, so pull the heatmap creation into a separate function and use `ui.use_memo` to cache the heatmap creation.
 
-```python test-set=0
+```python test-set=tutorial
 def create_heatmap(species):
     heatmap = ui.illustrated_message(
         ui.icon("vsFilter"),
@@ -637,7 +637,7 @@ iris_species_dashboard_final = ui.dashboard(create_species_dashboard())
 <details>
 <summary>Expand for final code</summary>
 
-```py skip-test
+```python skip-test
 from deephaven import ui
 import deephaven.plot.express as dx
 from deephaven import agg

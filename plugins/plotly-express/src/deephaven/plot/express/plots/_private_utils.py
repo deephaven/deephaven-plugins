@@ -25,7 +25,7 @@ from ..shared.distribution_args import (
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
 )
-from ..types import PartitionableTableLike
+from ..types import PartitionableTableLike, FilterColumn
 
 
 def validate_common_args(args: dict) -> None:
@@ -308,6 +308,88 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     return calendar
 
 
+def get_filter_columns(
+    table: PartitionableTableLike, filter_by: bool | str | list[str] | None
+) -> list[str]:
+    """
+    Convert the filter_by argument to a list of columns to filter by.
+
+    Args:
+        table: if the table is a PartitionedTable, the key columns may be the filter
+        filter_by: the filter by before conversion
+
+    Returns:
+        A list of columns to filter by
+    """
+    if filter_by is True and isinstance(table, PartitionedTable):
+        # if the table is already partitioned and filter_by is True,
+        # use the key columns as the filter
+        # this is a replacement for one_click_partitioned_table
+        filter_by = table.key_columns
+    elif filter_by is None or isinstance(filter_by, bool):
+        filter_by = []
+    elif isinstance(filter_by, str):
+        filter_by = [filter_by]
+
+    return filter_by
+
+
+def retrieve_input_filter_columns(
+    render_args: dict[str, Any]
+) -> tuple[set[FilterColumn], list[str], list[str]]:
+    """
+    Retrieve the input filter columns from the render args
+
+    Args:
+        render_args: The render args to retrieve the input filter columns from
+
+    Returns:
+        The input filter columns
+    """
+    table = render_args["args"]["table"]
+
+    if isinstance(table, PartitionedTable):
+        columns = table.constituent_table_columns
+    else:
+        columns = table.columns
+
+    filter_by = get_filter_columns(table, render_args["args"].get("filter_by", []))
+    required_filter_by = get_filter_columns(
+        table, render_args["args"].get("required_filter_by", [])
+    )
+
+    filter_columns = set(
+        [
+            FilterColumn(column.name, str(column.data_type), False)
+            for column in columns
+            if column.name in filter_by
+        ]
+    )
+
+    required_filter_columns = set(
+        [
+            FilterColumn(column.name, str(column.data_type), True)
+            for column in columns
+            if column.name in required_filter_by
+        ]
+    )
+
+    filter_name_set = set([column.name for column in filter_columns])
+
+    required_name_set = set([column.name for column in required_filter_columns])
+
+    filter_union = filter_name_set.intersection(required_name_set)
+    if filter_union:
+        # filter columns and required filter columns are mutually exclusive
+        raise ValueError(
+            f"Overlapping filter_by and required_filter_by columns found: {filter_union}"
+        )
+
+    all_filter_column = filter_columns.union(required_filter_columns)
+
+    return all_filter_column, filter_by, required_filter_by
+
+
 def process_args(
     args: dict[str, Any],
     groups: set[str] | None = None,
@@ -340,6 +422,12 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
+    filter_columns, filter_by, required_filter_by = retrieve_input_filter_columns(
+        render_args
+    )
+    render_args["args"]["filter_by"] = filter_by
+    render_args["args"]["required_filter_by"] = required_filter_by
+
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
@@ -351,7 +439,12 @@ def process_args(
 
     # these are needed for when partitions are added
     new_fig.add_figure_to_graph(
-        exec_ctx, orig_process_args, table, key_column_table, orig_process_func
+        exec_ctx,
+        orig_process_args,
+        table,
+        key_column_table,
+        orig_process_func,
+        filter_columns,
     )
 
     new_fig.calendar = calendar

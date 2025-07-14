@@ -18,8 +18,6 @@ iris = dx.data.iris() # import the example iris data set
 pedal_size_by_species = dx.scatter(iris, x="PetalLength", y="PetalWidth", by="Species")
 ```
 
-![Plot By Basic Example](./_assets/plot_by.png)
-
 Or, use `symbol` to differentiate groups with symbols.
 
 ```python order=pedal_size_by_species_sym,iris
@@ -50,7 +48,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # the `size` column from tips gives the number in the party, map it to different sizes
 total_bill_tip_size = dx.scatter(
-    tips, x="TotalBill", y="Tip", size="size",
+    tips, x="TotalBill", y="Tip", size="Size",
     size_map={"1": 5, "2": 7, "3": 11, "4": 13, "5": 15, "6": 17}
 )
 ```
@@ -91,7 +89,7 @@ prices_by_sym = dx.line(stocks, x="Timestamp", y="Price", by="Sym")
 
 In the case of a line plot, `line_dash` can also be used to differentiate lines for different categories.
 
-```python order=prices_by_sym_dash,stocks
+```python order=prices_by_sym,stocks
 import deephaven.plot.express as dx
 stocks = dx.data.stocks() # import ticking Stocks dataset
 

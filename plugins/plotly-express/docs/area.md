@@ -4,7 +4,7 @@ An area plot, also known as a stacked area chart, is a data visualization that u
 
 Area plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable.
 
-### What are area plots useful for?
+## What are area plots useful for?
 
 - **Visualizing trends over time**: Area plots are great for displaying the trend of a single continuous variable. The filled areas can make it easier to see the magnitude of changes and trends compared to line plots.
 - **Displaying cumulative totals**: Area plots are effective in showing cumulative totals over a period. They can help in understanding the contribution of different categories to the total amount and how these contributions evolve.
@@ -26,8 +26,6 @@ usa_population = gapminder.where("Country == `United States`")
 area_plot = dx.area(usa_population, x="Year", y="Pop")
 ```
 
-![Area Plot Basic Example](./_assets/area_plot.png)
-
 ### Area by group
 
 Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Pass the name of the grouping column(s) to the `by` argument.
@@ -47,7 +45,7 @@ area_plot_group = dx.area(large_countries_population, x="Year", y="Pop", by="Cou
 
 Area plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=area_plot_default,area_plot_cal_name,area_plot_cal_y,area_plot_cal,dog_prices,stocks
 import deephaven.plot.express as dx
 from deephaven.calendar import calendar, set_calendar
 
