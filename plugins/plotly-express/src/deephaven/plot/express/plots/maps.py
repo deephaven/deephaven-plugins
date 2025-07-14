@@ -20,6 +20,8 @@ def scatter_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -72,6 +74,15 @@ def scatter_geo(
         Can contain size, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -154,6 +165,8 @@ def scatter_mapbox(
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -198,6 +211,15 @@ def scatter_mapbox(
         Can contain size, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -272,6 +294,8 @@ def line_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -321,6 +345,15 @@ def line_geo(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -414,6 +447,8 @@ def line_mapbox(
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     text: str | None = None,
     size: str | list[str] | None = None,
@@ -454,6 +489,15 @@ def line_mapbox(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is

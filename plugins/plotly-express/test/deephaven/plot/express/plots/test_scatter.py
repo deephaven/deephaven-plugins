@@ -121,7 +121,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -204,7 +207,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -281,7 +287,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -358,7 +367,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -441,7 +453,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -550,7 +565,10 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "legend": {"tracegroupgap": 0},
+            "legend": {
+                "title": {"side": "top", "text": "category, variable"},
+                "tracegroupgap": 0,
+            },
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
