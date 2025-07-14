@@ -6,7 +6,7 @@ from typing import Callable
 from pandas import DataFrame
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
-from plotly.validators.heatmap import ColorscaleValidator
+from plotly.validator_cache import ValidatorCache
 
 # attach a prefix to the number format so that we can identify it as the GWT Java NumberFormat syntax
 # https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html
@@ -185,7 +185,9 @@ def draw_density_heatmap(
 
     range_color_list = range_color or [None, None]
 
-    colorscale_validator = ColorscaleValidator("colorscale", "draw_density_heatmap")
+    colorscale_validator = ValidatorCache.get_validator(
+        "draw_density_heatmap", "colorscale"
+    )
 
     coloraxis_layout = dict(
         colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
