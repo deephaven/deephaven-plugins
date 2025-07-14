@@ -467,9 +467,12 @@ describe('PlotlyExpressChartModel', () => {
     expect(setDefaultValueFormat).toHaveBeenCalledTimes(2);
   });
 
-  it('should emit layout update events if a widget is updated and has a title', async () => {
+  it('should emit layout update events if a widget is updated and has a new title', async () => {
     const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', {
       text: 'Test',
+    });
+    const updatedWidget = createMockWidget([SMALL_TABLE], 'scatter', {
+      text: 'Updated Test',
     });
     const chartModel = new PlotlyExpressChartModel(
       mockDh,
@@ -480,13 +483,19 @@ describe('PlotlyExpressChartModel', () => {
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick);
-    if (chartModel.widget instanceof Object) {
-      chartModel.handleWidgetUpdated(
-        getWidgetData(chartModel.widget),
-        chartModel.widget.exportedObjects
-      );
-    }
-    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    chartModel.handleWidgetUpdated(
+      getWidgetData(mockWidget),
+      mockWidget.exportedObjects
+    );
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+
+    chartModel.handleWidgetUpdated(
+      getWidgetData(updatedWidget),
+      updatedWidget.exportedObjects
+    );
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_LAYOUT_UPDATED)
     );

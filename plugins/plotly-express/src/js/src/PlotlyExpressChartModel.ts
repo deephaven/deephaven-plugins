@@ -541,9 +541,13 @@ export class PlotlyExpressChartModel extends ChartModel {
     // title and legend title are the only things expected to be updated after init from the layout
     if (
       typeof plotlyLayout.title === 'object' &&
-      plotlyLayout.title.text != null
+      plotlyLayout.title.text != null &&
+      plotlyLayout.title.text !== this.layout.title?.text
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
+      // Keep track of the title to make sure it is not unnecessarily updated
+      // fireLayoutUpdated does not update this.layout so it must be set here
+      this.layout.title = plotlyLayout.title;
     }
 
     if (plotlyLayout.legend?.title?.text != null) {
