@@ -691,7 +691,7 @@ ui_iris_avg = ui.panel(iris_avg, title="Average")
 ui_iris_max = ui.panel(iris_max, title="Max")
 ui_iris_min = ui.panel(iris_min, title="Min")
 
-ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min) = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
+ui_stack = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
 
 species_table = iris.view("Species").select_distinct()
 
