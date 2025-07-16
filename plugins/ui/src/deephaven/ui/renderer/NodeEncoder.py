@@ -4,12 +4,14 @@ import logging
 from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
+from .UriNode import UriNode
 from .._internal.utils import transform_node, is_primitive, is_iterable
 
 logger = logging.getLogger(__name__)
 
 CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
+URI_KEY = "__dhUri"
 ELEMENT_KEY = "__dhElemName"
 
 DEFAULT_CALLABLE_ID_PREFIX = "cb"
@@ -137,6 +139,8 @@ class NodeEncoder:
             return self._convert_rendered_node(value)
         elif callable(value):
             return self._convert_callable(value)
+        elif isinstance(value, UriNode):
+            return self._convert_uri(value)
         elif is_primitive(value) or is_iterable(value):
             # This is an iterable object, we'll have already converted the children.
             return value
@@ -158,6 +162,11 @@ class NodeEncoder:
 
         return {
             CALLABLE_KEY: callable_id,
+        }
+
+    def _convert_uri(self, uri: UriNode):
+        return {
+            URI_KEY: uri.uri,
         }
 
     def _convert_object(self, obj: Any):

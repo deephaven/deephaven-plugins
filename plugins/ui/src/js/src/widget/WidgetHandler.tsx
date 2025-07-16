@@ -17,7 +17,7 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
-import { useWidget } from '@deephaven/jsapi-bootstrap';
+import { useObjectFetcher, useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
@@ -25,9 +25,11 @@ import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
+  URI_KEY,
   isCallableNode,
   isElementNode,
   isObjectNode,
+  isUriNode,
 } from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
@@ -52,6 +54,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
+import UriExportedObject from './UriExportedObject';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -206,6 +209,12 @@ function WidgetHandler({
     [error, initialData, widgetDescriptor]
   );
 
+  const objectFetcher = useObjectFetcher();
+
+  const [uriObjectMap] = useState<Map<string, dh.WidgetExportedObject>>(
+    new Map()
+  );
+
   const renderDocument = useCallback(
     /**
      * Iterates through a document and renders it with the appropriate components. Returns the original object/arrays if there are no changes.
@@ -258,6 +267,16 @@ function WidgetHandler({
             return exportedObject;
           }
 
+          if (isUriNode(value)) {
+            const uri = value[URI_KEY];
+            let uriExportedObject = uriObjectMap.get(uri);
+            if (uriExportedObject == null) {
+              uriExportedObject = new UriExportedObject(uri, objectFetcher);
+              uriObjectMap.set(uri, uriExportedObject);
+            }
+            return uriExportedObject;
+          }
+
           if (isElementNode(value)) {
             // Replace the elements node with the Component it maps to
             try {
@@ -297,11 +316,13 @@ function WidgetHandler({
       return hydratedDocument;
     },
     [
-      callableFinalizationRegistry,
       document,
       jsonClient,
-      renderEmptyDocument,
       id,
+      renderEmptyDocument,
+      callableFinalizationRegistry,
+      uriObjectMap,
+      objectFetcher,
     ]
   );
 

@@ -3,9 +3,12 @@ import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ELEMENT_NAME } from '../model/ElementConstants';
 import ObjectView from '../ObjectView';
+import UriExportedObject from '../../widget/UriExportedObject';
+import UriObjectView from '../UriObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
+export const URI_KEY = '__dhUri';
 export const ELEMENT_KEY = '__dhElemName';
 
 export type CallableNode = {
@@ -16,6 +19,11 @@ export type CallableNode = {
 export type ObjectNode = {
   /** The index of the object in the exported objects array */
   [OBJECT_KEY]: number;
+};
+
+export type UriNode = {
+  /** The URI of the object */
+  [URI_KEY]: string;
 };
 
 /**
@@ -44,6 +52,10 @@ export type ElementNodeWithChildren<
 
 export function isObjectNode(obj: unknown): obj is ObjectNode {
   return obj != null && typeof obj === 'object' && OBJECT_KEY in obj;
+}
+
+export function isUriNode(obj: unknown): obj is UriNode {
+  return obj != null && typeof obj === 'object' && URI_KEY in obj;
 }
 
 /**
@@ -93,6 +105,10 @@ export function isExportedObject(obj: unknown): obj is dh.WidgetExportedObject {
     typeof (obj as dh.WidgetExportedObject).fetch === 'function' &&
     typeof (obj as dh.WidgetExportedObject).type === 'string'
   );
+}
+
+export function isUriExportedObject(obj: unknown): obj is UriExportedObject {
+  return obj instanceof UriExportedObject;
 }
 
 /**
@@ -192,7 +208,14 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
     // Exported objects need to be converted to `ObjectView` to be rendered
     if (isExportedObject(child)) {
       const key = getChildKey(child.type);
-      return (
+      return isUriExportedObject(child) ? (
+        <UriObjectView
+          key={key}
+          object={child}
+          // eslint-disable-next-line no-underscore-dangle
+          __dhId={`${element.props?.__dhId}/${key}`}
+        />
+      ) : (
         <ObjectView
           key={key}
           object={child}

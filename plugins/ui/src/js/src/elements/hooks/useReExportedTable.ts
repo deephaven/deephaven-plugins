@@ -8,10 +8,7 @@ import { fetchReexportedTable } from '../utils';
 export function useReExportedTable(node: ReactNode): dh.Table | null {
   const isObjectView = isElementOfType(node, ObjectView);
 
-  const maybeExportedTable =
-    isObjectView && node.props.object.type === 'Table'
-      ? node.props.object
-      : null;
+  const maybeExportedTable = isObjectView ? node.props.object : null;
 
   const { data: table } = usePromiseFactory(fetchReexportedTable, [
     maybeExportedTable,
