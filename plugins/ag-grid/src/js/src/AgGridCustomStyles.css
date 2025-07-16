@@ -1,6 +1,0 @@
-/* This file contains any custom CSS rules that should be applied to AG Grid elements */
-/* Only use this for styles that are not possible to do with theme parameters */
-
-.ag-cell {
-  font-feature-settings: 'tnum';
-}
