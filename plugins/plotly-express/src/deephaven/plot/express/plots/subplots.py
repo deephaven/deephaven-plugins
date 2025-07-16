@@ -188,6 +188,9 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     for i in range(1, len(scaled)):
         ends.append(ends[-1] + scaled[i] + spacing)
 
+    # the last end value is always 1.0, and sometimes it ends up off due to rounding errors
+    ends[-1] = 1.0
+
     return starts, ends
 
 
