@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.31.0 - 2025-07-16
+#### Bug Fixes
+- DH-19428: Make ui.image use crossorigin="anonymous" (#1211) - (39707ea) - mofojed
+- DOC-843: Update tutorial (#1212) - (725457b) - margaretkennedy
+#### Features
+- DH-18836 Add support for linker to UITable (#1187) - (b23ec3c) - Matthew Runyon
+
+- - -
+
 ## ui-v0.30.0 - 2025-07-09
 #### Bug Fixes
 - DH-19705: Query restart broke ui.dashboards (#1191) - (c38b786) - mofojed
