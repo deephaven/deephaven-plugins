@@ -2,7 +2,11 @@ import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { LoadingOverlay } from '@deephaven/components';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
-import { useApi, useWidget } from '@deephaven/jsapi-bootstrap';
+import {
+  ApiContext,
+  useDeferredApi,
+  useWidget,
+} from '@deephaven/jsapi-bootstrap';
 import type UriExportedObject from '../widget/UriExportedObject';
 import WidgetErrorView from '../widget/WidgetErrorView';
 
@@ -15,13 +19,13 @@ export type UriObjectViewProps = {
 
 function UriObjectView(props: UriObjectViewProps): JSX.Element {
   const { object, __dhId } = props;
-  const dh = useApi();
   log.debug(`Fetching object for URI: ${object.uri}`);
 
-  const { error, widget } = useWidget(object.uri);
+  const [dh, apiError] = useDeferredApi(object.uri);
+  const { widget, error: widgetError } = useWidget(object.uri);
 
   const widgetType = useMemo(() => {
-    if (widget == null) {
+    if (widget == null || dh == null) {
       return null;
     }
 
@@ -56,18 +60,24 @@ function UriObjectView(props: UriObjectViewProps): JSX.Element {
     [plugins, widgetType]
   );
 
+  const error = widgetError || apiError;
+
   if (error != null) {
     return <WidgetErrorView error={error} />;
   }
 
-  if (widget == null) {
+  if (widget == null || dh == null) {
     return <LoadingOverlay isLoading />;
   }
 
   if (plugin != null) {
     const Component = plugin.component;
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Component {...props} fetch={fetch} __dhId={__dhId} />;
+    return (
+      <ApiContext.Provider value={dh}>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+        <Component {...props} fetch={fetch} __dhId={__dhId} />
+      </ApiContext.Provider>
+    );
   }
 
   log.warn(`Unknown object type ${widgetType} for URI ${object.uri}`);
