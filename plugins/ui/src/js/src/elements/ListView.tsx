@@ -10,12 +10,15 @@ import {
 } from './hooks/useListViewProps';
 import ObjectView from './ObjectView';
 import useReExportedTable from './hooks/useReExportedTable';
+import UriObjectView from './UriObjectView';
 
 export function ListView(props: SerializedListViewProps): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
   const { children, ...listViewProps } = useListViewProps(props);
 
-  const isObjectView = isElementOfType(children, ObjectView);
+  const isObjectView =
+    isElementOfType(children, ObjectView) ||
+    isElementOfType(children, UriObjectView);
   const table = useReExportedTable(children);
 
   assertNotNull(children, 'Children must be defined for list_view.');

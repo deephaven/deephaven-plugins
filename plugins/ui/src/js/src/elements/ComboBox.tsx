@@ -16,6 +16,7 @@ import {
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
 import { useReExportedTable } from './hooks/useReExportedTable';
+import UriObjectView from './UriObjectView';
 
 export function ComboBox(
   props: SerializedPickerProps<
@@ -25,7 +26,9 @@ export function ComboBox(
   const settings = useSelector(getSettings<RootState>);
   const { children, ...pickerProps } = usePickerProps(props);
 
-  const isObjectView = isElementOfType(children, ObjectView);
+  const isObjectView =
+    isElementOfType(children, ObjectView) ||
+    isElementOfType(children, UriObjectView);
   const table = useReExportedTable(children);
 
   if (isObjectView) {
