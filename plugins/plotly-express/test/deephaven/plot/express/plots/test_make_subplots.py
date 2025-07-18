@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class MakeSubplotsTestCase(BaseTestCase):
@@ -31,9 +31,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -44,9 +44,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -117,9 +117,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -130,9 +130,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -207,9 +207,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -220,9 +220,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -295,9 +295,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -308,9 +308,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -383,9 +383,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -396,9 +396,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -471,9 +471,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -484,9 +484,9 @@ class MakeSubplotsTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": False,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]

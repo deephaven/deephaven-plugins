@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class LayerTestCase(BaseTestCase):
@@ -22,7 +22,6 @@ class LayerTestCase(BaseTestCase):
 
     def test_same_layered(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.source, x="X", y="Y")
         layered = dx.layer(chart, chart).to_dict(self.exporter)
@@ -44,9 +43,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -61,9 +60,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -107,7 +106,6 @@ class LayerTestCase(BaseTestCase):
 
     def test_different_layered(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.source, x="X", y="Y")
         chart2 = dx.area(self.source, x="X2", y="Y2")
@@ -130,9 +128,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -147,9 +145,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
