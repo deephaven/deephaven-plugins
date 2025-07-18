@@ -365,7 +365,7 @@ class IndicatorTestCase(BaseTestCase):
                     "increasing": {"symbol": "▲"},
                 },
                 "domain": {
-                    "x": [0.711111111111111, 0.9999999999999999],
+                    "x": [0.711111111111111, 1.0],
                     "y": [0.0, 1.0],
                 },
                 "mode": "number",
@@ -433,7 +433,7 @@ class IndicatorTestCase(BaseTestCase):
                 },
                 "domain": {
                     "x": [0.0, 1.0],
-                    "y": [0.7333333333333333, 0.9999999999999999],
+                    "y": [0.7333333333333333, 1.0],
                 },
                 "mode": "number",
                 "type": "indicator",

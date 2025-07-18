@@ -541,6 +541,37 @@ class MakeSubplotsTestCase(BaseTestCase):
             expected_is_user_set_color=False,
         )
 
+    def test_make_subplots_shared_variables(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y")
+
+        row_heights = [0.8, 0.2]
+        column_widths = [0.8, 0.2]
+        vertical_grid = [[chart], [chart]]
+        horizontal_grid = [[chart, chart]]
+        specs_grid = [[{"l": 0.1}], [{"r": 0.15}]]
+
+        vertical_chart_one = dx.make_subplots(
+            grid=vertical_grid, rows=2, row_heights=row_heights, specs=specs_grid
+        )
+
+        vertical_chart_two = dx.make_subplots(
+            grid=vertical_grid, rows=2, row_heights=row_heights, specs=specs_grid
+        )
+
+        self.assert_chart_equals(vertical_chart_one, vertical_chart_two)
+
+        horizontal_chart_one = dx.make_subplots(
+            grid=horizontal_grid, cols=2, column_widths=column_widths
+        )
+
+        horizontal_chart_two = dx.make_subplots(
+            grid=horizontal_grid, cols=2, column_widths=column_widths
+        )
+
+        self.assert_chart_equals(horizontal_chart_one, horizontal_chart_two)
+
 
 if __name__ == "__main__":
     unittest.main()
