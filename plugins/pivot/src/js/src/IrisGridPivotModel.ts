@@ -8,7 +8,6 @@ import {
   assertNotNull,
   EMPTY_ARRAY,
   EventShimCustomEvent,
-  PromiseUtils,
   type CancelablePromise,
 } from '@deephaven/utils';
 import {
@@ -20,34 +19,19 @@ import {
   ColumnHeaderGroup,
   IrisGridModel,
   IrisGridTableModel,
-  isIrisGridTableModelTemplate,
-  IrisGridUtils,
   type ColumnName,
   type DisplayColumn,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
 import {
-  getPivotColumnMap,
-  isColumnMapComplete,
-  KEY_TABLE_PIVOT_COLUMN,
   TOTALS_COLUMN,
-  type KeyColumnArray,
-  type KeyTableSubscriptionData,
   type PivotColumnMap,
   type PivotSchema,
 } from './PivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
 
-function makeModel(
-  dh: typeof DhType,
-  table: DhType.Table,
-  formatter?: Formatter
-): IrisGridModel {
-  return new IrisGridTableModel(dh, table, formatter);
-}
-
-const GRAND_TOTAL_VALUE = 'Grand Total';
+// const GRAND_TOTAL_VALUE = 'Grand Total';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -61,19 +45,19 @@ interface IrisGridPivotModel extends IrisGridTableModel {}
  * it does not implement to the underlying model.
  */
 class IrisGridPivotModel extends IrisGridModel {
-  private keyTable: DhType.Table;
+  // private keyTable: DhType.Table;
 
   private keyTableSubscription: DhType.TableSubscription | null;
 
-  private columnMap: PivotColumnMap;
+  // private columnMap: PivotColumnMap;
 
   private nextColumnMap: PivotColumnMap | null;
 
-  private schema: PivotSchema;
+  // private schema: PivotSchema;
 
-  private pivotWidget: DhType.Widget;
+  private pivotTable: DhType.coreplus.pivot.PivotTable;
 
-  model: IrisGridModel;
+  // model: IrisGridModel;
 
   private schemaPromise: CancelablePromise<[DhType.Table, DhType.Table]> | null;
 
@@ -89,12 +73,12 @@ class IrisGridPivotModel extends IrisGridModel {
 
   constructor(
     dh: typeof DhType,
-    table: DhType.Table,
-    keyTable: DhType.Table,
-    totalsTable: DhType.Table | null,
-    columnMap: KeyColumnArray,
-    schema: PivotSchema,
-    pivotWidget: DhType.Widget,
+    // table: DhType.Table,
+    // keyTable: DhType.Table,
+    // totalsTable: DhType.Table | null,
+    // columnMap: KeyColumnArray,
+    // schema: PivotSchema,
+    pivotTable: DhType.coreplus.pivot.PivotTable,
     formatter = new Formatter(dh)
   ) {
     super(dh);
@@ -105,27 +89,22 @@ class IrisGridPivotModel extends IrisGridModel {
 
     this.handleModelEvent = this.handleModelEvent.bind(this);
 
-    this.handleKeyTableUpdate = this.handleKeyTableUpdate.bind(this);
-    this.handleSchemaUpdate = this.handleSchemaUpdate.bind(this);
-    this.handleTotalsUpdate = this.handleTotalsUpdate.bind(this);
-
-    this.model = makeModel(dh, table, formatter);
+    // this.model = makeModel(dh, table, formatter);
     this.schemaPromise = null;
     this.nextModel = null;
 
-    this.keyTable = keyTable;
+    // this.keyTable = keyTable;
     this.keyTableSubscription = null;
-    this.pivotWidget = pivotWidget;
+    this.pivotTable = pivotTable;
     this.totalsTable = null;
     this.nextTotalsTable = null;
     this.totalsRowMap = new Map();
 
-    this.columnMap = new Map(
-      schema.hasTotals ? [[TOTALS_COLUMN, 'Totals'], ...columnMap] : columnMap
-    );
+    // this.columnMap = new Map(
+    //   schema.hasTotals ? [[TOTALS_COLUMN, 'Totals'], ...columnMap] : columnMap
+    // );
     this.nextColumnMap = null;
-    this.pivotWidget = pivotWidget;
-    this.schema = schema;
+    // this.schema = schema;
 
     this._layoutHints = {
       backColumns: [TOTALS_COLUMN],
@@ -137,54 +116,54 @@ class IrisGridPivotModel extends IrisGridModel {
       searchDisplayMode: this.dh.SearchDisplayMode.SEARCH_DISPLAY_HIDE,
     };
 
-    this.startListeningToKeyTable();
+    // this.startListeningToKeyTable();
 
-    this.startListeningToSchema();
+    // this.startListeningToSchema();
 
-    this.setTotalsTable(totalsTable);
+    // this.setTotalsTable(totalsTable);
 
     // Proxy everything to the underlying model, unless overridden
     // eslint-disable-next-line no-constructor-return
-    return new Proxy(this, {
-      // We want to use any properties on the proxy model if defined
-      // If not, then proxy to the underlying model
-      get(target, prop, receiver) {
-        // Does this class have a getter for the prop
-        // Getter functions are on the prototype
-        const proxyHasGetter =
-          Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
-            ?.get != null;
+    // return new Proxy(this, {
+    //   // We want to use any properties on the proxy model if defined
+    //   // If not, then proxy to the underlying model
+    //   get(target, prop, receiver) {
+    //     // Does this class have a getter for the prop
+    //     // Getter functions are on the prototype
+    //     const proxyHasGetter =
+    //       Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
+    //         ?.get != null;
 
-        if (proxyHasGetter) {
-          return Reflect.get(target, prop, receiver);
-        }
+    //     if (proxyHasGetter) {
+    //       return Reflect.get(target, prop, receiver);
+    //     }
 
-        // Does this class implement the property
-        const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
+    //     // Does this class implement the property
+    //     const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
-        // Does the class implement a function for the property
-        const proxyHasFn = Object.prototype.hasOwnProperty.call(
-          Object.getPrototypeOf(target),
-          prop
-        );
+    //     // Does the class implement a function for the property
+    //     const proxyHasFn = Object.prototype.hasOwnProperty.call(
+    //       Object.getPrototypeOf(target),
+    //       prop
+    //     );
 
-        const trueTarget = proxyHasProp || proxyHasFn ? target : target.model;
-        return Reflect.get(trueTarget, prop);
-      },
-      set(target, prop, value) {
-        const proxyHasSetter =
-          Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
-            ?.set != null;
+    //     const trueTarget = proxyHasProp || proxyHasFn ? target : target.model;
+    //     return Reflect.get(trueTarget, prop);
+    //   },
+    //   set(target, prop, value) {
+    //     const proxyHasSetter =
+    //       Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
+    //         ?.set != null;
 
-        const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
+    //     const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
-        if (proxyHasSetter || proxyHasProp) {
-          return Reflect.set(target, prop, value, target);
-        }
+    //     if (proxyHasSetter || proxyHasProp) {
+    //       return Reflect.set(target, prop, value, target);
+    //     }
 
-        return Reflect.set(target.model, prop, value, target.model);
-      },
-    });
+    //     return Reflect.set(target.model, prop, value, target.model);
+    //   },
+    // });
   }
 
   /**
@@ -228,19 +207,23 @@ class IrisGridPivotModel extends IrisGridModel {
   );
 
   get initialColumnHeaderGroups(): readonly ColumnHeaderGroup[] {
-    return this.getCachedColumnHeaderGroups(this.columnMap, this.schema);
+    // return this.getCachedColumnHeaderGroups(this.columnMap, this.schema);
+    return EMPTY_ARRAY;
   }
 
   get initialMovedColumns(): readonly MoveOperation[] {
-    log.debug('get initialMovedColumns');
-    return this.getCachedMovedColumns(
-      this.model.columns,
-      this.schema.hasTotals
-    );
+    return EMPTY_ARRAY;
+    // log.debug('get initialMovedColumns');
+    // return this.getCachedMovedColumns(
+    //   this.model.columns,
+    //   this.schema.hasTotals
+    // );
   }
 
-  get columns(): DhType.Column[] {
-    return this.getCachedColumns(this.columnMap, this.model.columns);
+  get columns(): readonly DhType.Column[] {
+    // TODO: get columns from the JSPivotTable, cache them
+    return Array.from(EMPTY_ARRAY);
+    // return this.getCachedColumns(this.columnMap, this.model.columns);
   }
 
   get isChartBuilderAvailable(): boolean {
@@ -268,11 +251,13 @@ class IrisGridPivotModel extends IrisGridModel {
   }
 
   isFilterable(columnIndex: ModelIndex): boolean {
-    return columnIndex < this.schema.rowColNames.length;
+    return false;
+    // return columnIndex < this.schema.rowColNames.length;
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
-    return columnIndex < this.schema.rowColNames.length;
+    return false;
+    // return columnIndex < this.schema.rowColNames.length;
   }
 
   get isTotalsAvailable(): boolean {
@@ -294,146 +279,27 @@ class IrisGridPivotModel extends IrisGridModel {
   }
 
   get rowCount(): number {
-    return this.model.rowCount + (this.schema.hasTotals ? 1 : 0);
+    return 0;
+    // return this.model.rowCount + (this.schema.hasTotals ? 1 : 0);
   }
 
   valueForCell(x: ModelIndex, y: ModelIndex): unknown {
-    if (this.schema.hasTotals && y === this.rowCount - 1) {
-      if (x >= this.schema.rowColNames.length) {
-        return this.totalsRowMap.get(this.columns[x].name);
-      }
-      return x === 0 ? GRAND_TOTAL_VALUE : undefined;
-    }
-    return this.model.valueForCell(x, y);
+    return '42val';
+    // if (this.schema.hasTotals && y === this.rowCount - 1) {
+    //   if (x >= this.schema.rowColNames.length) {
+    //     return this.totalsRowMap.get(this.columns[x].name);
+    //   }
+    //   return x === 0 ? GRAND_TOTAL_VALUE : undefined;
+    // }
+    // return this.model.valueForCell(x, y);
   }
 
   textForCell(x: ModelIndex, y: ModelIndex): string {
-    return this.schema.hasTotals && y === this.rowCount - 1 && x === 0
-      ? GRAND_TOTAL_VALUE
-      : // Pass the context so model.textForCell calls this.valueForCell instead of model.valueForCell
-        this.model.textForCell.call(this, x, y);
-  }
-
-  setTotalsTable(totalsTable: DhType.Table | null): void {
-    log.debug('setTotalsTable', totalsTable);
-    this.stopListeningToTotals();
-
-    if (totalsTable == null) {
-      this.totalsTable = null;
-      return;
-    }
-
-    this.totalsTable = totalsTable;
-    this.startListeningToTotals();
-    this.totalsTable.setViewport(0, 0);
-  }
-
-  startListeningToKeyTable(): void {
-    const { dh, keyTable } = this;
-    log.debug('Start Listening to key table');
-    this.keyTableSubscription = keyTable.subscribe(keyTable.columns);
-    this.keyTableSubscription.addEventListener<KeyTableSubscriptionData>(
-      dh.Table.EVENT_UPDATED,
-      this.handleKeyTableUpdate
-    );
-  }
-
-  stopListeningToKeyTable(): void {
-    log.debug('Stop Listening to key table subscription');
-    this.keyTableSubscription?.close();
-    this.keyTableSubscription = null;
-  }
-
-  startListeningToSchema(): void {
-    const { dh, pivotWidget } = this;
-    log.debug('Start Listening to schema');
-    pivotWidget.addEventListener<DhType.Widget>(
-      dh.Widget.EVENT_MESSAGE,
-      this.handleSchemaUpdate
-    );
-  }
-
-  stopListeningToSchema(): void {
-    const { dh, pivotWidget } = this;
-    log.debug('Stop Listening to schema');
-    pivotWidget.removeEventListener(
-      dh.Widget.EVENT_MESSAGE,
-      this.handleSchemaUpdate
-    );
-  }
-
-  startListeningToTotals(): void {
-    log.debug('Start Listening to totals table');
-    this.totalsTable?.addEventListener(
-      this.dh.Table.EVENT_UPDATED,
-      this.handleTotalsUpdate
-    );
-  }
-
-  stopListeningToTotals(): void {
-    log.debug('Stop Listening to totals table');
-    this.totalsTable?.removeEventListener(
-      this.dh.Table.EVENT_UPDATED,
-      this.handleTotalsUpdate
-    );
-  }
-
-  handleKeyTableUpdate(e: { detail: KeyTableSubscriptionData }): void {
-    log.debug('Key table updated');
-    const pivotIdColumn = this.keyTable.findColumn(KEY_TABLE_PIVOT_COLUMN);
-    const columns = this.keyTable.columns.filter(
-      c => c.name !== KEY_TABLE_PIVOT_COLUMN
-    );
-    const keyColumns = getPivotColumnMap(e.detail, columns, pivotIdColumn);
-    if (this.schema.hasTotals) {
-      keyColumns.push([TOTALS_COLUMN, 'Totals']);
-    }
-    const columnMap = new Map(keyColumns);
-
-    if (this.nextModel == null) {
-      if (isColumnMapComplete(columnMap, this.model.columns)) {
-        log.debug2(
-          'Key table update matches the existing model, update columns'
-        );
-        this.columnMap = columnMap;
-        this.columnHeaderGroups = this.getCachedColumnHeaderGroups(
-          this.columnMap,
-          this.schema
-        );
-        this.dispatchEvent(
-          new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
-            detail: this.columns,
-          })
-        );
-      } else {
-        log.debug2(
-          'Key table update does not match the existing model, save column map for the next schema update'
-        );
-        this.nextColumnMap = columnMap;
-      }
-      return;
-    }
-    if (isColumnMapComplete(columnMap, this.nextModel.columns)) {
-      log.debug2('Key table update matches the saved model, update the model');
-      assertNotNull(this.nextTotalsTable);
-      this.setModel(this.nextModel, columnMap, this.nextTotalsTable);
-      this.nextModel = null;
-      this.nextTotalsTable = null;
-    } else {
-      log.debug2(
-        'Key table update does not match the saved model, save column map for the next schema update'
-      );
-      this.nextColumnMap = columnMap;
-    }
-  }
-
-  async handleSchemaUpdate(e: DhType.Event<DhType.Widget>): Promise<void> {
-    log.debug('Schema updated');
-    const tables = e.detail.exportedObjects;
-    const tablePromise = tables[0].fetch();
-    const totalsTablePromise = tables.length === 2 ? tables[1].fetch() : null;
-    const pivotTablesPromise = Promise.all([tablePromise, totalsTablePromise]);
-    this.setNextSchema(pivotTablesPromise);
+    return '42txt';
+    // return this.schema.hasTotals && y === this.rowCount - 1 && x === 0
+    //   ? GRAND_TOTAL_VALUE
+    //   : // Pass the context so model.textForCell calls this.valueForCell instead of model.valueForCell
+    //     this.model.textForCell.call(this, x, y);
   }
 
   copyTotalsData(data: DhType.ViewportData): void {
@@ -499,7 +365,7 @@ class IrisGridPivotModel extends IrisGridModel {
   }
 
   getColumnIndicesByNameMap = memoize(
-    (columns: DhType.Column[]): Map<ColumnName, ModelIndex> => {
+    (columns: readonly DhType.Column[]): Map<ColumnName, ModelIndex> => {
       const indices = new Map();
       columns.forEach(({ name }, i) => indices.set(name, i));
       return indices;
@@ -519,119 +385,6 @@ class IrisGridPivotModel extends IrisGridModel {
     this.dispatchEvent(new EventShimCustomEvent(type, { detail }));
   }
 
-  setModel(
-    model: IrisGridModel,
-    columnMap: PivotColumnMap,
-    totalsTable: DhType.Table
-  ): void {
-    log.debug('setModel', model);
-
-    const oldModel = this.model;
-    oldModel.close();
-    if (this.listenerCount > 0) {
-      this.removeListeners(oldModel);
-    }
-
-    this.model = model;
-    this.setTotalsTable(totalsTable);
-    this.columnMap = columnMap;
-    this.columnHeaderGroups = this.getCachedColumnHeaderGroups(
-      this.columnMap,
-      this.schema
-    );
-
-    if (
-      !isIrisGridTableModelTemplate(model) ||
-      !isIrisGridTableModelTemplate(oldModel)
-    ) {
-      throw new Error('Invalid model, setModel not available');
-    }
-    if (this.listenerCount > 0) {
-      this.addListeners(model);
-    }
-
-    if (isIrisGridTableModelTemplate(model)) {
-      this.dispatchEvent(
-        new EventShimCustomEvent(IrisGridModel.EVENT.TABLE_CHANGED, {
-          detail: model.table,
-        })
-      );
-    }
-    this.dispatchEvent(
-      new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
-        detail: this.columns,
-      })
-    );
-    this.dispatchEvent(
-      new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED, {
-        detail: this,
-      })
-    );
-  }
-
-  setNextSchema(
-    pivotTablesPromise: Promise<[DhType.Table, DhType.Table]>
-  ): void {
-    if (this.schemaPromise) {
-      this.schemaPromise.cancel();
-    }
-
-    this.schemaPromise = PromiseUtils.makeCancelable(
-      pivotTablesPromise,
-      ([table, totalsTable]: [DhType.Table, DhType.Table]) => {
-        table.close();
-        totalsTable.close();
-      }
-    );
-    this.schemaPromise
-      .then(([table, totalsTable]) => {
-        log.debug('Schema updated');
-        this.schemaPromise = null;
-        const model = makeModel(this.dh, table, this.formatter);
-        if (this.nextColumnMap != null) {
-          if (isColumnMapComplete(this.nextColumnMap, model.columns)) {
-            log.debug2(
-              'Schema updated, set new model with the saved column map'
-            );
-            this.setModel(model, this.nextColumnMap, totalsTable);
-            this.nextColumnMap = null;
-          } else {
-            log.debug2(
-              'Saved column map does not match the new model, save the model for the next key table update'
-            );
-            this.nextModel = model;
-            this.nextTotalsTable = totalsTable;
-          }
-          return;
-        }
-        if (isColumnMapComplete(this.columnMap, model.columns)) {
-          log.debug2('Schema updated, set new model with existing column map');
-          this.setModel(model, this.columnMap, totalsTable);
-        } else {
-          log.debug2(
-            'Existing column map does not match the new model, save the model for the next key table update'
-          );
-          this.nextModel = model;
-          this.nextTotalsTable = totalsTable;
-        }
-      })
-      .catch((err: unknown) => {
-        if (PromiseUtils.isCanceled(err)) {
-          log.debug2('setNextSchema cancelled');
-          return;
-        }
-
-        log.error('Unable to set next model', err);
-        this.schemaPromise = null;
-
-        this.dispatchEvent(
-          new EventShimCustomEvent(IrisGridModel.EVENT.REQUEST_FAILED, {
-            detail: err,
-          })
-        );
-      });
-  }
-
   async snapshot(
     ranges: readonly GridRange[],
     includeHeaders = false,
@@ -639,126 +392,54 @@ class IrisGridPivotModel extends IrisGridModel {
       value,
     consolidateRanges = true
   ): Promise<unknown[][]> {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      throw new Error('Invalid model, snapshot not available');
-    }
-
-    const consolidated = consolidateRanges
-      ? GridRange.consolidate(ranges)
-      : ranges;
-    if (!IrisGridUtils.isValidSnapshotRanges(consolidated)) {
-      throw new Error(`Invalid snapshot ranges ${ranges}`);
-    }
-
-    let hasTotals = false;
-    const tableRanges: GridRange[] = [];
-
-    const tableSize = this.model.table.size;
-
-    for (let i = 0; i < consolidated.length; i += 1) {
-      const range = consolidated[i];
-      assertNotNull(range.endRow);
-      assertNotNull(range.startRow);
-      // Separate out the range that is part of the actual table
-      if (range.endRow === tableSize) {
-        hasTotals = true;
-        if (range.startRow < tableSize) {
-          tableRanges.push(
-            new GridRange(
-              range.startColumn,
-              range.startRow,
-              range.endColumn,
-              range.endRow - 1
-            )
-          );
-        }
-      } else {
-        tableRanges.push(range);
-      }
-    }
-    const result =
-      tableRanges.length === 0
-        ? []
-        : await this.model.snapshot(
-            tableRanges,
-            false,
-            formatValue,
-            consolidateRanges
-          );
-
-    const columns = IrisGridUtils.columnsFromRanges(consolidated, this.columns);
-
-    if (includeHeaders) {
-      const headerRow = columns.map(
-        column => this.columnMap.get(column.name) ?? column.name
-      );
-      result.unshift(headerRow);
-    }
-
-    if (hasTotals) {
-      const rowData = columns.map(column => {
-        const index = this.getColumnIndexByName(column.name);
-        assertNotNull(index);
-        return index === 0
-          ? GRAND_TOTAL_VALUE
-          : formatValue(this.valueForCell(index, tableSize), column);
-      });
-      result.push(rowData);
-    }
-
-    return result;
+    // TODO:
+    return Array.from(EMPTY_ARRAY);
   }
 
   colorForCell(x: ModelIndex, y: ModelIndex, theme: IrisGridThemeType): string {
-    if (this.schema.hasTotals && y === this.rowCount - 1) {
-      if (x >= this.schema.rowColNames.length) {
-        const value = this.valueForCell(x, y);
-        if (value == null || value === '') {
-          assertNotNull(theme.nullStringColor);
-          return theme.nullStringColor;
-        }
+    const value = this.valueForCell(x, y);
+    if (value == null || value === '') {
+      assertNotNull(theme.nullStringColor);
+      return theme.nullStringColor;
+    }
 
-        // Format based on the value/type of the cell
-        if (value != null) {
-          const column = this.columns[x];
-          if (TableUtils.isDateType(column.type) || column.name === 'Date') {
-            assertNotNull(theme.dateColor);
-            return theme.dateColor;
-          }
-          if (TableUtils.isNumberType(column.type)) {
-            if ((value as number) > 0) {
-              assertNotNull(theme.positiveNumberColor);
-              return theme.positiveNumberColor;
-            }
-            if ((value as number) < 0) {
-              assertNotNull(theme.negativeNumberColor);
-              return theme.negativeNumberColor;
-            }
-            assertNotNull(theme.zeroNumberColor);
-            return theme.zeroNumberColor;
-          }
-        }
+    // Format based on the value/type of the cell
+    const column = this.columns[x];
+    if (TableUtils.isDateType(column.type) || column.name === 'Date') {
+      assertNotNull(theme.dateColor);
+      return theme.dateColor;
+    }
+    if (TableUtils.isNumberType(column.type)) {
+      if ((value as number) > 0) {
+        assertNotNull(theme.positiveNumberColor);
+        return theme.positiveNumberColor;
       }
-
-      return theme.textColor;
+      if ((value as number) < 0) {
+        assertNotNull(theme.negativeNumberColor);
+        return theme.negativeNumberColor;
+      }
+      assertNotNull(theme.zeroNumberColor);
+      return theme.zeroNumberColor;
     }
 
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      throw new Error('Invalid model, colorForCell not available');
-    }
-    return this.model.colorForCell(x, y, theme);
+    return theme.textColor;
+
+    // if (!isIrisGridTableModelTemplate(this.model)) {
+    //   throw new Error('Invalid model, colorForCell not available');
+    // }
+    // return this.model.colorForCell(x, y, theme);
   }
 
   startListening(): void {
     super.startListening();
 
-    this.addListeners(this.model);
+    // this.addListeners(this.model);
   }
 
   stopListening(): void {
     super.stopListening();
 
-    this.removeListeners(this.model);
+    // this.removeListeners(this.model);
   }
 
   addListeners(model: IrisGridModel): void {
@@ -781,10 +462,7 @@ class IrisGridPivotModel extends IrisGridModel {
 
   close(): void {
     log.debug('close');
-    this.stopListeningToTotals();
-    this.stopListeningToKeyTable();
-    this.stopListeningToSchema();
-    this.model.close();
+    // this.model.close();
   }
 }
 

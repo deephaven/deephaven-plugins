@@ -9,8 +9,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import PivotPanel from './PivotPanel';
 
-// TODO:
-const VARIABLE_TYPE = 'pivot.PivotTable';
+const VARIABLE_TYPE = 'PivotTable';
 
 const log = Log.module('@deephaven/js-plugin-pivot/DashboardPlugin');
 

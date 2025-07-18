@@ -1,21 +1,10 @@
-import { type dh } from '@deephaven/jsapi-types';
+import { type dh } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { useCallback, useEffect, useState } from 'react';
 import { type IrisGridModel } from '@deephaven/iris-grid';
 import IrisGridPivotModel from './IrisGridPivotModel';
 
-import { type KeyColumnArray, type PivotSchema } from './PivotUtils';
-
-export interface PivotFetchResult {
-  columnMap: KeyColumnArray;
-  schema: PivotSchema;
-  table: dh.Table;
-  keyTable: dh.Table;
-  totalsTable: dh.Table | null;
-  pivotWidget: dh.Widget;
-}
-
-export type IrisGridModelFetch = () => Promise<PivotFetchResult>;
+export type PivotWidgetFetch = () => Promise<dh.coreplus.pivot.PivotTable>;
 
 export type IrisGridModelFetchErrorResult = {
   error: NonNullable<unknown>;
@@ -41,7 +30,7 @@ export type IrisGridModelFetchResult = (
 
 /** Pass in a table `fetch` function, will load the model and handle any errors */
 export function useIrisGridPivotModel(
-  fetch: IrisGridModelFetch
+  fetch: PivotWidgetFetch
 ): IrisGridModelFetchResult {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -59,17 +48,8 @@ export function useIrisGridPivotModel(
   );
 
   const makeModel = useCallback(async () => {
-    const { columnMap, keyTable, pivotWidget, schema, table, totalsTable } =
-      await fetch();
-    return new IrisGridPivotModel(
-      dh,
-      table,
-      keyTable,
-      totalsTable,
-      columnMap,
-      schema,
-      pivotWidget
-    );
+    const pivotWidget = await fetch();
+    return new IrisGridPivotModel(dh, pivotWidget);
   }, [dh, fetch]);
 
   const reload = useCallback(async () => {

@@ -1,95 +1,32 @@
 import { useCallback } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
-import { type dh as DhType } from '@deephaven/jsapi-types';
+import { type dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { IrisGrid } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { LoadingOverlay } from '@deephaven/components';
 import { getErrorMessage } from '@deephaven/utils';
-import {
-  useIrisGridPivotModel,
-  type PivotFetchResult,
-} from './useIrisGridPivotModel';
-import {
-  getPivotColumnMap,
-  KEY_TABLE_PIVOT_COLUMN,
-  type KeyColumnArray,
-  type KeyTableSubscriptionData,
-} from './PivotUtils';
+import Log from '@deephaven/log';
+import { useIrisGridPivotModel } from './useIrisGridPivotModel';
+
+const log = Log.module('@deephaven/js-plugin-pivot/PivotWidget');
 
 export function PivotWidget({
   fetch,
 }: WidgetComponentProps<DhType.Widget>): JSX.Element | null {
   const dh = useApi();
-  const loadKeys = useCallback(
-    (keyTable: DhType.Table): Promise<KeyColumnArray> =>
-      new Promise((resolve, reject) => {
-        const pivotIdColumn = keyTable.findColumn(KEY_TABLE_PIVOT_COLUMN);
-        const columns = keyTable.columns.filter(
-          c => c.name !== KEY_TABLE_PIVOT_COLUMN
-        );
-        const subscription = keyTable.subscribe(keyTable.columns);
-        subscription.addEventListener<KeyTableSubscriptionData>(
-          dh.Table.EVENT_UPDATED,
-          e => {
-            subscription.close();
-            resolve(getPivotColumnMap(e.detail, columns, pivotIdColumn));
-          }
-        );
+
+  const pivotTableFetch = useCallback(
+    () =>
+      fetch().then(result => {
+        log.debug('pivotWidget fetch result:', result);
+        const pivot = new dh.coreplus.pivot.PivotTable(result);
+        log.debug('pivot:', pivot);
+        return pivot;
       }),
-    [dh]
+    [dh, fetch]
   );
 
-  const fetchTable = useCallback(
-    async function fetchModel() {
-      const pivotWidget = await fetch();
-      const schema = JSON.parse(pivotWidget.getDataAsString());
-
-      // The initial state is our keys to use for column headers
-      const keyTablePromise = pivotWidget.exportedObjects[0].fetch();
-      const columnMapPromise = keyTablePromise.then(loadKeys);
-
-      return new Promise<PivotFetchResult>((resolve, reject) => {
-        // Add a listener for each pivot schema change, so we get the first update, with the table to render.
-        // Note that there is no await between this line and the pivotWidget being returned, or we would miss the first update
-        const removeEventListener = pivotWidget.addEventListener<DhType.Widget>(
-          dh.Widget.EVENT_MESSAGE,
-          async e => {
-            removeEventListener();
-            const data = e.detail.getDataAsString();
-            const response = JSON.parse(data === '' ? '{}' : data);
-            if (response.error != null) {
-              reject(new Error(response.error));
-              return;
-            }
-            // Get the object, and make sure the keytable is fetched and usable
-            const tables = e.detail.exportedObjects;
-            const tableToRenderPromise = tables[0].fetch();
-            const totalsPromise =
-              tables.length === 2 ? tables[1].fetch() : Promise.resolve(null);
-
-            // Wait for all four promises to have resolved, then render the table. Note that after
-            // the first load, the keytable will remain loaded, we'll only wait for the main table,
-            // and optionally the totals table.
-            const fetchResult = await Promise.all([
-              tableToRenderPromise,
-              totalsPromise,
-              keyTablePromise,
-              columnMapPromise,
-            ]).then(([table, totalsTable, keyTable, columnMap]) => ({
-              table,
-              totalsTable,
-              keyTable,
-              columnMap,
-            }));
-            resolve({ ...fetchResult, schema, pivotWidget });
-          }
-        );
-      });
-    },
-    [fetch, dh, loadKeys]
-  );
-
-  const fetchResult = useIrisGridPivotModel(fetchTable);
+  const fetchResult = useIrisGridPivotModel(pivotTableFetch);
 
   if (fetchResult.status === 'loading') {
     return <LoadingOverlay isLoading />;

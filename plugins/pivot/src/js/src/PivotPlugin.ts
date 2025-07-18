@@ -7,8 +7,7 @@ import { PivotWidget } from './PivotWidget';
 export const PivotPlugin: WidgetPlugin<dh.Widget> = {
   name: '@deephaven/js-plugin-pivot',
   type: PluginType.WIDGET_PLUGIN,
-  // TODO: Update the supportedTypes to match the actual widget type
-  supportedTypes: 'pivot.PivotTable',
+  supportedTypes: 'PivotTable',
   component: PivotWidget,
   icon: dhTable,
   title: 'Simple Pivot',
