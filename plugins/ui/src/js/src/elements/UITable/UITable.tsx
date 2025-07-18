@@ -32,8 +32,12 @@ import {
   useDashboardColumnFilters,
   useGridLinker,
 } from '@deephaven/dashboard-core-plugins';
-import { useLayoutManager, useListener } from '@deephaven/dashboard';
-import { useApi } from '@deephaven/jsapi-bootstrap';
+import {
+  LayoutUtils,
+  useLayoutManager,
+  useListener,
+} from '@deephaven/dashboard';
+import { useApi, useDeferredApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
@@ -55,6 +59,9 @@ import UITableContextMenuHandler, {
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 import { UITableLayoutHints } from './JsTableProxy';
+import { isUriExportedObject } from '../utils';
+import { usePanelId } from '../../layout/ReactPanelContext';
+import UriExportedObject from '../../widget/UriExportedObject';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -94,9 +101,9 @@ function useUITableModel({
   format,
   columnDisplayNames,
 }: {
-  dh: typeof DhType;
+  dh: typeof DhType | null;
   databars: DatabarConfig[];
-  exportedTable: DhType.WidgetExportedObject;
+  exportedTable: DhType.WidgetExportedObject | UriExportedObject;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
   columnDisplayNames: Record<string, string>;
@@ -108,6 +115,9 @@ function useUITableModel({
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
+      if (dh == null) {
+        return;
+      }
       try {
         const reexportedTable = await exportedTable.reexport();
         const table = (await reexportedTable.fetch()) as DhType.Table;
@@ -221,11 +231,31 @@ export function UITable({
     viewStyleProps // Needed so spectrum applies styles from view instead of base which doesn't have padding
   );
 
-  const dh = useApi();
-  const { eventHub } = useLayoutManager();
+  const { root, eventHub } = useLayoutManager();
+
+  // const panelId = usePanelId();
+  // const panelItem = useMemo(() => {
+  //   // TODO: Replace with LayoutUtils.getContentItemById after upgrading to web-client-ui 1.2.0
+  //   const stack = LayoutUtils.getStackForConfig(root, { id: panelId });
+  //   return LayoutUtils.getContentItemInStack(stack, { id: panelId });
+  // }, [panelId, root]);
+
+  // Maybe usePanelId and lookup the panel metadata to get the default
+  // const descriptor = isUriExportedObject(exportedTable)
+  //   ? exportedTable.uri
+  //   : null;
+  const uri = isUriExportedObject(exportedTable) ? exportedTable.uri : null;
+  const [uriDh, uriError] = useDeferredApi(uri);
+  const panelDh = useApi();
+
+  const dh = uri != null ? uriDh : panelDh;
+
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
-  const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
+  const utils = useMemo(
+    () => (dh != null ? new IrisGridUtils(dh) : null),
+    [dh]
+  );
   const settings = useSelector(getSettings<RootState>);
   const format = useMemo(() => ensureArray(formatProp), [formatProp]);
   const layoutHints = useMemo(
@@ -324,7 +354,7 @@ export function UITable({
   );
 
   const initialHydratedState = useMemo(() => {
-    if (model && initialState.current != null) {
+    if (model && utils && initialState.current != null) {
       return {
         ...utils.hydrateIrisGridState(model, initialState.current),
         ...IrisGridUtils.hydrateGridState(model, initialState.current),
@@ -333,7 +363,7 @@ export function UITable({
   }, [model, utils]);
 
   const hydratedSorts = useMemo(() => {
-    if (sorts !== undefined && columns !== undefined) {
+    if (utils && sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
 
       return utils.hydrateSort(columns, sorts);
@@ -344,6 +374,7 @@ export function UITable({
   const hydratedQuickFilters = useMemo(() => {
     if (
       quickFilters !== undefined &&
+      utils &&
       model !== undefined &&
       columns !== undefined
     ) {
@@ -418,7 +449,7 @@ export function UITable({
 
   const mouseHandlers = useMemo(
     () =>
-      model && irisGrid
+      model && dh && irisGrid
         ? ([
             new UITableMouseHandler(
               model,
