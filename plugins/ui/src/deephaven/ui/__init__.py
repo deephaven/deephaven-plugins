@@ -8,4 +8,3 @@ from .components import *
 from .elements import *
 from .hooks import *
 from .object_types import *
-from .renderer import resolve

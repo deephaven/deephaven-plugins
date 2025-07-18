@@ -267,8 +267,8 @@ function WidgetHandler({
             return exportedObject;
           }
 
-          if (isUriNode(value)) {
-            const uri = value[URI_KEY];
+          if (isUriNode(value) && key !== '') {
+            const { uri } = value.props;
             let uriExportedObject = uriObjectMap.get(uri);
             if (uriExportedObject == null) {
               uriExportedObject = new UriExportedObject(uri, objectFetcher);

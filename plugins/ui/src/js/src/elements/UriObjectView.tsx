@@ -7,22 +7,23 @@ import {
   useDeferredApi,
   useWidget,
 } from '@deephaven/jsapi-bootstrap';
-import type UriExportedObject from '../widget/UriExportedObject';
 import WidgetErrorView from '../widget/WidgetErrorView';
+import UriExportedObject from '../widget/UriExportedObject';
 
 const log = Log.module('@deephaven/js-plugin-ui/UriObjectView');
 
 export type UriObjectViewProps = {
+  uri: string;
   object: UriExportedObject;
   __dhId?: string;
 };
 
 function UriObjectView(props: UriObjectViewProps): JSX.Element {
-  const { object, __dhId } = props;
-  log.debug(`Fetching object for URI: ${object.uri}`);
+  const { uri, __dhId } = props;
+  log.debug(`Fetching object for URI: ${uri}`);
 
-  const [dh, apiError] = useDeferredApi(object.uri);
-  const { widget, error: widgetError } = useWidget(object.uri);
+  const [dh, apiError] = useDeferredApi(uri);
+  const { widget, error: widgetError } = useWidget(uri);
 
   const widgetType = useMemo(() => {
     if (widget == null || dh == null) {
@@ -80,10 +81,10 @@ function UriObjectView(props: UriObjectViewProps): JSX.Element {
     );
   }
 
-  log.warn(`Unknown object type ${widgetType} for URI ${object.uri}`);
+  log.warn(`Unknown object type ${widgetType} for URI ${uri}`);
   return (
     <div>
-      Unknown object type {widgetType} from URI {object.uri}
+      Unknown object type {widgetType} from URI {uri}
     </div>
   );
 }

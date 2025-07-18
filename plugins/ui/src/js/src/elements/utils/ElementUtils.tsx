@@ -8,7 +8,6 @@ import UriObjectView from '../UriObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
-export const URI_KEY = '__dhUri';
 export const ELEMENT_KEY = '__dhElemName';
 
 export type CallableNode = {
@@ -21,10 +20,7 @@ export type ObjectNode = {
   [OBJECT_KEY]: number;
 };
 
-export type UriNode = {
-  /** The URI of the object */
-  [URI_KEY]: string;
-};
+export type UriNode = ElementNode<typeof ELEMENT_NAME.uri, { uri: string }>;
 
 /**
  * Describes an element that can be rendered in the UI.
@@ -40,7 +36,7 @@ export type ElementNode<
    * a custom component type defined by the user in their plugin.
    */
   [ELEMENT_KEY]: K;
-  props?: P;
+  props: P;
 };
 
 export type ElementNodeWithChildren<
@@ -55,7 +51,7 @@ export function isObjectNode(obj: unknown): obj is ObjectNode {
 }
 
 export function isUriNode(obj: unknown): obj is UriNode {
-  return obj != null && typeof obj === 'object' && URI_KEY in obj;
+  return isElementNode(obj, ELEMENT_NAME.uri);
 }
 
 /**
@@ -211,6 +207,7 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
       return isUriExportedObject(child) ? (
         <UriObjectView
           key={key}
+          uri={child.uri}
           object={child}
           // eslint-disable-next-line no-underscore-dangle
           __dhId={`${element.props?.__dhId}/${key}`}
