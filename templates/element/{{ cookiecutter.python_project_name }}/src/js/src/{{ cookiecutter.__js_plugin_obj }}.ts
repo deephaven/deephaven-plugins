@@ -1,5 +1,4 @@
-import { type WidgetPlugin, PluginType } from '@deephaven/plugin';
-import { vsGraph } from '@deephaven/icons';
+import { type ElementPlugin, PluginType } from '@deephaven/plugin';
 import {{ cookiecutter.__js_plugin_view_obj }} from './{{ cookiecutter.__js_plugin_view_obj }}';
 
 // Register the plugin with Deephaven

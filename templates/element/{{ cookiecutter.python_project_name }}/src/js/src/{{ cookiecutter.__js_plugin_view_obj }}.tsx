@@ -4,14 +4,14 @@ import { Button, TextField } from '@deephaven/components';
 // Create a custom style for the component
 export const {{ cookiecutter.__js_plugin_view_obj_style }}: CSSProperties = {
   // CSS variables can be used to style the component according to the theme
-  color: "var(--dh-color-purple-700)",
-  fontSize: "x-large",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  height: "100%",
-  width: "100%",
-  flexDirection: "column"
+  color: 'var(--dh-color-purple-700)',
+  fontSize: 'x-large',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '100%',
+  width: '100%',
+  flexDirection: 'column',
 };
 
 /**
