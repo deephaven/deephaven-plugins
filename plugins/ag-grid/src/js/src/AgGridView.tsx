@@ -2,7 +2,10 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import {
+  createFormatterFromSettings,
+  TableUtils,
+} from '@deephaven/jsapi-utils';
 import {
   ColDef,
   GridReadyEvent,
@@ -95,6 +98,11 @@ export function AgGridView({
           labelKey: 'columns',
           iconKey: 'columns',
           toolPanel: 'agColumnsToolPanel',
+          toolPanelParams: {
+            suppressRowGroups: TableUtils.isTreeTable(table),
+            suppressValues: TableUtils.isTreeTable(table),
+            suppressPivots: true,
+          },
         },
       ],
     }),
