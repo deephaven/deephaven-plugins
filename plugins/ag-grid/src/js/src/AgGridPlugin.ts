@@ -4,9 +4,13 @@ import type { dh } from '@deephaven/jsapi-types';
 import { LicenseManager } from '@ag-grid-enterprise/core';
 import { AgGridWidget } from './AgGridWidget';
 
-const key = import.meta?.env?.VITE_AG_GRID_LICENSE_KEY ?? '';
-if (key != null && key !== '') {
-  LicenseManager.setLicenseKey(key);
+try {
+  const key = import.meta?.env?.VITE_AG_GRID_LICENSE_KEY ?? '';
+  if (key != null && key !== '') {
+    LicenseManager.setLicenseKey(key);
+  }
+} catch (error) {
+  // We can just ignore this error if the license key is not set or invalid. AG Grid will log an error, and consumers should be adding their own license key.
 }
 
 export const AgGridPlugin: WidgetPlugin<dh.Widget> = {
