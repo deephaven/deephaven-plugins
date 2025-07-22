@@ -55,20 +55,20 @@ export function isUriNode(obj: unknown): obj is UriNode {
 }
 
 /**
- * Re-export and fetch the table from the given exported object.
+ * Re-export and fetch the object from the given exported object.
  * @param exportedObject
- * @returns Promise that resolves to the table or null if given
+ * @returns Promise that resolves to the object or null if given
  * object is null
  */
-export async function fetchReexportedTable(
+export async function fetchReexportedObject<T = dh.Widget>(
   exportedObject: dh.WidgetExportedObject | null
-): Promise<dh.Table | null> {
+): Promise<T | null> {
   if (exportedObject == null) {
     return null;
   }
 
-  const reexportedTable = await exportedObject.reexport();
-  return reexportedTable.fetch();
+  const reexportedObject = await exportedObject.reexport();
+  return reexportedObject.fetch();
 }
 
 /**
@@ -202,13 +202,12 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
 
   const wrappedChildren = children.map(child => {
     // Exported objects need to be converted to `ObjectView` to be rendered
-    if (isExportedObject(child)) {
+    if (isExportedObject(child) || isUriExportedObject(child)) {
       const key = getChildKey(child.type);
       return isUriExportedObject(child) ? (
         <UriObjectView
           key={key}
           uri={child.uri}
-          object={child}
           // eslint-disable-next-line no-underscore-dangle
           __dhId={`${element.props?.__dhId}/${key}`}
         />

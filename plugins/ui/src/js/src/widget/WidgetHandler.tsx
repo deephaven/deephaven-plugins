@@ -17,7 +17,7 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
-import { useObjectFetcher, useWidget } from '@deephaven/jsapi-bootstrap';
+import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
@@ -25,7 +25,6 @@ import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
-  URI_KEY,
   isCallableNode,
   isElementNode,
   isObjectNode,
@@ -209,11 +208,7 @@ function WidgetHandler({
     [error, initialData, widgetDescriptor]
   );
 
-  const objectFetcher = useObjectFetcher();
-
-  const [uriObjectMap] = useState<Map<string, dh.WidgetExportedObject>>(
-    new Map()
-  );
+  const [uriObjectMap] = useState<Map<string, UriExportedObject>>(new Map());
 
   const renderDocument = useCallback(
     /**
@@ -233,6 +228,7 @@ function WidgetHandler({
       // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
+      const deadUriMap = new Map(uriObjectMap);
       const deadCallableMap = new Map(renderedCallableMap.current);
       const hydratedDocument = transformNode(
         doc,
@@ -267,13 +263,15 @@ function WidgetHandler({
             return exportedObject;
           }
 
+          // If this is the root element, we want to return the element version instead
           if (isUriNode(value) && key !== '') {
             const { uri } = value.props;
             let uriExportedObject = uriObjectMap.get(uri);
             if (uriExportedObject == null) {
-              uriExportedObject = new UriExportedObject(uri, objectFetcher);
+              uriExportedObject = new UriExportedObject(uri);
               uriObjectMap.set(uri, uriExportedObject);
             }
+            deadUriMap.delete(uri);
             return uriExportedObject;
           }
 
@@ -299,6 +297,12 @@ function WidgetHandler({
         exportedObjectMap.current.delete(objectKey);
       });
 
+      // Cleanup any URI objects that are no longer referenced
+      deadUriMap.forEach((deadUriObject, uri) => {
+        log.debug('Cleaning up dead URI object', uri);
+        uriObjectMap.delete(uri);
+      });
+
       // Close any callables that are no longer referenced
       deadCallableMap.forEach((deadCallable, callableId) => {
         log.debug2('Callable no longer rendered:', callableId);
@@ -322,7 +326,6 @@ function WidgetHandler({
       renderEmptyDocument,
       callableFinalizationRegistry,
       uriObjectMap,
-      objectFetcher,
     ]
   );
 

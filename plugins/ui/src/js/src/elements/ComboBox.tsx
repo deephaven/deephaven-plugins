@@ -2,12 +2,15 @@ import { useSelector } from 'react-redux';
 import {
   ComboBox as DHComboBox,
   ComboBoxProps as DHComboBoxProps,
+  LoadingOverlay,
 } from '@deephaven/components';
 import {
   ComboBox as DHComboBoxJSApi,
   ComboBoxProps as DHComboBoxJSApiProps,
 } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
+import type { dh } from '@deephaven/jsapi-types';
+import { ApiContext } from '@deephaven/jsapi-bootstrap';
 import { getSettings, RootState } from '@deephaven/redux';
 import {
   SerializedPickerProps,
@@ -15,8 +18,9 @@ import {
   WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
-import { useReExportedTable } from './hooks/useReExportedTable';
+import { useObjectViewObject } from './hooks/useObjectViewObject';
 import UriObjectView from './UriObjectView';
+import WidgetErrorView from '../widget/WidgetErrorView';
 
 export function ComboBox(
   props: SerializedPickerProps<
@@ -29,14 +33,25 @@ export function ComboBox(
   const isObjectView =
     isElementOfType(children, ObjectView) ||
     isElementOfType(children, UriObjectView);
-  const table = useReExportedTable(children);
+  const {
+    widget: table,
+    api,
+    isLoading,
+    error,
+  } = useObjectViewObject<dh.Table>(children);
 
   if (isObjectView) {
+    if (error != null) {
+      return <WidgetErrorView error={error} />;
+    }
+    if (isLoading || table == null || api == null) {
+      return <LoadingOverlay isLoading />;
+    }
     return (
-      table && (
-        // eslint-disable-next-line react/jsx-props-no-spreading
+      <ApiContext.Provider value={api}>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <DHComboBoxJSApi {...pickerProps} table={table} settings={settings} />
-      )
+      </ApiContext.Provider>
     );
   }
 

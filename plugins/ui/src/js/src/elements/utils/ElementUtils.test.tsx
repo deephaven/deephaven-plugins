@@ -4,7 +4,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import {
   ELEMENT_KEY,
-  fetchReexportedTable,
+  fetchReexportedObject,
   isPrimitive,
   wrapElementChildren,
 } from './ElementUtils';
@@ -13,9 +13,9 @@ import { ELEMENT_NAME } from '../model/ElementConstants';
 
 const { asMock, createMockProxy } = TestUtils;
 
-describe('fetchReexportedTable', () => {
+describe('fetchReexportedObject', () => {
   it('should return null for null object', async () => {
-    const actual = await fetchReexportedTable(null);
+    const actual = await fetchReexportedObject(null);
     expect(actual).toBeNull();
   });
 
@@ -28,7 +28,7 @@ describe('fetchReexportedTable', () => {
     const exported = createMockProxy<dh.WidgetExportedObject>();
     asMock(exported.reexport).mockResolvedValue(reexported);
 
-    const actual = await fetchReexportedTable(exported);
+    const actual = await fetchReexportedObject(exported);
     expect(actual).toBe(table);
   });
 });

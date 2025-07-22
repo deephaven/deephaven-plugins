@@ -2,19 +2,14 @@ import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { LoadingOverlay } from '@deephaven/components';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
-import {
-  ApiContext,
-  useDeferredApi,
-  useWidget,
-} from '@deephaven/jsapi-bootstrap';
+import { ApiContext, useWidget } from '@deephaven/jsapi-bootstrap';
 import WidgetErrorView from '../widget/WidgetErrorView';
-import UriExportedObject from '../widget/UriExportedObject';
+import { getWidgetType } from './hooks';
 
 const log = Log.module('@deephaven/js-plugin-ui/UriObjectView');
 
 export type UriObjectViewProps = {
   uri: string;
-  object: UriExportedObject;
   __dhId?: string;
 };
 
@@ -22,30 +17,9 @@ function UriObjectView(props: UriObjectViewProps): JSX.Element {
   const { uri, __dhId } = props;
   log.debug(`Fetching object for URI: ${uri}`);
 
-  const [dh, apiError] = useDeferredApi(uri);
-  const { widget, error: widgetError } = useWidget(uri);
+  const { widget, api, error } = useWidget(uri);
 
-  const widgetType = useMemo(() => {
-    if (widget == null || dh == null) {
-      return null;
-    }
-
-    if (widget.type != null) {
-      return widget.type;
-    }
-
-    if ('charts' in widget) {
-      return dh.VariableType.FIGURE;
-    }
-
-    if ('columns' in widget) {
-      // We do further checking to handle the different table tyeps in GridWidgetPlugin
-      // The only thing we can't tell is if the table was created from a pandas DataFrame
-      return dh.VariableType.TABLE;
-    }
-
-    return null;
-  }, [dh, widget]);
+  const widgetType = useMemo(() => getWidgetType(widget, api), [api, widget]);
 
   const fetch = useCallback(async () => widget, [widget]);
 
@@ -61,20 +35,18 @@ function UriObjectView(props: UriObjectViewProps): JSX.Element {
     [plugins, widgetType]
   );
 
-  const error = widgetError || apiError;
-
   if (error != null) {
     return <WidgetErrorView error={error} />;
   }
 
-  if (widget == null || dh == null) {
+  if (widget == null || api == null) {
     return <LoadingOverlay isLoading />;
   }
 
   if (plugin != null) {
     const Component = plugin.component;
     return (
-      <ApiContext.Provider value={dh}>
+      <ApiContext.Provider value={api}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <Component {...props} fetch={fetch} __dhId={__dhId} />
       </ApiContext.Provider>
