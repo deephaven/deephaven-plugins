@@ -5,7 +5,8 @@ import { LicenseManager } from '@ag-grid-enterprise/core';
 import { AgGridWidget } from './AgGridWidget';
 
 try {
-  const key = import.meta?.env?.VITE_AG_GRID_LICENSE_KEY ?? '';
+  const { env } = import.meta;
+  const key = env?.VITE_AG_GRID_LICENSE_KEY ?? '';
   if (key != null && key !== '') {
     LicenseManager.setLicenseKey(key);
   }
