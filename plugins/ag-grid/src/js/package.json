@@ -25,6 +25,7 @@
     "./*.js": "./dist/*.js",
     "./*": "./dist/*.js"
   },
+  "types": "dist/index",
   "bugs": {
     "url": "https://github.com/deephaven/deephaven-plugins/issues"
   },
