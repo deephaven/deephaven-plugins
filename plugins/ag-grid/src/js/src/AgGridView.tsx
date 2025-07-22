@@ -106,7 +106,7 @@ export function AgGridView({
         },
       ],
     }),
-    []
+    [table]
   );
 
   // Workaround to auto-size columns based on their contents, as ag-grid ignores virtual columns
