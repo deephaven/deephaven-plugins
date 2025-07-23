@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.1.4 - 2025-07-23
+#### Bug Fixes
+- DH-19980: AgGrid did not work correctly with a rollup table (#1214) - (6024963) - mofojed
+
+- - -
+
 ## ag-grid-v0.1.3 - 2025-07-16
 #### Bug Fixes
 - DH-19941: Could not import from package because of CSS error (#1213) - (4bc5282) - mofojed
