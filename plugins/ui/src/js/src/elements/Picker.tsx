@@ -18,7 +18,7 @@ import {
   WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
-import useObjectViewObject from './hooks/useObjectViewObject';
+import { useObjectViewObject } from './hooks/useObjectViewObject';
 import UriObjectView from './UriObjectView';
 import WidgetErrorView from '../widget/WidgetErrorView';
 
