@@ -1,67 +1,50 @@
-import type { dh as DhType, Iterator } from '@deephaven/jsapi-types';
+/* eslint-disable import/prefer-default-export */
+import type { DisplayColumn } from '@deephaven/iris-grid';
 
-export const KEY_TABLE_PIVOT_COLUMN = '__PIVOT_COLUMN';
-
-export const PIVOT_COLUMN_PREFIX = 'PIVOT_C_';
-
-export const TOTALS_COLUMN = '__TOTALS_COLUMN';
-
-export interface PivotSchema {
-  // ColNames arrays require at least one entry
-  columnColNames: [string, ...string[]];
-  rowColNames: [string, ...string[]];
-  hasTotals: boolean;
-  pivotDescription: string;
-}
-
-export type KeyColumnArray = (readonly [string, string])[];
-
-export type PivotColumnMap = ReadonlyMap<string, string>;
-
-export interface KeyTableSubscriptionData {
-  fullIndex: { iterator: () => Iterator<DhType.Row> };
-  getData: (rowKey: DhType.Row, column: DhType.Column) => string;
-}
-
-/**
- * Get a column map for a pivot table based on the key table data
- * @param data Data from the key table
- * @param columns Columns to include in the column map
- * @param pivotIdColumn Key table column containing display names for the pivot columns
- * @returns Column map for the pivot table
- */
-export function getPivotColumnMap(
-  data: KeyTableSubscriptionData,
-  columns: DhType.Column[],
-  pivotIdColumn: DhType.Column
-): KeyColumnArray {
-  const columnMap: KeyColumnArray = [];
-  const rowIter = data.fullIndex.iterator();
-  while (rowIter.hasNext()) {
-    const rowKey = rowIter.next().value;
-    const value = [];
-    for (let i = 0; i < columns.length; i += 1) {
-      value.push(data.getData(rowKey, columns[i]));
-    }
-    columnMap.push([
-      `${PIVOT_COLUMN_PREFIX}${data.getData(rowKey, pivotIdColumn)}`,
-      value.join(', '),
-    ]);
-  }
-  return columnMap;
-}
-
-/**
- * Check if the column map has entries for all pivot columns
- * @param columnMap Column map to check
- * @param columns Columns to check against
- * @returns True if the column map has entries for all pivot columns
- */
-export function isColumnMapComplete(
-  columnMap: PivotColumnMap,
-  columns: readonly DhType.Column[]
-): boolean {
-  return !columns.some(
-    c => c.name.startsWith(PIVOT_COLUMN_PREFIX) && !columnMap.has(c.name)
-  );
+export function makeVirtualColumn({
+  name,
+  displayName = name,
+  type,
+  index,
+  description,
+  isSortable = false,
+}: {
+  name: string;
+  displayName?: string;
+  type: string;
+  index: number;
+  description?: string;
+  isSortable?: boolean;
+}): DisplayColumn {
+  return {
+    name,
+    displayName,
+    type,
+    isPartitionColumn: false,
+    isSortable,
+    isProxy: false, // true, // TODO?
+    description,
+    index,
+    filter: () => {
+      throw new Error('Filter not implemented for virtual column');
+    },
+    sort: () => {
+      throw new Error('Sort not implemented for virtual column');
+    },
+    formatColor: () => {
+      throw new Error('Color not implemented for virtual column');
+    },
+    get: () => {
+      throw new Error('get not implemented for virtual column');
+    },
+    getFormat: () => {
+      throw new Error('getFormat not implemented for virtual column');
+    },
+    formatNumber: () => {
+      throw new Error('formatNumber not implemented for virtual column');
+    },
+    formatDate: () => {
+      throw new Error('formatDate not implemented for virtual column');
+    },
+  };
 }

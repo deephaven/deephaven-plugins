@@ -39,6 +39,7 @@
     "@deephaven/log": "^0.85.19",
     "@deephaven/plugin": "^0.85.28",
     "@deephaven/utils": "^0.85.20",
+    "lodash.throttle": "^4.1.1",
     "memoize-one": "^5.1.1",
     "nanoid": "^5.1.5"
   },
