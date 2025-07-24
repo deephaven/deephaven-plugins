@@ -38,7 +38,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "^1.0.0-dev0.38.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.5",
     "@deephaven/test-utils": "0.105.0",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^3.0.0",
