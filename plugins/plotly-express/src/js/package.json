@@ -42,6 +42,7 @@
     "@deephaven/test-utils": "0.105.0",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^3.0.0",
+    "@types/plotly.js-dist-min": "^2.3.1",
     "@types/react": "^17.0.2",
     "@types/react-plotly.js": "^2.6.0",
     "react": "^17.0.2",

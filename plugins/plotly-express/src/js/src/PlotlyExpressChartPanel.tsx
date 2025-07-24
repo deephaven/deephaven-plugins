@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import Plotly from 'plotly.js';
+import Plotly from 'plotly.js-dist-min';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetPanelProps } from '@deephaven/plugin';
@@ -30,6 +30,7 @@ export function PlotlyExpressChartPanel(
       {...(rest as ChartPanelProps)}
       containerRef={setContainer}
       makeModel={makeModel}
+      // @ts-ignore
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
     />
