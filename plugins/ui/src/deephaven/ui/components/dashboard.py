@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
-from ..elements import DashboardElement, FunctionElement
+from ..elements import BaseElement, FunctionElement
 
 
-def dashboard(element: FunctionElement) -> DashboardElement:
+def dashboard(element: FunctionElement) -> BaseElement:
     """
     A dashboard is the container for an entire layout.
 
@@ -15,4 +15,5 @@ def dashboard(element: FunctionElement) -> DashboardElement:
     Returns:
         The rendered dashboard.
     """
-    return DashboardElement(element)
+    # return DashboardElement(element)
+    return BaseElement("deephaven.ui.components.Dashboard", element)  # type: ignore[return-value]

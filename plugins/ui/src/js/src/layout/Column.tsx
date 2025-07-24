@@ -13,6 +13,7 @@ function LayoutColumn({
   children,
   width,
 }: ColumnElementProps): JSX.Element | null {
+  console.log('xxx doing a LayoutColumn');
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
 

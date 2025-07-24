@@ -98,12 +98,12 @@ function WidgetHandler({
 
   if (widget !== prevWidget) {
     setPrevWidget(widget);
-    if (widget != null && widget.type === DASHBOARD_ELEMENT) {
-      log.info(
-        'Dashboard widget has changed, removing previous elements from layout'
-      );
-      layoutManager.root.contentItems.forEach(item => item.remove());
-    }
+    // if (widget != null && widget.type === DASHBOARD_ELEMENT) {
+    //   log.info(
+    //     'Dashboard widget has changed, removing previous elements from layout'
+    //   );
+    //   layoutManager.root.contentItems.forEach(item => item.remove());
+    // }
   }
 
   if (widgetError != null && isLoading) {

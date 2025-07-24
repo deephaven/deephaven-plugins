@@ -7,6 +7,7 @@ import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
 
 function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
+  console.log('xxx doing a LayoutRow');
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
   const row = useMemo(() => {
@@ -45,6 +46,7 @@ function Row({ children, height }: RowElementProps): JSX.Element {
     return <LayoutRow height={height}>{children}</LayoutRow>;
   }
 
+  console.log('xxx doing a flexRow with panelId', panelId);
   return (
     <Flex height={`${height}%`} direction="row">
       {children}
