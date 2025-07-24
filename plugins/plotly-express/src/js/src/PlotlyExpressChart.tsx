@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import Plotly from 'plotly.js-dist-min';
+import Plotly from 'plotly.js';
 import { Chart } from '@deephaven/chart';
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';

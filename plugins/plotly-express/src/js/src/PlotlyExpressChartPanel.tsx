@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import Plotly from 'plotly.js-dist-min';
+import Plotly from 'plotly.js';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetPanelProps } from '@deephaven/plugin';
