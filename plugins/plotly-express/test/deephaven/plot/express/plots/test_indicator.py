@@ -233,6 +233,7 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_color_indicators(self):
         import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(
             self.source,

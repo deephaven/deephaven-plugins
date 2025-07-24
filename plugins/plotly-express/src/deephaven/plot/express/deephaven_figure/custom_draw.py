@@ -6,7 +6,7 @@ from typing import Callable
 from pandas import DataFrame
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
-from plotly.validators.heatmap import ColorscaleValidator
+from plotly.validator_cache import ValidatorCache
 
 # attach a prefix to the number format so that we can identify it as the GWT Java NumberFormat syntax
 # https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html
@@ -57,10 +57,10 @@ def draw_finance(
         data.append(
             go_func(
                 x=data_frame[x_f],
-                open=data_frame[open],
-                high=data_frame[high],
-                low=data_frame[low],
-                close=data_frame[close],
+                open=data_frame[o],
+                high=data_frame[h],
+                low=data_frame[l],
+                close=data_frame[c],
             )
         )
 
@@ -185,7 +185,7 @@ def draw_density_heatmap(
 
     range_color_list = range_color or [None, None]
 
-    colorscale_validator = ColorscaleValidator("colorscale", "draw_density_heatmap")
+    colorscale_validator = ValidatorCache.get_validator("heatmap", "colorscale")
 
     coloraxis_layout = dict(
         colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
@@ -200,7 +200,7 @@ def draw_density_heatmap(
 
     heatmap.update_layout(
         coloraxis1=coloraxis_layout,
-        title=title,
+        title_text=title,
         template=template,
         xaxis_title=x,
         yaxis_title=y,
@@ -276,7 +276,7 @@ def draw_indicator(
         fig.update_traces(delta_reference=data_frame[reference][0])
 
     if layout_title:
-        fig.update_layout(title=layout_title)
+        fig.update_layout(title_text=layout_title)
 
     if title:
         # This is the title on the indicator trace. This is where it should go by default.

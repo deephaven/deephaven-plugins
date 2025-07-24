@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_DOUBLE
 
 
 class HeatmapTestCase(BaseTestCase):
@@ -18,7 +18,7 @@ class HeatmapTestCase(BaseTestCase):
 
     def test_basic_heatmap(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.density_heatmap(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -31,8 +31,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "X=%{x}<br>Y=%{y}<br>count=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": [NULL_DOUBLE],
-                "y": [NULL_DOUBLE],
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -80,7 +80,7 @@ class HeatmapTestCase(BaseTestCase):
 
     def test_heatmap_relabel_z(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.density_heatmap(
             self.source,
@@ -99,8 +99,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>count of Column Z=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": [NULL_DOUBLE],
-                "y": [NULL_DOUBLE],
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -147,7 +147,7 @@ class HeatmapTestCase(BaseTestCase):
 
     def test_heatmap_relabel_agg_z(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.density_heatmap(
             self.source,
@@ -167,8 +167,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>count=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": [NULL_DOUBLE],
-                "y": [NULL_DOUBLE],
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -215,7 +215,7 @@ class HeatmapTestCase(BaseTestCase):
 
     def test_full_heatmap(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.density_heatmap(
             self.source,
@@ -255,8 +255,8 @@ class HeatmapTestCase(BaseTestCase):
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>sum=%{z}<extra></extra>",
                 "opacity": 0.5,
                 "type": "heatmap",
-                "x": [NULL_DOUBLE],
-                "y": [NULL_DOUBLE],
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
             }
         ]
