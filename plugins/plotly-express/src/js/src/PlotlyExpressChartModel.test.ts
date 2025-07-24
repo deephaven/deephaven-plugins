@@ -37,7 +37,7 @@ jest.mock('./PlotlyExpressChartUtils', () => ({
 function createMockWidget(
   tables: DhType.Table[],
   plotType = 'scatter',
-  title: Partial<Layout['title']> = { text: 'Title' },
+  title: Partial<Layout['title']> | string = "Title",
   filterColumns: FilterColumns | undefined = undefined,
   layoutTitle: string | undefined = undefined
 ) {
@@ -51,6 +51,10 @@ function createMockWidget(
       layoutAxes[`yaxis${i + 1}` as 'yaxis'] = {};
     }
   });
+
+  if (typeof title === 'string') {
+      title = { text: title };
+  }
 
   const widgetData = {
     type: 'test',
