@@ -46,7 +46,7 @@ export function PlotlyExpressChart(
       containerRef={containerRef}
       model={model}
       settings={settings}
-      // @ts-ignore
+      // @ts-expect-error
       Plotly={Plotly}
     />
   ) : null;

@@ -30,7 +30,7 @@ export function PlotlyExpressChartPanel(
       {...(rest as ChartPanelProps)}
       containerRef={setContainer}
       makeModel={makeModel}
-      // @ts-ignore
+      // @ts-expect-error
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
     />
