@@ -7,7 +7,7 @@ export * from './useKeyboardEventCallback';
 export * from './useListViewProps';
 export * from './usePickerProps';
 export * from './usePressEventCallback';
-export * from './useReExportedTable';
+export * from './useExportedObject';
 export * from './useSelectionProps';
 export * from './useTimeComponentProps';
 export * from './useTimeValueMemo';

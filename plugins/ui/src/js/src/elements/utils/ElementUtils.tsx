@@ -3,6 +3,8 @@ import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ELEMENT_NAME } from '../model/ElementConstants';
 import ObjectView from '../ObjectView';
+import UriExportedObject from '../../widget/UriExportedObject';
+import UriObjectView from '../UriObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -18,6 +20,8 @@ export type ObjectNode = {
   [OBJECT_KEY]: number;
 };
 
+export type UriNode = ElementNode<typeof ELEMENT_NAME.uri, { uri: string }>;
+
 /**
  * Describes an element that can be rendered in the UI.
  * Extend this type with stricter rules on the element key type to provide types.
@@ -32,7 +36,7 @@ export type ElementNode<
    * a custom component type defined by the user in their plugin.
    */
   [ELEMENT_KEY]: K;
-  props?: P;
+  props: P;
 };
 
 export type ElementNodeWithChildren<
@@ -46,21 +50,25 @@ export function isObjectNode(obj: unknown): obj is ObjectNode {
   return obj != null && typeof obj === 'object' && OBJECT_KEY in obj;
 }
 
+export function isUriNode(obj: unknown): obj is UriNode {
+  return isElementNode(obj, ELEMENT_NAME.uri);
+}
+
 /**
- * Re-export and fetch the table from the given exported object.
+ * Re-export and fetch the object from the given exported object.
  * @param exportedObject
- * @returns Promise that resolves to the table or null if given
+ * @returns Promise that resolves to the object or null if given
  * object is null
  */
-export async function fetchReexportedTable(
+export async function fetchReexportedObject<T = dh.Widget>(
   exportedObject: dh.WidgetExportedObject | null
-): Promise<dh.Table | null> {
+): Promise<T | null> {
   if (exportedObject == null) {
     return null;
   }
 
-  const reexportedTable = await exportedObject.reexport();
-  return reexportedTable.fetch();
+  const reexportedObject = await exportedObject.reexport();
+  return reexportedObject.fetch();
 }
 
 /**
@@ -93,6 +101,10 @@ export function isExportedObject(obj: unknown): obj is dh.WidgetExportedObject {
     typeof (obj as dh.WidgetExportedObject).fetch === 'function' &&
     typeof (obj as dh.WidgetExportedObject).type === 'string'
   );
+}
+
+export function isUriExportedObject(obj: unknown): obj is UriExportedObject {
+  return obj instanceof UriExportedObject;
 }
 
 /**
@@ -190,9 +202,16 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
 
   const wrappedChildren = children.map(child => {
     // Exported objects need to be converted to `ObjectView` to be rendered
-    if (isExportedObject(child)) {
+    if (isExportedObject(child) || isUriExportedObject(child)) {
       const key = getChildKey(child.type);
-      return (
+      return isUriExportedObject(child) ? (
+        <UriObjectView
+          key={key}
+          uri={child.uri}
+          // eslint-disable-next-line no-underscore-dangle
+          __dhId={`${element.props?.__dhId}/${key}`}
+        />
+      ) : (
         <ObjectView
           key={key}
           object={child}

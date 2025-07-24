@@ -22,6 +22,7 @@ import {
 import {
   ColorValues,
   colorValueStyle,
+  LoadingOverlay,
   resolveCssVariablesInRecord,
   useStyleProps,
   useTheme,
@@ -33,8 +34,7 @@ import {
   useGridLinker,
 } from '@deephaven/dashboard-core-plugins';
 import { useLayoutManager, useListener } from '@deephaven/dashboard';
-import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { dh as DhType } from '@deephaven/jsapi-types';
+import { type dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler, GridRange, GridState } from '@deephaven/grid';
@@ -55,6 +55,8 @@ import UITableContextMenuHandler, {
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 import { UITableLayoutHints } from './JsTableProxy';
+import { useExportedObject } from '../hooks';
+import WidgetErrorView from '../../widget/WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -89,14 +91,14 @@ function useThrowError(): [
 function useUITableModel({
   dh,
   databars,
-  exportedTable,
+  table,
   layoutHints,
   format,
   columnDisplayNames,
 }: {
-  dh: typeof DhType;
+  dh: typeof DhType | null;
   databars: DatabarConfig[];
-  exportedTable: DhType.WidgetExportedObject;
+  table: DhType.Table | null;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
   columnDisplayNames: Record<string, string>;
@@ -108,9 +110,10 @@ function useUITableModel({
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
+      if (dh == null || table == null) {
+        return;
+      }
       try {
-        const reexportedTable = await exportedTable.reexport();
-        const table = (await reexportedTable.fetch()) as DhType.Table;
         const newModel = await makeUiTableModel(
           dh,
           table,
@@ -140,7 +143,7 @@ function useUITableModel({
   }, [
     databars,
     dh,
-    exportedTable,
+    table,
     layoutHints,
     format,
     columnDisplayNames,
@@ -221,11 +224,21 @@ export function UITable({
     viewStyleProps // Needed so spectrum applies styles from view instead of base which doesn't have padding
   );
 
-  const dh = useApi();
   const { eventHub } = useLayoutManager();
+
+  const {
+    widget: table,
+    api: dh,
+    isLoading,
+    error,
+  } = useExportedObject<DhType.Table>(exportedTable);
+
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
-  const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
+  const utils = useMemo(
+    () => (dh != null ? new IrisGridUtils(dh) : null),
+    [dh]
+  );
   const settings = useSelector(getSettings<RootState>);
   const format = useMemo(() => ensureArray(formatProp), [formatProp]);
   const layoutHints = useMemo(
@@ -284,7 +297,7 @@ export function UITable({
   const model = useUITableModel({
     dh,
     databars,
-    exportedTable,
+    table,
     layoutHints,
     format,
     columnDisplayNames,
@@ -324,7 +337,7 @@ export function UITable({
   );
 
   const initialHydratedState = useMemo(() => {
-    if (model && initialState.current != null) {
+    if (model && utils && initialState.current != null) {
       return {
         ...utils.hydrateIrisGridState(model, initialState.current),
         ...IrisGridUtils.hydrateGridState(model, initialState.current),
@@ -333,7 +346,7 @@ export function UITable({
   }, [model, utils]);
 
   const hydratedSorts = useMemo(() => {
-    if (sorts !== undefined && columns !== undefined) {
+    if (utils && sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
 
       return utils.hydrateSort(columns, sorts);
@@ -344,6 +357,7 @@ export function UITable({
   const hydratedQuickFilters = useMemo(() => {
     if (
       quickFilters !== undefined &&
+      utils &&
       model !== undefined &&
       columns !== undefined
     ) {
@@ -418,7 +432,7 @@ export function UITable({
 
   const mouseHandlers = useMemo(
     () =>
-      model && irisGrid
+      model && dh && irisGrid
         ? ([
             new UITableMouseHandler(
               model,
@@ -590,27 +604,31 @@ export function UITable({
     handleClearAllFilters
   );
 
-  return model ? (
+  return (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...styleProps}
       className={classNames('ui-table-container', styleProps.className)}
     >
-      <IrisGrid
-        ref={ref => setIrisGrid(ref)}
-        model={model}
-        onStateChange={onStateChange}
-        onSelectionChanged={debouncedHandleSelectionChanged}
-        columnSelectionValidator={columnSelectionValidator}
-        isSelectingColumn={isSelectingColumn}
-        onColumnSelected={onColumnSelected}
-        onDataSelected={onDataSelected}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...mergedIrisGridProps}
-        inputFilters={inputFilters}
-      />
+      {error != null && <WidgetErrorView error={error} />}
+      {error == null && !model && <LoadingOverlay isLoading={isLoading} />}
+      {error == null && model && (
+        <IrisGrid
+          ref={ref => setIrisGrid(ref)}
+          model={model}
+          onStateChange={onStateChange}
+          onSelectionChanged={debouncedHandleSelectionChanged}
+          columnSelectionValidator={columnSelectionValidator}
+          isSelectingColumn={isSelectingColumn}
+          onColumnSelected={onColumnSelected}
+          onDataSelected={onDataSelected}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...mergedIrisGridProps}
+          inputFilters={inputFilters}
+        />
+      )}
     </div>
-  ) : null;
+  );
 }
 
 UITable.displayName = 'TableElementView';

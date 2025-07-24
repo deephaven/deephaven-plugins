@@ -14,6 +14,7 @@ const uiElementName = <T extends string>(name: T) =>
 export const ELEMENT_NAME = {
   /** Elements */
   uiTable: uiElementName('UITable'),
+  uri: uiElementName('UriElement'),
 
   /** Layout Components */
   column: uiComponentName('Column'),

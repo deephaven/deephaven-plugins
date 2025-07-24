@@ -46,6 +46,12 @@
         "__dhObid": { "type": "number" }
       }
     },
+    "uri": {
+      "type": "object",
+      "properties": {
+        "__dhUri": { "type": "string" }
+      }
+    },
     "documentUpdatedParams": {
       "type": "array",
       "prefixItems": [{ "type": "string" }, { "type": "string" }],
