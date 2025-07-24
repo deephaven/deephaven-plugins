@@ -11,7 +11,7 @@
     "plugins/**/**.jsx",
     "tests/**/**.ts"
   ],
-  "exclude": ["plugins/*/src/js/dist/**/*"],
+  "exclude": ["**/node_modules", "plugins/*/src/js/dist/**/*"],
   "watchOptions": {
     "excludeDirectories": ["**/node_modules", "**/dist"]
   }

@@ -6,7 +6,7 @@ import {
 } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
-import { useTableClose } from '@deephaven/jsapi-components';
+import { useWidgetClose } from '@deephaven/jsapi-components';
 import { usePromiseFactory } from '@deephaven/react-hooks';
 import {
   fetchReexportedObject,
@@ -69,7 +69,7 @@ export function useExportedObject<T extends WidgetTypes = dh.Widget>(
       : (descriptor as dh.ide.VariableDescriptor)
   );
 
-  useTableClose(descriptorWidget);
+  useWidgetClose(descriptorWidget);
 
   const defaultApi = useApi();
 
@@ -83,7 +83,7 @@ export function useExportedObject<T extends WidgetTypes = dh.Widget>(
       : null,
   ]);
 
-  useTableClose(exportedWidget);
+  useWidgetClose(exportedWidget);
 
   // If this was exported as part of the dh.ui widget
   const isExportedWidget =
