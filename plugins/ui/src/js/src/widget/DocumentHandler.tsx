@@ -130,6 +130,7 @@ function DocumentHandler({
         panelIds.current.length
       );
       if (panelIds.current.length === 0) {
+        // Let's just ignore this for now ...
         log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {

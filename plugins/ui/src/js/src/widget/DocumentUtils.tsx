@@ -45,7 +45,7 @@ export function getRootChildren(
     throw new MixedPanelsError('Cannot mix Panel and Dashboard elements');
   }
 
-  if (nonLayoutCount === childrenArray.length) {
+  if (nonLayoutCount === childrenArray.length || dashboardCount > 0) {
     // Just wrap it in a panel
     return (
       <ReactPanel title={widget.name ?? widget.id ?? widget.type}>

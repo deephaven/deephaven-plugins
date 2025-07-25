@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 import {
-  Dashboard as DHCDasbhoard,
+  Dashboard as DHCDashboard,
   LayoutManagerContext,
 } from '@deephaven/dashboard';
 import GoldenLayout from '@deephaven/golden-layout';
@@ -13,9 +13,10 @@ import {
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import ReactPanel from './ReactPanel';
-import { ReactPanelContext } from './ReactPanelContext';
+import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import useWidgetStatus from './useWidgetStatus';
 import { ReactPanelManagerContext } from './ReactPanelManager';
+import PortalPanelManager from './PortalPanelManager';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 
@@ -98,20 +99,24 @@ function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
 
   return (
     // <>
-    <ReactPanel>
-      <ParentItemContext.Provider value={null}>
-        <ReactPanelContext.Provider value={null}>
+    <>
+      {/* <ReactPanelManagerContext.Provider value={panelManager}> */}
+      <DHCDashboard
+        onGoldenLayoutChange={setChildLayout}
+        onLayoutInitialized={() => setLayoutInitialized(true)}
+      >
+        {plugins}
+        <PortalPanelManager>
           <ReactPanelManagerContext.Provider value={panelManager}>
-            <DHCDasbhoard
-              onGoldenLayoutChange={setChildLayout}
-              onLayoutInitialized={() => setLayoutInitialized(true)}
-            >
-              {plugins}
-              {isLayoutInitialized && <>{normalizedChildren}</>}
-            </DHCDasbhoard>
+            <ParentItemContext.Provider value={null}>
+              <ReactPanelContext.Provider value={null}>
+                {isLayoutInitialized && normalizedChildren}
+              </ReactPanelContext.Provider>
+            </ParentItemContext.Provider>
           </ReactPanelManagerContext.Provider>
-        </ReactPanelContext.Provider>
-      </ParentItemContext.Provider>
+        </PortalPanelManager>
+      </DHCDashboard>
+      {/* </ReactPanelManagerContext.Provider> */}
       {/* Resetting the panel ID so the children don't get confused */}
       {/* <ReactPanelContext.Provider value={null}>
         <ReactPanelManagerContext.Provider value={panelManager}>
@@ -124,7 +129,7 @@ function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
           )}
         </ReactPanelManagerContext.Provider>
       </ReactPanelContext.Provider> */}
-    </ReactPanel>
+    </>
     // </>
   );
   // <ParentItemContext.Provider value={parent}>

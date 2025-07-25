@@ -70,7 +70,9 @@ export function DashboardPlugin(
     id,
     PLUGIN_NAME
   ) as unknown as [DashboardPluginData, (data: DashboardPluginData) => void];
-  const [initialPluginData] = useState(pluginData);
+  const [initialPluginData] = useState({
+    openWidgets: {},
+  } as DashboardPluginData);
 
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
@@ -147,20 +149,21 @@ export function DashboardPlugin(
       log.debug('loadInitialPluginData', initialPluginData);
 
       setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map(prevWidgetMap);
-        const { openWidgets } = initialPluginData;
-        if (openWidgets != null) {
-          Object.entries(openWidgets).forEach(
-            ([widgetId, { descriptor, data }]) => {
-              newWidgetMap.set(widgetId, {
-                id: widgetId,
-                widget: descriptor,
-                data,
-              });
-            }
-          );
-        }
-        return newWidgetMap;
+        return new Map();
+        // const newWidgetMap = new Map(prevWidgetMap);
+        // const { openWidgets } = initialPluginData;
+        // if (openWidgets != null) {
+        //   Object.entries(openWidgets).forEach(
+        //     ([widgetId, { descriptor, data }]) => {
+        //       newWidgetMap.set(widgetId, {
+        //         id: widgetId,
+        //         widget: descriptor,
+        //         data,
+        //       });
+        //     }
+        //   );
+        // }
+        // return newWidgetMap;
       });
     },
     [initialPluginData, id]
@@ -278,7 +281,7 @@ export function DashboardPlugin(
             <DashboardWidgetHandler
               widgetDescriptor={wrapper.widget}
               id={wrapper.id}
-              initialData={wrapper.data}
+              // initialData={wrapper.data}
               onDataChange={handleWidgetDataChange}
               onClose={handleWidgetClose}
             />
