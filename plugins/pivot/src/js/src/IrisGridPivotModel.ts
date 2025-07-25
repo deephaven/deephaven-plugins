@@ -4,7 +4,7 @@ import memoize from 'memoize-one';
 import throttle from 'lodash.throttle';
 import { type dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import Log from '@deephaven/log';
-import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
+import { Formatter, FormatterUtils, TableUtils } from '@deephaven/jsapi-utils';
 import {
   assertNotNull,
   EMPTY_ARRAY,
@@ -83,6 +83,8 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
   // private depthData: { depth: number; isExpanded: boolean }[] | null = null;
 
+  private totalsPopulated = false;
+
   constructor(
     dh: typeof DhType,
     pivotTable: DhType.coreplus.pivot.PivotTable,
@@ -107,7 +109,8 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
       makeVirtualColumn({
         name: 'Grand Total',
         // TODO: fix type
-        type: 'number',
+        type: pivotTable.valueSources[0].type,
+        // TODO: should it be columnSources length?
         index: pivotTable.rowSources.length,
       }),
     ];
@@ -192,7 +195,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
    */
   private createDisplayColumn(
     snapshotDim: DhType.coreplus.pivot.DimensionData,
-    columnSources: DhType.coreplus.pivot.PivotSource[],
+    valueSources: DhType.coreplus.pivot.PivotSource[],
     index: number
   ): DisplayColumn {
     const virtualColumnCount = this.virtualColumns.length;
@@ -209,7 +212,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
       name += keys[i];
     }
     // TODO:
-    const source = columnSources[0];
+    const source = valueSources[0];
     return makeVirtualColumn({
       name,
       type: source.type,
@@ -220,25 +223,27 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
   // TODO: this might not work if columnData is mutated
   getCachedColumns = memoize(
     (
-      snapshotDim: DhType.coreplus.pivot.DimensionData,
-      snapshotDimOffset: number,
-      columnSources: DhType.coreplus.pivot.PivotSource[]
+      snapshotColumnsDim: DhType.coreplus.pivot.DimensionData | null,
+      valueSources: DhType.coreplus.pivot.PivotSource[],
+      snapshotDimOffset: number
     ) => {
       const columns = [...this.virtualColumns];
-      for (let i = 0; i < snapshotDim.count; i += 1) {
+      if (snapshotColumnsDim == null) {
+        return columns;
+      }
+      for (let i = 0; i < snapshotColumnsDim.count; i += 1) {
         columns.push(
           this.createDisplayColumn(
-            snapshotDim,
-            columnSources,
+            snapshotColumnsDim,
+            valueSources,
             i + this.virtualColumns.length
           )
         );
       }
       log.debug2('getCachedColumns', {
         columns,
-        count: snapshotDim.count,
-        totalCount: snapshotDim.totalCount,
-        offset: snapshotDim.offset,
+        count: snapshotColumnsDim.count,
+        offset: snapshotColumnsDim.offset,
         snapshotDimOffset,
       });
       return columns;
@@ -285,7 +290,11 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     //   return header.isNew ? '' : header.name;
     // }
     // return header?.displayName ?? header?.name;
-    return header?.displayName ?? header?.name ?? 'HeaderName'; // TODO: implement
+    const name = header?.displayName ?? header?.name;
+    // if (name == null) {
+    //   debugger;
+    // }
+    return name ?? 'HeaderName'; // TODO: implement
   }
 
   // private getCachedColumnHeaderGroups = memoize(
@@ -323,14 +332,10 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
   }
 
   get columns(): readonly DhType.Column[] {
-    if (this.columnData == null) {
-      log.debug2('columnData is null, returning empty columns');
-      return EMPTY_ARRAY;
-    }
     return this.getCachedColumns(
       this.columnData,
-      this.columnData.offset,
-      this.pivotTable.columnSources
+      this.pivotTable.valueSources,
+      this.columnData?.offset ?? 0
     );
   }
 
@@ -388,8 +393,9 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
   get rowCount(): number {
     // log.debug2('get rowCount', this.rowData?.totalCount ?? 0);
-    // TODO: account for totals row / grand totals
-    return this.rowData?.totalCount ?? 0;
+    // +1 to account for totals row / grand totals
+    // TODO: is totals already accounted for?
+    return this.rowData?.totalCount ?? 0; //  + (this.totalsPopulated ? 1 : 0);
   }
 
   get columnCount(): number {
@@ -496,6 +502,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     this.formattedStringData = [];
     this.columnOffset = snapshot.columns.offset;
     this.rowOffset = snapshot.rows.offset;
+    this.totalsPopulated = true;
 
     // TODO: get the data from the snapshot, store in the model
     // TODO: dispatch model updated event
@@ -517,7 +524,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     snapshot: DhType.coreplus.pivot.PivotSnapshot
   ): UIViewportData<R> {
     log.debug2(
-      'extractSnapshotData',
+      'extractSnapshotDataAll',
       snapshot,
       this.viewport,
       this.virtualColumns
@@ -544,18 +551,63 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
       );
     }
 
+    log.debug('extract snapshot data cols:', {
+      snapshot: snapshot.columns.count,
+      virtual: virtualColumnCount,
+      viewport: viewportColumnCount,
+    });
+
+    if (this.viewport?.top === 0) {
+      const totalsRow = new Map<ModelIndex, CellData>();
+      const totalKeys = snapshot.rows.getKeys(0);
+      const totalDepth = snapshot.rows.getDepth(0) - 2;
+      for (let c = 0; c < viewportColumnCount; c += 1) {
+        log.debug('extractSnapshotTotalRow', totalKeys, totalDepth, c);
+        if (c < totalKeys.length) {
+          // Does viewport always contain all the keys?
+          totalsRow.set(c, {
+            // Only render the value for the deepest level
+            value: undefined,
+          });
+        } else if (c === totalKeys.length) {
+          // TODO: conditional logic above is wrong
+          // Grand Total column (TODO: this could be one of many valueSources)
+          totalsRow.set(c, {
+            value: snapshot.getGrandTotal(snapshot.valueSources[0]),
+          });
+        } else {
+          const value = snapshot.columns.getTotal(
+            c + snapshot.columns.offset - virtualColumnCount,
+            // TODO: implement this properly
+            snapshot.valueSources[0]
+          );
+          totalsRow.set(c, { value });
+        }
+      }
+
+      log.debug('extractSnapshotTotalRowResult', totalsRow);
+
+      newData.rows.push({
+        data: totalsRow,
+        // TODO: implement this properly
+        isExpanded: true,
+        hasChildren: true,
+        depth: 0,
+      } as R);
+    }
+
     for (let r = 0; r < snapshot.rows.count; r += 1) {
       const newRow = new Map<ModelIndex, CellData>();
       const keys = snapshot.rows.getKeys(r + snapshot.rows.offset);
-      const depth = snapshot.rows.getDepth(r + snapshot.rows.offset) - 2;
-      log.debug('extractSnapshotData', keys, depth, r);
+      const depth = snapshot.rows.getDepth(r + snapshot.rows.offset) - 1;
+      log.debug('extractSnapshotDataRow', keys, depth, r);
       for (let c = 0; c < viewportColumnCount; c += 1) {
         // const column = this.viewport.columns[c];
         if (c < keys.length) {
           // Does viewport always contain all the keys?
           newRow.set(c, {
             // Only render the value for the deepest level
-            value: c === depth ? keys[c] : undefined,
+            value: c === depth - 1 ? keys[c] : undefined,
           });
         } else if (c === keys.length) {
           // TODO: conditional logic above is wrong
@@ -746,10 +798,12 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
   }
 
   isRowExpandable(y: ModelIndex): boolean {
+    // TODO: add method to get adjusted row index for viewportData
     return this.viewportData?.rows[y]?.hasChildren ?? false;
   }
 
   isRowExpanded(y: ModelIndex): boolean {
+    // TODO: add method to get adjusted row index for viewportData
     return this.viewportData?.rows[y]?.isExpanded ?? false;
   }
 
@@ -758,10 +812,15 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     isExpanded: boolean,
     expandDescendants = false
   ): void {
+    if (y === 0) {
+      log.debug('Ignore expand/collapse for the totals row');
+      return;
+    }
     if (this.isExpandAllAvailable) {
-      this.pivotTable.setRowExpanded(y, isExpanded, expandDescendants);
+      // TODO: add method to get adjusted row index for pivotTable
+      this.pivotTable.setRowExpanded(y - 1, isExpanded, expandDescendants);
     } else {
-      this.pivotTable.setRowExpanded(y, isExpanded);
+      this.pivotTable.setRowExpanded(y - 1, isExpanded);
     }
   }
 
@@ -782,6 +841,11 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     // log.debug2('[0] depthForRow', y, depth);
     return depth;
   }
+
+  getCachedCustomColumnFormatFlag = memoizeClear(
+    FormatterUtils.isCustomColumnFormatDefined,
+    { max: 10000 }
+  );
 
   valueSourceColumn(
     x: ModelIndex,
@@ -810,18 +874,18 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
       }
 
       const column = this.valueSourceColumn(x, y); // This should return the correct valueSource column for the cell
-      // const hasCustomColumnFormat = this.getCachedCustomColumnFormatFlag(
-      //   this.formatter,
-      //   column.name,
-      //   column.type
-      // );
+      const hasCustomColumnFormat = this.getCachedCustomColumnFormatFlag(
+        this.formatter,
+        column.name,
+        column.type
+      );
       let formatOverride;
-      // if (!hasCustomColumnFormat) {
-      //   const formatForCell = this.formatForCell(x, y);
-      //   if (formatForCell?.formatString != null) {
-      //     formatOverride = formatForCell;
-      //   }
-      // }
+      if (!hasCustomColumnFormat) {
+        const formatForCell = this.formatForCell(x, y);
+        if (formatForCell?.formatString != null) {
+          formatOverride = formatForCell;
+        }
+      }
       const text = this.displayString(
         value,
         column.type,
@@ -837,7 +901,11 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
   textForCell(x: ModelIndex, y: ModelIndex): string {
     const text = this.textValueForCell(x, y);
-    if (TableUtils.isTextType(this.columns[x]?.type)) {
+    if (
+      // TODO: detect if the column is one of the key columns instead of just checking the index
+      x >= this.virtualColumns.length &&
+      TableUtils.isTextType(this.columns[x]?.type)
+    ) {
       if (text === null) {
         return this.formatter.showNullStrings ? 'null' : '';
       }
@@ -1014,7 +1082,13 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     log.debug2('applyBufferedViewport', top, bottom, columns, viewportColumns);
 
     const sources = [...this.pivotTable.valueSources];
-    const rowRange = this.dh.RangeSet.ofRange(top, bottom);
+    // Subtract totals from the row numbers to account for the totals row
+    // Except on the initial load, when we don't have totals yet
+    const totalsRowCount = this.totalsPopulated ? 1 : 0;
+    const rowRange = this.dh.RangeSet.ofRange(
+      Math.max(0, top - totalsRowCount),
+      Math.max(0, bottom - totalsRowCount)
+    );
     const colRange = this.dh.RangeSet.ofRange(
       0,
       // TODO: fix this
