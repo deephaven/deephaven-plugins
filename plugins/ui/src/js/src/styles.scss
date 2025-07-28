@@ -102,3 +102,12 @@
 .ui-markdown {
   padding: 0;
 }
+
+.dashboard-container {
+  .dashboard-container {
+    border: 5px solid red;
+    .dashboard-container {
+      border: 5px solid blue;
+    }
+  }
+}
