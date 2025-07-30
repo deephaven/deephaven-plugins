@@ -4,7 +4,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import { LicenseManager } from '@ag-grid-enterprise/core';
 import { AgGridWidget } from './AgGridWidget';
 
-const key = import.meta.env.VITE_AG_GRID_LICENSE_KEY ?? '';
+const key = __DEEPHAVEN_AG_GRID_LICENSE_KEY__ ?? '';
 if (key != null && key !== '') {
   LicenseManager.setLicenseKey(key);
 }

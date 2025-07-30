@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
     define: {
       // Replace import.meta.env and process.env variables so these modules can be imported in the browser without issues
       'process.env.NODE_ENV': JSON.stringify(mode),
-      'import.meta.env.VITE_AG_GRID_LICENSE_KEY': JSON.stringify(
+      __DEEPHAVEN_AG_GRID_LICENSE_KEY__: JSON.stringify(
         env.VITE_AG_GRID_LICENSE_KEY ?? ''
       ),
     },
