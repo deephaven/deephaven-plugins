@@ -331,7 +331,7 @@ export function UITable({
   } = useTablePlugin({
     model,
     irisGridRef,
-    irisGridUtils: utils,
+    irisGridUtils: utils ?? undefined,
     selectedRanges: selection,
   });
 

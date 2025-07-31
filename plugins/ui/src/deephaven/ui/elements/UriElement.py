@@ -32,6 +32,11 @@ class UriElement(Element):
     def render(self, context: RenderContext) -> PropsType:
         return {"uri": self._uri}
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, UriElement):
+            return False
+        return self._uri == other._uri and self._key == other._key
+
 
 def resolve(uri: str) -> UriElement:
     """
