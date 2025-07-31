@@ -9,7 +9,7 @@ import UriExportedObject from '../../widget/UriExportedObject';
 
 /**
  * Hook to fetch the object and JS API from an ObjectView or UriObjectView.
- * If the node is not an ObjectView or UriObjectView, it returns null.
+ * If the node is not an ObjectView or UriObjectView, it throws an error.
  * @param node The ReactNode to check and fetch the table from.
  * @returns The fetched table or null if not applicable.
  */

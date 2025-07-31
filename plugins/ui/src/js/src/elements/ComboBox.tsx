@@ -2,7 +2,6 @@ import { useSelector } from 'react-redux';
 import {
   ComboBox as DHComboBox,
   ComboBoxProps as DHComboBoxProps,
-  LoadingOverlay,
 } from '@deephaven/components';
 import {
   ComboBox as DHComboBoxJSApi,
@@ -45,7 +44,12 @@ export function ComboBox(
       return <WidgetErrorView error={error} />;
     }
     if (isLoading || table == null || api == null) {
-      return <LoadingOverlay isLoading />;
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHComboBox loadingState="loading" {...pickerProps}>
+          {[]}
+        </DHComboBox>
+      );
     }
     return (
       <ApiContext.Provider value={api}>

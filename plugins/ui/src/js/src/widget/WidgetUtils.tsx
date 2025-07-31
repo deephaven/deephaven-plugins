@@ -208,9 +208,9 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.view]: View,
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
 
-export function getComponentTypeForElement<P extends Record<string, unknown>>(
-  element: ElementNode<string, P>
-): ComponentType<P> | null {
+export function getComponentTypeForElement<
+  P extends Record<string, unknown> | undefined,
+>(element: ElementNode<string, P>): ComponentType<P> | null {
   return (elementComponentMap[
     element[ELEMENT_KEY] as keyof typeof elementComponentMap
   ] ?? null) as ComponentType<P> | null;

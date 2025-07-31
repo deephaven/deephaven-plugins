@@ -19,7 +19,10 @@ function UriObjectView(props: UriObjectViewProps): JSX.Element {
 
   const { widget, api, error } = useWidget(uri);
 
-  const widgetType = useMemo(() => getWidgetType(widget, api), [api, widget]);
+  const widgetType = useMemo(
+    () => (widget && api ? getWidgetType(widget, api) : null),
+    [api, widget]
+  );
 
   const fetch = useCallback(async () => widget, [widget]);
 

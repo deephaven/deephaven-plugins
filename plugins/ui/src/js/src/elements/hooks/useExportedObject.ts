@@ -22,14 +22,16 @@ export interface ResolvedExportedObject<T extends WidgetTypes = dh.Widget> {
   isLoading: boolean;
 }
 
+/**
+ * Get the type of a widget.
+ * @param widget The widget to check.
+ * @param api The JS API instance to use.
+ * @returns The widget type. Throws if the type cannot be determined.
+ */
 export function getWidgetType(
-  widget: dh.Widget | null,
-  api: typeof dh | null
+  widget: dh.Widget,
+  api: typeof dh
 ): string | null {
-  if (widget == null || api == null) {
-    return null;
-  }
-
   if (widget.type != null) {
     return widget.type;
   }
@@ -50,7 +52,7 @@ export function getWidgetType(
     return api.VariableType.TABLE;
   }
 
-  return null;
+  throw new Error(`Unknown widget type for widget: ${JSON.stringify(widget)}`);
 }
 
 export function useExportedObject<T extends WidgetTypes = dh.Widget>(

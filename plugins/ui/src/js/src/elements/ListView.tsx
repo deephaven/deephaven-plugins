@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
-import { ListView as DHListView, LoadingOverlay } from '@deephaven/components';
+import { ListView as DHListView } from '@deephaven/components';
 import { ListView as DHListViewJSApi } from '@deephaven/jsapi-components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
@@ -36,7 +36,12 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
       return <WidgetErrorView error={error} />;
     }
     if (isLoading || table == null || api == null) {
-      return <LoadingOverlay isLoading />;
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHListView loadingState="loading" {...listViewProps}>
+          {[]}
+        </DHListView>
+      );
     }
     return (
       <ApiContext.Provider value={api}>

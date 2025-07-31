@@ -2,7 +2,6 @@ import { useSelector } from 'react-redux';
 import {
   Picker as DHPicker,
   PickerProps as DHPickerProps,
-  LoadingOverlay,
 } from '@deephaven/components';
 import {
   Picker as DHPickerJSApi,
@@ -45,7 +44,12 @@ export function Picker(
       return <WidgetErrorView error={error} />;
     }
     if (isLoading || table == null || api == null) {
-      return <LoadingOverlay isLoading />;
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHPicker isLoading {...pickerProps}>
+          {[]}
+        </DHPicker>
+      );
     }
     return (
       <ApiContext.Provider value={api}>

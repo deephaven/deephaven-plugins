@@ -29,7 +29,9 @@ export type UriNode = ElementNode<typeof ELEMENT_NAME.uri, { uri: string }>;
  */
 export type ElementNode<
   K extends string = string,
-  P extends Record<string, unknown> = Record<string, unknown>,
+  P extends Record<string, unknown> | undefined =
+    | Record<string, unknown>
+    | undefined,
 > = {
   /**
    * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
@@ -204,20 +206,12 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
     // Exported objects need to be converted to `ObjectView` to be rendered
     if (isExportedObject(child) || isUriExportedObject(child)) {
       const key = getChildKey(child.type);
+      // eslint-disable-next-line no-underscore-dangle
+      const dhId = `${element.props?.__dhId}/${key}`;
       return isUriExportedObject(child) ? (
-        <UriObjectView
-          key={key}
-          uri={child.uri}
-          // eslint-disable-next-line no-underscore-dangle
-          __dhId={`${element.props?.__dhId}/${key}`}
-        />
+        <UriObjectView key={key} uri={child.uri} __dhId={dhId} />
       ) : (
-        <ObjectView
-          key={key}
-          object={child}
-          // eslint-disable-next-line no-underscore-dangle
-          __dhId={`${element.props?.__dhId}/${key}`}
-        />
+        <ObjectView key={key} object={child} __dhId={dhId} />
       );
     }
 
