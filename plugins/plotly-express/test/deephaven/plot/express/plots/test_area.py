@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class AreaTestCase(BaseTestCase):
@@ -25,7 +25,6 @@ class AreaTestCase(BaseTestCase):
 
     def test_basic_area(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -45,9 +44,9 @@ class AreaTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             }
@@ -87,7 +86,6 @@ class AreaTestCase(BaseTestCase):
 
     def test_area_step(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.source, x="X", y="Y", line_shape="hvh").to_dict(
             self.exporter
@@ -109,9 +107,9 @@ class AreaTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             }
@@ -151,7 +149,6 @@ class AreaTestCase(BaseTestCase):
 
     def test_area_pandas(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.pandas_source, x="X", y="Y").to_dict(self.exporter)
 
@@ -167,9 +164,9 @@ class AreaTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             }

@@ -541,9 +541,13 @@ export class PlotlyExpressChartModel extends ChartModel {
     // title and legend title are the only things expected to be updated after init from the layout
     if (
       typeof plotlyLayout.title === 'object' &&
-      plotlyLayout.title.text != null
+      plotlyLayout.title.text != null &&
+      plotlyLayout.title.text !== this.layout.title?.text
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
+      // Keep track of the title to make sure it is not unnecessarily updated
+      // fireLayoutUpdated does not update this.layout so it must be set here
+      this.layout.title = plotlyLayout.title;
     }
 
     if (plotlyLayout.legend?.title?.text != null) {
@@ -902,24 +906,22 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   shouldPauseOnUserInteraction(): boolean {
-    return (
-      this.hasScene() || this.hasGeo() || this.hasMapbox() || this.hasPolar()
-    );
+    return this.hasScene() || this.hasGeo() || this.hasMap() || this.hasPolar();
   }
 
-  hasScene(): boolean {
+  private hasScene(): boolean {
     return this.plotlyData.some(d => 'scene' in d && d.scene != null);
   }
 
-  hasGeo(): boolean {
+  private hasGeo(): boolean {
     return this.plotlyData.some(d => 'geo' in d && d.geo != null);
   }
 
-  hasMapbox(): boolean {
-    return this.plotlyData.some(({ type }) => type?.includes('mapbox'));
+  private hasMap(): boolean {
+    return this.plotlyData.some(({ type }) => type?.includes('map'));
   }
 
-  hasPolar(): boolean {
+  private hasPolar(): boolean {
     return this.plotlyData.some(({ type }) => type?.includes('polar'));
   }
 
