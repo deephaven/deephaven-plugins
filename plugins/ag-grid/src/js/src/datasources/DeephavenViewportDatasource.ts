@@ -233,11 +233,12 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   private refreshViewport(): void {
     log.debug('Refreshing viewport');
     if (this.currentViewport == null) {
-      log.debug('Setting default viewport');
-      this.currentViewport = {
-        firstRow: this.gridApi.getFirstDisplayedRowIndex(),
-        lastRow: this.gridApi.getLastDisplayedRowIndex(),
+      const defaultViewport = {
+        firstRow: Math.max(this.gridApi.getFirstDisplayedRowIndex(), 0),
+        lastRow: Math.max(this.gridApi.getLastDisplayedRowIndex(), 0),
       };
+      log.debug('Setting default viewport', defaultViewport);
+      this.currentViewport = defaultViewport;
     }
     const { firstRow, lastRow } = this.currentViewport;
     this.applyViewport(firstRow, lastRow);
@@ -250,8 +251,10 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   private async updateGridState(): Promise<void> {
     log.debug('Updating grid state');
 
-    // Start by updating the aggregations. This may produce a new table which filters may or may not apply to.
-    await this.updateAggregations();
+    if (!TableUtils.isTreeTable(this.originalTable)) {
+      // Start by updating the aggregations. This may produce a new table which filters may or may not apply to.
+      await this.updateAggregations();
+    }
     this.updateFilter();
     this.updateSort();
     this.refreshViewport();

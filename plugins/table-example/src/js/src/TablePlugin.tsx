@@ -13,9 +13,8 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@deephaven/components';
-import type { Column, Table } from '@deephaven/jsapi-types';
-
-type QuickFilterDefinition = { name: string; type: string; value: string };
+import type { Column } from '@deephaven/jsapi-types';
+import type { TablePluginProps } from '@deephaven/plugin';
 
 type IrisGridContextMenuData = {
   value: string;
@@ -23,20 +22,9 @@ type IrisGridContextMenuData = {
   model: unknown;
 };
 
-type TablePluginProps = {
-  /**
-   * Call to filter the table with new filters
-   */
-  filter: (filters: QuickFilterDefinition[]) => void;
-
-  /**
-   * The table object
-   */
-  table: Table;
-};
-
 /**
  * An example of a TablePlugin. Displays a header at the top of the grid, and has custom context menu items.
+ * Has a counter button that increments when clicked and persists across page loads.
  *
  * @example
  * from deephaven import empty_table
@@ -48,8 +36,8 @@ type TablePluginProps = {
  * )
  */
 const TablePlugin = forwardRef(
-  (props: TablePluginProps, ref: React.Ref<unknown>): JSX.Element => {
-    const { filter, table } = props;
+  (props: TablePluginProps<number>, ref: React.Ref<unknown>): JSX.Element => {
+    const { filter, table, pluginState = 0, onStateChange } = props;
     const [isModalOpen, setModalOpen] = useState(false);
     const confirmButton = useRef<HTMLButtonElement>(null);
 
@@ -135,7 +123,12 @@ const TablePlugin = forwardRef(
 
     return (
       <div>
-        <label>Example Plugin</label>
+        <label>
+          Example Plugin{' '}
+          <button type="button" onClick={() => onStateChange(pluginState + 1)}>
+            Count {pluginState}
+          </button>
+        </label>
         <Modal
           isOpen={isModalOpen}
           className="theme-bg-light"
