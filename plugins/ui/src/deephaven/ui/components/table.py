@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import Literal, Any, Optional
 import logging
 from deephaven.table import Table
-from ..elements import Element
+from ..elements import Element, resolve
+from ..elements.UriElement import UriElement
 from .types import AlignSelf, DimensionValue, JustifySelf, LayoutFlex, Position
 from ..types import (
     CellPressCallback,
@@ -129,7 +130,7 @@ class table(Element):
     Customization to how a table is displayed, how it behaves, and listen to UI events.
 
     Args:
-        table: The table to wrap
+        table: The table to wrap. May be a UriElement or URI string.
         format_: A formatting rule or list of formatting rules for the table.
         on_row_press: The callback function to run when a row is clicked.
             The callback is invoked with the visible row data provided in a dictionary where the
@@ -224,7 +225,7 @@ class table(Element):
 
     def __init__(
         self,
-        table: Table,
+        table: Table | UriElement | str,
         *,
         format_: TableFormat | list[TableFormat] | None = None,
         on_row_press: RowPressCallback | None = None,
@@ -299,6 +300,7 @@ class table(Element):
             )
 
         props = locals()
+        props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]
         self._props = props
         self._key = props.get("key")

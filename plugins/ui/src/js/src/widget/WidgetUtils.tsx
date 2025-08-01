@@ -102,6 +102,7 @@ import {
   UITable,
   Tabs,
 } from '../elements';
+import UriObjectView from '../elements/UriObjectView';
 
 export const WIDGET_ELEMENT = 'deephaven.ui.Element';
 export const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
@@ -124,6 +125,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   // Elements
   [ELEMENT_NAME.uiTable]: UITable,
+  [ELEMENT_NAME.uri]: UriObjectView,
 
   // Layout
   [ELEMENT_NAME.column]: Column,
@@ -206,9 +208,9 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.view]: View,
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
 
-export function getComponentTypeForElement<P extends Record<string, unknown>>(
-  element: ElementNode<string, P>
-): ComponentType<P> | null {
+export function getComponentTypeForElement<
+  P extends Record<string, unknown> | undefined,
+>(element: ElementNode<string, P>): ComponentType<P> | null {
   return (elementComponentMap[
     element[ELEMENT_KEY] as keyof typeof elementComponentMap
   ] ?? null) as ComponentType<P> | null;

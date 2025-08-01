@@ -26,7 +26,7 @@ my_list_view = ui_list_view()
 
 ## Table Source Example
 
-List view items can also be generated from a table directly or using `item_table_source`.
+List view items can also be generated from a table or [URI](uri.md) directly or using `item_table_source`.
 
 ### Passing Table Directly
 

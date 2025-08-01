@@ -41,7 +41,7 @@ Recommendations for creating pickers:
 
 ## Data sources
 
-We can use a Deephaven table as a data source to populate the options for pickers. A table automatically uses the first column as both the key and label. If there are duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table before using it as a picker data source.
+We can use a Deephaven table or [URI](uri.md) as a data source to populate the options for pickers. A table automatically uses the first column as both the key and label. If there are duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table before using it as a picker data source.
 
 ```python order=my_picker_table_source_example,stocks
 from deephaven import ui

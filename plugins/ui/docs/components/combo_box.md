@@ -47,7 +47,7 @@ Recommendations for creating clear and effective combo boxes:
 
 ## Data sources
 
-For combo boxes, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a combo box data source.
+For combo boxes, we can use a Deephaven table or [URI](uri.md) as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a combo box data source.
 
 ```python order=my_combo_box_table_source_example,countries
 from deephaven import ui, empty_table
