@@ -28,10 +28,7 @@ export interface ResolvedExportedObject<T extends WidgetTypes = dh.Widget> {
  * @param api The JS API instance to use.
  * @returns The widget type. Throws if the type cannot be determined.
  */
-export function getWidgetType(
-  widget: dh.Widget,
-  api: typeof dh
-): string | null {
+export function getWidgetType(widget: dh.Widget, api: typeof dh): string {
   if (widget.type != null) {
     return widget.type;
   }
