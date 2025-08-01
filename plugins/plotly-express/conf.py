@@ -42,7 +42,6 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 always_use_bars_union = True
 
 myst_all_links_external = True
-myst_fence_as_directive = ("python", "groovy")
 
 from deephaven_server import Server
 

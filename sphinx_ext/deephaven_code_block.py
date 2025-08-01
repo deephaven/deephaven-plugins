@@ -44,7 +44,10 @@ def setup(app: Sphinx):
     Returns:
         The metadata for the extension
     """
-    app.add_directive("python", CodeBlockDirective)
+    languages = ["python", "py", "groovy"]
+    for lang in languages:
+        app.add_directive(lang, CodeBlockDirective)
+        app.config.myst_fence_as_directive.add(lang)
 
     return {
         "version": "0.1",
