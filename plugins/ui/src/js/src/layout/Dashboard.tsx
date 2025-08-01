@@ -1,10 +1,18 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { nanoid } from 'nanoid';
 import {
   Dashboard as DHCDashboard,
   LayoutManagerContext,
 } from '@deephaven/dashboard';
-import GoldenLayout from '@deephaven/golden-layout';
+import GoldenLayout, {
+  Settings as LayoutSettings,
+} from '@deephaven/golden-layout';
 import { useDashboardPlugins } from '@deephaven/plugin';
 import Log from '@deephaven/log';
 import {
@@ -20,13 +28,22 @@ import PortalPanelManager from './PortalPanelManager';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 
-function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
+const DEFAULT_SETTINGS: Partial<LayoutSettings> = Object.freeze({
+  showCloseIcon: false,
+  constrainDragToContainer: true,
+});
+
+function Dashboard({
+  children,
+  showCloseIcon = false,
+  showHeaders = true,
+}: DashboardElementProps): JSX.Element | null {
   const [childLayout, setChildLayout] = useState<GoldenLayout>();
   // const parent = useParentItem();
   const plugins = useDashboardPlugins();
 
   const normalizedChildren = normalizeDashboardChildren(children);
-  console.log('xxx doing a dashboard with layout', childLayout);
+  console.log('xxx doing a dashboard with layout', childLayout, showCloseIcon);
 
   const panelIdIndex = useRef(0);
   // panelIds that are currently opened within this document. This list is tracked by the `onOpen`/`onClose` call on the `ReactPanelManager` from a child component.
@@ -66,6 +83,32 @@ function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
     [panelIds]
   );
 
+  /**
+   * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
+   * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
+   */
+  // useEffect(
+  //   function syncOpenPanels() {
+  //     if (!isPanelsDirty) {
+  //       return;
+  //     }
+
+  //     setPanelsDirty(false);
+
+  //     // Check if all the panels in this widget are closed
+  //     // We do it outside of the `handleClose` function in case a new panel opens up in the same render cycle
+  //     log.debug2('dashboard', 'open panel count', panelIds.current.length);
+  //     if (panelIds.current.length === 0) {
+  //       // Let's just ignore this for now ...
+  //       log.debug('Dashboard', 'closed all panels, triggering onClose');
+  //       // onClose?.();
+  //     } else {
+  //       // onDataChange({ ...widgetData, panelIds: panelIds.current });
+  //     }
+  //   },
+  //   [isPanelsDirty]
+  // );
+
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
     // If there are no more known IDs, generate a new one.
@@ -96,6 +139,14 @@ function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
     ]
   );
   const [isLayoutInitialized, setLayoutInitialized] = useState(false);
+  const layoutSettings: Partial<LayoutSettings> = useMemo(
+    () => ({
+      ...DEFAULT_SETTINGS,
+      showCloseIcon,
+      hasHeaders: showHeaders,
+    }),
+    [showCloseIcon, showHeaders]
+  );
 
   return (
     // <>
@@ -104,6 +155,7 @@ function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
       <DHCDashboard
         onGoldenLayoutChange={setChildLayout}
         onLayoutInitialized={() => setLayoutInitialized(true)}
+        layoutSettings={layoutSettings}
       >
         {plugins}
         <PortalPanelManager>
