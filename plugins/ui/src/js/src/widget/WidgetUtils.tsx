@@ -252,7 +252,7 @@ export function getComponentForElement(
     }
   }
 
-  return newElement.props?.children;
+  return newElement.props?.children as JSX.Element | null;
 }
 
 /**
