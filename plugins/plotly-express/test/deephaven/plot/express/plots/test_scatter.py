@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT, PLOTLY_NULL_DOUBLE
 
 
 class ScatterTestCase(BaseTestCase):
@@ -23,7 +23,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_basic_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -39,9 +38,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             }
@@ -81,7 +80,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_list_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(self.source, x="X", y=["Y", "Y2"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -97,9 +95,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "Y",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -110,9 +108,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "Y2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -165,7 +163,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_by_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(self.source, x="X", y="Y", by="category").to_dict(
             self.exporter
@@ -183,9 +180,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "1",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -196,9 +193,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -245,7 +242,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_by_none_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(
             self.source, x="X", y="Y", by="category", by_vars=None
@@ -263,9 +259,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "1",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -276,9 +272,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -325,7 +321,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_list_by_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(self.source, x="X", y=["Y", "Y2"], by="category").to_dict(
             self.exporter
@@ -343,9 +338,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "1",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -356,9 +351,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -411,7 +406,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_by_variable_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(self.source, x="X", y=["Y", "Y2"], by="variable").to_dict(
             self.exporter
@@ -429,9 +423,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "Y",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -442,9 +436,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "Y2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -497,7 +491,6 @@ class ScatterTestCase(BaseTestCase):
 
     def test_list_by_variable_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter(
             self.source, x="X", y=["Y", "Y2"], by=["variable", "category"]
@@ -515,9 +508,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "1, Y",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -528,9 +521,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "2, Y",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -541,9 +534,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "1, Y2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -554,9 +547,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "2, Y2",
                 "showlegend": True,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -623,7 +616,7 @@ class ScatterTestCase(BaseTestCase):
 
     def test_marginal_scatter(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT, NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.scatter(
             self.source, x="X", y="Y", marginal_x="rug", marginal_y="histogram"
@@ -641,9 +634,9 @@ class ScatterTestCase(BaseTestCase):
                 "mode": "markers",
                 "name": "",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             },
@@ -662,7 +655,7 @@ class ScatterTestCase(BaseTestCase):
                 "orientation": "h",
                 "pointpos": 0,
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x2",
                 "y0": " ",
@@ -670,7 +663,6 @@ class ScatterTestCase(BaseTestCase):
                 "type": "box",
             },
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "Y=%{y}<br>count=%{x}<extra></extra>",
                 "legendgroup": "",
                 "marker": {
@@ -679,13 +671,12 @@ class ScatterTestCase(BaseTestCase):
                     "pattern": {"shape": ""},
                 },
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
                 "x": [NULL_LONG],
                 "xaxis": "x3",
-                "y": [NULL_DOUBLE],
+                "y": PLOTLY_NULL_DOUBLE,
                 "yaxis": "y3",
                 "type": "bar",
             },

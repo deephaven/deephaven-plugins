@@ -23,9 +23,9 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'mesh3d',
   'cone',
   'streamtube',
-  'scattermapbox',
-  'choroplethmapbox',
-  'densitymapbox',
+  'scattermap',
+  'choroplethmap',
+  'densitymap',
 ]);
 
 /*
