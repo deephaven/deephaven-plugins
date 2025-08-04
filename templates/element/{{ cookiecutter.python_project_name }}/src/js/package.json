@@ -31,7 +31,7 @@
     "@deephaven/dashboard": "^1.2.0",
     "@deephaven/icons": "^1.2.0",
     "@deephaven/jsapi-bootstrap": "^1.2.0",
-    "@deephaven/jsapi-types": "1.0.0-dev0.39.5",
+    "@deephaven/jsapi-types": "1.0.0-dev0.39.6",
     "@deephaven/log": "^1.1.0",
     "@deephaven/plugin": "^1.2.0"
   },
