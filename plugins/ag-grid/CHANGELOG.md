@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.1.4 - 2025-07-23
+#### Bug Fixes
+- DH-19980: AgGrid did not work correctly with a rollup table (#1214) - (6024963) - mofojed
+
+- - -
+
+## ag-grid-v0.1.3 - 2025-07-16
+#### Bug Fixes
+- DH-19941: Could not import from package because of CSS error (#1213) - (4bc5282) - mofojed
+
+- - -
+
+## ag-grid-v0.1.2 - 2025-07-11
+#### Bug Fixes
+- TreeCellRenderer was not being exported correctly (#1208) - (dc39a4f) - mofojed
+#### Build system
+- **(ag-grid)** Allow peer dependency of React to be 17, 18, or 19 (#1207) - (9ebdf3c) - *mofojed*
+#### Documentation
+- Update the AG Grid readme with some basic details (#1206) - (620e467) - mofojed
+
+- - -
+
 ## ag-grid-v0.1.1 - 2025-07-07
 #### Bug Fixes
 - DH-19685: Auto-size AG Grid to fit cell content (#1205) - (2ed2d7f) - Germain Zhang-Houle

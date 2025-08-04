@@ -13,7 +13,6 @@ import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
 import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
-import customStyles from './AgGridCustomStyles.css?inline';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -62,6 +61,10 @@ export function AgGridWidget(
       suppressCellFocus: true,
       theme,
       rowHeight: themeParams.rowHeight as number,
+      rowStyle: {
+        // Displays numbers as monospace figures. Keeps decimal alignment.
+        fontVariantNumeric: 'tabular-nums',
+      },
     }),
     [theme, themeParams]
   );
@@ -89,7 +92,6 @@ export function AgGridWidget(
 
   return table != null ? (
     <div className="ui-table-container">
-      <style>{customStyles}</style>
       <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
     </div>
   ) : (

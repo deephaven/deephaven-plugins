@@ -9,9 +9,7 @@ export type TreeCellRendererProps = CustomCellRendererProps & {
   datasource: DeephavenViewportDatasource;
 };
 
-export default function TreeCellRenderer(
-  props: TreeCellRendererProps
-): JSX.Element {
+export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
   const { node, datasource, api } = props;
   const { data } = node;
   const treeNode: TreeNode | undefined = data?.[TREE_NODE_KEY];
@@ -36,7 +34,6 @@ export default function TreeCellRenderer(
         <Button
           icon={isExpanded ? vsTriangleDown : vsTriangleRight}
           kind="ghost"
-          tooltip={isExpanded ? 'Collapse' : 'Expand'}
           onClick={handleClick}
           style={{
             width: 'calc(100% - 5px)',
@@ -57,3 +54,5 @@ export default function TreeCellRenderer(
     </>
   );
 }
+
+export default TreeCellRenderer;

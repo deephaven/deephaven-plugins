@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Callable
+import warnings
 
 from plotly import express as px
 
@@ -20,6 +21,8 @@ def scatter_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -72,6 +75,15 @@ def scatter_geo(
         Can contain size, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -148,12 +160,62 @@ def scatter_geo(
     return process_args(args, {"scatter"}, px_func=px.scatter_geo)
 
 
-def scatter_mapbox(
+def scatter_mapbox(*args, **kwargs) -> DeephavenFigure:
+    """
+    c
+    """
+    warnings.warn(
+        "scatter_mapbox is deprecated and will be removed in a future release. Use scatter_map instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
+    return scatter_map(*args, **kwargs)
+
+
+def line_mapbox(*args, **kwargs) -> DeephavenFigure:
+    """
+    Deprecated function. Use line_map instead.
+    """
+    warnings.warn(
+        "line_mapbox is deprecated and will be removed in a future release. Use line_map instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
+    return line_map(*args, **kwargs)
+
+
+def density_mapbox(*args, **kwargs) -> DeephavenFigure:
+    """
+    Deprecated function. Use density_map instead.
+    """
+    warnings.warn(
+        "density_mapbox is deprecated and will be removed in a future release. Use density_map instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
+    return density_map(*args, **kwargs)
+
+
+def scatter_map(
     table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -178,13 +240,13 @@ def scatter_mapbox(
     opacity: float | None = None,
     zoom: float | None = None,
     center: dict[str, float] | None = None,
-    mapbox_style: str = "open-street-map",
+    map_style: str = "open-street-map",
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
-    Create a scatter_mapbox plot
+    Create a scatter_map plot
 
     Args:
       table: A table to pull data from.
@@ -198,6 +260,15 @@ def scatter_mapbox(
         Can contain size, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -241,7 +312,7 @@ def scatter_mapbox(
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      mapbox_style: The style of the map.
+      map_style: The style of the map.
         One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
         and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
       title: The title of the chart
@@ -255,11 +326,11 @@ def scatter_mapbox(
         mappings.
 
     Returns:
-        DeephavenFigure: A DeephavenFigure that contains the scatter_mapbox figure
+        DeephavenFigure: A DeephavenFigure that contains the scatter_map figure
     """
     args = locals()
 
-    return process_args(args, {"scatter"}, px_func=px.scatter_mapbox)
+    return process_args(args, {"scatter"}, px_func=px.scatter_map)
 
 
 def line_geo(
@@ -272,6 +343,8 @@ def line_geo(
     featureidkey: str = "id",
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,
@@ -321,6 +394,15 @@ def line_geo(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -408,12 +490,14 @@ def line_geo(
     return process_args(args, {"line"}, px_func=px.line_geo)
 
 
-def line_mapbox(
+def line_map(
     table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     text: str | None = None,
     size: str | list[str] | None = None,
@@ -433,14 +517,14 @@ def line_mapbox(
     width_sequence: list[int] | None = None,
     width_map: dict[str | tuple[str], str] | None = None,
     zoom: float | None = None,
-    mapbox_style: str = "open-street-map",
+    map_style: str = "open-street-map",
     center: dict[str, float] | None = None,
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
-    Create a line_mapbox plot
+    Create a line_map plot
 
     Args:
       table: A table to pull data from.
@@ -454,6 +538,15 @@ def line_mapbox(
         Can contain size, line_dash, width, color, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
@@ -506,7 +599,7 @@ def line_mapbox(
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      mapbox_style: The style of the map.
+      map_style: The style of the map.
         One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
         and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
       title: The title of the chart
@@ -520,15 +613,15 @@ def line_mapbox(
         mappings.
 
     Returns:
-        DeephavenFigure: A DeephavenFigure that contains the line_mapbox figure
+        DeephavenFigure: A DeephavenFigure that contains the line_map figure
 
     """
     args = locals()
 
-    return process_args(args, {"line"}, px_func=px.line_mapbox)
+    return process_args(args, {"line"}, px_func=px.line_map)
 
 
-def density_mapbox(
+def density_map(
     table: TableLike,
     lat: str | None = None,
     lon: str | None = None,
@@ -542,13 +635,13 @@ def density_mapbox(
     opacity: float | None = None,
     zoom: float | None = None,
     center: dict[str, float] | None = None,
-    mapbox_style: str = "open-street-map",
+    map_style: str = "open-street-map",
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
-    Create a density_mapbox plot
+    Create a density_map plot
 
     Args:
       table: A table to pull data from.
@@ -567,7 +660,7 @@ def density_mapbox(
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      mapbox_style: The style of the map.
+      map_style: The style of the map.
         One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
         and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
       title: The title of the chart
@@ -581,8 +674,8 @@ def density_mapbox(
         mappings.
 
     Returns:
-        DeephavenFigure: A DeephavenFigure that contains the density_mapbox figure
+        DeephavenFigure: A DeephavenFigure that contains the density_map figure
     """
     args = locals()
 
-    return process_args(args, set(), px_func=px.density_mapbox)
+    return process_args(args, set(), px_func=px.density_map)

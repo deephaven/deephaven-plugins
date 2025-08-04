@@ -188,6 +188,9 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     for i in range(1, len(scaled)):
         ends.append(ends[-1] + scaled[i] + spacing)
 
+    # the last end value is always 1.0, and sometimes it ends up off due to rounding errors
+    ends[-1] = 1.0
+
     return starts, ends
 
 
@@ -249,7 +252,7 @@ def atomic_make_subplots(
     grid = grid if grid else make_grid(list(figs), rows, cols)
 
     # reverse rows as plotly goes bottom to top
-    grid.reverse()
+    grid = list(reversed(grid))
 
     # grid must have identical number of columns per row at this point
     rows, cols = len(grid), len(grid[0])
@@ -262,7 +265,7 @@ def atomic_make_subplots(
         else:
             specs = cast(List[SubplotSpecDict], specs)
             spec_grid = cast(Grid[Any], make_grid(specs, rows, cols, fill={}))
-        spec_grid.reverse()
+        spec_grid = list(reversed(spec_grid))
     elif specs:
         raise ValueError("specs must be a list or a grid")
 
@@ -279,7 +282,7 @@ def atomic_make_subplots(
     if row_heights is None:
         row_heights = [1.0 / rows for _ in range(rows)]
 
-    row_heights.reverse()
+    row_heights = list(reversed(row_heights))
 
     col_starts, col_ends = get_domains(column_widths, horizontal_spacing)
     row_starts, row_ends = get_domains(row_heights, vertical_spacing)
@@ -296,6 +299,8 @@ def atomic_make_subplots(
             shared_yaxes,
         ),
         unsafe_update_figure=unsafe_update_figure,
+        # remove the legend title as it is likely incorrect
+        remove_legend_title=True,
     )
 
 

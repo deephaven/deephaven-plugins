@@ -8,6 +8,15 @@ from .hierarchical import treemap, icicle, sunburst, funnel, funnel_area
 from .pie import pie
 from ._layer import layer
 from .subplots import make_subplots
-from .maps import scatter_geo, scatter_mapbox, density_mapbox, line_geo, line_mapbox
+from .maps import (
+    scatter_geo,
+    scatter_mapbox,
+    density_mapbox,
+    line_geo,
+    line_mapbox,
+    scatter_map,
+    density_map,
+    line_map,
+)
 from .heatmap import density_heatmap
 from .indicator import indicator

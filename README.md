@@ -70,7 +70,7 @@ We use [Playwright](https://playwright.dev/) for end-to-end tests. We test again
 
 You should be able to pass arguments to these commands as if you were running Playwright via CLI directly. For example, to test only `matplotlib.spec.ts` you could run `npm run e2e:docker -- ./tests/matplotlib.spec.ts`, or to test only `matplotlib.spec.ts` in Firefox, you could run `npm run e2e:docker -- --project firefox ./tests/matplotlib.spec.ts`. See [Playwright CLI](https://playwright.dev/docs/test-cli) for more details.
 
-It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment.
+It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment. If you only need to update the snapshots for a specific test, you can run `npm run e2e:update-snapshots -- ./tests/ui.spec.ts` to update only the snapshots for that test and save some time.
 
 If you want to run tests locally (which may be easier for debugging or creating new tests), run Playwright in [UI Mode](https://playwright.dev/docs/test-ui-mode) with `npm run e2e:ui`. This will allow you to run each test individually, see the browser as it runs it, inspect the console, evaluate locators, etc. **Note**: There may be a permissions issue starting up Playwright in local mode after running it in docker. If you encounter this, delete the previous `test-results` folder using `sudo rm -rf test-results`.
 

@@ -30,6 +30,8 @@ import {
 import {
   InputFilterEvent,
   useDashboardColumnFilters,
+  useGridLinker,
+  useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
 import { useLayoutManager, useListener } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
@@ -294,6 +296,32 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  const {
+    alwaysFetchColumns: linkerAlwaysFetchColumns,
+    columnSelectionValidator,
+    isSelectingColumn,
+    onColumnSelected,
+    onDataSelected,
+  } = useGridLinker(model ?? null, irisGrid);
+
+  // This is used by deprecated table plugin props
+  const irisGridRef = useRef<IrisGridType | null>(irisGrid);
+  irisGridRef.current = irisGrid;
+
+  const [selection, setSelection] = useState<readonly GridRange[]>([]);
+
+  const {
+    Plugin,
+    customFilters,
+    alwaysFetchColumns: pluginFetchColumns,
+    onContextMenu: pluginOnContextMenu,
+  } = useTablePlugin({
+    model,
+    irisGridRef,
+    irisGridUtils: utils,
+    selectedRanges: selection,
+  });
+
   const [dehydratedState, setDehydratedState] = usePersistentState<
     (DehydratedIrisGridState & DehydratedGridState) | undefined
   >(undefined, { type: 'UITable', version: 1 });
@@ -396,8 +424,21 @@ export function UITable({
   }, [alwaysFetchColumnsProp, columns, throwError]);
 
   const alwaysFetchColumns = useMemo(
-    () => [...alwaysFetchColumnsPropArray, ...formatColumnSources],
-    [alwaysFetchColumnsPropArray, formatColumnSources]
+    () => [
+      // Deduplicate alwaysFetchColumns
+      ...new Set([
+        ...alwaysFetchColumnsPropArray,
+        ...formatColumnSources,
+        ...linkerAlwaysFetchColumns,
+        ...pluginFetchColumns,
+      ]),
+    ],
+    [
+      alwaysFetchColumnsPropArray,
+      formatColumnSources,
+      linkerAlwaysFetchColumns,
+      pluginFetchColumns,
+    ]
   );
 
   const mouseHandlers = useMemo(
@@ -441,9 +482,11 @@ export function UITable({
   );
 
   const onContextMenu = useCallback(
-    (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu, data, alwaysFetchColumns),
-    [contextMenu, alwaysFetchColumns]
+    (data: IrisGridContextMenuData) => [
+      ...wrapContextActions(contextMenu, data, alwaysFetchColumns),
+      ...pluginOnContextMenu(data),
+    ],
+    [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
   );
 
   const irisGridServerProps = useMemo(() => {
@@ -525,6 +568,7 @@ export function UITable({
         alwaysFetchColumnsPropArray
       );
 
+      setSelection(ranges);
       onSelectionChange(selected);
     },
     [irisGrid, model, onSelectionChange, alwaysFetchColumnsPropArray]
@@ -557,7 +601,7 @@ export function UITable({
   }, [irisGridServerProps, initialHydratedState]);
 
   const inputFilters = useDashboardColumnFilters(
-    model?.columns ?? EMPTY_ARRAY,
+    model?.columns ?? null,
     model?.table
   );
 
@@ -585,10 +629,17 @@ export function UITable({
         model={model}
         onStateChange={onStateChange}
         onSelectionChanged={debouncedHandleSelectionChanged}
+        columnSelectionValidator={columnSelectionValidator}
+        isSelectingColumn={isSelectingColumn}
+        onColumnSelected={onColumnSelected}
+        onDataSelected={onDataSelected}
+        customFilters={customFilters}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
         inputFilters={inputFilters}
-      />
+      >
+        {Plugin}
+      </IrisGrid>
     </div>
   ) : null;
 }
