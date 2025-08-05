@@ -19,7 +19,7 @@ import {
 import ObjectView from './ObjectView';
 import { useObjectViewObject } from './hooks/useObjectViewObject';
 import UriObjectView from './UriObjectView';
-import WidgetErrorView from '../widget/WidgetErrorView';
+import { getErrorShortMessage } from '../widget/WidgetErrorUtils';
 
 export function Picker(
   props: SerializedPickerProps<
@@ -41,7 +41,13 @@ export function Picker(
 
   if (isObjectView) {
     if (error != null) {
-      return <WidgetErrorView error={error} />;
+      const message = getErrorShortMessage(error);
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHPicker {...pickerProps} errorMessage={message} isInvalid>
+          {[]}
+        </DHPicker>
+      );
     }
     if (isLoading || table == null || api == null) {
       return (

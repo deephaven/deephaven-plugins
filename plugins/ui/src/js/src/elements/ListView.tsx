@@ -33,12 +33,23 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
 
   if (isObjectView) {
     if (error != null) {
-      return <WidgetErrorView error={error} />;
+      return (
+        <DHListView
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...listViewProps}
+          renderEmptyState={() => <WidgetErrorView error={error} />}
+        >
+          {[]}
+        </DHListView>
+      );
     }
     if (isLoading || table == null || api == null) {
       return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHListView loadingState="loading" {...listViewProps}>
+        <DHListView
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...listViewProps}
+          loadingState="loading"
+        >
           {[]}
         </DHListView>
       );

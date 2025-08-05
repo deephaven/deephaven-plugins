@@ -19,7 +19,7 @@ import {
 import ObjectView from './ObjectView';
 import { useObjectViewObject } from './hooks/useObjectViewObject';
 import UriObjectView from './UriObjectView';
-import WidgetErrorView from '../widget/WidgetErrorView';
+import { getErrorShortMessage } from '../widget/WidgetErrorUtils';
 
 export function ComboBox(
   props: SerializedPickerProps<
@@ -41,7 +41,17 @@ export function ComboBox(
 
   if (isObjectView) {
     if (error != null) {
-      return <WidgetErrorView error={error} />;
+      const message = getErrorShortMessage(error);
+      return (
+        <DHComboBox
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...pickerProps}
+          errorMessage={message}
+          validationState="invalid"
+        >
+          {[]}
+        </DHComboBox>
+      );
     }
     if (isLoading || table == null || api == null) {
       return (
