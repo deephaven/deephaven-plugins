@@ -57,6 +57,7 @@ export function useExportedObject<T extends WidgetTypes = dh.Widget>(
     | dh.WidgetExportedObject
     | dh.ide.VariableDescriptor
     | UriExportedObject
+    | null
 ): ResolvedExportedObject<T> {
   const {
     widget: descriptorWidget,
@@ -65,7 +66,9 @@ export function useExportedObject<T extends WidgetTypes = dh.Widget>(
   } = useWidget<T>(
     isUriExportedObject(descriptor)
       ? descriptor.uri
-      : (descriptor as dh.ide.VariableDescriptor)
+      : // useWidget will gracefully handle the error if it's not actually this type,
+        // but we don't want to modify the hook signature to accept unknown
+        (descriptor as dh.ide.VariableDescriptor)
   );
 
   useWidgetClose(descriptorWidget);
