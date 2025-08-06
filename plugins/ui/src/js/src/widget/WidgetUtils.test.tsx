@@ -50,10 +50,7 @@ describe('getComponentTypeForElement', () => {
   )(
     'should return the correct component type for a given key: %s',
     elementKey => {
-      const actual = getComponentTypeForElement({
-        [ELEMENT_KEY]: elementKey,
-        props: {},
-      });
+      const actual = getComponentTypeForElement({ [ELEMENT_KEY]: elementKey });
       expect(actual).toBe(elementComponentMap[elementKey]);
     }
   );
@@ -77,10 +74,7 @@ describe('getComponentForElement', () => {
   ] as [string, ({ element }: { element: unknown }) => JSX.Element][])(
     'should use expected element factory function: %s',
     (elementKey, factory) => {
-      const actual = getComponentForElement({
-        [ELEMENT_KEY]: elementKey,
-        props: {},
-      });
+      const actual = getComponentForElement({ [ELEMENT_KEY]: elementKey });
       expect(actual).toEqual(
         factory({ element: { [ELEMENT_KEY]: elementKey } })
       );
@@ -90,7 +84,7 @@ describe('getComponentForElement', () => {
   it.each(
     Object.keys(elementComponentMap) as (keyof typeof elementComponentMap)[]
   )('should spread props for element nodes: %s', elementKey => {
-    let element: ElementNode = { [ELEMENT_KEY]: elementKey, props: {} };
+    let element: ElementNode = { [ELEMENT_KEY]: elementKey };
 
     if (elementKey === ELEMENT_NAME.fragment) {
       element = {

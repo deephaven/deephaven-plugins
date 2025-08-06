@@ -32,14 +32,19 @@ export type ElementNode<
   P extends Record<string, unknown> | undefined =
     | Record<string, unknown>
     | undefined,
-> = {
-  /**
-   * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
-   * a custom component type defined by the user in their plugin.
-   */
-  [ELEMENT_KEY]: K;
-  props: P;
-};
+> = P extends undefined
+  ? {
+      /**
+       * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
+       * a custom component type defined by the user in their plugin.
+       */
+      [ELEMENT_KEY]: K;
+      props?: P;
+    }
+  : {
+      [ELEMENT_KEY]: K;
+      props: P;
+    };
 
 export type ElementNodeWithChildren<
   K extends string = string,

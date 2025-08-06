@@ -62,10 +62,7 @@ describe('wrapElementChildren', () => {
   };
 
   it('should return given element if it has no children', () => {
-    const actual = wrapElementChildren({
-      [ELEMENT_KEY]: 'mock.element',
-      props: {},
-    });
+    const actual = wrapElementChildren({ [ELEMENT_KEY]: 'mock.element' });
     expect(actual).toBe(actual);
   });
 
