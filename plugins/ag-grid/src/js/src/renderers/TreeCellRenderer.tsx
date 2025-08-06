@@ -47,6 +47,9 @@ export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
             paddingLeft: depth * 10,
             textAlign: 'left',
             justifyContent: 'left',
+            border: 'none',
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
           }}
         >
           {groupName}
