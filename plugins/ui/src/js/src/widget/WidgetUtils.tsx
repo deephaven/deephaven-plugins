@@ -32,8 +32,9 @@ import {
   SubmenuTrigger,
   View,
 } from '@deephaven/components';
-import { ValueOf } from '@deephaven/utils';
+import { ValueOf, EMPTY_MAP } from '@deephaven/utils';
 import Log from '@deephaven/log';
+import type { ElementMap } from '@deephaven/plugin';
 import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
@@ -210,13 +211,23 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
 
 export function getComponentTypeForElement<
   P extends Record<string, unknown> | undefined,
->(element: ElementNode<string, P>): ComponentType<P> | null {
+>(
+  element: ElementNode<string, P>,
+  elementMap: ElementMap = EMPTY_MAP
+): ComponentType<P> | null {
+  const key = element[ELEMENT_KEY];
+  if (elementMap.has(key)) {
+    return elementMap.get(key) as ComponentType<P> | null;
+  }
   return (elementComponentMap[
     element[ELEMENT_KEY] as keyof typeof elementComponentMap
   ] ?? null) as ComponentType<P> | null;
 }
 
-export function getComponentForElement(element: ElementNode): React.ReactNode {
+export function getComponentForElement(
+  element: ElementNode,
+  elementMap: ElementMap = EMPTY_MAP
+): JSX.Element | null {
   const newElement = wrapElementChildren({ ...element });
 
   if (isHTMLElementNode(newElement)) {
@@ -226,7 +237,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     return IconElementView({ element: newElement });
   }
   if (isElementNode(newElement)) {
-    const Component = getComponentTypeForElement(newElement);
+    const Component = getComponentTypeForElement(newElement, elementMap);
 
     if (Component != null) {
       const props = { ...newElement.props };
@@ -245,7 +256,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     }
   }
 
-  return newElement.props?.children;
+  return newElement.props?.children as JSX.Element | null;
 }
 
 /**

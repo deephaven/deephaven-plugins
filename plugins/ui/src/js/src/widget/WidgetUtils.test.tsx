@@ -36,6 +36,14 @@ const mockFinalizationRegistry = TestUtils.createMockProxy<
   register: jest.fn(),
 });
 
+const customElement = jest.fn(() => <div>Custom Element</div>);
+
+const elementPluginMapping = new Map(
+  Object.entries({
+    [`custom.element`]: customElement,
+  })
+);
+
 describe('getComponentTypeForElement', () => {
   it.each(
     Object.keys(elementComponentMap) as (keyof typeof elementComponentMap)[]
@@ -49,6 +57,15 @@ describe('getComponentTypeForElement', () => {
       expect(actual).toBe(elementComponentMap[elementKey]);
     }
   );
+
+  it('should return an element plugin component when it matches', () => {
+    const elementKey = `custom.element`;
+    const actual = getComponentTypeForElement(
+      { [ELEMENT_KEY]: elementKey },
+      elementPluginMapping
+    );
+    expect(actual).toBe(customElement);
+  });
 });
 
 describe('getComponentForElement', () => {

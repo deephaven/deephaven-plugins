@@ -4,6 +4,7 @@ from ..BaseTest import (
     DEFAULT_PLOTLY_DATA,
     DEFAULT_PLOTLY_LAYOUT,
     DEFAULT_PLOTLY_TRACE,
+    PLOTLY_NULL_INT,
 )
 
 
@@ -67,9 +68,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -81,9 +82,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
         ]
@@ -138,9 +139,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -224,9 +225,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -238,9 +239,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B, D",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
         ]
@@ -298,9 +299,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -354,9 +355,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -455,9 +456,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -573,9 +574,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -694,9 +695,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -750,9 +751,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -834,9 +835,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -848,9 +849,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B, D",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
         ]
@@ -908,9 +909,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1012,9 +1013,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1097,9 +1098,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -1111,9 +1112,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B, D",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
         ]
@@ -1171,9 +1172,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1227,9 +1228,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1348,9 +1349,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1410,9 +1411,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -1424,9 +1425,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B, D",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
         ]
@@ -1484,9 +1485,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1594,9 +1595,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A, C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -1726,9 +1727,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
             {
@@ -1740,9 +1741,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -1799,9 +1800,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -1813,9 +1814,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -1953,9 +1954,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
             {
@@ -1967,9 +1968,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "B",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -2040,9 +2041,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]
@@ -2095,9 +2096,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "C",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             },
             {
@@ -2109,9 +2110,9 @@ class FilterByTestCase(BaseTestCase):
                 "name": "A",
                 "showlegend": True,
                 "type": "scattergl",
-                "x": [NULL_INT],
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x2",
-                "y": [NULL_INT],
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y2",
             },
         ]

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT, PLOTLY_NULL_DOUBLE
 
 
 class TreemapTestCase(BaseTestCase):
@@ -27,7 +27,6 @@ class TreemapTestCase(BaseTestCase):
 
     def test_basic_treemap(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.treemap(
             self.source, names="names", parents="parents", values="values"
@@ -41,7 +40,7 @@ class TreemapTestCase(BaseTestCase):
                 "name": "",
                 "parents": ["None"],
                 "type": "treemap",
-                "values": [NULL_INT],
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -69,7 +68,6 @@ class TreemapTestCase(BaseTestCase):
 
     def test_treemap_numeric_colors(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.treemap(
             self.source,
@@ -86,10 +84,10 @@ class TreemapTestCase(BaseTestCase):
                 "color}<extra></extra>",
                 "labels": ["None"],
                 "name": "",
-                "marker": {"coloraxis": "coloraxis", "colors": [NULL_INT]},
+                "marker": {"coloraxis": "coloraxis", "colors": PLOTLY_NULL_INT},
                 "parents": ["None"],
                 "type": "treemap",
-                "values": [NULL_INT],
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -135,7 +133,6 @@ class TreemapTestCase(BaseTestCase):
 
     def test_treemap_categorical_colors(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.treemap(
             self.source,
@@ -154,7 +151,7 @@ class TreemapTestCase(BaseTestCase):
                 "marker": {"colors": []},
                 "parents": ["None"],
                 "type": "treemap",
-                "values": [NULL_INT],
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -231,7 +228,7 @@ class TreemapTestCase(BaseTestCase):
 
     def test_treemap_path_numeric_colors(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_DOUBLE, NULL_LONG
+        from deephaven.constants import NULL_LONG
 
         chart = dx.treemap(
             self.source,
@@ -250,7 +247,7 @@ class TreemapTestCase(BaseTestCase):
                 "labels": ["None"],
                 "marker": {
                     "coloraxis": "coloraxis",
-                    "colors": [NULL_DOUBLE],
+                    "colors": PLOTLY_NULL_DOUBLE,
                 },
                 "name": "",
                 "parents": ["None"],
