@@ -553,14 +553,14 @@ class UITableModel extends IrisGridModel {
     // 1. Alignment from context menu
     // 2. UI table formatting
     // 3. Data type based alignment
-    const customAlignment = isIrisGridTableModelTemplate(this.model)
+    const contextMenuAlignment = isIrisGridTableModelTemplate(this.model)
       ? this.model.columnAlignmentMap.get(
           this.model.sourceColumn(column, row).name
         )
       : undefined;
 
     return (
-      customAlignment ??
+      contextMenuAlignment ??
       this.getFormatOptionForCell(column, row, 'alignment') ??
       this.model.textAlignForCell(column, row)
     );
