@@ -548,7 +548,16 @@ class UITableModel extends IrisGridModel {
     column: ModelIndex,
     row: ModelIndex
   ): CanvasTextAlign {
+    // Check if the base model has a custom alignment. If so, don't override with UI table formatting.
+    // Text alignment priority hierarchy (from highest to lowest):
+    // 1. Alignment from context menu
+    // 2. UI table formatting
+    // 3. Data type based alignment
+    const columnName = this.columns[column].name;
+    const contextMenuAlignment = this.model.columnAlignmentMap.get(columnName);
+
     return (
+      contextMenuAlignment ??
       this.getFormatOptionForCell(column, row, 'alignment') ??
       this.model.textAlignForCell(column, row)
     );
