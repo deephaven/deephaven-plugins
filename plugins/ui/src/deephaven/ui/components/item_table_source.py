@@ -7,7 +7,8 @@ from deephaven.table import Table, PartitionedTable
 from .item import ItemElement
 from .list_action_group import ListActionGroupElement
 from .list_action_menu import ListActionMenuElement
-from ..elements import Element
+from ..elements import Element, resolve
+from ..elements.UriElement import UriElement
 from ..types import ColumnName, Stringable
 
 ListViewItem = Union[Stringable, ItemElement]
@@ -15,7 +16,7 @@ ListViewElement = Element
 
 
 class ItemTableSource(TypedDict):
-    table: Table | PartitionedTable
+    table: Table | PartitionedTable | UriElement
     key_column: ColumnName | None
     label_column: ColumnName | None
     description_column: ColumnName | None
@@ -25,7 +26,7 @@ class ItemTableSource(TypedDict):
 
 
 def item_table_source(
-    table: Table | PartitionedTable,
+    table: Table | PartitionedTable | UriElement | str,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -43,7 +44,7 @@ def item_table_source(
 
     Args:
         table:
-            The table to use as the source of items.
+            The table to use as the source of items. May be a UriElement or a URI string.
         key_column:
             The column of values to use as item keys. Defaults to the first column.
         label_column:
@@ -65,5 +66,7 @@ def item_table_source(
     Returns:
         The item table source to pass as a child to a component that supports it.
     """
+
+    table = resolve(table) if isinstance(table, str) else table
 
     return cast(ItemTableSource, locals())

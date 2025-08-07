@@ -29,6 +29,7 @@ import {
   isCallableNode,
   isElementNode,
   isObjectNode,
+  isUriNode,
 } from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
@@ -53,6 +54,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
+import UriExportedObject from './UriExportedObject';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -209,6 +211,8 @@ function WidgetHandler({
     [error, initialData, widgetDescriptor]
   );
 
+  const [uriObjectMap] = useState<Map<string, UriExportedObject>>(new Map());
+
   const renderDocument = useCallback(
     /**
      * Iterates through a document and renders it with the appropriate components. Returns the original object/arrays if there are no changes.
@@ -227,6 +231,7 @@ function WidgetHandler({
       // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
+      const deadUriMap = new Map(uriObjectMap);
       const deadCallableMap = new Map(renderedCallableMap.current);
       const hydratedDocument = transformNode(
         doc,
@@ -260,6 +265,19 @@ function WidgetHandler({
             deadObjectMap.delete(objectKey);
             return exportedObject;
           }
+
+          // If this is the root element, we want to return the element version instead
+          if (isUriNode(value) && key !== '') {
+            const { uri } = value.props;
+            let uriExportedObject = uriObjectMap.get(uri);
+            if (uriExportedObject == null) {
+              uriExportedObject = new UriExportedObject(uri);
+              uriObjectMap.set(uri, uriExportedObject);
+            }
+            deadUriMap.delete(uri);
+            return uriExportedObject;
+          }
+
           if (isElementNode(value)) {
             // Replace the elements node with the Component it maps to
             try {
@@ -280,6 +298,12 @@ function WidgetHandler({
         log.debug('Closing dead object', objectKey);
         deadObject.close();
         exportedObjectMap.current.delete(objectKey);
+      });
+
+      // Cleanup any URI objects that are no longer referenced
+      deadUriMap.forEach((deadUriObject, uri) => {
+        log.debug('Cleaning up dead URI object', uri);
+        uriObjectMap.delete(uri);
       });
 
       // Close any callables that are no longer referenced
@@ -304,6 +328,7 @@ function WidgetHandler({
       id,
       renderEmptyDocument,
       callableFinalizationRegistry,
+      uriObjectMap,
       pluginsElementMap,
     ]
   );

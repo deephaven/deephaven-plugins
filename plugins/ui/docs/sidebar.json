@@ -407,6 +407,10 @@
                 "path": "components/toggle_button.md"
               },
               {
+                "label": "URI/resolve",
+                "path": "components/uri.md"
+              },
+              {
                 "label": "view",
                 "path": "components/view.md"
               }
