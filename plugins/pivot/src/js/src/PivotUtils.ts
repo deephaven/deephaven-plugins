@@ -1,6 +1,12 @@
 /* eslint-disable import/prefer-default-export */
 import type { DisplayColumn } from '@deephaven/iris-grid';
 
+export type ExpandableDisplayColumn = DisplayColumn & {
+  depth: number;
+  isExpanded: boolean;
+  hasChildren: boolean;
+};
+
 export function makeVirtualColumn({
   name,
   displayName = name,
@@ -8,6 +14,9 @@ export function makeVirtualColumn({
   index,
   description,
   isSortable = false,
+  depth = 2,
+  hasChildren = false,
+  isExpanded = false,
 }: {
   name: string;
   displayName?: string;
@@ -15,7 +24,10 @@ export function makeVirtualColumn({
   index: number;
   description?: string;
   isSortable?: boolean;
-}): DisplayColumn {
+  depth?: number;
+  hasChildren?: boolean;
+  isExpanded?: boolean;
+}): ExpandableDisplayColumn {
   return {
     name,
     displayName,
@@ -25,6 +37,9 @@ export function makeVirtualColumn({
     isProxy: false, // true, // TODO?
     description,
     index,
+    depth,
+    hasChildren,
+    isExpanded,
     filter: () => {
       throw new Error('Filter not implemented for virtual column');
     },
