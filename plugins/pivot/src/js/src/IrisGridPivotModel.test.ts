@@ -210,4 +210,197 @@ describe('IrisGridPivotModel', () => {
 
     // TODO: test viewports: 1 row (just the totals), 1 row (just the data, no totals)
   });
+
+  it.only('expandable rows and columns', () => {
+    const addEventListenerMock = jest.fn();
+    const mockSetViewport = jest.fn();
+    pivotTable = createMockProxy<DhType.coreplus.pivot.PivotTable>({
+      rowSources: [
+        createMockProxy<DhType.coreplus.pivot.PivotSource>({
+          type: 'java.lang.String',
+          name: 'R',
+        }),
+        createMockProxy<DhType.coreplus.pivot.PivotSource>({
+          type: 'java.lang.String',
+          name: 'O',
+        }),
+      ],
+      columnSources: [
+        createMockProxy<DhType.coreplus.pivot.PivotSource>({
+          type: 'java.lang.String',
+          name: 'C',
+        }),
+        createMockProxy<DhType.coreplus.pivot.PivotSource>({
+          type: 'java.lang.String',
+          name: 'D',
+        }),
+      ],
+      valueSources: [
+        createMockProxy<DhType.coreplus.pivot.PivotSource>({
+          type: 'long',
+          name: 'Count',
+        }),
+      ],
+      addEventListener: addEventListenerMock,
+      removeEventListener: jest.fn(),
+      setViewport: mockSetViewport,
+    });
+
+    const mockGetRowKeys = jest.fn(i => [`R${i}`, null]);
+    const mockGetRowDepth = jest.fn(() => 2);
+    const mockGetColumnKeys = jest.fn(
+      i =>
+        [
+          ['C0', null],
+          ['C0', 'D0'],
+          ['C0', 'D1'],
+          ['C0', 'D2'], // D is not guaranteed to be in order unless sorted
+          ['C1', null],
+        ][i]
+    );
+    const mockGetColumnDepth = jest.fn(i => [2, 3, 3, 3, 2][i]);
+    // Takes a valueSource, returns a value
+    const mockGetGrandTotal = jest.fn(() => 10000);
+    // Takes a position and a valueSource, returns a value
+    const mockGetTotal = jest.fn(() => 100);
+    const mockRowHasChildren = jest.fn(() => true);
+    const mockRowIsExpanded = jest.fn(() => false);
+    const mockIsColumnExpanded = jest.fn(
+      i => [true, false, false, false, false][i]
+    );
+    const mockColumnHasChildren = jest.fn(
+      i => [true, false, false, false, true][i]
+    );
+
+    const mockGetValue = jest.fn(
+      (
+        valueSource: DhType.coreplus.pivot.PivotSource,
+        rowIndex: number,
+        colIndex: number
+      ) => 1
+    );
+
+    model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
+    model.startListening();
+
+    const updateEvent = {
+      type: 'update',
+      detail: {
+        rows: {
+          count: 3,
+          offset: 0,
+          totalCount: 3,
+          getKeys: mockGetRowKeys,
+          getDepth: mockGetRowDepth,
+          getTotal: mockGetTotal,
+          isExpanded: mockRowIsExpanded,
+          hasChildren: mockRowHasChildren,
+        },
+        columns: {
+          count: 5,
+          offset: 0,
+          totalCount: 5,
+          getKeys: mockGetColumnKeys,
+          getDepth: mockGetColumnDepth,
+          getTotal: mockGetTotal,
+          isExpanded: mockIsColumnExpanded,
+          hasChildren: mockColumnHasChildren,
+        },
+        valueSources: [...pivotTable.valueSources],
+        getGrandTotal: mockGetGrandTotal,
+        getValue: mockGetValue,
+      },
+    };
+
+    expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
+    expect(model.columns.length).toBe(3); // Only the virtual columns initially. RowBy sources and the totals.
+
+    model.setViewport(0, 10);
+
+    // Simulate the update event with the data
+    addEventListenerMock.mock.calls[0][1](updateEvent);
+
+    expect(model.rowCount).toBe(4); // 3 rows + 1 totals
+    expect(model.columns.length).toBe(8); // 3 virtual columns (row source labels, totals) + 2 actual columns (C0, C1) + 3 children columns (D0, D1, D2)
+
+    expect(
+      Array(model.columns.length)
+        .fill(0)
+        .map((_, i) => model.textForCell(i, 0))
+    ).toEqual([
+      '', // R
+      '', // O
+      '10000', // Grand total
+      '100', // Total for C0
+      '100', // Total for C0 - D0
+      '100', // Total for C0 - D1
+      '100', // Total for C0 - D2
+      '100', // Total for C1
+    ]);
+
+    expect(
+      Array(model.columns.length)
+        .fill(0)
+        .map((_, i) => model.textForCell(i, 1))
+    ).toEqual([
+      'R0',
+      '', // O
+      '100', // Total for R0
+      '1', // Value for C0
+      '1', // Value for C0 - D0
+      '1', // Value for C0 - D1
+      '1', // Value for C0 - D2
+      '1', // Value for C1
+    ]);
+
+    // Expandable rows
+
+    // Totals row is expanded by default, needs API support to manually collapse/expand
+    expect(model.isRowExpanded(0)).toBe(true);
+    expect(model.isRowExpandable(0)).toBe(true);
+
+    // R0
+    expect(model.isRowExpanded(1)).toBe(false);
+    expect(model.isRowExpandable(1)).toBe(true);
+
+    // Expandable columns
+
+    // Virtual columns are not expandable
+    expect(model.isColumnExpandable(0)).toBe(false);
+    expect(model.isColumnExpandable(1)).toBe(false);
+
+    // Totals column is expanded by default in the model, needs API support to manually collapse/expand
+    expect(model.isColumnExpandable(2)).toBe(true);
+    expect(model.isColumnExpanded(2)).toBe(true);
+
+    // C0
+    expect(model.isColumnExpandable(3)).toBe(true);
+    expect(model.isColumnExpanded(3)).toBe(true);
+    expect(model.depthForColumn(3)).toBe(2);
+    expect(model.columns[3].name).toBe('C0');
+
+    // C0 children - D0, D1, D2
+    expect(model.isColumnExpandable(4)).toBe(false);
+    expect(model.isColumnExpanded(4)).toBe(false);
+    expect(model.depthForColumn(4)).toBe(3);
+    expect(model.columns[4].name).toBe('C0-D0');
+
+    expect(model.isColumnExpandable(5)).toBe(false);
+    expect(model.isColumnExpanded(5)).toBe(false);
+    expect(model.depthForColumn(5)).toBe(3);
+    expect(model.columns[5].name).toBe('C0-D1');
+
+    expect(model.isColumnExpandable(6)).toBe(false);
+    expect(model.isColumnExpanded(6)).toBe(false);
+    expect(model.depthForColumn(6)).toBe(3);
+    expect(model.columns[6].name).toBe('C0-D2');
+
+    // C1
+    expect(model.isColumnExpandable(7)).toBe(true);
+    expect(model.isColumnExpanded(7)).toBe(false);
+    expect(model.depthForColumn(7)).toBe(2);
+    expect(model.columns[7].name).toBe('C1');
+
+    // TODO: test viewports: 1 row (just the totals), 1 row (just the data, no totals)
+  });
 });

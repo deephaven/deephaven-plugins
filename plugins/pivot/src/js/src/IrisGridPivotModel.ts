@@ -42,7 +42,7 @@ export function isColumnHeaderGroup(x: unknown): x is ColumnHeaderGroup {
   return x instanceof ColumnHeaderGroup;
 }
 
-const GRAND_TOTAL_COL = 'Totals';
+const GRAND_TOTAL_COL = 'Grand Totals';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -529,30 +529,26 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     snapshot: DhType.coreplus.pivot.PivotSnapshot
   ): UIViewportData<R> {
     const newData: UIViewportData<R> = {
+      // TODO: add columnOffset
       offset: snapshot.rows.offset,
       rows: [],
     };
 
     const virtualColumnCount = this.virtualColumns.length;
     const columnCount = snapshot.columns.count + virtualColumnCount;
-    // if (snapshot.columns.count < columnCount - virtualColumnCount) {
-    //   log.warn('snapshot contains fewer columns than expected', {
-    //     snapshot: snapshot.columns.count,
-    //     virtual: virtualColumnCount,
-    //     columnCount,
-    //   });
-    //   throw new Error(
-    //     'Snapshot contains fewer columns than expected, this is likely a bug'
-    //   );
-    // }
 
-    // console.log('extract snapshot data cols:', {
-    //   snapshot: snapshot.columns.count,
-    //   // virtual: virtualColumnCount,
-    //   // columnCount,
-    // });
+    console.log('extract snapshot:', {
+      snapshot_rows: snapshot.rows.count,
+      snapshot_r_offset: snapshot.rows.offset,
+      snapshot_r_total: snapshot.rows.totalCount,
+      viewport: this.viewport,
+      // virtual: virtualColumnCount,
+      // columnCount,
+    });
 
-    if (this.viewport?.top === 0) {
+    assertNotNull(this.viewport);
+
+    if (this.viewport.top === 0) {
       const totalsRow = new Map<ModelIndex, CellData>();
       const totalKeys = snapshot.rows.getKeys(0);
       // const totalDepth = snapshot.rows.getDepth(0) - 2;
@@ -599,7 +595,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
       const newRow = new Map<ModelIndex, CellData>();
       const keys = snapshot.rows.getKeys(r + snapshot.rows.offset);
       const depth = snapshot.rows.getDepth(r + snapshot.rows.offset) - 1;
-      // console.log('extractSnapshotDataRow', keys, depth, r);
+      console.log('extractSnapshotDataRow', keys, depth, r);
       for (let c = 0; c < columnCount; c += 1) {
         if (c < keys.length) {
           // Does viewport always contain all the keys?
@@ -638,8 +634,6 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
     return newData;
   }
-
-  // TODO: expand rows, columns
 
   // TODO: filters, sorts
 
@@ -787,10 +781,6 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     return true;
   }
 
-  get hasExpandableColumns(): boolean {
-    return true;
-  }
-
   get isExpandAllAvailable(): boolean {
     return this.pivotTable.expandAll !== undefined;
   }
@@ -809,12 +799,16 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
   isRowExpandable(y: ModelIndex): boolean {
     // TODO: add method to get adjusted row index for viewportData
-    return this.viewportData?.rows[y]?.hasChildren ?? false;
+    const offset = this.viewportData?.offset ?? 0;
+    const viewportY = y - offset;
+    return this.viewportData?.rows[viewportY]?.hasChildren ?? false;
   }
 
   isRowExpanded(y: ModelIndex): boolean {
     // TODO: add method to get adjusted row index for viewportData
-    return this.viewportData?.rows[y]?.isExpanded ?? false;
+    const offset = this.viewportData?.offset ?? 0;
+    const viewportY = y - offset;
+    return this.viewportData?.rows[viewportY]?.isExpanded ?? false;
   }
 
   setRowExpanded(
@@ -836,20 +830,40 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
   }
 
   depthForRow(y: ModelIndex): number {
-    const depth = this.viewportData?.rows[y]?.depth ?? 0;
+    const offset = this.viewportData?.offset ?? 0;
+    const viewportY = y - offset;
+    const depth = this.viewportData?.rows[viewportY]?.depth ?? 0;
     // log.debug2('[0] depthForRow', y, depth);
     return depth;
   }
 
   /* Expandable Columns */
 
+  get hasExpandableColumns(): boolean {
+    return true;
+  }
+
+  get isExpandAllColumnsAvailable(): boolean {
+    return true;
+  }
+
+  expandAllColumns(): void {
+    log.debug('expandAllColumns');
+  }
+
+  collapseAllColumns(): void {
+    log.debug('collapseAllColumns');
+  }
+
   isColumnExpandable(x: ModelIndex): boolean {
     // return this.viewportData?.columns[x]?.hasChildren ?? false;
+    // TODO: offset
     return this.columns[x]?.hasChildren ?? false;
   }
 
   isColumnExpanded(x: ModelIndex): boolean {
     // return this.viewportData?.columns[x]?.isExpanded ?? false;
+    // TODO: offset
     return this.columns[x]?.isExpanded ?? false;
   }
 
@@ -859,7 +873,7 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     expandDescendants = false
   ): void {
     const adjustedX = x - this.virtualColumns.length;
-    if (adjustedX <= 0) {
+    if (adjustedX < 0) {
       // TODO: implement expand/collapse for the Totals column in the API
       log.debug('Ignore expand/collapse for virtual columns');
       return;
@@ -1162,9 +1176,10 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
     // Subtract totals from the row numbers to account for the totals row
     // Except on the initial load, when we don't have totals yet
     const totalsRowCount = this.viewportData == null ? 0 : 1;
+    // TODO:
     const rowRange = this.dh.RangeSet.ofRange(
       Math.max(0, top - totalsRowCount),
-      Math.max(0, bottom - totalsRowCount)
+      Math.max(0, bottom)
     );
     const colRange = this.dh.RangeSet.ofRange(
       0,
