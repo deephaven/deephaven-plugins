@@ -395,6 +395,9 @@ function WidgetHandler({
         };
         unstable_batchedUpdates(() => {
           setIsLoading(false);
+          // Need to set an empty document in case there was something there before
+          // Without this we could get render errors superceding the document error
+          setDocument({});
           setInternalError(newError);
         });
       });
