@@ -1,7 +1,9 @@
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { Formatter } from '@deephaven/jsapi-utils';
-import createMockProxy from '@deephaven/utils/dist/MockProxy';
+import { TestUtils } from '@deephaven/utils/';
 import IrisGridPivotModel from './IrisGridPivotModel';
+
+const { createMockProxy, asMock } = TestUtils;
 
 type DeepPartial<T> = T extends object
   ? {
@@ -28,6 +30,124 @@ const mockDh = createMockProxy<typeof DhType>({
     })),
   },
 } satisfies DeepPartial<typeof DhType> as unknown as typeof DhType);
+
+const DEFAULT_GRAND_TOTAL = 10000;
+const DEFAULT_ROW_TOTAL = 100;
+const DEFAULT_COLUMN_TOTAL = 200;
+const DEFAULT_VALUE = 1;
+const DEFAULT_ROW_COUNT = 3;
+const DEFAULT_COLUMN_COUNT = 2;
+
+/**
+ * Creates a pivot table mock with the specified row, column, and value sources.
+ * @param rowByColumns The columns to use for rows.
+ * @param columnByColumns The columns to use for columns.
+ * @param valueSources The value sources.
+ * @returns The created pivot table.
+ */
+function makePivotTable(
+  rowByColumns: string[],
+  columnByColumns: string[],
+  valueSources: string[]
+): DhType.coreplus.pivot.PivotTable {
+  return createMockProxy<DhType.coreplus.pivot.PivotTable>({
+    rowSources: rowByColumns.map(name =>
+      createMockProxy<DhType.coreplus.pivot.PivotSource>({
+        type: 'java.lang.String',
+        name,
+      })
+    ),
+    columnSources: columnByColumns.map(name =>
+      createMockProxy<DhType.coreplus.pivot.PivotSource>({
+        type: 'java.lang.String',
+        name,
+      })
+    ),
+    valueSources: valueSources.map(name =>
+      createMockProxy<DhType.coreplus.pivot.PivotSource>({
+        type: 'long',
+        name,
+      })
+    ),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    setViewport: jest.fn(),
+  });
+}
+
+/**
+ * Creates an update event for the specified pivot table.
+ * @param pivotTable The pivot table to create the update event for.
+ * @param updateEventOptions Options for the update event.
+ * @returns The created update event.
+ */
+function makeUpdateEvent(
+  pivotTable: DhType.coreplus.pivot.PivotTable,
+  // 1 RowByColumn, 1 ColumnByColumn, 1 ValueSource by default
+  // No children, nothing expanded
+  {
+    rowCount = DEFAULT_ROW_COUNT,
+    rowOffset = 0,
+    totalRowCount = DEFAULT_ROW_COUNT,
+    columnCount = DEFAULT_COLUMN_COUNT,
+    columnOffset = 0,
+    totalColumnCount = DEFAULT_COLUMN_COUNT,
+    rowGetDepth = (_i: number): number => 2,
+    rowGetKeys = (i: number): (string | null)[] => [
+      `${pivotTable.rowSources[0].name}${i}`,
+    ],
+    rowGetTotal = (_valueSource: DhType.coreplus.pivot.PivotSource): number =>
+      DEFAULT_ROW_TOTAL,
+    rowIsExpanded = (_i: number): boolean => false,
+    rowHasChildren = (_i: number): boolean => false,
+    columnGetDepth = (_i: number): number => 2,
+    columnGetKeys = (i: number): (string | null)[] => [
+      `${pivotTable.columnSources[0].name}${i}`,
+    ],
+    columnGetTotal = (
+      _valueSource: DhType.coreplus.pivot.PivotSource
+    ): number => DEFAULT_COLUMN_TOTAL,
+    columnIsExpanded = (_i: number): boolean => false,
+    columnHasChildren = (_i: number): boolean => false,
+
+    getGrandTotal = (_valueSource: DhType.coreplus.pivot.PivotSource): number =>
+      DEFAULT_GRAND_TOTAL,
+    getValue = (
+      _valueSource: DhType.coreplus.pivot.PivotSource,
+      _rowIndex: number,
+      _colIndex: number
+    ): number => DEFAULT_VALUE,
+  } = {}
+): DhType.Event<unknown> {
+  return {
+    type: 'update',
+    detail: {
+      rows: {
+        count: rowCount,
+        offset: rowOffset,
+        totalCount: totalRowCount,
+        getKeys: jest.fn(rowGetKeys),
+        getDepth: jest.fn(rowGetDepth),
+        getTotal: jest.fn(rowGetTotal),
+        isExpanded: jest.fn(rowIsExpanded),
+        hasChildren: jest.fn(rowHasChildren),
+      },
+      columns: {
+        count: columnCount,
+        offset: columnOffset,
+        totalCount: totalColumnCount,
+        getKeys: jest.fn(columnGetKeys),
+        getDepth: jest.fn(columnGetDepth),
+        getTotal: jest.fn(columnGetTotal),
+        isExpanded: jest.fn(columnIsExpanded),
+        hasChildren: jest.fn(columnHasChildren),
+      },
+      valueSources: [...pivotTable.valueSources],
+      getGrandTotal: jest.fn(getGrandTotal),
+      getValue: jest.fn(getValue),
+    },
+  };
+}
 
 describe('IrisGridPivotModel', () => {
   let pivotTable: DhType.coreplus.pivot.PivotTable;
@@ -56,92 +176,18 @@ describe('IrisGridPivotModel', () => {
     expect(model).toBeDefined();
   });
 
-  it('should return correct row count', () => {
-    const addEventListenerMock = jest.fn();
-    const mockSetViewport = jest.fn();
-    pivotTable = createMockProxy<DhType.coreplus.pivot.PivotTable>({
-      rowSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'R',
-        }),
-      ],
-      columnSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'C',
-        }),
-      ],
-      valueSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'long',
-          name: 'Count',
-        }),
-      ],
-      addEventListener: addEventListenerMock,
-      removeEventListener: jest.fn(),
-      setViewport: mockSetViewport,
-    });
-
-    const mockGetKeys = jest.fn(i => [`R${i}`]);
-    const mockGetDepth = jest.fn(() => 2);
-    const mockGetColumnKeys = jest.fn(i => [`C${i}`]);
-    const mockGetColumnDepth = jest.fn(() => 2);
-    // Takes a valueSource, returns a value
-    const mockGetGrandTotal = jest.fn(() => 10000);
-    // Takes a position and a valueSource, returns a value
-    const mockGetTotal = jest.fn(() => 100);
-    const mockIsExpanded = jest.fn(() => false);
-    const mockHasChildren = jest.fn(() => false);
-
-    const mockGetValue = jest.fn(
-      (
-        valueSource: DhType.coreplus.pivot.PivotSource,
-        rowIndex: number,
-        colIndex: number
-      ) => 1
-    );
+  it('should return correct row and column count', () => {
+    pivotTable = makePivotTable(['R'], ['C'], ['Count']);
 
     model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
     model.startListening();
 
-    const updateEvent = {
-      type: 'update',
-      detail: {
-        rows: {
-          count: 3,
-          offset: 0,
-          totalCount: 3,
-          getKeys: mockGetKeys,
-          getDepth: mockGetDepth,
-          getTotal: mockGetTotal,
-          isExpanded: mockIsExpanded,
-          hasChildren: mockHasChildren,
-        },
-        columns: {
-          count: 2,
-          offset: 0,
-          totalCount: 2,
-          getKeys: mockGetColumnKeys,
-          getDepth: mockGetColumnDepth,
-          getTotal: mockGetTotal,
-          isExpanded: mockIsExpanded,
-          hasChildren: mockHasChildren,
-        },
-        valueSources: [...pivotTable.valueSources],
-        getGrandTotal: mockGetGrandTotal,
-        getValue: mockGetValue,
-      },
-    };
-
     expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
-    expect(model.columns.length).toBe(2); // Only the virtual columns initially. RowBy sources and the totals.
+    expect(model.columns.length).toBe(2); // Initially, only the virtual columns are present. RowBy sources and the totals.
 
     model.setViewport(0, 10);
-    // TODO: figure out what to do with the columns on the initial setViewport
-    // , model.columns);
     jest.runOnlyPendingTimers();
-    expect(mockSetViewport).toHaveBeenCalledWith(
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
       expect.objectContaining({
         rows: {
           start: 0,
@@ -149,7 +195,6 @@ describe('IrisGridPivotModel', () => {
         },
         columns: expect.objectContaining({
           start: 0,
-          // TODO: end of the range is not currently set correctly
         }),
         sources: [
           expect.objectContaining({
@@ -160,10 +205,12 @@ describe('IrisGridPivotModel', () => {
     );
 
     // Simulate the update event with the data
-    addEventListenerMock.mock.calls[0][1](updateEvent);
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable)
+    );
 
-    expect(model.rowCount).toBe(4); // 3 rows + 1 totals
-    expect(model.columns.length).toBe(4); // 2 virtual columns (row source labels, totals) + 2 actual columns (C0, C1)
+    expect(model.rowCount).toBe(DEFAULT_ROW_COUNT + 1); // row count + 1 totals
+    expect(model.columns.length).toBe(DEFAULT_COLUMN_COUNT + 2); // 2 virtual columns (row source labels, totals) + 2 actual columns (C0, C1)
 
     expect(
       Array(4)
@@ -171,9 +218,9 @@ describe('IrisGridPivotModel', () => {
         .map((_, i) => model.textForCell(i, 0))
     ).toEqual([
       '',
-      '10000', // Grand total
-      '100', // Total for C0
-      '100', // Total for C1
+      `${DEFAULT_GRAND_TOTAL}`, // Grand total
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C0
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C1
     ]);
 
     expect(
@@ -182,9 +229,9 @@ describe('IrisGridPivotModel', () => {
         .map((_, i) => model.textForCell(i, 1))
     ).toEqual([
       'R0',
-      '100', // Total for R0
-      '1', // Value for C0
-      '1', // Value for C1
+      `${DEFAULT_ROW_TOTAL}`, // Total for R0
+      `${DEFAULT_VALUE}`, // Value for C0
+      `${DEFAULT_VALUE}`, // Value for C1
     ]);
 
     // Expandable rows
@@ -199,126 +246,52 @@ describe('IrisGridPivotModel', () => {
 
     // Expandable columns
 
-    console.log('Columns:', model.columns);
-
     // Virtual columns are not expandable
     expect(model.isColumnExpandable(0)).toBe(false);
 
     // Totals column is expanded by default, needs API support to manually collapse/expand
     expect(model.isColumnExpandable(1)).toBe(true);
     expect(model.isColumnExpanded(1)).toBe(true);
-
-    // TODO: test viewports: 1 row (just the totals), 1 row (just the data, no totals)
   });
 
-  it.only('expandable rows and columns', () => {
-    const addEventListenerMock = jest.fn();
-    const mockSetViewport = jest.fn();
-    pivotTable = createMockProxy<DhType.coreplus.pivot.PivotTable>({
-      rowSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'R',
-        }),
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'O',
-        }),
-      ],
-      columnSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'C',
-        }),
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'java.lang.String',
-          name: 'D',
-        }),
-      ],
-      valueSources: [
-        createMockProxy<DhType.coreplus.pivot.PivotSource>({
-          type: 'long',
-          name: 'Count',
-        }),
-      ],
-      addEventListener: addEventListenerMock,
-      removeEventListener: jest.fn(),
-      setViewport: mockSetViewport,
-    });
+  it('should correctly reflect expanded columns', () => {
+    pivotTable = makePivotTable(['R', 'O'], ['C', 'D'], ['Count']);
 
-    const mockGetRowKeys = jest.fn(i => [`R${i}`, null]);
-    const mockGetRowDepth = jest.fn(() => 2);
-    const mockGetColumnKeys = jest.fn(
-      i =>
+    const updateEvent = makeUpdateEvent(pivotTable, {
+      columnCount: 5,
+      totalColumnCount: 5,
+      rowCount: 3,
+      totalRowCount: 3,
+      rowGetKeys: i => [`R${i}`, null],
+      rowIsExpanded: () => false,
+      rowHasChildren: () => true,
+      // C0 expanded with children D0, D1, D2; C1 not expanded
+      // D0, D1, D2 are not guaranteed to be in order unless sorted
+      columnGetKeys: i =>
         [
           ['C0', null],
           ['C0', 'D0'],
+          ['C0', 'D2'],
           ['C0', 'D1'],
-          ['C0', 'D2'], // D is not guaranteed to be in order unless sorted
           ['C1', null],
-        ][i]
-    );
-    const mockGetColumnDepth = jest.fn(i => [2, 3, 3, 3, 2][i]);
-    // Takes a valueSource, returns a value
-    const mockGetGrandTotal = jest.fn(() => 10000);
-    // Takes a position and a valueSource, returns a value
-    const mockGetTotal = jest.fn(() => 100);
-    const mockRowHasChildren = jest.fn(() => true);
-    const mockRowIsExpanded = jest.fn(() => false);
-    const mockIsColumnExpanded = jest.fn(
-      i => [true, false, false, false, false][i]
-    );
-    const mockColumnHasChildren = jest.fn(
-      i => [true, false, false, false, true][i]
-    );
-
-    const mockGetValue = jest.fn(
-      (
-        valueSource: DhType.coreplus.pivot.PivotSource,
-        rowIndex: number,
-        colIndex: number
-      ) => 1
-    );
+        ][i],
+      columnGetDepth: i => [2, 3, 3, 3, 2][i],
+      columnIsExpanded: i => [true, false, false, false, false][i],
+      columnHasChildren: i => [true, false, false, false, true][i],
+    });
 
     model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
     model.startListening();
-
-    const updateEvent = {
-      type: 'update',
-      detail: {
-        rows: {
-          count: 3,
-          offset: 0,
-          totalCount: 3,
-          getKeys: mockGetRowKeys,
-          getDepth: mockGetRowDepth,
-          getTotal: mockGetTotal,
-          isExpanded: mockRowIsExpanded,
-          hasChildren: mockRowHasChildren,
-        },
-        columns: {
-          count: 5,
-          offset: 0,
-          totalCount: 5,
-          getKeys: mockGetColumnKeys,
-          getDepth: mockGetColumnDepth,
-          getTotal: mockGetTotal,
-          isExpanded: mockIsColumnExpanded,
-          hasChildren: mockColumnHasChildren,
-        },
-        valueSources: [...pivotTable.valueSources],
-        getGrandTotal: mockGetGrandTotal,
-        getValue: mockGetValue,
-      },
-    };
 
     expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
     expect(model.columns.length).toBe(3); // Only the virtual columns initially. RowBy sources and the totals.
 
     model.setViewport(0, 10);
 
+    expect(pivotTable.addEventListener).toHaveBeenCalledTimes(1);
+
     // Simulate the update event with the data
-    addEventListenerMock.mock.calls[0][1](updateEvent);
+    asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
 
     expect(model.rowCount).toBe(4); // 3 rows + 1 totals
     expect(model.columns.length).toBe(8); // 3 virtual columns (row source labels, totals) + 2 actual columns (C0, C1) + 3 children columns (D0, D1, D2)
@@ -330,12 +303,12 @@ describe('IrisGridPivotModel', () => {
     ).toEqual([
       '', // R
       '', // O
-      '10000', // Grand total
-      '100', // Total for C0
-      '100', // Total for C0 - D0
-      '100', // Total for C0 - D1
-      '100', // Total for C0 - D2
-      '100', // Total for C1
+      `${DEFAULT_GRAND_TOTAL}`, // Grand total
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C0
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C0 - D0
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C0 - D2
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C0 - D1
+      `${DEFAULT_COLUMN_TOTAL}`, // Total for C1
     ]);
 
     expect(
@@ -345,12 +318,12 @@ describe('IrisGridPivotModel', () => {
     ).toEqual([
       'R0',
       '', // O
-      '100', // Total for R0
-      '1', // Value for C0
-      '1', // Value for C0 - D0
-      '1', // Value for C0 - D1
-      '1', // Value for C0 - D2
-      '1', // Value for C1
+      `${DEFAULT_ROW_TOTAL}`, // Total for R0
+      `${DEFAULT_VALUE}`, // Value for C0
+      `${DEFAULT_VALUE}`, // Value for C0 - D0
+      `${DEFAULT_VALUE}`, // Value for C0 - D2
+      `${DEFAULT_VALUE}`, // Value for C0 - D1
+      `${DEFAULT_VALUE}`, // Value for C1
     ]);
 
     // Expandable rows
@@ -388,12 +361,12 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpandable(5)).toBe(false);
     expect(model.isColumnExpanded(5)).toBe(false);
     expect(model.depthForColumn(5)).toBe(3);
-    expect(model.columns[5].name).toBe('C0-D1');
+    expect(model.columns[5].name).toBe('C0-D2');
 
     expect(model.isColumnExpandable(6)).toBe(false);
     expect(model.isColumnExpanded(6)).toBe(false);
     expect(model.depthForColumn(6)).toBe(3);
-    expect(model.columns[6].name).toBe('C0-D2');
+    expect(model.columns[6].name).toBe('C0-D1');
 
     // C1
     expect(model.isColumnExpandable(7)).toBe(true);
