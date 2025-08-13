@@ -260,7 +260,11 @@ function WidgetHandler({
             const exportedObject = exportedObjectMap.current.get(objectKey);
             if (exportedObject === undefined) {
               // The map should always have the exported object for a key, otherwise the protocol is broken
-              throw new Error(`Invalid exported object key ${objectKey}`);
+              // However, we could be rendering the document for its panels after receiving a document error
+              // In this case, we should not throw an error because we may not have the exported objects
+              if (!error) {
+                throw new Error(`Invalid exported object key ${objectKey}`);
+              }
             }
             deadObjectMap.delete(objectKey);
             return exportedObject;
@@ -330,6 +334,7 @@ function WidgetHandler({
       callableFinalizationRegistry,
       uriObjectMap,
       pluginsElementMap,
+      error,
     ]
   );
 
@@ -395,9 +400,6 @@ function WidgetHandler({
         };
         unstable_batchedUpdates(() => {
           setIsLoading(false);
-          // Need to set an empty document in case there was something there before
-          // Without this we could get render errors superceding the document error
-          setDocument({});
           setInternalError(newError);
         });
       });
