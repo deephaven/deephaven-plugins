@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ui",
-  "version": "0.31.0",
+  "version": "0.31.1",
   "description": "Deephaven UI plugin",
   "keywords": [
     "Deephaven",

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.31.1 - 2025-08-14
+#### Bug Fixes
+- DH-19988: Render error superceding document error on reinitialize (#1222) (#1223) - (736f2b2) - Matthew Runyon
+
+- - -
+
 ## ui-v0.31.0 - 2025-07-16
 #### Bug Fixes
 - DH-19428: Make ui.image use crossorigin="anonymous" (#1211) - (39707ea) - mofojed
