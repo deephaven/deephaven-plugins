@@ -35,16 +35,21 @@ export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
           icon={isExpanded ? vsTriangleDown : vsTriangleRight}
           kind="ghost"
           onClick={handleClick}
+          className="ag-grid-tree-cell-expand-button"
           style={{
             width: 'calc(100% - 5px)',
             height: '100%',
             margin: 0,
+            marginLeft: '-15px',
             paddingTop: 0,
             paddingBottom: 0,
             paddingRight: 0,
             paddingLeft: depth * 10,
             textAlign: 'left',
             justifyContent: 'left',
+            border: 'none',
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
           }}
         >
           {groupName}

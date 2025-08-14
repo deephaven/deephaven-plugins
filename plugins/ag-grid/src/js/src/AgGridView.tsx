@@ -2,10 +2,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import {
-  createFormatterFromSettings,
-  TableUtils,
-} from '@deephaven/jsapi-utils';
+import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 import {
   ColDef,
   GridReadyEvent,
@@ -13,16 +10,12 @@ import {
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
 } from '@ag-grid-community/core';
-import {
-  AgGridReact,
-  AgGridReactProps,
-  CustomCellRendererProps,
-} from '@ag-grid-community/react';
+import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getColumnDefs } from './utils/AgGridTableUtils';
+import { getColumnDefs, getSideBar } from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeCellRenderer from './renderers/TreeCellRenderer';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
+import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
 
 type AgGridViewProps = {
   table: DhType.Table | DhType.TreeTable;
@@ -67,47 +60,12 @@ export function AgGridView({
     [dh, settings]
   );
 
-  const treeCellRenderer = useMemo(
-    () =>
-      function customTreeCellRenderer(props: CustomCellRendererProps) {
-        return (
-          <TreeCellRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            datasource={datasource}
-          />
-        );
-      },
+  const autoGroupColumnDef = useMemo(
+    () => getAutoGroupColumnDef(datasource),
     [datasource]
   );
 
-  const autoGroupColumnDef = useMemo(
-    () =>
-      ({
-        cellRenderer: treeCellRenderer,
-      }) satisfies ColDef,
-    [treeCellRenderer]
-  );
-
-  const sideBar = useMemo(
-    () => ({
-      toolPanels: [
-        {
-          id: 'columns',
-          labelDefault: 'Columns',
-          labelKey: 'columns',
-          iconKey: 'columns',
-          toolPanel: 'agColumnsToolPanel',
-          toolPanelParams: {
-            suppressRowGroups: TableUtils.isTreeTable(table),
-            suppressValues: TableUtils.isTreeTable(table),
-            suppressPivots: true,
-          },
-        },
-      ],
-    }),
-    [table]
-  );
+  const sideBar = useMemo(() => getSideBar(table), [table]);
 
   // Workaround to auto-size columns based on their contents, as ag-grid ignores virtual columns
   // that are not visible in the viewport
