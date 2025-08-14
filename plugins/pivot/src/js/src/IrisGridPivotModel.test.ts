@@ -31,6 +31,9 @@ const mockDh = createMockProxy<typeof DhType>({
   },
 } satisfies DeepPartial<typeof DhType> as unknown as typeof DhType);
 
+const DEFAULT_CONFIG = {
+  rowBufferPages: 0,
+};
 const DEFAULT_GRAND_TOTAL = 10000;
 const DEFAULT_ROW_TOTAL = 100;
 const DEFAULT_COLUMN_TOTAL = 200;
@@ -96,8 +99,10 @@ function makeUpdateEvent(
     rowGetKeys = (i: number): (string | null)[] => [
       `${pivotTable.rowSources[0].name}${i}`,
     ],
-    rowGetTotal = (_valueSource: DhType.coreplus.pivot.PivotSource): number =>
-      DEFAULT_ROW_TOTAL,
+    rowGetTotal = (
+      _i: number,
+      _valueSource: DhType.coreplus.pivot.PivotSource
+    ): number => DEFAULT_ROW_TOTAL,
     rowIsExpanded = (_i: number): boolean => false,
     rowHasChildren = (_i: number): boolean => false,
     columnGetDepth = (_i: number): number => 2,
@@ -105,6 +110,7 @@ function makeUpdateEvent(
       `${pivotTable.columnSources[0].name}${i}`,
     ],
     columnGetTotal = (
+      _i: number,
       _valueSource: DhType.coreplus.pivot.PivotSource
     ): number => DEFAULT_COLUMN_TOTAL,
     columnIsExpanded = (_i: number): boolean => false,
@@ -149,22 +155,31 @@ function makeUpdateEvent(
   };
 }
 
-describe('IrisGridPivotModel', () => {
-  let pivotTable: DhType.coreplus.pivot.PivotTable;
-  let model: IrisGridPivotModel;
-  let formatter: Formatter;
+function getModelRowText(
+  model: IrisGridPivotModel,
+  rowIndex: number,
+  columnOffset = 0
+): string[] {
+  return Array(model.columns.length - columnOffset)
+    .fill(0)
+    .map((_, i) => model.textForCell(i + columnOffset, rowIndex));
+}
 
+function getModelColumnText(
+  model: IrisGridPivotModel,
+  columnIndex: number,
+  rowOffset = 0
+): string[] {
+  return Array(model.rowCount - rowOffset)
+    .fill(0)
+    .map((_, i) => model.textForCell(columnIndex, i + rowOffset));
+}
+
+const formatter = new Formatter(mockDh);
+
+describe('IrisGridPivotModel', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    pivotTable = {
-      rowSources: [],
-      valueSources: [{ type: 'int', name: 'value' }],
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    } as unknown as DhType.coreplus.pivot.PivotTable;
-
-    formatter = new Formatter(mockDh);
-    model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
   });
 
   afterEach(() => {
@@ -172,26 +187,28 @@ describe('IrisGridPivotModel', () => {
     jest.useRealTimers();
   });
 
-  it('should be created successfully', () => {
-    expect(model).toBeDefined();
-  });
+  it('returns correct row and column count', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
 
-  it('should return correct row and column count', () => {
-    pivotTable = makePivotTable(['R'], ['C'], ['Count']);
-
-    model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
     model.startListening();
 
     expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
     expect(model.columns.length).toBe(2); // Initially, only the virtual columns are present. RowBy sources and the totals.
 
-    model.setViewport(0, 10);
+    model.setViewport(0, 10); // End of the viewport is past the last existing row
     jest.runOnlyPendingTimers();
     expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
       expect.objectContaining({
+        // Viewport 0:10 translates to totals row + 0:9
         rows: {
           start: 0,
-          end: 10,
+          end: 10 - 1,
         },
         columns: expect.objectContaining({
           start: 0,
@@ -213,9 +230,7 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.length).toBe(DEFAULT_COLUMN_COUNT + 2); // 2 virtual columns (row source labels, totals) + 2 actual columns (C0, C1)
 
     expect(
-      Array(4)
-        .fill(0)
-        .map((_, i) => model.textForCell(i, 0))
+      getModelRowText(model, 0) // Totals row
     ).toEqual([
       '',
       `${DEFAULT_GRAND_TOTAL}`, // Grand total
@@ -224,14 +239,34 @@ describe('IrisGridPivotModel', () => {
     ]);
 
     expect(
-      Array(4)
-        .fill(0)
-        .map((_, i) => model.textForCell(i, 1))
+      getModelRowText(model, 1) // R0
     ).toEqual([
       'R0',
       `${DEFAULT_ROW_TOTAL}`, // Total for R0
       `${DEFAULT_VALUE}`, // Value for C0
       `${DEFAULT_VALUE}`, // Value for C1
+    ]);
+
+    expect(
+      getModelColumnText(model, 0) // Virtual column (first row source)
+    ).toEqual(['', 'R0', 'R1', 'R2']);
+
+    expect(
+      getModelColumnText(model, 1) // Virtual column (totals)
+    ).toEqual([
+      `${DEFAULT_GRAND_TOTAL}`,
+      `${DEFAULT_ROW_TOTAL}`,
+      `${DEFAULT_ROW_TOTAL}`,
+      `${DEFAULT_ROW_TOTAL}`,
+    ]);
+
+    expect(
+      getModelColumnText(model, 2) // C0
+    ).toEqual([
+      `${DEFAULT_COLUMN_TOTAL}`,
+      `${DEFAULT_VALUE}`,
+      `${DEFAULT_VALUE}`,
+      `${DEFAULT_VALUE}`,
     ]);
 
     // Expandable rows
@@ -254,8 +289,8 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpanded(1)).toBe(true);
   });
 
-  it('should correctly reflect expanded columns', () => {
-    pivotTable = makePivotTable(['R', 'O'], ['C', 'D'], ['Count']);
+  it('correctly reflects expanded columns in the model', () => {
+    const pivotTable = makePivotTable(['R', 'O'], ['C', 'D'], ['Count']);
 
     const updateEvent = makeUpdateEvent(pivotTable, {
       columnCount: 5,
@@ -278,9 +313,10 @@ describe('IrisGridPivotModel', () => {
       columnGetDepth: i => [2, 3, 3, 3, 2][i],
       columnIsExpanded: i => [true, false, false, false, false][i],
       columnHasChildren: i => [true, false, false, false, true][i],
+      getValue: (_v, row, _col) => row,
     });
 
-    model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
+    const model = new IrisGridPivotModel(mockDh, pivotTable, formatter);
     model.startListening();
 
     expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
@@ -297,9 +333,7 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.length).toBe(8); // 3 virtual columns (row source labels, totals) + 2 actual columns (C0, C1) + 3 children columns (D0, D1, D2)
 
     expect(
-      Array(model.columns.length)
-        .fill(0)
-        .map((_, i) => model.textForCell(i, 0))
+      getModelRowText(model, 0) // Totals row
     ).toEqual([
       '', // R
       '', // O
@@ -312,18 +346,16 @@ describe('IrisGridPivotModel', () => {
     ]);
 
     expect(
-      Array(model.columns.length)
-        .fill(0)
-        .map((_, i) => model.textForCell(i, 1))
+      getModelRowText(model, 1) // R0
     ).toEqual([
       'R0',
       '', // O
       `${DEFAULT_ROW_TOTAL}`, // Total for R0
-      `${DEFAULT_VALUE}`, // Value for C0
-      `${DEFAULT_VALUE}`, // Value for C0 - D0
-      `${DEFAULT_VALUE}`, // Value for C0 - D2
-      `${DEFAULT_VALUE}`, // Value for C0 - D1
-      `${DEFAULT_VALUE}`, // Value for C1
+      '0', // Value for row 0 in C0
+      '0', // Value for C0 - D0
+      '0', // Value for C0 - D2
+      '0', // Value for C0 - D1
+      '0', // Value for C1
     ]);
 
     // Expandable rows
@@ -373,7 +405,168 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpanded(7)).toBe(false);
     expect(model.depthForColumn(7)).toBe(2);
     expect(model.columns[7].name).toBe('C1');
+  });
 
-    // TODO: test viewports: 1 row (just the totals), 1 row (just the data, no totals)
+  it('returns correct data for the viewport with just the totals row', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    model.setViewport(0, 0);
+    jest.runOnlyPendingTimers();
+
+    // We have to request a viewport with at least one pivot row, even though we only want the totals
+    // This behavior might change with future expand/collapseRootRows API change
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rows: {
+          start: 0,
+          end: 0,
+        },
+      })
+    );
+
+    // Simulate the update event with the data
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable, {
+        rowCount: 1,
+        rowOffset: 0,
+        totalRowCount: 10,
+        rowGetTotal: i => 100 + i,
+        getValue: (_v, row, _col) => row,
+      })
+    );
+
+    expect(model.rowCount).toBe(11); // total row count + 1 totals row
+
+    // First 2 rows in column 2
+    expect(getModelColumnText(model, 2).slice(0, 2)).toEqual([
+      `${DEFAULT_COLUMN_TOTAL}`,
+      '0',
+    ]);
+  });
+
+  it('returns correct data for the viewport with a single pivot row, no totals', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    model.setViewport(1, 1);
+    jest.runOnlyPendingTimers();
+
+    // Requesting the row after the totals should translate to row 0 in the pivot viewport
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rows: {
+          start: 0,
+          end: 0,
+        },
+      })
+    );
+
+    // Simulate the update event with the data
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable, {
+        rowCount: 1,
+        // Offset is based on the rows.start value passed to pivotTable.setViewport
+        rowOffset: 0,
+        totalRowCount: 10,
+        rowGetTotal: i => 100 + i,
+        getValue: (_v, row, _col) => row,
+      })
+    );
+
+    expect(model.rowCount).toBe(11); // total row count + 1 totals row
+
+    expect(model.getViewportData()).toEqual(
+      expect.objectContaining({
+        offset: 1,
+      })
+    );
+
+    // Row 1
+    expect(getModelRowText(model, 1)).toEqual([
+      'R0',
+      `${DEFAULT_ROW_TOTAL}`,
+      '0',
+      '0',
+    ]);
+  });
+
+  it('returns correct data at the end of the viewport', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    model.setViewport(10, 12);
+    jest.runOnlyPendingTimers();
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rows: {
+          start: 9,
+          end: 11,
+        },
+      })
+    );
+
+    // Simulate the update event with the data
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable, {
+        rowCount: 3,
+        rowOffset: 9,
+        totalRowCount: 12,
+        rowGetTotal: i => 100 + i,
+        getValue: (_v, row, _col) => row,
+      })
+    );
+
+    expect(model.rowCount).toBe(12 + 1); // row count + 1 totals
+
+    // Column 2 starting from the viewport offset 10
+    expect(getModelColumnText(model, 2, 10)).toEqual(['9', '10', '11']);
+
+    // Check that we can access the last row and column
+    const lastRowIndex = model.rowCount - 1;
+    const lastColumnIndex = model.columns.length - 1;
+
+    expect(model.textForCell(lastColumnIndex, lastRowIndex)).toBe('11');
+  });
+
+  it('buffers the viewport rows', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(mockDh, pivotTable, formatter, {
+      rowBufferPages: 2,
+    });
+    model.startListening();
+
+    model.setViewport(1, 2);
+    jest.runOnlyPendingTimers();
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rows: {
+          start: 0,
+          end: -1 + 2 + 2 * 2, // totals offset, row 2 + 2 pages of buffer
+        },
+      })
+    );
   });
 });

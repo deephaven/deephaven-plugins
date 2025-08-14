@@ -34,7 +34,7 @@ export function makeVirtualColumn({
     type,
     isPartitionColumn: false,
     isSortable,
-    isProxy: false, // true, // TODO?
+    isProxy: false,
     description,
     index,
     depth,
