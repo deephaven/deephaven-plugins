@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { LoadingOverlay } from '@deephaven/components';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
@@ -15,6 +16,10 @@ import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
+
+function isCorePlusDhType(api: typeof DhType): api is typeof CorePlusDhType {
+  return (api as typeof CorePlusDhType).coreplus != null;
+}
 
 /**
  * Fetches an AgGrid widget from the server and fetches the underlying table provided by the widget.
@@ -75,11 +80,32 @@ export function AgGridWidget(
     async function init() {
       log.debug('Fetching widget');
       const widget: DhType.Widget = await fetch();
-      const newTable =
-        (await widget.exportedObjects[0].fetch()) as DhType.Table;
-      if (!cancelled) {
-        log.info('AgGridView loaded table', newTable);
-        setTable(newTable);
+      log.debug('Fetched widget of type', widget.type);
+      switch (widget.type) {
+        case 'deephaven.ag_grid.AgGrid': {
+          const newTable =
+            (await widget.exportedObjects[0].fetch()) as DhType.Table;
+          if (!cancelled) {
+            log.info('Loaded table', newTable);
+            setTable(newTable);
+          }
+          break;
+        }
+        case 'PivotTable': {
+          if (!isCorePlusDhType(dh)) {
+            throw new Error(
+              'PivotTable widget is only supported in Core Plus builds'
+            );
+          }
+          if (!cancelled) {
+            const pivotTable = new dh.coreplus.pivot.PivotTable(widget);
+            log.warn('TODO: Need to support pivot table', pivotTable);
+            // setTable(pivotTable);
+          }
+          break;
+        }
+        default:
+          throw new Error(`Unsupported widget type: ${widget.type}`);
       }
     }
 

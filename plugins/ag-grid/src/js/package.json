@@ -65,6 +65,7 @@
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4",
     "@deephaven/utils": "^0.106.0",
+    "@deephaven-enterprise/jsapi-coreplus-types": "./deephaven-enterprise-jsapi-coreplus-types-1.20240517.250716090900-g82c7c67334.tgz",
     "lodash.throttle": "^4.1.1",
     "react-redux": "^7.x"
   },
