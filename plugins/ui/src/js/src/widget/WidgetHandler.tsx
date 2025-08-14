@@ -259,8 +259,13 @@ function WidgetHandler({
             const objectKey = value[OBJECT_KEY];
             const exportedObject = exportedObjectMap.current.get(objectKey);
             if (exportedObject === undefined) {
-              // The map should always have the exported object for a key, otherwise the protocol is broken
-              throw new Error(`Invalid exported object key ${objectKey}`);
+              // The map should always have the exported object for a key, otherwise the protocol is broken.
+              // However, we could be rendering the document for its panels after receiving a document error.
+              // In this case, we should not throw an error because we may not have the exported objects.
+              // This is possible in a PQ which saves some state that it can't properly hydrate when the PQ restarts
+              if (!error) {
+                throw new Error(`Invalid exported object key ${objectKey}`);
+              }
             }
             deadObjectMap.delete(objectKey);
             return exportedObject;
@@ -330,6 +335,7 @@ function WidgetHandler({
       callableFinalizationRegistry,
       uriObjectMap,
       pluginsElementMap,
+      error,
     ]
   );
 
@@ -450,6 +456,7 @@ function WidgetHandler({
         number,
         dh.WidgetExportedObject
       >();
+      setIsLoading(true);
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
       renderedCallableMap.current.clear();
