@@ -1,7 +1,9 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { ColDef, SideBarDef } from '@ag-grid-community/core';
+import type { ColDef, SideBarDef } from '@ag-grid-community/core';
+import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
+import AgGridTableType from '../AgGridTableType';
 
 export const TREE_NODE_KEY = '__dhTreeNodeKey__';
 export type TreeNode = {
@@ -10,6 +12,31 @@ export type TreeNode = {
   depth: number;
   index: number;
 };
+
+export function isTable(table: AgGridTableType): table is DhType.Table {
+  return (
+    'columns' in table &&
+    'rollup' in table &&
+    typeof table.rollup === 'function'
+  );
+}
+
+export function isTreeTable(table: AgGridTableType): table is DhType.TreeTable {
+  return (
+    'columns' in table &&
+    'groupedColumns' in table &&
+    'expand' in table &&
+    'collapse' in table
+  );
+}
+
+export function isPivotTable(
+  table: AgGridTableType
+): table is CorePlusDhType.coreplus.pivot.PivotTable {
+  return (
+    'columnSources' in table && 'rowSources' in table && 'valueSources' in table
+  );
+}
 
 /**
  * Converts a Deephaven column to an AG Grid ColDef with appropriate properties.
@@ -83,29 +110,46 @@ export function convertColumnToColDef(
   }
 }
 
-export function getColumnDefs(
-  table: DhType.Table | DhType.TreeTable
-): ColDef[] {
-  const groupedColSet = new Set(
-    (TableUtils.isTreeTable(table) ? table.groupedColumns : []).map(c => c.name)
-  );
-  const newDefs =
-    table?.columns.map(c => {
-      const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
-        ? {
-            field: c.name,
-            rowGroup: true,
-          }
-        : {
-            field: c.name,
+export function getColumnDefs(table: AgGridTableType): ColDef[] {
+  if (isTable(table) || isTreeTable(table)) {
+    const groupedColSet = new Set(
+      (isTreeTable(table) ? table.groupedColumns : []).map(c => c.name)
+    );
+    const newDefs =
+      table?.columns.map(c => {
+        const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
+          ? {
+              field: c.name,
+              rowGroup: true,
+            }
+          : {
+              field: c.name,
 
-            // TODO: Actually use the table/column information to determine whether we can group/aggregate by it
-            enableRowGroup: true,
-            enableValue: true,
-          };
-      return convertColumnToColDef(c, templateColDef);
-    }) ?? [];
-  return newDefs;
+              // TODO: Actually use the table/column information to determine whether we can group/aggregate by it
+              enableRowGroup: true,
+              enableValue: true,
+            };
+        return convertColumnToColDef(c, templateColDef);
+      }) ?? [];
+    return newDefs;
+  }
+
+  if (isPivotTable(table)) {
+    // For pivot tables, we need to create ColDefs for the row, column, and value sources.
+    const colDefs: ColDef[] = [];
+    table.rowSources.forEach(c => {
+      colDefs.push({ field: c.name, rowGroup: true });
+    });
+    table.columnSources.forEach(c => {
+      colDefs.push({ field: c.name, pivot: true });
+    });
+    table.valueSources.forEach(c => {
+      colDefs.push({ field: c.name });
+    });
+    return colDefs;
+  }
+
+  throw new Error(`Unsupported table type: ${table}`);
 }
 
 export function getSideBar(table: DhType.Table | DhType.TreeTable): SideBarDef {
