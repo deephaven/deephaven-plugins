@@ -1,4 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import {
   ColumnRowGroupChangedEvent,
@@ -14,9 +15,14 @@ import {
 import Log from '@deephaven/log';
 import { assertNotNull, Pending } from '@deephaven/utils';
 import { getAggregatedColumns, getRollupConfig } from '../utils/AgGridAggUtils';
-import { extractViewportRow } from '../utils/AgGridTableUtils';
+import {
+  extractViewportRow,
+  isPivotTable,
+  isTable,
+} from '../utils/AgGridTableUtils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
+import AgGridTableType from '../AgGridTableType';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
 
@@ -32,7 +38,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   private gridApi!: GridApi;
 
   /** Track the original table passed in */
-  private readonly originalTable: DhType.Table | DhType.TreeTable;
+  private readonly originalTable: AgGridTableType;
 
   /** Current promises being awaited for operations applied to the table */
   private pending: Pending;
@@ -50,7 +56,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
    */
   constructor(
     private dh: typeof DhType,
-    private table: DhType.Table | DhType.TreeTable
+    private table: AgGridTableType
   ) {
     this.handleColumnRowGroupChanged =
       this.handleColumnRowGroupChanged.bind(this);
@@ -128,7 +134,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     });
   }
 
-  private startTableListening(table: DhType.Table | DhType.TreeTable) {
+  private startTableListening(table: AgGridTableType) {
     table.addEventListener(this.dh.Table.EVENT_UPDATED, this.handleTableUpdate);
     table.addEventListener(
       this.dh.Table.EVENT_DISCONNECT,
@@ -136,7 +142,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     );
   }
 
-  private stopTableListening(table: DhType.Table | DhType.TreeTable) {
+  private stopTableListening(table: AgGridTableType) {
     table.removeEventListener(
       this.dh.Table.EVENT_UPDATED,
       this.handleTableUpdate
@@ -183,8 +189,30 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   }
 
   private handleTableUpdate(
+    event: DhType.Event<
+      | DhType.ViewportData
+      | DhType.TreeViewportData
+      | CorePlusDhType.coreplus.pivot.PivotSnapshot
+    >
+  ): void {
+    if (isPivotTable(this.table)) {
+      this.handlePivotUpdate(
+        event as DhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
+      );
+    } else {
+      this.handleStandardTableUpdate(
+        event as DhType.Event<DhType.ViewportData | DhType.TreeViewportData>
+      );
+    }
+  }
+
+  private handleStandardTableUpdate(
     event: DhType.Event<DhType.ViewportData | DhType.TreeViewportData>
   ): void {
+    if (isPivotTable(this.table)) {
+      throw new Error('Cannot handle standard table update for pivot table.');
+    }
+
     const newData: Record<number, unknown> = {};
 
     const { detail: data } = event;
@@ -199,6 +227,18 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     this.params?.setRowCount(this.table.size);
   }
 
+  private handlePivotUpdate(
+    event: DhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
+  ): void {
+    if (!isPivotTable(this.table)) {
+      throw new Error('Cannot handle pivot update for non-pivot table.');
+    }
+
+    log.debug('Pivot update', event);
+    this.params?.setRowData({});
+    this.params?.setRowCount(event.detail.rows.totalCount);
+  }
+
   // eslint-disable-next-line class-methods-use-this
   private handleTableDisconnect(): void {
     log.info('Table disconnected.');
@@ -210,11 +250,17 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   }
 
   private applySort(sortModel: SortModelItem[]): void {
+    if (isPivotTable(this.table)) {
+      throw new Error('Pivot table sort not yet implemented.');
+    }
     log.debug('Applying sort model', sortModel);
     this.table.applySort(AgGridSortUtils.parseSortModel(this.table, sortModel));
   }
 
   private applyFilter(filterModel: FilterModel): void {
+    if (isPivotTable(this.table)) {
+      throw new Error('Pivot table filter not yet implemented.');
+    }
     log.debug('Applying filter', filterModel);
     this.table.applyFilter(
       AgGridFilterUtils.parseFilterModel(
@@ -227,7 +273,23 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
 
   private applyViewport(firstRow: number, lastRow: number): void {
     log.debug('Applying viewport', firstRow, lastRow);
-    this.table.setViewport(firstRow, lastRow);
+    if (isPivotTable(this.table)) {
+      const rows = this.dh.RangeSet.ofRange(firstRow, lastRow);
+
+      // TODO: We should be setting the viewport columns based on what is visible in the grid,
+      // but for now just set all of them.
+      const columns = this.dh.RangeSet.ofRange(
+        0,
+        this.table.columnSources.length
+      );
+      this.table.setViewport({
+        rows,
+        columns,
+        sources: this.table.valueSources,
+      });
+    } else {
+      this.table.setViewport(firstRow, lastRow);
+    }
   }
 
   private refreshViewport(): void {
@@ -251,12 +313,14 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   private async updateGridState(): Promise<void> {
     log.debug('Updating grid state');
 
-    if (!TableUtils.isTreeTable(this.originalTable)) {
+    if (isTable(this.originalTable)) {
       // Start by updating the aggregations. This may produce a new table which filters may or may not apply to.
       await this.updateAggregations();
     }
-    this.updateFilter();
-    this.updateSort();
+    if (!isPivotTable(this.originalTable)) {
+      this.updateFilter();
+      this.updateSort();
+    }
     this.refreshViewport();
   }
 
@@ -299,6 +363,9 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     if (TableUtils.isTreeTable(this.originalTable)) {
       throw new Error('Cannot apply aggregations to a tree table.');
     }
+    if (isPivotTable(this.originalTable)) {
+      throw new Error('Cannot apply aggregations to a pivot table.');
+    }
     const treeTable = await this.originalTable.rollup(rollupConfig);
     this.setTable(treeTable);
     this.updateFilter();
@@ -306,7 +373,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     this.refreshViewport();
   }
 
-  private setTable(table: DhType.Table | DhType.TreeTable): void {
+  private setTable(table: AgGridTableType): void {
     log.debug('Setting table', table);
     this.stopTableListening(this.table);
     if (this.originalTable !== this.table && table !== this.table) {

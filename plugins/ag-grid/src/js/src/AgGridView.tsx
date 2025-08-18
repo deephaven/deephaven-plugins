@@ -1,5 +1,6 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
@@ -12,13 +13,19 @@ import {
 } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getColumnDefs, getSideBar } from './utils/AgGridTableUtils';
+import {
+  getColumnDefs,
+  getSideBar,
+  isPivotTable,
+} from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
+import AgGridTableType from './AgGridTableType';
+import PivotDatasource from './datasources/PivotDatasource';
 
 type AgGridViewProps = {
-  table: DhType.Table | DhType.TreeTable;
+  table: AgGridTableType;
   settings?: WorkspaceSettings;
   agGridProps?: AgGridReactProps;
 };
@@ -42,14 +49,17 @@ export function AgGridView({
   const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
   const [isColumnsSized, setIsColumnsSized] = useState(false);
 
-  log.debug('AgGridView rendering', table, table?.columns);
+  log.debug('AgGridView rendering', table);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(() => getColumnDefs(table), [table]);
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new DeephavenViewportDatasource(dh, table),
+    () =>
+      isPivotTable(table)
+        ? new PivotDatasource(dh as typeof CorePlusDhType, table)
+        : new DeephavenViewportDatasource(dh, table),
     [dh, table]
   );
 
@@ -60,24 +70,24 @@ export function AgGridView({
     [dh, settings]
   );
 
-  const autoGroupColumnDef = useMemo(
-    () => getAutoGroupColumnDef(datasource),
-    [datasource]
-  );
+  // const autoGroupColumnDef = useMemo(
+  //   () => getAutoGroupColumnDef(datasource),
+  //   [datasource]
+  // );
 
-  const sideBar = useMemo(() => getSideBar(table), [table]);
+  // const sideBar = useMemo(() => getSideBar(table), [table]);
 
   // Workaround to auto-size columns based on their contents, as ag-grid ignores virtual columns
   // that are not visible in the viewport
-  const autoSizeAllColumns = () => {
-    const gridApi = gridApiRef.current;
-    if (!gridApi) return;
-    gridApi.sizeColumnsToFit();
-    const columns = gridApi.getColumns();
-    if (!columns) return;
-    const allColumnIds = columns.map(col => col.getColId());
-    gridApi.autoSizeColumns(allColumnIds);
-  };
+  // const autoSizeAllColumns = () => {
+  //   const gridApi = gridApiRef.current;
+  //   if (!gridApi) return;
+  //   gridApi.sizeColumnsToFit();
+  //   const columns = gridApi.getColumns();
+  //   if (!columns) return;
+  //   const allColumnIds = columns.map(col => col.getColId());
+  //   gridApi.autoSizeColumns(allColumnIds);
+  // };
 
   const handleGridReady = useCallback(
     (event: GridReadyEvent) => {
@@ -88,36 +98,39 @@ export function AgGridView({
     [datasource]
   );
 
-  const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
-    log.debug('handleFirstDataRendered', event);
-    setIsFirstDataRendered(true);
-  };
+  // const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
+  //   log.debug('handleFirstDataRendered', event);
+  //   setIsFirstDataRendered(true);
+  // };
 
-  const handleGridSizeChanged = (event: GridSizeChangedEvent) => {
-    log.debug('handleGridSizeChanged', event);
-    setIsVisible(event.clientHeight > 0 && event.clientWidth > 0);
-  };
+  // const handleGridSizeChanged = (event: GridSizeChangedEvent) => {
+  //   log.debug('handleGridSizeChanged', event);
+  //   setIsVisible(event.clientHeight > 0 && event.clientWidth > 0);
+  // };
 
-  useEffect(() => {
-    if (isVisible && isFirstDataRendered && !isColumnsSized) {
-      setIsColumnsSized(true);
-      autoSizeAllColumns();
-    }
-  }, [isVisible, isFirstDataRendered, isColumnsSized]);
+  // useEffect(() => {
+  //   if (isVisible && isFirstDataRendered && !isColumnsSized) {
+  //     setIsColumnsSized(true);
+  //     autoSizeAllColumns();
+  //   }
+  // }, [isVisible, isFirstDataRendered, isColumnsSized]);
 
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
       onGridReady={handleGridReady}
-      onFirstDataRendered={handleFirstDataRendered}
-      onGridSizeChanged={handleGridSizeChanged}
-      autoGroupColumnDef={autoGroupColumnDef}
+      // onFirstDataRendered={handleFirstDataRendered}
+      // onGridSizeChanged={handleGridSizeChanged}
+      // autoGroupColumnDef={autoGroupColumnDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
-      viewportDatasource={datasource}
-      rowModelType="viewport"
-      sideBar={sideBar}
+      // viewportDatasource={datasource}
+      serverSideDatasource={datasource as unknown as PivotDatasource}
+      rowModelType="serverSide"
+      pivotMode
+      // pivotMode={isPivotTable(table)}
+      // sideBar={sideBar}
     />
   );
 }

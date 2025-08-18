@@ -10,10 +10,12 @@ import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
+import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
 import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
 import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
+import AgGridTableType from './AgGridTableType';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -31,7 +33,7 @@ export function AgGridWidget(
   const dh = useApi();
   const settings = useSelector(getSettings<RootState>);
   const { fetch } = props;
-  const [table, setTable] = useState<DhType.Table>();
+  const [table, setTable] = useState<AgGridTableType>();
 
   const gridDensity = settings?.gridDensity;
 
@@ -51,6 +53,7 @@ export function AgGridWidget(
         RowGroupingModule,
         ViewportRowModelModule,
         ColumnsToolPanelModule,
+        ServerSideRowModelModule,
       ],
       defaultColDef: {
         filterParams: {
@@ -99,8 +102,7 @@ export function AgGridWidget(
           }
           if (!cancelled) {
             const pivotTable = new dh.coreplus.pivot.PivotTable(widget);
-            log.warn('TODO: Need to support pivot table', pivotTable);
-            // setTable(pivotTable);
+            setTable(pivotTable);
           }
           break;
         }
