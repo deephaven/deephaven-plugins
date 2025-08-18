@@ -1,5 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { ColDef } from '@ag-grid-community/core';
+import { ColDef, SideBarDef } from '@ag-grid-community/core';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
 
@@ -106,6 +106,25 @@ export function getColumnDefs(
       return convertColumnToColDef(c, templateColDef);
     }) ?? [];
   return newDefs;
+}
+
+export function getSideBar(table: DhType.Table | DhType.TreeTable): SideBarDef {
+  return {
+    toolPanels: [
+      {
+        id: 'columns',
+        labelDefault: 'Columns',
+        labelKey: 'columns',
+        iconKey: 'columns',
+        toolPanel: 'agColumnsToolPanel',
+        toolPanelParams: {
+          suppressRowGroups: TableUtils.isTreeTable(table),
+          suppressValues: TableUtils.isTreeTable(table),
+          suppressPivots: true,
+        },
+      },
+    ],
+  };
 }
 
 function isTreeRow(row: DhType.Row | DhType.TreeRow): row is DhType.TreeRow {
