@@ -10,6 +10,7 @@ import {
   GridApi,
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
+  GetRowIdParams,
 } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -115,6 +116,20 @@ export function AgGridView({
   //   }
   // }, [isVisible, isFirstDataRendered, isColumnsSized]);
 
+  const getRowId = useCallback((params: GetRowIdParams): string => {
+    const { data } = params;
+    if (data == null) {
+      log.warn('getRowId called with null data', params);
+      return '';
+    }
+    if (data.id == null) {
+      // eslint-disable-line no-underscore-dangle
+      log.warn('getRowId called with data without id', params);
+      return '';
+    }
+    return String(data.id); // eslint-disable-line no-underscore-dangle
+  }, []);
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -129,6 +144,7 @@ export function AgGridView({
       serverSideDatasource={datasource as unknown as PivotDatasource}
       rowModelType="serverSide"
       pivotMode
+      getRowId={getRowId}
       // pivotMode={isPivotTable(table)}
       // sideBar={sideBar}
     />
