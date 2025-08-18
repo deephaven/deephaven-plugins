@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.2.0 - 2025-08-18
+#### Bug Fixes
+- **(ag-grid)** Change how the license key is set (#1218) - (e42bb98) - *mofojed*
+#### Features
+- Add some utils to make setting up AgGrid easier (#1221) - (745871c) - mofojed
+
+- - -
+
 ## ag-grid-v0.1.4 - 2025-07-23
 #### Bug Fixes
 - DH-19980: AgGrid did not work correctly with a rollup table (#1214) - (6024963) - mofojed
