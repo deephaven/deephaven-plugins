@@ -20,7 +20,7 @@ repos:
           [
             pandas,
             deephaven-core,
-            plotly,
+            'plotly>=5.15.0,<6.0.0',
             json-rpc,
             matplotlib,
             deephaven-plugin-utilities>=0.0.2,
@@ -28,7 +28,7 @@ repos:
             click,
             watchdog,
             pyjsonpatch,
-            puremagic
+            puremagic,
           ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.2
