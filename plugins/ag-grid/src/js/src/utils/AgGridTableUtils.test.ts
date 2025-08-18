@@ -2,17 +2,27 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { convertColumnToColDef, getSideBar } from './AgGridTableUtils';
 
-const mockTable = TestUtils.createMockProxy<DhType.Table>({
-  expand: undefined,
-  collapse: undefined,
-});
-const mockTreeTable = TestUtils.createMockProxy<DhType.TreeTable>({
-  expand: jest.fn(),
-  collapse: jest.fn(),
-});
+function createMockTable(options: Partial<DhType.Table> = {}): DhType.Table {
+  return {
+    columns: options.columns ?? [],
+    rollup: options.rollup ?? jest.fn(),
+  } as unknown as DhType.Table;
+}
+
+function createMockTreeTable(
+  options: Partial<DhType.TreeTable> = {}
+): DhType.TreeTable {
+  return {
+    columns: options.columns ?? [],
+    groupedColumns: options.groupedColumns ?? [],
+    expand: jest.fn(),
+    collapse: jest.fn(),
+  } as unknown as DhType.TreeTable;
+}
 
 describe('getSideBar', () => {
   it('returns the correct sidebar definition for a Table', () => {
+    const mockTable = createMockTable();
     const sideBar = getSideBar(mockTable);
     expect(sideBar).toEqual({
       toolPanels: [
@@ -33,6 +43,7 @@ describe('getSideBar', () => {
   });
 
   it('returns the correct sidebar definition for a TreeTable', () => {
+    const mockTreeTable = createMockTreeTable();
     const sideBar = getSideBar(mockTreeTable);
     expect(sideBar).toEqual({
       toolPanels: [
