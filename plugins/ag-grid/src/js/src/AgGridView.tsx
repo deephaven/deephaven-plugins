@@ -122,12 +122,28 @@ export function AgGridView({
       log.warn('getRowId called with null data', params);
       return '';
     }
-    if (data.id == null) {
+    if (isPivotTable(table)) {
+      let key = ``;
+      for (let i = 0; i < table.rowSources.length; i += 1) {
+        const rowSource = table.rowSources[i];
+        if (data[rowSource.name] != null) {
+          if (key.length > 0) {
+            key += '/';
+          }
+          key += `${data[rowSource.name]}`;
+        }
+      }
+      return key;
+    }
+    // if (data[PIVOT_ROW_KEY] != null) {
+    //   return (data[PIVOT_ROW_KEY] as string[]).join('/');
+    // }
+    if (data.__row_id == null) {
       // eslint-disable-line no-underscore-dangle
       log.warn('getRowId called with data without id', params);
       return '';
     }
-    return String(data.id); // eslint-disable-line no-underscore-dangle
+    return String(data.__row_id); // eslint-disable-line no-underscore-dangle
   }, []);
 
   return (
@@ -145,6 +161,8 @@ export function AgGridView({
       rowModelType="serverSide"
       pivotMode
       getRowId={getRowId}
+      // We use a different separator because the default `_` is used often in column names.
+      serverSidePivotResultFieldSeparator="/"
       // pivotMode={isPivotTable(table)}
       // sideBar={sideBar}
     />

@@ -17,7 +17,11 @@ import { assertNotNull, Pending } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 import AgGridTableType from '../AgGridTableType';
-import { isTable, isPivotTable } from '../utils/AgGridTableUtils';
+import {
+  isTable,
+  isPivotTable,
+  TREE_NODE_KEY,
+} from '../utils/AgGridTableUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/PivotDatasource');
 
@@ -63,6 +67,55 @@ export class PivotDatasource implements IServerSideDatasource {
     event: DhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
   ): void {
     log.debug('Pivot table updated', event.detail);
+    const { detail: snapshot } = event;
+
+    // TODO: Should we go through all the value sources? All the row sources?
+    const valueSource = snapshot.valueSources[0];
+    const rowData = [];
+    const rowOffset = snapshot.rows.offset;
+    const columnOffset = snapshot.columns.offset;
+    const pivotResultFields = [];
+    for (let r = 0; r < snapshot.rows.count; r += 1) {
+      const row: Record<string, unknown> = {};
+      const depth = snapshot.rows.getDepth(rowOffset + r) - 1;
+      row[TREE_NODE_KEY] = {
+        hasChildren: snapshot.rows.hasChildren(rowOffset + r),
+        isExpanded: snapshot.rows.isExpanded(rowOffset + r),
+        depth,
+        index: rowOffset + r,
+      };
+      for (
+        let rowSourceIndex = 0;
+        rowSourceIndex < this.pivot.rowSources.length;
+        rowSourceIndex += 1
+      ) {
+        const rowSource = this.pivot.rowSources[rowSourceIndex];
+        row[rowSource.name] = snapshot.rows.getKeys(r);
+      }
+      for (let c = 0; c < snapshot.columns.count; c += 1) {
+        const columnKey = snapshot.columns
+          .getKeys(c)
+          .filter(k => k != null)
+          .join('/');
+        const value = snapshot.getValue(
+          valueSource,
+          rowOffset + r,
+          columnOffset + c
+        );
+        // const value = row.getValue(column);
+        pivotResultFields.push(columnKey);
+        row[columnKey] = value;
+      }
+      rowData.push(row);
+    }
+
+    log.debug('Pivot row data', rowData);
+
+    this.params?.success({
+      rowData,
+      rowCount: snapshot.rows.totalCount,
+      pivotResultFields,
+    });
   }
 
   setGridApi(gridApi: GridApi): void {
@@ -116,15 +169,13 @@ export class PivotDatasource implements IServerSideDatasource {
     }
 
     this.params = params;
-    // const rows = this.dh.RangeSet.ofRange(startRow, endRow);
-    const rows = this.dh.RangeSet.ofRange(0, 39);
+    const rows = this.dh.RangeSet.ofRange(startRow, endRow);
 
     // TODO: We should be setting the viewport columns based on what is visible in the grid,
     // but for now just set all of them.
     const columns = this.dh.RangeSet.ofRange(
       0,
-      19
-      // this.table.columnSources.length
+      this.pivot.columnSources.length
     );
     // const sources = this.table.valueSources;
     const sources = [this.pivot.valueSources[0]]; // TODO: Support multiple value sources
