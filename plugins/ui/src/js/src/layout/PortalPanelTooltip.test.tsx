@@ -17,7 +17,7 @@ describe('PortalPanelTooltip', () => {
 
   it('renders the formatted type name', () => {
     const { getByText } = render(
-      <PortalPanelTooltip glContainer={mockGlContainer} metadata={descriptor} />
+      <PortalPanelTooltip name={mockGlContainer} metadata={descriptor} />
     );
     expect(getByText('Component Name')).toBeInTheDocument();
     expect(getByText('test_component')).toBeInTheDocument();
