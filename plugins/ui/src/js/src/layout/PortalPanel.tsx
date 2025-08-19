@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  DashboardPanelProps,
-  useDashboardPluginData,
-} from '@deephaven/dashboard';
-import { Panel, WidgetPanelTooltip } from '@deephaven/dashboard-core-plugins';
+import { DashboardPanelProps } from '@deephaven/dashboard';
+import { Panel } from '@deephaven/dashboard-core-plugins';
 import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
+import PortalPanelTooltip from './PortalPanelTooltip';
 
 /**
  * Adds and tracks a panel to the GoldenLayout.
@@ -16,12 +14,6 @@ function PortalPanel({
   metadata,
 }: DashboardPanelProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
-
-  const panelDescriptor = {
-    ...metadata,
-    type: 'Component',
-    name: glContainer.getConfig().title ?? '',
-  };
 
   useEffect(() => {
     const { current } = ref;
@@ -40,7 +32,10 @@ function PortalPanel({
       glContainer={glContainer}
       glEventHub={glEventHub}
       renderTabTooltip={() => (
-        <WidgetPanelTooltip descriptor={panelDescriptor} />
+        <PortalPanelTooltip
+          name={glContainer.getConfig().variableName}
+          metadata={metadata}
+        />
       )}
     >
       <div className="ui-portal-panel" ref={ref} />
