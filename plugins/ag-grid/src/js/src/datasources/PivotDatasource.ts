@@ -1,4 +1,5 @@
 import {
+  ColumnGroupOpenedEvent,
   ColumnRowGroupChangedEvent,
   ColumnValueChangedEvent,
   FilterChangedEvent,
@@ -6,6 +7,7 @@ import {
   GridApi,
   IServerSideDatasource,
   IServerSideGetRowsParams,
+  RowGroupOpenedEvent,
   SortChangedEvent,
   SortModelItem,
 } from '@ag-grid-community/core';
@@ -40,6 +42,8 @@ export class PivotDatasource implements IServerSideDatasource {
     private readonly dh: typeof CorePlusDhType,
     private readonly pivot: CorePlusDhType.coreplus.pivot.PivotTable
   ) {
+    this.handleColumnGroupOpened = this.handleColumnGroupOpened.bind(this);
+    this.handleRowGroupOpened = this.handleRowGroupOpened.bind(this);
     this.handleTableUpdated = this.handleTableUpdated.bind(this);
   }
 
@@ -61,6 +65,29 @@ export class PivotDatasource implements IServerSideDatasource {
       this.handleTableUpdated
     );
     this.isListening = false;
+  }
+
+  private handleColumnGroupOpened({
+    columnGroup,
+    columnGroups,
+  }: ColumnGroupOpenedEvent): void {
+    // TODO: How do we use this stuff?
+    log.debug('Column group opened', columnGroup, columnGroups);
+  }
+
+  private handleRowGroupOpened({ data, expanded }: RowGroupOpenedEvent): void {
+    if (data == null) {
+      log.warn('Row group opened with null data', event);
+      return;
+    }
+
+    if (data[TREE_NODE_KEY] == null) {
+      log.warn('Row group opened with data without tree node key', event);
+      return;
+    }
+
+    const { index } = data[TREE_NODE_KEY];
+    this.pivot.setRowExpanded(index, expanded);
   }
 
   private handleTableUpdated(
@@ -116,6 +143,9 @@ export class PivotDatasource implements IServerSideDatasource {
       rowCount: snapshot.rows.totalCount,
       pivotResultFields,
     });
+
+    const cacheBlockState = this.gridApi.getCacheBlockState();
+    console.log('Pivot cache block state', cacheBlockState);
   }
 
   setGridApi(gridApi: GridApi): void {
@@ -133,10 +163,35 @@ export class PivotDatasource implements IServerSideDatasource {
       //   this.handleFilterChanged
       // );
       // this.gridApi.removeEventListener('sortChanged', this.handleSortChanged);
+      this.gridApi.removeEventListener(
+        'rowGroupOpened',
+        this.handleRowGroupOpened
+      );
+      this.gridApi.removeEventListener(
+        'columnGroupOpened',
+        this.handleColumnGroupOpened
+      );
     }
 
     this.pending.cancel();
     this.gridApi = gridApi;
+
+    this.gridApi.addEventListener('rowGroupOpened', this.handleRowGroupOpened);
+    this.gridApi.addEventListener(
+      'columnGroupOpened',
+      this.handleColumnGroupOpened
+    );
+    // this.gridApi.addEventListener('columnGroupOpened', (event: ColumnGroupOpenedEvent => {
+    //   const { column, expanded } = event;
+    //   if (column == null) {
+    //     log.warn('Column group opened with null column', event);
+    //     return;
+    //   }
+    //   if (column.getColId() == null) {
+    //     log.warn('Column group opened with column without colId', event);
+    //     return;
+    //   }
+    // });
 
     // gridApi.addEventListener(
     //   'columnRowGroupChanged',
