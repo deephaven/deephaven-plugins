@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.32.0 - 2025-08-14
+#### Bug Fixes
+- DH-19988: Render error superceding document error on reinitialize (#1222) - (e5a97cb) - Matthew Runyon
+#### Build system
+- Fix docs code fence plugin not registering py or groovy (#1220) - (96a6dc7) - Matthew Runyon
+#### Features
+- DH-10205: Enforce text alignment priority hierarchy in UI table (#1219) - (cc96a74) - Germain Zhang-Houle
+- Add ui.resolve to support URIs in dh.ui (#1215) - (bf2d51d) - Matthew Runyon
+- DH-19146: element plugin and template (#1201) - (f06b2cf) - Joe
+- DH-18601: Table plugin support on ui.table (#1217) - (2084cf5) - Matthew Runyon
+
+- - -
+
 ## ui-v0.31.0 - 2025-07-16
 #### Bug Fixes
 - DH-19428: Make ui.image use crossorigin="anonymous" (#1211) - (39707ea) - mofojed

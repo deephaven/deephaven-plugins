@@ -21,6 +21,7 @@ import {
 } from '../utils/ElementUtils';
 import { ELEMENT_NAME, type ElementName } from '../model/ElementConstants';
 import { type ResolvableUIContextItem } from './UITableContextMenuHandler';
+import UriExportedObject from '../../widget/UriExportedObject';
 
 export type CellData = {
   type: string;
@@ -72,7 +73,7 @@ type UIAggregation = {
 };
 
 export type UITableProps = StyleProps & {
-  table: dh.WidgetExportedObject;
+  table: dh.WidgetExportedObject | UriExportedObject;
   format_?: FormattingRule | FormattingRule[];
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;

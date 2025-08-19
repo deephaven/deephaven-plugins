@@ -8,6 +8,8 @@ import {
   ComboBoxProps as DHComboBoxJSApiProps,
 } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
+import type { dh } from '@deephaven/jsapi-types';
+import { ApiContext } from '@deephaven/jsapi-bootstrap';
 import { getSettings, RootState } from '@deephaven/redux';
 import {
   SerializedPickerProps,
@@ -15,7 +17,9 @@ import {
   WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
-import { useReExportedTable } from './hooks/useReExportedTable';
+import { useObjectViewObject } from './hooks/useObjectViewObject';
+import UriObjectView from './UriObjectView';
+import { getErrorShortMessage } from '../widget/WidgetErrorUtils';
 
 export function ComboBox(
   props: SerializedPickerProps<
@@ -25,15 +29,43 @@ export function ComboBox(
   const settings = useSelector(getSettings<RootState>);
   const { children, ...pickerProps } = usePickerProps(props);
 
-  const isObjectView = isElementOfType(children, ObjectView);
-  const table = useReExportedTable(children);
+  const isObjectView =
+    isElementOfType(children, ObjectView) ||
+    isElementOfType(children, UriObjectView);
+  const {
+    widget: table,
+    api,
+    isLoading,
+    error,
+  } = useObjectViewObject<dh.Table>(children);
 
   if (isObjectView) {
-    return (
-      table && (
+    if (error != null) {
+      const message = getErrorShortMessage(error);
+      return (
+        <DHComboBox
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...pickerProps}
+          errorMessage={message}
+          validationState="invalid"
+        >
+          {[]}
+        </DHComboBox>
+      );
+    }
+    if (isLoading || table == null || api == null) {
+      return (
         // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHComboBox loadingState="loading" {...pickerProps}>
+          {[]}
+        </DHComboBox>
+      );
+    }
+    return (
+      <ApiContext.Provider value={api}>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <DHComboBoxJSApi {...pickerProps} table={table} settings={settings} />
-      )
+      </ApiContext.Provider>
     );
   }
 

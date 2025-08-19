@@ -19,6 +19,10 @@ t = ui.table(_t)
 2. Use a UI table to show properties like filters as if the user had created them in the UI. Users can change the default values provided by the UI table, such as filters.
 3. UI tables handle ticking tables automatically, so you can pass any Deephaven table to a UI table.
 
+## Table data source
+
+The first argument to `ui.table` is the table data source. This can be any Deephaven table, a URI to a table, or a string which will be resolved as a URI. See the [URI Element](uri.md) documentation for more information on how to use URIs with UI elements.
+
 ## Formatting
 
 You can format the table using the `format_` prop. This prop takes a `ui.TableFormmat` object or list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).

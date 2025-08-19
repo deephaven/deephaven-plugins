@@ -1,9 +1,10 @@
-from deephaven.column import int_col, string_col, double_col
+from deephaven.column import int_col, string_col, double_col, datetime_col
 from deephaven import new_table, merge, time_table, empty_table
 import deephaven.plot.express as dx
 import plotly.express as px
 from deephaven.calendar import calendar
 from deephaven import ui
+from deephaven.time import to_j_instant
 
 # Test basic deephaven plots
 express_source = new_table(
@@ -76,8 +77,63 @@ source = empty_table(3000).update(
 
 line_calendar = dx.line(source, x="Timestamp", y="Price", calendar=nyse_cal)
 
-
 # Test that the image is generated correctly
 line_plot = dx.line(express_source, x="Values", y="Values2")
 line_plot_bytes = line_plot.to_image(template="ggplot2")
 line_plot_img = ui.image(src=line_plot_bytes, height=250, width=350)
+
+# Test bar charts
+bar_x_fig = dx.bar(express_source, x="Values")
+bar_y_fig = dx.bar(express_source, y="Values2")
+
+start = to_j_instant("2021-07-04T08:00:00 ET")
+end = to_j_instant("2021-07-04T09:00:00 ET")
+
+timeline_source = new_table(
+    [
+        datetime_col(
+            "Start",
+            [start, start, start, start, start, start, start, start, start],
+        ),
+        datetime_col("End", [end, end, end, end, end, end, end, end, end]),
+        string_col("Category", ["A", "B", "C", "D", "E", "F", "G", "H", "I"]),
+    ]
+)
+
+timeline_fig = dx.timeline(timeline_source, x_start="Start", x_end="End", y="Category")
+
+# Test marginal charts
+marginal_scatter_fig = dx.scatter(
+    express_source,
+    x="Values",
+    y="Values2",
+    marginal_x="rug",
+    marginal_y="histogram",
+    color_discrete_sequence=["salmon"],
+)
+
+# Test financial charts
+ohlc_source = new_table(
+    [
+        datetime_col(
+            "Timestamp",
+            [
+                to_j_instant("2021-07-04T08:00:00 ET"),
+                to_j_instant("2021-07-04T09:00:00 ET"),
+                to_j_instant("2021-07-04T10:00:00 ET"),
+            ],
+        ),
+        double_col("Open", [1.0, 2.0, 3.0]),
+        double_col("High", [2.0, 3.0, 4.0]),
+        double_col("Low", [0.5, 1.5, 2.5]),
+        double_col("Close", [1.5, 2.5, 3.5]),
+    ]
+)
+
+ohlc_fig = dx.ohlc(
+    ohlc_source, x="Timestamp", open="Open", high="High", low="Low", close="Close"
+)
+
+candlestick_fig = dx.candlestick(
+    ohlc_source, x="Timestamp", open="Open", high="High", low="Low", close="Close"
+)

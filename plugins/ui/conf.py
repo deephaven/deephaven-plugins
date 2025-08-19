@@ -46,7 +46,6 @@ strip_signature_backslash = True
 from deephaven_server import Server
 
 myst_all_links_external = True
-myst_fence_as_directive = ("python", "groovy")
 
 # need a server instance to pull types from the autodocs
 Server(port=10075)

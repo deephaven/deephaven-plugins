@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
-import { Panel } from '@deephaven/dashboard-core-plugins';
+import { CorePanel } from '@deephaven/dashboard-core-plugins';
 import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
 import PortalPanelTooltip from './PortalPanelTooltip';
 
@@ -28,7 +28,7 @@ function PortalPanel({
   }, [glContainer, glEventHub]);
 
   return (
-    <Panel
+    <CorePanel
       glContainer={glContainer}
       glEventHub={glEventHub}
       renderTabTooltip={() => (
@@ -39,7 +39,7 @@ function PortalPanel({
       )}
     >
       <div className="ui-portal-panel" ref={ref} />
-    </Panel>
+    </CorePanel>
   );
 }
 

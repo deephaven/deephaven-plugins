@@ -20,6 +20,7 @@ import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { usePluginsElementMap } from '@deephaven/plugin';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 
 import {
@@ -28,6 +29,7 @@ import {
   isCallableNode,
   isElementNode,
   isObjectNode,
+  isUriNode,
 } from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
@@ -52,6 +54,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
+import UriExportedObject from './UriExportedObject';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -176,6 +179,8 @@ function WidgetHandler({
     [jsonClient]
   );
 
+  const pluginsElementMap = usePluginsElementMap();
+
   const renderEmptyDocument = useCallback(
     /**
      * Renders an empty document. This is used when the widget is loading or has an error.
@@ -206,6 +211,8 @@ function WidgetHandler({
     [error, initialData, widgetDescriptor]
   );
 
+  const [uriObjectMap] = useState<Map<string, UriExportedObject>>(new Map());
+
   const renderDocument = useCallback(
     /**
      * Iterates through a document and renders it with the appropriate components. Returns the original object/arrays if there are no changes.
@@ -224,6 +231,7 @@ function WidgetHandler({
       // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
+      const deadUriMap = new Map(uriObjectMap);
       const deadCallableMap = new Map(renderedCallableMap.current);
       const hydratedDocument = transformNode(
         doc,
@@ -251,17 +259,34 @@ function WidgetHandler({
             const objectKey = value[OBJECT_KEY];
             const exportedObject = exportedObjectMap.current.get(objectKey);
             if (exportedObject === undefined) {
-              // The map should always have the exported object for a key, otherwise the protocol is broken
-              throw new Error(`Invalid exported object key ${objectKey}`);
+              // The map should always have the exported object for a key, otherwise the protocol is broken.
+              // However, we could be rendering the document for its panels after receiving a document error.
+              // In this case, we should not throw an error because we may not have the exported objects.
+              // This is possible in a PQ which saves some state that it can't properly hydrate when the PQ restarts
+              if (!error) {
+                throw new Error(`Invalid exported object key ${objectKey}`);
+              }
             }
             deadObjectMap.delete(objectKey);
             return exportedObject;
           }
 
+          // If this is the root element, we want to return the element version instead
+          if (isUriNode(value) && key !== '') {
+            const { uri } = value.props;
+            let uriExportedObject = uriObjectMap.get(uri);
+            if (uriExportedObject == null) {
+              uriExportedObject = new UriExportedObject(uri);
+              uriObjectMap.set(uri, uriExportedObject);
+            }
+            deadUriMap.delete(uri);
+            return uriExportedObject;
+          }
+
           if (isElementNode(value)) {
             // Replace the elements node with the Component it maps to
             try {
-              return getComponentForElement(value);
+              return getComponentForElement(value, pluginsElementMap);
             } catch (e) {
               log.warn('Error getting component for element', e);
               return value;
@@ -278,6 +303,12 @@ function WidgetHandler({
         log.debug('Closing dead object', objectKey);
         deadObject.close();
         exportedObjectMap.current.delete(objectKey);
+      });
+
+      // Cleanup any URI objects that are no longer referenced
+      deadUriMap.forEach((deadUriObject, uri) => {
+        log.debug('Cleaning up dead URI object', uri);
+        uriObjectMap.delete(uri);
       });
 
       // Close any callables that are no longer referenced
@@ -297,11 +328,14 @@ function WidgetHandler({
       return hydratedDocument;
     },
     [
-      callableFinalizationRegistry,
       document,
       jsonClient,
-      renderEmptyDocument,
       id,
+      renderEmptyDocument,
+      callableFinalizationRegistry,
+      uriObjectMap,
+      pluginsElementMap,
+      error,
     ]
   );
 
@@ -422,6 +456,7 @@ function WidgetHandler({
         number,
         dh.WidgetExportedObject
       >();
+      setIsLoading(true);
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
       renderedCallableMap.current.clear();
