@@ -31,12 +31,7 @@ function PortalPanel({
     <CorePanel
       glContainer={glContainer}
       glEventHub={glEventHub}
-      renderTabTooltip={() => (
-        <PortalPanelTooltip
-          name={glContainer.getConfig().variableName}
-          metadata={metadata}
-        />
-      )}
+      renderTabTooltip={() => <PortalPanelTooltip metadata={metadata} />}
     >
       <div className="ui-portal-panel" ref={ref} />
     </CorePanel>

@@ -1,27 +1,17 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { DashboardPanelProps } from '@deephaven/dashboard';
 import PortalPanelTooltip from './PortalPanelTooltip';
 
 describe('PortalPanelTooltip', () => {
   const descriptor = {
     type: 'test.type',
+    metadata: {
+      name: 'test_component',
+    },
   };
 
-  const mockGlContainer = {
-    getConfig: () => ({
-      title: 'Test Title',
-      variableName: 'test_component',
-    }),
-  } as DashboardPanelProps['glContainer'];
-
   it('renders the formatted type name', () => {
-    const { getByText } = render(
-      <PortalPanelTooltip
-        name={mockGlContainer.getConfig().variableName}
-        metadata={descriptor}
-      />
-    );
+    const { getByText } = render(<PortalPanelTooltip metadata={descriptor} />);
     expect(getByText('Component Name')).toBeInTheDocument();
     expect(getByText('test_component')).toBeInTheDocument();
   });

@@ -3,7 +3,6 @@ import { DashboardPanelProps } from '@deephaven/dashboard';
 import { WidgetPanelTooltip } from '@deephaven/dashboard-core-plugins';
 
 type PortalPanelTooltipProps = {
-  name: string;
   metadata: DashboardPanelProps['metadata'];
 };
 
@@ -11,13 +10,13 @@ type PortalPanelTooltipProps = {
  * Renders a tooltip for a portal panel in the dashboard.
  */
 function PortalPanelTooltip({
-  name,
   metadata,
 }: PortalPanelTooltipProps): JSX.Element {
   const panelDescriptor = {
     ...metadata,
     type: 'Component',
-    name,
+    name: metadata?.name ?? '',
+    id: metadata?.id ?? '',
   };
 
   return <WidgetPanelTooltip descriptor={panelDescriptor} />;
