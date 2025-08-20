@@ -5,9 +5,7 @@ import PortalPanelTooltip from './PortalPanelTooltip';
 describe('PortalPanelTooltip', () => {
   const descriptor = {
     type: 'test.type',
-    metadata: {
-      name: 'test_component',
-    },
+    name: 'test_component',
   };
 
   it('renders the formatted type name', () => {
