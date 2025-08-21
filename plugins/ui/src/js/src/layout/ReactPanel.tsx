@@ -101,8 +101,7 @@ function ReactPanel({
     useReactPanel();
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
-  const variableName = metadata?.name ?? '';
-  const panelTitle = title ?? variableName;
+  const panelTitle = title ?? metadata?.name ?? '';
   const [initialData, setInitialData] = useState(getInitialData());
   const onErrorReset = useCallback(() => {
     // Not EMPTY_ARRAY, because we always want to trigger a re-render
@@ -178,7 +177,6 @@ function ReactPanel({
           props: { metadata },
           title: panelTitle,
           id: panelId,
-          variableName,
         };
 
         LayoutUtils.openComponent({ root: parent, config });
@@ -205,7 +203,7 @@ function ReactPanel({
         LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
       }
     },
-    [parent, metadata, onOpen, panelId, panelTitle, variableName]
+    [parent, metadata, onOpen, panelId, panelTitle]
   );
   const widgetStatus = useWidgetStatus();
 
