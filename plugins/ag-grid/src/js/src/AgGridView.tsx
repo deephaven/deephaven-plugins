@@ -146,6 +146,10 @@ export function AgGridView({
     return String(data.__row_id); // eslint-disable-line no-underscore-dangle
   }, []);
 
+  const handlePivotResultColDef = useCallback((colDef: ColDef): void => {
+    log.debug2('handlePivotResultColDef', colDef);
+  }, []);
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -161,8 +165,10 @@ export function AgGridView({
       rowModelType="serverSide"
       pivotMode
       getRowId={getRowId}
+      // processPivotResultColDef={handlePivotResultColDef}
       // We use a different separator because the default `_` is used often in column names.
       serverSidePivotResultFieldSeparator="/"
+      suppressAggFuncInHeader
       // pivotMode={isPivotTable(table)}
       // sideBar={sideBar}
     />

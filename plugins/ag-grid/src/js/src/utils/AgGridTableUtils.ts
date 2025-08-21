@@ -144,7 +144,7 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
       colDefs.push({ field: c.name, pivot: true });
     });
     table.valueSources.forEach(c => {
-      // TODO: Can we just put a custom aggFunc here?
+      // TODO: We're just pushing an `aggFunc` here so it shows up correctly in the UI, but we also set the `suppressAggFuncInHeader` so that it doesn't actually appear. We don't use it when we're fetching the data since the server has already aggregated it for us.
       colDefs.push({ field: c.name, aggFunc: 'sum' });
     });
     return colDefs;
