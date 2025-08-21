@@ -4,6 +4,7 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
 import AgGridTableType from '../AgGridTableType';
+import { isPivotTable } from './AgGridPivotUtils';
 
 export const TREE_NODE_KEY = '__dhTreeNodeKey__';
 export type TreeNode = {
@@ -27,14 +28,6 @@ export function isTreeTable(table: AgGridTableType): table is DhType.TreeTable {
     'groupedColumns' in table &&
     'expand' in table &&
     'collapse' in table
-  );
-}
-
-export function isPivotTable(
-  table: AgGridTableType
-): table is CorePlusDhType.coreplus.pivot.PivotTable {
-  return (
-    'columnSources' in table && 'rowSources' in table && 'valueSources' in table
   );
 }
 
@@ -153,7 +146,7 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
   throw new Error(`Unsupported table type: ${table}`);
 }
 
-export function getSideBar(table: DhType.Table | DhType.TreeTable): SideBarDef {
+export function getSideBar(table: AgGridTableType): SideBarDef {
   return {
     toolPanels: [
       {
@@ -163,8 +156,8 @@ export function getSideBar(table: DhType.Table | DhType.TreeTable): SideBarDef {
         iconKey: 'columns',
         toolPanel: 'agColumnsToolPanel',
         toolPanelParams: {
-          suppressRowGroups: TableUtils.isTreeTable(table),
-          suppressValues: TableUtils.isTreeTable(table),
+          suppressRowGroups: isTreeTable(table),
+          suppressValues: isTreeTable(table),
           suppressPivots: true,
         },
       },

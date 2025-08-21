@@ -21,11 +21,12 @@ import { assertNotNull, Pending } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 import AgGridTableType from '../AgGridTableType';
+import { isTable, TREE_NODE_KEY } from '../utils/AgGridTableUtils';
 import {
-  isTable,
+  findRowIndex,
+  getRowGroupKeys,
   isPivotTable,
-  TREE_NODE_KEY,
-} from '../utils/AgGridTableUtils';
+} from '../utils/AgGridPivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/PivotDatasource');
 
@@ -98,8 +99,8 @@ export class PivotDatasource implements IServerSideDatasource {
       return;
     }
 
-    const rowGroupKeys = this.getRowGroupKeys(data);
-    const rowIndex = this.findRowIndex(rowGroupKeys);
+    const rowGroupKeys = getRowGroupKeys(this.pivot.rowSources, data);
+    const rowIndex = findRowIndex(this.snapshot!.rows, rowGroupKeys);
     if (rowIndex == null) {
       log.warn('Row group opened with data not in snapshot', data);
       return;
@@ -318,32 +319,6 @@ export class PivotDatasource implements IServerSideDatasource {
     // TODO: We probably don't need to log this
     const cacheBlockState = this.gridApi.getCacheBlockState();
     log.debug2('Pivot cache block state', cacheBlockState);
-  }
-
-  private getRowGroupKeys(data: Record<string, unknown>): string[] {
-    const rowGroupKeys: string[] = [];
-    for (let i = 0; i < this.pivot.rowSources.length; i += 1) {
-      const rowSource = this.pivot.rowSources[i];
-      if (data[rowSource.name] != null) {
-        rowGroupKeys.push(String(data[rowSource.name]));
-      }
-    }
-    return rowGroupKeys;
-  }
-
-  private findRowIndex(groupKeys: string[]): number | null {
-    assertNotNull(this.snapshot, 'Snapshot must be available to find row');
-    for (let r = 0; r < this.snapshot.rows.count; r += 1) {
-      const rowkeys = this.snapshot.rows.getKeys(r);
-      const nonNullRowKeys = rowkeys.filter(key => key != null);
-      if (
-        groupKeys.length === nonNullRowKeys.length &&
-        groupKeys.every((key, index) => key === nonNullRowKeys[index])
-      ) {
-        return r;
-      }
-    }
-    return null;
   }
 
   /**
