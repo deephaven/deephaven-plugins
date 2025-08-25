@@ -2,6 +2,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import {
+  ColumnGroupOpenedEvent,
   ColumnRowGroupChangedEvent,
   ColumnValueChangedEvent,
   FilterChangedEvent,
@@ -24,7 +25,11 @@ import {
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 import AgGridTableType from '../AgGridTableType';
-import { getPivotResultColumns, isPivotTable } from '../utils/AgGridPivotUtils';
+import {
+  getPivotResultColumns,
+  isPivotColumnGroupContext,
+  isPivotTable,
+} from '../utils/AgGridPivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
 
@@ -60,6 +65,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     private dh: typeof DhType,
     private table: AgGridTableType
   ) {
+    this.handleColumnGroupOpened = this.handleColumnGroupOpened.bind(this);
     this.handleColumnRowGroupChanged =
       this.handleColumnRowGroupChanged.bind(this);
     this.handleColumnValueChanged = this.handleColumnValueChanged.bind(this);
@@ -106,8 +112,22 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     throw new Error('Cannot expand/collapse rows in a non-tree table.');
   }
 
+  setColumnExpanded(column: DhType.Column | number, isExpanded: boolean): void {
+    log.debug('setColumnExpanded', column);
+    if (isPivotTable(this.table)) {
+      this.table.setColumnExpanded(column as number, isExpanded);
+      return;
+    }
+
+    throw new Error('Cannot expand/collapse columns in a non-pivot table.');
+  }
+
   setGridApi(gridApi: GridApi): void {
     if (this.gridApi != null) {
+      this.gridApi.removeEventListener(
+        'columnGroupOpened',
+        this.handleColumnGroupOpened
+      );
       this.gridApi.removeEventListener(
         'columnRowGroupChanged',
         this.handleColumnRowGroupChanged
@@ -126,6 +146,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     this.pending.cancel();
     this.gridApi = gridApi;
 
+    gridApi.addEventListener('columnGroupOpened', this.handleColumnGroupOpened);
     gridApi.addEventListener(
       'columnRowGroupChanged',
       this.handleColumnRowGroupChanged
@@ -194,6 +215,21 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
       this.applySort(sortModel);
       this.refreshViewport();
     });
+  }
+
+  private handleColumnGroupOpened(event: ColumnGroupOpenedEvent): void {
+    log.debug('Column group opened', event);
+    // TODO: Get the column index to expand/collapse from the event
+    if (!isPivotTable(this.table)) {
+      throw new Error('Cannot expand/collapse columns in a non-pivot table.');
+    }
+
+    const context = event.columnGroup?.getColGroupDef()?.context;
+    if (isPivotColumnGroupContext(context)) {
+      const isExpanded = event.columnGroup?.isExpanded() ?? true;
+      this.table.setColumnExpanded(context.snapshotIndex, isExpanded);
+      // TODO: We may need to refresh the viewport here...
+    }
   }
 
   private handleTableUpdate(
@@ -270,7 +306,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
           row[rowSource.name] = rowSourceKey;
         }
       }
-      const depth = snapshot.rows.getDepth(snapshotRow) - 1;
+      const depth = snapshot.rows.getDepth(snapshotRow);
       row[TREE_NODE_KEY] = {
         hasChildren: snapshot.rows.hasChildren(snapshotRow),
         isExpanded: snapshot.rows.isExpanded(snapshotRow),
@@ -348,11 +384,12 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     if (isPivotTable(this.table)) {
       const rows = this.dh.RangeSet.ofRange(firstRow, lastRow);
 
-      // TODO: We should be setting the viewport columns based on what is visible in the grid,
-      // but for now just set all of them.
+      // TODO: We should be setting the viewport columns based on what is visible in the grid
+      // For now, just set a very large number of columns to ensure we get everything
       const columns = this.dh.RangeSet.ofRange(
         0,
-        this.table.columnSources.length
+        1000
+        // this.table.columnSources.length
       );
       this.table.setViewport({
         rows,

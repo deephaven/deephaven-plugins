@@ -1,9 +1,19 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import AgGridTableType from '../AgGridTableType';
 import { ColDef, ColGroupDef } from '@ag-grid-community/core';
 import { assertNotNull } from '@deephaven/utils';
+import AgGridTableType from '../AgGridTableType';
 
 export const ROOT_HEADER_NAME = 'Totals';
+
+export type PivotColumnGroupContext = {
+  snapshotIndex: number;
+};
+
+export function isPivotColumnGroupContext(
+  context?: unknown
+): context is PivotColumnGroupContext {
+  return (context as PivotColumnGroupContext)?.snapshotIndex != null;
+}
 
 export function isPivotTable(
   table: AgGridTableType
@@ -96,25 +106,43 @@ export function getPivotResultColumns(
     }
 
     if (columns.hasChildren(c)) {
+      const context: PivotColumnGroupContext = {
+        snapshotIndex: columns.offset + c,
+      };
       // Need to start the group, it will get closed out when we're done
+      const children: ColGroupDef['children'] = [
+        {
+          headerName: 'Totals',
+          field: columnKey,
+          colId: columnKey,
+          // field: `${columnKey}/__TOTALS__`,
+          // colId: `${columnKey}/__TOTALS__`,
+          // columnGroupShow undefined to always show the totals
+          // columnGroupShow: 'closed',
+        },
+      ];
+      if (!columns.isExpanded(c)) {
+        // If it's not expanded, add a stub child so we know it's
+        children.push({
+          headerName: '...',
+          field: `${columnKey}/...`,
+          colId: `${columnKey}/...`,
+          columnGroupShow: 'open',
+        });
+      }
       currentGroups.push({
         headerName: columnKey,
         groupId: columnKey,
-        children: [
-          {
-            headerName: 'Totals',
-            field: `${columnKey}/__TOTALS__`,
-            colId: `${columnKey}/__TOTALS__`,
-          },
-        ],
+        context,
+        children,
       });
     } else {
       getCurrentChildren().push({
-        headerName: columnKey,
+        headerName: columnKeys[columnKeys.length - 1] ?? columnKey,
         field: columnKey,
         colId: columnKey,
-        // pivotResult: true,
-        // pivotResultIndex: c,
+        // Only show these when the group is open
+        columnGroupShow: 'open',
       });
     }
   }

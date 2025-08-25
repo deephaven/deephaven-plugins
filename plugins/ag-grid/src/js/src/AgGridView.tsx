@@ -142,7 +142,30 @@ export function AgGridView({
 
   const handlePivotResultColDef = useCallback((colDef: ColDef): void => {
     log.debug2('handlePivotResultColDef', colDef);
+    if (colDef.field?.endsWith('/__TOTALS__')) {
+      // This is a pivot result column, we don't want to show it in the header.
+      // colDef.suppressAggFuncInHeader = true;
+      // colDef.headerName = 'Totals';
+      // colDef.cellRenderer = 'agGroupCellRenderer';
+      // colDef.columnGroupShow = 'open'; // Show the pivot result column by default
+    }
+    // TODO: Need to handle the pivot result colDef here, show/hide groups if the column definition has children?
+    // colDef.columnGroupShow = 'open'; // Show the pivot result column by default
   }, []);
+
+  const handlePivotResultColGroupDef = useCallback(
+    (colGroupDef: ColDef): void => {
+      log.debug2('handlePivotResultColGroupDef', colGroupDef);
+      // if (colGroupDef.field?.endsWith('/__TOTALS__')) {
+      // This is a pivot result column group, we don't want to show it in the header.
+      // colGroupDef.suppressAggFuncInHeader = true;
+      // colGroupDef.headerName = 'Totals';
+      // colGroupDef.cellRenderer = 'agGroupCellRenderer';
+      // colGroupDef.columnGroupShow = 'open'; // Show the pivot result column by default
+      // }
+    },
+    []
+  );
 
   return (
     <AgGridReact
@@ -161,7 +184,9 @@ export function AgGridView({
       pivotMode
       getRowId={getRowId}
       processPivotResultColDef={handlePivotResultColDef}
+      processPivotResultColGroupDef={handlePivotResultColGroupDef}
       // We use a different separator because the default `_` is used often in column names.
+      // `/` is not a valid Java identifier so is good as a separator.
       serverSidePivotResultFieldSeparator="/"
       suppressAggFuncInHeader
       // pivotMode={isPivotTable(table)}
