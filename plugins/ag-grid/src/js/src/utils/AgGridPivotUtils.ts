@@ -2,8 +2,9 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import { ColDef, ColGroupDef } from '@ag-grid-community/core';
 import { assertNotNull } from '@deephaven/utils';
 import AgGridTableType from '../AgGridTableType';
+import { TREE_NODE_KEY } from './AgGridTableUtils';
 
-export const ROOT_HEADER_NAME = 'Totals';
+export const TOTALS_COLUMN_NAME = 'Totals';
 
 export type PivotColumnGroupContext = {
   snapshotIndex: number;
@@ -75,7 +76,12 @@ export function findRowIndex(
   return null;
 }
 
-// TODO: Write a bunch of unit tests!
+/**
+ * Get the pivot result columns from the provided pivot dimension data. This tells AG Grid how to display the columns, including expandable/collapsible groups.
+ * TODO: Need to write a bunch of tests
+ * @param columns The pivot dimension data representing the columns.
+ * @returns An array of column definitions for the pivot result.
+ */
 export function getPivotResultColumns(
   columns: CorePlusDhType.coreplus.pivot.DimensionData
 ): (ColGroupDef | ColDef)[] {
@@ -91,11 +97,28 @@ export function getPivotResultColumns(
     // This isn't a child, we can pop the last group
     const currentGroup = currentGroups.pop();
     assertNotNull(currentGroup);
+    // If there were no children added to this group yet, that means we haven't expanded it yet. Add a placeholder so AG Grid knows it can be expanded.
+    if (currentGroup.children.length === 0) {
+      currentGroup.children.push({
+        headerName: '...',
+        field: `${currentGroup.groupId}/...`,
+        colId: `${currentGroup.groupId}/...`,
+        columnGroupShow: 'open',
+      });
+    }
+    // Also add the totals for this group
+    currentGroup.children.push({
+      headerName: `${currentGroup.headerName} Total`,
+      field: currentGroup.groupId,
+      colId: currentGroup.groupId,
+    });
     getCurrentChildren().push(currentGroup);
   }
+
   for (let c = 0; c < columns.count; c += 1) {
     const columnKeys = columns.getKeys(c);
     const columnKey = toGroupKeyString(columnKeys);
+    const headerName = columnKeys[columnKeys.length - 1] ?? columnKey;
     while (
       currentGroups.length > 0 &&
       !columnKey.startsWith(
@@ -109,36 +132,15 @@ export function getPivotResultColumns(
       const context: PivotColumnGroupContext = {
         snapshotIndex: columns.offset + c,
       };
-      // Need to start the group, it will get closed out when we're done
-      const children: ColGroupDef['children'] = [
-        {
-          headerName: 'Totals',
-          field: columnKey,
-          colId: columnKey,
-          // field: `${columnKey}/__TOTALS__`,
-          // colId: `${columnKey}/__TOTALS__`,
-          // columnGroupShow undefined to always show the totals
-          // columnGroupShow: 'closed',
-        },
-      ];
-      if (!columns.isExpanded(c)) {
-        // If it's not expanded, add a stub child so we know it's
-        children.push({
-          headerName: '...',
-          field: `${columnKey}/...`,
-          colId: `${columnKey}/...`,
-          columnGroupShow: 'open',
-        });
-      }
       currentGroups.push({
         headerName: columnKey,
         groupId: columnKey,
         context,
-        children,
+        children: [],
       });
     } else {
       getCurrentChildren().push({
-        headerName: columnKeys[columnKeys.length - 1] ?? columnKey,
+        headerName,
         field: columnKey,
         colId: columnKey,
         // Only show these when the group is open
@@ -151,57 +153,83 @@ export function getPivotResultColumns(
     closeGroup();
   }
 
+  // Add a root level totals column as well
+  result.push({
+    headerName: TOTALS_COLUMN_NAME,
+    field: TOTALS_COLUMN_NAME,
+    colId: TOTALS_COLUMN_NAME,
+  });
+
   return result;
+}
 
-  // for (let c = 0; c < columns.count; c += 1) {
-  //   const columnKeys = columns.getKeys(c);
-  //   const columnKey = toGroupKeyString(columnKeys);
-  //   const currentGroup = groupsInProgress[groupsInProgress.length - 1];
-  //   if (groupsInProgress.length > 0 && columnKey.startsWith(`${currentGroup.groupKey}/`)) {
-  //     // This column is a child of the current group
-  //     currentGroup.children.push(columnKey);
-  //   } else {
-  //     // This column is a new group
-  //     groupsInProgress.push({ groupKey: columnKey, children: [] });
-  //   }
-  // }
-  // let columnIndex = 0;
+export function extractSnapshotRow(
+  snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot,
+  table: CorePlusDhType.coreplus.pivot.PivotTable,
+  rowIndex: number
+): Record<string, unknown> {
+  const rowKeys = snapshot.rows.getKeys(rowIndex);
+  const row: Record<string, unknown> = {};
+  // TODO: Support multiple value sources
+  const valueSource = table.valueSources[0];
+  for (
+    let rowSourceIndex = 0;
+    rowSourceIndex < table.rowSources.length;
+    rowSourceIndex += 1
+  ) {
+    const rowSource = table.rowSources[rowSourceIndex];
+    const rowSourceKey = rowKeys[rowSourceIndex];
+    if (rowSourceKey != null) {
+      row[rowSource.name] = rowSourceKey;
+    }
+  }
+  const depth = snapshot.rows.getDepth(rowIndex);
+  row[TREE_NODE_KEY] = {
+    hasChildren: snapshot.rows.hasChildren(rowIndex),
+    isExpanded: snapshot.rows.isExpanded(rowIndex),
+    depth,
+    index: rowIndex,
+  };
+  for (let c = 0; c < snapshot.columns.count; c += 1) {
+    const columnKey = toGroupKeyString(snapshot.columns.getKeys(c));
+    const value = snapshot.getValue(
+      valueSource,
+      snapshot.rows.offset + rowIndex,
+      snapshot.columns.offset + c
+    );
+    row[columnKey] = value;
+  }
 
-  // const cursor
-  // let i = 0;
-  // while (i < columns.count) {
-  //   const columnKeys = columns.getKeys(i);
-  //   const columnKey = toGroupKeyString(columnKeys);
+  // Add the totals data
+  row[TOTALS_COLUMN_NAME] = snapshot.rows.getTotal(rowIndex, valueSource);
 
-  //   // TODO: Should go through the groups...
-  //   i += 1;
-  // }
+  return row;
+}
 
-  //   return {
-  //     headerName: columnKey,
-  //     field: columnKey,
-  //     colId: columnKey,
-  //     pivotResult: true,
-  //     pivotResultIndex: columnIndex++,
-  //   };
-  // }
-  // for (let c = 0; c < columns.count; c += 1) {
-  //   const columnKeys = columns.getKeys(c);
-  //   if ()
-  //   const columnKey = toGroupKeyString(columnKeys);
-  //   columnIds.push(columnKey);
-  // }
-
-  // Path we're currently processing. When we hit another node that does not match the path, then we close out that group
-  // const path: string[][] = [];
-  // for (let c = 0; c < columns.count; c += 1) {
-  //   const columnKeys = columns.getKeys(c);
-  //   const columnKey = columnKeys.filter(key => key != null).join('/');
-  //   pivotResultColumns.push({
-  //     headerName: columnKey,
-  //     field: columnKey,
-  //     colId: columnKey,
-  //   });
-  // }
-  // return result;
+export function extractSnapshotRows(
+  snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot,
+  table: CorePlusDhType.coreplus.pivot.PivotTable
+): Record<string, unknown>[] {
+  const rows: Record<string, unknown>[] = [];
+  for (let rowIndex = 0; rowIndex < snapshot.rows.count; rowIndex += 1) {
+    const row = extractSnapshotRow(snapshot, table, rowIndex);
+    rows.push(row);
+  }
+  // Need to push a row for totals as well
+  const totalsRow: Record<string, unknown> = {};
+  totalsRow[TREE_NODE_KEY] = {
+    hasChildren: false,
+    isExpanded: false,
+    depth: 0,
+    index: snapshot.rows.count,
+  };
+  // TODO: Support multiple value sources
+  const valueSource = table.valueSources[0];
+  for (let c = 0; c < snapshot.columns.count; c += 1) {
+    const columnKey = toGroupKeyString(snapshot.columns.getKeys(c));
+    totalsRow[columnKey] = snapshot.columns.getTotal(c, valueSource);
+  }
+  totalsRow[TOTALS_COLUMN_NAME] = snapshot.getGrandTotal(valueSource);
+  rows.push(totalsRow);
+  return rows;
 }

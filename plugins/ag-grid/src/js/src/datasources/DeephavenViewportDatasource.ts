@@ -26,9 +26,11 @@ import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 import AgGridTableType from '../AgGridTableType';
 import {
+  extractSnapshotRows,
   getPivotResultColumns,
   isPivotColumnGroupContext,
   isPivotTable,
+  toGroupKeyString,
 } from '../utils/AgGridPivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
@@ -278,72 +280,17 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
       throw new Error('Cannot handle pivot update for non-pivot table.');
     }
 
-    log.debug('Pivot update', event);
+    log.debug2('Pivot update', event);
+
     const { detail: snapshot } = event;
-
-    // Get the row data from the snapshot
-    const rowData: Record<string, unknown>[] = [];
-    const rowOffset = snapshot.rows.offset;
-    const columnOffset = snapshot.columns.offset;
-    const pivotResultFields = [];
-
-    // Just iterate through the whole snapshot, and add the rows that match the group keys
-    for (
-      let snapshotRow = 0;
-      snapshotRow < snapshot.rows.count;
-      snapshotRow += 1
-    ) {
-      const rowKeys = snapshot.rows.getKeys(snapshotRow);
-      const row: Record<string, unknown> = {};
-      for (
-        let rowSourceIndex = 0;
-        rowSourceIndex < this.table.rowSources.length;
-        rowSourceIndex += 1
-      ) {
-        const rowSource = this.table.rowSources[rowSourceIndex];
-        const rowSourceKey = rowKeys[rowSourceIndex];
-        if (rowSourceKey != null) {
-          row[rowSource.name] = rowSourceKey;
-        }
-      }
-      const depth = snapshot.rows.getDepth(snapshotRow);
-      row[TREE_NODE_KEY] = {
-        hasChildren: snapshot.rows.hasChildren(snapshotRow),
-        isExpanded: snapshot.rows.isExpanded(snapshotRow),
-        depth,
-        index: snapshotRow,
-      };
-      for (let c = 0; c < snapshot.columns.count; c += 1) {
-        const columnKey = snapshot.columns
-          .getKeys(c)
-          .filter(k => k != null)
-          .join('/');
-        const value = snapshot.getValue(
-          this.table.valueSources[0],
-          rowOffset + snapshotRow,
-          columnOffset + c
-        );
-        row[columnKey] = value;
-        pivotResultFields.push(columnKey);
-      }
-      rowData.push(row);
-    }
-
+    const rowData = extractSnapshotRows(snapshot, this.table);
     log.debug2('Pivot row data', rowData);
-    // TODO: We should be returning the full table row count, this won't scroll
-    // return {
-    //   rowData,
-    //   rowCount: rowData.length,
-    //   pivotResultFields,
-    // };
 
-    // this.gridApi.setPivotResultColumns()
-    // this.table.columnSources
-    // this.gridApi.setPivotResultColumns(pivotResultFields);
     const pivotResultColumns = getPivotResultColumns(snapshot.columns);
     log.debug2('Pivot result columns', pivotResultColumns);
+
     this.params?.setRowData(rowData);
-    this.params?.setRowCount(snapshot.rows.totalCount);
+    this.params?.setRowCount(snapshot.rows.totalCount + 1); // +1 for totals row
     this.gridApi.setPivotResultColumns(pivotResultColumns);
   }
 
