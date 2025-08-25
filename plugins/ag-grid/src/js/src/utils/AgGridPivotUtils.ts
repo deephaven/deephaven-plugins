@@ -71,9 +71,18 @@ export function findRowIndex(
   return null;
 }
 
+export function getHeaderName(columnKeys: (string | null)[]): string {
+  for (let i = columnKeys.length - 1; i >= 0; i -= 1) {
+    const columnKey = columnKeys[i];
+    if (columnKey != null) {
+      return columnKey;
+    }
+  }
+  throw new Error('No non-null column key found');
+}
+
 /**
  * Get the pivot result columns from the provided pivot dimension data. This tells AG Grid how to display the columns, including expandable/collapsible groups.
- * TODO: Need to write a bunch of tests
  * @param columns The pivot dimension data representing the columns.
  * @returns An array of column definitions for the pivot result.
  */
@@ -113,7 +122,7 @@ export function getPivotResultColumns(
   for (let c = 0; c < columns.count; c += 1) {
     const columnKeys = columns.getKeys(c);
     const columnKey = toGroupKeyString(columnKeys);
-    const headerName = columnKeys[columnKeys.length - 1] ?? columnKey;
+    const headerName = getHeaderName(columnKeys);
     while (
       currentGroups.length > 0 &&
       !columnKey.startsWith(
@@ -128,7 +137,7 @@ export function getPivotResultColumns(
         snapshotIndex: columns.offset + c,
       };
       currentGroups.push({
-        headerName: columnKey,
+        headerName,
         groupId: columnKey,
         context,
         children: [],
