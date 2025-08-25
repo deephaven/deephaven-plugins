@@ -4,7 +4,9 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
 import AgGridTableType from '../AgGridTableType';
-import { isPivotTable } from './AgGridPivotUtils';
+
+export type SingleRowData = { [columnKey: string]: unknown };
+export type AgGridViewportRowData = { [rowIndex: number]: SingleRowData };
 
 export const TREE_NODE_KEY = '__dhTreeNodeKey__';
 export type TreeNode = {
@@ -13,6 +15,14 @@ export type TreeNode = {
   depth: number;
   index: number;
 };
+
+export function isPivotTable(
+  table: AgGridTableType
+): table is CorePlusDhType.coreplus.pivot.PivotTable {
+  return (
+    'columnSources' in table && 'rowSources' in table && 'valueSources' in table
+  );
+}
 
 export function isTable(table: AgGridTableType): table is DhType.Table {
   return (
@@ -172,8 +182,8 @@ function isTreeRow(row: DhType.Row | DhType.TreeRow): row is DhType.TreeRow {
 export function extractViewportRow(
   row: DhType.Row,
   columns: DhType.Column[]
-): { [key: string]: unknown } {
-  const data: Record<string, unknown> = {};
+): SingleRowData {
+  const data: SingleRowData = {};
   for (let c = 0; c < columns.length; c += 1) {
     const column = columns[c];
     data[column.name] = row.get(column);

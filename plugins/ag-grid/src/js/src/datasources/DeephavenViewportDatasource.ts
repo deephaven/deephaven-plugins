@@ -18,6 +18,7 @@ import { assertNotNull, Pending } from '@deephaven/utils';
 import { getAggregatedColumns, getRollupConfig } from '../utils/AgGridAggUtils';
 import {
   extractViewportRow,
+  isPivotTable,
   isTable,
   isTreeTable,
   TREE_NODE_KEY,
@@ -29,7 +30,6 @@ import {
   extractSnapshotRows,
   getPivotResultColumns,
   isPivotColumnGroupContext,
-  isPivotTable,
   toGroupKeyString,
 } from '../utils/AgGridPivotUtils';
 

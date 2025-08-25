@@ -1,8 +1,11 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { ColDef, ColGroupDef } from '@ag-grid-community/core';
 import { assertNotNull } from '@deephaven/utils';
-import AgGridTableType from '../AgGridTableType';
-import { TREE_NODE_KEY } from './AgGridTableUtils';
+import {
+  AgGridViewportRowData,
+  SingleRowData,
+  TREE_NODE_KEY,
+} from './AgGridTableUtils';
 
 export const TOTALS_COLUMN_NAME = 'Totals';
 
@@ -14,14 +17,6 @@ export function isPivotColumnGroupContext(
   context?: unknown
 ): context is PivotColumnGroupContext {
   return (context as PivotColumnGroupContext)?.snapshotIndex != null;
-}
-
-export function isPivotTable(
-  table: AgGridTableType
-): table is CorePlusDhType.coreplus.pivot.PivotTable {
-  return (
-    'columnSources' in table && 'rowSources' in table && 'valueSources' in table
-  );
 }
 
 /**
@@ -167,9 +162,9 @@ export function extractSnapshotRow(
   snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot,
   table: CorePlusDhType.coreplus.pivot.PivotTable,
   rowIndex: number
-): Record<string, unknown> {
+): SingleRowData {
   const rowKeys = snapshot.rows.getKeys(rowIndex);
-  const row: Record<string, unknown> = {};
+  const row: SingleRowData = {};
   // TODO: Support multiple value sources
   const valueSource = table.valueSources[0];
   for (
@@ -194,7 +189,7 @@ export function extractSnapshotRow(
     const columnKey = toGroupKeyString(snapshot.columns.getKeys(c));
     const value = snapshot.getValue(
       valueSource,
-      snapshot.rows.offset + rowIndex,
+      rowIndex,
       snapshot.columns.offset + c
     );
     row[columnKey] = value;
@@ -206,22 +201,16 @@ export function extractSnapshotRow(
   return row;
 }
 
-export function extractSnapshotRows(
+export function extractTotalsRow(
   snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot,
   table: CorePlusDhType.coreplus.pivot.PivotTable
-): Record<string, unknown>[] {
-  const rows: Record<string, unknown>[] = [];
-  for (let rowIndex = 0; rowIndex < snapshot.rows.count; rowIndex += 1) {
-    const row = extractSnapshotRow(snapshot, table, rowIndex);
-    rows.push(row);
-  }
-  // Need to push a row for totals as well
-  const totalsRow: Record<string, unknown> = {};
+): SingleRowData {
+  const totalsRow: SingleRowData = {};
   totalsRow[TREE_NODE_KEY] = {
     hasChildren: false,
     isExpanded: false,
     depth: 0,
-    index: snapshot.rows.count,
+    index: snapshot.rows.totalCount,
   };
   // TODO: Support multiple value sources
   const valueSource = table.valueSources[0];
@@ -230,6 +219,26 @@ export function extractSnapshotRows(
     totalsRow[columnKey] = snapshot.columns.getTotal(c, valueSource);
   }
   totalsRow[TOTALS_COLUMN_NAME] = snapshot.getGrandTotal(valueSource);
-  rows.push(totalsRow);
+
+  return totalsRow;
+}
+
+export function extractSnapshotRows(
+  snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot,
+  table: CorePlusDhType.coreplus.pivot.PivotTable
+): AgGridViewportRowData {
+  const rows: AgGridViewportRowData = {};
+  for (let rowIndex = 0; rowIndex < snapshot.rows.count; rowIndex += 1) {
+    const row = extractSnapshotRow(
+      snapshot,
+      table,
+      snapshot.rows.offset + rowIndex
+    );
+    rows[snapshot.rows.offset + rowIndex] = row;
+  }
+
+  // Need to push a row for totals as well
+  rows[snapshot.rows.totalCount] = extractTotalsRow(snapshot, table);
+
   return rows;
 }

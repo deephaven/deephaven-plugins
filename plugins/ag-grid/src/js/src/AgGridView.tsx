@@ -14,13 +14,15 @@ import {
 } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getColumnDefs, getSideBar } from './utils/AgGridTableUtils';
+import {
+  getColumnDefs,
+  getSideBar,
+  isPivotTable,
+} from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
 import AgGridTableType from './AgGridTableType';
-import PivotDatasource from './datasources/PivotDatasource';
-import { isPivotTable } from './utils/AgGridPivotUtils';
 
 type AgGridViewProps = {
   table: AgGridTableType;
