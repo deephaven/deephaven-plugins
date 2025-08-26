@@ -219,7 +219,6 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
 
   private handleColumnGroupOpened(event: ColumnGroupOpenedEvent): void {
     log.debug('Column group opened', event);
-    // TODO: Get the column index to expand/collapse from the event
     if (!isPivotTable(this.table)) {
       throw new Error('Cannot expand/collapse columns in a non-pivot table.');
     }
@@ -228,7 +227,6 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     if (isPivotColumnGroupContext(context)) {
       const isExpanded = event.columnGroup?.isExpanded() ?? true;
       this.table.setColumnExpanded(context.snapshotIndex, isExpanded);
-      // TODO: We may need to refresh the viewport here...
     }
   }
 
