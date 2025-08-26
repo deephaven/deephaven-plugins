@@ -54,18 +54,21 @@ describe('getPivotResultColumns', () => {
       {
         headerName: 'C0',
         groupId: 'C0',
+        columnGroupShow: 'open',
         children: [makePendingColDef('C0'), makePivotGroupTotalColDef('C0')],
         context: { snapshotIndex: 0 },
       },
       {
         headerName: 'C1',
         groupId: 'C1',
+        columnGroupShow: 'open',
         children: [makePendingColDef('C1'), makePivotGroupTotalColDef('C1')],
         context: { snapshotIndex: 1 },
       },
       {
         headerName: 'C2',
         groupId: 'C2',
+        columnGroupShow: 'open',
         children: [makePendingColDef('C2'), makePivotGroupTotalColDef('C2')],
         context: { snapshotIndex: 2 },
       },
@@ -92,6 +95,7 @@ describe('getPivotResultColumns', () => {
       {
         headerName: 'C0',
         groupId: 'C0',
+        columnGroupShow: 'open',
         children: [
           {
             headerName: 'C0.1',
@@ -106,6 +110,7 @@ describe('getPivotResultColumns', () => {
       {
         headerName: 'C1',
         groupId: 'C1',
+        columnGroupShow: 'open',
         children: [makePendingColDef('C1'), makePivotGroupTotalColDef('C1')],
         context: { snapshotIndex: 2 },
       },
@@ -139,16 +144,19 @@ describe('getPivotResultColumns', () => {
       {
         headerName: 'C0',
         groupId: 'C0',
+        columnGroupShow: 'open',
         children: [makePendingColDef('C0'), makePivotGroupTotalColDef('C0')],
         context: { snapshotIndex: 0 },
       },
       {
         headerName: 'C1',
         groupId: 'C1',
+        columnGroupShow: 'open',
         children: [
           {
             headerName: 'C1.1',
             groupId: 'C1/C1.1',
+            columnGroupShow: 'open',
             context: { snapshotIndex: 2 },
             children: [
               {
@@ -169,6 +177,7 @@ describe('getPivotResultColumns', () => {
           {
             headerName: 'C1.2',
             groupId: 'C1/C1.2',
+            columnGroupShow: 'open',
             children: [
               makePendingColDef('C1/C1.2'),
               makePivotGroupTotalColDef('C1/C1.2', 'C1.2'),
@@ -182,10 +191,12 @@ describe('getPivotResultColumns', () => {
       {
         headerName: 'C2',
         groupId: 'C2',
+        columnGroupShow: 'open',
         children: [
           {
             headerName: 'C2.1',
             groupId: 'C2/C2.1',
+            columnGroupShow: 'open',
             context: { snapshotIndex: 7 },
             children: [
               makePendingColDef('C2/C2.1'),
@@ -195,6 +206,7 @@ describe('getPivotResultColumns', () => {
           {
             headerName: 'C2.2',
             groupId: 'C2/C2.2',
+            columnGroupShow: 'open',
             context: { snapshotIndex: 8 },
             children: [
               makePendingColDef('C2/C2.2'),
