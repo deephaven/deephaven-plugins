@@ -140,6 +140,7 @@ export function getPivotResultColumns(
         headerName,
         groupId: columnKey,
         context,
+        columnGroupShow: 'open',
         children: [],
       });
     } else {

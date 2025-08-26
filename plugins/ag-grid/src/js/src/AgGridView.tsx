@@ -1,6 +1,4 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { dh as DhType } from '@deephaven/jsapi-types';
-import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
@@ -18,11 +16,14 @@ import {
   getColumnDefs,
   getSideBar,
   isPivotTable,
+  TREE_NODE_KEY,
+  TreeNode,
 } from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
 import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
 import AgGridTableType from './AgGridTableType';
+import { toGroupKeyString } from './utils';
 
 type AgGridViewProps = {
   table: AgGridTableType;
@@ -119,28 +120,20 @@ export function AgGridView({
         log.warn('getRowId called with null data', params);
         return '';
       }
+
       if (isPivotTable(table)) {
-        let key = ``;
+        const groupKeys = [];
         for (let i = 0; i < table.rowSources.length; i += 1) {
           const rowSource = table.rowSources[i];
           if (data[rowSource.name] != null) {
-            if (key.length > 0) {
-              key += '/';
-            }
-            key += `${data[rowSource.name]}`;
+            groupKeys.push(String(data[rowSource.name]));
           }
         }
-        return key;
+        return toGroupKeyString(groupKeys);
       }
-      // if (data[PIVOT_ROW_KEY] != null) {
-      //   return (data[PIVOT_ROW_KEY] as string[]).join('/');
-      // }
-      if (data.__row_id == null) {
-        // eslint-disable-line no-underscore-dangle
-        log.warn('getRowId called with data without id', params);
-        return '';
-      }
-      return String(data.__row_id); // eslint-disable-line no-underscore-dangle
+
+      const treeNode: TreeNode | undefined = data?.[TREE_NODE_KEY];
+      return `${treeNode?.index ?? ''}`;
     },
     [table]
   );
@@ -157,18 +150,9 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
-      // serverSideDatasource={datasource as unknown as PivotDatasource}
-      // rowModelType="serverSide"
-      pivotMode
-      getRowId={getRowId}
-      // Set this to true, otherwise AG Grid will try and re-sort columns when we expand/collapse pivots
-      enableStrictPivotColumnOrder
-      // We use a different separator because the default `_` is used often in column names.
-      // `/` is not a valid Java identifier so is good as a separator.
-      serverSidePivotResultFieldSeparator="/"
-      suppressAggFuncInHeader
       // pivotMode={isPivotTable(table)}
-      // sideBar={sideBar}
+      getRowId={getRowId}
+      sideBar={sideBar}
     />
   );
 }
