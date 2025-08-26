@@ -1,35 +1,194 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { ColDef } from '@ag-grid-community/core';
-import { getPivotResultColumns } from './AgGridPivotUtils';
+import {
+  extractSnapshotRow,
+  extractTotalsRow,
+  findRowIndex,
+  getHeaderName,
+  getPivotResultColumns,
+  getRowGroupKeys,
+  isPivotColumnGroupContext,
+  toGroupKeyString,
+} from './AgGridPivotUtils';
+import { TREE_NODE_KEY } from './AgGridTableUtils';
 
-const TOTALS_COLUMN_DEF = {
-  headerName: 'Totals',
-  field: 'Totals',
-  colId: 'Totals',
-};
-
-function makePendingColDef(groupId: string): ColDef {
-  return {
-    headerName: '...',
-    field: `${groupId}/...`,
-    colId: `${groupId}/...`,
-    columnGroupShow: 'open',
-  };
+function assertInRange(value: number, min: number, max: number): void {
+  expect(value).toBeGreaterThanOrEqual(min);
+  expect(value).toBeLessThan(max);
 }
 
-function makePivotGroupTotalColDef(
-  groupId: string,
-  headerName = groupId
-): ColDef {
-  return {
-    headerName: `${headerName} Total`,
-    field: groupId,
-    colId: groupId,
-  };
+function makeDimensionData({
+  count = 3,
+  offset = 0,
+  totalCount = 1000,
+}): CorePlusDhType.coreplus.pivot.DimensionData {
+  return TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.DimensionData>(
+    {
+      count,
+      offset,
+      totalCount,
+      getKeys: jest.fn((index: number) => {
+        assertInRange(index, offset, offset + count);
+        return [`Key${index}`];
+      }),
+      getDepth: jest.fn((index: number) => {
+        assertInRange(index, offset, offset + count);
+        return 1;
+      }),
+      hasChildren: jest.fn((index: number) => {
+        assertInRange(index, offset, offset + count);
+        return false;
+      }),
+      isExpanded: jest.fn((index: number) => {
+        assertInRange(index, offset, offset + count);
+        return false;
+      }),
+      getTotal: jest.fn((index: number) => {
+        assertInRange(index, offset, offset + count);
+        return (index + 1) * 100;
+      }),
+    }
+  );
 }
+
+describe('isPivotColumnGroupContext', () => {
+  it.each([
+    [undefined, false],
+    [null, false],
+    [{ snapshotIndex: 0 }, true],
+    [{ someOtherKey: 1 }, false],
+  ])('should return %p for %p', (context, expected) => {
+    expect(isPivotColumnGroupContext(context)).toBe(expected);
+  });
+});
+
+describe('toGroupKeyString', () => {
+  it.each([
+    [[], ''],
+    [[null, null], ''],
+    [[undefined, undefined], ''],
+    [['A', null], 'A'],
+    [['A', 'B', null], 'A/B'],
+    [['A', 'B', 'C'], 'A/B/C'],
+  ])('should return %p for %p', (groupKeys, expected) => {
+    expect(toGroupKeyString(groupKeys)).toBe(expected);
+  });
+});
+
+describe('getRowGroupKeys', () => {
+  it('should return an empty array if there are no row sources', () => {
+    const result = getRowGroupKeys([], {});
+    expect(result).toEqual([]);
+  });
+
+  it('should return the correct row group keys for a single row source', () => {
+    const result = getRowGroupKeys(
+      [
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'A',
+        }),
+      ],
+      { A: 'A1' }
+    );
+    expect(result).toEqual(['A1']);
+  });
+
+  it('should return the correct row group keys for multiple row sources', () => {
+    const result = getRowGroupKeys(
+      [
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'A',
+        }),
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'B',
+        }),
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'C',
+        }),
+      ],
+      { A: 'A1', B: 'B1', C: 'C1' }
+    );
+    expect(result).toEqual(['A1', 'B1', 'C1']);
+  });
+
+  it('should return the correct row group keys when last value is missing', () => {
+    const result2 = getRowGroupKeys(
+      [
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'A',
+        }),
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'B',
+        }),
+        TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+          name: 'C',
+        }),
+      ],
+      { A: 'A1', B: 'B1' }
+    );
+    expect(result2).toEqual(['A1', 'B1']);
+  });
+});
+
+describe('findRowIndex', () => {
+  it('should return null if no matching row is found', () => {
+    const rows =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.DimensionData>({
+        count: 2,
+        getKeys: (index: number) => (index === 0 ? ['A1'] : ['A2']),
+      });
+    const result = findRowIndex(rows, ['B1']);
+    expect(result).toBeNull();
+  });
+});
+
+describe('getHeaderName', () => {
+  it.each([
+    [['A', null], 'A'],
+    [['A', 'B', null], 'B'],
+    [['A', 'B', 'C'], 'C'],
+  ])('should return %p for %p', (columnKeys, expected) => {
+    expect(getHeaderName(columnKeys)).toBe(expected);
+  });
+
+  it.each([[[]], [[null]], [[null, null]]])(
+    'should throw for %p',
+    columnKeys => {
+      expect(() => getHeaderName(columnKeys)).toThrow(
+        'No non-null column key found'
+      );
+    }
+  );
+});
 
 describe('getPivotResultColumns', () => {
+  const TOTALS_COLUMN_DEF = {
+    headerName: 'Totals',
+    field: 'Totals',
+    colId: 'Totals',
+  };
+
+  function makePendingColDef(groupId: string): ColDef {
+    return {
+      headerName: '...',
+      field: `${groupId}/...`,
+      colId: `${groupId}/...`,
+      columnGroupShow: 'open',
+    };
+  }
+
+  function makePivotGroupTotalColDef(
+    groupId: string,
+    headerName = groupId
+  ): ColDef {
+    return {
+      headerName: `${headerName} Total`,
+      field: groupId,
+      colId: groupId,
+    };
+  }
+
   it('should only add the totals column if there are no columns in the DimensionData', () => {
     const columns =
       TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.DimensionData>({
@@ -219,5 +378,133 @@ describe('getPivotResultColumns', () => {
       },
       TOTALS_COLUMN_DEF,
     ]);
+  });
+});
+
+describe('extractSnapshotRow', () => {
+  it('should extract the correct values from the snapshot', () => {
+    const rowCount = 3;
+    const mockRows = makeDimensionData({ count: rowCount });
+    const snapshot =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSnapshot>({
+        rows: mockRows,
+      });
+    const table =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
+        rowSources: [
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'A',
+          }),
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'B',
+          }),
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'C',
+          }),
+        ],
+      });
+    expect(extractSnapshotRow(snapshot, table, 0)).toEqual({
+      A: 'Key0',
+      Totals: 100,
+      [TREE_NODE_KEY]: {
+        depth: 1,
+        hasChildren: false,
+        index: 0,
+        isExpanded: false,
+      },
+    });
+
+    expect(extractSnapshotRow(snapshot, table, 2)).toEqual({
+      A: 'Key2',
+      Totals: 300,
+      [TREE_NODE_KEY]: {
+        depth: 1,
+        hasChildren: false,
+        index: 2,
+        isExpanded: false,
+      },
+    });
+
+    expect(() => extractSnapshotRow(snapshot, table, 3)).toThrow();
+  });
+
+  it('handles an offset correctly', () => {
+    const rowCount = 4;
+    const offset = 5;
+    const mockRows = makeDimensionData({ count: rowCount, offset });
+    const snapshot =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSnapshot>({
+        rows: mockRows,
+      });
+    const table =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
+        rowSources: [
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'A',
+          }),
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'B',
+          }),
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'C',
+          }),
+        ],
+      });
+    expect(extractSnapshotRow(snapshot, table, 5)).toEqual({
+      A: 'Key5',
+      Totals: 600,
+      [TREE_NODE_KEY]: {
+        depth: 1,
+        hasChildren: false,
+        index: 5,
+        isExpanded: false,
+      },
+    });
+
+    expect(extractSnapshotRow(snapshot, table, 8)).toEqual({
+      A: 'Key8',
+      Totals: 900,
+      [TREE_NODE_KEY]: {
+        depth: 1,
+        hasChildren: false,
+        index: 8,
+        isExpanded: false,
+      },
+    });
+
+    expect(() => extractSnapshotRow(snapshot, table, 0)).toThrow();
+  });
+});
+
+describe('extractTotalsRow', () => {
+  it('should extract the correct totals from the snapshot', () => {
+    const mockRows = makeDimensionData({ count: 3 });
+    const mockColumns = makeDimensionData({ count: 2 });
+    const snapshot =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSnapshot>({
+        rows: mockRows,
+        columns: mockColumns,
+        getValue: jest.fn(),
+      });
+    const table =
+      TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
+        valueSources: [
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'Value',
+          }),
+        ],
+      });
+
+    expect(extractTotalsRow(snapshot, table)).toEqual({
+      Totals: undefined,
+      Key0: 100,
+      Key1: 200,
+      [TREE_NODE_KEY]: {
+        depth: 0,
+        hasChildren: false,
+        index: 1000,
+        isExpanded: false,
+      },
+    });
   });
 });
