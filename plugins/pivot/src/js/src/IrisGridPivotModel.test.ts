@@ -628,11 +628,11 @@ describe('IrisGridPivotModel', () => {
     jest.runOnlyPendingTimers();
     expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
       expect.objectContaining({
-        columns: expect.anything(),
-        // columns: {
-        // start: 0,
-        // end: 0,
-        // },
+        // columns: expect.anything(),
+        columns: {
+          start: 0,
+          end: 0,
+        },
       })
     );
     expect(model.columnCount).toBe(2);

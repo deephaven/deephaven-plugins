@@ -618,21 +618,10 @@ class IrisGridPivotModel<R extends UITreeRow = UITreeRow>
 
   startListening(): void {
     super.startListening();
-
-    // TODO:
-    // this.addListeners(this);
-
     log.debug(
       'startListening',
       this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED
     );
-
-    // console.log(
-    //   'startListening',
-    //   this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED,
-    //   this.pivotTable
-    // );
-
     this.pivotTable.addEventListener(
       this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED,
       this.handlePivotUpdated

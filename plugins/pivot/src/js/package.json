@@ -28,7 +28,7 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven-enterprise/jsapi-coreplus-types": "file:../../../../../iris/feature/DhcInDhe/js-client/build/npm-output/deephaven-enterprise-jsapi-coreplus-types-1.20240517.250716090900-g82c7c67334.tgz",
+    "@deephaven-enterprise/jsapi-coreplus-types": "~1.20240517",
     "@deephaven/components": "^0.85.27",
     "@deephaven/dashboard": "^0.85.28",
     "@deephaven/grid": "^0.85.28",
