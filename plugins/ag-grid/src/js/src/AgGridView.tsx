@@ -150,7 +150,6 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
-      // pivotMode={isPivotTable(table)}
       getRowId={getRowId}
       sideBar={sideBar}
     />

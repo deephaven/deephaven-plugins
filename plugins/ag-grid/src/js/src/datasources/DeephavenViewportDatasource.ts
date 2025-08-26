@@ -21,7 +21,6 @@ import {
   isPivotTable,
   isTable,
   isTreeTable,
-  TREE_NODE_KEY,
 } from '../utils/AgGridTableUtils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
@@ -30,7 +29,6 @@ import {
   extractSnapshotRows,
   getPivotResultColumns,
   isPivotColumnGroupContext,
-  toGroupKeyString,
 } from '../utils/AgGridPivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');

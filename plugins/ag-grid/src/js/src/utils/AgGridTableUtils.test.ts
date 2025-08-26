@@ -5,10 +5,10 @@ import {
   convertColumnToColDef,
   getColumnDefs,
   getSideBar,
+  isPivotTable,
   isTable,
   isTreeTable,
 } from './AgGridTableUtils';
-import { isPivotTable } from './AgGridPivotUtils';
 
 function createMockColumn(options: Partial<DhType.Column> = {}): DhType.Column {
   return {
