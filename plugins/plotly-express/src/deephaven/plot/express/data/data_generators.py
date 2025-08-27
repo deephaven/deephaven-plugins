@@ -265,14 +265,12 @@ def marketing(ticking: bool = True) -> Table:
 
 def stocks(
     ticking: bool = True,
-    hours_of_data: int = 1,
-    starting_time: str = STARTING_TIME,
 ) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
-    Data is 1 hour of randomly generated (but deterministic) fictional
+    Randomly generated (but deterministic) fictional
     stock market data, and starts with the first 5 minutes of data
-    already initialized so your example plots won't start empty.
+    already initialized so example plots won't start empty.
 
     Notes:
         Contains the following columns:
@@ -291,10 +289,6 @@ def stocks(
         ticking:
             If true, the table will tick using a replayer, if
             false the whole table will be returned as a static table.
-        hours_of_data:
-            The number of hours of data to return
-        starting_time:
-            The starting time of the data, defaults to "2018-06-01T08:00:00 ET"
 
     Returns:
         A Deephaven Table
@@ -305,124 +299,129 @@ def stocks(
         stocks = dx.data.stocks()
         ```
     """
-
-    base_time = to_j_instant(starting_time)
-
-    pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
-
-    sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
-    sym_dict = {v: i for i, v in enumerate(sym_list)}
-    sym_weights = [95, 100, 70, 45, 35]
-    exchange = ["NYPE", "PETX", "TPET"]
-    exchange_weights = [50, 100, 45]
-    init_value = 100  # is used inside query string
-
     ticks_per_second = 10
-    size_in_seconds: int = hours_of_data * 60 * 60 * ticks_per_second
 
-    # base time is 8am, start at 9am so there's already data showing and tick until 5pm
-    start_time = pd_base_time + pd.Timedelta((int)(MINUTE * 5))
-    end_time = pd_base_time + pd.Timedelta(size_in_seconds * SECOND)
+    def generate(t: Table, ticks_per_second: int = ticks_per_second) -> Table:
 
-    def random_gauss(seed: int) -> float:
-        random.seed(seed)  # set seed once per row
-        return random.gauss(0, 1)
+        base_time = to_j_instant(STARTING_TIME)
+        pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
-    def random_list_sym(seed: int) -> str:
-        return random.choices(sym_list, sym_weights)[0]
+        sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
+        sym_dict = {v: i for i, v in enumerate(sym_list)}  # is used inside query string
+        sym_weights = [95, 100, 70, 45, 35]
+        exchange = ["NYPE", "PETX", "TPET"]
+        exchange_weights = [50, 100, 45]
+        init_value = 100  # is used inside query string
 
-    def random_list_exchange(seed: int) -> str:
-        return random.choices(exchange, exchange_weights)[0]
+        def random_gauss(seed: int) -> float:
+            random.seed(seed)  # set seed once per row
+            return random.gauss(0, 1)
 
-    def random_trade_size(rand: float) -> int:
-        """
-        Random distribution of trade size, approximately mirroring market data
-        """
-        # cubic
-        abs_rand = abs(rand**3)
-        # rough model of the distribution of trade sizes in real market data
-        # they bucket into human sized trade blocks
-        size_dist = random.choices(
-            [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
-            [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
-        )[0]
-        if size_dist == 0:
-            size = math.ceil(1000 * abs_rand)
-            # round half of the numbers above 1000 to the nearest ten
-            return round(size, -1) if (size > 1000 and rand > 0) else size
-        else:
-            return size_dist
+        def random_list_sym(seed: int) -> str:
+            return random.choices(sym_list, sym_weights)[0]
 
-    static_table = (
-        empty_table(size_in_seconds)
-        .update(
-            formulas=[
-                "Timestamp = base_time + (long)(ii * SECOND / ticks_per_second)",
-                # must be first as it sets python seed
-                "RandomDouble = (double)random_gauss(i)",  # nicer looking starting seed
-                "Sym = random_list_sym(i)",
-                "Exchange = random_list_exchange(i)",
-                "Side = RandomDouble >= 0 ? `buy` : `sell`",
-                "Size = random_trade_size(RandomDouble)",
-                "SymIndex = (int)sym_dict[Sym]",
-                "Index = i",
-            ]
+        def random_list_exchange(seed: int) -> str:
+            return random.choices(exchange, exchange_weights)[0]
+
+        def random_trade_size(rand: float) -> int:
+            """
+            Random distribution of trade size, approximately mirroring market data
+            """
+            # cubic
+            abs_rand = abs(rand**3)
+            # rough model of the distribution of trade sizes in real market data
+            # they bucket into human sized trade blocks
+            size_dist = random.choices(
+                [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
+                [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
+            )[0]
+            if size_dist == 0:
+                size = math.ceil(1000 * abs_rand)
+                # round half of the numbers above 1000 to the nearest ten
+                return round(size, -1) if (size > 1000 and rand > 0) else size
+            else:
+                return size_dist
+
+        return (
+            t.update(
+                formulas=[
+                    "Timestamp = base_time + (long)(Index * SECOND / ticks_per_second)",
+                    # must be first as it sets python seed
+                    "RandomDouble = (double)random_gauss(Index)",  # nicer looking starting seed
+                    "Sym = random_list_sym(Index)",
+                    "Exchange = random_list_exchange(Index)",
+                    "Side = RandomDouble >= 0 ? `buy` : `sell`",
+                    "Size = random_trade_size(RandomDouble)",
+                    "SymIndex = (int)sym_dict[Sym]",
+                ]
+            )
+            # generate data for price column
+            .update_by(
+                ops=[
+                    rolling_sum_tick(
+                        cols=["RollingSum = RandomDouble"], rev_ticks=2000, fwd_ticks=0
+                    )
+                ],
+                by=["Sym"],
+            )
+            .update_by(
+                ops=[ema_tick(decay_ticks=2, cols=["Ema = RollingSum"])], by=["Sym"]
+            )
+            # generate date for "SPet500" a hypothetical composite index
+            .update_by(
+                ops=[
+                    rolling_sum_tick(
+                        cols=["RollingSumIndividual = RandomDouble"],
+                        rev_ticks=1000,
+                        fwd_ticks=0,
+                    )
+                ],
+            )
+            .update_by(
+                ops=[
+                    ema_tick(
+                        decay_ticks=5, cols=["EmaIndividual = RollingSumIndividual"]
+                    )
+                ]
+            )
+            # spread the staring values based on symbol and round to 2 decimals
+            .update(
+                [
+                    "Price = Math.round((Ema + init_value + Math.pow(1 + SymIndex, 3))*100)/100",
+                    "SPet500 = EmaIndividual + init_value + 50",
+                    "Dollars = Size * Price",
+                ]
+            )
+            # drop intermediary columns, and order the output nicely
+            .view(
+                [
+                    "Timestamp",
+                    "Sym",
+                    "Exchange",
+                    "Size",
+                    "Price",
+                    "Dollars",
+                    "Side",
+                    "SPet500",
+                    "Index",
+                    "Random = RandomDouble",
+                ]
+            )
         )
-        # generate data for price column
-        .update_by(
-            ops=[
-                rolling_sum_tick(
-                    cols=["RollingSum = RandomDouble"], rev_ticks=2000, fwd_ticks=0
-                )
-            ],
-            by=["Sym"],
-        )
-        .update_by(ops=[ema_tick(decay_ticks=2, cols=["Ema = RollingSum"])], by=["Sym"])
-        # generate date for "SPet500" a hypothetical composite index
-        .update_by(
-            ops=[
-                rolling_sum_tick(
-                    cols=["RollingSumIndividual = RandomDouble"],
-                    rev_ticks=1000,
-                    fwd_ticks=0,
-                )
-            ],
-        )
-        .update_by(
-            ops=[ema_tick(decay_ticks=5, cols=["EmaIndividual = RollingSumIndividual"])]
-        )
-        # spread the staring values based on symbol and round to 2 decimals
-        .update(
-            [
-                "Price = Math.round((Ema + init_value + Math.pow(1 + SymIndex, 3))*100)/100",
-                "SPet500 = EmaIndividual + init_value + 50",
-                "Dollars = Size * Price",
-            ]
-        )
-        # drop intermediary columns, and order the output nicely
-        .view(
-            [
-                "Timestamp",
-                "Sym",
-                "Exchange",
-                "Size",
-                "Price",
-                "Dollars",
-                "Side",
-                "SPet500",
-                "Index",
-                "Random = RandomDouble",
-            ]
-        )
-    )
 
     if ticking:
-        result_replayer = TableReplayer(start_time, end_time)
-        replayer_table = result_replayer.add_table(static_table, "Timestamp")
-        result_replayer.start()
-        return replayer_table
+        return generate(
+            merge(
+                [
+                    empty_table(60 * 5 * ticks_per_second).update("Index = ii"),
+                    time_table("PT0.1S")
+                    .update("Index = ii + 60 * 5 * ticks_per_second")
+                    .drop_columns("Timestamp"),
+                ]
+            )
+        )
     else:
-        return static_table
+        return generate(empty_table(60 * 60 * ticks_per_second).update("Index = ii"))
 
 
 def tips(ticking: bool = True) -> Table:
@@ -986,3 +985,400 @@ def gapminder(ticking: bool = True) -> Table:
             ticking_table,
         ]
     )
+
+
+# TODO FIX COUNTRY GENERATION
+
+
+def fish_market(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic fish market sales dataset designed for pivot table usage.
+
+    Columns:
+    - SaleID (int)
+    - Revenue (float)
+    - Weight_kg (float)
+    - Price_per_kg (float)
+    - HandlingFee (float)
+    - SpeciesName (string)
+    - FishType (string)
+    - ProductForm (string)
+    - FishingGround (string)
+    - LandingCountry (string)
+    - LandingPort (string)
+    - CatchDate (Instant)
+    - SaleDate (Instant)
+    - VesselName (string)
+    - CustomerName (string)
+    - CustomerType (string)
+    - TransportMethod (string)
+
+    Args:
+        ticking: When true, one new transaction will tick in every second.
+
+    Returns:
+        A Deephaven Table suitable for pivot table demonstrations.
+    """
+
+    def generate(t: Table) -> Table:
+        base_time = to_j_instant(STARTING_TIME)
+
+        def _stable_val(s: str) -> int:
+            # Deterministic string-to-int seed (avoid Python's randomized hash)
+            return sum(ord(c) for c in s) & 0x7FFFFFFF
+
+        # Reference data
+        species_list = [
+            "Atlantic Salmon",
+            "Bluefin Tuna",
+            "Haddock",
+            "Cod",
+            "Halibut",
+            "Mackerel",
+            "Scallops",
+            "Lobster",
+        ]
+        species_to_type = {
+            "Atlantic Salmon": "Pelagic",
+            "Bluefin Tuna": "Pelagic",
+            "Mackerel": "Pelagic",
+            "Haddock": "Groundfish",
+            "Cod": "Groundfish",
+            "Halibut": "Groundfish",
+            "Scallops": "Shellfish",
+            "Lobster": "Shellfish",
+        }
+        product_forms = ["Whole", "Fillet", "Steaks", "Frozen"]
+
+        fishing_grounds = [
+            "North Atlantic",
+            "Pacific",
+            "Gulf of Mexico",
+            "Bering Sea",
+        ]
+
+        species_to_grounds = {
+            "Atlantic Salmon": ["North Atlantic"],
+            "Bluefin Tuna": ["Pacific", "Gulf of Mexico", "North Atlantic"],
+            "Haddock": ["North Atlantic"],
+            "Cod": ["North Atlantic", "Bering Sea"],
+            "Halibut": ["Pacific", "Bering Sea"],
+            "Mackerel": ["North Atlantic", "Pacific"],
+            "Scallops": ["North Atlantic"],
+            "Lobster": ["North Atlantic"],
+        }
+
+        ground_to_countries = {
+            "North Atlantic": ["United States", "Canada", "Iceland", "Norway"],
+            "Pacific": ["United States", "Canada", "Japan"],
+            "Gulf of Mexico": ["United States"],
+            "Bering Sea": ["United States"],
+        }
+
+        ports_by_ground = {
+            "North Atlantic": [
+                "Boston, MA",
+                "Halifax, NS",
+                "Reykjavik",
+                "Bergen",
+                "St. John's, NL",
+            ],
+            "Pacific": [
+                "Seattle, WA",
+                "Vancouver, BC",
+                "Shimizu",
+                "Prince Rupert, BC",
+                "Hachinohe",
+            ],
+            "Gulf of Mexico": [
+                "New Orleans, LA",
+                "Tampa, FL",
+                "Houston, TX",
+                "Miami, FL",
+            ],
+            "Bering Sea": [
+                "Dutch Harbor, AK",
+            ],
+        }
+
+        vessels = [
+            "Sea Breeze",
+            "Northern Star",
+            "Ocean Voyager",
+            "Blue Horizon",
+            "Arctic Dawn",
+            "Pacific Spirit",
+            "Atlantic Queen",
+            "Golden Net",
+            "Wave Runner",
+            "Silver Fin",
+        ]
+
+        customers = [
+            "Ocean's Best Restaurant",
+            "Seafood City Market",
+            "Harbor Wholesale Co.",
+            "Bluewater Bistro",
+            "FreshFish Direct",
+            "Mariner Foods",
+            "Coastal Grill",
+            "Market on 5th",
+            "Global Seafood Traders",
+        ]
+        customer_to_type = {
+            "Ocean's Best Restaurant": "Restaurant",
+            "Bluewater Bistro": "Restaurant",
+            "Coastal Grill": "Restaurant",
+            "Seafood City Market": "Retail",
+            "FreshFish Direct": "Retail",
+            "Market on 5th": "Retail",
+            "Harbor Wholesale Co.": "Wholesale",
+            "Mariner Foods": "Wholesale",
+            "Global Seafood Traders": "Wholesale",
+        }
+
+        # Species price and weight profiles (low, high, mode) for triangular distribution
+        price_profiles = {
+            "Atlantic Salmon": (14.0, 20.0, 16.0),
+            "Bluefin Tuna": (22.0, 40.0, 28.0),
+            "Haddock": (6.0, 12.0, 9.0),
+            "Cod": (7.0, 14.0, 10.0),
+            "Halibut": (16.0, 30.0, 22.0),
+            "Mackerel": (3.0, 6.0, 4.5),
+            "Scallops": (20.0, 38.0, 28.0),
+            "Lobster": (12.0, 25.0, 18.0),
+        }
+        weight_profiles = {
+            "Atlantic Salmon": (20.0, 400.0, 120.0),
+            "Bluefin Tuna": (50.0, 800.0, 200.0),
+            "Haddock": (5.0, 150.0, 40.0),
+            "Cod": (5.0, 200.0, 50.0),
+            "Halibut": (10.0, 300.0, 80.0),
+            "Mackerel": (10.0, 400.0, 100.0),
+            "Scallops": (10.0, 250.0, 70.0),
+            "Lobster": (5.0, 120.0, 40.0),
+        }
+
+        def choose_species(index: int) -> str:
+            random.seed(index)
+            weights = [12, 6, 10, 10, 7, 11, 8, 6]  # some variety
+            return random.choices(species_list, weights=weights)[0]
+
+        def species_type(species: str) -> str:
+            return species_to_type.get(species, "Unknown")
+
+        def choose_form(index: int, species: str) -> str:
+            random.seed(index + 1 + _stable_val(species))
+            # Form preferences by species (e.g., Lobster more often Whole or Frozen)
+            if species == "Lobster":
+                weights = [7, 0, 0, 3]  # Whole, Fillet, Steaks, Frozen
+            elif species in ("Scallops",):
+                weights = [2, 0, 0, 6]
+            elif species in ("Bluefin Tuna", "Halibut"):
+                weights = [2, 4, 3, 1]
+            else:
+                weights = [3, 5, 2, 2]
+            return random.choices(product_forms, weights=weights)[0]
+
+        def choose_ground(index: int, species: str) -> str:
+            random.seed(index + 2 + _stable_val(species))
+            valid_grounds = species_to_grounds.get(species, fishing_grounds)
+            weights = [35, 30, 12, 15, 8]  # Adjust weights if needed
+            return random.choices(valid_grounds, weights=weights[: len(valid_grounds)])[
+                0
+            ]
+
+        def choose_country(ground: str, index: int) -> str:
+            random.seed(index + 3000 + _stable_val(ground))
+            options = ground_to_countries.get(ground, ["United States"])
+            return random.choice(options)
+
+        # Update choose_port to select by ground only
+        def choose_port(ground: str, index: int) -> str:
+            random.seed(index + 4500 + _stable_val(ground))
+            options = ports_by_ground.get(ground, ["Boston, MA"])
+            return random.choice(options)
+
+        def choose_vessel(index: int, ground: str) -> str:
+            random.seed(index + 5000 + _stable_val(ground))
+            return random.choice(vessels)
+
+        def choose_customer(index: int) -> str:
+            random.seed(index + 6)
+            weights = [10, 9, 7, 8, 9, 7, 8, 6, 5]
+            return random.choices(customers, weights=weights)[0]
+
+        def customer_type(name: str) -> str:
+            return customer_to_type.get(name, "Retail")
+
+        def choose_transport(
+            index: int,
+            product_form: str,
+            landing_country: str,
+            ground: str,
+            species: str,
+        ) -> str:
+            random.seed(
+                index
+                + 7000
+                + _stable_val(product_form)
+                + (_stable_val(landing_country) * 3)
+                + (_stable_val(ground) * 5)
+                + (_stable_val(species) * 7)
+            )
+            # Air more likely for premium/fresh product or long-distance exports
+            air_bias = 0
+            if product_form in ("Fillet", "Steaks"):
+                air_bias += 20
+            if landing_country in ("Japan", "Iceland", "Norway"):
+                air_bias += 20
+            if species in ("Bluefin Tuna", "Scallops"):
+                air_bias += 15
+            air_weight = max(10, min(70, 20 + air_bias))
+            truck_weight = 100 - air_weight
+            return random.choices(
+                ["Air Freight", "Refrigerated Truck"],
+                weights=[air_weight, truck_weight],
+            )[0]
+
+        def gen_weight(species: str, product_form: str, index: int) -> float:
+            low, high, mode = weight_profiles[species]
+            random.seed(index + 8000 + _stable_val(species))
+            w = random.triangular(low, high, mode)
+            form_mult = {"Whole": 1.0, "Fillet": 0.6, "Steaks": 0.7, "Frozen": 0.8}.get(
+                product_form, 1.0
+            )
+            return max(1.0, w * form_mult)
+
+        def gen_price(species: str, product_form: str, index: int) -> float:
+            low, high, mode = price_profiles[species]
+            random.seed(index + 9000 + _stable_val(species))
+            p = random.triangular(low, high, mode)
+            form_mult = {"Whole": 1.0, "Fillet": 1.3, "Steaks": 1.2, "Frozen": 0.9}.get(
+                product_form, 1.0
+            )
+            # Add small noise
+            random.seed(index + 10)
+            noise = random.gauss(0.0, 0.5)
+            return max(1.0, p * form_mult + noise)
+
+        def compute_handling_fee(
+            revenue: float, transport_method: str, product_form: str, index: int
+        ) -> float:
+            random.seed(index + 11)
+            base_pct = random.uniform(0.02, 0.06)
+            if transport_method == "Air Freight":
+                base_pct += 0.02
+            if product_form == "Frozen":
+                base_pct += 0.005
+            return revenue * base_pct
+
+        def gen_catch_days(index: int) -> int:
+            random.seed(index + 12)
+            # Within ~2 years window
+            return random.randint(0, 730)
+
+        def gen_sale_delay(
+            transport_method: str, product_form: str, weight: float, index: int
+        ) -> int:
+            random.seed(
+                index
+                + 13000
+                + _stable_val(transport_method)
+                + (_stable_val(product_form) * 2)
+            )
+            if transport_method == "Air Freight":
+                base = random.randint(1, 3)
+            else:
+                base = random.randint(2, 12)
+            # Heavier shipments tend to take a bit longer
+            heavy_adj = 0
+            if weight > 300:
+                heavy_adj = 2
+            elif weight > 150:
+                heavy_adj = 1
+            return max(0, base + heavy_adj)
+
+        return (
+            t.update(
+                [
+                    # Dimensional attributes first
+                    "SpeciesName = (String)choose_species(Index)",
+                    "FishType = (String)species_type(SpeciesName)",
+                    "ProductForm = (String)choose_form(Index, SpeciesName)",
+                    "FishingGround = (String)choose_ground(Index, SpeciesName)",
+                    "LandingPort = (String)choose_port(FishingGround, Index)",
+                    "LandingCountry = (String)choose_country(FishingGround, Index)",
+                    "VesselName = (String)choose_vessel(Index, FishingGround)",
+                    "CustomerName = (String)choose_customer(Index)",
+                    "CustomerType = (String)customer_type(CustomerName)",
+                    # Measures
+                    "Weight_kg = (double)gen_weight(SpeciesName, ProductForm, Index)",
+                    "Price_per_kg_unrounded = (double)gen_price(SpeciesName, ProductForm, Index)",
+                    "Price_per_kg = Math.round(Price_per_kg_unrounded * 100.0) / 100.0",
+                    "Revenue_unrounded = Price_per_kg * Weight_kg",
+                    "Revenue = Math.round(Revenue_unrounded * 100.0) / 100.0",
+                    # Logistics
+                    "TransportMethod = (String)choose_transport(Index, ProductForm, LandingCountry, FishingGround, SpeciesName)",
+                    "HandlingFee_unrounded = (double)compute_handling_fee(Revenue, TransportMethod, ProductForm, Index)",
+                    "HandlingFee = Math.round(HandlingFee_unrounded * 100.0) / 100.0",
+                    # Dates
+                    "CatchDays = (int)gen_catch_days(Index)",
+                    "CatchDate = base_time + (long)CatchDays * 86400L * SECOND",
+                    "SaleDelayDays = (int)gen_sale_delay(TransportMethod, ProductForm, Weight_kg, Index)",
+                    "SaleDate = CatchDate + (long)SaleDelayDays * 86400L * SECOND",
+                    # Identifier
+                    "SaleID = (int)(Index + 1)",
+                ]
+            )
+            .update(
+                ["Weight_kg = Math.round(Weight_kg * 10.0) / 10.0"]
+            )  # one decimal for weight
+            .drop_columns(
+                [
+                    "Price_per_kg_unrounded",
+                    "Revenue_unrounded",
+                    "HandlingFee_unrounded",
+                    "CatchDays",
+                    "SaleDelayDays",
+                    "Index",
+                ]
+            )
+            .view(
+                [
+                    "SaleID",
+                    "Revenue",
+                    "Weight_kg",
+                    "Price_per_kg",
+                    "HandlingFee",
+                    "SpeciesName",
+                    "FishType",
+                    "ProductForm",
+                    "FishingGround",
+                    "LandingCountry",
+                    "LandingPort",
+                    "CatchDate",
+                    "SaleDate",
+                    "VesselName",
+                    "CustomerName",
+                    "CustomerType",
+                    "TransportMethod",
+                ]
+            )
+        )
+
+    base_rows = 1000
+
+    if ticking:
+        return generate(
+            merge(
+                [
+                    empty_table(base_rows).update("Index = ii"),
+                    time_table("PT1S")
+                    .update(f"Index = ii + {base_rows}")
+                    .drop_columns("Timestamp"),
+                ]
+            )
+        )
+    else:
+        return generate(empty_table(base_rows).update("Index = ii"))
