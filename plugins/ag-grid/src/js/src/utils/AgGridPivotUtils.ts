@@ -6,6 +6,8 @@ import {
   SingleRowData,
   TREE_NODE_KEY,
 } from './AgGridTableUtils';
+import { TableUtils } from '@deephaven/jsapi-utils';
+import AgGridFormatter from './AgGridFormatter';
 
 export const TOTALS_COLUMN_NAME = 'Totals';
 
@@ -115,6 +117,8 @@ export function getPivotResultColumns(
       headerName: `${currentGroup.headerName} Total`,
       field: currentGroup.groupId,
       colId: currentGroup.groupId,
+      cellDataType: TableUtils.dataType.DECIMAL,
+      cellStyle: params => AgGridFormatter.styleForNumberCell(params),
     });
     getCurrentChildren().push(currentGroup);
   }
@@ -150,6 +154,8 @@ export function getPivotResultColumns(
         colId: columnKey,
         // Only show these when the group is open
         columnGroupShow: 'open',
+        cellDataType: TableUtils.dataType.DECIMAL,
+        cellStyle: params => AgGridFormatter.styleForNumberCell(params),
       });
     }
   }
@@ -163,6 +169,8 @@ export function getPivotResultColumns(
     headerName: TOTALS_COLUMN_NAME,
     field: TOTALS_COLUMN_NAME,
     colId: TOTALS_COLUMN_NAME,
+    cellDataType: TableUtils.dataType.DECIMAL,
+    cellStyle: params => AgGridFormatter.styleForNumberCell(params),
   });
 
   return result;
