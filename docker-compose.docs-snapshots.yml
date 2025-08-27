@@ -1,18 +1,7 @@
 services:
-  # Test server that has all the plugins loaded. Test sets are run against this server.
-  deephaven-plugins-docs-test-server:
-    container_name: deephaven-plugins
-    build:
-      dockerfile: ./Dockerfile
-      pull: true # We need to always pull the latest server image used in the Dockerfile
-    ports:
-      - '${DEEPHAVEN_SNAPSHOT_PORT:-10090}:10000'
-    environment:
-      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
-
   # Extract the code blocks from the docs in the plugins directories and output them ssto a results directory.
   deephaven-plugins-docs-extractor:
-    image: ghcr.io/deephaven/salmon-extractor
+    image: ghcr.io/deephaven/salmon-extractor:pre
     pull_policy: always
     container_name: deephaven-plugins-docs-extractor
     command:
@@ -28,30 +17,32 @@ services:
       # We could extract from the build directories, but we need to output the snapshots to the build directory itself for Salmon to pick up...
       - /extract/plotly-express/build/
       - /extract/ui/build/
-      - ./docker/build/test-sets:/results # Output to a temporary build directory
+      - test-sets:/results
 
   # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
   deephaven-plugins-docs-snapshotter:
-    image: ghcr.io/deephaven/salmon-snapshotter
+    image: ghcr.io/deephaven/salmon-snapshotter:pre
     pull_policy: always
     depends_on:
-      deephaven-plugins-docs-test-server:
-        condition: service_healthy
       deephaven-plugins-docs-extractor:
         condition: service_completed_successfully
     environment:
-      HOST_URL: 'http://deephaven-plugins-docs-test-server:10000'
+      HOST_URL: 'http://server:10000'
+      DOCKER_CONFIG_DIR: ${PWD}/docker
     command:
       [
         'sh',
         '-c',
-        'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui',
+        'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express --errors /errors/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui --errors /errors/ui',
       ]
     volumes:
-      - ./docker/build/test-sets:/test-sets
+      - /var/run/docker.sock:/var/run/docker.sock # Allows the snapshotter to start its own docker containers for the test server
+      - ${PWD}:${PWD} # Needed so docker/python/docker-compose.yml resolves the correct paths on the host
+      - test-sets:/test-sets
       # Map all the results back to the snapshots directory for those docs
       - ./plugins/ui/docs/snapshots:/results/ui
       - ./plugins/plotly-express/docs/snapshots:/results/plotly-express
+      - ./snapshot-results/errors:/errors
 
   # Validate MDX and the snapshots that were written are valid
   deephaven-plugins-docs-validator:
@@ -61,3 +52,12 @@ services:
       - ./plugins/ui/docs/build/markdown:/validate/ui
       - ./plugins/plotly-express/docs/build/markdown:/validate/plotly-express
       - ./docker/build/validator-results:/results
+
+volumes:
+  test-sets:
+
+# This network is set as external in the other compose files so the snapshotter and servers are run on the same network.
+networks:
+  default:
+    name: deephaven-plugins-docs-snapshot-network
+    driver: bridge
