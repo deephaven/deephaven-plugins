@@ -282,7 +282,10 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     const rowData = extractSnapshotRows(snapshot, this.table);
     log.debug2('Pivot row data', rowData);
 
-    const pivotResultColumns = getPivotResultColumns(snapshot.columns);
+    const pivotResultColumns = getPivotResultColumns(
+      snapshot.columns,
+      this.table.valueSources
+    );
     log.debug2('Pivot result columns', pivotResultColumns);
 
     this.params?.setRowData(rowData);

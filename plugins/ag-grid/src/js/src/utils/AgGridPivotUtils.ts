@@ -1,15 +1,14 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
+import { TableUtils } from '@deephaven/jsapi-utils';
 import { ColDef, ColGroupDef } from '@ag-grid-community/core';
 import { assertNotNull } from '@deephaven/utils';
 import {
   AgGridViewportRowData,
+  getCellStyleFunction,
   SingleRowData,
   TREE_NODE_KEY,
 } from './AgGridTableUtils';
-import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
-
-export const TOTALS_COLUMN_NAME = 'Totals';
 
 export type PivotColumnGroupContext = {
   snapshotIndex: number;
@@ -28,6 +27,19 @@ export function isPivotColumnGroupContext(
  */
 export function toGroupKeyString(groupKeys: (unknown | null)[]): string {
   return groupKeys.filter(key => key != null).join('/');
+}
+
+/**
+ * Converts a group key string and a value source name to a value key string.
+ * @param groupKeyString The group key string.
+ * @param valueSourceName The value source name.
+ * @returns A value key string.
+ */
+export function toValueKeyString(
+  groupKeyString: string,
+  valueSourceName: string
+): string {
+  return `${groupKeyString}/${valueSourceName}`;
 }
 
 /**
@@ -83,13 +95,63 @@ export function getHeaderName(columnKeys: (string | null)[]): string {
   throw new Error('No non-null column key found');
 }
 
+export function makePendingColDef(groupId: string): ColDef {
+  return {
+    headerName: '...',
+    field: `${groupId}/...`,
+    colId: `${groupId}/...`,
+    columnGroupShow: 'open',
+    maxWidth: 30, // We don't need the pending column to be very wide
+  };
+}
+
+/**
+ * Get the column definition for a column with value sources in a pivot table.
+ * If only one value source is provided, it will return a simple column definition.
+ * If multiple value sources are provided, it will return a column group definition
+ * @param headerName Header name of the value source group
+ * @param columnKey Column key of the value source group
+ * @param valueSources Value sources for the pivot table
+ * @returns The pivot value source group definition
+ */
+export function makeColumnValuesColDef(
+  headerName: string,
+  columnKey: string,
+  valueSources: CorePlusDhType.coreplus.pivot.PivotSource[]
+): ColGroupDef | ColDef {
+  if (valueSources.length === 0) {
+    throw new Error('No value sources provided');
+  }
+
+  const children: ColDef[] = valueSources.map(valueSource => {
+    const dataType = TableUtils.getNormalizedType(valueSource.type);
+    return {
+      headerName: valueSource.name,
+      field: toValueKeyString(columnKey, valueSource.name),
+      colId: toValueKeyString(columnKey, valueSource.name),
+      cellDataType: dataType,
+      cellStyle: getCellStyleFunction(dataType),
+    };
+  });
+  if (children.length === 1) {
+    return { ...children[0], headerName };
+  }
+  return {
+    headerName,
+    groupId: columnKey,
+    children,
+  };
+}
+
 /**
  * Get the pivot result columns from the provided pivot dimension data. This tells AG Grid how to display the columns, including expandable/collapsible groups.
  * @param columns The pivot dimension data representing the columns.
+ * @param valueSources The value sources for the pivot table.
  * @returns An array of column definitions for the pivot result.
  */
 export function getPivotResultColumns(
-  columns: CorePlusDhType.coreplus.pivot.DimensionData
+  columns: CorePlusDhType.coreplus.pivot.DimensionData,
+  valueSources: CorePlusDhType.coreplus.pivot.PivotSource[]
 ): (ColGroupDef | ColDef)[] {
   const result: (ColGroupDef | ColDef)[] = [];
 
@@ -105,21 +167,15 @@ export function getPivotResultColumns(
     assertNotNull(currentGroup);
     // If there were no children added to this group yet, that means we haven't expanded it yet. Add a placeholder so AG Grid knows it can be expanded.
     if (currentGroup.children.length === 0) {
-      currentGroup.children.push({
-        headerName: '...',
-        field: `${currentGroup.groupId}/...`,
-        colId: `${currentGroup.groupId}/...`,
-        columnGroupShow: 'open',
-      });
+      currentGroup.children.push(makePendingColDef(currentGroup.groupId ?? ''));
     }
     // Also add the totals for this group
-    currentGroup.children.push({
-      headerName: `${currentGroup.headerName} Total`,
-      field: currentGroup.groupId,
-      colId: currentGroup.groupId,
-      cellDataType: TableUtils.dataType.DECIMAL,
-      cellStyle: params => AgGridFormatter.styleForNumberCell(params),
-    });
+    const totalsValueGroup = makeColumnValuesColDef(
+      `${currentGroup.headerName} Totals`,
+      currentGroup.groupId ?? '',
+      valueSources
+    );
+    currentGroup.children.push(totalsValueGroup);
     getCurrentChildren().push(currentGroup);
   }
 
@@ -148,14 +204,15 @@ export function getPivotResultColumns(
         children: [],
       });
     } else {
-      getCurrentChildren().push({
+      const columnValueGroup = makeColumnValuesColDef(
         headerName,
-        field: columnKey,
-        colId: columnKey,
-        // Only show these when the group is open
+        columnKey,
+        valueSources
+      );
+      getCurrentChildren().push({
+        ...columnValueGroup,
+        // We only want these values to show when the parent is open
         columnGroupShow: 'open',
-        cellDataType: TableUtils.dataType.DECIMAL,
-        cellStyle: params => AgGridFormatter.styleForNumberCell(params),
       });
     }
   }
@@ -164,14 +221,18 @@ export function getPivotResultColumns(
     closeGroup();
   }
 
-  // Add a root level totals column as well
-  result.push({
-    headerName: TOTALS_COLUMN_NAME,
-    field: TOTALS_COLUMN_NAME,
-    colId: TOTALS_COLUMN_NAME,
-    cellDataType: TableUtils.dataType.DECIMAL,
-    cellStyle: params => AgGridFormatter.styleForNumberCell(params),
-  });
+  // Add a root level totals column for each value source as well
+  for (let v = 0; v < valueSources.length; v += 1) {
+    const valueSource = valueSources[v];
+    const dataType = TableUtils.getNormalizedType(valueSource.type);
+    result.push({
+      headerName: `${valueSource.name} Totals`,
+      field: valueSource.name,
+      colId: valueSource.name,
+      cellDataType: dataType,
+      cellStyle: getCellStyleFunction(dataType),
+    });
+  }
 
   return result;
 }
@@ -183,8 +244,6 @@ export function extractSnapshotRow(
 ): SingleRowData {
   const rowKeys = snapshot.rows.getKeys(rowIndex);
   const row: SingleRowData = {};
-  // TODO: Support multiple value sources
-  const valueSource = table.valueSources[0];
   for (
     let rowSourceIndex = 0;
     rowSourceIndex < table.rowSources.length;
@@ -205,16 +264,23 @@ export function extractSnapshotRow(
   };
   for (let c = 0; c < snapshot.columns.count; c += 1) {
     const columnKey = toGroupKeyString(snapshot.columns.getKeys(c));
-    const value = snapshot.getValue(
-      valueSource,
-      rowIndex,
-      snapshot.columns.offset + c
-    );
-    row[columnKey] = value;
+    for (let v = 0; v < table.valueSources.length; v += 1) {
+      const valueSource = table.valueSources[v];
+      const valueKey = toValueKeyString(columnKey, valueSource.name);
+      const value = snapshot.getValue(
+        valueSource,
+        rowIndex,
+        snapshot.columns.offset + c
+      );
+      row[valueKey] = value;
+    }
   }
 
   // Add the totals data
-  row[TOTALS_COLUMN_NAME] = snapshot.rows.getTotal(rowIndex, valueSource);
+  for (let v = 0; v < table.valueSources.length; v += 1) {
+    const valueSource = table.valueSources[v];
+    row[valueSource.name] = snapshot.rows.getTotal(rowIndex, valueSource);
+  }
 
   return row;
 }
@@ -230,13 +296,21 @@ export function extractTotalsRow(
     depth: 0,
     index: snapshot.rows.totalCount,
   };
-  // TODO: Support multiple value sources
-  const valueSource = table.valueSources[0];
   for (let c = 0; c < snapshot.columns.count; c += 1) {
     const columnKey = toGroupKeyString(snapshot.columns.getKeys(c));
-    totalsRow[columnKey] = snapshot.columns.getTotal(c, valueSource);
+    for (let v = 0; v < table.valueSources.length; v += 1) {
+      const valueSource = table.valueSources[v];
+      const valueKey = toValueKeyString(columnKey, valueSource.name);
+      const value = snapshot.columns.getTotal(c, valueSource);
+      totalsRow[valueKey] = value;
+    }
   }
-  totalsRow[TOTALS_COLUMN_NAME] = snapshot.getGrandTotal(valueSource);
+
+  // Grand totals values
+  for (let v = 0; v < table.valueSources.length; v += 1) {
+    const valueSource = table.valueSources[v];
+    totalsRow[valueSource.name] = snapshot.getGrandTotal(valueSource);
+  }
 
   return totalsRow;
 }

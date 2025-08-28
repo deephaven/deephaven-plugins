@@ -42,6 +42,23 @@ export function isTreeTable(table: AgGridTableType): table is DhType.TreeTable {
 }
 
 /**
+ * Get the cell style function for a specific data type.
+ * @param dataType Data type of the column
+ * @returns A function to style the cell based on its data type
+ */
+export function getCellStyleFunction(dataType: string): ColDef['cellStyle'] {
+  switch (dataType) {
+    case TableUtils.dataType.DECIMAL:
+    case TableUtils.dataType.INT:
+      return AgGridFormatter.styleForNumberCell;
+    case TableUtils.dataType.DATETIME:
+      return AgGridFormatter.styleForDateCell;
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Converts a Deephaven column to an AG Grid ColDef with appropriate properties.
  *
  * @param column Deephaven column to map
@@ -82,21 +99,21 @@ export function convertColumnToColDef(
         ...templateColDef,
         cellDataType: dataType,
         filter: 'agDateColumnFilter',
-        cellStyle: params => AgGridFormatter.styleForDateCell(params),
+        cellStyle: getCellStyleFunction(dataType),
       };
     case TableUtils.dataType.DECIMAL:
       return {
         ...templateColDef,
         cellDataType: dataType,
         filter: 'agNumberColumnFilter',
-        cellStyle: params => AgGridFormatter.styleForNumberCell(params),
+        cellStyle: getCellStyleFunction(dataType),
       };
     case TableUtils.dataType.INT:
       return {
         ...templateColDef,
         cellDataType: dataType,
         filter: 'agNumberColumnFilter',
-        cellStyle: params => AgGridFormatter.styleForNumberCell(params),
+        cellStyle: getCellStyleFunction(dataType),
       };
     case TableUtils.dataType.STRING:
       return {

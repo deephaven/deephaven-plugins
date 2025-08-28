@@ -1,21 +1,27 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TestUtils } from '@deephaven/test-utils';
-import { ColDef } from '@ag-grid-community/core';
 import {
   extractSnapshotRow,
   extractTotalsRow,
   findRowIndex,
   getHeaderName,
   getPivotResultColumns,
+  makeColumnValuesColDef,
   getRowGroupKeys,
   isPivotColumnGroupContext,
   toGroupKeyString,
+  makePendingColDef,
 } from './AgGridPivotUtils';
 import { TREE_NODE_KEY } from './AgGridTableUtils';
+import AgGridFormatter from './AgGridFormatter';
 
 function assertInRange(value: number, min: number, max: number): void {
   expect(value).toBeGreaterThanOrEqual(min);
   expect(value).toBeLessThan(max);
+}
+
+function parseNumber(value: string): number {
+  return Number.parseInt(value.replace(/\D/g, ''), 10);
 }
 
 function makeDimensionData({
@@ -44,10 +50,12 @@ function makeDimensionData({
         assertInRange(index, offset, offset + count);
         return false;
       }),
-      getTotal: jest.fn((index: number) => {
-        assertInRange(index, offset, offset + count);
-        return (index + 1) * 100;
-      }),
+      getTotal: jest.fn(
+        (index: number, source: CorePlusDhType.coreplus.pivot.PivotSource) => {
+          assertInRange(index, offset, offset + count);
+          return (index + 1) * 10 + parseNumber(source.name) * 1000;
+        }
+      ),
     }
   );
 }
@@ -162,32 +170,75 @@ describe('getHeaderName', () => {
   );
 });
 
+describe('makeColumnValuesColDef', () => {
+  const headerName = 'ColumnHeader';
+  const columnKey = 'ColumnKey';
+  const valueSources = [
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'Value1',
+      type: 'java.lang.Integer',
+    }),
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'Value2',
+      type: 'java.lang.String',
+    }),
+  ];
+
+  it('should return a single column definition if there is only one value source', () => {
+    const colDef = makeColumnValuesColDef(headerName, columnKey, [
+      valueSources[0],
+    ]);
+    expect(colDef).toEqual({
+      headerName,
+      field: 'ColumnKey/Value1',
+      colId: 'ColumnKey/Value1',
+      cellDataType: 'int',
+      cellStyle: expect.any(Function),
+    });
+  });
+
+  it('should return a group column definition if there are multiple value sources', () => {
+    const colDef = makeColumnValuesColDef(headerName, columnKey, valueSources);
+    expect(colDef).toEqual({
+      headerName,
+      groupId: 'ColumnKey',
+      children: [
+        {
+          headerName: 'Value1',
+          field: 'ColumnKey/Value1',
+          colId: 'ColumnKey/Value1',
+          cellDataType: 'int',
+          cellStyle: expect.any(Function),
+        },
+        {
+          headerName: 'Value2',
+          field: 'ColumnKey/Value2',
+          colId: 'ColumnKey/Value2',
+          cellDataType: 'string',
+          cellStyle: undefined,
+        },
+      ],
+    });
+  });
+
+  it('should throw if no value sources are provided', () => {
+    expect(() =>
+      makeColumnValuesColDef('Test Group', 'Test Group', [])
+    ).toThrow('No value sources provided');
+  });
+});
+
 describe('getPivotResultColumns', () => {
-  const TOTALS_COLUMN_DEF = {
-    headerName: 'Totals',
-    field: 'Totals',
-    colId: 'Totals',
-  };
-
-  function makePendingColDef(groupId: string): ColDef {
-    return {
-      headerName: '...',
-      field: `${groupId}/...`,
-      colId: `${groupId}/...`,
-      columnGroupShow: 'open',
-    };
-  }
-
-  function makePivotGroupTotalColDef(
-    groupId: string,
-    headerName = groupId
-  ): ColDef {
-    return {
-      headerName: `${headerName} Total`,
-      field: groupId,
-      colId: groupId,
-    };
-  }
+  const valueSources = [
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'V1',
+      type: 'java.lang.Integer',
+    }),
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'V2',
+      type: 'java.lang.String',
+    }),
+  ];
 
   it('should only add the totals column if there are no columns in the DimensionData', () => {
     const columns =
@@ -195,8 +246,23 @@ describe('getPivotResultColumns', () => {
         count: 0,
       });
 
-    const result = getPivotResultColumns(columns);
-    expect(result).toEqual([TOTALS_COLUMN_DEF]);
+    const result = getPivotResultColumns(columns, valueSources);
+    expect(result).toEqual([
+      {
+        headerName: 'V1 Totals',
+        field: 'V1',
+        colId: 'V1',
+        cellDataType: 'int',
+        cellStyle: AgGridFormatter.styleForNumberCell,
+      },
+      {
+        headerName: 'V2 Totals',
+        field: 'V2',
+        colId: 'V2',
+        cellDataType: 'string',
+        cellStyle: undefined,
+      },
+    ]);
   });
 
   it('should handle one level of columns with nothing expanded yet', () => {
@@ -208,30 +274,52 @@ describe('getPivotResultColumns', () => {
         hasChildren: () => true,
       });
 
-    const result = getPivotResultColumns(columns);
+    const result = getPivotResultColumns(columns, valueSources);
     expect(result).toEqual([
       {
         headerName: 'C0',
         groupId: 'C0',
         columnGroupShow: 'open',
-        children: [makePendingColDef('C0'), makePivotGroupTotalColDef('C0')],
+        children: [
+          makePendingColDef('C0'),
+          makeColumnValuesColDef('C0 Totals', 'C0', valueSources),
+        ],
         context: { snapshotIndex: 0 },
       },
       {
         headerName: 'C1',
         groupId: 'C1',
         columnGroupShow: 'open',
-        children: [makePendingColDef('C1'), makePivotGroupTotalColDef('C1')],
+        children: [
+          makePendingColDef('C1'),
+          makeColumnValuesColDef('C1 Totals', 'C1', valueSources),
+        ],
         context: { snapshotIndex: 1 },
       },
       {
         headerName: 'C2',
         groupId: 'C2',
         columnGroupShow: 'open',
-        children: [makePendingColDef('C2'), makePivotGroupTotalColDef('C2')],
+        children: [
+          makePendingColDef('C2'),
+          makeColumnValuesColDef('C2 Totals', 'C2', valueSources),
+        ],
         context: { snapshotIndex: 2 },
       },
-      TOTALS_COLUMN_DEF,
+      {
+        headerName: 'V1 Totals',
+        field: 'V1',
+        colId: 'V1',
+        cellDataType: 'int',
+        cellStyle: AgGridFormatter.styleForNumberCell,
+      },
+      {
+        headerName: 'V2 Totals',
+        field: 'V2',
+        colId: 'V2',
+        cellDataType: 'string',
+        cellStyle: undefined,
+      },
     ]);
   });
 
@@ -249,7 +337,7 @@ describe('getPivotResultColumns', () => {
         hasChildren: (index: number) => groupKeys[index][1] == null,
       });
 
-    const result = getPivotResultColumns(columns);
+    const result = getPivotResultColumns(columns, valueSources);
     expect(result).toEqual([
       {
         headerName: 'C0',
@@ -257,12 +345,10 @@ describe('getPivotResultColumns', () => {
         columnGroupShow: 'open',
         children: [
           {
-            headerName: 'C0.1',
-            field: 'C0/C0.1',
-            colId: 'C0/C0.1',
+            ...makeColumnValuesColDef('C0.1', 'C0/C0.1', valueSources),
             columnGroupShow: 'open',
           },
-          makePivotGroupTotalColDef('C0'),
+          makeColumnValuesColDef('C0 Totals', 'C0', valueSources),
         ],
         context: { snapshotIndex: 0 },
       },
@@ -270,10 +356,26 @@ describe('getPivotResultColumns', () => {
         headerName: 'C1',
         groupId: 'C1',
         columnGroupShow: 'open',
-        children: [makePendingColDef('C1'), makePivotGroupTotalColDef('C1')],
+        children: [
+          makePendingColDef('C1'),
+          makeColumnValuesColDef('C1 Totals', 'C1', valueSources),
+        ],
         context: { snapshotIndex: 2 },
       },
-      TOTALS_COLUMN_DEF,
+      {
+        headerName: 'V1 Totals',
+        field: 'V1',
+        colId: 'V1',
+        cellDataType: 'int',
+        cellStyle: AgGridFormatter.styleForNumberCell,
+      },
+      {
+        headerName: 'V2 Totals',
+        field: 'V2',
+        colId: 'V2',
+        cellDataType: 'string',
+        cellStyle: undefined,
+      },
     ]);
   });
 
@@ -298,13 +400,16 @@ describe('getPivotResultColumns', () => {
         hasChildren: (index: number) => groupKeys[index][2] == null,
       });
 
-    const result = getPivotResultColumns(columns);
+    const result = getPivotResultColumns(columns, valueSources);
     expect(result).toEqual([
       {
         headerName: 'C0',
         groupId: 'C0',
         columnGroupShow: 'open',
-        children: [makePendingColDef('C0'), makePivotGroupTotalColDef('C0')],
+        children: [
+          makePendingColDef('C0'),
+          makeColumnValuesColDef('C0 Totals', 'C0', valueSources),
+        ],
         context: { snapshotIndex: 0 },
       },
       {
@@ -319,18 +424,22 @@ describe('getPivotResultColumns', () => {
             context: { snapshotIndex: 2 },
             children: [
               {
-                headerName: 'C1.1.1',
-                field: 'C1/C1.1/C1.1.1',
-                colId: 'C1/C1.1/C1.1.1',
+                ...makeColumnValuesColDef(
+                  'C1.1.1',
+                  'C1/C1.1/C1.1.1',
+                  valueSources
+                ),
                 columnGroupShow: 'open',
               },
               {
-                headerName: 'C1.1.2',
-                field: 'C1/C1.1/C1.1.2',
-                colId: 'C1/C1.1/C1.1.2',
+                ...makeColumnValuesColDef(
+                  'C1.1.2',
+                  'C1/C1.1/C1.1.2',
+                  valueSources
+                ),
                 columnGroupShow: 'open',
               },
-              makePivotGroupTotalColDef('C1/C1.1', 'C1.1'),
+              makeColumnValuesColDef('C1.1 Totals', 'C1/C1.1', valueSources),
             ],
           },
           {
@@ -339,11 +448,11 @@ describe('getPivotResultColumns', () => {
             columnGroupShow: 'open',
             children: [
               makePendingColDef('C1/C1.2'),
-              makePivotGroupTotalColDef('C1/C1.2', 'C1.2'),
+              makeColumnValuesColDef('C1.2 Totals', 'C1/C1.2', valueSources),
             ],
             context: { snapshotIndex: 5 },
           },
-          makePivotGroupTotalColDef('C1'),
+          makeColumnValuesColDef('C1 Totals', 'C1', valueSources),
         ],
         context: { snapshotIndex: 1 },
       },
@@ -359,7 +468,7 @@ describe('getPivotResultColumns', () => {
             context: { snapshotIndex: 7 },
             children: [
               makePendingColDef('C2/C2.1'),
-              makePivotGroupTotalColDef('C2/C2.1', 'C2.1'),
+              makeColumnValuesColDef('C2.1 Totals', 'C2/C2.1', valueSources),
             ],
           },
           {
@@ -369,19 +478,51 @@ describe('getPivotResultColumns', () => {
             context: { snapshotIndex: 8 },
             children: [
               makePendingColDef('C2/C2.2'),
-              makePivotGroupTotalColDef('C2/C2.2', 'C2.2'),
+              makeColumnValuesColDef('C2.2 Totals', 'C2/C2.2', valueSources),
             ],
           },
-          makePivotGroupTotalColDef('C2'),
+          makeColumnValuesColDef('C2 Totals', 'C2', valueSources),
         ],
         context: { snapshotIndex: 6 },
       },
-      TOTALS_COLUMN_DEF,
+      {
+        headerName: 'V1 Totals',
+        field: 'V1',
+        colId: 'V1',
+        cellDataType: 'int',
+        cellStyle: AgGridFormatter.styleForNumberCell,
+      },
+      {
+        headerName: 'V2 Totals',
+        field: 'V2',
+        colId: 'V2',
+        cellDataType: 'string',
+        cellStyle: undefined,
+      },
     ]);
   });
 });
 
 describe('extractSnapshotRow', () => {
+  const rowSources = [
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'A',
+    }),
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'B',
+    }),
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'C',
+    }),
+  ];
+  const valueSources = [
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'V1',
+    }),
+    TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+      name: 'V2',
+    }),
+  ];
   it('should extract the correct values from the snapshot', () => {
     const rowCount = 3;
     const mockRows = makeDimensionData({ count: rowCount });
@@ -391,21 +532,13 @@ describe('extractSnapshotRow', () => {
       });
     const table =
       TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
-        rowSources: [
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'A',
-          }),
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'B',
-          }),
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'C',
-          }),
-        ],
+        rowSources,
+        valueSources,
       });
     expect(extractSnapshotRow(snapshot, table, 0)).toEqual({
       A: 'Key0',
-      Totals: 100,
+      V1: 1010,
+      V2: 2010,
       [TREE_NODE_KEY]: {
         depth: 1,
         hasChildren: false,
@@ -416,7 +549,8 @@ describe('extractSnapshotRow', () => {
 
     expect(extractSnapshotRow(snapshot, table, 2)).toEqual({
       A: 'Key2',
-      Totals: 300,
+      V1: 1030,
+      V2: 2030,
       [TREE_NODE_KEY]: {
         depth: 1,
         hasChildren: false,
@@ -438,21 +572,13 @@ describe('extractSnapshotRow', () => {
       });
     const table =
       TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
-        rowSources: [
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'A',
-          }),
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'B',
-          }),
-          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'C',
-          }),
-        ],
+        rowSources,
+        valueSources,
       });
     expect(extractSnapshotRow(snapshot, table, 5)).toEqual({
       A: 'Key5',
-      Totals: 600,
+      V1: 1060,
+      V2: 2060,
       [TREE_NODE_KEY]: {
         depth: 1,
         hasChildren: false,
@@ -463,7 +589,8 @@ describe('extractSnapshotRow', () => {
 
     expect(extractSnapshotRow(snapshot, table, 8)).toEqual({
       A: 'Key8',
-      Totals: 900,
+      V1: 1090,
+      V2: 2090,
       [TREE_NODE_KEY]: {
         depth: 1,
         hasChildren: false,
@@ -484,21 +611,31 @@ describe('extractTotalsRow', () => {
       TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSnapshot>({
         rows: mockRows,
         columns: mockColumns,
-        getValue: jest.fn(),
+        getValue: jest.fn(
+          (source, rowIndex, columnIndex) =>
+            parseNumber(source.name) * 1000 + columnIndex * 100 + rowIndex
+        ),
+        getGrandTotal: jest.fn(source => parseNumber(source.name) * 1000),
       });
     const table =
       TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
         valueSources: [
           TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
-            name: 'Value',
+            name: 'V1',
+          }),
+          TestUtils.createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+            name: 'V2',
           }),
         ],
       });
 
     expect(extractTotalsRow(snapshot, table)).toEqual({
-      Totals: undefined,
-      Key0: 100,
-      Key1: 200,
+      'Key0/V1': 1010,
+      'Key0/V2': 2010,
+      'Key1/V1': 1020,
+      'Key1/V2': 2020,
+      V1: 1000,
+      V2: 2000,
       [TREE_NODE_KEY]: {
         depth: 0,
         hasChildren: false,
