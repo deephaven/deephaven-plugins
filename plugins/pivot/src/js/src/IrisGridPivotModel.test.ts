@@ -1,4 +1,4 @@
-import { dh as DhType } from '@deephaven/jsapi-types';
+import { dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { Formatter } from '@deephaven/jsapi-utils';
 import { TestUtils } from '@deephaven/utils';
 import { IrisGridModel } from '@deephaven/iris-grid';
@@ -164,22 +164,20 @@ function makeUpdateEvent(
 
 function getModelRowText(
   model: IrisGridPivotModel,
-  rowIndex: number,
-  columnOffset = 0
+  rowIndex: number
 ): string[] {
-  return Array(model.columns.length - columnOffset)
+  return Array(model.columns.length)
     .fill(0)
-    .map((_, i) => model.textForCell(i + columnOffset, rowIndex));
+    .map((_, i) => model.textForCell(i, rowIndex));
 }
 
 function getModelColumnText(
   model: IrisGridPivotModel,
-  columnIndex: number,
-  rowOffset = 0
+  columnIndex: number
 ): string[] {
-  return Array(model.rowCount - rowOffset)
+  return Array(model.rowCount)
     .fill(0)
-    .map((_, i) => model.textForCell(columnIndex, i + rowOffset));
+    .map((_, i) => model.textForCell(columnIndex, i));
 }
 
 const formatter = new Formatter(mockDh);
@@ -548,7 +546,7 @@ describe('IrisGridPivotModel', () => {
     expect(model.rowCount).toBe(12 + 1); // row count + 1 totals
 
     // Column 2 starting from the viewport offset 10
-    expect(getModelColumnText(model, 2, 10)).toEqual(['9', '10', '11']);
+    expect(getModelColumnText(model, 2).slice(10)).toEqual(['9', '10', '11']);
 
     // Check that we can access the last row and column
     const lastRowIndex = model.rowCount - 1;
@@ -590,7 +588,7 @@ describe('IrisGridPivotModel', () => {
         rowBufferPages: 2,
       });
 
-      model.setViewport(...setViewportArgs);
+      model.setViewport(setViewportArgs[0], setViewportArgs[1]);
       jest.runOnlyPendingTimers();
       expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -600,7 +598,7 @@ describe('IrisGridPivotModel', () => {
     }
   );
 
-  it.only('returns virtual columns on initial load', () => {
+  it('returns virtual columns on initial load', () => {
     const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
 
     const mockColumnsChangedListener = jest.fn();
@@ -624,11 +622,10 @@ describe('IrisGridPivotModel', () => {
       'Grand Totals',
     ]);
 
-    model.setViewport(0, 0, ['R', 'Grand Totals']);
+    model.setViewport(0, 0, model.columns);
     jest.runOnlyPendingTimers();
     expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
       expect.objectContaining({
-        // columns: expect.anything(),
         columns: {
           start: 0,
           end: 0,
@@ -636,27 +633,185 @@ describe('IrisGridPivotModel', () => {
       })
     );
     expect(model.columnCount).toBe(2);
-    asMock(pivotTable.setViewport).mockClear();
+  });
 
-    model.setViewport(0, 0, ['R', 'Grand Totals', 'C0', 'C1', 'C2']);
+  it('returns placeholder columns outside of the viewport', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const mockColumnsChangedListener = jest.fn();
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    // model.startListening() is called implicitly when event listeners are added
+    model.addEventListener(
+      IrisGridModel.EVENT.COLUMNS_CHANGED,
+      mockColumnsChangedListener
+    );
+    expect(model.columnCount).toBe(2);
+    model.setViewport(0, 0, model.columns);
+
     jest.runOnlyPendingTimers();
     expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
       expect.objectContaining({
-        columns: expect.anything(),
-        // {
-        // start: 0,
-        // end: 0,
-        // }),
+        columns: {
+          start: 0,
+          end: 0,
+        },
       })
     );
+
+    expect(mockColumnsChangedListener).not.toHaveBeenCalled();
+
+    // Update event populates the total column count and placeholder columns
     asMock(pivotTable.addEventListener).mock.calls[0][1](
       makeUpdateEvent(pivotTable, {
         columnCount: 3,
-        totalColumnCount: 12,
+        totalColumnCount: 5,
+        getValue: jest.fn((_v, row, col) => 1000 * row + col),
       })
     );
-    expect(model.columnCount).toBe(5); // 2 virtual + 3 data columns
+
+    expect(model.columnCount).toBe(7); // 2 virtual, 3 data, 2 placeholder columns outside of the viewport
+    expect(model.columns.length).toBe(7);
+    expect(model.columns.map(({ name }) => name)).toEqual([
+      'R',
+      'Grand Totals',
+      'C0',
+      'C1',
+      'C2',
+      'placeholder3',
+      'placeholder4',
+    ]);
+
     expect(mockColumnsChangedListener).toHaveBeenCalled();
+
+    expect(getModelRowText(model, 2).slice(0, 5)).toEqual([
+      'R1',
+      `${DEFAULT_ROW_TOTAL}`,
+      '1000',
+      '1001',
+      '1002',
+    ]);
+  });
+
+  it('returns placeholder columns to the left of the viewport', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    expect(model.columnCount).toBe(2);
+    model.setViewport(0, 0, model.columns);
+    jest.runOnlyPendingTimers();
+
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      // Initial update contains total column count, 1 data column with offset 0
+      // and triggers columnschanged event for the grid to re-request the viewport with more columns
+      makeUpdateEvent(pivotTable, {
+        columnCount: 1,
+        totalColumnCount: 10,
+        columnOffset: 0,
+      })
+    );
+
     asMock(pivotTable.setViewport).mockClear();
+    model.setViewport(0, 0, model.columns.slice(5, 8)); // Viewport with 3 columns starting from index 5
+    jest.runOnlyPendingTimers();
+
+    expect(asMock(pivotTable.setViewport)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        columns: {
+          // indexes adjusted for virtual columns
+          start: 3,
+          end: 5,
+        },
+      })
+    );
+
+    // Pivot responds with the update event, 3 columns starting from adjusted index 3
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable, {
+        columnCount: 3,
+        totalColumnCount: 10,
+        columnOffset: 3,
+      })
+    );
+
+    expect(model.columnCount).toBe(12);
+    expect(model.columns.length).toBe(12);
+    expect(model.columns.map(({ name }) => name)).toEqual([
+      // Virtual columns are always present
+      'R',
+      'Grand Totals',
+      // Placeholder columns outside of the viewport
+      'placeholder0',
+      'placeholder1',
+      'placeholder2',
+      // 3 viewport columns starting at index 5
+      'C3',
+      'C4',
+      'C5',
+      // Placeholder columns outside of the viewport
+      'placeholder6',
+      'placeholder7',
+      'placeholder8',
+      'placeholder9',
+    ]);
+  });
+
+  it('correctly handles column offsets in viewport data', () => {
+    const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    expect(model.columnCount).toBe(2);
+    model.setViewport(0, 0, model.columns);
+    jest.runOnlyPendingTimers();
+
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      // Initial update contains total column count, 1 data column with offset 0
+      // and triggers columnschanged event for the grid to re-request the viewport with more columns
+      makeUpdateEvent(pivotTable, {
+        columnCount: 1,
+        totalColumnCount: 10,
+        columnOffset: 0,
+      })
+    );
+
+    model.setViewport(0, 0, model.columns.slice(5, 8)); // Viewport with 3 columns starting from index 5
+    jest.runOnlyPendingTimers();
+
+    // Pivot responds with the update event, 3 columns starting from adjusted index 3
+    asMock(pivotTable.addEventListener).mock.calls[0][1](
+      makeUpdateEvent(pivotTable, {
+        columnCount: 3,
+        totalColumnCount: 10,
+        columnOffset: 3,
+        getValue: jest.fn((_v, row, col) => 1000 * row + col),
+      })
+    );
+
+    expect(getModelRowText(model, 2).slice(0, 5)).toEqual([
+      'R1',
+      `${DEFAULT_ROW_TOTAL}`,
+      '1002',
+      '1003',
+      '1004',
+    ]);
   });
 });
