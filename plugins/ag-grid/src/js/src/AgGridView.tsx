@@ -9,6 +9,7 @@ import {
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
   GetRowIdParams,
+  GridColumnsChangedEvent,
 } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -45,10 +46,10 @@ export function AgGridView({
   const dh = useApi();
 
   const gridApiRef = useRef<GridApi | null>(null);
+  const autoSizedColumnsRef = useRef<Set<string>>(new Set());
 
   const [isVisible, setIsVisible] = useState(false);
   const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
-  const [isColumnsSized, setIsColumnsSized] = useState(false);
 
   log.debug('AgGridView rendering', table);
 
@@ -80,11 +81,28 @@ export function AgGridView({
   const autoSizeAllColumns = () => {
     const gridApi = gridApiRef.current;
     if (!gridApi) return;
-    gridApi.sizeColumnsToFit();
-    const columns = gridApi.getColumns();
-    if (!columns) return;
-    const allColumnIds = columns.map(col => col.getColId());
-    gridApi.autoSizeColumns(allColumnIds);
+    const allColumnIds = [
+      ...(gridApi.getColumns() ?? []),
+      ...(gridApi.getPivotResultColumns() ?? []),
+    ].map(c => c.getColId());
+    // Only auto-size columns that haven't been auto-sized yet
+    const columnsToAutoSize = allColumnIds.filter(
+      colId => !autoSizedColumnsRef.current.has(colId)
+    );
+
+    log.debug2('autoSizeAllColumns resizing', columnsToAutoSize);
+    if (columnsToAutoSize.length > 0) {
+      gridApi.autoSizeColumns(columnsToAutoSize);
+      columnsToAutoSize.forEach(colId =>
+        autoSizedColumnsRef.current.add(colId)
+      );
+    }
+    // Remove any columns that are no longer present in the grid from the auto-sized set
+    autoSizedColumnsRef.current.forEach(colId => {
+      if (!allColumnIds.includes(colId)) {
+        autoSizedColumnsRef.current.delete(colId);
+      }
+    });
   };
 
   const handleGridReady = useCallback(
@@ -107,11 +125,10 @@ export function AgGridView({
   };
 
   useEffect(() => {
-    if (isVisible && isFirstDataRendered && !isColumnsSized) {
-      setIsColumnsSized(true);
+    if (isVisible && isFirstDataRendered) {
       autoSizeAllColumns();
     }
-  }, [isVisible, isFirstDataRendered, isColumnsSized]);
+  }, [isVisible, isFirstDataRendered]);
 
   const getRowId = useCallback(
     (params: GetRowIdParams): string => {
@@ -152,6 +169,7 @@ export function AgGridView({
       rowModelType="viewport"
       getRowId={getRowId}
       sideBar={sideBar}
+      onGridColumnsChanged={autoSizeAllColumns}
     />
   );
 }
