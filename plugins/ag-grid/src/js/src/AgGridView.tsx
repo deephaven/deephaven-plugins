@@ -9,7 +9,6 @@ import {
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
   GetRowIdParams,
-  GridColumnsChangedEvent,
 } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
