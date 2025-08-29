@@ -29,6 +29,7 @@ import {
   extractSnapshotRows,
   getPivotResultColumns,
   isPivotColumnGroupContext,
+  toGroupKeyString,
 } from '../utils/AgGridPivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportDatasource');
@@ -55,6 +56,9 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     firstRow: number;
     lastRow: number;
   };
+
+  /** Store the column keys from the last snapshot. This way we can tell when we need to update the pivot result columns. */
+  private lastSnapshotColumnKeys: string[] = [];
 
   /**
    * Create a Deephaven Viewport Row Model data source that can be used with AG Grid.
@@ -282,15 +286,55 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     const rowData = extractSnapshotRows(snapshot, this.table);
     log.debug2('Pivot row data', rowData);
 
+    this.params?.setRowData(rowData);
+    this.params?.setRowCount(snapshot.rows.totalCount + 1); // +1 for totals row
+
+    this.updatePivotColumnsIfNecessary(snapshot);
+  }
+
+  private updatePivotColumnsIfNecessary(
+    snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot
+  ): void {
+    if (!isPivotTable(this.table)) {
+      throw new Error('Cannot update pivot columns for non-pivot table.');
+    }
+
+    const snapshotColumnKeys: string[] = [];
+    for (let c = 0; c < snapshot.columns.count; c += 1) {
+      snapshotColumnKeys.push(toGroupKeyString(snapshot.columns.getKeys(c)));
+    }
+    if (
+      this.lastSnapshotColumnKeys.length === snapshotColumnKeys.length &&
+      this.lastSnapshotColumnKeys.every(
+        (value, index) => value === snapshotColumnKeys[index]
+      )
+    ) {
+      // No change in columns, no need to update
+      return;
+    }
+    this.lastSnapshotColumnKeys = snapshotColumnKeys;
+
     const pivotResultColumns = getPivotResultColumns(
       snapshot.columns,
       this.table.valueSources
     );
-    log.debug2('Pivot result columns', pivotResultColumns);
 
-    this.params?.setRowData(rowData);
-    this.params?.setRowCount(snapshot.rows.totalCount + 1); // +1 for totals row
+    log.debug2('Updating pivot columns', pivotResultColumns);
+
+    // We track the old pivot result column IDs so we can auto-size any new ones that were added
+    const oldIds = new Set(
+      this.gridApi.getPivotResultColumns()?.map(c => c.getColId()) ?? []
+    );
     this.gridApi.setPivotResultColumns(pivotResultColumns);
+    const newIds: string[] = [];
+    const pivotColumns = this.gridApi.getPivotResultColumns() ?? [];
+    for (let i = 0; i < pivotColumns.length; i += 1) {
+      const col = pivotColumns[i];
+      if (!oldIds.has(col.getColId())) {
+        newIds.push(col.getColId());
+      }
+    }
+    this.gridApi.autoSizeColumns(newIds);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -329,7 +373,6 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     log.debug('Applying viewport', firstRow, lastRow);
     if (isPivotTable(this.table)) {
       const rows = this.dh.RangeSet.ofRange(firstRow, lastRow);
-
       // TODO: We should be setting the viewport columns based on what is visible in the grid
       // For now, just set a very large number of columns to ensure we get everything
       const columns = this.dh.RangeSet.ofRange(

@@ -169,7 +169,6 @@ export function AgGridView({
       rowModelType="viewport"
       getRowId={getRowId}
       sideBar={sideBar}
-      onGridColumnsChanged={autoSizeAllColumns}
     />
   );
 }
