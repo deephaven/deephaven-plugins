@@ -2,7 +2,14 @@ import { dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { Formatter } from '@deephaven/jsapi-utils';
 import { TestUtils } from '@deephaven/utils';
 import { IrisGridModel } from '@deephaven/iris-grid';
-import IrisGridPivotModel from './IrisGridPivotModel';
+import IrisGridPivotModel, {
+  GRAND_TOTAL_GROUP_NAME,
+} from './IrisGridPivotModel';
+import {
+  makePlaceholderColumnName,
+  makeGrandTotalColumnName,
+  makeUniqueGroupName,
+} from './PivotUtils';
 
 const { createMockProxy, asMock } = TestUtils;
 
@@ -183,12 +190,15 @@ function getModelColumnText(
 const formatter = new Formatter(mockDh);
 
 describe('IrisGridPivotModel', () => {
-  beforeEach(() => {
+  beforeAll(() => {
     jest.useFakeTimers();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
     jest.useRealTimers();
   });
 
@@ -387,29 +397,29 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpandable(3)).toBe(true);
     expect(model.isColumnExpanded(3)).toBe(true);
     expect(model.depthForColumn(3)).toBe(2);
-    expect(model.columns[3].name).toBe('C0');
+    expect(model.columns[3].name).toBe('__C0');
 
     // C0 children - D0, D1, D2
     expect(model.isColumnExpandable(4)).toBe(false);
     expect(model.isColumnExpanded(4)).toBe(false);
     expect(model.depthForColumn(4)).toBe(3);
-    expect(model.columns[4].name).toBe('C0-D0');
+    expect(model.columns[4].name).toBe('__C0_D0');
 
     expect(model.isColumnExpandable(5)).toBe(false);
     expect(model.isColumnExpanded(5)).toBe(false);
     expect(model.depthForColumn(5)).toBe(3);
-    expect(model.columns[5].name).toBe('C0-D2');
+    expect(model.columns[5].name).toBe('__C0_D2');
 
     expect(model.isColumnExpandable(6)).toBe(false);
     expect(model.isColumnExpanded(6)).toBe(false);
     expect(model.depthForColumn(6)).toBe(3);
-    expect(model.columns[6].name).toBe('C0-D1');
+    expect(model.columns[6].name).toBe('__C0_D1');
 
     // C1
     expect(model.isColumnExpandable(7)).toBe(true);
     expect(model.isColumnExpanded(7)).toBe(false);
     expect(model.depthForColumn(7)).toBe(2);
-    expect(model.columns[7].name).toBe('C1');
+    expect(model.columns[7].name).toBe('__C1');
   });
 
   it('returns correct data for the viewport with just the totals row', () => {
@@ -497,7 +507,7 @@ describe('IrisGridPivotModel', () => {
 
     expect(model.getViewportData()).toEqual(
       expect.objectContaining({
-        offset: 1,
+        offset: 0,
       })
     );
 
@@ -619,7 +629,7 @@ describe('IrisGridPivotModel', () => {
 
     expect(model.columns.map(({ name }) => name)).toEqual([
       'R',
-      'Grand Totals',
+      makeGrandTotalColumnName(0),
     ]);
 
     model.setViewport(0, 0, model.columns);
@@ -679,12 +689,12 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.length).toBe(7);
     expect(model.columns.map(({ name }) => name)).toEqual([
       'R',
-      'Grand Totals',
-      'C0',
-      'C1',
-      'C2',
-      'placeholder3',
-      'placeholder4',
+      makeGrandTotalColumnName(0),
+      '__C0',
+      '__C1',
+      '__C2',
+      makePlaceholderColumnName(3),
+      makePlaceholderColumnName(4),
     ]);
 
     expect(mockColumnsChangedListener).toHaveBeenCalled();
@@ -751,20 +761,20 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.map(({ name }) => name)).toEqual([
       // Virtual columns are always present
       'R',
-      'Grand Totals',
+      makeGrandTotalColumnName(0),
       // Placeholder columns outside of the viewport
-      'placeholder0',
-      'placeholder1',
-      'placeholder2',
+      makePlaceholderColumnName(0),
+      makePlaceholderColumnName(1),
+      makePlaceholderColumnName(2),
       // 3 viewport columns starting at index 5
-      'C3',
-      'C4',
-      'C5',
+      '__C3',
+      '__C4',
+      '__C5',
       // Placeholder columns outside of the viewport
-      'placeholder6',
-      'placeholder7',
-      'placeholder8',
-      'placeholder9',
+      makePlaceholderColumnName(6),
+      makePlaceholderColumnName(7),
+      makePlaceholderColumnName(8),
+      makePlaceholderColumnName(9),
     ]);
   });
 
@@ -803,15 +813,161 @@ describe('IrisGridPivotModel', () => {
         totalColumnCount: 10,
         columnOffset: 3,
         getValue: jest.fn((_v, row, col) => 1000 * row + col),
+        columnGetTotal: jest.fn((col, _v) => 200 + col),
       })
     );
 
-    expect(getModelRowText(model, 2).slice(0, 5)).toEqual([
+    expect(getModelRowText(model, 0)).toEqual([
+      '',
+      `${DEFAULT_GRAND_TOTAL}`,
+      '',
+      '',
+      '',
+      '203',
+      '204',
+      '205',
+      '',
+      '',
+      '',
+      '',
+    ]);
+
+    expect(getModelRowText(model, 2)).toEqual([
       'R1',
       `${DEFAULT_ROW_TOTAL}`,
-      '1002',
+      '',
+      '',
+      '',
       '1003',
       '1004',
+      '1005',
+      '',
+      '',
+      '',
+      '',
     ]);
+  });
+
+  describe('column header groups', () => {
+    it('contain groups for virtual columns', () => {
+      const pivotTable = makePivotTable(['R', 'O'], ['C'], ['Count']);
+
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+      model.startListening();
+
+      expect(model.columnCount).toBe(3);
+      expect(model.columnHeaderGroups).toEqual([
+        expect.objectContaining({
+          name: 'C',
+          // TODO: const
+          color: '#211f22',
+          children: ['R', 'O'],
+          depth: 1,
+          childIndexes: [0, 1],
+        }),
+        expect.objectContaining({
+          name: GRAND_TOTAL_GROUP_NAME,
+          children: [makeGrandTotalColumnName(0)],
+          depth: 1,
+          childIndexes: [2],
+        }),
+      ]);
+    });
+
+    it('contain a group with empty name for data columns', () => {
+      const pivotTable = makePivotTable(['R', 'O'], ['C'], ['Count']);
+
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+      model.startListening();
+
+      model.setViewport(0, 0, model.columns.slice(5, 8)); // Viewport with 3 columns starting from index 5
+      jest.runOnlyPendingTimers();
+
+      // Pivot responds with the update event, 3 columns starting from adjusted index 3
+      asMock(pivotTable.addEventListener).mock.calls[0][1](
+        makeUpdateEvent(pivotTable, {
+          columnCount: 3,
+          totalColumnCount: 7,
+          columnOffset: 3,
+        })
+      );
+
+      expect(model.columnCount).toBe(10);
+      expect(model.columnHeaderGroups).toEqual([
+        expect.objectContaining({
+          name: 'C',
+          children: ['R', 'O'],
+          depth: 1,
+          childIndexes: [0, 1],
+        }),
+        expect.objectContaining({
+          name: GRAND_TOTAL_GROUP_NAME,
+          children: [makeGrandTotalColumnName(0)],
+          depth: 1,
+          childIndexes: [2],
+        }),
+
+        expect.objectContaining({
+          name: makeUniqueGroupName(makePlaceholderColumnName(0)),
+          children: [makePlaceholderColumnName(0)],
+          depth: 1,
+          childIndexes: [3],
+        }),
+
+        expect.objectContaining({
+          name: makeUniqueGroupName(makePlaceholderColumnName(1)),
+          children: [makePlaceholderColumnName(1)],
+          depth: 1,
+          childIndexes: [4],
+        }),
+
+        expect.objectContaining({
+          name: makeUniqueGroupName(makePlaceholderColumnName(2)),
+          children: [makePlaceholderColumnName(2)],
+          depth: 1,
+          childIndexes: [5],
+        }),
+
+        // groups for columns in the viewport
+        expect.objectContaining({
+          name: makeUniqueGroupName('__C3'),
+          children: ['__C3'],
+          depth: 1,
+          childIndexes: [6],
+        }),
+
+        expect.objectContaining({
+          name: makeUniqueGroupName('__C4'),
+          children: ['__C4'],
+          depth: 1,
+          childIndexes: [7],
+        }),
+
+        expect.objectContaining({
+          name: makeUniqueGroupName('__C5'),
+          children: ['__C5'],
+          depth: 1,
+          childIndexes: [8],
+        }),
+
+        // groups for columns outside the viewport
+        expect.objectContaining({
+          name: makeUniqueGroupName(makePlaceholderColumnName(6)),
+          children: [makePlaceholderColumnName(6)],
+          depth: 1,
+          childIndexes: [9],
+        }),
+      ]);
+    });
   });
 });
