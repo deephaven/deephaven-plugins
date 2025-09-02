@@ -156,6 +156,10 @@
       {
         "label": "Limitations",
         "path": "limitations.md"
+      },
+      {
+        "label": "Example Data",
+        "path": "example-data.md"
       }
     ]
   }

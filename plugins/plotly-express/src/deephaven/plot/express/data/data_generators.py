@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pickle import FALSE
 
 import pandas as pd
 import numpy as np
@@ -9,18 +10,26 @@ import jpy
 from typing import Any, cast
 
 from deephaven.pandas import to_table
-from deephaven.replay import TableReplayer
 from deephaven.table import Table
 from deephaven import empty_table, time_table, merge
 from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
-from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
+from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max, delta, DeltaControl
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
+
+
+# Helper converters to satisfy static type checkers when dealing with pandas/numpy scalars
+def _to_py_float(x: Any) -> float:
+    return float(x)
+
+
+def _to_py_int(x: Any) -> int:
+    return int(x)
 
 
 def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
@@ -43,7 +52,7 @@ def iris(ticking: bool = True) -> Table:
 
     This function generates a deterministically random dataset inspired by the
     classic 1936 Iris flower dataset commonly used for classification tasks, with an
-    additional "ticking" feature. The ticking feature represents a continuously
+    additional "ticking" feature. The ticking feature represents a continuouslyÍ
     increasing simulated timestamp.
 
     Notes:
@@ -302,7 +311,6 @@ def stocks(
     ticks_per_second = 10
 
     def generate(t: Table, ticks_per_second: int = ticks_per_second) -> Table:
-
         base_time = to_j_instant(STARTING_TIME)
         pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
@@ -607,10 +615,12 @@ def election(ticking: bool = True) -> Table:
 
     # functions to get correctly-typed values out of columns by index
     def get_str_val(column: str, index: int) -> str:
-        return election_df.loc[index, column]
+        return str(election_df.loc[index, column])
 
     def get_long_val(column: str, index: int) -> int:
-        return election_df.loc[index, column]
+        # Convert to a numeric scalar and cast directly to int. This works for
+        # Python numbers and NumPy/Pandas scalar types without needing `.item()`.
+        return _to_py_int(election_df.loc[index, column])
 
     TOTAL_ROWS = len(election_df)
     STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
@@ -694,10 +704,10 @@ def wind(ticking: bool = True) -> Table:
 
     # functions to get correctly-typed values out of columns by index
     def get_str_val(column: str, index: int) -> str:
-        return wind_df.loc[index, column]
+        return str(wind_df.loc[index, column])
 
     def get_float_val(column: str, index: int) -> float:
-        return wind_df.loc[index, column]
+        return _to_py_float(wind_df.loc[index, column])
 
     TOTAL_ROWS = len(wind_df)
     STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
@@ -924,13 +934,13 @@ def gapminder(ticking: bool = True) -> Table:
     j_counter = jpy.array("long", [i for i in range(142)])
 
     def get_life_expectancy(index: int) -> float:
-        return gapminder_interp.loc[index, "LifeExp"]
+        return _to_py_float(gapminder_interp.loc[index, "LifeExp"])
 
     def get_population(index: int) -> int:
-        return gapminder_interp.loc[index, "Pop"]
+        return _to_py_int(gapminder_interp.loc[index, "Pop"])
 
     def get_gdp_per_cap(index: int) -> float:
-        return gapminder_interp.loc[index, "GdpPerCap"]
+        return _to_py_float(gapminder_interp.loc[index, "GdpPerCap"])
 
     TOTAL_YEARS = 55
     STATIC_YEARS = 9
@@ -987,21 +997,19 @@ def gapminder(ticking: bool = True) -> Table:
     )
 
 
-# TODO FIX COUNTRY GENERATION
-
-
 def fish_market(ticking: bool = True) -> Table:
     """
-    Returns a synthetic fish market sales dataset designed for pivot table usage.
+    Returns a fish market sales dataset designed for pivot table examples. Ticks every second,
+    is random but deterministic, and contains lots of categorical data for pivoting.
 
     Columns:
     - SaleID (int)
     - Revenue (float)
-    - Weight_kg (float)
-    - Price_per_kg (float)
+    - WeightKg (float)
+    - PricePerKg (float)
     - HandlingFee (float)
-    - SpeciesName (string)
-    - FishType (string)
+    - ProductName (string)
+    - ProductType (string)
     - ProductForm (string)
     - FishingGround (string)
     - LandingCountry (string)
@@ -1014,14 +1022,16 @@ def fish_market(ticking: bool = True) -> Table:
     - TransportMethod (string)
 
     Args:
-        ticking: When true, one new transaction will tick in every second.
+        ticking: When true, one new transaction will tick in every second. When false, returns 1000 rows.
 
     Returns:
         A Deephaven Table suitable for pivot table demonstrations.
     """
 
-    def generate(t: Table) -> Table:
-        base_time = to_j_instant(STARTING_TIME)
+    base_rows = 1000
+
+    def generate(t: Table, base_rows: int = base_rows) -> Table:
+        base_time = to_j_instant(STARTING_TIME)  # used in query strings
 
         def _stable_val(s: str) -> int:
             # Deterministic string-to-int seed (avoid Python's randomized hash)
@@ -1038,6 +1048,7 @@ def fish_market(ticking: bool = True) -> Table:
             "Scallops",
             "Lobster",
         ]
+
         species_to_type = {
             "Atlantic Salmon": "Pelagic",
             "Bluefin Tuna": "Pelagic",
@@ -1048,6 +1059,7 @@ def fish_market(ticking: bool = True) -> Table:
             "Scallops": "Shellfish",
             "Lobster": "Shellfish",
         }
+
         product_forms = ["Whole", "Fillet", "Steaks", "Frozen"]
 
         fishing_grounds = [
@@ -1066,13 +1078,6 @@ def fish_market(ticking: bool = True) -> Table:
             "Mackerel": ["North Atlantic", "Pacific"],
             "Scallops": ["North Atlantic"],
             "Lobster": ["North Atlantic"],
-        }
-
-        ground_to_countries = {
-            "North Atlantic": ["United States", "Canada", "Iceland", "Norway"],
-            "Pacific": ["United States", "Canada", "Japan"],
-            "Gulf of Mexico": ["United States"],
-            "Bering Sea": ["United States"],
         }
 
         ports_by_ground = {
@@ -1101,6 +1106,29 @@ def fish_market(ticking: bool = True) -> Table:
             ],
         }
 
+        # Map each port to its country
+        port_to_country = {
+            # North Atlantic
+            "Boston, MA": "United States",
+            "Halifax, NS": "Canada",
+            "Reykjavik": "Iceland",
+            "Bergen": "Norway",
+            "St. John's, NL": "Canada",
+            # Pacific
+            "Seattle, WA": "United States",
+            "Vancouver, BC": "Canada",
+            "Shimizu": "Japan",
+            "Prince Rupert, BC": "Canada",
+            "Hachinohe": "Japan",
+            # Gulf of Mexico
+            "New Orleans, LA": "United States",
+            "Tampa, FL": "United States",
+            "Houston, TX": "United States",
+            "Miami, FL": "United States",
+            # Bering Sea
+            "Dutch Harbor, AK": "United States",
+        }
+
         vessels = [
             "Sea Breeze",
             "Northern Star",
@@ -1114,17 +1142,6 @@ def fish_market(ticking: bool = True) -> Table:
             "Silver Fin",
         ]
 
-        customers = [
-            "Ocean's Best Restaurant",
-            "Seafood City Market",
-            "Harbor Wholesale Co.",
-            "Bluewater Bistro",
-            "FreshFish Direct",
-            "Mariner Foods",
-            "Coastal Grill",
-            "Market on 5th",
-            "Global Seafood Traders",
-        ]
         customer_to_type = {
             "Ocean's Best Restaurant": "Restaurant",
             "Bluewater Bistro": "Restaurant",
@@ -1135,6 +1152,10 @@ def fish_market(ticking: bool = True) -> Table:
             "Harbor Wholesale Co.": "Wholesale",
             "Mariner Foods": "Wholesale",
             "Global Seafood Traders": "Wholesale",
+            "Sunrise Supermarket": "Retail",
+            "Gourmet Fish Shop": "Retail",
+            "Fisherman's Wharf": "Retail",
+            "Ocean's Catch": "Retail",
         }
 
         # Species price and weight profiles (low, high, mode) for triangular distribution
@@ -1183,15 +1204,10 @@ def fish_market(ticking: bool = True) -> Table:
         def choose_ground(index: int, species: str) -> str:
             random.seed(index + 2 + _stable_val(species))
             valid_grounds = species_to_grounds.get(species, fishing_grounds)
-            weights = [35, 30, 12, 15, 8]  # Adjust weights if needed
+            weights = [35, 30, 12, 15, 8]
             return random.choices(valid_grounds, weights=weights[: len(valid_grounds)])[
                 0
             ]
-
-        def choose_country(ground: str, index: int) -> str:
-            random.seed(index + 3000 + _stable_val(ground))
-            options = ground_to_countries.get(ground, ["United States"])
-            return random.choice(options)
 
         # Update choose_port to select by ground only
         def choose_port(ground: str, index: int) -> str:
@@ -1199,14 +1215,19 @@ def fish_market(ticking: bool = True) -> Table:
             options = ports_by_ground.get(ground, ["Boston, MA"])
             return random.choice(options)
 
+        def choose_country(port: str) -> str:
+            # Select country based on port
+            return port_to_country.get(port, "United States")
+
         def choose_vessel(index: int, ground: str) -> str:
             random.seed(index + 5000 + _stable_val(ground))
             return random.choice(vessels)
 
         def choose_customer(index: int) -> str:
             random.seed(index + 6)
-            weights = [10, 9, 7, 8, 9, 7, 8, 6, 5]
-            return random.choices(customers, weights=weights)[0]
+            options = list(customer_to_type.keys())
+            weights = [10, 9, 7, 8, 9, 7, 8, 6, 5, 3, 4, 5, 2]
+            return random.choices(options, weights=weights)[0]
 
         def customer_type(name: str) -> str:
             return customer_to_type.get(name, "Retail")
@@ -1273,11 +1294,6 @@ def fish_market(ticking: bool = True) -> Table:
                 base_pct += 0.005
             return revenue * base_pct
 
-        def gen_catch_days(index: int) -> int:
-            random.seed(index + 12)
-            # Within ~2 years window
-            return random.randint(0, 730)
-
         def gen_sale_delay(
             transport_method: str, product_form: str, weight: float, index: int
         ) -> int:
@@ -1303,43 +1319,41 @@ def fish_market(ticking: bool = True) -> Table:
             t.update(
                 [
                     # Dimensional attributes first
-                    "SpeciesName = (String)choose_species(Index)",
-                    "FishType = (String)species_type(SpeciesName)",
-                    "ProductForm = (String)choose_form(Index, SpeciesName)",
-                    "FishingGround = (String)choose_ground(Index, SpeciesName)",
+                    "ProductName = (String)choose_species(Index)",
+                    "ProductType = (String)species_type(ProductName)",
+                    "ProductForm = (String)choose_form(Index, ProductName)",
+                    "FishingGround = (String)choose_ground(Index, ProductName)",
                     "LandingPort = (String)choose_port(FishingGround, Index)",
-                    "LandingCountry = (String)choose_country(FishingGround, Index)",
+                    "LandingCountry = (String)choose_country(LandingPort)",
                     "VesselName = (String)choose_vessel(Index, FishingGround)",
                     "CustomerName = (String)choose_customer(Index)",
                     "CustomerType = (String)customer_type(CustomerName)",
                     # Measures
-                    "Weight_kg = (double)gen_weight(SpeciesName, ProductForm, Index)",
-                    "Price_per_kg_unrounded = (double)gen_price(SpeciesName, ProductForm, Index)",
-                    "Price_per_kg = Math.round(Price_per_kg_unrounded * 100.0) / 100.0",
-                    "Revenue_unrounded = Price_per_kg * Weight_kg",
-                    "Revenue = Math.round(Revenue_unrounded * 100.0) / 100.0",
+                    "WeightKg = Math.round((double)gen_weight(ProductName, ProductForm, Index) * 10.0 ) / 10.0",
+                    "PricePerKg = Math.round((double)gen_price(ProductName, ProductForm, Index) * 100.0) / 100.0",
+                    "Revenue = Math.round((PricePerKg * WeightKg) * 100.0) / 100.0",
                     # Logistics
-                    "TransportMethod = (String)choose_transport(Index, ProductForm, LandingCountry, FishingGround, SpeciesName)",
-                    "HandlingFee_unrounded = (double)compute_handling_fee(Revenue, TransportMethod, ProductForm, Index)",
-                    "HandlingFee = Math.round(HandlingFee_unrounded * 100.0) / 100.0",
+                    "TransportMethod = (String)choose_transport(Index, ProductForm, LandingCountry, FishingGround, ProductName)",
+                    "HandlingFee = Math.round((double)compute_handling_fee(Revenue, TransportMethod, ProductForm, Index) * 100.0) / 100.0",
                     # Dates
-                    "CatchDays = (int)gen_catch_days(Index)",
-                    "CatchDate = base_time + (long)CatchDays * 86400L * SECOND",
-                    "SaleDelayDays = (int)gen_sale_delay(TransportMethod, ProductForm, Weight_kg, Index)",
-                    "SaleDate = CatchDate + (long)SaleDelayDays * 86400L * SECOND",
+                    "SaleDate = base_time + (long)((Index + base_rows) * SECOND)",
+                    "SaleDelayDays = (int)gen_sale_delay(TransportMethod, ProductForm, WeightKg, Index)",
+                    "CatchDate = SaleDate - (long)(SaleDelayDays * DAY)",
                     # Identifier
                     "SaleID = (int)(Index + 1)",
                 ]
             )
-            .update(
-                ["Weight_kg = Math.round(Weight_kg * 10.0) / 10.0"]
-            )  # one decimal for weight
+            .update_by(
+                ops=[
+                    delta(
+                        cols="MarketPriceDiff = PricePerKg",
+                        delta_control=DeltaControl.ZERO_DOMINATES,
+                    )
+                ],
+                by="ProductName",
+            )
             .drop_columns(
                 [
-                    "Price_per_kg_unrounded",
-                    "Revenue_unrounded",
-                    "HandlingFee_unrounded",
-                    "CatchDays",
                     "SaleDelayDays",
                     "Index",
                 ]
@@ -1348,26 +1362,25 @@ def fish_market(ticking: bool = True) -> Table:
                 [
                     "SaleID",
                     "Revenue",
-                    "Weight_kg",
-                    "Price_per_kg",
+                    "WeightKg",
+                    "PricePerKg",
+                    "MarketPriceDiff",
                     "HandlingFee",
-                    "SpeciesName",
-                    "FishType",
+                    "ProductType",
+                    "ProductName",
                     "ProductForm",
                     "FishingGround",
                     "LandingCountry",
                     "LandingPort",
+                    "VesselName",
                     "CatchDate",
                     "SaleDate",
-                    "VesselName",
-                    "CustomerName",
                     "CustomerType",
+                    "CustomerName",
                     "TransportMethod",
                 ]
             )
         )
-
-    base_rows = 1000
 
     if ticking:
         return generate(
