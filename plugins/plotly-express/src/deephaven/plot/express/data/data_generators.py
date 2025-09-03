@@ -982,6 +982,7 @@ def fish_market(ticking: bool = True) -> Table:
         - Revenue (Double) : Revenue generated from the sale
         - WeightKg (Double) : Weight of the fish sold (in kg)
         - PricePerKg (Double) : Price per kg of the fish
+        - MarketPriceDiff (Double) : Difference between market price and sale price
         - HandlingFee (Double) : Handling fee for the sale
         - ProductName (String) : Name of the fish product
         - ProductType (String) : Type of the fish product
