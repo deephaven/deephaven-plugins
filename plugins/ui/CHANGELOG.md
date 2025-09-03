@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.32.1 - 2025-09-03
+#### Bug Fixes
+- DH-18443: Fix `dx` and `dh.ui` tooltips (#1226) - (371bfcd) - Joe
+
+- - -
+
 ## ui-v0.32.0 - 2025-08-14
 #### Bug Fixes
 - DH-19988: Render error superceding document error on reinitialize (#1222) - (e5a97cb) - Matthew Runyon
