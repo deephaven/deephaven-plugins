@@ -8,7 +8,6 @@ import {
   SingleRowData,
   TREE_NODE_KEY,
 } from './AgGridTableUtils';
-import AgGridFormatter from './AgGridFormatter';
 
 export type PivotColumnGroupContext = {
   snapshotIndex: number;
