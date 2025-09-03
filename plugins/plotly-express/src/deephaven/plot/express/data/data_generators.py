@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pickle import FALSE
 
 import pandas as pd
 import numpy as np
@@ -52,7 +51,7 @@ def iris(ticking: bool = True) -> Table:
 
     This function generates a deterministically random dataset inspired by the
     classic 1936 Iris flower dataset commonly used for classification tasks, with an
-    additional "ticking" feature. The ticking feature represents a continuouslyÍ
+    additional "ticking" feature. The ticking feature represents a continuously
     increasing simulated timestamp.
 
     Notes:
@@ -62,6 +61,15 @@ def iris(ticking: bool = True) -> Table:
           features (sepal length, sepal width, petal length, and petal width),
           along with a timestamp, id and species name.
         - The original Iris species names are included (setosa, versicolor, and virginica).
+
+    Columns:
+        - Timestamp (Instant) : the timestamp of the observation
+        - SepalLength (Double) : the length of the sepal in centimeters
+        - SepalWidth (Double) : the width of the sepal in centimeters
+        - PetalLength (Double) : the length of the petal in centimeters
+        - PetalWidth (Double) : the width of the petal in centimeters
+        - Species (String) : the species of the iris flower
+        - SpeciesID (Long) : a numerical ID for the species
 
     Args:
         ticking:
@@ -73,12 +81,6 @@ def iris(ticking: bool = True) -> Table:
     References:
         - Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems.
           Annals of Eugenics, 7(2), 179-188.
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        iris = dx.data.iris()
-        ```
     """
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
     # Give this dataset a timestamp column based on original year from this data
@@ -152,12 +154,11 @@ def jobs(ticking: bool = True) -> Table:
     assigned to the job, is randomly selected. The dataset continues to loop in this way, moving across time until
     it is deleted or the server is shut down.
 
-    Notes:
-        Contains the following columns:
-        - Job: a string column denoting the name of the job, ranging from Job1 to Job5
-        - StartTime: a Java Instant column containing the start time of the job
-        - EndTime: a Java Instant column containing the end time of the job
-        - Resource: a string column indicating the name of the person that the job is assigned to
+    Columns:
+        - Job (String) : denoting the name of the job, ranging from Job1 to Job5
+        - StartTime (Instant) : containing the start time of the job
+        - EndTime (Instant) : containing the end time of the job
+        - Resource (String) :  indicating the name of the person that the job is assigned to
 
     Args:
         ticking:
@@ -165,12 +166,6 @@ def jobs(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        jobs = dx.data.jobs()
-        ```
     """
 
     def generate_resource(index: int) -> str:
@@ -211,11 +206,10 @@ def marketing(ticking: bool = True) -> Table:
     be considered a potential customer, formally request the price of the product, or purchase the product and receive
     an invoice. Each of these categories is a strict subset of the last, so it lends itself well to funnel plots.
 
-    Notes:
-        Contains the following columns:
-        - Stage: a string column containing the stage of a customers interest:
+    Columns:
+        - Stage (String) : a string column containing the stage of a customers interest:
                  VisitedWebsite, Downloaded, PotentialCustomer, RequestedPrice, and InvoiceSent
-        - Count: an integer column counting the number of customers to fall into each category
+        - Count (Long) : column counting the number of customers to fall into each category
 
     Args:
         ticking:
@@ -223,12 +217,6 @@ def marketing(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        marketing = dx.data.marketing()
-        ```
     """
     _ColsToRowsTransform = jpy.get_type(
         "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
@@ -274,25 +262,25 @@ def marketing(ticking: bool = True) -> Table:
 
 def stocks(
     ticking: bool = True,
+    starting_time: str = STARTING_TIME,
 ) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
     Randomly generated (but deterministic) fictional
-    stock market data, and starts with the first 5 minutes of data
+    stock market data. Starts with the first 5 minutes of data
     already initialized so example plots won't start empty.
 
-    Notes:
-        Contains the following columns:
-        - Timestamp: a time column starting from the date deephaven.io was registered
-        - Sym: a string representing a fictional stock symbol
-        - Exchange: a string representing a fictional stock exchange
-        - Size: the number of shares in the trade
-        - Price: the transaction price of the trade
-        - Dollars: the dollar value of the trade (price * size)
-        - Side: buy or sell side of the trade
-        - SPet500: A comparison to a fictional index
-        - Index: an incrementing row index
-        - Random: A random gaussian value using row index as seed
+    Columns:
+        - Timestamp (Instant) : a time column starting from the date deephaven.io was registered
+        - Sym (String) : a string representing a fictional stock symbol
+        - Exchange (String) : a string representing a fictional stock exchange
+        - Size (Long) : the number of shares in the trade
+        - Price (Double) : the transaction price of the trade
+        - Dollars (Double) : the dollar value of the trade (price * size)
+        - Side (String) : buy or sell side of the trade
+        - SPet500 (Double) : A comparison to a fictional index
+        - Index (Long) : an incrementing row index
+        - Random (Double) : A random gaussian value using row index as seed
 
     Args:
         ticking:
@@ -301,17 +289,15 @@ def stocks(
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        import deephaven.plot.express as dx
-        stocks = dx.data.stocks()
-        ```
     """
     ticks_per_second = 10
 
-    def generate(t: Table, ticks_per_second: int = ticks_per_second) -> Table:
-        base_time = to_j_instant(STARTING_TIME)
+    def generate(
+        t: Table,
+        ticks_per_second: int = ticks_per_second,
+        starting_time: str = starting_time,
+    ) -> Table:
+        base_time = to_j_instant(starting_time)
         pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
         sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
@@ -438,26 +424,34 @@ def tips(ticking: bool = True) -> Table:
     One waiter recorded information about each tip he received over a period of
     a few months working in one restaurant. This data was published in 1995.
     This function generates a deterministically random dataset inspired by Tips dataset.
+
     Notes:
-        - The total_bill and tip amounts are generated from a statistical linear model,
+        The total_bill and tip amounts are generated from a statistical linear model,
         where total_bill is generated from the significant covariates 'smoker' and 'size'
         plus a random noise term, and then tip is generated from total_bill plus a random
         noise term.
+
+    Columns:
+        - TotalBill (Double) : The total bill amount for the table
+        - Tip (Double) : The tip amount for the table
+        - Sex (String) : The sex of the individual who paid the bill
+        - Smoker (String) : Whether the individual was a smoker or not
+        - Day (String) : The day of the week the bill was paid
+        - Time (String) : The time of day the bill was paid
+        - Size (Long) : The size of the party at the table
+
     Args:
         ticking:
             If true, a ticking table containing the entire Tips dataset will be returned,
             and new rows of synthetic data will tick in every second. If false, the Tips
             dataset will be returned as a static table.
+
     Returns:
         A Deephaven Table
+
     References:
         - Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics.
         Homewood, IL: Richard D. Irwin Publishing.
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        tips = dx.data.tips()
-        ```
     """
     # load the tips dataset, cast the category columns to strings, convert to Deephaven table
     tips_df = px.data.tips().astype(
@@ -568,16 +562,15 @@ def election(ticking: bool = True) -> Table:
     Then, a new row will tick in each second, until all 58 rows are included in the table. The table will
     then reset to the first 19 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
-    Notes:
-        Contains the following columns:
-        - District: a string containing the name of the district that the votes were cast in
-        - Coderre: the number of votes that the candidate Coderre received in the district
-        - Bergeron: the number of votes that the candidate Bergeron received in the district
-        - Joly: the number of votes that the candidate Joly received in the district
-        - Total: the total number of votes cast in the district
-        - Winner: a string containing the name of the winning candidate for that district
-        - Result: a string indicating whether the victory was by majority or plurality
-        - DistrictID: a numerical ID for the district
+    Columns:
+        - District (String) : The name of the district that the votes were cast in
+        - Coderre (Long) : The number of votes that the candidate Coderre received in the district
+        - Bergeron (Long) : The number of votes that the candidate Bergeron received in the district
+        - Joly (Long) : The number of votes that the candidate Joly received in the district
+        - Total (Long) : The total number of votes cast in the district
+        - Winner (String) : The name of the winning candidate for that district
+        - Result (String) : Whether the victory was by majority or plurality
+        - DistrictID (Long) : A numerical ID for the district
 
     Args:
         ticking:
@@ -585,12 +578,6 @@ def election(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        election = dx.data.election()
-        ```
     """
     # read in election data, cast types appropriately, convert to Deephaven table
     election_df = px.data.election().astype(
@@ -667,11 +654,10 @@ def wind(ticking: bool = True) -> Table:
     Then, a new row will tick in each second, until all 128 rows are included in the table. The table will
     then reset to the first 42 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
-    Notes:
-        Contains the following columns:
-        - Direction: a string indicating the direction of the wind gust
-        - Strength: a string indicating the strength of the wind gust, from 0-1 to 6+
-        - Frequency: the frequency of each gust strength in each direction
+    Columns:
+        - Direction (String) : The direction of the wind gust
+        - Strength (String) : A string indicating the strength of the wind gust, from 0-1 to 6+
+        - Frequency (double) : The frequency of each gust strength in each direction
 
     Args:
         ticking:
@@ -679,12 +665,6 @@ def wind(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        wind = dx.data.wind()
-        ```
     """
     wind_df = px.data.wind().astype({"direction": "string", "strength": "string"})
 
@@ -754,15 +734,14 @@ def gapminder(ticking: bool = True) -> Table:
     142 rows tick in per second. The dataset starts with years up to 1961, ticks in each month till 2007, and then
     repeats until the table is cleaned up or deleted.
 
-    Notes:
-        Contains the following columns:
-        - Country: a string containing the name of the country
-        - Continent: a string containing the name of the continent that the country belongs to
-        - Year: the year that the measurement was taken
-        - Month: the month (1 - 12) that the measurement was taken
-        - LifeExp: average life expectancy
-        - Pop: population total
-        - GdpPerCap: per-capita GDP
+    Columns:
+        - Country (String) : Name of the country
+        - Continent (String) : Name of the continent the country belongs to
+        - Year (Long) : Year of the measurement
+        - Month (Long) : Month (1-12) of the measurement
+        - LifeExp (Double) : Average life expectancy
+        - Pop (Long) : Population total
+        - GdpPerCap (Double) : Per-capita GDP
 
     Args:
         ticking:
@@ -773,12 +752,6 @@ def gapminder(ticking: bool = True) -> Table:
 
     References:
         - https://www.gapminder.org/data/
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        gapminder = dx.data.gapminder()
-        ```
     """
     # create dict to rename columns in advance, since it is needed twice
     col_renaming_dict = {
@@ -1003,23 +976,23 @@ def fish_market(ticking: bool = True) -> Table:
     is random but deterministic, and contains lots of categorical data for pivoting.
 
     Columns:
-    - SaleID (int)
-    - Revenue (float)
-    - WeightKg (float)
-    - PricePerKg (float)
-    - HandlingFee (float)
-    - ProductName (string)
-    - ProductType (string)
-    - ProductForm (string)
-    - FishingGround (string)
-    - LandingCountry (string)
-    - LandingPort (string)
-    - CatchDate (Instant)
-    - SaleDate (Instant)
-    - VesselName (string)
-    - CustomerName (string)
-    - CustomerType (string)
-    - TransportMethod (string)
+        - SaleID (Int) : Index of sale
+        - Revenue (Double) : Revenue generated from the sale
+        - WeightKg (Double) : Weight of the fish sold (in kg)
+        - PricePerKg (Double) : Price per kg of the fish
+        - HandlingFee (Double) : Handling fee for the sale
+        - ProductName (String) : Name of the fish product
+        - ProductType (String) : Type of the fish product
+        - ProductForm (String) : Form of the fish product
+        - FishingGround (String) : Fishing ground where the fish was caught
+        - LandingCountry (String) : Country where the fish was landed
+        - LandingPort (String) : Port where the fish was landed
+        - CatchDate (Instant) : Date when the fish was caught
+        - SaleDate (Instant) : Date when the fish was sold
+        - VesselName (String) : Name of the fishing vessel
+        - CustomerName (String) : Name of the customer
+        - CustomerType (String) : Type of customer (e.g., Retail, Wholesale)
+        - TransportMethod (String) : Method of transport used for the sale
 
     Args:
         ticking: When true, one new transaction will tick in every second. When false, returns 1000 rows.
@@ -1193,7 +1166,7 @@ def fish_market(ticking: bool = True) -> Table:
             # Form preferences by species (e.g., Lobster more often Whole or Frozen)
             if species == "Lobster":
                 weights = [7, 0, 0, 3]  # Whole, Fillet, Steaks, Frozen
-            elif species in ("Scallops",):
+            elif species == "Scallops":
                 weights = [2, 0, 0, 6]
             elif species in ("Bluefin Tuna", "Halibut"):
                 weights = [2, 4, 3, 1]
