@@ -61,18 +61,21 @@ export default class AgGridDhTheme {
           rowHeight: 16,
           spacing: 5,
           dataFontSize: 11,
+          rowGroupIndentSize: 4,
         };
       case 'regular':
         return {
           rowHeight: 19,
           spacing: 5,
           dataFontSize: 12,
+          rowGroupIndentSize: 6,
         };
       case 'spacious':
         return {
           rowHeight: 28,
           spacing: 7,
           dataFontSize: 12,
+          rowGroupIndentSize: 8,
         };
     }
   }
