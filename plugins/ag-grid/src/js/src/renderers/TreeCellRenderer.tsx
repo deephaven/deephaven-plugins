@@ -35,7 +35,6 @@ export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
         'ag-cell-wrapper',
         { 'ag-cell-expandable': hasChildren },
         hasChildren ? 'ag-row-group' : 'ag-row-group-leaf-indent'
-        // `ag-row-group-indent-${indentLevel}`
       )}
       style={{ '--ag-indentation-level': indentLevel } as React.CSSProperties}
     >

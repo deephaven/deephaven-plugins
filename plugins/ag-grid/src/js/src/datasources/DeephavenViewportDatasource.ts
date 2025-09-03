@@ -268,7 +268,6 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
       newData[offset + r] = extractViewportRow(row, columns);
     }
 
-    // log.debug2('Updating viewport data', this.table.size);
     this.params?.setRowData(newData);
     this.params?.setRowCount(this.table.size);
   }
@@ -375,13 +374,11 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     log.debug('Applying viewport', firstRow, lastRow);
     if (isPivotTable(this.table)) {
       const rows = this.dh.RangeSet.ofRange(firstRow, lastRow);
-      // TODO: We should be setting the viewport columns based on what is visible in the grid
-      // For now, just set a very large number of columns to ensure we get everything
-      const columns = this.dh.RangeSet.ofRange(
-        0,
-        1000
-        // this.table.columnSources.length
-      );
+      // TODO: DH-20288: Viewport the pivot columns properly, instead of requesting just the first 1000.
+      // AG Grid does not have a good way of identifying which columns are visible, so we request all of them.
+      // In theory we could have placeholder columns for each column that isn't visible, but then AG Grid scrolling gets screwy. We'd need to know the width of each column to do that properly, which we can't do unless there's data.
+      // So, just request the first 1000 columns for now.
+      const columns = this.dh.RangeSet.ofRange(0, 1000);
       this.table.setViewport({
         rows,
         columns,

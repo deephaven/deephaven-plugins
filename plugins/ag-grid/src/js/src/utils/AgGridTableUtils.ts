@@ -42,6 +42,18 @@ export function isTreeTable(table: AgGridTableType): table is DhType.TreeTable {
 }
 
 /**
+ * Returns whether the given data type is groupable using Deephaven.
+ * @param dataType The data type to check
+ * @returns True if the data type is groupable, false otherwise
+ */
+export function isRowGroupable(dataType: string): boolean {
+  return (
+    !TableUtils.isBigDecimalType(dataType) &&
+    !TableUtils.isBigIntegerType(dataType)
+  );
+}
+
+/**
  * Get the cell style function for a specific data type.
  * @param dataType Data type of the column
  * @returns A function to style the cell based on its data type
@@ -144,9 +156,7 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
             }
           : {
               field: c.name,
-
-              // TODO: Actually use the table/column information to determine whether we can group/aggregate by it
-              enableRowGroup: true,
+              enableRowGroup: isRowGroupable(c.type),
               enableValue: true,
             };
         return convertColumnToColDef(c, templateColDef);
@@ -164,8 +174,9 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
       colDefs.push({ field: c.name, pivot: true });
     });
     table.valueSources.forEach(c => {
-      // TODO: We're just pushing an `aggFunc` here so it shows up correctly in the UI, but we also set the `suppressAggFuncInHeader` so that it doesn't actually appear. We don't use it when we're fetching the data since the server has already aggregated it for us.
-      colDefs.push({ field: c.name, aggFunc: 'sum' });
+      // We're just pushing an `aggFunc` here so it shows up correctly in the UI, but we also set the `suppressAggFuncInHeader` so that it doesn't actually appear.
+      // We specify our own custom aggregation name. We don't actually use it, since the server does the aggregation already.
+      colDefs.push({ field: c.name, aggFunc: 'deephaven-aggregation' });
     });
     return colDefs;
   }
