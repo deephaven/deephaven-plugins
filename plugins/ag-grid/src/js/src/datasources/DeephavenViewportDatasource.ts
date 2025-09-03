@@ -334,7 +334,9 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
         newIds.push(col.getColId());
       }
     }
-    this.gridApi.autoSizeColumns(newIds);
+    if (newIds.length > 1) {
+      this.gridApi.autoSizeColumns(newIds);
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
