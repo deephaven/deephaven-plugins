@@ -286,6 +286,8 @@ def stocks(
         ticking:
             If true, the table will tick using a replayer, if
             false the whole table will be returned as a static table.
+        starting_time:
+            The starting time for the data generation, defaults to 2018-06-01T08:00:00 ET
 
     Returns:
         A Deephaven Table
