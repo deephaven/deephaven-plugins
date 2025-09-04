@@ -310,13 +310,15 @@ def stocks(
         init_value = 100  # is used inside query string
 
         def random_gauss(seed: int) -> float:
-            random.seed(seed)  # set seed once per row
+            random.seed(seed)
             return random.gauss(0, 1)
 
         def random_list_sym(seed: int) -> str:
+            random.seed(seed)
             return random.choices(sym_list, sym_weights)[0]
 
         def random_list_exchange(seed: int) -> str:
+            random.seed(seed)
             return random.choices(exchange, exchange_weights)[0]
 
         def random_trade_size(rand: float) -> int:
@@ -327,6 +329,7 @@ def stocks(
             abs_rand = abs(rand**3)
             # rough model of the distribution of trade sizes in real market data
             # they bucket into human sized trade blocks
+            random.seed(rand)
             size_dist = random.choices(
                 [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
                 [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
@@ -342,7 +345,6 @@ def stocks(
             t.update(
                 formulas=[
                     "Timestamp = base_time + (long)(Index * SECOND / ticks_per_second)",
-                    # must be first as it sets python seed
                     "RandomDouble = (double)random_gauss(Index)",  # nicer looking starting seed
                     "Sym = random_list_sym(Index)",
                     "Exchange = random_list_exchange(Index)",
