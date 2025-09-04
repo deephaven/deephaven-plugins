@@ -9,10 +9,3 @@ services:
     volumes:
       - ./plugins/ui/docs${BUILT+/build/markdown}:/salmon/core/ui/docs
       - ./plugins/plotly-express/docs${BUILT+/build/markdown}:/salmon/core/plotly/docs
-
-  format:
-    image: ghcr.io/deephaven/salmon-formatter
-    pull_policy: always
-    volumes:
-      - ./plugins/ui/docs:/format/ui
-      - ./plugins/plotly-express/docs:/format/plotly

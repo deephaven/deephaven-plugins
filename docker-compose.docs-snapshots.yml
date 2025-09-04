@@ -1,7 +1,7 @@
 services:
   # Extract the code blocks from the docs in the plugins directories and output them ssto a results directory.
   deephaven-plugins-docs-extractor:
-    image: ghcr.io/deephaven/salmon-extractor:pre
+    image: ghcr.io/deephaven/salmon-extractor:1
     pull_policy: always
     container_name: deephaven-plugins-docs-extractor
     command:
@@ -21,7 +21,7 @@ services:
 
   # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
   deephaven-plugins-docs-snapshotter:
-    image: ghcr.io/deephaven/salmon-snapshotter:pre
+    image: ghcr.io/deephaven/salmon-snapshotter:1
     pull_policy: always
     depends_on:
       deephaven-plugins-docs-extractor:
