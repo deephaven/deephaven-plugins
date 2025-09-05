@@ -174,7 +174,7 @@ t = ui.table(
 
 ### Formatting cell text alignment
 
-You can control text alignment using the alignment property in the ui.TableFormat class. This property accepts the values left, center, and right, overriding the default alignment based on the column type. By default, numeric columns are right-aligned, string columns are left-aligned, and date columns are center-aligned.
+You can control text alignment using the `alignment` property. This property accepts the values `left`, `center`, and `right`, overriding the default alignment based on the column type. By default, numeric columns are right-aligned, string columns are left-aligned, and date columns are center-aligned.
 
 ```python
 from deephaven import ui
