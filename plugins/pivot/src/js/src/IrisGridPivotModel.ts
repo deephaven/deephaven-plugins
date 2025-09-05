@@ -1014,7 +1014,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       }
 
       if (viewportColumns.length === 0) {
-        log.warn(
+        log.debug(
           'Empty viewport columns, returning minimal range',
           viewportColumns
         );
