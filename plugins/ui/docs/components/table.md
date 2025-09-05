@@ -172,6 +172,24 @@ t = ui.table(
 )
 ```
 
+### Formatting cell text alignment
+
+You can control text alignment using the `alignment` property. This property accepts the values `left`, `center`, and `right`, overriding the default alignment based on the column type. By default, numeric columns are right-aligned, string columns are left-aligned, and date columns are center-aligned.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    format_=[
+        ui.TableFormat(cols="Sym", alignment="right"),
+        ui.TableFormat(cols="Exchange", alignment="center"),
+        ui.TableFormat(cols="Size", alignment="left"),
+    ],
+)
+```
+
 ## Aggregations
 
 You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
