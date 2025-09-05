@@ -89,10 +89,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   private keyColumns: readonly ExpandableDisplayColumn[];
 
-  private keyMap: Map<number, readonly string[]> = new Map();
-
-  private depthMap: Map<number, number> = new Map();
-
   private _layoutHints: DhType.LayoutHints | null | undefined;
 
   private _columnHeaderGroupMap: Map<string, ColumnHeaderGroup> = new Map();
@@ -183,22 +179,10 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
         return virtualColumns;
       }
       const columns = [...virtualColumns];
-      this.keyMap = new Map();
-      this.depthMap = new Map();
       for (let i = 0; i < snapshotColumns.totalCount; i += 1) {
         const isColumnInViewport =
           i >= snapshotColumns.offset &&
           i < snapshotColumns.offset + snapshotColumns.count;
-        if (isColumnInViewport) {
-          this.keyMap.set(
-            i + snapshotColumns.offset,
-            snapshotColumns.getKeys(i)
-          );
-          this.depthMap.set(
-            i + snapshotColumns.offset,
-            snapshotColumns.getDepth(i)
-          );
-        }
         for (let v = 0; v < valueSources.length; v += 1) {
           columns.push(
             isColumnInViewport
@@ -319,15 +303,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       this,
       groups ?? this.initialColumnHeaderGroups
     );
-
-    // console.log('set columnHeaderGroups: parsed groups', {
-    //   newGroups,
-    //   maxDepth,
-    //   parentMap,
-    //   groupMap,
-    //   groups,
-    // });
-
     this._columnHeaderGroups = newGroups;
     this.columnHeaderMaxDepth = maxDepth;
     this.columnHeaderParentMap = parentMap;
@@ -338,19 +313,11 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private initializeColumnHeaderGroups(): void {
     if (!this._isColumnHeaderGroupsInitialized) {
       this.columnHeaderGroups = this.initialColumnHeaderGroups;
-      // IrisGridUtils.parseColumnHeaderGroups(
-      //   this,
-      //   this.initialColumnHeaderGroups
-      // ).groups;
     }
   }
 
   textForColumnHeader(x: ModelIndex, depth = 0): string | undefined {
     const header = this.columnAtDepth(x, depth);
-    // if (isColumnHeaderGroup(header)) {
-    //   return header.isNew ? '' : header.name ?? header.displayName;
-    // }
-    // return header?.name ?? header?.displayName;
     if (isColumnHeaderGroup(header)) {
       return header.isNew ? '' : header.displayName ?? header.name;
     }
@@ -551,33 +518,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.formattedStringData = [];
 
     this.viewportData = this.extractSnapshotData(snapshot);
+
     // Update column groups based on the new columns
-    // this.columnHeaderGroups = this.getCachedColumnHeaderGroups(
-    //   this.columns,
-    //   this.totalsColumns
-    // );
-
-    // const columnGroups = [
-    //   ...keyMapToColumnGroups(this.keyMap, this.snapshotValueSources).values(),
-    // ];
-
-    const columnGroups = getColumnGroups(
+    this.columnHeaderGroups = getColumnGroups(
       this.pivotTable,
       this.columns,
       this.keyColumns,
       this.totalsColumns,
       this.snapshotColumns
     );
-
-    log.debug(
-      '[0] Pivot updated',
-      this.columns,
-      columnGroups,
-      this.keyMap,
-      this.depthMap
-    );
-
-    this.columnHeaderGroups = columnGroups;
 
     log.debug2('Pivot updated', this.columns, this.columnHeaderGroups);
 

@@ -1,5 +1,5 @@
 import { dh } from '@deephaven-enterprise/jsapi-coreplus-types';
-import { keyMapToColumnGroups } from './PivotUtils';
+import { getColumnGroups } from './PivotUtils';
 
 describe('keyMapToColumnGroups', () => {
   it('creates correct column groups from key map', () => {
@@ -9,11 +9,11 @@ describe('keyMapToColumnGroups', () => {
       [3, ['E', null]],
     ]);
     const valueSources = [{ name: 'V' }, { name: 'W' }];
-    const columnGroups = keyMapToColumnGroups(
+    const columnGroups = getColumnGroups(
       keyMap,
       valueSources as dh.coreplus.pivot.PivotSource[]
     );
-    expect(columnGroups.get('A')).toEqual(
+    expect(columnGroups).toEqual(
       expect.objectContaining({
         name: 'A',
         depth: 2,
