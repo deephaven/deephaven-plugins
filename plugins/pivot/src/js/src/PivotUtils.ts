@@ -22,6 +22,48 @@ export type ExpandableDisplayColumn = DisplayColumn & {
   hasChildren: boolean;
 };
 
+class ExpandableColumnHeaderGroup extends ColumnHeaderGroup {
+  isExpanded: boolean;
+
+  isExpandable: boolean;
+
+  constructor({
+    name,
+    displayName,
+    children,
+    color,
+    depth,
+    childIndexes,
+    parent,
+    isExpanded,
+    isExpandable,
+  }: {
+    name: string;
+    displayName?: string;
+    children: string[];
+    color?: string | null;
+    depth: number;
+    childIndexes: number[];
+    parent?: string;
+    isExpanded?: boolean;
+    isExpandable?: boolean;
+  }) {
+    super({
+      name,
+      displayName,
+      children,
+      color,
+      depth,
+      childIndexes,
+      parent,
+    });
+    this.isExpanded = isExpanded ?? false;
+    // isExpandable isn't necessarily the same as hasChildren
+    // A group could have children but not be expandable (e.g. key column groups)
+    this.isExpandable = isExpandable ?? false;
+  }
+}
+
 /**
  * Create a an ExpandableDisplayColumn object
  */
@@ -246,14 +288,15 @@ export function getColumnGroups(
   keyColumns: readonly ExpandableDisplayColumn[],
   totalsColumns: readonly ExpandableDisplayColumn[],
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null
-): ColumnHeaderGroup[] {
+): ExpandableColumnHeaderGroup[] {
+  // TODO: make sure group names are unique and can't collide with pivot keys
   const result = [];
   const maxDepth = pivotTable.columnSources.length;
   // Key column groups
   const keyColumnNames = keyColumns.map(c => c.name);
   for (let i = pivotTable.columnSources.length - 1; i >= 0; i -= 1) {
     const source = pivotTable.columnSources[i];
-    const group = new ColumnHeaderGroup({
+    const group = new ExpandableColumnHeaderGroup({
       name: source.name,
       displayName: source.name,
       children:
@@ -263,6 +306,7 @@ export function getColumnGroups(
       depth: maxDepth - i,
       childIndexes: [],
       color: COLUMN_SOURCE_GROUP_COLOR,
+      isExpandable: false,
     });
     result.push(group);
   }
@@ -270,7 +314,7 @@ export function getColumnGroups(
   // Grand total group
   for (let i = pivotTable.columnSources.length - 1; i >= 0; i -= 1) {
     const source = pivotTable.columnSources[i];
-    const group = new ColumnHeaderGroup({
+    const group = new ExpandableColumnHeaderGroup({
       name: makeGrandTotalColumnName(source),
       displayName: i === 0 ? GRAND_TOTALS_GROUP_NAME : '',
       color: TOTALS_GROUP_COLOR,
@@ -280,6 +324,7 @@ export function getColumnGroups(
           : [makeGrandTotalColumnName(pivotTable.columnSources[i + 1])],
       depth: maxDepth - i,
       childIndexes: [],
+      isExpandable: false,
     });
     result.push(group);
   }
@@ -289,7 +334,7 @@ export function getColumnGroups(
   }
 
   // Data columns
-  const groupMap = new Map<string, ColumnHeaderGroup>();
+  const groupMap = new Map<string, ExpandableColumnHeaderGroup>();
   const dataColumns = columns.slice(keyColumns.length + totalsColumns.length);
 
   for (let c = 0; c < dataColumns.length; c += pivotTable.valueSources.length) {
@@ -304,6 +349,7 @@ export function getColumnGroups(
     }
     const keys = snapshotColumns.getKeys(dimensionIndex);
     const depth = snapshotColumns.getDepth(dimensionIndex);
+    const isExpanded = snapshotColumns.isExpanded(dimensionIndex);
     const children = pivotTable.valueSources.map(source =>
       makeValueSourceColumnName(makeColumnName(keys, depth - 1), source)
     );
@@ -317,17 +363,18 @@ export function getColumnGroups(
         .join('/');
       const isTotalsGroup = keys[i] == null;
       const parentKey = i > 0 ? keys[i - 1] : null;
-      const totalsGroupDisplayName =
-        parentKey == null ? '' : `${parentKey} Total`;
+      const totalsGroupDisplayName = parentKey == null ? '' : 'Total';
       const group =
         groupMap.get(name) ??
-        new ColumnHeaderGroup({
+        new ExpandableColumnHeaderGroup({
           name,
           displayName: isTotalsGroup ? totalsGroupDisplayName : keys[i],
           color: isTotalsGroup ? TOTALS_GROUP_COLOR : undefined,
           children: [],
           depth: maxDepth - i,
           childIndexes: [],
+          isExpanded: isTotalsGroup ? true : isExpanded,
+          isExpandable: !isTotalsGroup,
         });
       group.addChildren(
         i === pivotTable.columnSources.length - 1
