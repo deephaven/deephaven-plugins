@@ -1,26 +1,44 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
-import { type dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import { IrisGrid } from '@deephaven/iris-grid';
+import { type dh as DhType } from '@deephaven/jsapi-types';
+import { IrisGrid, type IrisGridType } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { LoadingOverlay } from '@deephaven/components';
 import { getErrorMessage } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import { useIrisGridPivotModel } from './useIrisGridPivotModel';
+import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
+import { isCorePlusDh } from './PivotUtils';
 
 const log = Log.module('@deephaven/js-plugin-pivot/PivotWidget');
 
 export function PivotWidget({
   fetch,
-}: WidgetComponentProps<DhType.Widget>): JSX.Element | null {
+}: WidgetComponentProps<DhType.Widget>): React.ReactElement | null {
   const dh = useApi();
+
+  const irisGridRef = useRef<IrisGridType>(null);
+
+  const toggleExpandColumn = useCallback((column: number) => {
+    if (irisGridRef.current) {
+      irisGridRef.current.toggleExpandColumn(column);
+    }
+  }, []);
+
+  const mouseHandlers = useMemo(
+    () => [new PivotColumnGroupMouseHandler(toggleExpandColumn)],
+    [toggleExpandColumn]
+  );
 
   const pivotTableFetch = useCallback(
     () =>
       fetch().then(result => {
         log.debug('pivotWidget fetch result:', result);
+        if (!isCorePlusDh(dh)) {
+          throw new Error('CorePlus is not available');
+        }
         const pivot = new dh.coreplus.pivot.PivotTable(result);
-        log.debug('pivot:', pivot);
+        log.debug('Created pivot table:', pivot);
         return pivot;
       }),
     [dh, fetch]
@@ -43,7 +61,13 @@ export function PivotWidget({
 
   const { model } = fetchResult;
 
-  return <IrisGrid model={model} />;
+  return (
+    <IrisGrid
+      model={model}
+      ref={irisGridRef as React.RefObject<IrisGridType>}
+      mouseHandlers={mouseHandlers}
+    />
+  );
 }
 
 export default PivotWidget;

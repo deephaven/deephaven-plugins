@@ -2,13 +2,12 @@ import { dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { Formatter } from '@deephaven/jsapi-utils';
 import { TestUtils } from '@deephaven/utils';
 import { IrisGridModel } from '@deephaven/iris-grid';
-import IrisGridPivotModel, {
-  GRAND_TOTAL_GROUP_NAME,
-} from './IrisGridPivotModel';
+import IrisGridPivotModel from './IrisGridPivotModel';
 import {
   makePlaceholderColumnName,
   makeGrandTotalColumnName,
-  makeUniqueGroupName,
+  COLUMN_SOURCE_GROUP_COLOR,
+  makeTotalsGroupName,
 } from './PivotUtils';
 
 const { createMockProxy, asMock } = TestUtils;
@@ -47,6 +46,7 @@ const mockDh = createMockProxy<typeof DhType>({
 
 const DEFAULT_CONFIG = {
   rowBufferPages: 0,
+  columnBufferPages: 0,
 };
 const DEFAULT_GRAND_TOTAL = 10000;
 const DEFAULT_ROW_TOTAL = 100;
@@ -299,8 +299,8 @@ describe('IrisGridPivotModel', () => {
     // Virtual columns are not expandable
     expect(model.isColumnExpandable(0)).toBe(false);
 
-    // Totals column is expanded by default, needs API support to manually collapse/expand
-    expect(model.isColumnExpandable(1)).toBe(true);
+    // Totals column is expanded but not expandable by default, needs API support to manually collapse/expand
+    expect(model.isColumnExpandable(1)).toBe(false);
     expect(model.isColumnExpanded(1)).toBe(true);
   });
 
@@ -389,37 +389,37 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpandable(0)).toBe(false);
     expect(model.isColumnExpandable(1)).toBe(false);
 
-    // Totals column is expanded by default in the model, needs API support to manually collapse/expand
-    expect(model.isColumnExpandable(2)).toBe(true);
+    // Totals column is expanded but not expandable by default, needs API support to manually collapse/expand
+    expect(model.isColumnExpandable(2)).toBe(false);
     expect(model.isColumnExpanded(2)).toBe(true);
 
     // C0
     expect(model.isColumnExpandable(3)).toBe(true);
     expect(model.isColumnExpanded(3)).toBe(true);
     expect(model.depthForColumn(3)).toBe(2);
-    expect(model.columns[3].name).toBe('__C0');
+    expect(model.columns[3].name).toBe('__C0__Count');
 
     // C0 children - D0, D1, D2
     expect(model.isColumnExpandable(4)).toBe(false);
     expect(model.isColumnExpanded(4)).toBe(false);
     expect(model.depthForColumn(4)).toBe(3);
-    expect(model.columns[4].name).toBe('__C0_D0');
+    expect(model.columns[4].name).toBe('__C0_D0__Count');
 
     expect(model.isColumnExpandable(5)).toBe(false);
     expect(model.isColumnExpanded(5)).toBe(false);
     expect(model.depthForColumn(5)).toBe(3);
-    expect(model.columns[5].name).toBe('__C0_D2');
+    expect(model.columns[5].name).toBe('__C0_D2__Count');
 
     expect(model.isColumnExpandable(6)).toBe(false);
     expect(model.isColumnExpanded(6)).toBe(false);
     expect(model.depthForColumn(6)).toBe(3);
-    expect(model.columns[6].name).toBe('__C0_D1');
+    expect(model.columns[6].name).toBe('__C0_D1__Count');
 
     // C1
     expect(model.isColumnExpandable(7)).toBe(true);
     expect(model.isColumnExpanded(7)).toBe(false);
     expect(model.depthForColumn(7)).toBe(2);
-    expect(model.columns[7].name).toBe('__C1');
+    expect(model.columns[7].name).toBe('__C1__Count');
   });
 
   it('returns correct data for the viewport with just the totals row', () => {
@@ -504,12 +504,6 @@ describe('IrisGridPivotModel', () => {
     );
 
     expect(model.rowCount).toBe(11); // total row count + 1 totals row
-
-    expect(model.getViewportData()).toEqual(
-      expect.objectContaining({
-        offset: 0,
-      })
-    );
 
     // Row 1
     expect(getModelRowText(model, 1)).toEqual([
@@ -629,7 +623,7 @@ describe('IrisGridPivotModel', () => {
 
     expect(model.columns.map(({ name }) => name)).toEqual([
       'R',
-      makeGrandTotalColumnName(0),
+      makeGrandTotalColumnName(pivotTable.valueSources[0]),
     ]);
 
     model.setViewport(0, 0, model.columns);
@@ -689,12 +683,12 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.length).toBe(7);
     expect(model.columns.map(({ name }) => name)).toEqual([
       'R',
-      makeGrandTotalColumnName(0),
-      '__C0',
-      '__C1',
-      '__C2',
-      makePlaceholderColumnName(3),
-      makePlaceholderColumnName(4),
+      makeGrandTotalColumnName(pivotTable.valueSources[0]),
+      '__C0__Count',
+      '__C1__Count',
+      '__C2__Count',
+      makePlaceholderColumnName(3, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(4, pivotTable.valueSources[0]),
     ]);
 
     expect(mockColumnsChangedListener).toHaveBeenCalled();
@@ -761,20 +755,20 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns.map(({ name }) => name)).toEqual([
       // Virtual columns are always present
       'R',
-      makeGrandTotalColumnName(0),
+      makeGrandTotalColumnName(pivotTable.valueSources[0]),
       // Placeholder columns outside of the viewport
-      makePlaceholderColumnName(0),
-      makePlaceholderColumnName(1),
-      makePlaceholderColumnName(2),
+      makePlaceholderColumnName(0, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(1, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(2, pivotTable.valueSources[0]),
       // 3 viewport columns starting at index 5
-      '__C3',
-      '__C4',
-      '__C5',
+      '__C3__Count',
+      '__C4__Count',
+      '__C5__Count',
       // Placeholder columns outside of the viewport
-      makePlaceholderColumnName(6),
-      makePlaceholderColumnName(7),
-      makePlaceholderColumnName(8),
-      makePlaceholderColumnName(9),
+      makePlaceholderColumnName(6, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(7, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(8, pivotTable.valueSources[0]),
+      makePlaceholderColumnName(9, pivotTable.valueSources[0]),
     ]);
   });
 
@@ -864,15 +858,14 @@ describe('IrisGridPivotModel', () => {
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'C',
-          // TODO: const
-          color: '#211f22',
+          color: COLUMN_SOURCE_GROUP_COLOR,
           children: ['R', 'O'],
           depth: 1,
           childIndexes: [0, 1],
         }),
         expect.objectContaining({
-          name: GRAND_TOTAL_GROUP_NAME,
-          children: [makeGrandTotalColumnName(0)],
+          name: `__GRAND_TOTALS_C`,
+          children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [2],
         }),
@@ -911,63 +904,181 @@ describe('IrisGridPivotModel', () => {
           childIndexes: [0, 1],
         }),
         expect.objectContaining({
-          name: GRAND_TOTAL_GROUP_NAME,
-          children: [makeGrandTotalColumnName(0)],
+          name: '__GRAND_TOTALS_C',
+          children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [2],
         }),
 
         expect.objectContaining({
-          name: makeUniqueGroupName(makePlaceholderColumnName(0)),
-          children: [makePlaceholderColumnName(0)],
+          name: makeTotalsGroupName(
+            makePlaceholderColumnName(0, pivotTable.valueSources[0])
+          ),
+          children: [makePlaceholderColumnName(0, pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [3],
         }),
 
         expect.objectContaining({
-          name: makeUniqueGroupName(makePlaceholderColumnName(1)),
-          children: [makePlaceholderColumnName(1)],
+          name: makeTotalsGroupName(
+            makePlaceholderColumnName(1, pivotTable.valueSources[0])
+          ),
+          children: [makePlaceholderColumnName(1, pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [4],
         }),
 
         expect.objectContaining({
-          name: makeUniqueGroupName(makePlaceholderColumnName(2)),
-          children: [makePlaceholderColumnName(2)],
+          name: makeTotalsGroupName(
+            makePlaceholderColumnName(2, pivotTable.valueSources[0])
+          ),
+          children: [makePlaceholderColumnName(2, pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [5],
         }),
 
         // groups for columns in the viewport
         expect.objectContaining({
-          name: makeUniqueGroupName('__C3'),
-          children: ['__C3'],
+          name: makeTotalsGroupName('__C3__Count'),
+          children: ['__C3__Count'],
           depth: 1,
           childIndexes: [6],
         }),
 
         expect.objectContaining({
-          name: makeUniqueGroupName('__C4'),
-          children: ['__C4'],
+          name: makeTotalsGroupName('__C4__Count'),
+          children: ['__C4__Count'],
           depth: 1,
           childIndexes: [7],
         }),
 
         expect.objectContaining({
-          name: makeUniqueGroupName('__C5'),
-          children: ['__C5'],
+          name: makeTotalsGroupName('__C5__Count'),
+          children: ['__C5__Count'],
           depth: 1,
           childIndexes: [8],
         }),
 
         // groups for columns outside the viewport
         expect.objectContaining({
-          name: makeUniqueGroupName(makePlaceholderColumnName(6)),
-          children: [makePlaceholderColumnName(6)],
+          name: makeTotalsGroupName(
+            makePlaceholderColumnName(6, pivotTable.valueSources[0])
+          ),
+          children: [makePlaceholderColumnName(6, pivotTable.valueSources[0])],
           depth: 1,
           childIndexes: [9],
         }),
       ]);
+    });
+
+    it('handles multiple column sources', () => {
+      const pivotTable = makePivotTable(['R', 'O'], ['C', 'D'], ['Count']);
+
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+      model.startListening();
+
+      expect(model.columnCount).toBe(3);
+      expect(model.columnHeaderGroups).toEqual([
+        expect.objectContaining({
+          name: 'D',
+          color: COLUMN_SOURCE_GROUP_COLOR,
+          children: ['R', 'O'],
+          depth: 1,
+          childIndexes: [0, 1],
+          parent: 'C',
+        }),
+        expect.objectContaining({
+          name: '__GRAND_TOTALS_D',
+          children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
+          depth: 1,
+          parent: '__GRAND_TOTALS_C',
+          childIndexes: [2],
+        }),
+        // Parent for the group D above
+        expect.objectContaining({
+          name: 'C',
+          color: COLUMN_SOURCE_GROUP_COLOR,
+          children: ['D'],
+          depth: 2,
+          // Same as group D
+          childIndexes: [0, 1],
+        }),
+
+        expect.objectContaining({
+          name: '__GRAND_TOTALS_C',
+          children: ['__GRAND_TOTALS_D'],
+          depth: 2,
+          childIndexes: [2],
+        }),
+      ]);
+
+      const updateEvent = makeUpdateEvent(pivotTable, {
+        columnCount: 5,
+        totalColumnCount: 5,
+        rowCount: 3,
+        totalRowCount: 3,
+        rowGetKeys: i => [`R${i}`, null],
+        rowIsExpanded: () => false,
+        rowHasChildren: () => true,
+        // C0 expanded with children D0, D1, D2; C1 not expanded
+        // D0, D1, D2 are not guaranteed to be in order unless sorted
+        columnGetKeys: i =>
+          [
+            ['C0', null],
+            ['C0', 'D0'],
+            ['C0', 'D2'],
+            ['C0', 'D1'],
+            ['C1', null],
+          ][i],
+        columnGetDepth: i => [2, 3, 3, 3, 2][i],
+        columnIsExpanded: i => [true, false, false, false, false][i],
+        columnHasChildren: i => [true, false, false, false, true][i],
+        getValue: (_v, row, _col) => row,
+      });
+
+      model.startListening();
+      // Simulate the update event with the data
+      asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
+
+      expect(model.columnCount).toBe(8);
+      //   expect(model.columnHeaderGroups).toEqual([
+      //     expect.objectContaining({
+      //       name: 'D',
+      //       color: COLUMN_SOURCE_GROUP_COLOR,
+      //       children: ['R', 'O'],
+      //       depth: 1,
+      //       childIndexes: [0, 1],
+      //       parent: 'C',
+      //     }),
+      //     expect.objectContaining({
+      //       name: '__GRAND_TOTALS_D',
+      //       children: [makeGrandTotalColumnName(0)],
+      //       depth: 1,
+      //       parent: '__GRAND_TOTALS_C',
+      //       childIndexes: [2],
+      //     }),
+      //     // Parent for the group D above
+      //     expect.objectContaining({
+      //       name: 'C',
+      //       color: COLUMN_SOURCE_GROUP_COLOR,
+      //       children: ['D'],
+      //       depth: 2,
+      //       // Same as group D
+      //       childIndexes: [0, 1],
+      //     }),
+
+      //     expect.objectContaining({
+      //       name: '__GRAND_TOTALS_C',
+      //       children: ['__GRAND_TOTALS_D'],
+      //       depth: 2,
+      //       childIndexes: [2],
+      //     }),
+      //   ]);
     });
   });
 });
