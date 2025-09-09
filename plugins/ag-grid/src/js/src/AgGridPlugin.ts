@@ -12,7 +12,7 @@ if (key != null && key !== '') {
 export const AgGridPlugin: WidgetPlugin<dh.Widget> = {
   name: '@deephaven/js-plugin-ag-grid',
   type: PluginType.WIDGET_PLUGIN,
-  supportedTypes: 'deephaven.ag_grid.AgGrid',
+  supportedTypes: ['deephaven.ag_grid.AgGrid', 'PivotTable'],
   component: AgGridWidget,
   icon: vsTable,
   title: 'AG Grid',
