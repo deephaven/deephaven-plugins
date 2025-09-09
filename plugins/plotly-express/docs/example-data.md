@@ -2,7 +2,7 @@
 
 The Deephaven Express package includes several built-in, deterministically generated ticking datasets for testing and experimentation. These datasets initialize with a default number of rows and are designed to demonstrate a range of plot types and pivot table use cases.
 
-### Iris Dataset
+### `iris` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -14,7 +14,7 @@ iris = dx.data.iris()
 .. dhautofunction:: deephaven.plot.express.data.iris
 ```
 
-### Marketing Dataset
+### `marketing` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -26,7 +26,7 @@ marketing = dx.data.marketing()
 .. dhautofunction:: deephaven.plot.express.data.marketing
 ```
 
-### Jobs Dataset
+### `jobs` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -38,7 +38,7 @@ jobs = dx.data.jobs()
 .. dhautofunction:: deephaven.plot.express.data.jobs
 ```
 
-### Stocks Dataset
+### `stocks` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -50,7 +50,7 @@ stocks = dx.data.stocks()
 .. dhautofunction:: deephaven.plot.express.data.stocks
 ```
 
-### Tips Dataset
+### `tips` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -62,7 +62,7 @@ tips = dx.data.tips()
 .. dhautofunction:: deephaven.plot.express.data.tips
 ```
 
-### Election Dataset
+### `election` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -74,7 +74,7 @@ election = dx.data.election()
 .. dhautofunction:: deephaven.plot.express.data.election
 ```
 
-### Wind Dataset
+### `wind` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -86,7 +86,7 @@ wind = dx.data.wind()
 .. dhautofunction:: deephaven.plot.express.data.wind
 ```
 
-### Gapminder Dataset
+### `gapminder` dataset
 
 ```python
 from deephaven.plot import express as dx
@@ -98,7 +98,7 @@ gapminder = dx.data.gapminder()
 .. dhautofunction:: deephaven.plot.express.data.gapminder
 ```
 
-### Fish Market Dataset
+### `fish_market` dataset
 
 ```python
 from deephaven.plot import express as dx

@@ -63,13 +63,13 @@ def iris(ticking: bool = True) -> Table:
         - The original Iris species names are included (setosa, versicolor, and virginica).
 
     Columns:
-        - Timestamp (Instant) : the timestamp of the observation
-        - SepalLength (Double) : the length of the sepal in centimeters
-        - SepalWidth (Double) : the width of the sepal in centimeters
-        - PetalLength (Double) : the length of the petal in centimeters
-        - PetalWidth (Double) : the width of the petal in centimeters
-        - Species (String) : the species of the iris flower
-        - SpeciesID (Long) : a numerical ID for the species
+        - Timestamp (Instant): The timestamp of the observation
+        - SepalLength (Double): The length of the sepal in centimeters
+        - SepalWidth (Double): The width of the sepal in centimeters
+        - PetalLength (Double): The length of the petal in centimeters
+        - PetalWidth (Double): The width of the petal in centimeters
+        - Species (String): The species of the iris flower
+        - SpeciesID (Long): A numerical ID for the species
 
     Args:
         ticking:
@@ -155,10 +155,10 @@ def jobs(ticking: bool = True) -> Table:
     it is deleted or the server is shut down.
 
     Columns:
-        - Job (String) : denoting the name of the job, ranging from Job1 to Job5
-        - StartTime (Instant) : containing the start time of the job
-        - EndTime (Instant) : containing the end time of the job
-        - Resource (String) :  indicating the name of the person that the job is assigned to
+        - Job (String): Denoting the name of the job, ranging from Job1 to Job5
+        - StartTime (Instant): Containing the start time of the job
+        - EndTime (Instant): Containing the end time of the job
+        - Resource (String): Indicating the name of the person that the job is assigned to
 
     Args:
         ticking:
@@ -207,9 +207,9 @@ def marketing(ticking: bool = True) -> Table:
     an invoice. Each of these categories is a strict subset of the last, so it lends itself well to funnel plots.
 
     Columns:
-        - Stage (String) : a string column containing the stage of a customers interest:
+        - Stage (String): A string column containing the stage of a customers interest:
                  VisitedWebsite, Downloaded, PotentialCustomer, RequestedPrice, and InvoiceSent
-        - Count (Long) : column counting the number of customers to fall into each category
+        - Count (Long): Column counting the number of customers to fall into each category
 
     Args:
         ticking:
@@ -271,16 +271,16 @@ def stocks(
     already initialized so example plots won't start empty.
 
     Columns:
-        - Timestamp (Instant) : a time column starting from the date deephaven.io was registered
-        - Sym (String) : a string representing a fictional stock symbol
-        - Exchange (String) : a string representing a fictional stock exchange
-        - Size (Long) : the number of shares in the trade
-        - Price (Double) : the transaction price of the trade
-        - Dollars (Double) : the dollar value of the trade (price * size)
-        - Side (String) : buy or sell side of the trade
-        - SPet500 (Double) : A comparison to a fictional index
-        - Index (Long) : an incrementing row index
-        - Random (Double) : A random gaussian value using row index as seed
+        - Timestamp (Instant): A time column starting from the date deephaven.io was registered
+        - Sym (String): A string representing a fictional stock symbol
+        - Exchange (String): A string representing a fictional stock exchange
+        - Size (Long): The number of shares in the trade
+        - Price (Double): The transaction price of the trade
+        - Dollars (Double): The dollar value of the trade (price * size)
+        - Side (String): Buy or sell side of the trade
+        - SPet500 (Double): A comparison to a fictional index
+        - Index (Long): An incrementing row index
+        - Random (Double): A random gaussian value using row index as seed
 
     Args:
         ticking:
@@ -436,13 +436,13 @@ def tips(ticking: bool = True) -> Table:
         noise term.
 
     Columns:
-        - TotalBill (Double) : The total bill amount for the table
-        - Tip (Double) : The tip amount for the table
-        - Sex (String) : The sex of the individual who paid the bill
-        - Smoker (String) : Whether the individual was a smoker or not
-        - Day (String) : The day of the week the bill was paid
-        - Time (String) : The time of day the bill was paid
-        - Size (Long) : The size of the party at the table
+        - TotalBill (Double): The total bill amount for the table
+        - Tip (Double): The tip amount for the table
+        - Sex (String): The sex of the individual who paid the bill
+        - Smoker (String): Whether the individual was a smoker or not
+        - Day (String): The day of the week the bill was paid
+        - Time (String): The time of day the bill was paid
+        - Size (Long): The size of the party at the table
 
     Args:
         ticking:
@@ -567,14 +567,14 @@ def election(ticking: bool = True) -> Table:
     then reset to the first 19 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
     Columns:
-        - District (String) : The name of the district that the votes were cast in
-        - Coderre (Long) : The number of votes that the candidate Coderre received in the district
-        - Bergeron (Long) : The number of votes that the candidate Bergeron received in the district
-        - Joly (Long) : The number of votes that the candidate Joly received in the district
-        - Total (Long) : The total number of votes cast in the district
-        - Winner (String) : The name of the winning candidate for that district
-        - Result (String) : Whether the victory was by majority or plurality
-        - DistrictID (Long) : A numerical ID for the district
+        - District (String): The name of the district that the votes were cast in
+        - Coderre (Long): The number of votes that the candidate Coderre received in the district
+        - Bergeron (Long): The number of votes that the candidate Bergeron received in the district
+        - Joly (Long): The number of votes that the candidate Joly received in the district
+        - Total (Long): The total number of votes cast in the district
+        - Winner (String): The name of the winning candidate for that district
+        - Result (String): Whether the victory was by majority or plurality
+        - DistrictID (Long): A numerical ID for the district
 
     Args:
         ticking:
@@ -659,9 +659,9 @@ def wind(ticking: bool = True) -> Table:
     then reset to the first 42 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
     Columns:
-        - Direction (String) : The direction of the wind gust
-        - Strength (String) : A string indicating the strength of the wind gust, from 0-1 to 6+
-        - Frequency (double) : The frequency of each gust strength in each direction
+        - Direction (String): The direction of the wind gust
+        - Strength (String): A string indicating the strength of the wind gust, from 0-1 to 6+
+        - Frequency (double): The frequency of each gust strength in each direction
 
     Args:
         ticking:
@@ -739,13 +739,13 @@ def gapminder(ticking: bool = True) -> Table:
     repeats until the table is cleaned up or deleted.
 
     Columns:
-        - Country (String) : Name of the country
-        - Continent (String) : Name of the continent the country belongs to
-        - Year (Long) : Year of the measurement
-        - Month (Long) : Month (1-12) of the measurement
-        - LifeExp (Double) : Average life expectancy
-        - Pop (Long) : Population total
-        - GdpPerCap (Double) : Per-capita GDP
+        - Country (String): Name of the country
+        - Continent (String): Name of the continent the country belongs to
+        - Year (Long): Year of the measurement
+        - Month (Long): Month (1-12) of the measurement
+        - LifeExp (Double): Average life expectancy
+        - Pop (Long): Population total
+        - GdpPerCap (Double): Per-capita GDP
 
     Args:
         ticking:
@@ -980,24 +980,24 @@ def fish_market(ticking: bool = True) -> Table:
     is random but deterministic, and contains lots of categorical data for pivoting.
 
     Columns:
-        - SaleID (Int) : Index of sale
-        - Revenue (Double) : Revenue generated from the sale
-        - WeightKg (Double) : Weight of the fish sold (in kg)
-        - PricePerKg (Double) : Price per kg of the fish
-        - MarketPriceDiff (Double) : Difference between market price and sale price
-        - HandlingFee (Double) : Handling fee for the sale
-        - ProductName (String) : Name of the fish product
-        - ProductType (String) : Type of the fish product
-        - ProductForm (String) : Form of the fish product
-        - FishingGround (String) : Fishing ground where the fish was caught
-        - LandingCountry (String) : Country where the fish was landed
-        - LandingPort (String) : Port where the fish was landed
-        - CatchDate (Instant) : Date when the fish was caught
-        - SaleDate (Instant) : Date when the fish was sold
-        - VesselName (String) : Name of the fishing vessel
-        - CustomerName (String) : Name of the customer
-        - CustomerType (String) : Type of customer (e.g., Retail, Wholesale)
-        - TransportMethod (String) : Method of transport used for the sale
+        - SaleID (Int): Index of sale
+        - Revenue (Double): Revenue generated from the sale
+        - WeightKg (Double): Weight of the fish sold (in kg)
+        - PricePerKg (Double): Price per kg of the fish
+        - MarketPriceDiff (Double): Difference between market price and sale price
+        - HandlingFee (Double): Handling fee for the sale
+        - ProductName (String): Name of the fish product
+        - ProductType (String): Type of the fish product
+        - ProductForm (String): Form of the fish product
+        - FishingGround (String): Fishing ground where the fish was caught
+        - LandingCountry (String): Country where the fish was landed
+        - LandingPort (String): Port where the fish was landed
+        - CatchDate (Instant): Date when the fish was caught
+        - SaleDate (Instant): Date when the fish was sold
+        - VesselName (String): Name of the fishing vessel
+        - CustomerName (String): Name of the customer
+        - CustomerType (String): Type of customer (e.g., Retail, Wholesale)
+        - TransportMethod (String): Method of transport used for the sale
 
     Args:
         ticking: When true, one new transaction will tick in every second. When false, returns 1000 rows.
