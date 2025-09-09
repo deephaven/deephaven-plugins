@@ -7,11 +7,9 @@ import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
 import AgGridView from './AgGridView';
-import AgGridDhTheme from './AgGridDhTheme';
-import { getDefaultProps } from './utils';
-import useWidgetFetch from './hooks/useWidgetFetch';
-import classNames from 'classnames';
-import LoadingOverlay from './components/LoadingOverlay';
+import { AgGridDhTheme, getDefaultProps } from '../utils';
+import useWidgetFetch from '../hooks/useWidgetFetch';
+import LoadingOverlay from './LoadingOverlay';
 
 /**
  * Fetches an AgGrid widget from the server and fetches the underlying table provided by the widget.

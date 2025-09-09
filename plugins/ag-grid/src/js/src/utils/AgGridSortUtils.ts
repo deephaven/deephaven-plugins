@@ -5,7 +5,7 @@ export function isSortModelItem(item: ColumnState): item is SortModelItem {
   return item.sort != null;
 }
 
-export default class AgGridSortUtils {
+export class AgGridSortUtils {
   /**
    * Compares two arrays to see if they contain the same Sorts in the same order.
    * @param a A Sort array to compare
@@ -51,3 +51,5 @@ export default class AgGridSortUtils {
     });
   }
 }
+
+export default AgGridSortUtils;

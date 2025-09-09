@@ -1,5 +1,6 @@
 export * from './AgGridAggUtils';
 export * from './AgGridColors';
+export * from './AgGridDhTheme';
 export * from './AgGridFilterUtils';
 export * from './AgGridFormatter';
 export * from './AgGridPivotUtils';

@@ -13,19 +13,19 @@ import {
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AgGridFormatter,
+  getAutoGroupColumnDef,
   getColumnDefs,
   getSideBar,
   isPivotTable,
+  toGroupKeyString,
   TREE_NODE_KEY,
   TreeNode,
-} from './utils/AgGridTableUtils';
-import AgGridFormatter from './utils/AgGridFormatter';
-import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
-import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
-import AgGridTableType from './AgGridTableType';
-import { toGroupKeyString } from './utils';
+} from '../utils';
+import { DeephavenViewportDatasource } from '../datasources';
+import { AgGridTableType } from '../types';
 
-type AgGridViewProps = {
+export type AgGridViewProps = {
   table: AgGridTableType;
   settings?: WorkspaceSettings;
   agGridProps?: AgGridReactProps;
