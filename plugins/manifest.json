@@ -15,6 +15,11 @@
       "version": "0.0.0",
       "main": "src/js/dist/bundle/index.js"
     },
+    {
+      "name": "auth-keycloak",
+      "version": "0.0.0",
+      "main": "src/js/dist/index.js"
+    },
     { "name": "ui", "version": "0.0.0", "main": "src/js/dist/index.js" },
     {
       "name": "example-theme",
