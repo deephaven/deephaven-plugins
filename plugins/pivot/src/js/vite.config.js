@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => ({
         'react-redux',
         // Externalize all Deephaven dependencies to reduce bundle size and maintain proper context for themes, etc.
         '@deephaven/components',
+        '@deephaven/dashboard',
         '@deephaven/icons',
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',

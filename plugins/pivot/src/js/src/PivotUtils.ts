@@ -1,7 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-import { ColumnHeaderGroup, DisplayColumn } from '@deephaven/iris-grid';
+import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
+import ExpandableColumnHeaderGroup from './ExpandableColumnHeaderGroup';
+import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
@@ -9,9 +11,9 @@ export function isCorePlusDh(
   return 'coreplus' in dh;
 }
 
-export const COLUMN_SOURCE_GROUP_COLOR = '#211f22';
-export const TOTALS_GROUP_COLOR = '#211f22';
 export const GRAND_TOTALS_GROUP_NAME = 'Grand Totals';
+export const TOTALS_GROUP_NAME = 'Total';
+export const ROOT_DEPTH = 2;
 
 export type SnapshotDimensionKeys = readonly (unknown | null)[];
 export type SnapshotDimensionKeyMap = Map<number, SnapshotDimensionKeys>;
@@ -21,48 +23,6 @@ export type ExpandableDisplayColumn = DisplayColumn & {
   isExpanded: boolean;
   hasChildren: boolean;
 };
-
-class ExpandableColumnHeaderGroup extends ColumnHeaderGroup {
-  isExpanded: boolean;
-
-  isExpandable: boolean;
-
-  constructor({
-    name,
-    displayName,
-    children,
-    color,
-    depth,
-    childIndexes,
-    parent,
-    isExpanded,
-    isExpandable,
-  }: {
-    name: string;
-    displayName?: string;
-    children: string[];
-    color?: string | null;
-    depth: number;
-    childIndexes: number[];
-    parent?: string;
-    isExpanded?: boolean;
-    isExpandable?: boolean;
-  }) {
-    super({
-      name,
-      displayName,
-      children,
-      color,
-      depth,
-      childIndexes,
-      parent,
-    });
-    this.isExpanded = isExpanded ?? false;
-    // isExpandable isn't necessarily the same as hasChildren
-    // A group could have children but not be expandable (e.g. key column groups)
-    this.isExpandable = isExpandable ?? false;
-  }
-}
 
 /**
  * Create a an ExpandableDisplayColumn object
@@ -74,7 +34,7 @@ export function makeColumn({
   index,
   description,
   isSortable = false,
-  depth = 2,
+  depth = ROOT_DEPTH,
   hasChildren = false,
   isExpanded = false,
 }: {
@@ -154,10 +114,28 @@ export function makeColumnName(
   keys: SnapshotDimensionKeys,
   depth: number
 ): string {
-  return `${keys
+  return keys
     .slice(0, depth + 1)
     .filter(k => k != null)
-    .join('/')}`;
+    .join('/');
+}
+
+/**
+ * Get the column group name for a specific depth
+ * @param keys Column keys
+ * @param columnSources Column sources
+ * @param depth Column depth
+ * @returns Column group name
+ */
+export function makeColumnGroupName(
+  keys: SnapshotDimensionKeys,
+  columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  depth: number
+): string {
+  return keys
+    .slice(0, depth + 1)
+    .map((k, i) => (k == null ? columnSources[i].name : k))
+    .join('/');
 }
 
 /**
@@ -171,15 +149,6 @@ export function makeValueSourceColumnName(
   valueSource: CorePlusDhType.coreplus.pivot.PivotSource
 ): string {
   return `${columnName}/${valueSource.name}`;
-}
-
-/**
- * Create a name for a totals group under a column group
- * @param columnName Column name
- * @returns Totals group name
- */
-export function makeTotalsGroupName(columnName: string): string {
-  return `${columnName}/TOTALS`;
 }
 
 /**
@@ -202,9 +171,6 @@ export function makeExpandableDisplayColumn(
   const isExpanded = snapshotDim.isExpanded(originalIndex);
   const name = makeValueSourceColumnName(
     makeColumnName(keys, depth),
-    // depth === 2
-    //   ? makeTotalsGroupName(makeColumnName(keys, depth))
-    //   : makeColumnName(keys, depth),
     valueSource
   );
   const description = keys[depth - 2];
@@ -237,7 +203,7 @@ export function makePlaceholderDisplayColumn(
     displayName: '',
     type: valueSource.type,
     index: originalIndex + offset,
-    depth: 2, // Root depth
+    depth: ROOT_DEPTH,
     isExpanded: false,
     hasChildren: false,
   });
@@ -273,124 +239,127 @@ export function checkColumnsChanged(
   );
 }
 
-/**
- * Create column groups for the pivot table columns
- * @param pivotTable Pivot table
- * @param columns Column definitions
- * @param keyColumns Key columns
- * @param totalsColumns Totals columns
- * @param snapshotColumns Snapshot columns
- * @returns Column groups
- */
-export function getColumnGroups(
-  pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
-  columns: readonly ExpandableDisplayColumn[],
-  keyColumns: readonly ExpandableDisplayColumn[],
-  totalsColumns: readonly ExpandableDisplayColumn[],
-  snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null
+export function getKeyColumnGroups(
+  columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
 ): ExpandableColumnHeaderGroup[] {
-  // TODO: make sure group names are unique and can't collide with pivot keys
-  const result = [];
-  const maxDepth = pivotTable.columnSources.length;
-  // Key column groups
-  const keyColumnNames = keyColumns.map(c => c.name);
-  for (let i = pivotTable.columnSources.length - 1; i >= 0; i -= 1) {
-    const source = pivotTable.columnSources[i];
-    const group = new ExpandableColumnHeaderGroup({
-      name: source.name,
-      displayName: source.name,
-      children:
-        i === pivotTable.columnSources.length - 1
-          ? keyColumnNames
-          : [pivotTable.columnSources[i + 1].name],
-      depth: maxDepth - i,
-      childIndexes: [],
-      color: COLUMN_SOURCE_GROUP_COLOR,
-      isExpandable: false,
-    });
-    result.push(group);
-  }
+  return rowSources.length === 0
+    ? // Edge case: the UI doesn't have a place for key column groups if there are no row sources
+      []
+    : columnSources.map(
+        (source, i) =>
+          new ExpandableColumnHeaderGroup({
+            name: source.name,
+            displayName: source.name,
+            children:
+              i === columnSources.length - 1
+                ? rowSources.map(c => c.name)
+                : [columnSources[i + 1].name],
+            childIndexes: [],
+            color: IrisGridPivotTheme.columnSourceHeaderBackground,
+            depth: columnSources.length - i,
+            isExpandable: false,
+          })
+      );
+}
 
-  // Grand total group
-  for (let i = pivotTable.columnSources.length - 1; i >= 0; i -= 1) {
-    const source = pivotTable.columnSources[i];
-    const group = new ExpandableColumnHeaderGroup({
-      name: makeGrandTotalColumnName(source),
-      displayName: i === 0 ? GRAND_TOTALS_GROUP_NAME : '',
-      color: TOTALS_GROUP_COLOR,
-      children:
-        i === pivotTable.columnSources.length - 1
-          ? totalsColumns.map(c => c.name)
-          : [makeGrandTotalColumnName(pivotTable.columnSources[i + 1])],
-      depth: maxDepth - i,
-      childIndexes: [],
-      isExpandable: false,
-    });
-    result.push(group);
-  }
+export function getTotalsColumnGroups(
+  columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
+): ExpandableColumnHeaderGroup[] {
+  return columnSources.map(
+    (source, i) =>
+      new ExpandableColumnHeaderGroup({
+        name: makeGrandTotalColumnName(source),
+        displayName: i === 0 ? GRAND_TOTALS_GROUP_NAME : '',
+        children:
+          i === columnSources.length - 1
+            ? valueSources.map(v => makeGrandTotalColumnName(v))
+            : [makeGrandTotalColumnName(columnSources[i + 1])],
+        childIndexes: [],
+        color: IrisGridPivotTheme.totalsHeaderBackground,
+        depth: columnSources.length - i,
+        isExpandable: false,
+      })
+  );
+}
 
-  if (snapshotColumns == null) {
-    return result;
-  }
-
-  // Data columns
+export function getSnapshotColumnGroups(
+  snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData,
+  columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
+): ExpandableColumnHeaderGroup[] {
+  // Even with no column sources we need one level of grouping for the value sources
+  const maxDepth = Math.max(columnSources.length, 1);
   const groupMap = new Map<string, ExpandableColumnHeaderGroup>();
-  const dataColumns = columns.slice(keyColumns.length + totalsColumns.length);
-
-  for (let c = 0; c < dataColumns.length; c += pivotTable.valueSources.length) {
-    const dimensionIndex = Math.floor(c / pivotTable.valueSources.length);
-    const inViewport =
-      dimensionIndex >= snapshotColumns.offset &&
-      dimensionIndex < snapshotColumns.offset + snapshotColumns.count;
-    if (!inViewport) {
-      // No need to add groups for columns that are not in the viewport
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-    const keys = snapshotColumns.getKeys(dimensionIndex);
-    const depth = snapshotColumns.getDepth(dimensionIndex);
-    const isExpanded = snapshotColumns.isExpanded(dimensionIndex);
-    const children = pivotTable.valueSources.map(source =>
-      makeValueSourceColumnName(makeColumnName(keys, depth - 1), source)
-    );
-    for (let i = pivotTable.columnSources.length - 1; i >= 0; i -= 1) {
-      // Join keys, replace nulls with source name for the current level
-      const name = keys
-        .slice(0, i + 1)
-        .map((k, index) =>
-          k == null ? pivotTable.columnSources[index].name : k
-        )
-        .join('/');
+  for (
+    let c = snapshotColumns.offset;
+    c < snapshotColumns.offset + snapshotColumns.count;
+    c += 1
+  ) {
+    const keys = snapshotColumns.getKeys(c);
+    const depth = snapshotColumns.getDepth(c);
+    const isExpanded = snapshotColumns.isExpanded(c);
+    columnSources.forEach((_, i) => {
+      // Join keys, replace nulls with the source name for the current level
+      const name = makeColumnGroupName(keys, columnSources, i);
       const isTotalsGroup = keys[i] == null;
       const parentKey = i > 0 ? keys[i - 1] : null;
-      const totalsGroupDisplayName = parentKey == null ? '' : 'Total';
+      const totalsGroupDisplayName = parentKey == null ? '' : TOTALS_GROUP_NAME;
       const group =
         groupMap.get(name) ??
         new ExpandableColumnHeaderGroup({
           name,
           displayName: isTotalsGroup ? totalsGroupDisplayName : keys[i],
-          color: isTotalsGroup ? TOTALS_GROUP_COLOR : undefined,
+          color: isTotalsGroup
+            ? IrisGridPivotTheme.totalsHeaderBackground
+            : undefined,
           children: [],
           depth: maxDepth - i,
           childIndexes: [],
           isExpanded: isTotalsGroup ? true : isExpanded,
-          isExpandable: !isTotalsGroup,
+          // Totals and groups containing value sources are not expandable
+          isExpandable: !isTotalsGroup && maxDepth - i > 1,
         });
       group.addChildren(
-        i === pivotTable.columnSources.length - 1
-          ? children
-          : [
-              keys
-                .slice(0, i + 2)
-                .map((k, index) =>
-                  k == null ? pivotTable.columnSources[index].name : k
-                )
-                .join('/'),
-            ]
+        i === columnSources.length - 1
+          ? // The last group contains all value source columns
+            valueSources.map(v =>
+              makeValueSourceColumnName(makeColumnName(keys, depth - 1), v)
+            )
+          : // Add the next group in the hierarchy as a child
+            [makeColumnGroupName(keys, columnSources, i + 1)]
       );
       groupMap.set(name, group);
-    }
+    });
   }
-  result.push(...groupMap.values());
-  return result;
+  return [...groupMap.values()];
+}
+
+/**
+ * Create column groups for the pivot table columns
+ * @param pivotTable Pivot table
+ * @param snapshotColumns Snapshot columns
+ * @returns Column groups
+ */
+export function getColumnGroups(
+  pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
+  snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null
+): ExpandableColumnHeaderGroup[] {
+  const virtualColumnGroups = [
+    ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),
+    ...getTotalsColumnGroups(pivotTable.columnSources, pivotTable.valueSources),
+  ];
+
+  const snapshotColumnGroups =
+    snapshotColumns == null
+      ? []
+      : getSnapshotColumnGroups(
+          snapshotColumns,
+          pivotTable.columnSources,
+          pivotTable.valueSources
+        );
+
+  // TODO: make sure group names are unique and can't collide with pivot keys
+  return [...virtualColumnGroups, ...snapshotColumnGroups];
 }

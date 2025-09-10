@@ -6,9 +6,8 @@ import IrisGridPivotModel from './IrisGridPivotModel';
 import {
   makePlaceholderColumnName,
   makeGrandTotalColumnName,
-  COLUMN_SOURCE_GROUP_COLOR,
-  TOTALS_GROUP_COLOR,
 } from './PivotUtils';
+import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 const { createMockProxy, asMock } = TestUtils;
 
@@ -858,7 +857,7 @@ describe('IrisGridPivotModel', () => {
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'C',
-          color: COLUMN_SOURCE_GROUP_COLOR,
+          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['R', 'O'],
           depth: 1,
           childIndexes: [0, 1],
@@ -949,7 +948,7 @@ describe('IrisGridPivotModel', () => {
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'D',
-          color: TOTALS_GROUP_COLOR,
+          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['R', 'O'],
           depth: 1,
           childIndexes: [0, 1],
@@ -958,7 +957,7 @@ describe('IrisGridPivotModel', () => {
         // Parent for the group D above
         expect.objectContaining({
           name: 'C',
-          color: TOTALS_GROUP_COLOR,
+          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['D'],
           depth: 2,
           // Same as group D

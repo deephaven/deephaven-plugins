@@ -9,6 +9,7 @@ import Log from '@deephaven/log';
 import { useIrisGridPivotModel } from './useIrisGridPivotModel';
 import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
 import { isCorePlusDh } from './PivotUtils';
+import IrisGridPivotRenderer from './IrisGridPivotRenderer';
 
 const log = Log.module('@deephaven/js-plugin-pivot/PivotWidget');
 
@@ -20,15 +21,15 @@ export function PivotWidget({
   const irisGridRef = useRef<IrisGridType>(null);
 
   const toggleExpandColumn = useCallback((column: number) => {
-    if (irisGridRef.current) {
-      irisGridRef.current.toggleExpandColumn(column);
-    }
+    irisGridRef.current?.toggleExpandColumn(column);
   }, []);
 
   const mouseHandlers = useMemo(
     () => [new PivotColumnGroupMouseHandler(toggleExpandColumn)],
     [toggleExpandColumn]
   );
+
+  const renderer = useMemo(() => new IrisGridPivotRenderer(), []);
 
   const pivotTableFetch = useCallback(
     () =>
@@ -64,8 +65,9 @@ export function PivotWidget({
   return (
     <IrisGrid
       model={model}
-      ref={irisGridRef as React.RefObject<IrisGridType>}
       mouseHandlers={mouseHandlers}
+      renderer={renderer}
+      ref={irisGridRef as React.RefObject<IrisGridType>}
     />
   );
 }
