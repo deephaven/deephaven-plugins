@@ -4,7 +4,32 @@ This package can be used to display Deephaven tables using [AG Grid](https://www
 
 ## Usage
 
-Import the DeephavenViewportDatasource and use it with your AG Grid view. For example, in React:
+The easiest way to use this plugin is to import and use the provided `AgGridView` component directly. You must wrap it with an `ApiContext.Provider` to provide the Deephaven API instance:
+
+```tsx
+import React from 'react';
+import type { dh as DhType } from '@deephaven/jsapi-types';
+import { AgGridView } from '@deephaven/js-plugin-ag-grid';
+import { ApiContext } from '@deephaven/jsapi-bootstrap';
+
+function DeephavenAgGridComponent({
+  api,
+  table,
+}: {
+  api: typeof DhType;
+  table: DhType.Table;
+}) {
+  return (
+    <ApiContext.Provider value={api}>
+      <AgGridView table={table} />
+    </ApiContext.Provider>
+  );
+}
+```
+
+### Advanced Usage
+
+You can import the datasource directly if you want to manipulate the `AgGridReact` component directly. Import the DeephavenViewportDatasource and use it with your AG Grid view:
 
 ```tsx
 import React, { useEffect, useRef } from 'react';
@@ -31,7 +56,7 @@ function DeephavenAgGridComponent({
       }}
       rowModelType="viewport"
       viewportDatasource={datasource}
-      // other AG Grid properties
+      // ...other AG Grid properties
     />
   );
 }
