@@ -22,7 +22,7 @@ type SupportedSimpleFilterModel =
 // https://www.ag-grid.com/javascript-data-grid/filter-text/#reference-TextFilterModel-type
 type ExtendedTextFilterModelType = TextFilterModel['type'] | 'true' | 'false';
 
-export default class AgGridFilterUtils {
+export class AgGridFilterUtils {
   /**
    * Compares two arrays to see if they contain the same filter conditions in any order.
    * @param a A FilterCondition array to compare
@@ -288,3 +288,5 @@ export default class AgGridFilterUtils {
     }
   }
 }
+
+export default AgGridFilterUtils;

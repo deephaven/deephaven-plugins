@@ -2,8 +2,8 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { ColDef, SideBarDef } from '@ag-grid-community/core';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
+import { AgGridTableType } from '../types';
 import AgGridFormatter from './AgGridFormatter';
-import AgGridTableType from '../AgGridTableType';
 
 export type SingleRowData = { [columnKey: string]: unknown };
 export type AgGridViewportRowData = { [rowIndex: number]: SingleRowData };
