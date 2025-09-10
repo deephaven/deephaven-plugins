@@ -1,5 +1,4 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
@@ -9,20 +8,25 @@ import {
   GridApi,
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
+  GetRowIdParams,
 } from '@ag-grid-community/core';
-import {
-  AgGridReact,
-  AgGridReactProps,
-  CustomCellRendererProps,
-} from '@ag-grid-community/react';
+import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getColumnDefs } from './utils/AgGridTableUtils';
+import {
+  getColumnDefs,
+  getSideBar,
+  isPivotTable,
+  TREE_NODE_KEY,
+  TreeNode,
+} from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import TreeCellRenderer from './renderers/TreeCellRenderer';
 import DeephavenViewportDatasource from './datasources/DeephavenViewportDatasource';
+import { getAutoGroupColumnDef } from './utils/AgGridRenderUtils';
+import AgGridTableType from './AgGridTableType';
+import { toGroupKeyString } from './utils';
 
 type AgGridViewProps = {
-  table: DhType.Table | DhType.TreeTable;
+  table: AgGridTableType;
   settings?: WorkspaceSettings;
   agGridProps?: AgGridReactProps;
 };
@@ -41,12 +45,12 @@ export function AgGridView({
   const dh = useApi();
 
   const gridApiRef = useRef<GridApi | null>(null);
+  const autoSizedColumnsRef = useRef<Set<string>>(new Set());
 
   const [isVisible, setIsVisible] = useState(false);
   const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
-  const [isColumnsSized, setIsColumnsSized] = useState(false);
 
-  log.debug('AgGridView rendering', table, table?.columns);
+  log.debug('AgGridView rendering', table);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(() => getColumnDefs(table), [table]);
@@ -64,53 +68,40 @@ export function AgGridView({
     [dh, settings]
   );
 
-  const treeCellRenderer = useMemo(
-    () =>
-      function customTreeCellRenderer(props: CustomCellRendererProps) {
-        return (
-          <TreeCellRenderer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            datasource={datasource}
-          />
-        );
-      },
+  const autoGroupColumnDef = useMemo(
+    () => getAutoGroupColumnDef(datasource),
     [datasource]
   );
 
-  const autoGroupColumnDef = useMemo(
-    () =>
-      ({
-        cellRenderer: treeCellRenderer,
-      }) satisfies ColDef,
-    [treeCellRenderer]
-  );
-
-  const sideBar = useMemo(
-    () => ({
-      toolPanels: [
-        {
-          id: 'columns',
-          labelDefault: 'Columns',
-          labelKey: 'columns',
-          iconKey: 'columns',
-          toolPanel: 'agColumnsToolPanel',
-        },
-      ],
-    }),
-    []
-  );
+  const sideBar = useMemo(() => getSideBar(table), [table]);
 
   // Workaround to auto-size columns based on their contents, as ag-grid ignores virtual columns
   // that are not visible in the viewport
   const autoSizeAllColumns = () => {
     const gridApi = gridApiRef.current;
     if (!gridApi) return;
-    gridApi.sizeColumnsToFit();
-    const columns = gridApi.getColumns();
-    if (!columns) return;
-    const allColumnIds = columns.map(col => col.getColId());
-    gridApi.autoSizeColumns(allColumnIds);
+    const allColumnIds = [
+      ...(gridApi.getColumns() ?? []),
+      ...(gridApi.getPivotResultColumns() ?? []),
+    ].map(c => c.getColId());
+    // Only auto-size columns that haven't been auto-sized yet
+    const columnsToAutoSize = allColumnIds.filter(
+      colId => !autoSizedColumnsRef.current.has(colId)
+    );
+
+    log.debug2('autoSizeAllColumns resizing', columnsToAutoSize);
+    if (columnsToAutoSize.length > 0) {
+      gridApi.autoSizeColumns(columnsToAutoSize);
+      columnsToAutoSize.forEach(colId =>
+        autoSizedColumnsRef.current.add(colId)
+      );
+    }
+    // Remove any columns that are no longer present in the grid from the auto-sized set
+    autoSizedColumnsRef.current.forEach(colId => {
+      if (!allColumnIds.includes(colId)) {
+        autoSizedColumnsRef.current.delete(colId);
+      }
+    });
   };
 
   const handleGridReady = useCallback(
@@ -133,11 +124,35 @@ export function AgGridView({
   };
 
   useEffect(() => {
-    if (isVisible && isFirstDataRendered && !isColumnsSized) {
-      setIsColumnsSized(true);
+    if (isVisible && isFirstDataRendered) {
       autoSizeAllColumns();
     }
-  }, [isVisible, isFirstDataRendered, isColumnsSized]);
+  }, [isVisible, isFirstDataRendered]);
+
+  const getRowId = useCallback(
+    (params: GetRowIdParams): string => {
+      const { data } = params;
+      if (data == null) {
+        log.warn('getRowId called with null data', params);
+        return '';
+      }
+
+      if (isPivotTable(table)) {
+        const groupKeys = [];
+        for (let i = 0; i < table.rowSources.length; i += 1) {
+          const rowSource = table.rowSources[i];
+          if (data[rowSource.name] != null) {
+            groupKeys.push(String(data[rowSource.name]));
+          }
+        }
+        return toGroupKeyString(groupKeys);
+      }
+
+      const treeNode: TreeNode | undefined = data?.[TREE_NODE_KEY];
+      return `${treeNode?.index ?? ''}`;
+    },
+    [table]
+  );
 
   return (
     <AgGridReact
@@ -151,6 +166,7 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
+      getRowId={getRowId}
       sideBar={sideBar}
     />
   );

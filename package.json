@@ -13,7 +13,7 @@
     "watch:types": "tsc --watch",
     "serve:plugins": "vite",
     "start:packages": "lerna run start --stream",
-    "docs": "docker compose --file docker-compose.docs.yml up",
+    "docs": "./tools/run_docker.sh ./docker-compose.docs.yml docs",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
     "test:lint": "jest --config jest.config.lint.cjs",

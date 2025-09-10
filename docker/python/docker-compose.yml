@@ -1,0 +1,15 @@
+services:
+  # Test server that has all the plugins loaded. Test sets are run against this server.
+  server:
+    build:
+      context: ../../
+      pull: true # We need to always pull the latest server image used in the Dockerfile
+    expose:
+      - 10000
+    environment:
+      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
+
+networks:
+  default:
+    name: deephaven-plugins-docs-snapshot-network
+    external: true

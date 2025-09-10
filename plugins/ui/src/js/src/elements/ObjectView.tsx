@@ -12,7 +12,7 @@ export type ObjectViewProps = {
 
 function ObjectView(props: ObjectViewProps): JSX.Element {
   const { object, __dhId } = props;
-  log.info('Object is', object);
+  log.debug('Object is', object);
   const { type } = object;
 
   const fetch = useCallback(async () => {

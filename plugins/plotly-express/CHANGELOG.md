@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.17.2 - 2025-09-03
+#### Bug Fixes
+- DH-18443: Fix `dx` and `dh.ui` tooltips (#1226) - (371bfcd) - Joe
+- DH-18653: migrate to plotly >= 6.0.0 (#1179) - (61b76b8) - Joe
+#### Build system
+- Fix docs code fence plugin not registering py or groovy (#1220) - (96a6dc7) - Matthew Runyon
+
+- - -
+
+## plotly-express-v0.17.1 - 2025-07-22
+#### Bug Fixes
+- DH-19839: Subplot row_heights reversed in place (#1203) - (b82c47d) - Joe
+
+- - -
+
+## plotly-express-v0.17.0 - 2025-07-16
+#### Documentation
+- Update a couple typos in static image export (#1200) - (72bb6d8) - mofojed
+#### Features
+- DH-18281: Add dx filter support (#1185) - (905945e) - Joe
+
+- - -
+
 ## plotly-express-v0.16.1 - 2025-06-24
 #### Bug Fixes
 - DH-19036: Fix failing subplot creation (#1176) - (e53b165) - Joe

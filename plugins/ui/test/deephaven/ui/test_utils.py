@@ -1,4 +1,5 @@
 import unittest
+from typing import cast
 
 from .BaseTest import BaseTestCase
 
@@ -18,7 +19,7 @@ from deephaven.ui._internal.utils import (
     unpack_item_table_source,
 )
 from deephaven.ui.types import Undefined
-from deephaven.ui import item_table_source
+from deephaven.ui import item_table_source, resolve
 
 
 def my_test_func():
@@ -354,6 +355,7 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(local_date, "2035-01-31")
 
     def test_unpack_item_table_source(self):
+        from deephaven.table import Table
 
         children = ("table",)
         props = {
@@ -371,7 +373,7 @@ class UtilsTest(BaseTestCase):
         )
 
         item_data_source = item_table_source(
-            table="table", key_column="key", actions="actions"
+            table=cast(Table, {"table": "foo"}), key_column="key", actions="actions"
         )
 
         children = (item_data_source,)
@@ -379,7 +381,49 @@ class UtilsTest(BaseTestCase):
             "test": "foo",
         }
 
-        expected_children = ("table",)
+        expected_children = ({"table": "foo"},)
+
+        expected_props = {
+            "test": "foo",
+            "key_column": "key",
+        }
+
+        self.assertTupleEqual(
+            unpack_item_table_source(children, props, {"table", "key_column"}),
+            (expected_children, expected_props),
+        )
+
+        item_data_source = item_table_source(
+            table="tableURI", key_column="key", actions="actions"
+        )
+
+        children = (item_data_source,)
+        props = {
+            "test": "foo",
+        }
+
+        expected_children = (resolve("tableURI"),)
+
+        expected_props = {
+            "test": "foo",
+            "key_column": "key",
+        }
+
+        self.assertTupleEqual(
+            unpack_item_table_source(children, props, {"table", "key_column"}),
+            (expected_children, expected_props),
+        )
+
+        item_data_source = item_table_source(
+            table=resolve("tableURI"), key_column="key", actions="actions"
+        )
+
+        children = (item_data_source,)
+        props = {
+            "test": "foo",
+        }
+
+        expected_children = (resolve("tableURI"),)
 
         expected_props = {
             "test": "foo",

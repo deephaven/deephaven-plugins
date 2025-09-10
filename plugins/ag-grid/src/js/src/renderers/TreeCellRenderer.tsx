@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
+import classNames from 'classnames';
 import { CustomCellRendererProps } from '@ag-grid-community/react';
-import { Button } from '@deephaven/components';
-import { vsTriangleDown, vsTriangleRight } from '@deephaven/icons';
 import { TREE_NODE_KEY, TreeNode } from '../utils/AgGridTableUtils';
 import DeephavenViewportDatasource from '../datasources/DeephavenViewportDatasource';
 
@@ -28,30 +27,45 @@ export function TreeCellRenderer(props: TreeCellRendererProps): JSX.Element {
   const colId = colDef?.getId();
   const groupName = data?.[colId];
 
+  // This mimics the structure of the default AG Grid group cell renderer... wish we could just provide the groups/depth information to AG Grid directly, but this seems to be the only way.
+  const indentLevel = Math.max(0, depth - 1);
   return (
-    <>
-      {hasChildren && (
-        <Button
-          icon={isExpanded ? vsTriangleDown : vsTriangleRight}
-          kind="ghost"
-          onClick={handleClick}
-          style={{
-            width: 'calc(100% - 5px)',
-            height: '100%',
-            margin: 0,
-            paddingTop: 0,
-            paddingBottom: 0,
-            paddingRight: 0,
-            paddingLeft: depth * 10,
-            textAlign: 'left',
-            justifyContent: 'left',
-          }}
-        >
-          {groupName}
-        </Button>
+    <span
+      className={classNames(
+        'ag-cell-wrapper',
+        { 'ag-cell-expandable': hasChildren },
+        hasChildren ? 'ag-row-group' : 'ag-row-group-leaf-indent'
       )}
-      {!hasChildren && groupName}
-    </>
+      style={{ '--ag-indentation-level': indentLevel } as React.CSSProperties}
+    >
+      {hasChildren && (
+        <>
+          <span
+            className={classNames('ag-group-expanded', {
+              'ag-hidden': !isExpanded,
+            })}
+          >
+            <span
+              className="ag-icon ag-icon-tree-open"
+              role="presentation"
+              onClick={handleClick}
+            />
+          </span>
+          <span
+            className={classNames('ag-group-contracted', {
+              'ag-hidden': isExpanded,
+            })}
+          >
+            <span
+              className="ag-icon ag-icon-tree-closed"
+              role="presentation"
+              onClick={handleClick}
+            />
+          </span>
+        </>
+      )}
+      <span className="ag-group-value">{groupName}</span>
+    </span>
   );
 }
 

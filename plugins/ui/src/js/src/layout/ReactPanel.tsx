@@ -174,7 +174,7 @@ function ReactPanel({
         const config = {
           type: 'react-component' as const,
           component: PortalPanel.displayName,
-          props: {},
+          props: { metadata },
           title: panelTitle,
           id: panelId,
         };

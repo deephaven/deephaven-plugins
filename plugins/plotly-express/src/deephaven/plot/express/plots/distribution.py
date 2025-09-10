@@ -27,6 +27,8 @@ def violin(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = VIOLIN_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
@@ -61,6 +63,15 @@ def violin(
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
@@ -108,6 +119,8 @@ def box(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = BOX_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
@@ -142,6 +155,15 @@ def box(
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
@@ -189,6 +211,8 @@ def strip(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = STRIP_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
@@ -221,6 +245,15 @@ def strip(
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
@@ -312,6 +345,8 @@ def histogram(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = HISTOGRAM_DEFAULTS["by_vars"],
+    filter_by: str | list[str] | bool | None = None,
+    required_filter_by: str | list[str] | bool | None = None,
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     labels: dict[str, str] | None = None,
@@ -356,6 +391,15 @@ def histogram(
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
+      filter_by: A column or list of columns that contain values to filter the chart by.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        If no filters are specified, all partitions are shown on the chart.
+      required_filter_by: A column or list of columns that contain values to filter the chart by.
+        Values set in input filters or linkers for the relevant columns determine the exact values to display.
+        If a boolean is passed and the table is partitioned, all partition key columns used to
+        create the partitions are used.
+        All required input filters or linkers must be set for the chart to display any data.
       color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.

@@ -1,7 +1,12 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
-import { ChartModel, ChartUtils } from '@deephaven/chart';
+import {
+  ChartModel,
+  ChartUtils,
+  FilterColumnMap,
+  FilterMap,
+} from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import memoize from 'memoizee';
@@ -72,6 +77,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // The calendar is only fetched once at init.
     this.updateCalendar(widgetData);
+
+    // The input filter columns are set once at init.
+    this.updateFilterColumns(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -163,6 +171,24 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   dataTypeMap: Map<string, string> = new Map();
 
+  /**
+   * Map of filter column names to their metadata.
+   */
+
+  filterColumnMap: FilterColumnMap = new Map();
+
+  /**
+   * The filter map that is sent to the server.
+   * This is a map of column names to filter values.
+   */
+  filterMap: FilterMap | null = null;
+
+  /**
+   * A set of column names that are required for the chart to render.
+   * If any of these columns are not in the filter map, the chart will not render.
+   */
+  requiredColumns: Set<string> = new Set();
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -243,6 +269,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     // Without this, the chart shows an infinite loader if there are no tables
     if (this.tableColumnReplacementMap.size === 0) {
       this.fireUpdate(this.getData());
+    }
+
+    if (this.filterColumnMap != null) {
+      // there are filters, so the server expects the filter to be sent
+      this.sendFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -394,6 +425,29 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Update the filter columns from the data.
+
+   * @param data The new data to update the filter columns from
+   */
+  updateFilterColumns(data: PlotlyChartWidgetData): void {
+    const { deephaven } = data.figure;
+    const { filterColumns } = deephaven;
+
+    if (filterColumns != null) {
+      this.filterColumnMap = new Map(
+        filterColumns.columns.map(({ name, type }) => [name, { name, type }])
+      );
+
+      // get all columns that have required = true
+      this.requiredColumns = new Set(
+        filterColumns.columns
+          .filter(({ required }) => required)
+          .map(({ name }) => name)
+      );
+    }
+  }
+
+  /**
    * Unsubscribe from a table.
    * @param id The table ID to unsubscribe from
    */
@@ -484,12 +538,35 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     removedReferences.forEach(id => this.removeTable(id));
 
-    // title is the only thing expected to be updated after init from the layout
+    // title and legend title are the only things expected to be updated after init from the layout
     if (
       typeof plotlyLayout.title === 'object' &&
-      plotlyLayout.title.text != null
+      plotlyLayout.title.text != null &&
+      plotlyLayout.title.text !== this.layout.title?.text
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
+      // Keep track of the title to make sure it is not unnecessarily updated
+      // fireLayoutUpdated does not update this.layout so it must be set here
+      this.layout.title = plotlyLayout.title;
+    }
+
+    if (plotlyLayout.legend?.title?.text != null) {
+      this.fireLayoutUpdated({
+        legend: {
+          title: {
+            text: plotlyLayout.legend.title.text,
+            ...plotlyLayout.legend.title,
+          },
+          ...plotlyLayout.legend,
+        },
+      });
+    }
+
+    // If there are no tables to fetch data from, the chart is ready to render
+    // Normally this event only fires once at least 1 table has fetched data
+    // Without this, the chart shows an infinite loader if there are no tables
+    if (this.tableColumnReplacementMap.size === 0) {
+      this.fireUpdate(this.getData());
     }
   }
 
@@ -779,6 +856,44 @@ export class PlotlyExpressChartModel extends ChartModel {
     });
   }
 
+  override getFilterColumnMap(): FilterColumnMap {
+    return this.filterColumnMap;
+  }
+
+  override isFilterRequired(): boolean {
+    // if any of the required columns are not in the filter map, then filters are still required
+    return Array.from(this.requiredColumns).some(
+      column => !this.filterMap || !this.filterMap.has(column)
+    );
+  }
+
+  override setFilter(filterMap: FilterMap): void {
+    super.setFilter(filterMap);
+
+    this.filterMap = filterMap;
+
+    if (this.isSubscribed) {
+      this.sendFilterUpdated(filterMap);
+    }
+  }
+
+  /**
+   * Fire an event to update the filters on the chart.
+   * @param filterMap The filter map to send to the server
+   */
+  sendFilterUpdated(filterMap: FilterMap): void {
+    // Only send the filter update if filters are not required and the filter columns are set
+    // They will either be set or none are required
+    if (!this.isFilterRequired() && this.filterColumnMap.size > 0) {
+      this.widget?.sendMessage(
+        JSON.stringify({
+          type: 'FILTER',
+          filterMap: Object.fromEntries(filterMap),
+        })
+      );
+    }
+  }
+
   pauseUpdates(): void {
     this.isPaused = true;
   }
@@ -791,24 +906,22 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   shouldPauseOnUserInteraction(): boolean {
-    return (
-      this.hasScene() || this.hasGeo() || this.hasMapbox() || this.hasPolar()
-    );
+    return this.hasScene() || this.hasGeo() || this.hasMap() || this.hasPolar();
   }
 
-  hasScene(): boolean {
+  private hasScene(): boolean {
     return this.plotlyData.some(d => 'scene' in d && d.scene != null);
   }
 
-  hasGeo(): boolean {
+  private hasGeo(): boolean {
     return this.plotlyData.some(d => 'geo' in d && d.geo != null);
   }
 
-  hasMapbox(): boolean {
-    return this.plotlyData.some(({ type }) => type?.includes('mapbox'));
+  private hasMap(): boolean {
+    return this.plotlyData.some(({ type }) => type?.includes('map'));
   }
 
-  hasPolar(): boolean {
+  private hasPolar(): boolean {
     return this.plotlyData.some(({ type }) => type?.includes('polar'));
   }
 

@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/jsapi-bootstrap',
         '@deephaven/chart',
         '@deephaven/log',
+        '@deephaven/dashboard-core-plugins'
       ],
     },
   },

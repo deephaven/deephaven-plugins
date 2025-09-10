@@ -2,5 +2,8 @@ export * from './AgGridAggUtils';
 export * from './AgGridColors';
 export * from './AgGridFilterUtils';
 export * from './AgGridFormatter';
+export * from './AgGridPivotUtils';
+export * from './AgGridRenderUtils';
 export * from './AgGridSortUtils';
 export * from './AgGridTableUtils';
+export * from './AgGridUtils';

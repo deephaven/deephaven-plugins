@@ -3,6 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
+import { PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { Operation } from 'fast-json-patch';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
@@ -23,6 +24,7 @@ const defaultWidgetWrapper: ReturnType<typeof useWidget> = {
     exportedObjects: [],
   }),
   error: null,
+  api: jest.fn() as unknown as typeof dh,
 };
 let mockWidgetWrapper: ReturnType<typeof useWidget> = defaultWidgetWrapper;
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
@@ -42,14 +44,19 @@ function makeWidgetHandler({
   widgetDescriptor: widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
   initialData = undefined,
-}: Partial<WidgetHandlerProps> = {}) {
+  pluginsValue = new Map(),
+}: Partial<WidgetHandlerProps> & {
+  pluginsValue?: React.ProviderProps<PluginModuleMap | null>['value'];
+} = {}): React.ReactElement {
   return (
-    <WidgetHandler
-      id="test-widget-handler"
-      widgetDescriptor={widget}
-      onClose={onClose}
-      initialData={initialData}
-    />
+    <PluginsContext.Provider value={pluginsValue}>
+      <WidgetHandler
+        id="test-widget-handler"
+        widgetDescriptor={widget}
+        onClose={onClose}
+        initialData={initialData}
+      />
+    </PluginsContext.Provider>
   );
 }
 
@@ -78,6 +85,7 @@ it('updates the document when event is received', async () => {
       sendMessage: mockSendMessage,
     }),
     error: null,
+    api: jest.fn() as unknown as typeof dh,
   };
 
   const { unmount } = render(
@@ -161,6 +169,7 @@ it('updates the initial data only when widget has changed', async () => {
       sendMessage,
     }),
     error: null,
+    api: jest.fn() as unknown as typeof dh,
   };
 
   const { rerender, unmount } = render(
@@ -228,6 +237,7 @@ it('updates the initial data only when widget has changed', async () => {
       sendMessage,
     }),
     error: null,
+    api: jest.fn() as unknown as typeof dh,
   };
 
   // Re-render with the widget descriptor changed, it should set the state with the updated data
@@ -296,6 +306,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
       sendMessage,
     }),
     error: null,
+    api: jest.fn() as unknown as typeof dh,
   };
 
   const { rerender, unmount } = render(
@@ -339,7 +350,11 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   mockDocumentHandler.mockClear();
   sendMessage.mockClear();
 
-  mockWidgetWrapper = { widget: null, error: new Error('Test error') };
+  mockWidgetWrapper = {
+    widget: null,
+    error: new Error('Test error'),
+    api: null,
+  };
   mockDocumentHandler.mockImplementation(props => (
     <div className="test-document-handler">{props.children}</div>
   ));

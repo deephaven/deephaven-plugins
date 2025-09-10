@@ -9,6 +9,10 @@
   "author": "Deephaven Data Labs",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build"
@@ -46,6 +50,5 @@
   },
   "files": [
     "dist/index.js"
-  ],
-  "gitHead": "ffd65b91d87e2bc7064c8e448d1307a8f9c3d559"
+  ]
 }

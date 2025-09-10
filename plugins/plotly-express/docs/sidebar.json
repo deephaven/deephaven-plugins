@@ -124,6 +124,10 @@
             "path": "plot-by.md"
           },
           {
+            "label": "Filter",
+            "path": "filter.md"
+          },
+          {
             "label": "Sub plot",
             "path": "sub-plots.md"
           },

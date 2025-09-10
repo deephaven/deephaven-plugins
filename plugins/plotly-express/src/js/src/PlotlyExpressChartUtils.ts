@@ -23,9 +23,9 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'mesh3d',
   'cone',
   'streamtube',
-  'scattermapbox',
-  'choroplethmapbox',
-  'densitymapbox',
+  'scattermap',
+  'choroplethmap',
+  'densitymap',
 ]);
 
 /*
@@ -57,6 +57,14 @@ interface DeephavenCalendarBusinessPeriod {
   close: string;
 }
 
+export interface FilterColumns {
+  columns: Array<{
+    type: string;
+    name: string;
+    required: boolean;
+  }>;
+}
+
 export interface PlotlyChartDeephavenData {
   calendar?: {
     timeZone: string;
@@ -68,6 +76,7 @@ export interface PlotlyChartDeephavenData {
     businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
     name: string;
   };
+  filterColumns?: FilterColumns;
   mappings: Array<{
     table: number;
     data_columns: Record<string, string[]>;

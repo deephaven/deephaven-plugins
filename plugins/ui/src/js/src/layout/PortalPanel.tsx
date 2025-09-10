@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
-import { Panel } from '@deephaven/dashboard-core-plugins';
+import { CorePanel } from '@deephaven/dashboard-core-plugins';
 import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
+import PortalPanelTooltip from './PortalPanelTooltip';
 
 /**
  * Adds and tracks a panel to the GoldenLayout.
@@ -10,6 +11,7 @@ import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
 function PortalPanel({
   glContainer,
   glEventHub,
+  metadata,
 }: DashboardPanelProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -26,9 +28,13 @@ function PortalPanel({
   }, [glContainer, glEventHub]);
 
   return (
-    <Panel glContainer={glContainer} glEventHub={glEventHub}>
+    <CorePanel
+      glContainer={glContainer}
+      glEventHub={glEventHub}
+      renderTabTooltip={() => <PortalPanelTooltip metadata={metadata} />}
+    >
       <div className="ui-portal-panel" ref={ref} />
-    </Panel>
+    </CorePanel>
   );
 }
 
