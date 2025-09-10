@@ -26,7 +26,6 @@ import {
   IrisGridModel,
   IrisGridTableModel,
   IrisGridUtils,
-  isColumnHeaderGroup,
   type CellData,
   type ColumnName,
   type DisplayColumn,
@@ -255,13 +254,19 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
    */
   private getCachedColumnHeaderGroups = memoize(
     (
-      snapshotColumns: dh.coreplus.pivot.DimensionData | null
+      snapshotColumns: dh.coreplus.pivot.DimensionData | null,
+      formatValue: (value: unknown, type: string) => string
     ): readonly ExpandableColumnHeaderGroup[] =>
-      getColumnGroups(this.pivotTable, snapshotColumns)
+      getColumnGroups(this.pivotTable, snapshotColumns, formatValue)
   );
 
   get initialColumnHeaderGroups(): readonly ExpandableColumnHeaderGroup[] {
-    return this.getCachedColumnHeaderGroups(this.snapshotColumns);
+    return this.getCachedColumnHeaderGroups(
+      this.snapshotColumns,
+      (value, type) =>
+        // Ignore name based formatting, pass empty column name
+        this.getCachedFormattedString(this.formatter, value, type, '')
+    );
   }
 
   get columnHeaderMaxDepth(): number {
@@ -318,7 +323,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   textForColumnHeader(x: ModelIndex, depth = 0): string | undefined {
     const header = this.columnAtDepth(x, depth);
-    if (isColumnHeaderGroup(header)) {
+    if (isExpandableColumnHeaderGroup(header)) {
       return header.isNew ? '' : header.displayName ?? header.name;
     }
     return header?.displayName ?? header?.name;
@@ -326,7 +331,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   colorForColumnHeader(x: ModelIndex, depth = 0): string | null {
     const column = this.columnAtDepth(x, depth);
-    if (isColumnHeaderGroup(column)) {
+    if (isExpandableColumnHeaderGroup(column)) {
       return column.color ?? null;
     }
     return null;
@@ -520,9 +525,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.viewportData = this.extractSnapshotData(snapshot);
 
     // Update column groups based on the new columns
-    this.setInternalColumnHeaderGroups(
-      getColumnGroups(this.pivotTable, this.snapshotColumns)
-    );
+    this.setInternalColumnHeaderGroups(this.initialColumnHeaderGroups);
 
     log.debug2('Pivot updated', this.columns);
 
@@ -763,7 +766,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     );
   }
 
-  // TODO: remove type annotation after installing the updated grid package
   getCachedFormattedString: (
     formatter: Formatter,
     value: unknown,
@@ -893,7 +895,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     return depth;
   }
 
-  // TODO: remove type annotation after installing the updated grid package
   getCachedCustomColumnFormatFlag: (
     formatter: Formatter,
     columnName: string,

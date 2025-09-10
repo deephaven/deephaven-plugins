@@ -287,7 +287,8 @@ export function getTotalsColumnGroups(
 export function getSnapshotColumnGroups(
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData,
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
-  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
+  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  formatValue: (value: unknown, type: string) => string
 ): ExpandableColumnHeaderGroup[] {
   // Even with no column sources we need one level of grouping for the value sources
   const maxDepth = Math.max(columnSources.length, 1);
@@ -297,7 +298,9 @@ export function getSnapshotColumnGroups(
     c < snapshotColumns.offset + snapshotColumns.count;
     c += 1
   ) {
-    const keys = snapshotColumns.getKeys(c);
+    const keys = snapshotColumns
+      .getKeys(c)
+      .map((k, i) => formatValue(k, columnSources[i]?.type ?? 'string'));
     const depth = snapshotColumns.getDepth(c);
     const isExpanded = snapshotColumns.isExpanded(c);
     columnSources.forEach((_, i) => {
@@ -344,7 +347,8 @@ export function getSnapshotColumnGroups(
  */
 export function getColumnGroups(
   pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
-  snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null
+  snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
+  formatValue: (value: unknown, type: string) => string
 ): ExpandableColumnHeaderGroup[] {
   const virtualColumnGroups = [
     ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),
@@ -357,7 +361,8 @@ export function getColumnGroups(
       : getSnapshotColumnGroups(
           snapshotColumns,
           pivotTable.columnSources,
-          pivotTable.valueSources
+          pivotTable.valueSources,
+          formatValue
         );
 
   // TODO: make sure group names are unique and can't collide with pivot keys
