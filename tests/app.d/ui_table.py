@@ -3,7 +3,7 @@ from deephaven import empty_table
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
-_stocks = dx.data.stocks(False)
+_stocks = dx.data.stocks(ticking=False)
 
 t_alignment = ui.table(
     _t,
@@ -78,7 +78,7 @@ def toggle_table_component():
     with_lower, set_with_lower = ui.use_state(False)
     with_databars, set_with_databars = ui.use_state(True)
     t = ui.use_memo(
-        lambda: dx.data.stocks().update("SymColor=Sym==`FISH` ? `positive` : `salmon`"),
+        lambda: _stocks.update("SymColor=Sym==`FISH` ? `positive` : `salmon`"),
         [],
     )
     return [
