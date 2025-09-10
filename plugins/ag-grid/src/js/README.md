@@ -27,7 +27,7 @@ function DeephavenAgGridComponent({
 }
 ```
 
-### Advanced Usage
+## Advanced Usage
 
 You can import the datasource directly if you want to manipulate the `AgGridReact` component directly. Import the DeephavenViewportDatasource and use it with your AG Grid view:
 
@@ -71,3 +71,5 @@ The [`DeephavenViewportDatasource` listens to the grid's events](./src/datasourc
 - [AgGridFilterUtils](./src/utils/AgGridFilterUtils.ts): Utility functions for mapping AG Grid filter models to Deephaven table operations.
 - [AgGridSortUtils](./src/utils/AgGridSortUtils.ts): Utility functions for mapping AG Grid sort models to Deephaven table operations.
 - [AgGridAggUtils](./src/utils/AgGridAggUtils.ts): Utility functions for mapping AG Grid aggregation and grouping models to Deephaven table operations.
+- [AgGridPivotUtils](./src/utils/AgGridPivotUtils.ts): Utility functions for handling pivot tables in AG Grid with Deephaven.
+- [AgGridFormatter](./src/utils/AgGridFormatter.ts): AG Grid formatter that takes Deephaven workspace settings to format columns.
