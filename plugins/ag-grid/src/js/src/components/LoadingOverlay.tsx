@@ -8,7 +8,7 @@ type LoadingOverlayProps = {
 };
 
 /**
- * A loading overlay that handles displaying a loading spinner or an error message
+ * A loading overlay that handles displaying a loading spinner
  */
 function LoadingOverlay({
   className = undefined,
