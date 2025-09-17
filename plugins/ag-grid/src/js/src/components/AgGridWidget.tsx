@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { LoadingOverlay } from '@deephaven/components';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
@@ -8,9 +7,9 @@ import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
 import AgGridView from './AgGridView';
-import AgGridDhTheme from './AgGridDhTheme';
-import { getDefaultProps } from './utils';
-import useWidgetFetch from './hooks/useWidgetFetch';
+import { AgGridDhTheme, getDefaultProps } from '../utils';
+import useWidgetFetch from '../hooks/useWidgetFetch';
+import LoadingOverlay from './LoadingOverlay';
 
 /**
  * Fetches an AgGrid widget from the server and fetches the underlying table provided by the widget.

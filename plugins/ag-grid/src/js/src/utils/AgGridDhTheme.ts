@@ -4,11 +4,11 @@ import type {
   TabStyleParams,
 } from '@ag-grid-community/theming';
 import type { CoreParams } from '@ag-grid-community/theming/dist/types/src/styles/core/core-css';
-import { AgGridThemeColors } from './utils/AgGridColors';
+import { AgGridThemeColors } from './AgGridColors';
 
 type GridDensity = 'compact' | 'regular' | 'spacious';
 
-export default class AgGridDhTheme {
+export class AgGridDhTheme {
   static getThemeParams(
     gridDensity: GridDensity = 'regular'
   ): Partial<
@@ -80,3 +80,5 @@ export default class AgGridDhTheme {
     }
   }
 }
+
+export default AgGridDhTheme;
