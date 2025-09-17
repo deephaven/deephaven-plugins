@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ag-grid",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Deephaven AG Grid plugin",
   "keywords": [
     "Deephaven",

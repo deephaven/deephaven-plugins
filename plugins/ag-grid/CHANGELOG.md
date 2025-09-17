@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.4.0 - 2025-09-17
+#### Features
+- **(ag-grid)** Remove dependencies on @deephaven/component (#1234) - (0c7bb03) - *mofojed*
+
+- - -
+
 ## ag-grid-v0.3.0 - 2025-09-10
 #### Features
 - **(ag-grid)** Pivot table support in AG Grid (#1227) - (ac584a2) - *mofojed*
