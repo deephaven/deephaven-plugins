@@ -9,18 +9,26 @@ import jpy
 from typing import Any, cast
 
 from deephaven.pandas import to_table
-from deephaven.replay import TableReplayer
 from deephaven.table import Table
 from deephaven import empty_table, time_table, merge
 from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
-from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
+from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max, delta, DeltaControl
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
+
+
+# Helper converters to satisfy static type checkers when dealing with pandas/numpy scalars
+def _to_py_float(x: Any) -> float:
+    return float(x)
+
+
+def _to_py_int(x: Any) -> int:
+    return int(x)
 
 
 def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
@@ -54,6 +62,15 @@ def iris(ticking: bool = True) -> Table:
           along with a timestamp, id and species name.
         - The original Iris species names are included (setosa, versicolor, and virginica).
 
+    Columns:
+        - Timestamp (Instant): The timestamp of the observation
+        - SepalLength (Double): The length of the sepal in centimeters
+        - SepalWidth (Double): The width of the sepal in centimeters
+        - PetalLength (Double): The length of the petal in centimeters
+        - PetalWidth (Double): The width of the petal in centimeters
+        - Species (String): The species of the iris flower
+        - SpeciesID (Long): A numerical ID for the species
+
     Args:
         ticking:
             If true, the table will tick new data every second.
@@ -64,12 +81,6 @@ def iris(ticking: bool = True) -> Table:
     References:
         - Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems.
           Annals of Eugenics, 7(2), 179-188.
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        iris = dx.data.iris()
-        ```
     """
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
     # Give this dataset a timestamp column based on original year from this data
@@ -143,12 +154,11 @@ def jobs(ticking: bool = True) -> Table:
     assigned to the job, is randomly selected. The dataset continues to loop in this way, moving across time until
     it is deleted or the server is shut down.
 
-    Notes:
-        Contains the following columns:
-        - Job: a string column denoting the name of the job, ranging from Job1 to Job5
-        - StartTime: a Java Instant column containing the start time of the job
-        - EndTime: a Java Instant column containing the end time of the job
-        - Resource: a string column indicating the name of the person that the job is assigned to
+    Columns:
+        - Job (String): Denoting the name of the job, ranging from Job1 to Job5
+        - StartTime (Instant): Containing the start time of the job
+        - EndTime (Instant): Containing the end time of the job
+        - Resource (String): Indicating the name of the person that the job is assigned to
 
     Args:
         ticking:
@@ -156,12 +166,6 @@ def jobs(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        jobs = dx.data.jobs()
-        ```
     """
 
     def generate_resource(index: int) -> str:
@@ -202,11 +206,10 @@ def marketing(ticking: bool = True) -> Table:
     be considered a potential customer, formally request the price of the product, or purchase the product and receive
     an invoice. Each of these categories is a strict subset of the last, so it lends itself well to funnel plots.
 
-    Notes:
-        Contains the following columns:
-        - Stage: a string column containing the stage of a customers interest:
+    Columns:
+        - Stage (String): A string column containing the stage of a customers interest:
                  VisitedWebsite, Downloaded, PotentialCustomer, RequestedPrice, and InvoiceSent
-        - Count: an integer column counting the number of customers to fall into each category
+        - Count (Long): Column counting the number of customers to fall into each category
 
     Args:
         ticking:
@@ -214,12 +217,6 @@ def marketing(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        marketing = dx.data.marketing()
-        ```
     """
     _ColsToRowsTransform = jpy.get_type(
         "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
@@ -265,164 +262,164 @@ def marketing(ticking: bool = True) -> Table:
 
 def stocks(
     ticking: bool = True,
-    hours_of_data: int = 1,
     starting_time: str = STARTING_TIME,
 ) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
-    Data is 1 hour of randomly generated (but deterministic) fictional
-    stock market data, and starts with the first 5 minutes of data
-    already initialized so your example plots won't start empty.
+    Randomly generated (but deterministic) fictional
+    stock market data. Starts with the first 5 minutes of data
+    already initialized so example plots won't start empty.
 
-    Notes:
-        Contains the following columns:
-        - Timestamp: a time column starting from the date deephaven.io was registered
-        - Sym: a string representing a fictional stock symbol
-        - Exchange: a string representing a fictional stock exchange
-        - Size: the number of shares in the trade
-        - Price: the transaction price of the trade
-        - Dollars: the dollar value of the trade (price * size)
-        - Side: buy or sell side of the trade
-        - SPet500: A comparison to a fictional index
-        - Index: an incrementing row index
-        - Random: A random gaussian value using row index as seed
+    Columns:
+        - Timestamp (Instant): A time column starting from the date deephaven.io was registered
+        - Sym (String): A string representing a fictional stock symbol
+        - Exchange (String): A string representing a fictional stock exchange
+        - Size (Long): The number of shares in the trade
+        - Price (Double): The transaction price of the trade
+        - Dollars (Double): The dollar value of the trade (price * size)
+        - Side (String): Buy or sell side of the trade
+        - SPet500 (Double): A comparison to a fictional index
+        - Index (Long): An incrementing row index
+        - Random (Double): A random gaussian value using row index as seed
 
     Args:
         ticking:
             If true, the table will tick using a replayer, if
             false the whole table will be returned as a static table.
-        hours_of_data:
-            The number of hours of data to return
         starting_time:
-            The starting time of the data, defaults to "2018-06-01T08:00:00 ET"
+            The starting time for the data generation, defaults to 2018-06-01T08:00:00 ET
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        import deephaven.plot.express as dx
-        stocks = dx.data.stocks()
-        ```
     """
-
-    base_time = to_j_instant(starting_time)
-
-    pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
-
-    sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
-    sym_dict = {v: i for i, v in enumerate(sym_list)}
-    sym_weights = [95, 100, 70, 45, 35]
-    exchange = ["NYPE", "PETX", "TPET"]
-    exchange_weights = [50, 100, 45]
-    init_value = 100  # is used inside query string
-
     ticks_per_second = 10
-    size_in_seconds: int = hours_of_data * 60 * 60 * ticks_per_second
 
-    # base time is 8am, start at 9am so there's already data showing and tick until 5pm
-    start_time = pd_base_time + pd.Timedelta((int)(MINUTE * 5))
-    end_time = pd_base_time + pd.Timedelta(size_in_seconds * SECOND)
+    def generate(
+        t: Table,
+        ticks_per_second: int = ticks_per_second,
+        starting_time: str = starting_time,
+    ) -> Table:
+        base_time = to_j_instant(starting_time)
+        pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
-    def random_gauss(seed: int) -> float:
-        random.seed(seed)  # set seed once per row
-        return random.gauss(0, 1)
+        sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
+        sym_dict = {v: i for i, v in enumerate(sym_list)}  # is used inside query string
+        sym_weights = [95, 100, 70, 45, 35]
+        exchange = ["NYPE", "PETX", "TPET"]
+        exchange_weights = [50, 100, 45]
+        init_value = 100  # is used inside query string
 
-    def random_list_sym(seed: int) -> str:
-        return random.choices(sym_list, sym_weights)[0]
+        def random_gauss(seed: int) -> float:
+            random.seed(seed)
+            return random.gauss(0, 1)
 
-    def random_list_exchange(seed: int) -> str:
-        return random.choices(exchange, exchange_weights)[0]
+        def random_list_sym(seed: int) -> str:
+            random.seed(seed)
+            return random.choices(sym_list, sym_weights)[0]
 
-    def random_trade_size(rand: float) -> int:
-        """
-        Random distribution of trade size, approximately mirroring market data
-        """
-        # cubic
-        abs_rand = abs(rand**3)
-        # rough model of the distribution of trade sizes in real market data
-        # they bucket into human sized trade blocks
-        size_dist = random.choices(
-            [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
-            [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
-        )[0]
-        if size_dist == 0:
-            size = math.ceil(1000 * abs_rand)
-            # round half of the numbers above 1000 to the nearest ten
-            return round(size, -1) if (size > 1000 and rand > 0) else size
-        else:
-            return size_dist
+        def random_list_exchange(seed: int) -> str:
+            random.seed(seed)
+            return random.choices(exchange, exchange_weights)[0]
 
-    static_table = (
-        empty_table(size_in_seconds)
-        .update(
-            formulas=[
-                "Timestamp = base_time + (long)(ii * SECOND / ticks_per_second)",
-                # must be first as it sets python seed
-                "RandomDouble = (double)random_gauss(i)",  # nicer looking starting seed
-                "Sym = random_list_sym(i)",
-                "Exchange = random_list_exchange(i)",
-                "Side = RandomDouble >= 0 ? `buy` : `sell`",
-                "Size = random_trade_size(RandomDouble)",
-                "SymIndex = (int)sym_dict[Sym]",
-                "Index = i",
-            ]
+        def random_trade_size(rand: float) -> int:
+            """
+            Random distribution of trade size, approximately mirroring market data
+            """
+            # cubic
+            abs_rand = abs(rand**3)
+            # rough model of the distribution of trade sizes in real market data
+            # they bucket into human sized trade blocks
+            random.seed(rand)
+            size_dist = random.choices(
+                [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
+                [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
+            )[0]
+            if size_dist == 0:
+                size = math.ceil(1000 * abs_rand)
+                # round half of the numbers above 1000 to the nearest ten
+                return round(size, -1) if (size > 1000 and rand > 0) else size
+            else:
+                return size_dist
+
+        return (
+            t.update(
+                formulas=[
+                    "Timestamp = base_time + (long)(Index * SECOND / ticks_per_second)",
+                    "RandomDouble = (double)random_gauss(Index)",  # nicer looking starting seed
+                    "Sym = random_list_sym(Index)",
+                    "Exchange = random_list_exchange(Index)",
+                    "Side = RandomDouble >= 0 ? `buy` : `sell`",
+                    "Size = random_trade_size(RandomDouble)",
+                    "SymIndex = (int)sym_dict[Sym]",
+                ]
+            )
+            # generate data for price column
+            .update_by(
+                ops=[
+                    rolling_sum_tick(
+                        cols=["RollingSum = RandomDouble"], rev_ticks=2000, fwd_ticks=0
+                    )
+                ],
+                by=["Sym"],
+            )
+            .update_by(
+                ops=[ema_tick(decay_ticks=2, cols=["Ema = RollingSum"])], by=["Sym"]
+            )
+            # generate date for "SPet500" a hypothetical composite index
+            .update_by(
+                ops=[
+                    rolling_sum_tick(
+                        cols=["RollingSumIndividual = RandomDouble"],
+                        rev_ticks=1000,
+                        fwd_ticks=0,
+                    )
+                ],
+            )
+            .update_by(
+                ops=[
+                    ema_tick(
+                        decay_ticks=5, cols=["EmaIndividual = RollingSumIndividual"]
+                    )
+                ]
+            )
+            # spread the staring values based on symbol and round to 2 decimals
+            .update(
+                [
+                    "Price = Math.round((Ema + init_value + Math.pow(1 + SymIndex, 3))*100)/100",
+                    "SPet500 = EmaIndividual + init_value + 50",
+                    "Dollars = Size * Price",
+                ]
+            )
+            # drop intermediary columns, and order the output nicely
+            .view(
+                [
+                    "Timestamp",
+                    "Sym",
+                    "Exchange",
+                    "Size",
+                    "Price",
+                    "Dollars",
+                    "Side",
+                    "SPet500",
+                    "Index",
+                    "Random = RandomDouble",
+                ]
+            )
         )
-        # generate data for price column
-        .update_by(
-            ops=[
-                rolling_sum_tick(
-                    cols=["RollingSum = RandomDouble"], rev_ticks=2000, fwd_ticks=0
-                )
-            ],
-            by=["Sym"],
-        )
-        .update_by(ops=[ema_tick(decay_ticks=2, cols=["Ema = RollingSum"])], by=["Sym"])
-        # generate date for "SPet500" a hypothetical composite index
-        .update_by(
-            ops=[
-                rolling_sum_tick(
-                    cols=["RollingSumIndividual = RandomDouble"],
-                    rev_ticks=1000,
-                    fwd_ticks=0,
-                )
-            ],
-        )
-        .update_by(
-            ops=[ema_tick(decay_ticks=5, cols=["EmaIndividual = RollingSumIndividual"])]
-        )
-        # spread the staring values based on symbol and round to 2 decimals
-        .update(
-            [
-                "Price = Math.round((Ema + init_value + Math.pow(1 + SymIndex, 3))*100)/100",
-                "SPet500 = EmaIndividual + init_value + 50",
-                "Dollars = Size * Price",
-            ]
-        )
-        # drop intermediary columns, and order the output nicely
-        .view(
-            [
-                "Timestamp",
-                "Sym",
-                "Exchange",
-                "Size",
-                "Price",
-                "Dollars",
-                "Side",
-                "SPet500",
-                "Index",
-                "Random = RandomDouble",
-            ]
-        )
-    )
 
     if ticking:
-        result_replayer = TableReplayer(start_time, end_time)
-        replayer_table = result_replayer.add_table(static_table, "Timestamp")
-        result_replayer.start()
-        return replayer_table
+        return generate(
+            merge(
+                [
+                    empty_table(60 * 5 * ticks_per_second).update("Index = ii"),
+                    time_table("PT0.1S")
+                    .update("Index = ii + 60 * 5 * ticks_per_second")
+                    .drop_columns("Timestamp"),
+                ]
+            )
+        )
     else:
-        return static_table
+        return generate(empty_table(60 * 60 * ticks_per_second).update("Index = ii"))
 
 
 def tips(ticking: bool = True) -> Table:
@@ -431,26 +428,34 @@ def tips(ticking: bool = True) -> Table:
     One waiter recorded information about each tip he received over a period of
     a few months working in one restaurant. This data was published in 1995.
     This function generates a deterministically random dataset inspired by Tips dataset.
+
     Notes:
-        - The total_bill and tip amounts are generated from a statistical linear model,
+        The total_bill and tip amounts are generated from a statistical linear model,
         where total_bill is generated from the significant covariates 'smoker' and 'size'
         plus a random noise term, and then tip is generated from total_bill plus a random
         noise term.
+
+    Columns:
+        - TotalBill (Double): The total bill amount for the table
+        - Tip (Double): The tip amount for the table
+        - Sex (String): The sex of the individual who paid the bill
+        - Smoker (String): Whether the individual was a smoker or not
+        - Day (String): The day of the week the bill was paid
+        - Time (String): The time of day the bill was paid
+        - Size (Long): The size of the party at the table
+
     Args:
         ticking:
             If true, a ticking table containing the entire Tips dataset will be returned,
             and new rows of synthetic data will tick in every second. If false, the Tips
             dataset will be returned as a static table.
+
     Returns:
         A Deephaven Table
+
     References:
         - Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics.
         Homewood, IL: Richard D. Irwin Publishing.
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        tips = dx.data.tips()
-        ```
     """
     # load the tips dataset, cast the category columns to strings, convert to Deephaven table
     tips_df = px.data.tips().astype(
@@ -561,16 +566,15 @@ def election(ticking: bool = True) -> Table:
     Then, a new row will tick in each second, until all 58 rows are included in the table. The table will
     then reset to the first 19 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
-    Notes:
-        Contains the following columns:
-        - District: a string containing the name of the district that the votes were cast in
-        - Coderre: the number of votes that the candidate Coderre received in the district
-        - Bergeron: the number of votes that the candidate Bergeron received in the district
-        - Joly: the number of votes that the candidate Joly received in the district
-        - Total: the total number of votes cast in the district
-        - Winner: a string containing the name of the winning candidate for that district
-        - Result: a string indicating whether the victory was by majority or plurality
-        - DistrictID: a numerical ID for the district
+    Columns:
+        - District (String): The name of the district that the votes were cast in
+        - Coderre (Long): The number of votes that the candidate Coderre received in the district
+        - Bergeron (Long): The number of votes that the candidate Bergeron received in the district
+        - Joly (Long): The number of votes that the candidate Joly received in the district
+        - Total (Long): The total number of votes cast in the district
+        - Winner (String): The name of the winning candidate for that district
+        - Result (String): Whether the victory was by majority or plurality
+        - DistrictID (Long): A numerical ID for the district
 
     Args:
         ticking:
@@ -578,12 +582,6 @@ def election(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        election = dx.data.election()
-        ```
     """
     # read in election data, cast types appropriately, convert to Deephaven table
     election_df = px.data.election().astype(
@@ -608,10 +606,12 @@ def election(ticking: bool = True) -> Table:
 
     # functions to get correctly-typed values out of columns by index
     def get_str_val(column: str, index: int) -> str:
-        return election_df.loc[index, column]
+        return str(election_df.loc[index, column])
 
     def get_long_val(column: str, index: int) -> int:
-        return election_df.loc[index, column]
+        # Convert to a numeric scalar and cast directly to int. This works for
+        # Python numbers and NumPy/Pandas scalar types without needing `.item()`.
+        return _to_py_int(election_df.loc[index, column])
 
     TOTAL_ROWS = len(election_df)
     STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
@@ -658,11 +658,10 @@ def wind(ticking: bool = True) -> Table:
     Then, a new row will tick in each second, until all 128 rows are included in the table. The table will
     then reset to the first 42 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
 
-    Notes:
-        Contains the following columns:
-        - Direction: a string indicating the direction of the wind gust
-        - Strength: a string indicating the strength of the wind gust, from 0-1 to 6+
-        - Frequency: the frequency of each gust strength in each direction
+    Columns:
+        - Direction (String): The direction of the wind gust
+        - Strength (String): A string indicating the strength of the wind gust, from 0-1 to 6+
+        - Frequency (double): The frequency of each gust strength in each direction
 
     Args:
         ticking:
@@ -670,12 +669,6 @@ def wind(ticking: bool = True) -> Table:
 
     Returns:
         A Deephaven Table
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        wind = dx.data.wind()
-        ```
     """
     wind_df = px.data.wind().astype({"direction": "string", "strength": "string"})
 
@@ -695,10 +688,10 @@ def wind(ticking: bool = True) -> Table:
 
     # functions to get correctly-typed values out of columns by index
     def get_str_val(column: str, index: int) -> str:
-        return wind_df.loc[index, column]
+        return str(wind_df.loc[index, column])
 
     def get_float_val(column: str, index: int) -> float:
-        return wind_df.loc[index, column]
+        return _to_py_float(wind_df.loc[index, column])
 
     TOTAL_ROWS = len(wind_df)
     STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
@@ -745,15 +738,14 @@ def gapminder(ticking: bool = True) -> Table:
     142 rows tick in per second. The dataset starts with years up to 1961, ticks in each month till 2007, and then
     repeats until the table is cleaned up or deleted.
 
-    Notes:
-        Contains the following columns:
-        - Country: a string containing the name of the country
-        - Continent: a string containing the name of the continent that the country belongs to
-        - Year: the year that the measurement was taken
-        - Month: the month (1 - 12) that the measurement was taken
-        - LifeExp: average life expectancy
-        - Pop: population total
-        - GdpPerCap: per-capita GDP
+    Columns:
+        - Country (String): Name of the country
+        - Continent (String): Name of the continent the country belongs to
+        - Year (Long): Year of the measurement
+        - Month (Long): Month (1-12) of the measurement
+        - LifeExp (Double): Average life expectancy
+        - Pop (Long): Population total
+        - GdpPerCap (Double): Per-capita GDP
 
     Args:
         ticking:
@@ -764,12 +756,6 @@ def gapminder(ticking: bool = True) -> Table:
 
     References:
         - https://www.gapminder.org/data/
-
-    Examples:
-        ```
-        from deephaven.plot import express as dx
-        gapminder = dx.data.gapminder()
-        ```
     """
     # create dict to rename columns in advance, since it is needed twice
     col_renaming_dict = {
@@ -925,13 +911,13 @@ def gapminder(ticking: bool = True) -> Table:
     j_counter = jpy.array("long", [i for i in range(142)])
 
     def get_life_expectancy(index: int) -> float:
-        return gapminder_interp.loc[index, "LifeExp"]
+        return _to_py_float(gapminder_interp.loc[index, "LifeExp"])
 
     def get_population(index: int) -> int:
-        return gapminder_interp.loc[index, "Pop"]
+        return _to_py_int(gapminder_interp.loc[index, "Pop"])
 
     def get_gdp_per_cap(index: int) -> float:
-        return gapminder_interp.loc[index, "GdpPerCap"]
+        return _to_py_float(gapminder_interp.loc[index, "GdpPerCap"])
 
     TOTAL_YEARS = 55
     STATIC_YEARS = 9
@@ -986,3 +972,404 @@ def gapminder(ticking: bool = True) -> Table:
             ticking_table,
         ]
     )
+
+
+def fish_market(ticking: bool = True) -> Table:
+    """
+    Returns a fish market sales dataset designed for pivot table examples. Ticks every second,
+    is random but deterministic, and contains lots of categorical data for pivoting.
+
+    Columns:
+        - SaleID (Int): Index of sale
+        - Revenue (Double): Revenue generated from the sale
+        - WeightKg (Double): Weight of the fish sold (in kg)
+        - PricePerKg (Double): Price per kg of the fish
+        - MarketPriceDiff (Double): Difference between market price and sale price
+        - HandlingFee (Double): Handling fee for the sale
+        - ProductName (String): Name of the fish product
+        - ProductType (String): Type of the fish product
+        - ProductForm (String): Form of the fish product
+        - FishingGround (String): Fishing ground where the fish was caught
+        - LandingCountry (String): Country where the fish was landed
+        - LandingPort (String): Port where the fish was landed
+        - CatchDate (Instant): Date when the fish was caught
+        - SaleDate (Instant): Date when the fish was sold
+        - VesselName (String): Name of the fishing vessel
+        - CustomerName (String): Name of the customer
+        - CustomerType (String): Type of customer (e.g., Retail, Wholesale)
+        - TransportMethod (String): Method of transport used for the sale
+
+    Args:
+        ticking: When true, one new transaction will tick in every second. When false, returns 1000 rows.
+
+    Returns:
+        A Deephaven Table suitable for pivot table demonstrations.
+    """
+
+    base_rows = 1000
+
+    def generate(t: Table, base_rows: int = base_rows) -> Table:
+        base_time = to_j_instant(STARTING_TIME)  # used in query strings
+
+        def _stable_val(s: str) -> int:
+            # Deterministic string-to-int seed (avoid Python's randomized hash)
+            return sum(ord(c) for c in s) & 0x7FFFFFFF
+
+        # Reference data
+        species_list = [
+            "Atlantic Salmon",
+            "Bluefin Tuna",
+            "Haddock",
+            "Cod",
+            "Halibut",
+            "Mackerel",
+            "Scallops",
+            "Lobster",
+        ]
+
+        species_to_type = {
+            "Atlantic Salmon": "Pelagic",
+            "Bluefin Tuna": "Pelagic",
+            "Mackerel": "Pelagic",
+            "Haddock": "Groundfish",
+            "Cod": "Groundfish",
+            "Halibut": "Groundfish",
+            "Scallops": "Shellfish",
+            "Lobster": "Shellfish",
+        }
+
+        product_forms = ["Whole", "Fillet", "Steaks", "Frozen"]
+
+        fishing_grounds = [
+            "North Atlantic",
+            "Pacific",
+            "Gulf of Mexico",
+            "Bering Sea",
+        ]
+
+        species_to_grounds = {
+            "Atlantic Salmon": ["North Atlantic"],
+            "Bluefin Tuna": ["Pacific", "Gulf of Mexico", "North Atlantic"],
+            "Haddock": ["North Atlantic"],
+            "Cod": ["North Atlantic", "Bering Sea"],
+            "Halibut": ["Pacific", "Bering Sea"],
+            "Mackerel": ["North Atlantic", "Pacific"],
+            "Scallops": ["North Atlantic"],
+            "Lobster": ["North Atlantic"],
+        }
+
+        ports_by_ground = {
+            "North Atlantic": [
+                "Boston, MA",
+                "Halifax, NS",
+                "Reykjavik",
+                "Bergen",
+                "St. John's, NL",
+            ],
+            "Pacific": [
+                "Seattle, WA",
+                "Vancouver, BC",
+                "Shimizu",
+                "Prince Rupert, BC",
+                "Hachinohe",
+            ],
+            "Gulf of Mexico": [
+                "New Orleans, LA",
+                "Tampa, FL",
+                "Houston, TX",
+                "Miami, FL",
+            ],
+            "Bering Sea": [
+                "Dutch Harbor, AK",
+            ],
+        }
+
+        # Map each port to its country
+        port_to_country = {
+            # North Atlantic
+            "Boston, MA": "United States",
+            "Halifax, NS": "Canada",
+            "Reykjavik": "Iceland",
+            "Bergen": "Norway",
+            "St. John's, NL": "Canada",
+            # Pacific
+            "Seattle, WA": "United States",
+            "Vancouver, BC": "Canada",
+            "Shimizu": "Japan",
+            "Prince Rupert, BC": "Canada",
+            "Hachinohe": "Japan",
+            # Gulf of Mexico
+            "New Orleans, LA": "United States",
+            "Tampa, FL": "United States",
+            "Houston, TX": "United States",
+            "Miami, FL": "United States",
+            # Bering Sea
+            "Dutch Harbor, AK": "United States",
+        }
+
+        vessels = [
+            "Sea Breeze",
+            "Northern Star",
+            "Ocean Voyager",
+            "Blue Horizon",
+            "Arctic Dawn",
+            "Pacific Spirit",
+            "Atlantic Queen",
+            "Golden Net",
+            "Wave Runner",
+            "Silver Fin",
+        ]
+
+        customer_to_type = {
+            "Ocean's Best Restaurant": "Restaurant",
+            "Bluewater Bistro": "Restaurant",
+            "Coastal Grill": "Restaurant",
+            "Seafood City Market": "Retail",
+            "FreshFish Direct": "Retail",
+            "Market on 5th": "Retail",
+            "Harbor Wholesale Co.": "Wholesale",
+            "Mariner Foods": "Wholesale",
+            "Global Seafood Traders": "Wholesale",
+            "Sunrise Supermarket": "Retail",
+            "Gourmet Fish Shop": "Retail",
+            "Fisherman's Wharf": "Retail",
+            "Ocean's Catch": "Retail",
+        }
+
+        # Species price and weight profiles (low, high, mode) for triangular distribution
+        price_profiles = {
+            "Atlantic Salmon": (14.0, 20.0, 16.0),
+            "Bluefin Tuna": (22.0, 40.0, 28.0),
+            "Haddock": (6.0, 12.0, 9.0),
+            "Cod": (7.0, 14.0, 10.0),
+            "Halibut": (16.0, 30.0, 22.0),
+            "Mackerel": (3.0, 6.0, 4.5),
+            "Scallops": (20.0, 38.0, 28.0),
+            "Lobster": (12.0, 25.0, 18.0),
+        }
+        weight_profiles = {
+            "Atlantic Salmon": (20.0, 400.0, 120.0),
+            "Bluefin Tuna": (50.0, 800.0, 200.0),
+            "Haddock": (5.0, 150.0, 40.0),
+            "Cod": (5.0, 200.0, 50.0),
+            "Halibut": (10.0, 300.0, 80.0),
+            "Mackerel": (10.0, 400.0, 100.0),
+            "Scallops": (10.0, 250.0, 70.0),
+            "Lobster": (5.0, 120.0, 40.0),
+        }
+
+        def choose_species(index: int) -> str:
+            random.seed(index)
+            weights = [12, 6, 10, 10, 7, 11, 8, 6]  # some variety
+            return random.choices(species_list, weights=weights)[0]
+
+        def species_type(species: str) -> str:
+            return species_to_type.get(species, "Unknown")
+
+        def choose_form(index: int, species: str) -> str:
+            random.seed(index + 1 + _stable_val(species))
+            # Form preferences by species (e.g., Lobster more often Whole or Frozen)
+            if species == "Lobster":
+                weights = [7, 0, 0, 3]  # Whole, Fillet, Steaks, Frozen
+            elif species == "Scallops":
+                weights = [2, 0, 0, 6]
+            elif species in ("Bluefin Tuna", "Halibut"):
+                weights = [2, 4, 3, 1]
+            else:
+                weights = [3, 5, 2, 2]
+            return random.choices(product_forms, weights=weights)[0]
+
+        def choose_ground(index: int, species: str) -> str:
+            random.seed(index + 2 + _stable_val(species))
+            valid_grounds = species_to_grounds.get(species, fishing_grounds)
+            weights = [35, 30, 12, 15, 8]
+            return random.choices(valid_grounds, weights=weights[: len(valid_grounds)])[
+                0
+            ]
+
+        # Update choose_port to select by ground only
+        def choose_port(ground: str, index: int) -> str:
+            random.seed(index + 4500 + _stable_val(ground))
+            options = ports_by_ground.get(ground, ["Boston, MA"])
+            return random.choice(options)
+
+        def choose_country(port: str) -> str:
+            # Select country based on port
+            return port_to_country.get(port, "United States")
+
+        def choose_vessel(index: int, ground: str) -> str:
+            random.seed(index + 5000 + _stable_val(ground))
+            return random.choice(vessels)
+
+        def choose_customer(index: int) -> str:
+            random.seed(index + 6)
+            options = list(customer_to_type.keys())
+            weights = [10, 9, 7, 8, 9, 7, 8, 6, 5, 3, 4, 5, 2]
+            return random.choices(options, weights=weights)[0]
+
+        def customer_type(name: str) -> str:
+            return customer_to_type.get(name, "Retail")
+
+        def choose_transport(
+            index: int,
+            product_form: str,
+            landing_country: str,
+            ground: str,
+            species: str,
+        ) -> str:
+            random.seed(
+                index
+                + 7000
+                + _stable_val(product_form)
+                + (_stable_val(landing_country) * 3)
+                + (_stable_val(ground) * 5)
+                + (_stable_val(species) * 7)
+            )
+            # Air more likely for premium/fresh product or long-distance exports
+            air_bias = 0
+            if product_form in ("Fillet", "Steaks"):
+                air_bias += 20
+            if landing_country in ("Japan", "Iceland", "Norway"):
+                air_bias += 20
+            if species in ("Bluefin Tuna", "Scallops"):
+                air_bias += 15
+            air_weight = max(10, min(70, 20 + air_bias))
+            truck_weight = 100 - air_weight
+            return random.choices(
+                ["Air Freight", "Refrigerated Truck"],
+                weights=[air_weight, truck_weight],
+            )[0]
+
+        def gen_weight(species: str, product_form: str, index: int) -> float:
+            low, high, mode = weight_profiles[species]
+            random.seed(index + 8000 + _stable_val(species))
+            w = random.triangular(low, high, mode)
+            form_mult = {"Whole": 1.0, "Fillet": 0.6, "Steaks": 0.7, "Frozen": 0.8}.get(
+                product_form, 1.0
+            )
+            return max(1.0, w * form_mult)
+
+        def gen_price(species: str, product_form: str, index: int) -> float:
+            low, high, mode = price_profiles[species]
+            random.seed(index + 9000 + _stable_val(species))
+            p = random.triangular(low, high, mode)
+            form_mult = {"Whole": 1.0, "Fillet": 1.3, "Steaks": 1.2, "Frozen": 0.9}.get(
+                product_form, 1.0
+            )
+            # Add small noise
+            random.seed(index + 10)
+            noise = random.gauss(0.0, 0.5)
+            return max(1.0, p * form_mult + noise)
+
+        def compute_handling_fee(
+            revenue: float, transport_method: str, product_form: str, index: int
+        ) -> float:
+            random.seed(index + 11)
+            base_pct = random.uniform(0.02, 0.06)
+            if transport_method == "Air Freight":
+                base_pct += 0.02
+            if product_form == "Frozen":
+                base_pct += 0.005
+            return revenue * base_pct
+
+        def gen_sale_delay(
+            transport_method: str, product_form: str, weight: float, index: int
+        ) -> int:
+            random.seed(
+                index
+                + 13000
+                + _stable_val(transport_method)
+                + (_stable_val(product_form) * 2)
+            )
+            if transport_method == "Air Freight":
+                base = random.randint(1, 3)
+            else:
+                base = random.randint(2, 12)
+            # Heavier shipments tend to take a bit longer
+            heavy_adj = 0
+            if weight > 300:
+                heavy_adj = 2
+            elif weight > 150:
+                heavy_adj = 1
+            return max(0, base + heavy_adj)
+
+        return (
+            t.update(
+                [
+                    # Dimensional attributes first
+                    "ProductName = (String)choose_species(Index)",
+                    "ProductType = (String)species_type(ProductName)",
+                    "ProductForm = (String)choose_form(Index, ProductName)",
+                    "FishingGround = (String)choose_ground(Index, ProductName)",
+                    "LandingPort = (String)choose_port(FishingGround, Index)",
+                    "LandingCountry = (String)choose_country(LandingPort)",
+                    "VesselName = (String)choose_vessel(Index, FishingGround)",
+                    "CustomerName = (String)choose_customer(Index)",
+                    "CustomerType = (String)customer_type(CustomerName)",
+                    # Measures
+                    "WeightKg = Math.round((double)gen_weight(ProductName, ProductForm, Index) * 10.0 ) / 10.0",
+                    "PricePerKg = Math.round((double)gen_price(ProductName, ProductForm, Index) * 100.0) / 100.0",
+                    "Revenue = Math.round((PricePerKg * WeightKg) * 100.0) / 100.0",
+                    # Logistics
+                    "TransportMethod = (String)choose_transport(Index, ProductForm, LandingCountry, FishingGround, ProductName)",
+                    "HandlingFee = Math.round((double)compute_handling_fee(Revenue, TransportMethod, ProductForm, Index) * 100.0) / 100.0",
+                    # Dates
+                    "SaleDate = base_time + (long)((Index + base_rows) * SECOND)",
+                    "SaleDelayDays = (int)gen_sale_delay(TransportMethod, ProductForm, WeightKg, Index)",
+                    "CatchDate = SaleDate - (long)(SaleDelayDays * DAY)",
+                    # Identifier
+                    "SaleID = (int)(Index + 1)",
+                ]
+            )
+            .update_by(
+                ops=[
+                    delta(
+                        cols="MarketPriceDiff = PricePerKg",
+                        delta_control=DeltaControl.ZERO_DOMINATES,
+                    )
+                ],
+                by="ProductName",
+            )
+            .drop_columns(
+                [
+                    "SaleDelayDays",
+                    "Index",
+                ]
+            )
+            .view(
+                [
+                    "SaleID",
+                    "Revenue",
+                    "WeightKg",
+                    "PricePerKg",
+                    "MarketPriceDiff",
+                    "HandlingFee",
+                    "ProductType",
+                    "ProductName",
+                    "ProductForm",
+                    "FishingGround",
+                    "LandingCountry",
+                    "LandingPort",
+                    "VesselName",
+                    "CatchDate",
+                    "SaleDate",
+                    "CustomerType",
+                    "CustomerName",
+                    "TransportMethod",
+                ]
+            )
+        )
+
+    if ticking:
+        return generate(
+            merge(
+                [
+                    empty_table(base_rows).update("Index = ii"),
+                    time_table("PT1S")
+                    .update(f"Index = ii + {base_rows}")
+                    .drop_columns("Timestamp"),
+                ]
+            )
+        )
+    else:
+        return generate(empty_table(base_rows).update("Index = ii"))

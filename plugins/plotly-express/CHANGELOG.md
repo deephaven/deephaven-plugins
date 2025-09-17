@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.18.0 - 2025-09-10
+#### Features
+- Pivot table example generator (#1230) - (2ff9325) - Don
+
+- - -
+
 ## plotly-express-v0.17.2 - 2025-09-03
 #### Bug Fixes
 - DH-18443: Fix `dx` and `dh.ui` tooltips (#1226) - (371bfcd) - Joe

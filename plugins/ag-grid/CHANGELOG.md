@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.3.0 - 2025-09-10
+#### Features
+- **(ag-grid)** Pivot table support in AG Grid (#1227) - (ac584a2) - *mofojed*
+
+- - -
+
 ## ag-grid-v0.2.0 - 2025-08-18
 #### Bug Fixes
 - **(ag-grid)** Change how the license key is set (#1218) - (e42bb98) - *mofojed*
