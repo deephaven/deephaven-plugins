@@ -30,6 +30,9 @@ Other options:
 - `scale-down` sizes the image as if `none` or `contain` were specified. Whichever results in a smaller concrete image size is selected.
 
 ```python test-set=0
+from deephaven import ui
+
+@ui.component
 def image_variants():
     return ui.flex(
         ui.view(
@@ -77,6 +80,28 @@ def image_variants():
 
 image_variants_example = image_variants()
 ```
+
+## Scrollable image
+While the image component itself is not scrollable, wrap the image in a container view with the desired dimensions and set its overflow property to 'scroll' to achieve the same effect.
+
+```python test-set=0
+from deephaven import ui
+
+def scrollable_variant():
+    return ui.view(
+        ui.image(
+            src="https://i.imgur.com/Z7AzH2c.png",
+            alt="Sky and roof"
+        ),
+        width="800px",
+        height="150px",
+        overflow="scroll",
+    )
+
+
+scrollable_variants_example = scrollable_variant()
+```
+
 
 ## API Reference
 
