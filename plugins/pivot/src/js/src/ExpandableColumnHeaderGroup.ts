@@ -21,8 +21,8 @@ export class ExpandableColumnHeaderGroup extends ColumnHeaderGroup {
     depth,
     childIndexes,
     parent,
-    isExpanded,
-    isExpandable,
+    isExpanded = false,
+    isExpandable = false,
   }: {
     name: string;
     displayName?: string;
