@@ -190,6 +190,250 @@ t = ui.table(
 )
 ```
 
+### Formatting databars
+
+Table databars provide visual representation of numeric data directly within table cells, making it easy to compare values at a glance. Databars appear as horizontal bars behind or alongside cell values.
+
+##### Example
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["X=ii", "Revenue=ii*100"])
+
+my_table_databar_basic = ui.table(
+    _t, databars=[{"column": "Revenue", "color": "positive"}]
+)
+```
+
+##### Column Configuration
+
+The `column` prop specifies which table column should display the databar. This is the only required property.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Sales=ii*50", "Profit=ii*25", "Revenue=ii*100"])
+
+my_table_basic_columns = ui.table(_t, databars=[{"column": "Revenue"}])
+```
+
+##### Value Column
+
+The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(
+    ["Population=ii*100", "Population_Squared=pow(Population,2)"]
+)
+
+my_table_value_column = ui.table(
+    _t,
+    databars=[
+        {"column": "Population", "value_column": "Population_Squared", "color": "info"}
+    ],
+)
+```
+
+##### Scale Configuration
+
+The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(
+    ["Score_FixedScale=ii%100", "Score_DynamicScale=25", "Scale=20+ 5*ii%100"]
+)
+
+my_table_scale_examples = ui.table(
+    _t,
+    databars=[
+        {"column": "Score_FixedScale", "min": 0, "max": 100, "color": "positive"},
+        {"column": "Score_DynamicScale", "min": 0, "max": "Scale", "color": "positive"},
+    ],
+)
+```
+
+##### Axis Configuration
+
+The `axis` prop controls how the zero point is positioned within the databar. Options are `"proportional"` (default), `"middle"`, or `"directional"`.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(
+    ["proportional=ii%200-100", "middle=ii%200-100", "directional=ii%200-100"]
+)
+
+my_table_axis_examples = ui.table(
+    _t,
+    databars=[
+        {
+            "column": "proportional",
+            "axis": "proportional",
+            "color": ["negative", "positive"],
+        },
+        {"column": "middle", "axis": "middle", "color": ["negative", "positive"]},
+        {
+            "column": "directional",
+            "axis": "directional",
+            "color": ["negative", "positive"],
+        },
+    ],
+)
+```
+
+##### Direction
+
+The `direction` prop controls which direction the databar grows from its zero point. Options are `"LTR"` (left to right, default) or `"RTL"` (right to left).
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Growth_LTR=ii%50", "Growth_RTL=ii%50"])
+
+my_table_direction_examples = ui.table(
+    _t,
+    databars=[
+        {"column": "Growth_LTR", "direction": "LTR", "color": "positive"},
+        {"column": "Growth_RTL", "direction": "RTL", "color": "info"},
+    ],
+)
+```
+
+##### Value Placement
+
+The `value_placement` prop controls how cell values are displayed relative to the databar. Options are `"beside"` (default), `"overlap"`, or `"hide"`.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Beside=ii%100", "Overlap=ii%100", "Hide=ii%100"])
+
+my_table_value_placement = ui.table(
+    _t,
+    databars=[
+        {"column": "Beside", "value_placement": "beside", "color": "positive"},
+        {"column": "Overlap", "value_placement": "overlap", "color": "notice"},
+        {"column": "Hide", "value_placement": "hide", "color": "info"},
+    ],
+)
+```
+
+##### Color
+
+The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients and conditional coloring.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Revenue=ii*100", "Performance=ii%100-50"])
+
+my_table_color_examples = ui.table(
+    _t,
+    databars=[
+        {"column": "Revenue", "color": "positive"},
+        {"column": "Performance", "color": ["negative", "positive"]},
+    ],
+)
+```
+
+##### Opacity
+
+The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Background=ii*50", "Foreground=ii*75"])
+
+my_table_opacity_examples = ui.table(
+    _t,
+    databars=[
+        {"column": "Background", "color": "info", "opacity": 0.3},
+        {"column": "Foreground", "color": "positive", "opacity": 0.8},
+    ],
+)
+```
+
+##### Markers
+
+The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(["Performance=40+ 5*ii%100", "Target=75", "Minimum=25"])
+
+my_table_markers_example = ui.table(
+    _t,
+    databars=[
+        {
+            "column": "Performance",
+            "color": "positive",
+            "markers": [
+                {"value": "Target", "color": "accent"},
+                {"value": 50, "color": "notice"},
+            ],
+        }
+    ],
+)
+```
+
+##### Complete Example
+
+```python
+from deephaven import time_table
+from deephaven import ui
+
+_t = time_table("PT1S").update(
+    [
+        "X=ii",
+        "Y=X",
+        "Z=X",
+        "A=X",
+        "B=X",
+        "C=X",
+        "HalfX=X/2",
+        "LogX=X > 0 ? log(X) : 0",
+        "X2=X*2",
+    ]
+)
+
+my_complete_table = ui.table(
+    _t,
+    databars=[
+        {
+            "column": "X",
+            "color": "negative",
+            "opacity": 0.4,
+            "markers": [
+                {"value": "HalfX", "color": "limegreen"},
+                {"value": 1000, "color": "accent"},
+            ],
+        },
+        {"column": "Y", "value_column": "LogX", "color": "positive"},
+        {"column": "Z", "max": 10, "color": ["notice", "positive", "dodgerblue"]},
+        {"column": "A", "max": "X2", "color": ["info", "magenta-600"]},
+        {"column": "B", "color": ["#f3cd5b", "#9edc6f"]},
+        {"column": "C", "color": ["#f3cd5b", "#9edc6f"]},
+    ],
+)
+```
+
 ## Aggregations
 
 You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
