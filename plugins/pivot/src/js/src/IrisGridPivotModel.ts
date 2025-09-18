@@ -24,7 +24,6 @@ import {
 } from '@deephaven/grid';
 import {
   IrisGridModel,
-  IrisGridTableModel,
   IrisGridUtils,
   type CellData,
   type ColumnName,
@@ -32,6 +31,9 @@ import {
   type IrisGridThemeType,
   type UITreeRow,
   type UIViewportData,
+  type UITotalsTableConfig,
+  type PendingDataMap,
+  type PendingDataErrorMap,
 } from '@deephaven/iris-grid';
 import {
   checkColumnsChanged,
@@ -72,11 +74,6 @@ export type UIPivotViewportData<R extends UIPivotRow = UIPivotRow> =
     totalsRow: R;
   };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface IrisGridPivotModel extends IrisGridTableModel {}
-
 /**
  * Model implementing the Pivot Table functionality.
  * This allows updating the underlying Pivot tables on schema changes.
@@ -106,6 +103,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private _isColumnHeaderGroupsInitialized = false;
 
   private viewportData: UIPivotViewportData<R> | null = null;
+
+  private formattedStringData: (string | null)[][] = [];
 
   private snapshotColumns: DhType.coreplus.pivot.DimensionData | null = null;
 
@@ -168,6 +167,117 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   dh: typeof DhType;
+
+  get filter(): readonly DhType.FilterCondition[] {
+    return EMPTY_ARRAY;
+  }
+
+  set filter(_: readonly DhType.FilterCondition[]) {
+    // No-op
+    // TODO: Add filter support
+  }
+
+  get customColumns(): readonly string[] {
+    return EMPTY_ARRAY;
+  }
+
+  get formatColumns(): readonly [] {
+    return [];
+  }
+
+  get rollupConfig(): null {
+    return null;
+  }
+
+  get totalsConfig(): UITotalsTableConfig | null {
+    return null;
+  }
+
+  get pendingDataErrors(): PendingDataErrorMap {
+    return new Map();
+  }
+
+  get pendingDataMap(): PendingDataMap {
+    return new Map();
+  }
+
+  set pendingDataMap(_map: PendingDataMap) {
+    // No-op
+    // Pivot tables do not support pending data
+  }
+
+  get pendingRowCount(): number {
+    return 0;
+  }
+
+  set pendingRowCount(_count: number) {
+    // No-op
+    // Pivot tables do not support pending data
+  }
+
+  get selectDistinctColumns(): readonly string[] {
+    return [];
+  }
+
+  async columnStatistics(
+    column: DhType.Column
+  ): Promise<DhType.ColumnStatistics> {
+    throw new Error('Method not implemented.');
+  }
+
+  async commitPending(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async seekRow(
+    startRow: ModelIndex,
+    column: DhType.Column,
+    valueType: string,
+    value: unknown,
+    insensitive?: boolean,
+    contains?: boolean,
+    isBackwards?: boolean
+  ): Promise<ModelIndex> {
+    throw new Error('Method not implemented.');
+  }
+
+  async valuesTable(
+    columns: DhType.Column | readonly DhType.Column[]
+  ): Promise<DhType.Table> {
+    throw new Error('Method not implemented.');
+  }
+
+  async export(): Promise<DhType.Table> {
+    throw new Error('Method not implemented.');
+  }
+
+  async showFilter(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async quickFilter(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async autoResizeColumns(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async applySort(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async clearFilter(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async applyFilter(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
+  async copy(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
   getCachedColumns = memoize(
     (
