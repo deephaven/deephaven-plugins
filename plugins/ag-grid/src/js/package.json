@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ag-grid",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Deephaven AG Grid plugin",
   "keywords": [
     "Deephaven",
@@ -58,7 +58,6 @@
     "@ag-grid-enterprise/row-grouping": "^32.3.9",
     "@ag-grid-enterprise/server-side-row-model": "^32.3.9",
     "@ag-grid-enterprise/viewport-row-model": "^32.3.9",
-    "@deephaven/components": "^0.106.2",
     "@deephaven/icons": "^0.106.0",
     "@deephaven/jsapi-bootstrap": "^0.106.2",
     "@deephaven/jsapi-utils": "^0.106.2",

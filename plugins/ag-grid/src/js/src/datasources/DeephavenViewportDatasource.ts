@@ -22,9 +22,8 @@ import {
   isTable,
   isTreeTable,
 } from '../utils/AgGridTableUtils';
-import AgGridFilterUtils from '../utils/AgGridFilterUtils';
-import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
-import AgGridTableType from '../AgGridTableType';
+import { AgGridFilterUtils, AgGridSortUtils, isSortModelItem } from '../utils';
+import type { AgGridTableType } from '../types';
 import {
   extractSnapshotRows,
   getPivotResultColumns,

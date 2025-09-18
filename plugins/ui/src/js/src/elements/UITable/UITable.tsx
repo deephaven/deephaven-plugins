@@ -503,7 +503,16 @@ export function UITable({
     [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
   );
 
+  // Some of the server props rely on the model existing,
+  // so we need to start as undefined and set it in the useMemo below once we have a model
+  const initialIrisGridServerProps = useRef<Partial<IrisGridProps> | undefined>(
+    undefined
+  );
+
   const irisGridServerProps = useMemo(() => {
+    if (model == null) {
+      return;
+    }
     const props = {
       mouseHandlers,
       alwaysFetchColumns,
@@ -515,10 +524,10 @@ export function UITable({
       density,
       settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
       onContextMenu,
-      aggregationSettings: {
-        aggregations:
-          aggregations != null
-            ? ensureArray(aggregations).map(agg => {
+      aggregationSettings:
+        aggregations != null
+          ? {
+              aggregations: ensureArray(aggregations).map(agg => {
                 if (agg.cols != null && agg.ignore_cols != null) {
                   throw new Error(
                     'Cannot specify both cols and ignore_cols in a UI table aggregation'
@@ -532,10 +541,10 @@ export function UITable({
                   // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
                   invert: agg.cols == null,
                 };
-              })
-            : [],
-        showOnTop: aggregationsPosition === 'top',
-      },
+              }),
+              showOnTop: aggregationsPosition === 'top',
+            }
+          : undefined,
     } satisfies Partial<IrisGridProps>;
 
     // Remove any explicit undefined values so we can use client state if available
@@ -549,6 +558,8 @@ export function UITable({
         delete props[key];
       }
     });
+
+    initialIrisGridServerProps.current ??= props;
 
     return props;
   }, [
@@ -565,9 +576,8 @@ export function UITable({
     onContextMenu,
     aggregations,
     aggregationsPosition,
+    model,
   ]);
-
-  const initialIrisGridServerProps = useRef(irisGridServerProps);
 
   const handleSelectionChanged = useCallback(
     async (ranges: readonly GridRange[]) => {
