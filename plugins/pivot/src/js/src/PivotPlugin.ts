@@ -10,7 +10,7 @@ export const PivotPlugin: WidgetPlugin<dh.Widget> = {
   supportedTypes: 'PivotTable',
   component: PivotWidget,
   icon: dhTable,
-  title: 'Simple Pivot',
+  title: 'Pivot Table',
 };
 
 export default PivotPlugin;
