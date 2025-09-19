@@ -4,6 +4,7 @@ import {
   GridColumnSeparatorMouseHandler,
   GridRenderer,
   GridUtils,
+  isExpandableColumnGridModel,
   type BoundedAxisRange,
   type BoxCoordinates,
   type Coordinate,
@@ -69,6 +70,10 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       columnHeaderHeight * 0.5 -
       hiddenSeparatorHeight * 0.5;
     const containsFrozenColumns = floatingLeftColumnCount > 0;
+
+    if (!isExpandableColumnGridModel(model)) {
+      throw new Error('Unsupported model type');
+    }
 
     context.save();
 
@@ -260,7 +265,9 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
         const { columnCount } = metrics;
         const modelColumn = getOrThrow(modelColumns, columnIndex);
 
-        const columnGroupColor = model.colorForColumnHeader(modelColumn, depth);
+        const columnGroupColor = isExpandableColumnGridModel(model)
+          ? model.colorForColumnHeader(modelColumn, depth, theme)
+          : model.colorForColumnHeader(modelColumn, depth);
 
         const headerGroup = model.getColumnHeaderGroup(modelColumn, depth ?? 0);
 
@@ -423,6 +430,14 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     }
 
     let { minX = 0, maxX = width } = bounds ?? {};
+
+    // console.log('[3] drawColumnHeader', {
+    //   columnText,
+    //   minX,
+    //   maxX,
+    //   columnX,
+    //   columnWidth,
+    // });
 
     context.save();
     context.rect(minX, 0, maxX - minX, columnHeaderHeight);

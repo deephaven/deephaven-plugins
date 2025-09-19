@@ -3,7 +3,6 @@ import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import ExpandableColumnHeaderGroup from './ExpandableColumnHeaderGroup';
-import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
@@ -11,7 +10,7 @@ export function isCorePlusDh(
   return 'coreplus' in dh;
 }
 
-export const GRAND_TOTALS_GROUP_NAME = 'Grand Totals';
+export const GRAND_TOTALS_GROUP_NAME = 'Grand Total';
 export const TOTALS_GROUP_NAME = 'Total';
 export const ROOT_DEPTH = 2;
 
@@ -23,6 +22,25 @@ export type ExpandableDisplayColumn = DisplayColumn & {
   isExpanded: boolean;
   hasChildren: boolean;
 };
+
+// TODO: move to TextUtils
+/**
+ * Pluralize a string based on a value
+ * @param value The value to use for pluralization
+ * @param singular The singular form of the string
+ * @param pluralized The pluralized form of the word. If not provided, will just append `s` to the `singular` form when pluralized.
+ * @returns The pluralized string
+ */
+export function pluralize(
+  value: number,
+  singular: string,
+  pluralized?: string
+): string {
+  if (value === 1) {
+    return singular;
+  }
+  return pluralized != null ? pluralized : `${singular}s`;
+}
 
 /**
  * Create a an ExpandableDisplayColumn object
@@ -60,6 +78,10 @@ export function makeColumn({
     depth,
     hasChildren,
     isExpanded,
+    // filter: (...args) => {
+    //   console.log('filter args:', args);
+    //   throw new Error('Filter not implemented for virtual column');
+    // },
     filter: () => {
       throw new Error('Filter not implemented for virtual column');
     },
@@ -169,11 +191,12 @@ export function makeExpandableDisplayColumn(
   const depth = snapshotDim.getDepth(originalIndex);
   const hasChildren = snapshotDim.hasChildren(originalIndex);
   const isExpanded = snapshotDim.isExpanded(originalIndex);
+  const { description } = valueSource;
   const name = makeValueSourceColumnName(
     makeColumnName(keys, depth),
     valueSource
   );
-  const description = keys[depth - 2];
+  // const description = keys[depth - 2];
   const displayName = valueSource.name;
   return makeColumn({
     name,
@@ -219,8 +242,8 @@ export function makeRowSourceColumn(
   source: CorePlusDhType.coreplus.pivot.PivotSource,
   index: number
 ): ExpandableDisplayColumn {
-  const { name, type, isSortable } = source;
-  return makeColumn({ name, type, index, isSortable });
+  const { name, type, isSortable, description } = source;
+  return makeColumn({ name, type, index, isSortable, description });
 }
 
 /**
@@ -243,45 +266,84 @@ export function getKeyColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
 ): ExpandableColumnHeaderGroup[] {
+  const groups =
+    columnSources.length === 0
+      ? [
+          new ExpandableColumnHeaderGroup({
+            // TODO:
+            name: '__All',
+            displayName: '',
+            // TODO: what if rowSources is empty?
+            children: rowSources.map(c => c.name),
+            childIndexes: [],
+            // color: IrisGridPivotTheme.columnSourceHeaderBackground,
+            isKeyColumnGroup: true,
+            depth: 1,
+            isExpandable: false,
+          }),
+        ]
+      : columnSources.map(
+          (source, i) =>
+            new ExpandableColumnHeaderGroup({
+              name: source.name,
+              displayName: source.name,
+              children:
+                i === columnSources.length - 1
+                  ? rowSources.map(c => c.name)
+                  : [columnSources[i + 1].name],
+              childIndexes: [],
+              // color: IrisGridPivotTheme.columnSourceHeaderBackground,
+              isKeyColumnGroup: true,
+              depth: columnSources.length - i,
+              isExpandable: false,
+            })
+        );
   return rowSources.length === 0
     ? // Edge case: the UI doesn't have a place for key column groups if there are no row sources
       []
-    : columnSources.map(
-        (source, i) =>
-          new ExpandableColumnHeaderGroup({
-            name: source.name,
-            displayName: source.name,
-            children:
-              i === columnSources.length - 1
-                ? rowSources.map(c => c.name)
-                : [columnSources[i + 1].name],
-            childIndexes: [],
-            color: IrisGridPivotTheme.columnSourceHeaderBackground,
-            depth: columnSources.length - i,
-            isExpandable: false,
-          })
-      );
+    : groups;
 }
 
 export function getTotalsColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
-  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
+  valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  isRootColumnExpanded: boolean
 ): ExpandableColumnHeaderGroup[] {
-  return columnSources.map(
-    (source, i) =>
-      new ExpandableColumnHeaderGroup({
-        name: makeGrandTotalColumnName(source),
-        displayName: i === 0 ? GRAND_TOTALS_GROUP_NAME : '',
-        children:
-          i === columnSources.length - 1
-            ? valueSources.map(v => makeGrandTotalColumnName(v))
-            : [makeGrandTotalColumnName(columnSources[i + 1])],
-        childIndexes: [],
-        color: IrisGridPivotTheme.totalsHeaderBackground,
-        depth: columnSources.length - i,
-        isExpandable: false,
-      })
-  );
+  const groupName = pluralize(valueSources.length, GRAND_TOTALS_GROUP_NAME);
+  return columnSources.length === 0
+    ? [
+        new ExpandableColumnHeaderGroup({
+          // TODO:
+          name: 'TMP__GrandTotals',
+          displayName: groupName,
+          children: valueSources.map(v => makeGrandTotalColumnName(v)),
+          childIndexes: [],
+          color: undefined,
+          depth: 1,
+          // Only the top level is expandable
+          // TODO:
+          // isExpandable: i === 0,
+          // isExpanded: isRootColumnExpanded,
+        }),
+      ]
+    : columnSources.map(
+        (source, i) =>
+          new ExpandableColumnHeaderGroup({
+            name: makeGrandTotalColumnName(source),
+            displayName: i === 0 ? groupName : '',
+            children:
+              i === columnSources.length - 1
+                ? valueSources.map(v => makeGrandTotalColumnName(v))
+                : [makeGrandTotalColumnName(columnSources[i + 1])],
+            childIndexes: [],
+            // color: IrisGridPivotTheme.totalsHeaderBackground,
+            isTotalGroup: true,
+            depth: columnSources.length - i,
+            // Only the top level is expandable
+            isExpandable: i === 0,
+            isExpanded: isRootColumnExpanded,
+          })
+      );
 }
 
 export function getSnapshotColumnGroups(
@@ -293,36 +355,36 @@ export function getSnapshotColumnGroups(
   // Even with no column sources we need one level of grouping for the value sources
   const maxDepth = Math.max(columnSources.length, 1);
   const groupMap = new Map<string, ExpandableColumnHeaderGroup>();
+  const groupName = pluralize(valueSources.length, TOTALS_GROUP_NAME);
   for (
     let c = snapshotColumns.offset;
     c < snapshotColumns.offset + snapshotColumns.count;
     c += 1
   ) {
-    const keys = snapshotColumns
-      .getKeys(c)
-      .map((k, i) => formatValue(k, columnSources[i]?.type ?? 'string'));
+    const keys = snapshotColumns.getKeys(c);
     const depth = snapshotColumns.getDepth(c);
     const isExpanded = snapshotColumns.isExpanded(c);
     columnSources.forEach((_, i) => {
       // Join keys, replace nulls with the source name for the current level
       const name = makeColumnGroupName(keys, columnSources, i);
-      const isTotalsGroup = keys[i] == null;
+      const isTotalGroup = keys[i] == null;
       const parentKey = i > 0 ? keys[i - 1] : null;
-      const totalsGroupDisplayName = parentKey == null ? '' : TOTALS_GROUP_NAME;
+      const totalsGroupDisplayName = parentKey == null ? '' : groupName;
       const group =
         groupMap.get(name) ??
         new ExpandableColumnHeaderGroup({
           name,
-          displayName: isTotalsGroup ? totalsGroupDisplayName : keys[i],
-          color: isTotalsGroup
-            ? IrisGridPivotTheme.totalsHeaderBackground
-            : undefined,
+          displayName: isTotalGroup ? totalsGroupDisplayName : keys[i],
+          // color: isTotalGroup
+          //   ? IrisGridPivotTheme.totalsHeaderBackground
+          //   : undefined,
+          isTotalGroup,
           children: [],
           depth: maxDepth - i,
           childIndexes: [],
-          isExpanded: isTotalsGroup ? true : isExpanded,
+          isExpanded: isTotalGroup ? true : isExpanded,
           // Totals and groups containing value sources are not expandable
-          isExpandable: !isTotalsGroup && maxDepth - i > 1,
+          isExpandable: !isTotalGroup && maxDepth - i > 1,
         });
       group.addChildren(
         i === columnSources.length - 1
@@ -348,11 +410,16 @@ export function getSnapshotColumnGroups(
 export function getColumnGroups(
   pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
-  formatValue: (value: unknown, type: string) => string
+  formatValue: (value: unknown, type: string) => string,
+  isRootColumnExpanded: boolean
 ): ExpandableColumnHeaderGroup[] {
   const virtualColumnGroups = [
     ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),
-    ...getTotalsColumnGroups(pivotTable.columnSources, pivotTable.valueSources),
+    ...getTotalsColumnGroups(
+      pivotTable.columnSources,
+      pivotTable.valueSources,
+      isRootColumnExpanded
+    ),
   ];
 
   const snapshotColumnGroups =

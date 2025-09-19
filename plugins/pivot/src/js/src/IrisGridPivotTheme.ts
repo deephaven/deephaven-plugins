@@ -1,7 +1,6 @@
 export const IrisGridPivotTheme = Object.freeze({
-  // TODO: replace with CSS variables
-  columnSourceHeaderBackground: '#211f22', // 'var(--dh-color-subdued-content-bg)',
-  totalsHeaderBackground: '#211f22', // 'var(--dh-color-subdued-content-bg)',
+  columnSourceHeaderBackground: 'var(--dh-color-grid-bg)',
+  totalsHeaderBackground: 'var(--dh-color-grid-bg)',
 });
 
 export default IrisGridPivotTheme;
