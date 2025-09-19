@@ -184,7 +184,16 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   set filter(_: readonly DhType.FilterCondition[]) {
     // No-op
-    // TODO: Add filter support
+    // TODO: DH-20363: Add support for Pivot filters
+  }
+
+  get sort(): readonly DhType.Sort[] {
+    return EMPTY_ARRAY;
+  }
+
+  set sort(_: readonly DhType.Sort[]) {
+    // No-op
+    // TODO: DH-XXXXX: Add support for Pivot sorting
   }
 
   get customColumns(): readonly string[] {
@@ -565,11 +574,12 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isFilterable(columnIndex: ModelIndex): boolean {
+    // TODO: DH-20363: Add support for Pivot filters
     return false;
-    // return this.keyColumns.includes(this.columns[columnIndex]);
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
+    // TODO: DH-XXXXX: Add support for Pivot sorting
     return false;
   }
 
@@ -601,14 +611,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   get columnCount(): number {
     return this.columns.length;
-  }
-
-  get sort(): readonly DhType.Sort[] {
-    return EMPTY_ARRAY;
-  }
-
-  set sort(_: readonly DhType.Sort[]) {
-    // No-op, pivot tables do not support sorting
   }
 
   get layoutHints(): DhType.LayoutHints | null | undefined {
@@ -982,9 +984,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   expandAll(): void {
-    // if (this.pivotTable.expandAll != null) {
-    //   this.pivotTable.expandAll();
-    // }
     // Don't check if the root is already expanded, just expand again with all descendants
     this.pivotTable.setRootRowExpanded(true, true);
     this.isRootRowExpanded = true;
