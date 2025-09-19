@@ -5,9 +5,14 @@ import {
   useLoadTablePlugin,
   type IrisGridPanelProps,
 } from '@deephaven/dashboard-core-plugins';
+import type { IrisGridType, MouseHandlersProp } from '@deephaven/iris-grid';
+import { resolveCssVariablesInRecord, useTheme } from '@deephaven/components';
 import Log from '@deephaven/log';
 import IrisGridPivotModel from './IrisGridPivotModel';
 import { isCorePlusDh } from './PivotUtils';
+import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
+import { IrisGridPivotRenderer } from './IrisGridPivotRenderer';
+import { IrisGridPivotTheme } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 
@@ -43,6 +48,20 @@ export function useHydratePivotGrid(
     [api, fetch]
   );
 
+  const mouseHandlers: MouseHandlersProp = useMemo(
+    () => [irisGrid => new PivotColumnGroupMouseHandler(irisGrid)],
+    []
+  );
+
+  const renderer = useMemo(() => new IrisGridPivotRenderer(), []);
+
+  const theme = useTheme();
+
+  const pivotTheme = useMemo(() => {
+    log.debug('Theme changed, updating pivot theme', theme);
+    return resolveCssVariablesInRecord(IrisGridPivotTheme);
+  }, [theme]);
+
   const hydratedProps = useMemo(
     () => ({
       loadPlugin,
@@ -52,8 +71,20 @@ export function useHydratePivotGrid(
         return new IrisGridPivotModel(api, pivotWidget);
       },
       metadata,
+      mouseHandlers,
+      renderer,
+      theme: pivotTheme,
     }),
-    [api, fetchTable, id, loadPlugin, metadata]
+    [
+      api,
+      fetchTable,
+      id,
+      loadPlugin,
+      metadata,
+      mouseHandlers,
+      renderer,
+      pivotTheme,
+    ]
   );
 
   return hydratedProps;

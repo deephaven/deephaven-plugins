@@ -7,21 +7,22 @@ import {
   GridRangeIndex,
   EventHandlerResult,
 } from '@deephaven/grid';
+import { IrisGridType } from '@deephaven/iris-grid';
 
 /**
  * Used to handle expand/collapse on column header click
  */
 class PivotColumnGroupMouseHandler extends GridMouseHandler {
-  constructor(toggleExpandColumn: (column: number) => void) {
+  constructor(irisGrid: IrisGridType) {
     super();
 
     this.column = null;
-    this.toggleExpandColumn = toggleExpandColumn;
+    this.irisGrid = irisGrid;
   }
 
   column: GridRangeIndex;
 
-  toggleExpandColumn: (column: number) => void;
+  irisGrid: IrisGridType;
 
   getColumnGroupFromGridPoint(gridPoint: GridPoint): GridRangeIndex {
     const { column, row, columnHeaderDepth } = gridPoint;
@@ -45,7 +46,7 @@ class PivotColumnGroupMouseHandler extends GridMouseHandler {
   ): EventHandlerResult {
     const column = this.getColumnGroupFromGridPoint(gridPoint);
     if (column != null && column === this.column) {
-      this.toggleExpandColumn(column);
+      this.irisGrid.toggleExpandColumn(column);
       return true;
     }
 

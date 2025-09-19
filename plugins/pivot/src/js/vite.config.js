@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
         // Externalize all Deephaven dependencies to reduce bundle size and maintain proper context for themes, etc.
         '@deephaven/components',
         '@deephaven/dashboard',
+        '@deephaven/dashboard-core-plugins',
         '@deephaven/icons',
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',
