@@ -7,7 +7,6 @@ import {
   makePlaceholderColumnName,
   makeGrandTotalColumnName,
 } from './PivotUtils';
-import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 const { createMockProxy, asMock } = TestUtils;
 
@@ -295,12 +294,8 @@ describe('IrisGridPivotModel', () => {
 
     // Expandable columns
 
-    // Virtual columns are not expandable
+    // Key columns are not expandable
     expect(model.isColumnExpandable(0)).toBe(false);
-
-    // Totals column is expanded but not expandable by default, needs API support to manually collapse/expand
-    expect(model.isColumnExpandable(1)).toBe(false);
-    expect(model.isColumnExpanded(1)).toBe(true);
   });
 
   it('correctly reflects expanded columns in the model', () => {
@@ -388,8 +383,8 @@ describe('IrisGridPivotModel', () => {
     expect(model.isColumnExpandable(0)).toBe(false);
     expect(model.isColumnExpandable(1)).toBe(false);
 
-    // Totals column is expanded but not expandable by default, needs API support to manually collapse/expand
-    expect(model.isColumnExpandable(2)).toBe(false);
+    // Totals column is expandable  and expanded by default
+    expect(model.isColumnExpandable(2)).toBe(true);
     expect(model.isColumnExpanded(2)).toBe(true);
 
     // C0
@@ -857,7 +852,6 @@ describe('IrisGridPivotModel', () => {
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'C',
-          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['R', 'O'],
           depth: 1,
           childIndexes: [0, 1],
@@ -948,7 +942,6 @@ describe('IrisGridPivotModel', () => {
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'D',
-          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['R', 'O'],
           depth: 1,
           childIndexes: [0, 1],
@@ -957,7 +950,6 @@ describe('IrisGridPivotModel', () => {
         // Parent for the group D above
         expect.objectContaining({
           name: 'C',
-          color: IrisGridPivotTheme.columnSourceHeaderBackground,
           children: ['D'],
           depth: 2,
           // Same as group D
@@ -1010,7 +1002,6 @@ describe('IrisGridPivotModel', () => {
       //   expect(model.columnHeaderGroups).toEqual([
       //     expect.objectContaining({
       //       name: 'D',
-      //       color: TOTALS_GROUP_COLOR,
       //       children: ['R', 'O'],
       //       depth: 1,
       //       childIndexes: [0, 1],
@@ -1026,7 +1017,6 @@ describe('IrisGridPivotModel', () => {
       //     // Parent for the group D above
       //     expect.objectContaining({
       //       name: 'C',
-      //       color: TOTALS_GROUP_COLOR,
       //       children: ['D'],
       //       depth: 2,
       //       // Same as group D

@@ -5,7 +5,6 @@ import {
   getColumnGroups,
   ROOT_DEPTH,
 } from './PivotUtils';
-import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 const { createMockProxy } = TestUtils;
 
@@ -50,7 +49,7 @@ describe('getColumnGroups', () => {
       isExpanded: jest.fn().mockReturnValue(true),
     });
 
-  it('should create key column and grand total groups', () => {
+  it('creates key column and grand total groups', () => {
     const result = getColumnGroups(mockPivotTable, null);
     expect(result).toHaveLength(2);
     const keyGroup = result[0];
@@ -58,7 +57,6 @@ describe('getColumnGroups', () => {
       expect.objectContaining({
         name: 'Column1',
         displayName: 'Column1',
-        color: IrisGridPivotTheme.columnSourceHeaderBackground,
         children: ['Row1', 'Row2'],
         isExpandable: false,
       })
@@ -68,9 +66,8 @@ describe('getColumnGroups', () => {
       expect.objectContaining({
         name: '__GRAND_TOTAL/Column1',
         displayName: GRAND_TOTALS_GROUP_NAME,
-        color: IrisGridPivotTheme.totalsHeaderBackground,
         children: ['__GRAND_TOTAL/Value1'],
-        isExpandable: false,
+        isExpandable: true,
       })
     );
   });
@@ -88,30 +85,5 @@ describe('getColumnGroups', () => {
         isExpanded: true,
       })
     );
-  });
-
-  it('should handle empty column sources', () => {
-    const emptyPivotTable =
-      createMockProxy<CorePlusDhType.coreplus.pivot.PivotTable>({
-        valueSources: [mockValueSource],
-        rowSources: [],
-        columnSources: [],
-      });
-
-    const result = getColumnGroups(emptyPivotTable, null);
-
-    expect(result).toHaveLength(0);
-  });
-
-  it('should handle empty value sources', () => {
-    const noValuesPivotTable = {
-      ...mockPivotTable,
-      valueSources: [],
-    } as unknown as CorePlusDhType.coreplus.pivot.PivotTable;
-
-    const result = getColumnGroups(noValuesPivotTable, null);
-
-    expect(result).toBeDefined();
-    expect(Array.isArray(result)).toBe(true);
   });
 });

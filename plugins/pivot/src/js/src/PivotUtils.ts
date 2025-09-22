@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
@@ -23,7 +22,6 @@ export type ExpandableDisplayColumn = DisplayColumn & {
   hasChildren: boolean;
 };
 
-// TODO: move to TextUtils
 /**
  * Pluralize a string based on a value
  * @param value The value to use for pluralization
@@ -78,10 +76,6 @@ export function makeColumn({
     depth,
     hasChildren,
     isExpanded,
-    // filter: (...args) => {
-    //   console.log('filter args:', args);
-    //   throw new Error('Filter not implemented for virtual column');
-    // },
     filter: () => {
       throw new Error('Filter not implemented for virtual column');
     },
@@ -276,7 +270,6 @@ export function getKeyColumnGroups(
             // TODO: what if rowSources is empty?
             children: rowSources.map(c => c.name),
             childIndexes: [],
-            // color: IrisGridPivotTheme.columnSourceHeaderBackground,
             isKeyColumnGroup: true,
             depth: 1,
             isExpandable: false,
@@ -292,7 +285,6 @@ export function getKeyColumnGroups(
                   ? rowSources.map(c => c.name)
                   : [columnSources[i + 1].name],
               childIndexes: [],
-              // color: IrisGridPivotTheme.columnSourceHeaderBackground,
               isKeyColumnGroup: true,
               depth: columnSources.length - i,
               isExpandable: false,
@@ -318,7 +310,6 @@ export function getTotalsColumnGroups(
           displayName: groupName,
           children: valueSources.map(v => makeGrandTotalColumnName(v)),
           childIndexes: [],
-          color: undefined,
           depth: 1,
           // Only the top level is expandable
           // TODO:
@@ -336,7 +327,6 @@ export function getTotalsColumnGroups(
                 ? valueSources.map(v => makeGrandTotalColumnName(v))
                 : [makeGrandTotalColumnName(columnSources[i + 1])],
             childIndexes: [],
-            // color: IrisGridPivotTheme.totalsHeaderBackground,
             isTotalGroup: true,
             depth: columnSources.length - i,
             // Only the top level is expandable
@@ -350,7 +340,7 @@ export function getSnapshotColumnGroups(
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData,
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
-  formatValue: (value: unknown, type: string) => string
+  formatValue?: (value: unknown, type: string) => string
 ): ExpandableColumnHeaderGroup[] {
   // Even with no column sources we need one level of grouping for the value sources
   const maxDepth = Math.max(columnSources.length, 1);
@@ -375,9 +365,6 @@ export function getSnapshotColumnGroups(
         new ExpandableColumnHeaderGroup({
           name,
           displayName: isTotalGroup ? totalsGroupDisplayName : keys[i],
-          // color: isTotalGroup
-          //   ? IrisGridPivotTheme.totalsHeaderBackground
-          //   : undefined,
           isTotalGroup,
           children: [],
           depth: maxDepth - i,
@@ -405,13 +392,14 @@ export function getSnapshotColumnGroups(
  * Create column groups for the pivot table columns
  * @param pivotTable Pivot table
  * @param snapshotColumns Snapshot columns
+ * @param isRootColumnExpanded Flag indicating if the root column group is expanded
  * @returns Column groups
  */
 export function getColumnGroups(
   pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
-  formatValue: (value: unknown, type: string) => string,
-  isRootColumnExpanded: boolean
+  isRootColumnExpanded = true,
+  formatValue: (value: unknown, type: string) => string = (v, t) => String(v)
 ): ExpandableColumnHeaderGroup[] {
   const virtualColumnGroups = [
     ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),

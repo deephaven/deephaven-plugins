@@ -385,24 +385,24 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private getCachedColumnHeaderGroups = memoize(
     (
       snapshotColumns: dh.coreplus.pivot.DimensionData | null,
-      formatValue: (value: unknown, type: string) => string,
-      isRootColumnExpanded: boolean
+      isRootColumnExpanded?: boolean,
+      formatValue?: (value: unknown, type: string) => string
     ): readonly ExpandableColumnHeaderGroup[] =>
       getColumnGroups(
         this.pivotTable,
         snapshotColumns,
-        formatValue,
-        isRootColumnExpanded
+        isRootColumnExpanded,
+        formatValue
       )
   );
 
   get initialColumnHeaderGroups(): readonly ExpandableColumnHeaderGroup[] {
     const groups = this.getCachedColumnHeaderGroups(
       this.snapshotColumns,
+      this.isRootColumnExpanded,
       (value, type) =>
         // Ignore name based formatting, pass empty column name
-        this.getCachedFormattedString(this.formatter, value, type, ''),
-      this.isRootColumnExpanded
+        this.getCachedFormattedString(this.formatter, value, type, '')
     );
     log.debug2('initialColumnHeaderGroups', groups);
     return groups;

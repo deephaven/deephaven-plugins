@@ -5,7 +5,7 @@ import {
   useLoadTablePlugin,
   type IrisGridPanelProps,
 } from '@deephaven/dashboard-core-plugins';
-import type { IrisGridType, MouseHandlersProp } from '@deephaven/iris-grid';
+import type { MouseHandlersProp } from '@deephaven/iris-grid';
 import { resolveCssVariablesInRecord, useTheme } from '@deephaven/components';
 import Log from '@deephaven/log';
 import IrisGridPivotModel from './IrisGridPivotModel';

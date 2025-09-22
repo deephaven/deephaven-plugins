@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import type { GridMouseHandler } from '@deephaven/grid';
 import {
   IrisGrid,
   type IrisGridType,
