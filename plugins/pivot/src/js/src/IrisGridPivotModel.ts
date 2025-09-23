@@ -45,9 +45,9 @@ import {
   isCorePlusDh,
 } from './PivotUtils';
 import {
-  ExpandableColumnHeaderGroup,
-  isExpandableColumnHeaderGroup,
-} from './ExpandableColumnHeaderGroup';
+  PivotColumnHeaderGroup,
+  isPivotColumnHeaderGroup,
+} from './PivotColumnHeaderGroup';
 import IrisGridPivotTheme from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
@@ -105,15 +105,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   private _layoutHints: DhType.LayoutHints | null | undefined;
 
-  private _columnHeaderGroupMap: Map<string, ExpandableColumnHeaderGroup> =
+  private _columnHeaderGroupMap: Map<string, PivotColumnHeaderGroup> =
     new Map();
 
-  private columnHeaderParentMap: Map<string, ExpandableColumnHeaderGroup> =
+  private columnHeaderParentMap: Map<string, PivotColumnHeaderGroup> =
     new Map();
 
   private _columnHeaderMaxDepth: number | null = null;
 
-  private _columnHeaderGroups: ExpandableColumnHeaderGroup[] = [];
+  private _columnHeaderGroups: PivotColumnHeaderGroup[] = [];
 
   private _isColumnHeaderGroupsInitialized = false;
 
@@ -213,7 +213,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   set sort(_: readonly DhType.Sort[]) {
     // No-op
-    // TODO: DH-XXXXX: Add support for Pivot sorting
+    // TODO: DH-20435: Add support for Pivot sorting
   }
 
   get customColumns(): readonly string[] {
@@ -407,7 +407,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
       isRootColumnExpanded?: boolean,
       formatValue?: (value: unknown, type: string) => string
-    ): readonly ExpandableColumnHeaderGroup[] =>
+    ): readonly PivotColumnHeaderGroup[] =>
       getColumnGroups(
         this.pivotTable,
         snapshotColumns,
@@ -416,7 +416,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       )
   );
 
-  get initialColumnHeaderGroups(): readonly ExpandableColumnHeaderGroup[] {
+  get initialColumnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
     const groups = this.getCachedColumnHeaderGroups(
       this.snapshotColumns,
       this.isRootColumnExpanded,
@@ -436,23 +436,23 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this._columnHeaderMaxDepth = depth;
   }
 
-  get columnHeaderGroupMap(): Map<string, ExpandableColumnHeaderGroup> {
+  get columnHeaderGroupMap(): Map<string, PivotColumnHeaderGroup> {
     this.initializeColumnHeaderGroups();
     return this._columnHeaderGroupMap;
   }
 
-  get columnHeaderGroups(): readonly ExpandableColumnHeaderGroup[] {
+  get columnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
     this.initializeColumnHeaderGroups();
     return this._columnHeaderGroups;
   }
 
-  set columnHeaderGroups(_groups: readonly ExpandableColumnHeaderGroup[]) {
+  set columnHeaderGroups(_groups: readonly PivotColumnHeaderGroup[]) {
     // no-op
     // IrisGridPivotModel manages its own column header groups
   }
 
   private setInternalColumnHeaderGroups(
-    groups: readonly ExpandableColumnHeaderGroup[]
+    groups: readonly PivotColumnHeaderGroup[]
   ) {
     if (groups === this._columnHeaderGroups) {
       return;
@@ -465,7 +465,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     } = IrisGridUtils.parseColumnHeaderGroups(
       this,
       groups,
-      args => new ExpandableColumnHeaderGroup(args)
+      args => new PivotColumnHeaderGroup(args)
     );
     this._columnHeaderGroups = newGroups;
     this.columnHeaderMaxDepth = maxDepth;
@@ -482,7 +482,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   textForColumnHeader(x: ModelIndex, depth = 0): string | undefined {
     const header = this.columnAtDepth(x, depth);
-    if (isExpandableColumnHeaderGroup(header)) {
+    if (isPivotColumnHeaderGroup(header)) {
       return header.isNew ? '' : header.displayName ?? header.name;
     }
     return header?.displayName ?? header?.name;
@@ -494,7 +494,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     theme: Partial<typeof IrisGridPivotTheme> = {}
   ): string | null {
     const column = this.columnAtDepth(x, depth);
-    if (isExpandableColumnHeaderGroup(column)) {
+    if (isPivotColumnHeaderGroup(column)) {
       if (column.isTotalGroup != null && column.isTotalGroup) {
         return theme.totalsHeaderBackground ?? null;
       }
@@ -508,9 +508,9 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   getColumnHeaderGroup(
     modelIndex: ModelIndex,
     depth: number
-  ): ExpandableColumnHeaderGroup | undefined {
+  ): PivotColumnHeaderGroup | undefined {
     const group = this.columnAtDepth(modelIndex, depth);
-    if (isExpandableColumnHeaderGroup(group)) {
+    if (isPivotColumnHeaderGroup(group)) {
       return group;
     }
     return undefined;
@@ -519,7 +519,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   getColumnHeaderParentGroup(
     modelIndex: ModelIndex,
     depth: number
-  ): ExpandableColumnHeaderGroup | undefined {
+  ): PivotColumnHeaderGroup | undefined {
     return this.columnHeaderParentMap.get(
       this.columnAtDepth(modelIndex, depth)?.name ?? ''
     );
@@ -528,7 +528,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   columnAtDepth(
     x: ModelIndex,
     depth = 0
-  ): ExpandableColumnHeaderGroup | DisplayColumn | undefined {
+  ): PivotColumnHeaderGroup | DisplayColumn | undefined {
     if (depth === 0) {
       return this.columns[x];
     }

@@ -1,7 +1,7 @@
 import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import ExpandableColumnHeaderGroup from './ExpandableColumnHeaderGroup';
+import PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
@@ -259,11 +259,11 @@ export function checkColumnsChanged(
 export function getKeyColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
-): ExpandableColumnHeaderGroup[] {
+): PivotColumnHeaderGroup[] {
   const groups =
     columnSources.length === 0
       ? [
-          new ExpandableColumnHeaderGroup({
+          new PivotColumnHeaderGroup({
             // TODO:
             name: '__All',
             displayName: '',
@@ -277,7 +277,7 @@ export function getKeyColumnGroups(
         ]
       : columnSources.map(
           (source, i) =>
-            new ExpandableColumnHeaderGroup({
+            new PivotColumnHeaderGroup({
               name: source.name,
               displayName: source.name,
               children:
@@ -300,11 +300,11 @@ export function getTotalsColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   isRootColumnExpanded: boolean
-): ExpandableColumnHeaderGroup[] {
+): PivotColumnHeaderGroup[] {
   const groupName = pluralize(valueSources.length, GRAND_TOTALS_GROUP_NAME);
   return columnSources.length === 0
     ? [
-        new ExpandableColumnHeaderGroup({
+        new PivotColumnHeaderGroup({
           // TODO:
           name: 'TMP__GrandTotals',
           displayName: groupName,
@@ -319,7 +319,7 @@ export function getTotalsColumnGroups(
       ]
     : columnSources.map(
         (source, i) =>
-          new ExpandableColumnHeaderGroup({
+          new PivotColumnHeaderGroup({
             name: makeGrandTotalColumnName(source),
             displayName: i === 0 ? groupName : '',
             children:
@@ -341,10 +341,10 @@ export function getSnapshotColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   formatValue?: (value: unknown, type: string) => string
-): ExpandableColumnHeaderGroup[] {
+): PivotColumnHeaderGroup[] {
   // Even with no column sources we need one level of grouping for the value sources
   const maxDepth = Math.max(columnSources.length, 1);
-  const groupMap = new Map<string, ExpandableColumnHeaderGroup>();
+  const groupMap = new Map<string, PivotColumnHeaderGroup>();
   const groupName = pluralize(valueSources.length, TOTALS_GROUP_NAME);
   for (
     let c = snapshotColumns.offset;
@@ -362,7 +362,7 @@ export function getSnapshotColumnGroups(
       const totalsGroupDisplayName = parentKey == null ? '' : groupName;
       const group =
         groupMap.get(name) ??
-        new ExpandableColumnHeaderGroup({
+        new PivotColumnHeaderGroup({
           name,
           displayName: isTotalGroup ? totalsGroupDisplayName : keys[i],
           isTotalGroup,
@@ -400,7 +400,7 @@ export function getColumnGroups(
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
   isRootColumnExpanded = true,
   formatValue: (value: unknown, type: string) => string = (v, t) => String(v)
-): ExpandableColumnHeaderGroup[] {
+): PivotColumnHeaderGroup[] {
   const virtualColumnGroups = [
     ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),
     ...getTotalsColumnGroups(

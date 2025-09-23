@@ -17,7 +17,7 @@ import {
   type IrisGridRenderState,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
-import { isExpandableColumnHeaderGroup } from './ExpandableColumnHeaderGroup';
+import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
 import type IrisGridPivotTheme from './IrisGridPivotTheme';
 
@@ -285,10 +285,9 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
         const headerGroup = model.getColumnHeaderGroup(modelColumn, depth ?? 0);
 
         const isExpandable =
-          isExpandableColumnHeaderGroup(headerGroup) &&
-          headerGroup.isExpandable;
+          isPivotColumnHeaderGroup(headerGroup) && headerGroup.isExpandable;
         const isExpanded =
-          isExpandableColumnHeaderGroup(headerGroup) && headerGroup.isExpanded;
+          isPivotColumnHeaderGroup(headerGroup) && headerGroup.isExpanded;
 
         const columnGroupName = getColumnGroupName(model, modelColumn, depth);
 

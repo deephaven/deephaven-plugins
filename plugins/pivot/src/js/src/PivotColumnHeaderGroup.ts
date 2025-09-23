@@ -1,20 +1,19 @@
 import { ColumnHeaderGroup } from '@deephaven/iris-grid';
 
-// TODO: rename into PivotColumnHeaderGroup
-export function isExpandableColumnHeaderGroup(
+export function isPivotColumnHeaderGroup(
   group: unknown
-): group is ExpandableColumnHeaderGroup {
-  return group instanceof ExpandableColumnHeaderGroup;
+): group is PivotColumnHeaderGroup {
+  return group instanceof PivotColumnHeaderGroup;
 }
 
-export class ExpandableColumnHeaderGroup extends ColumnHeaderGroup {
+export class PivotColumnHeaderGroup extends ColumnHeaderGroup {
   isExpanded: boolean;
 
   isExpandable: boolean;
 
-  isTotalGroup?: boolean;
+  isTotalGroup: boolean;
 
-  isKeyColumnGroup?: boolean;
+  isKeyColumnGroup: boolean;
 
   displayName?: string;
 
@@ -61,4 +60,4 @@ export class ExpandableColumnHeaderGroup extends ColumnHeaderGroup {
   }
 }
 
-export default ExpandableColumnHeaderGroup;
+export default PivotColumnHeaderGroup;
