@@ -2,10 +2,8 @@
 /* eslint no-underscore-dangle: "off" */
 import memoize from 'memoize-one';
 import throttle from 'lodash.throttle';
-import {
-  type dh,
-  type dh as DhType,
-} from '@deephaven-enterprise/jsapi-coreplus-types';
+import { type dh as DhType } from '@deephaven/jsapi-types';
+import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import Log from '@deephaven/log';
 import { Formatter, FormatterUtils, TableUtils } from '@deephaven/jsapi-utils';
 import {
@@ -44,6 +42,7 @@ import {
   makeColumn,
   type ExpandableDisplayColumn,
   getColumnGroups,
+  isCorePlusDh,
 } from './PivotUtils';
 import {
   ExpandableColumnHeaderGroup,
@@ -85,7 +84,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   extends IrisGridModel
   implements ExpandableGridModel, ExpandableColumnGridModel
 {
-  private pivotTable: DhType.coreplus.pivot.PivotTable;
+  private pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
 
   private keyColumns: readonly ExpandableDisplayColumn[];
 
@@ -107,9 +106,11 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   private formattedStringData: (string | null)[][] = [];
 
-  private snapshotColumns: DhType.coreplus.pivot.DimensionData | null = null;
+  private snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null =
+    null;
 
-  private snapshotValueSources: DhType.coreplus.pivot.PivotSource[] = [];
+  private snapshotValueSources: CorePlusDhType.coreplus.pivot.PivotSource[] =
+    [];
 
   private irisFormatter: Formatter;
 
@@ -133,11 +134,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private readonly columnBufferPages: number;
 
   constructor(
-    dh: typeof DhType,
-    pivotTable: DhType.coreplus.pivot.PivotTable,
+    dh: typeof DhType | typeof CorePlusDhType,
+    pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
     formatter = new Formatter(dh),
     config: IrisGridPivotModelConfig = {}
   ) {
+    if (!isCorePlusDh(dh)) {
+      throw new Error('CorePlus is not available');
+    }
+
     super(dh);
 
     this.dh = dh;
@@ -176,7 +181,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     };
   }
 
-  dh: typeof DhType;
+  dh: typeof CorePlusDhType;
 
   get filter(): readonly DhType.FilterCondition[] {
     return EMPTY_ARRAY;
@@ -300,9 +305,9 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   getCachedColumns = memoize(
     (
-      snapshotColumns: DhType.coreplus.pivot.DimensionData | null,
+      snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
       virtualColumns: readonly ExpandableDisplayColumn[],
-      valueSources: readonly DhType.coreplus.pivot.PivotSource[]
+      valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
     ) => {
       if (snapshotColumns == null) {
         log.debug2('getCachedColumns', {
@@ -345,7 +350,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   getCachedTotalsColumns = memoize(
     (pivotTable, valueSources): readonly ExpandableDisplayColumn[] =>
       valueSources.map(
-        (source: DhType.coreplus.pivot.PivotSource, col: number) =>
+        (source: CorePlusDhType.coreplus.pivot.PivotSource, col: number) =>
           makeColumn({
             name: makeGrandTotalColumnName(source),
             displayName: source.name,
@@ -384,7 +389,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
    */
   private getCachedColumnHeaderGroups = memoize(
     (
-      snapshotColumns: dh.coreplus.pivot.DimensionData | null,
+      snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
       isRootColumnExpanded?: boolean,
       formatValue?: (value: unknown, type: string) => string
     ): readonly ExpandableColumnHeaderGroup[] =>
@@ -475,7 +480,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   ): string | null {
     const column = this.columnAtDepth(x, depth);
     if (isExpandableColumnHeaderGroup(column)) {
-      // log.debug2('colorForColumnHeader', { column, theme });
       if (column.isTotalGroup != null && column.isTotalGroup) {
         return theme.totalsHeaderBackground ?? null;
       }
@@ -579,7 +583,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
-    // TODO: DH-XXXXX: Add support for Pivot sorting
+    // TODO: DH-20435: Add support for Pivot sorting
     return false;
   }
 
@@ -666,7 +670,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   handlePivotUpdated(
-    event: DhType.Event<DhType.coreplus.pivot.PivotSnapshot>
+    event: CorePlusDhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
   ): void {
     // Get the data from the snapshot, store in the model,
     // dispatch column and model update events
@@ -709,7 +713,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   extractSnapshotData(
-    snapshot: DhType.coreplus.pivot.PivotSnapshot
+    snapshot: CorePlusDhType.coreplus.pivot.PivotSnapshot
   ): UIPivotViewportData<R> {
     const totalsRowData = new Map<ModelIndex, CellData>();
     const grandTotals = new Map<ModelIndex, CellData>();

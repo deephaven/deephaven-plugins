@@ -1,11 +1,7 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import {
-  IrisGrid,
-  type IrisGridType,
-  type MouseHandlersProp,
-} from '@deephaven/iris-grid';
+import { IrisGrid, type MouseHandlersProp } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import {
   LoadingOverlay,
@@ -26,8 +22,6 @@ export function PivotWidget({
   fetch,
 }: WidgetComponentProps<DhType.Widget>): JSX.Element | null {
   const dh = useApi();
-
-  const irisGridRef = useRef<IrisGridType>(null);
 
   const mouseHandlers: MouseHandlersProp = useMemo(
     () => [irisGrid => new PivotColumnGroupMouseHandler(irisGrid)],
@@ -80,7 +74,6 @@ export function PivotWidget({
       mouseHandlers={mouseHandlers}
       renderer={renderer}
       theme={pivotTheme}
-      ref={irisGridRef as React.RefObject<IrisGridType>}
     />
   );
 }

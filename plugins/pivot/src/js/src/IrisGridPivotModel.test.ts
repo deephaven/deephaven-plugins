@@ -999,37 +999,6 @@ describe('IrisGridPivotModel', () => {
       asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
 
       expect(model.columnCount).toBe(8);
-      //   expect(model.columnHeaderGroups).toEqual([
-      //     expect.objectContaining({
-      //       name: 'D',
-      //       children: ['R', 'O'],
-      //       depth: 1,
-      //       childIndexes: [0, 1],
-      //       parent: 'C',
-      //     }),
-      //     expect.objectContaining({
-      //       name: '__GRAND_TOTALS_D',
-      //       children: [makeGrandTotalColumnName(0)],
-      //       depth: 1,
-      //       parent: '__GRAND_TOTALS_C',
-      //       childIndexes: [2],
-      //     }),
-      //     // Parent for the group D above
-      //     expect.objectContaining({
-      //       name: 'C',
-      //       children: ['D'],
-      //       depth: 2,
-      //       // Same as group D
-      //       childIndexes: [0, 1],
-      //     }),
-
-      //     expect.objectContaining({
-      //       name: '__GRAND_TOTALS_C',
-      //       children: ['__GRAND_TOTALS_D'],
-      //       depth: 2,
-      //       childIndexes: [2],
-      //     }),
-      //   ]);
     });
   });
 });

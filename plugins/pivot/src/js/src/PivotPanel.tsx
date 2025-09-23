@@ -1,15 +1,21 @@
-import React from 'react';
+import { WidgetPanelProps } from '@deephaven/plugin';
 import { type dh } from '@deephaven/jsapi-types';
-import { type WidgetPanelProps } from '@deephaven/plugin';
-import PivotWidget from './PivotWidget';
+import { IrisGridPanel } from '@deephaven/dashboard-core-plugins';
+import useHydratePivotGrid from './useHydratePivotGrid';
 
-/**
- * This is just a wrapper panel around the PivotWidget to make TS happy.
- * This can be removed when the DashboardPlugin legacy plugin is removed.
- */
 function PivotPanel(props: WidgetPanelProps<dh.Widget>): JSX.Element {
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <PivotWidget {...props} />;
+  const { localDashboardId, fetch, metadata } = props;
+
+  const hydratedProps = useHydratePivotGrid(fetch, localDashboardId, metadata);
+
+  return (
+    <IrisGridPanel
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...props}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...hydratedProps}
+    />
+  );
 }
 
 PivotPanel.COMPONENT = 'PivotPanel';

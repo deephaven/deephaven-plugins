@@ -7,7 +7,7 @@ import {
 } from '@deephaven/dashboard';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import PivotPanelPlugin from './PivotPanelPlugin';
+import PivotPanel from './PivotPanel';
 
 const VARIABLE_TYPE = 'PivotTable';
 
@@ -40,7 +40,7 @@ export function DashboardPlugin({
       log.info('Panel opened of type', type);
       const config = {
         type: 'react-component' as const,
-        component: PivotPanelPlugin.COMPONENT,
+        component: PivotPanel.COMPONENT,
         props: {
           localDashboardId: id,
           id: panelId,
@@ -61,9 +61,7 @@ export function DashboardPlugin({
   );
 
   useEffect(() => {
-    const cleanups = [
-      registerComponent(PivotPanelPlugin.COMPONENT, PivotPanelPlugin),
-    ];
+    const cleanups = [registerComponent(PivotPanel.COMPONENT, PivotPanel)];
 
     return () => {
       cleanups.forEach(cleanup => cleanup());
