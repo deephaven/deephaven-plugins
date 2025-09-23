@@ -57,6 +57,21 @@ const APPLY_VIEWPORT_THROTTLE = 0;
 const ROW_BUFFER_PAGES = 1;
 const COLUMN_BUFFER_PAGES = 1;
 
+export function isIrisGridPivotModel(
+  model: unknown
+): model is IrisGridPivotModel {
+  return (
+    typeof model === 'object' &&
+    model !== null &&
+    'pivotTable' in model &&
+    'keyColumns' in model &&
+    'expandAll' in model &&
+    'collapseAll' in model &&
+    'hasExpandableRows' in model &&
+    'hasExpandableColumns' in model
+  );
+}
+
 export interface IrisGridPivotModelConfig {
   rowBufferPages?: number;
   columnBufferPages?: number;

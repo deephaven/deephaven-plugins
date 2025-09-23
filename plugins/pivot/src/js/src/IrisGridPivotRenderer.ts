@@ -15,8 +15,11 @@ import {
   IrisGridCellRendererUtils,
   IrisGridRenderer,
   type IrisGridRenderState,
+  type IrisGridThemeType,
 } from '@deephaven/iris-grid';
 import { isExpandableColumnHeaderGroup } from './ExpandableColumnHeaderGroup';
+import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
+import type IrisGridPivotTheme from './IrisGridPivotTheme';
 
 function getColumnGroupName(
   model: GridModel,
@@ -25,6 +28,11 @@ function getColumnGroupName(
 ): string | undefined {
   return model.getColumnHeaderGroup(modelColumn, depth ?? 0)?.name;
 }
+
+export type IrisGridPivotRenderState = IrisGridRenderState & {
+  model: IrisGridPivotModel;
+  theme: IrisGridThemeType & Partial<typeof IrisGridPivotTheme>;
+};
 
 export class IrisGridPivotRenderer extends IrisGridRenderer {
   drawColumnHeaders(
@@ -215,12 +223,15 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
   drawColumnHeadersAtDepth(
     context: CanvasRenderingContext2D,
-    state: IrisGridRenderState,
+    state: IrisGridPivotRenderState,
     range: BoundedAxisRange,
     bounds: { minX: number; maxX: number },
     depth: number
   ): void {
     const { metrics, model, theme } = state;
+    if (!isIrisGridPivotModel(model)) {
+      throw new Error('Unsupported model type');
+    }
     const {
       modelColumns,
       allColumnXs,
@@ -265,9 +276,11 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
         const { columnCount } = metrics;
         const modelColumn = getOrThrow(modelColumns, columnIndex);
 
-        const columnGroupColor = isExpandableColumnGridModel(model)
-          ? model.colorForColumnHeader(modelColumn, depth, theme)
-          : model.colorForColumnHeader(modelColumn, depth);
+        const columnGroupColor = model.colorForColumnHeader(
+          modelColumn,
+          depth,
+          theme
+        );
 
         const headerGroup = model.getColumnHeaderGroup(modelColumn, depth ?? 0);
 
