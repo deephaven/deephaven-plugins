@@ -14,7 +14,7 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@deephaven-enterprise/jsapi-coreplus-types": "^1.20250219.82-beta",
+    "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
     "@deephaven/jsapi-types": "^1.0.0-dev0.35.2",
     "@deephaven/tsconfig": "^0.72.0",
     "@types/lodash.clamp": "^4.0.9",
