@@ -7,7 +7,7 @@ PACKAGE_NAMESPACE = "deephaven.pivot"
 JS_NAME = "_js"
 
 
-class SimplePivotRegistration(Registration):
+class PivotRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
         callback = DheSafeCallbackWrapper(callback)
