@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/jsapi-bootstrap',
         '@deephaven/jsapi-types',
         '@deephaven/log',
+        '@deephaven/plugin'
       ],
     },
   },
