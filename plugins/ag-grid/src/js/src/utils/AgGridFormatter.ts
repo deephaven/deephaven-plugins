@@ -6,7 +6,7 @@ import {
 import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
 import { AgGridCellColors } from './AgGridColors';
 
-export default class AgGridFormatter {
+export class AgGridFormatter {
   private formatter: Formatter;
 
   constructor(formatter: Formatter) {
@@ -107,3 +107,5 @@ export default class AgGridFormatter {
     return { textAlign: 'center', color: AgGridCellColors.date };
   }
 }
+
+export default AgGridFormatter;
