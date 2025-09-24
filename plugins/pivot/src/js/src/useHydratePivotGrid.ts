@@ -18,7 +18,7 @@ const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 
 /**
  * Hydrate the props for a Pivot grid panel
- * @param fetchTable Function to fetch the Widget
+ * @param fetch Function to fetch the Widget
  * @param id ID of the dashboard
  * @param metadata Optional serializable metadata for re-fetching the table later
  * @returns Props hydrated for a Pivot grid panel
@@ -37,7 +37,7 @@ export function useHydratePivotGrid(
   const fetchTable = useCallback(
     () =>
       fetch().then(result => {
-        log.debug('pivotWidget fetch result:', result);
+        log.debug('Pivot fetch result:', result);
         if (!isCorePlusDh(api)) {
           throw new Error('CorePlus is not available');
         }
