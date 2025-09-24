@@ -48,8 +48,7 @@
     "nanoid": "^5.1.5"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": false
+    "access": "public"
   },
   "files": [
     "dist/index.js"
