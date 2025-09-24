@@ -25,27 +25,4 @@ Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the r
 
 ## Using the Plugin
 
-TODO:
-
-Groovy API:
-```
-import io.deephaven.pivot.PivotTable
-ticking_pivot = PivotTable.FACTORY.create(table, [rowCol], [colCol], valueCol, aggSpec, hasTotals, pivotDescription)
-```
-
-Python API:
-```
-from deephaven.experimental.pivot import create_pivot
-ticking_pivot = create_pivot(table, [rowCol], [colCol], valueCol, aggSpec, hasTotals, pivotDescription)
-```
-
-Python example with ticking data:
-```
-from deephaven.plot import express as dx
-from deephaven.experimental.pivot import create_pivot
-from deephaven.agg import sum_
-
-_stocks = dx.data.stocks(ticking=True).tail(100)
-
-ticking_pivot = create_pivot(_stocks, ['Sym'], ['Exchange'], 'Price', sum_(), False, 'Sum of Price')
-```
+Refer to the [Pivot Tables documentation](https://deephaven.io/enterprise/docs/user-guide/pivots/) for code examples and links to the Python and Groovy API reference.
