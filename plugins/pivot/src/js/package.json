@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-pivot",
-  "version": "0.0.3-dev.3",
+  "version": "0.0.3-dev.983+f7d1ce54",
   "description": "Pivot plugin for Deephaven",
   "keywords": [
     "Deephaven",
@@ -48,10 +48,11 @@
     "nanoid": "^5.1.5"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": false
   },
   "files": [
     "dist/index.js"
   ],
-  "gitHead": "ffd65b91d87e2bc7064c8e448d1307a8f9c3d559"
+  "gitHead": "f7d1ce549c1f7f9a8cbadf71b0de9599850f4b98"
 }
