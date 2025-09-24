@@ -560,7 +560,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     const { theme } = state;
     const { treeMarkerColor } = theme;
 
-    // TODO: hover color when mouse is over the marker
     this.drawTreeMarker(
       context,
       state,

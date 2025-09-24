@@ -133,6 +133,7 @@ export function makeColumnName(
   return keys
     .slice(0, depth + 1)
     .filter(k => k != null)
+    .map(k => encodeURIComponent(String(k)))
     .join('/');
 }
 
@@ -151,6 +152,7 @@ export function makeColumnGroupName(
   return keys
     .slice(0, depth + 1)
     .map((k, i) => (k == null ? columnSources[i].name : k))
+    .map(k => encodeURIComponent(String(k)))
     .join('/');
 }
 
@@ -264,10 +266,10 @@ export function getKeyColumnGroups(
     columnSources.length === 0
       ? [
           new PivotColumnHeaderGroup({
-            // TODO:
-            name: '__All',
+            name: '/',
             displayName: '',
-            // TODO: what if rowSources is empty?
+            // For empty row sources we will render a "dead column"
+            // or a Groups column, depending on the table settings
             children: rowSources.map(c => c.name),
             childIndexes: [],
             isKeyColumnGroup: true,
@@ -305,16 +307,11 @@ export function getTotalsColumnGroups(
   return columnSources.length === 0
     ? [
         new PivotColumnHeaderGroup({
-          // TODO:
-          name: 'TMP__GrandTotals',
+          name: '/GrandTotals',
           displayName: groupName,
           children: valueSources.map(v => makeGrandTotalColumnName(v)),
           childIndexes: [],
           depth: 1,
-          // Only the top level is expandable
-          // TODO:
-          // isExpandable: i === 0,
-          // isExpanded: isRootColumnExpanded,
         }),
       ]
     : columnSources.map(
@@ -420,6 +417,7 @@ export function getColumnGroups(
           formatValue
         );
 
-  // TODO: make sure group names are unique and can't collide with pivot keys
+  // Keys in group names are encoded using encodeURIComponent
+  // so they are unique and won't collide with pivot keys
   return [...virtualColumnGroups, ...snapshotColumnGroups];
 }
