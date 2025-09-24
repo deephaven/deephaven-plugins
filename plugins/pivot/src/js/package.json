@@ -4,11 +4,17 @@
   "description": "Pivot plugin for Deephaven",
   "keywords": [
     "Deephaven",
-    "plugin"
+    "plugin",
+    "deephaven-js-plugin",
+    "pivot"
   ],
-  "author": "Deephaven Data Labs",
+  "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build"
