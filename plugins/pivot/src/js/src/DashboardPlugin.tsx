@@ -40,7 +40,7 @@ export function DashboardPlugin({
       log.info('Panel opened of type', type);
       const config = {
         type: 'react-component' as const,
-        component: PivotPanel.COMPONENT,
+        component: PivotPanel.displayName,
         props: {
           localDashboardId: id,
           id: panelId,
@@ -61,8 +61,7 @@ export function DashboardPlugin({
   );
 
   useEffect(() => {
-    const cleanups = [registerComponent(PivotPanel.COMPONENT, PivotPanel)];
-
+    const cleanups = [registerComponent(PivotPanel.displayName, PivotPanel)];
     return () => {
       cleanups.forEach(cleanup => cleanup());
     };
