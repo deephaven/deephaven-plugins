@@ -40,3 +40,6 @@ runs:
           simple-pivot:
             - plugins/simple-pivot/**
             - .github/workflows/test-*.yml
+          theme-pack:
+            - plugins/theme-pack/**
+            - .github/workflows/test-*.yml

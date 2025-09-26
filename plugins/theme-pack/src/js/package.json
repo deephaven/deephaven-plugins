@@ -1,5 +1,5 @@
 {
-  "name": "@deephaven/js-plugin-example-theme",
+  "name": "@deephaven/js-plugin-theme-pack",
   "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/plugin": "^0.58.0",
+    "@deephaven/plugin": "^1.6.0",
     "typescript": "^5.2.2"
   },
   "private": true
