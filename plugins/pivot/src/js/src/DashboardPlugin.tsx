@@ -7,6 +7,7 @@ import {
 } from '@deephaven/dashboard';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { assertNotNull } from '@deephaven/utils';
 import PivotPanel from './PivotPanel';
 
 const VARIABLE_TYPE = 'PivotTable';
@@ -61,6 +62,7 @@ export function DashboardPlugin({
   );
 
   useEffect(() => {
+    assertNotNull(PivotPanel.displayName);
     const cleanups = [registerComponent(PivotPanel.displayName, PivotPanel)];
     return () => {
       cleanups.forEach(cleanup => cleanup());

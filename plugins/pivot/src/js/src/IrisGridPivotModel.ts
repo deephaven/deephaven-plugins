@@ -290,34 +290,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     throw new Error('Method not implemented.');
   }
 
-  async showFilter(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async quickFilter(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async autoResizeColumns(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async applySort(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async clearFilter(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async applyFilter(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
-  async copy(): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
   getCachedColumns = memoize(
     (
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
@@ -1020,7 +992,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   isRowExpandable(y: ModelIndex): boolean {
     if (y === 0) {
-      // Render the root row as expandable, but disable expand/collapse until DH-20125 is implemented
+      // Root row (totals) is expandable if there are any rows
       return !this.isRootRowExpanded || this.rowCount > 1;
     }
     return this.row(y)?.hasChildren ?? false;
@@ -1094,7 +1066,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       );
     }
     if (x < this.keyColumns.length) {
-      // Virtual columns, including totals columns, are not expandable until DH-20125
+      // Group column and key columns are not expandable
       return false;
     }
 

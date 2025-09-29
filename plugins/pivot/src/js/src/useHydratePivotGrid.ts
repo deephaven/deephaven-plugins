@@ -73,21 +73,18 @@ export function useHydratePivotGrid(
       metadata,
       mouseHandlers,
       renderer,
-      theme: pivotTheme,
     }),
-    [
-      api,
-      fetchTable,
-      id,
-      loadPlugin,
-      metadata,
-      mouseHandlers,
-      renderer,
-      pivotTheme,
-    ]
+    [api, fetchTable, id, loadPlugin, metadata, mouseHandlers, renderer]
   );
 
-  return hydratedProps;
+  // Memoize the theme separately from the rest of the hydrated props
+  // so that the the theme changes don't cause the model to be recreated
+  const hydratedPropsWithTheme = useMemo(
+    () => ({ ...hydratedProps, theme: pivotTheme }),
+    [hydratedProps, pivotTheme]
+  );
+
+  return hydratedPropsWithTheme;
 }
 
 export default useHydratePivotGrid;
