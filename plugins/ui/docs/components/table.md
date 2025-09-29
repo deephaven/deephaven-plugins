@@ -194,7 +194,9 @@ t = ui.table(
 
 Table databars provide visual representation of numeric data directly within table cells, making it easy to compare values at a glance. Databars appear as horizontal bars behind or alongside cell values.
 
-##### Example
+The `column` prop specifies which table column should display the databar. This is the only required property.
+
+Warning: This API is likely to change in the near future to be part of ui.TableFormat .
 
 ```python
 from deephaven import time_table
@@ -202,22 +204,7 @@ from deephaven import ui
 
 _t = time_table("PT1S").update(["X=ii", "Revenue=ii*100"])
 
-my_table_databar_basic = ui.table(
-    _t, databars=[{"column": "Revenue", "color": "positive"}]
-)
-```
-
-##### Column Configuration
-
-The `column` prop specifies which table column should display the databar. This is the only required property.
-
-```python
-from deephaven import time_table
-from deephaven import ui
-
-_t = time_table("PT1S").update(["Sales=ii*50", "Profit=ii*25", "Revenue=ii*100"])
-
-my_table_basic_columns = ui.table(_t, databars=[{"column": "Revenue"}])
+my_table_databar_basic = ui.table(_t, databars=[{"column": "Revenue"}])
 ```
 
 ##### Value Column
@@ -244,6 +231,8 @@ my_table_value_column = ui.table(
 
 The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
 
+By default these props will change to the min and max of the values in the column.
+
 ```python
 from deephaven import time_table
 from deephaven import ui
@@ -263,7 +252,12 @@ my_table_scale_examples = ui.table(
 
 ##### Axis Configuration
 
-The `axis` prop controls how the zero point is positioned within the databar. Options are `"proportional"` (default), `"middle"`, or `"directional"`.
+The `axis` prop controls how the zero point is positioned within the databar.
+
+Options:
+`"proportional"` (default): relative to the min and max of the values
+`"middle"`: always centered, regardless of values in column
+`"directional"`: left-most or right-most, dependent on `direction` prop. Sign of value is ignored, the databar will show the magnitude of the value (ie. -7 and 7 are the same) 
 
 ```python
 from deephaven import time_table
@@ -293,7 +287,10 @@ my_table_axis_examples = ui.table(
 
 ##### Direction
 
-The `direction` prop controls which direction the databar grows from its zero point. Options are `"LTR"` (left to right, default) or `"RTL"` (right to left).
+The `direction` prop controls which direction the databar grows from its zero point. 
+
+Options: 
+`"LTR"`: (left to right, default) `"RTL"`: (right to left).
 
 ```python
 from deephaven import time_table
@@ -312,7 +309,12 @@ my_table_direction_examples = ui.table(
 
 ##### Value Placement
 
-The `value_placement` prop controls how cell values are displayed relative to the databar. Options are `"beside"` (default), `"overlap"`, or `"hide"`.
+The `value_placement` prop controls how cell values are displayed relative to the databar. 
+
+Options: 
+`"beside"` (default): to the right of the databar
+`"overlap"`: on top of the databar
+`"hide"`: not displayed
 
 ```python
 from deephaven import time_table
