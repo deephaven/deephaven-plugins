@@ -201,10 +201,11 @@ Warning: This API is likely to change in the near future to be part of ui.TableF
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["X=ii", "Revenue=ii*100"])
+t = dx.data.stocks()
 
-my_table_databar_basic = ui.table(_t, databars=[{"column": "Revenue"}])
+my_table_databar_basic = ui.table(t, databars=[{"column": "Price"}])
 ```
 
 ##### Value Column
@@ -214,16 +215,13 @@ The `value_column` prop allows you to use a different column's values for calcul
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(
-    ["Population=ii*100", "Population_Squared=pow(Population,2)"]
-)
+t = dx.data.stocks()
 
 my_table_value_column = ui.table(
-    _t,
-    databars=[
-        {"column": "Population", "value_column": "Population_Squared", "color": "info"}
-    ],
+    t,
+    databars=[{"column": "Sym", "value_column": "Price", "color": "info"}],
 )
 ```
 
@@ -236,16 +234,21 @@ By default these props will change to the min and max of the values in the colum
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(
-    ["Score_FixedScale=ii%100", "Score_DynamicScale=25", "Scale=20+ 5*ii%100"]
+t = dx.data.stocks()
+
+my_table_fixed_scale_example = ui.table(
+    t,
+    databars=[
+        {"column": "Size", "min": 0, "max": 1000, "color": "positive"},
+    ],
 )
 
-my_table_scale_examples = ui.table(
-    _t,
+my_table_dynamic_scale_example = ui.table(
+    t,
     databars=[
-        {"column": "Score_FixedScale", "min": 0, "max": 100, "color": "positive"},
-        {"column": "Score_DynamicScale", "min": 0, "max": "Scale", "color": "positive"},
+        {"column": "Price", "min": 0, "max": "Dollars", "color": "positive"},
     ],
 )
 ```
@@ -257,61 +260,68 @@ The `axis` prop controls how the zero point is positioned within the databar.
 Options:
 `"proportional"` (default): relative to the min and max of the values
 `"middle"`: always centered, regardless of values in column
-`"directional"`: left-most or right-most, dependent on `direction` prop. Sign of value is ignored, the databar will show the magnitude of the value (ie. -7 and 7 are the same) 
+`"directional"`: left-most or right-most, dependent on `direction` prop. Sign of value is ignored, the databar will show the magnitude of the value (ie. -7 and 7 are the same)
 
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(
-    ["proportional=ii%200-100", "middle=ii%200-100", "directional=ii%200-100"]
-)
+t = dx.data.stocks()
 
-my_table_axis_examples = ui.table(
-    _t,
+
+my_table_proportional_axis_example = ui.table(
+    t,
     databars=[
         {
-            "column": "proportional",
-            "axis": "proportional",
-            "color": ["negative", "positive"],
-        },
-        {"column": "middle", "axis": "middle", "color": ["negative", "positive"]},
-        {
-            "column": "directional",
-            "axis": "directional",
-            "color": ["negative", "positive"],
-        },
+            "column": "Random",
+        }
     ],
+)
+
+my_table_middle_axis_example = ui.table(
+    t,
+    databars=[{"column": "Random", "axis": "middle"}],
+)
+
+my_table_directional_axis_example = ui.table(
+    t,
+    databars=[{"column": "Random", "axis": "directional"}],
 )
 ```
 
 ##### Direction
 
-The `direction` prop controls which direction the databar grows from its zero point. 
+The `direction` prop controls which direction the databar grows from its zero point.
 
-Options: 
+Options:
 `"LTR"`: (left to right, default) `"RTL"`: (right to left).
 
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["Growth_LTR=ii%50", "Growth_RTL=ii%50"])
+t = dx.data.stocks()
 
-my_table_direction_examples = ui.table(
-    _t,
+my_table_LTR_direction_examples = ui.table(
+    t,
     databars=[
-        {"column": "Growth_LTR", "direction": "LTR", "color": "positive"},
-        {"column": "Growth_RTL", "direction": "RTL", "color": "info"},
+        {"column": "Size", "direction": "LTR"},
     ],
+)
+
+my_table_RTL_direction_examples = ui.table(
+    t,
+    databars=[{"column": "Size", "direction": "RTL"}],
 )
 ```
 
 ##### Value Placement
 
-The `value_placement` prop controls how cell values are displayed relative to the databar. 
+The `value_placement` prop controls how cell values are displayed relative to the databar.
 
-Options: 
+Options:
 `"beside"` (default): to the right of the databar
 `"overlap"`: on top of the databar
 `"hide"`: not displayed
@@ -319,34 +329,46 @@ Options:
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["Beside=ii%100", "Overlap=ii%100", "Hide=ii%100"])
+t = dx.data.stocks()
 
-my_table_value_placement = ui.table(
-    _t,
+my_table_beside_value_placement = ui.table(
+    t,
     databars=[
-        {"column": "Beside", "value_placement": "beside", "color": "positive"},
-        {"column": "Overlap", "value_placement": "overlap", "color": "notice"},
-        {"column": "Hide", "value_placement": "hide", "color": "info"},
+        {
+            "column": "Size",
+        }
     ],
+)
+
+my_table_overlap_value_placement = ui.table(
+    t,
+    databars=[{"column": "Size", "value_placement": "overlap"}],
+)
+
+my_table_hide_value_placement = ui.table(
+    t,
+    databars=[{"column": "Size", "value_placement": "hide"}],
 )
 ```
 
 ##### Color
 
-The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients and conditional coloring.
+The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
 
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["Revenue=ii*100", "Performance=ii%100-50"])
+t = dx.data.stocks()
 
 my_table_color_examples = ui.table(
-    _t,
+    t,
     databars=[
-        {"column": "Revenue", "color": "positive"},
-        {"column": "Performance", "color": ["negative", "positive"]},
+        {"column": "Size", "color": "info"},
+        {"column": "Price", "color": ["negative", "positive"]},
     ],
 )
 ```
@@ -358,14 +380,14 @@ The `opacity` prop controls the transparency of databars, accepting values from 
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["Background=ii*50", "Foreground=ii*75"])
+t = dx.data.stocks()
 
 my_table_opacity_examples = ui.table(
-    _t,
+    t,
     databars=[
-        {"column": "Background", "color": "info", "opacity": 0.3},
-        {"column": "Foreground", "color": "positive", "opacity": 0.8},
+        {"column": "Size", "color": "info", "opacity": 0.3},
     ],
 )
 ```
@@ -377,61 +399,21 @@ The `markers` prop adds reference lines or thresholds to databars. Each marker r
 ```python
 from deephaven import time_table
 from deephaven import ui
+import deephaven.plot.express as dx
 
-_t = time_table("PT1S").update(["Performance=40+ 5*ii%100", "Target=75", "Minimum=25"])
+t = dx.data.stocks()
 
 my_table_markers_example = ui.table(
-    _t,
+    t,
     databars=[
         {
-            "column": "Performance",
+            "column": "Price",
             "color": "positive",
             "markers": [
-                {"value": "Target", "color": "accent"},
+                {"value": "SPet500", "color": "accent"},
                 {"value": 50, "color": "notice"},
             ],
         }
-    ],
-)
-```
-
-##### Complete Example
-
-```python
-from deephaven import time_table
-from deephaven import ui
-
-_t = time_table("PT1S").update(
-    [
-        "X=ii",
-        "Y=X",
-        "Z=X",
-        "A=X",
-        "B=X",
-        "C=X",
-        "HalfX=X/2",
-        "LogX=X > 0 ? log(X) : 0",
-        "X2=X*2",
-    ]
-)
-
-my_complete_table = ui.table(
-    _t,
-    databars=[
-        {
-            "column": "X",
-            "color": "negative",
-            "opacity": 0.4,
-            "markers": [
-                {"value": "HalfX", "color": "limegreen"},
-                {"value": 1000, "color": "accent"},
-            ],
-        },
-        {"column": "Y", "value_column": "LogX", "color": "positive"},
-        {"column": "Z", "max": 10, "color": ["notice", "positive", "dodgerblue"]},
-        {"column": "A", "max": "X2", "color": ["info", "magenta-600"]},
-        {"column": "B", "color": ["#f3cd5b", "#9edc6f"]},
-        {"column": "C", "color": ["#f3cd5b", "#9edc6f"]},
     ],
 )
 ```
