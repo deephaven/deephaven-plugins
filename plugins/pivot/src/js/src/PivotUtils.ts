@@ -192,7 +192,6 @@ export function makeExpandableDisplayColumn(
     makeColumnName(keys, depth),
     valueSource
   );
-  // const description = keys[depth - 2];
   const displayName = valueSource.name;
   return makeColumn({
     name,

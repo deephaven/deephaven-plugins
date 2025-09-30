@@ -5,7 +5,6 @@ import { IrisGridPanel } from '@deephaven/dashboard-core-plugins';
 import useHydratePivotGrid from './useHydratePivotGrid';
 
 // Unconnected IrisGridPanel type is not exported from dashboard-core-plugins
-// TODO: export
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const PivotPanel = forwardRef<any, WidgetPanelProps<dh.Widget>>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

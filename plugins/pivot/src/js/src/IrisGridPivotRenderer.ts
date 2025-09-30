@@ -443,14 +443,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     let { minX = 0, maxX = width } = bounds ?? {};
 
-    // console.log('[3] drawColumnHeader', {
-    //   columnText,
-    //   minX,
-    //   maxX,
-    //   columnX,
-    //   columnWidth,
-    // });
-
     context.save();
     context.rect(minX, 0, maxX - minX, columnHeaderHeight);
     context.clip();
