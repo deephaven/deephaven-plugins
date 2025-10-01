@@ -53,6 +53,13 @@ export function makeColumn({
   depth = ROOT_DEPTH,
   hasChildren = false,
   isExpanded = false,
+  isProxy = false,
+  filter = () => {
+    throw new Error('Filter not implemented for virtual column');
+  },
+  sort = () => {
+    throw new Error('Sort not implemented for virtual column');
+  },
 }: {
   name: string;
   displayName?: string;
@@ -63,6 +70,9 @@ export function makeColumn({
   depth?: number;
   hasChildren?: boolean;
   isExpanded?: boolean;
+  isProxy?: boolean;
+  filter?: () => DhType.FilterValue;
+  sort?: () => DhType.Sort;
 }): ExpandableDisplayColumn {
   return {
     name,
@@ -70,18 +80,14 @@ export function makeColumn({
     type,
     isPartitionColumn: false,
     isSortable,
-    isProxy: false,
+    isProxy,
     description,
     index,
     depth,
     hasChildren,
     isExpanded,
-    filter: () => {
-      throw new Error('Filter not implemented for virtual column');
-    },
-    sort: () => {
-      throw new Error('Sort not implemented for virtual column');
-    },
+    filter,
+    sort,
     formatColor: () => {
       throw new Error('Color not implemented for virtual column');
     },
@@ -237,8 +243,20 @@ export function makeRowSourceColumn(
   source: CorePlusDhType.coreplus.pivot.PivotSource,
   index: number
 ): ExpandableDisplayColumn {
-  const { name, type, isSortable, description } = source;
-  return makeColumn({ name, type, index, isSortable, description });
+  const {
+    name,
+    type, // isSortable,
+    description,
+  } = source;
+  return makeColumn({
+    name,
+    type,
+    index,
+    isSortable: true,
+    description,
+    filter: source.filter.bind(source),
+    sort: source.sort.bind(source),
+  });
 }
 
 /**
@@ -259,8 +277,10 @@ export function checkColumnsChanged(
 
 export function getKeyColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
-  rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
+  rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
+  includeGroupColumn: boolean
 ): PivotColumnHeaderGroup[] {
+  const groupName = includeGroupColumn ? ['__GROUP__'] : [];
   const groups =
     columnSources.length === 0
       ? [
@@ -269,7 +289,9 @@ export function getKeyColumnGroups(
             displayName: '',
             // For empty row sources we will render a "dead column"
             // or a Groups column, depending on the table settings
-            children: rowSources.map(c => c.name),
+            children: includeGroupColumn
+              ? [...groupName, ...rowSources.map(c => c.name)]
+              : [...groupName, ...rowSources.map(c => c.name)],
             childIndexes: [],
             isKeyColumnGroup: true,
             depth: 1,
@@ -283,7 +305,7 @@ export function getKeyColumnGroups(
               displayName: source.name,
               children:
                 i === columnSources.length - 1
-                  ? rowSources.map(c => c.name)
+                  ? [...groupName, ...rowSources.map(c => c.name)]
                   : [columnSources[i + 1].name],
               childIndexes: [],
               isKeyColumnGroup: true,
@@ -395,10 +417,15 @@ export function getColumnGroups(
   pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
   isRootColumnExpanded = true,
+  includeGroupColumn = false,
   formatValue: (value: unknown, type: string) => string = (v, t) => String(v)
 ): PivotColumnHeaderGroup[] {
   const virtualColumnGroups = [
-    ...getKeyColumnGroups(pivotTable.columnSources, pivotTable.rowSources),
+    ...getKeyColumnGroups(
+      pivotTable.columnSources,
+      pivotTable.rowSources,
+      includeGroupColumn
+    ),
     ...getTotalsColumnGroups(
       pivotTable.columnSources,
       pivotTable.valueSources,

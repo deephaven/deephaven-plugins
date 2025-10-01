@@ -101,6 +101,9 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 {
   private pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
 
+  // Group column is dependent on the number of row sources (and settings? check Rollups)
+  private groupColumn?: ExpandableDisplayColumn | null;
+
   private keyColumns: readonly ExpandableDisplayColumn[];
 
   private _layoutHints: DhType.LayoutHints | null | undefined;
@@ -116,6 +119,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private _columnHeaderGroups: PivotColumnHeaderGroup[] = [];
 
   private _isColumnHeaderGroupsInitialized = false;
+
+  private _sort?: readonly DhType.Sort[] = EMPTY_ARRAY;
 
   private viewportData: UIPivotViewportData<R> | null = null;
 
@@ -179,9 +184,21 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.rowBufferPages = config.rowBufferPages ?? ROW_BUFFER_PAGES;
     this.columnBufferPages = config.columnBufferPages ?? COLUMN_BUFFER_PAGES;
 
+    this.groupColumn =
+      this.pivotTable.rowSources.length !== 1
+        ? makeColumn({
+            name: '__GROUP__',
+            displayName: 'Group',
+            type: 'java.lang.String',
+            index: 0,
+            depth: 2,
+            isProxy: true,
+          })
+        : null;
+
     // Key columns don't change on snapshot updates, as opposed to totals and value sources
-    this.keyColumns = pivotTable.rowSources.map((source, col) =>
-      makeRowSourceColumn(source, col)
+    this.keyColumns = pivotTable.rowSources.map((source, index) =>
+      makeRowSourceColumn(source, index + (this.groupColumn == null ? 0 : 1))
     );
 
     this._layoutHints = {
@@ -199,21 +216,28 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   dh: typeof CorePlusDhType;
 
   get filter(): readonly DhType.FilterCondition[] {
-    return EMPTY_ARRAY;
+    return this.pivotTable.filter;
   }
 
-  set filter(_: readonly DhType.FilterCondition[]) {
+  set filter(filters: DhType.FilterCondition[]) {
     // No-op
+    log.debug('Setting filter on pivot table', filters);
     // TODO: DH-20363: Add support for Pivot filters
+    // TODO: hydrate columnBySources filters
+    this.pivotTable.applyFilter(filters);
+    this.applyViewport();
   }
 
   get sort(): readonly DhType.Sort[] {
-    return EMPTY_ARRAY;
+    return this._sort ?? EMPTY_ARRAY;
   }
 
-  set sort(_: readonly DhType.Sort[]) {
+  set sort(sort: DhType.Sort[]) {
     // No-op
     // TODO: DH-20435: Add support for Pivot sorting
+    this._sort = sort;
+    // const pivotSort = ;
+    this.pivotTable.applyRowSort(sort as DhType.coreplus.pivot.PivotSort[]);
   }
 
   get customColumns(): readonly string[] {
@@ -343,7 +367,10 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
             displayName: source.name,
             description: source.description,
             type: source.type,
-            index: pivotTable.rowSources.length + col,
+            index:
+              pivotTable.rowSources.length +
+              col +
+              (this.groupColumn == null ? 0 : 1),
             depth: 2,
             isExpanded: true,
             hasChildren: true,
@@ -360,13 +387,21 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   getCachedVirtualColumns = memoize(
     (
+      groupColumn: ExpandableDisplayColumn | null | undefined,
       keyColumns: readonly ExpandableDisplayColumn[],
       totalsColumns: readonly ExpandableDisplayColumn[]
-    ) => [...keyColumns, ...totalsColumns]
+    ) =>
+      groupColumn
+        ? [groupColumn, ...keyColumns, ...totalsColumns]
+        : [...keyColumns, ...totalsColumns]
   );
 
   get virtualColumns(): readonly ExpandableDisplayColumn[] {
-    return this.getCachedVirtualColumns(this.keyColumns, this.totalsColumns);
+    return this.getCachedVirtualColumns(
+      this.groupColumn,
+      this.keyColumns,
+      this.totalsColumns
+    );
   }
 
   /**
@@ -384,6 +419,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
         this.pivotTable,
         snapshotColumns,
         isRootColumnExpanded,
+        this.groupColumn != null,
         formatValue
       )
   );
@@ -566,12 +602,20 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   isFilterable(columnIndex: ModelIndex): boolean {
     // TODO: DH-20363: Add support for Pivot filters
-    return false;
+    return (
+      this.keyColumns.find(c => c.name === this.columns[columnIndex]?.name) !=
+      null
+    );
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
     // TODO: DH-20435: Add support for Pivot sorting
-    return false;
+    log.debug(
+      '[5] isColumnSortable',
+      columnIndex,
+      this.columns[columnIndex]?.isSortable
+    );
+    return this.columns[columnIndex]?.isSortable ?? false;
   }
 
   get isTotalsAvailable(): boolean {
@@ -679,7 +723,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
     log.debug2('Pivot updated', {
       columns: this.columns,
-      snapshot: this.snapshotColumns,
+      snapshot,
+      snapshotColumns: this.snapshotColumns,
       viewport: this.viewportData?.rowTotalCount,
       columnCount: this.columnCount,
       rowCount: this.rowCount,
@@ -745,8 +790,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
       for (let c = 0; c < keys.length; c += 1) {
         keyData.set(c, {
-          // Only render the value for the deepest level
-          value: c === depth - 1 ? keys[c] : undefined,
+          value: keys[c],
         });
       }
 
@@ -1058,7 +1102,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       c: this.columns,
     });
     // Root (grand total) columns
-    if (x >= this.keyColumns.length && x < this.virtualColumns.length) {
+    if (this.isGrandTotalsColumn(x)) {
       // The grand total column is expandable if there are any columns
       return (
         !this.isRootColumnExpanded ||
@@ -1074,8 +1118,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     return this.columns[x]?.hasChildren ?? false;
   }
 
+  // TODO: move
+  isGrandTotalsColumn(x: ModelIndex): boolean {
+    const totalsStartIndex =
+      this.keyColumns.length + (this.groupColumn == null ? 0 : 1);
+    return x >= totalsStartIndex && x < this.virtualColumns.length;
+  }
+
   isColumnExpanded(x: ModelIndex): boolean {
-    if (x >= this.keyColumns.length && x < this.virtualColumns.length) {
+    if (this.isGrandTotalsColumn(x)) {
       // The grand total column is expandable if there are any columns
       return this.isRootColumnExpanded;
     }
@@ -1096,7 +1147,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       c: this.columns,
     });
     // Root (grand total) columns
-    if (x >= this.keyColumns.length && x < this.virtualColumns.length) {
+    if (this.isGrandTotalsColumn(x)) {
       this.pivotTable.setRootColumnExpanded(isExpanded, expandDescendants);
       this.isRootColumnExpanded = isExpanded;
       return;
@@ -1183,11 +1234,32 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   dataForCell(x: ModelIndex, y: ModelIndex): CellData | undefined {
     const keyCount = this.keyColumns.length;
-    if (x < keyCount) {
-      return this.row(y)?.keyData.get(x);
+    const groupOffset = this.groupColumn == null ? 0 : 1;
+    // TODO:
+    // if (y === 3) {
+    //   log.debug('[5] dataForCell', {
+    //     x,
+    //     y,
+    //     keyCount,
+    //     groupOffset,
+    //     kD: this.row(y)?.keyData,
+    //     tD: this.row(y)?.depth,
+    //   });
+    // }
+    if (groupOffset === 1 && x === 0) {
+      // TODO:
+      return y === 0
+        ? { value: '' }
+        : {
+            value: this.row(y)?.keyData.get((this.row(y)?.depth ?? 2) - 1)
+              ?.value,
+          };
+    }
+    if (x < keyCount + groupOffset) {
+      return this.row(y)?.keyData.get(x - groupOffset);
     }
     if (x < this.virtualColumns.length) {
-      return this.row(y)?.totalsData.get(x - keyCount);
+      return this.row(y)?.totalsData.get(x - keyCount - groupOffset);
     }
     return this.row(y)?.data.get(x - this.virtualColumns.length);
   }
@@ -1353,7 +1425,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       if (!this.viewport) {
         return;
       }
-      log.debug2('applyViewport', this.viewport);
+      log.debug2('applyViewport', this.viewport, this.filter);
       const { top, bottom, columns } = this.viewport;
       const [viewportTop, viewportBottom] = this.getCachedViewportRowRange(
         top,

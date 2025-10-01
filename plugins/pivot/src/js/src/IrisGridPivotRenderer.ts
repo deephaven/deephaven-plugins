@@ -62,6 +62,9 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       modelColumns,
       columnHeaderMaxDepth,
     } = metrics;
+
+    this.drawFilterHeaders(context, state);
+
     if (columnHeaderHeight <= 0) {
       return;
     }
