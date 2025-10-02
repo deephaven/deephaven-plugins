@@ -1,0 +1,63 @@
+{
+  "name": "@deephaven/js-plugin-pivot",
+  "version": "0.0.3-dev.983+f7d1ce54",
+  "description": "Pivot plugin for Deephaven",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "pivot"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.35.2",
+    "@deephaven/tsconfig": "^0.72.0",
+    "@types/lodash.clamp": "^4.0.9",
+    "@types/lodash.throttle": "^4.1.9",
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.2",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "react": "^17.0.2",
+    "typescript": "^4.5.4",
+    "vite": "~4.1.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "dependencies": {
+    "@deephaven/components": "^0.85.35",
+    "@deephaven/dashboard": "^0.85.35",
+    "@deephaven/dashboard-core-plugins": "^0.85.35",
+    "@deephaven/grid": "^0.85.35",
+    "@deephaven/icons": "^0.85.0",
+    "@deephaven/iris-grid": "^0.85.35",
+    "@deephaven/jsapi-bootstrap": "^0.85.35",
+    "@deephaven/jsapi-utils": "^0.85.35",
+    "@deephaven/log": "^0.85.19",
+    "@deephaven/plugin": "^0.85.35",
+    "@deephaven/utils": "^0.85.35",
+    "lodash.clamp": "^4.0.3",
+    "lodash.throttle": "^4.1.1",
+    "memoize-one": "^5.1.1",
+    "nanoid": "^5.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/index.js"
+  ],
+  "gitHead": "f7d1ce549c1f7f9a8cbadf71b0de9599850f4b98"
+}
