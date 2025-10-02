@@ -3,6 +3,7 @@
 # because they are built by the plugin builder.
 
 node_modules
+.DS_Store
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
