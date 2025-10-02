@@ -4,7 +4,11 @@ import pandas as pd
 import numpy as np
 from plotly import express as px
 import math
+
+# Use Random() class as seperate instances to avoid global state issues,
+# as Deephaven may evaluate columns in parallel.
 from random import Random
+
 import jpy
 from typing import Any, cast
 
@@ -17,8 +21,6 @@ from deephaven.time import (
 )
 from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max, delta, DeltaControl
 
-# Use Random() class as seperate instances to avoid global state issues,
-# as Deephaven may evaluate columns in parallel.
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
