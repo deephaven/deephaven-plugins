@@ -16,7 +16,7 @@ post_bump_hooks = []
 
 # bump hooks for package versions, which is what we actually use
 pre_package_bump_hooks = [
-    "echo Updating {{package}} from {{latest}} to version {{version}}",
+    "echo Updating {{package}} from {{latest|0.0.0}} to version {{version}}",
     # Confirm the user wishes to proceed
     "../../tools/confirm.sh",
     # make sure user has correct software installed and is authenticated with `gh` cli tool
