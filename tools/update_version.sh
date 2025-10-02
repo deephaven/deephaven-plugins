@@ -113,7 +113,7 @@ function update_file() {
 extra=
 [ "$dev" = true ] && extra=".dev0"
 case "$package" in
-        ag-grid | json | matplotlib | plotly | plotly-express | theme-pack | ui | utilities | packaging)
+        ag-grid | json | matplotlib | pivot | plotly | plotly-express | theme-pack | ui | utilities | packaging)
             update_file "${package}/setup.cfg" 'version = ' '' "$extra"
             ;;
         auth-keycloak | dashboard-object-viewer | table-example)
@@ -130,7 +130,7 @@ esac
 npm_version="${version}"
 if [ "$dev" != true ]; then
     case "$package" in
-        ag-grid | auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | theme-pack | ui)
+        ag-grid | auth-keycloak | dashboard-object-viewer | matplotlib | pivot | plotly | plotly-express | table-example |  theme-pack  | ui)
             # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
             npm version "$npm_version" --workspace=src/js
             ;;

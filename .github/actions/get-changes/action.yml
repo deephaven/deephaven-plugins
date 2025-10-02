@@ -43,3 +43,6 @@ runs:
           theme-pack:
             - plugins/theme-pack/**
             - .github/workflows/test-*.yml
+          pivot:
+            - plugins/pivot/**
+            - .github/workflows/test-*.yml
