@@ -7,4 +7,3 @@ dist/
 .DS_store
 __pycache__/
 node_modules
-docs/*.html
