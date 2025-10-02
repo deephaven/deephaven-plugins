@@ -11,11 +11,6 @@ This plugin adds UI support for Pivot tables in Core+ workers in Enterprise.
 
 Run `npm run build` from the root directory.
 
-## Publishing the Plugin
-
-1. Update the version number in `package.json`.
-2. Run `npm publish` to publish the plugin to the npm registry.
-
 ## Installation
 
 Add `@deephaven/js-plugin-pivot` js package to `pluginList` in `DhcInDhe/gradle.build`
