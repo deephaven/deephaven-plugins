@@ -1,9 +1,9 @@
 import unittest
+from .BaseTest import BaseTestCase
 
 
-class TestNoOp(unittest.TestCase):
+class TestThemePack(BaseTestCase):
     def test_noop(self):
-        # Always passes; placeholder to prevent unittest exit code 5 (no tests found)
         self.assertTrue(True)
 
 
