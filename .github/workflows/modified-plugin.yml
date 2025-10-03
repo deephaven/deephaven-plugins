@@ -16,6 +16,7 @@ on:
       - 'ui-v*'
       - 'utilities-v*'
       - 'packaging-v*'
+      - 'theme-pack-v*'
 
 jobs:
   changes:

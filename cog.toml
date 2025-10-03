@@ -79,6 +79,7 @@ pivot = { path = "plugins/pivot", public_api=false }
 plotly = { path = "plugins/plotly", public_api=false }
 plotly-express = { path = "plugins/plotly-express", public_api=false }
 table-example = { path = "plugins/table-example", public_api=false }
+theme-pack = { path = "plugins/theme-pack", public_api=false }
 ui = { path = "plugins/ui", public_api=false }
 packaging = { path = "plugins/packaging", public_api=false }
 utilities = { path = "plugins/utilities", public_api=false }

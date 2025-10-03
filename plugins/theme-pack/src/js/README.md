@@ -10,12 +10,12 @@ Requires Deephaven Core version 0.33.0 or higher.
 
 ## Installation
 
-Refer to the main [README](../../README.md) for instructions on how to build and install plugins.
+Refer to the main [README](../../../../README.md) for instructions on how to build and install plugins.
 
 ## Development
 
-- Copy the `example-theme` directory to a new directory and rename it to your plugin name.
-- Rename the `example-theme` references in the `./<your-theme>/src/js/package.json` and `./<your-theme>/src/js/src/index.ts` to your plugin name in your theme folder.
+- Copy the `theme-pack` directory to a new directory and rename it to your plugin name.
+- Rename the `theme-pack` references in the `./<your-theme>/src/js/package.json` and `./<your-theme>/src/js/src/index.ts` to your plugin name in your theme folder.
 - Add your plugin's name to the `./plugins/manifest.json` to enable your plugin in development previews.
 - You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts` file with a unique name that will appear in the theme selector UI.
 
@@ -44,7 +44,7 @@ To preview themes during development, you'll need to start three separate proces
    npm run start
    ```
 
-Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library. 
+Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library.
 
 You can change the theme by clicking on the theme selector in the top right corner of the styleguide, or in the Deephaven **Settings** menu from the app. If you change your styles, you will need to refresh the page to see the changes.
 
@@ -67,7 +67,7 @@ Set the `baseTheme` to either `dark` or `light` in the `./<your-theme>/src/js/sr
 
 ```typescript
 export const plugin: ThemePlugin = {
-  name: 'example-theme',
+  name: 'theme-pack',
   type: 'ThemePlugin',
   themes: {
     ...
