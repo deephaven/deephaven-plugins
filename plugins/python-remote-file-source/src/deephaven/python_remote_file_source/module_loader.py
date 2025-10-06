@@ -82,10 +82,11 @@ class RemoteMetaPathFinder:
         )
 
         origin = module_spec.get("filepath") if module_spec else None
+        is_package = origin is not None and origin.endswith("__init__.py")
 
         return ModuleSpec(
             name=fullname,
             loader=RemoteModuleLoader(module_spec),  # type: ignore
             origin=origin,
-            is_package=True,
+            is_package=is_package,
         )
