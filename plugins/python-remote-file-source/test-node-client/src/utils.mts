@@ -176,7 +176,7 @@ export async function initPlugin(
   session: DhType.IdeSession
 ): Promise<{ runCode: (code: string) => Promise<DhType.ide.CommandResult> }> {
   await session.runCode(DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT);
-  console.log('Initialized Deephaven VS Code local execution plugin.');
+  console.log('Initialized Deephaven Python Remote File Source Plugin.');
 
   const plugin: DhType.Widget = await session.getObject(PLUGIN_QUERY);
   plugin.addEventListener<DhType.Widget>(
@@ -220,7 +220,7 @@ export async function isPluginInstalled(pluginName: string): Promise<boolean> {
 
     return manifestJson.plugins.some(plugin => plugin.name === pluginName);
   } catch (err) {
-    console.error('Error checking for local execution plugin', err);
+    console.error('Error checking for plugin:', pluginName, err);
     return false;
   }
 }

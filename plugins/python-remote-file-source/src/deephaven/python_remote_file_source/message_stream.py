@@ -15,7 +15,7 @@ from .logger import Logger
 from .module_loader import RemoteMetaPathFinder
 from .types import JsonRpcRequest, JsonRpcResponse, MessageStreamRequestInterface
 
-logger = Logger("DeephavenLocalExecPluginMessageStream")
+logger = Logger("MessageStream")
 
 
 class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
@@ -32,14 +32,14 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
     _plugin: Optional[PluginObject] = None
 
     def __init__(self, obj: PluginObject, client_connection: MesssageStreamBase):
-        logger.info("Creating DeephavenLocalExecPluginMessageStream")
+        logger.info("Creating MessageStream")
         super().__init__()
         self._plugin = obj
         self._client_connection = client_connection
 
         # Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
         # Additional messages can be sent to the client by calling on_data on the client connection at any time after this.
-        # These additional messages are processed in DeephavenLocalExecPluginView.tsx
+        # These additional messages are processed in PythonRemoteFileSourcePluginView.tsx
         self._client_connection.on_data(b"", [])
 
     def _deregister_meta_path_finder(self):
@@ -60,7 +60,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         count = sum(
             isinstance(finder, RemoteMetaPathFinder) for finder in sys.meta_path
         )
-        logger.info("Registered LocalMetaPathFinder:", count)
+        logger.info("Registered RemoteMetaPathFinder:", count)
 
     def send_message(self, message: JsonRpcResponse | str) -> None:
         """

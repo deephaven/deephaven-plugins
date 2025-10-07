@@ -9,7 +9,7 @@ export const PythonRemoteFileSourcePlugin: WidgetPlugin = {
   // The type of plugin - this will generally be WIDGET_PLUGIN
   type: PluginType.WIDGET_PLUGIN,
   // The supported types for the plugin. This should match the value returned by `name`
-  // in DeephavenLocalExecPluginType in plugin_type.py
+  // in PluginType in plugin_type.py
   supportedTypes: 'DeephavenPythonRemoteFileSourcePlugin',
   // The component to render for the plugin
   component: PythonRemoteFileSourcePluginView,

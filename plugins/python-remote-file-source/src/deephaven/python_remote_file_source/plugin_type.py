@@ -10,7 +10,7 @@ from .plugin_object import PluginObject
 # The object type that will be registered with the plugin system.
 # The object is bidirectional, meaning it can send messages to and from the client.
 # A MessageStream is created for each object that is created. This needs to be saved and tied to the object.
-# The value returned by name() should match supportedTypes in DeephavenLocalExecPluginPlugin.ts
+# The value returned by name() should match supportedTypes in PythonRemoteFileSourcePlugin.ts
 class PluginType(BidirectionalObjectType):
     """
     Defines the Element type for the Deephaven plugin system.
