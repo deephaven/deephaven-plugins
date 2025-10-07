@@ -4,7 +4,7 @@
 
 ## Example
 
-```python test-set=0
+```python
 from deephaven import ui
 
 img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
@@ -84,15 +84,13 @@ image_variants_example = image_variants()
 ## Scrollable image
 While the image component itself is not scrollable, wrap the image in a container view with the desired dimensions and set its overflow property to 'scroll' to achieve the same effect.
 
-```python test-set=0
+```python
 from deephaven import ui
+
 
 def scrollable_variant():
     return ui.view(
-        ui.image(
-            src="https://i.imgur.com/Z7AzH2c.png",
-            alt="Sky and roof"
-        ),
+        ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof"),
         width="800px",
         height="150px",
         overflow="scroll",
