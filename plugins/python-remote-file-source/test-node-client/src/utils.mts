@@ -2,10 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { loadDhModules, NodeHttp2gRPCTransport } from '@deephaven/jsapi-nodejs';
 import { dh as DhType } from '@deephaven/jsapi-types';
-import type { JsonRpcSuccess } from './jsonRpc.mjs';
+import { Msg, type JsonRpcRequest, type JsonRpcResponse } from './jsonRpc.mjs';
+import type PythonModuleMap from './PythonModuleMap.js';
 
 export const AUTH_HANDLER_TYPE_PSK =
   'io.deephaven.authentication.psk.PskAuthenticationHandler';
+
+const CN_ID = '12345' as const;
+
+// Alias for `dh.Widget.EVENT_MESSAGE` to avoid having to pass in a `dh` instance
+// to util functions that only need the event name.
+export const DH_WIDGET_EVENT_MESSAGE = 'message' as const;
 
 export const PLUGIN_VARIABLE = '__deephaven_vscode' as const;
 
@@ -25,24 +32,34 @@ export const DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT = [
 ].join('\n');
 
 /**
- * Get a JsonRpc success response message to send module source to the server.
- * @param id The id of the request to respond to.
- * @param source The source code of the module, or undefined for no source.
- * @param filepath The path to the module source file (defaults to '<string>').
- * @returns A JsonRpc success response message.
+ * Create a message handler for the given plugin that responds to fetch_module
+ * requests using the given PythonModuleMap.
+ * @param plugin The plugin widget to send responses to.
+ * @param pythonModuleMap The PythonModuleMap to use for fetching module source.
+ * @returns A message event handler function.
  */
-export function createModuleSourceResponseMessage(
-  id: string,
-  source: string | undefined,
-  filepath: string = '<string>'
-): JsonRpcSuccess {
-  return {
-    jsonrpc: '2.0',
-    id,
-    result: {
-      filepath,
-      source,
-    },
+export function createModuleSourceRequestHandler(
+  plugin: DhType.Widget,
+  pythonModuleMap: PythonModuleMap
+) {
+  return async ({ detail }: DhType.Event<DhType.Widget>): Promise<void> => {
+    try {
+      const message: JsonRpcRequest = JSON.parse(detail.getDataAsString());
+      console.log('Received message from server:', message);
+      if (message.method !== 'fetch_module') {
+        return;
+      }
+
+      const [filepath, source] = await pythonModuleMap.getModuleSource(
+        message.params.module_name
+      );
+
+      plugin.sendMessage(
+        JSON.stringify(Msg.moduleSourceResponse(message.id, source, filepath))
+      );
+    } catch (e) {
+      console.error('Error parsing message from server:', e);
+    }
   };
 }
 
@@ -122,7 +139,7 @@ export async function initDh(
   cn: DhType.IdeConnection;
   session: DhType.IdeSession;
 }> {
-  const storageDir = path.join(__dirname, '..', 'tmp');
+  const storageDir = path.join(import.meta.dirname, '..', 'tmp');
 
   const dh = await loadDhModules({
     serverUrl,
@@ -147,4 +164,72 @@ export async function initDh(
   const session = await cn.startSession('python');
 
   return { dh, client, cn, session };
+}
+
+export async function initPlugin(
+  pythonModuleMap: PythonModuleMap,
+  session: DhType.IdeSession
+): Promise<DhType.Widget> {
+  await session.runCode(DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT);
+  console.log('Initialized Deephaven VS Code local execution plugin.');
+
+  const plugin: DhType.Widget = await session.getObject(PLUGIN_QUERY);
+  plugin.addEventListener<DhType.Widget>(
+    DH_WIDGET_EVENT_MESSAGE,
+    createModuleSourceRequestHandler(plugin, pythonModuleMap)
+  );
+
+  // The connection id must be set on the plugin and match the id used in the
+  // execution context in order for server plugin to request source from this
+  // client.
+  await setConnectionId(plugin, CN_ID);
+
+  // Tell the server the connection id and top level module names that can be
+  // sourced from this client.
+  await session.runCode(
+    getSetExecutionContextScript(
+      CN_ID,
+      pythonModuleMap.getTopLevelModuleNames()
+    )
+  );
+
+  return plugin;
+}
+
+/**
+ * Send a set_connection_id request to the plugin and wait for a response.
+ * @param plugin The plugin widget to send the request to.
+ * @param id The connection id to set.
+ */
+export async function setConnectionId(
+  plugin: DhType.Widget,
+  id: string
+): Promise<void> {
+  const request = Msg.setConnectionId(id);
+
+  const result = new Promise<void>((resolve, reject) => {
+    const removeEventListener = plugin.addEventListener<DhType.Widget>(
+      DH_WIDGET_EVENT_MESSAGE,
+      async ({ detail }) => {
+        try {
+          const message: JsonRpcResponse | JsonRpcRequest = JSON.parse(
+            detail.getDataAsString()
+          );
+
+          if ('id' in message && message.id === request.id) {
+            console.log('Connection ID set:', message.id);
+            resolve();
+            removeEventListener();
+          }
+        } catch (err) {
+          console.error('Error parsing message from server:', err);
+          reject(err);
+        }
+      }
+    );
+  });
+
+  plugin.sendMessage(JSON.stringify(request));
+
+  return result;
 }
