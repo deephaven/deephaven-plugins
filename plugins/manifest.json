@@ -22,7 +22,7 @@
     },
     { "name": "ui", "version": "0.0.0", "main": "src/js/dist/index.js" },
     {
-      "name": "example-theme",
+      "name": "theme-pack",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"
     },
@@ -33,6 +33,11 @@
     },
     {
       "name": "table-example",
+      "version": "0.0.0",
+      "main": "src/js/dist/index.js"
+    },
+    {
+      "name": "pivot",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"
     }

@@ -4,7 +4,11 @@ import pandas as pd
 import numpy as np
 from plotly import express as px
 import math
-import random
+
+# Use Random() class as seperate instances to avoid global state issues,
+# as Deephaven may evaluate columns in parallel.
+from random import Random
+
 import jpy
 from typing import Any, cast
 
@@ -16,6 +20,7 @@ from deephaven.time import (
     to_pd_timestamp,
 )
 from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max, delta, DeltaControl
+
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
@@ -116,8 +121,7 @@ def iris(ticking: bool = True) -> Table:
     def get_random_value(col: str, index: int, species: str) -> float:
         mean = float(cast(float, species_descriptions[col]["mean"][species]))
         std = float(cast(float, species_descriptions[col]["std"][species]))
-        random.seed(index)
-        return round(random.gauss(mean, std), 1)
+        return round(Random(index).gauss(mean, std), 1)
 
     # Lookup species_id by index and add one as original dataset is not zero indexed
     def get_index(species: str) -> int:
@@ -169,8 +173,7 @@ def jobs(ticking: bool = True) -> Table:
     """
 
     def generate_resource(index: int) -> str:
-        random.seed(index)
-        return random.choice(["Mike", "Matti", "Steve", "John", "Jane"])
+        return Random(index).choice(["Mike", "Matti", "Steve", "John", "Jane"])
 
     jobs_query_strings = [
         "Job = `Job` + String.valueOf((ii % 5) + 1)",
@@ -223,8 +226,7 @@ def marketing(ticking: bool = True) -> Table:
     )
 
     def weighted_selection(prob: float, index: int) -> bool:
-        random.seed(index)
-        return random.uniform(0, 1) < prob
+        return Random(index).uniform(0, 1) < prob
 
     marketing_query_strings = [
         "VisitedWebsite = true",  # appearing in this table assumes a website visit
@@ -310,16 +312,13 @@ def stocks(
         init_value = 100  # is used inside query string
 
         def random_gauss(seed: int) -> float:
-            random.seed(seed)
-            return random.gauss(0, 1)
+            return Random(seed).gauss(0, 1)
 
         def random_list_sym(seed: int) -> str:
-            random.seed(seed)
-            return random.choices(sym_list, sym_weights)[0]
+            return Random(seed).choices(sym_list, sym_weights)[0]
 
         def random_list_exchange(seed: int) -> str:
-            random.seed(seed)
-            return random.choices(exchange, exchange_weights)[0]
+            return Random(seed).choices(exchange, exchange_weights)[0]
 
         def random_trade_size(rand: float) -> int:
             """
@@ -329,8 +328,7 @@ def stocks(
             abs_rand = abs(rand**3)
             # rough model of the distribution of trade sizes in real market data
             # they bucket into human sized trade blocks
-            random.seed(rand)
-            size_dist = random.choices(
+            size_dist = Random(rand).choices(
                 [0, 2, 3, 4, 5, 10, 20, 50, 100, 150, 200, 250, 300, 400, 500, 1000],
                 [1000, 30, 25, 20, 15, 5, 5, 20, 180, 5, 15, 5, 8, 7, 8, 2],
             )[0]
@@ -345,7 +343,7 @@ def stocks(
             t.update(
                 formulas=[
                     "Timestamp = base_time + (long)(Index * SECOND / ticks_per_second)",
-                    "RandomDouble = (double)random_gauss(Index)",  # nicer looking starting seed
+                    "RandomDouble = (double)random_gauss(Index + 99999)",  # nicer looking starting seed
                     "Sym = random_list_sym(Index)",
                     "Exchange = random_list_exchange(Index)",
                     "Side = RandomDouble >= 0 ? `buy` : `sell`",
@@ -357,13 +355,13 @@ def stocks(
             .update_by(
                 ops=[
                     rolling_sum_tick(
-                        cols=["RollingSum = RandomDouble"], rev_ticks=2000, fwd_ticks=0
+                        cols=["RollingSum = RandomDouble"], rev_ticks=800, fwd_ticks=0
                     )
                 ],
                 by=["Sym"],
             )
             .update_by(
-                ops=[ema_tick(decay_ticks=2, cols=["Ema = RollingSum"])], by=["Sym"]
+                ops=[ema_tick(decay_ticks=10, cols=["Ema = RollingSum"])], by=["Sym"]
             )
             # generate date for "SPet500" a hypothetical composite index
             .update_by(
@@ -504,38 +502,33 @@ def tips(ticking: bool = True) -> Table:
     # statistical analysis to generate values for each column in the data frame
     # row number used as a random seed so that the data is deterministically generated
     def generate_sex(index: int) -> str:
-        random.seed(index)
-        return random.choices(sex_list, weights=sex_probs)[0]
+        return Random(index).choices(sex_list, weights=sex_probs)[0]
 
     def generate_smoker(index: int) -> str:
-        random.seed(index + 1)
-        return random.choices(smoker_list, weights=smoker_probs)[0]
+        return Random(index + 1).choices(smoker_list, weights=smoker_probs)[0]
 
     def generate_day(index: int) -> str:
-        random.seed(index + 2)
-        return random.choices(day_list, weights=day_probs)[0]
+        return Random(index + 2).choices(day_list, weights=day_probs)[0]
 
     def generate_time(index: int) -> str:
-        random.seed(index + 3)
-        return random.choices(time_list, weights=time_probs)[0]
+        return Random(index + 3).choices(time_list, weights=time_probs)[0]
 
     def generate_size(index: int) -> int:
-        random.seed(index + 4)
-        return random.choices(size_list, weights=size_probs)[0]
+        return Random(index + 4).choices(size_list, weights=size_probs)[0]
 
     def generate_total_bill(smoker: str, size: int, index: int) -> float:
-        random.seed(index + 5)
         return round(
             3.68
             + 3.08 * (smoker == "Yes")
             + 5.81 * size
-            + (random.gauss(3.41, 0.99) ** 2 - 12.63),
+            + (Random(index + 5).gauss(3.41, 0.99) ** 2 - 12.63),
             2,
         )
 
     def generate_tip(total_bill: float, index: int) -> float:
-        random.seed(index + 6)
-        return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
+        return max(
+            1, round(0.92 + 0.11 * total_bill + Random(index + 6).gauss(0.0, 1.02), 2)
+        )
 
     # create synthetic ticking version of the tips dataset that generates one new observation per period
     ticking_table = (
@@ -1011,10 +1004,6 @@ def fish_market(ticking: bool = True) -> Table:
     def generate(t: Table, base_rows: int = base_rows) -> Table:
         base_time = to_j_instant(STARTING_TIME)  # used in query strings
 
-        def _stable_val(s: str) -> int:
-            # Deterministic string-to-int seed (avoid Python's randomized hash)
-            return sum(ord(c) for c in s) & 0x7FFFFFFF
-
         # Reference data
         species_list = [
             "Atlantic Salmon",
@@ -1159,15 +1148,13 @@ def fish_market(ticking: bool = True) -> Table:
         }
 
         def choose_species(index: int) -> str:
-            random.seed(index)
             weights = [12, 6, 10, 10, 7, 11, 8, 6]  # some variety
-            return random.choices(species_list, weights=weights)[0]
+            return Random(index).choices(species_list, weights=weights)[0]
 
         def species_type(species: str) -> str:
             return species_to_type.get(species, "Unknown")
 
         def choose_form(index: int, species: str) -> str:
-            random.seed(index + 1 + _stable_val(species))
             # Form preferences by species (e.g., Lobster more often Whole or Frozen)
             if species == "Lobster":
                 weights = [7, 0, 0, 3]  # Whole, Fillet, Steaks, Frozen
@@ -1177,35 +1164,32 @@ def fish_market(ticking: bool = True) -> Table:
                 weights = [2, 4, 3, 1]
             else:
                 weights = [3, 5, 2, 2]
-            return random.choices(product_forms, weights=weights)[0]
+            return Random(index + 1).choices(product_forms, weights=weights)[0]
 
         def choose_ground(index: int, species: str) -> str:
-            random.seed(index + 2 + _stable_val(species))
             valid_grounds = species_to_grounds.get(species, fishing_grounds)
             weights = [35, 30, 12, 15, 8]
-            return random.choices(valid_grounds, weights=weights[: len(valid_grounds)])[
-                0
-            ]
+            return Random(index + 2).choices(
+                valid_grounds, weights=weights[: len(valid_grounds)]
+            )[0]
 
         # Update choose_port to select by ground only
         def choose_port(ground: str, index: int) -> str:
-            random.seed(index + 4500 + _stable_val(ground))
-            options = ports_by_ground.get(ground, ["Boston, MA"])
-            return random.choice(options)
+            return Random(index + 4).choices(
+                ports_by_ground.get(ground, ["Boston, MA"])
+            )[0]
 
         def choose_country(port: str) -> str:
             # Select country based on port
             return port_to_country.get(port, "United States")
 
         def choose_vessel(index: int, ground: str) -> str:
-            random.seed(index + 5000 + _stable_val(ground))
-            return random.choice(vessels)
+            return Random(index + 5).choices(vessels)[0]
 
         def choose_customer(index: int) -> str:
-            random.seed(index + 6)
             options = list(customer_to_type.keys())
             weights = [10, 9, 7, 8, 9, 7, 8, 6, 5, 3, 4, 5, 2]
-            return random.choices(options, weights=weights)[0]
+            return Random(index + 6).choices(options, weights=weights)[0]
 
         def customer_type(name: str) -> str:
             return customer_to_type.get(name, "Retail")
@@ -1217,14 +1201,6 @@ def fish_market(ticking: bool = True) -> Table:
             ground: str,
             species: str,
         ) -> str:
-            random.seed(
-                index
-                + 7000
-                + _stable_val(product_form)
-                + (_stable_val(landing_country) * 3)
-                + (_stable_val(ground) * 5)
-                + (_stable_val(species) * 7)
-            )
             # Air more likely for premium/fresh product or long-distance exports
             air_bias = 0
             if product_form in ("Fillet", "Steaks"):
@@ -1235,15 +1211,14 @@ def fish_market(ticking: bool = True) -> Table:
                 air_bias += 15
             air_weight = max(10, min(70, 20 + air_bias))
             truck_weight = 100 - air_weight
-            return random.choices(
+            return Random(index + 7).choices(
                 ["Air Freight", "Refrigerated Truck"],
                 weights=[air_weight, truck_weight],
             )[0]
 
         def gen_weight(species: str, product_form: str, index: int) -> float:
             low, high, mode = weight_profiles[species]
-            random.seed(index + 8000 + _stable_val(species))
-            w = random.triangular(low, high, mode)
+            w = Random(index + 8).triangular(low, high, mode)
             form_mult = {"Whole": 1.0, "Fillet": 0.6, "Steaks": 0.7, "Frozen": 0.8}.get(
                 product_form, 1.0
             )
@@ -1251,21 +1226,18 @@ def fish_market(ticking: bool = True) -> Table:
 
         def gen_price(species: str, product_form: str, index: int) -> float:
             low, high, mode = price_profiles[species]
-            random.seed(index + 9000 + _stable_val(species))
-            p = random.triangular(low, high, mode)
+            p = Random(index + 9).triangular(low, high, mode)
             form_mult = {"Whole": 1.0, "Fillet": 1.3, "Steaks": 1.2, "Frozen": 0.9}.get(
                 product_form, 1.0
             )
             # Add small noise
-            random.seed(index + 10)
-            noise = random.gauss(0.0, 0.5)
+            noise = Random(index + 10).gauss(0.0, 0.5)
             return max(1.0, p * form_mult + noise)
 
         def compute_handling_fee(
             revenue: float, transport_method: str, product_form: str, index: int
         ) -> float:
-            random.seed(index + 11)
-            base_pct = random.uniform(0.02, 0.06)
+            base_pct = Random(index + 11).uniform(0.02, 0.06)
             if transport_method == "Air Freight":
                 base_pct += 0.02
             if product_form == "Frozen":
@@ -1275,16 +1247,10 @@ def fish_market(ticking: bool = True) -> Table:
         def gen_sale_delay(
             transport_method: str, product_form: str, weight: float, index: int
         ) -> int:
-            random.seed(
-                index
-                + 13000
-                + _stable_val(transport_method)
-                + (_stable_val(product_form) * 2)
-            )
             if transport_method == "Air Freight":
-                base = random.randint(1, 3)
+                base = Random(index + 12).randint(1, 3)
             else:
-                base = random.randint(2, 12)
+                base = Random(index + 12).randint(2, 12)
             # Heavier shipments tend to take a bit longer
             heavy_adj = 0
             if weight > 300:
