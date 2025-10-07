@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { nanoid } from 'nanoid';
 import { loadDhModules, NodeHttp2gRPCTransport } from '@deephaven/jsapi-nodejs';
-import { dh as DhType } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Msg, type JsonRpcRequest, type JsonRpcResponse } from './jsonRpc.mjs';
-import type PythonModuleMap from './PythonModuleMap.js';
+import type PythonModuleMap from './PythonModuleMap.mjs';
 
 export const AUTH_HANDLER_TYPE_PSK =
   'io.deephaven.authentication.psk.PskAuthenticationHandler';
@@ -169,7 +170,7 @@ export async function initDh(
 export async function initPlugin(
   pythonModuleMap: PythonModuleMap,
   session: DhType.IdeSession
-): Promise<DhType.Widget> {
+): Promise<{ runCode: (code: string) => Promise<DhType.ide.CommandResult> }> {
   await session.runCode(DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT);
   console.log('Initialized Deephaven VS Code local execution plugin.');
 
@@ -184,16 +185,36 @@ export async function initPlugin(
   // client.
   await setConnectionId(plugin, CN_ID);
 
-  // Tell the server the connection id and top level module names that can be
-  // sourced from this client.
-  await session.runCode(
-    getSetExecutionContextScript(
-      CN_ID,
-      pythonModuleMap.getTopLevelModuleNames()
-    )
-  );
+  return {
+    /**
+     * Augmented runCode function that sets plugin execution context before
+     * running DH code.
+     */
+    runCode: async (code: string): Promise<DhType.ide.CommandResult> => {
+      await setExecutionContext(
+        session,
+        CN_ID,
+        pythonModuleMap.getTopLevelModuleNames()
+      );
+      return session.runCode(code);
+    },
+  };
+}
 
-  return plugin;
+/**
+ * Set the connection id and top level module names in the server execution context.
+ * @param session The ide session to run the code in.
+ * @param cnId connection id
+ * @param topLevelModuleNames The set of top level module names in the workspace.
+ */
+async function setExecutionContext(
+  session: DhType.IdeSession,
+  cnId: string,
+  topLevelModuleNames: ReadonlySet<string>
+): Promise<void> {
+  await session.runCode(
+    getSetExecutionContextScript(cnId, topLevelModuleNames)
+  );
 }
 
 /**
@@ -232,4 +253,25 @@ export async function setConnectionId(
   plugin.sendMessage(JSON.stringify(request));
 
   return result;
+}
+
+/**
+ * Send a print message with a unique marker and wait for it to appear in the
+ * log messages.
+ * @param session The ide session to listen for log messages on.
+ * @returns A promise that resolves when the marker is found in the log messages.
+ */
+export function waitForLogMarker(session: DhType.IdeSession): Promise<void> {
+  // unique marker to wait for in log messages
+  const marker = `<MARKER-${nanoid()}>`;
+
+  return new Promise(resolve => {
+    const unsubscribe = session.onLogMessage(msg => {
+      if (msg.message === `${marker}\n`) {
+        resolve();
+        unsubscribe();
+      }
+    });
+    session.runCode(`print("${marker}")`);
+  });
 }
