@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { nanoid } from 'nanoid';
 import { loadDhModules, NodeHttp2gRPCTransport } from '@deephaven/jsapi-nodejs';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Msg, type JsonRpcRequest, type JsonRpcResponse } from './jsonRpc.mjs';
 import type PythonModuleMap from './PythonModuleMap.mjs';
+import { TEST_WORKSPACE_PATH } from './constants.mjs';
 
 export const AUTH_HANDLER_TYPE_PSK =
   'io.deephaven.authentication.psk.PskAuthenticationHandler';
@@ -120,6 +120,18 @@ export function getSetExecutionContextScript(
     .map(modulePath => `"${modulePath}"`)
     .join(',')}}`;
   return `${PLUGIN_VARIABLE}.set_execution_context(${connectionIdStr}, ${moduleFullnamesStr})`;
+}
+
+/**
+ * Get a file relative to the test Python workspace.
+ * @param relativeFilePath The file path relative to the test workspace.
+ * @returns The file contents as a string.
+ */
+export async function getWorkspaceFileSource(relativeFilePath: string) {
+  return fs.promises.readFile(
+    path.join(TEST_WORKSPACE_PATH, relativeFilePath),
+    'utf-8'
+  );
 }
 
 /**

@@ -1,22 +1,15 @@
-import fs from 'node:fs';
 import assert from 'node:assert';
-import path from 'node:path';
-import { initDh, initPlugin } from './utils.mjs';
+import { PSK, SERVER_URL, TEST_WORKSPACE_PATH } from './constants.mjs';
 import { PythonModuleMap } from './PythonModuleMap.mjs';
+import { getWorkspaceFileSource, initDh, initPlugin } from './utils.mjs';
 
 console.log('Node.js version:', process.version);
 
-const SERVER_URL = new URL('http://localhost:10000/');
-const PSK = 'plugins.repo.test' as const;
-const TEST_WORKSPACE_PATH = path.resolve(import.meta.dirname, '../workspace');
-
-const TEST_RELATIVE_IMPORTS_SOURCE = await fs.promises.readFile(
-  path.join(TEST_WORKSPACE_PATH, 'test_relative_imports.py'),
-  'utf-8'
+const TEST_RELATIVE_IMPORTS_SOURCE = await getWorkspaceFileSource(
+  'test_relative_imports.py'
 );
-const TEST_ABSOLUTE_IMPORTS_SOURCE = await fs.promises.readFile(
-  path.join(TEST_WORKSPACE_PATH, 'test_absolute_imports.py'),
-  'utf-8'
+const TEST_ABSOLUTE_IMPORTS_SOURCE = await getWorkspaceFileSource(
+  'test_absolute_imports.py'
 );
 
 const pythonModuleMap = await PythonModuleMap.create(TEST_WORKSPACE_PATH);
