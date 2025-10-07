@@ -4,15 +4,13 @@ from typing import Optional
 
 
 class PluginObject:
-    execution_context_connection_id: Optional[str] = None
+    _execution_context_connection_id: Optional[str] = None
     _top_level_module_fullnames: set[str] = set()
 
     """
     Plugin object that holds state for the plugin.
 
     Attributes:
-        execution_context_connection_id: Optional[str]: The connection id of the current execution context
-        _top_level_module_fullnames: set[str]: The set of top level module fullnames that can be sourced by the client
     """
 
     def __init__(self):
@@ -24,7 +22,7 @@ class PluginObject:
         """
         for mod_name in list(sys.modules.keys()):
             if self.is_sourced_by_execution_context(
-                mod_name, self.execution_context_connection_id
+                mod_name, self._execution_context_connection_id
             ):
                 del sys.modules[mod_name]
 
@@ -40,10 +38,15 @@ class PluginObject:
         """
         Check if a module fullname is included in the registered top-level module
         names and that the given connection id matches the current execution context.
+        Args:
+            module_fullname: The full name of the module to check.
+            connection_id: The connection id to check.
+        Returns:
+            bool: True if the check passes, False otherwise.
         """
         if (
             connection_id is None
-            or connection_id != self.execution_context_connection_id
+            or connection_id != self._execution_context_connection_id
         ):
             return False
 
@@ -64,7 +67,12 @@ class PluginObject:
         """
         Set the execution context for the object. This includes the set of top
         level module fullnames that can be sourced by the client.
+        Args:
+            connection_id: The connection id for the execution context.
+            top_level_module_fullnames: The set of top level module fullnames.
+        Returns:
+            None
         """
         self.evict_module_cache()
-        self.execution_context_connection_id = connection_id
+        self._execution_context_connection_id = connection_id
         self._top_level_module_fullnames = top_level_module_fullnames
