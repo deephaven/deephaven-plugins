@@ -23,7 +23,7 @@ class JsonRpcError(TypedDict):
 JsonRpcResponse = Union[JsonRpcSuccess, JsonRpcError]
 
 
-class LocalModuleDescriptor(TypedDict):
+class RemoteModuleDescriptor(TypedDict):
     filepath: str
     source: Optional[str]
 

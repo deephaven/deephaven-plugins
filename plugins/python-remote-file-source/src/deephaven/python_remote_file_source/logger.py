@@ -1,4 +1,8 @@
 class Logger:
+    """
+    Basic scoped logger class with different log levels.
+    """
+
     def __init__(self, name: str):
         self.name = name
 

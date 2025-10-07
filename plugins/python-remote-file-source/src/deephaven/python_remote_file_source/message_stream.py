@@ -23,7 +23,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
     A custom MessageStream between the client and the server plugin
 
     Attributes:
-        _client_connection: MessageStream: The connection to the client
+        id: Optional[str]: The connection id
     """
 
     id: Optional[str] = None
@@ -67,6 +67,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         Send a message to the client
         Args:
             message: The message to send (str or dict)
+        Returns: None
         """
         if isinstance(message, dict):
             message = json.dumps(message)
@@ -76,6 +77,10 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
     def on_data(self, payload: bytes, references: list[Any]) -> None:
         """
         Handle a payload from the client. If it is a JSON-RPC v2 response with a matching id, set the result.
+        Args:
+            payload: The payload from the client
+            references: Any references (not used)
+        Returns: None
         """
         if self._plugin is None:
             logger.error("PluginObject is None, cannot handle on_data")
@@ -122,6 +127,8 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
     async def request_data(self, request_msg: JsonRpcRequest) -> JsonRpcResponse:
         """
         Request data from the client asynchronously, waiting for a response.
+        Args:
+            request_msg: The JSON-RPC request message to send
         Returns:
             Any: The data from the client
         """
@@ -144,9 +151,8 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         """
         Synchronously request data from the client via JSON-RPC, blocking until a response is received.
         Args:
-            method: The JSON-RPC method name
-            params: The parameters to send
-            timeout: Timeout in seconds
+            request_msg: The JSON-RPC request message to send
+            timeout: The timeout in seconds to wait for a response (default: 1.0)
         Returns:
             The JSON-RPC response from the client
         Raises:

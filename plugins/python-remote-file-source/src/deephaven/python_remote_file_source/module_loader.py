@@ -5,7 +5,7 @@ from typing import Optional, Sequence
 from .plugin_object import PluginObject
 from .json_rpc import create_request_msg
 from .logger import Logger
-from .types import LocalModuleDescriptor, MessageStreamRequestInterface
+from .types import RemoteModuleDescriptor, MessageStreamRequestInterface
 
 
 logger = Logger("RemoteMetaPathFinder")
@@ -16,15 +16,21 @@ class RemoteModuleLoader:
     A custom module loader that loads modules from a remote source.
     """
 
-    _module_descriptor: LocalModuleDescriptor | None
+    _module_descriptor: RemoteModuleDescriptor | None
 
-    def __init__(self, module_descriptor: LocalModuleDescriptor | None):
+    def __init__(self, module_descriptor: RemoteModuleDescriptor | None):
         self._module_descriptor = module_descriptor
 
     def create_module(self, spec: ModuleSpec):
         return None
 
     def exec_module(self, module: ModuleType):
+        """
+        Execute the module source in the given module.
+        Args:
+            module: The module to execute the code in.
+        Returns: None
+        """
         if self._module_descriptor is None:
             return
 
@@ -55,13 +61,21 @@ class RemoteMetaPathFinder:
         path: Optional[Sequence[str]],
         target: Optional[ModuleType] = None,
     ):
+        """
+        Find the module spec for a given module fullname.
+        Args:
+            fullname: The full name of the module to find.
+            path: (not used).
+            target: (not used).
+        Returns: The module spec if found, None otherwise.
+        """
         if not self._connection or not self._plugin.is_sourced_by_execution_context(
             fullname, self._connection.id
         ):
             # return None so that other finder/loaders can try
             return None
 
-        module_spec: LocalModuleDescriptor | None = None
+        module_spec: RemoteModuleDescriptor | None = None
 
         try:
             msg = create_request_msg("fetch_module", {"module_name": fullname})
