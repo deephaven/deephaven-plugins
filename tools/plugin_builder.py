@@ -36,8 +36,12 @@ IGNORE_REGEXES = [
     r".*/build/.*",
     r".*/node_modules/.*",
     r".*/_js/.*",
+    r".*/test_ws/.*$",
     # ignore hidden files and directories
     r".*/\..*/.*",
+    # ignore the test node client since it is not part of plugin code, and we
+    # don't want changes to restart the builder / server
+    r".*/plugins/python-remote-file-source/test-node-client/.*",
 ]
 
 
