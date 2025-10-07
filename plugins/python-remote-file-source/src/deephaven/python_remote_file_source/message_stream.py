@@ -99,8 +99,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
                 future_response = self._future_responses[msg["id"]]
                 loop = future_response.get_loop()
                 loop.call_soon_threadsafe(future_response.set_result, msg)
-        # Plugin client can request info to see what top-level modules are
-        # currently configured.
+
         elif is_valid_json_rpc_request(msg):
             match msg["method"]:
                 case "request_plugin_info":
