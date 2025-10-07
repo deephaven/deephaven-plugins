@@ -203,9 +203,7 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
-
-my_table_databar_basic = ui.table(t, databars=[{"column": "Price"}])
+t = ui.table(dx.data.stocks(), databars=[{"column": "Price"}])
 ```
 
 ##### Value Column
@@ -217,10 +215,8 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
-
-my_table_value_column = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[{"column": "Sym", "value_column": "Price", "color": "info"}],
 )
 ```
@@ -236,18 +232,10 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
-
-my_table_fixed_scale_example = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {"column": "Size", "min": 0, "max": 1000, "color": "positive"},
-    ],
-)
-
-my_table_dynamic_scale_example = ui.table(
-    t,
-    databars=[
         {"column": "Price", "min": 0, "max": "Dollars", "color": "positive"},
     ],
 )
@@ -267,26 +255,16 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
 
-
-my_table_proportional_axis_example = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {
-            "column": "Random",
-        }
+            "column": "Size",
+        },
+        {"column": "Price", "axis": "middle"},
+        {"column": "Dollars", "axis": "directional"},
     ],
-)
-
-my_table_middle_axis_example = ui.table(
-    t,
-    databars=[{"column": "Random", "axis": "middle"}],
-)
-
-my_table_directional_axis_example = ui.table(
-    t,
-    databars=[{"column": "Random", "axis": "directional"}],
 )
 ```
 
@@ -302,18 +280,13 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
 
-my_table_LTR_direction_examples = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {"column": "Size", "direction": "LTR"},
+        {"column": "Price", "direction": "RTL"},
     ],
-)
-
-my_table_RTL_direction_examples = ui.table(
-    t,
-    databars=[{"column": "Size", "direction": "RTL"}],
 )
 ```
 
@@ -331,25 +304,15 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
-
-my_table_beside_value_placement = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {
             "column": "Size",
-        }
+        },
+        {"column": "Price", "value_placement": "overlap"},
+        {"column": "Dollars", "value_placement": "hide"},
     ],
-)
-
-my_table_overlap_value_placement = ui.table(
-    t,
-    databars=[{"column": "Size", "value_placement": "overlap"}],
-)
-
-my_table_hide_value_placement = ui.table(
-    t,
-    databars=[{"column": "Size", "value_placement": "hide"}],
 )
 ```
 
@@ -362,10 +325,9 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
 
-my_table_color_examples = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {"column": "Size", "color": "info"},
         {"column": "Price", "color": ["negative", "positive"]},
@@ -382,10 +344,8 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
-
-my_table_opacity_examples = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {"column": "Size", "color": "info", "opacity": 0.3},
     ],
@@ -401,10 +361,9 @@ from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
 
-my_table_markers_example = ui.table(
-    t,
+t = ui.table(
+    dx.data.stocks(),
     databars=[
         {
             "column": "Price",
