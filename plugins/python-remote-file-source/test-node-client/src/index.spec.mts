@@ -2,12 +2,19 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { PSK, SERVER_URL, TEST_WORKSPACE_PATH } from './constants.mjs';
 import PythonModuleMap from './PythonModuleMap.mjs';
-import { getWorkspaceFileSource, initDh, initPlugin } from './utils.mjs';
+import {
+  assertServerIsReady,
+  getWorkspaceFileSource,
+  initDh,
+  initPlugin,
+} from './utils.mjs';
 
 describe('Python remote file source plugin tests', () => {
   let runCode: (code: string) => Promise<DhType.ide.CommandResult>;
 
   beforeEach(async () => {
+    await assertServerIsReady();
+
     const pythonModuleMap = await PythonModuleMap.create(TEST_WORKSPACE_PATH);
     const { session } = await initDh(SERVER_URL, PSK);
     runCode = (await initPlugin(pythonModuleMap, session)).runCode;

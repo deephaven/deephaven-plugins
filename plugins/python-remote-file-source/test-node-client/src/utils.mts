@@ -4,33 +4,17 @@ import { loadDhModules, NodeHttp2gRPCTransport } from '@deephaven/jsapi-nodejs';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Msg, type JsonRpcRequest, type JsonRpcResponse } from './jsonRpc.mjs';
 import type PythonModuleMap from './PythonModuleMap.mjs';
-import { TEST_WORKSPACE_PATH } from './constants.mjs';
-
-export const AUTH_HANDLER_TYPE_PSK =
-  'io.deephaven.authentication.psk.PskAuthenticationHandler';
-
-const CN_ID = '12345' as const;
-
-// Alias for `dh.Widget.EVENT_MESSAGE` to avoid having to pass in a `dh` instance
-// to util functions that only need the event name.
-export const DH_WIDGET_EVENT_MESSAGE = 'message' as const;
-
-export const PLUGIN_VARIABLE = '__deephaven_vscode' as const;
-
-export const PLUGIN_CLASS = 'DeephavenPythonRemoteFileSourcePlugin' as const;
-
-export const PLUGIN_QUERY = {
-  name: PLUGIN_VARIABLE,
-  type: PLUGIN_CLASS,
-};
-
-export const DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT = [
-  'try:',
-  `    ${PLUGIN_VARIABLE}`,
-  'except NameError:',
-  '    from deephaven.python_remote_file_source import PluginObject as DeephavenRemoteFileSourcePlugin',
-  `    ${PLUGIN_VARIABLE} = DeephavenRemoteFileSourcePlugin()`,
-].join('\n');
+import {
+  AUTH_HANDLER_TYPE_PSK,
+  CN_ID,
+  DH_PYTHON_REMOTE_SOURCE_PLUGIN_INIT_SCRIPT,
+  DH_PYTHON_REMOTE_SOURCE_PLUGIN_NAME,
+  DH_WIDGET_EVENT_MESSAGE,
+  PLUGIN_QUERY,
+  PLUGIN_VARIABLE,
+  SERVER_URL,
+  TEST_WORKSPACE_PATH,
+} from './constants.mjs';
 
 /**
  * Create a message handler for the given plugin that responds to fetch_module
@@ -178,6 +162,15 @@ export async function initDh(
   return { dh, client, cn, session };
 }
 
+/**
+ * Initialize a client to the Python remote file source plugin. Returns an
+ * augmented `runCode` function that will run scripts with the appropropriate
+ * execution context expected by the plugin.
+ * @param pythonModuleMap PythonModuleMap instance for resolving Python module
+ * file source content
+ * @param session Deephaven session to connect to
+ * @returns An object containing the augmented `runCode` function.
+ */
 export async function initPlugin(
   pythonModuleMap: PythonModuleMap,
   session: DhType.IdeSession
@@ -210,6 +203,41 @@ export async function initPlugin(
       return session.runCode(code);
     },
   };
+}
+
+/**
+ * Check if a plugin is installed on the given worker.
+ * @param workerUrl URL of the Core / Core+ worker
+ * @param pluginName Name of the plugin to check for
+ * @returns Promise that resolves to true if the plugin is installed, false otherwise
+ */
+export async function isPluginInstalled(pluginName: string): Promise<boolean> {
+  const pluginsManifestUrl = new URL('/js-plugins/manifest.json', SERVER_URL);
+
+  try {
+    const response = await fetch(pluginsManifestUrl, { method: 'GET' });
+    const manifestJson: { plugins: { name: string }[] } = await response.json();
+
+    return manifestJson.plugins.some(plugin => plugin.name === pluginName);
+  } catch (err) {
+    console.error('Error checking for local execution plugin', err);
+    return false;
+  }
+}
+
+/**
+ * Assert that DH server is running and plugin is installed.
+ */
+export async function assertServerIsReady(): Promise<void> {
+  try {
+    await fetch(SERVER_URL, { method: 'HEAD' });
+  } catch (err) {
+    throw new Error(`Deephaven server not reachable at ${SERVER_URL}.`);
+  }
+
+  if (!(await isPluginInstalled(DH_PYTHON_REMOTE_SOURCE_PLUGIN_NAME))) {
+    throw new Error('Python remote file source plugin is not installed.');
+  }
 }
 
 /**
