@@ -46,7 +46,6 @@ export function createModuleSourceRequestHandler(
   return async ({ detail }: DhType.Event<DhType.Widget>): Promise<void> => {
     try {
       const message: JsonRpcRequest = JSON.parse(detail.getDataAsString());
-      console.log('Received message from server:', message);
       if (message.method !== 'fetch_module') {
         return;
       }
@@ -253,25 +252,4 @@ export async function setConnectionId(
   plugin.sendMessage(JSON.stringify(request));
 
   return result;
-}
-
-/**
- * Send a print message with a unique marker and wait for it to appear in the
- * log messages.
- * @param session The ide session to listen for log messages on.
- * @returns A promise that resolves when the marker is found in the log messages.
- */
-export function waitForLogMarker(session: DhType.IdeSession): Promise<void> {
-  // unique marker to wait for in log messages
-  const marker = `<MARKER-${nanoid()}>`;
-
-  return new Promise(resolve => {
-    const unsubscribe = session.onLogMessage(msg => {
-      if (msg.message === `${marker}\n`) {
-        resolve();
-        unsubscribe();
-      }
-    });
-    session.runCode(`print("${marker}")`);
-  });
 }
