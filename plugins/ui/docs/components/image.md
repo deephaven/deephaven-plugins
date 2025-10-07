@@ -29,8 +29,9 @@ Other options:
 - `none` renders the image in its original dimensions.
 - `scale-down` sizes the image as if `none` or `contain` were specified. Whichever results in a smaller concrete image size is selected.
 
-```python test-set=0
+```python
 from deephaven import ui
+
 
 @ui.component
 def image_variants():
