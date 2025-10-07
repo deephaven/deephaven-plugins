@@ -1,7 +1,7 @@
 import { ChartUtils } from '@deephaven/chart';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Formatter } from '@deephaven/jsapi-utils';
-import { Delta } from 'plotly.js-dist-min';
+import Plotly, { type Delta } from 'plotly.js';
 import { TestUtils } from '@deephaven/test-utils';
 import {
   getPathParts,
