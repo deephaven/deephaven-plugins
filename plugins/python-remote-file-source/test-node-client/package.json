@@ -20,7 +20,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@deephaven/jsapi-nodejs": "1.7.1",
-    "nanoid": "^5.0.7"
+    "@deephaven/jsapi-nodejs": "1.7.1"
   }
 }
