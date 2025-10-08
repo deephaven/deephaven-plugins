@@ -21,7 +21,7 @@ const REQUEST_PLUGIN_INFO_MSG = {
 } as const;
 
 const log = Log.module(
-  '@deephaven/js-plugin-python-remote-file-source/DeephavenPythonRemoteFileSourcePluginView'
+  '@deephaven/js-plugin-python-remote-file-source/PythonRemoteFileSourcePluginView'
 );
 
 export function PythonRemoteFileSourcePluginView(
