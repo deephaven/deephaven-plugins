@@ -3,8 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "./plugins/*/src/js/",
-    "./plugins/python-remote-file-source/test-node-client"
+    "./plugins/*/src/js/"
   ],
   "scripts": {
     "docker": "docker compose up deephaven-plugins --build",
