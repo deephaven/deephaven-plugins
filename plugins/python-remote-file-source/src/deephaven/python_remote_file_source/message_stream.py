@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 import io
 import json
@@ -11,11 +12,10 @@ from .json_rpc import (
     is_valid_json_rpc_request,
     is_valid_json_rpc_response,
 )
-from .logger import Logger
 from .module_loader import RemoteMetaPathFinder
 from .types import JsonRpcRequest, JsonRpcResponse, MessageStreamRequestInterface
 
-logger = Logger("MessageStream")
+logger = logging.getLogger(__name__)
 
 
 class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
@@ -56,7 +56,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         count = sum(
             isinstance(finder, RemoteMetaPathFinder) for finder in sys.meta_path
         )
-        logger.info("Registered RemoteMetaPathFinder:", count)
+        logger.info(f"Registered RemoteMetaPathFinder: {count}")
 
     def send_message(self, message: JsonRpcResponse | str) -> None:
         """
@@ -97,15 +97,14 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
                 case "request_plugin_info":
                     full_names = list(self._plugin.get_top_level_module_fullnames())
                     logger.info(
-                        "Sending plugin info to client. Remote module count:",
-                        len(full_names),
+                        f"Sending plugin info to client. Remote module count: {len(full_names)}",
                     )
                     self.send_message(
                         create_response_msg(msg["id"], {"full_names": full_names})
                     )
                 case "set_connection_id":
                     self.id = msg.get("id")
-                    logger.info("Set connection id:", self.id)
+                    logger.info(f"Set connection id: {self.id}")
 
                     self._deregister_meta_path_finder()
                     self._register_meta_path_finder()
@@ -154,7 +153,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
             try:
                 return await asyncio.wait_for(self.request_data(request_msg), timeout)
             except Exception as ex:
-                logger.error("Error during request_data_sync:", ex)
+                logger.error("Error during request_data_sync:", exc_info=True)
                 del self._future_responses[request_msg["id"]]
                 raise
 
@@ -175,5 +174,5 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         """
         Close the connection
         """
-        logger.info("Closing connection", self.id)
+        logger.info(f"Closing connection {self.id}")
         self._deregister_meta_path_finder()

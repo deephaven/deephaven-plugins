@@ -1,14 +1,14 @@
 from importlib.machinery import ModuleSpec
+import logging
 from types import ModuleType
 from typing import Optional, Sequence
 
 from .plugin_object import PluginObject
 from .json_rpc import create_request_msg
-from .logger import Logger
 from .types import RemoteModuleDescriptor, MessageStreamRequestInterface
 
 
-logger = Logger("RemoteMetaPathFinder")
+logger = logging.getLogger(__name__)
 
 
 class RemoteModuleLoader:
@@ -81,18 +81,20 @@ class RemoteMetaPathFinder:
             msg = create_request_msg("fetch_module", {"module_name": fullname})
             response = self._connection.request_data_sync(msg)
         except Exception as err:
-            logger.error("Error finding external module spec:", fullname, err)
+            logger.error(
+                f"Error finding external module spec: {fullname}", exc_info=True
+            )
             raise
 
         module_spec = response.get("result")
         if module_spec is None:
-            logger.info("Module spec not found:", fullname)
+            logger.info(f"Module spec not found: {fullname}")
             return
 
         logger.info(
-            "Fetched module spec:",
+            "Fetched module spec: %s source=%s",
             fullname,
-            "source" if module_spec.get("source") else "None",
+            "True" if module_spec.get("source") else "None",
         )
 
         origin = module_spec.get("filepath") if module_spec else None
