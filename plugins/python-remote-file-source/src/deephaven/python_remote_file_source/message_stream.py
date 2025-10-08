@@ -29,7 +29,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
     id: Optional[str] = None
     _future_responses: dict[str, asyncio.Future[JsonRpcResponse]] = {}
     _meta_path_finder: Optional[RemoteMetaPathFinder] = None
-    _plugin: Optional[PluginObject] = None
+    _plugin: PluginObject
 
     def __init__(self, obj: PluginObject, client_connection: MesssageStreamBase):
         logger.info("Creating MessageStream")
@@ -50,10 +50,6 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         self._meta_path_finder = None
 
     def _register_meta_path_finder(self):
-        if self._plugin is None:
-            logger.error("PluginObject is None, cannot register meta path finder")
-            return
-
         self._meta_path_finder = RemoteMetaPathFinder(self, self._plugin)
         sys.meta_path.insert(0, self._meta_path_finder)
 
@@ -82,10 +78,6 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
             references: Any references (not used)
         Returns: None
         """
-        if self._plugin is None:
-            logger.error("PluginObject is None, cannot handle on_data")
-            return
-
         decoded_payload = io.BytesIO(payload).read().decode()
 
         try:
@@ -145,13 +137,13 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         return result
 
     def request_data_sync(
-        self, request_msg: JsonRpcRequest, timeout: float = 1.0
+        self, request_msg: JsonRpcRequest, timeout: float = 5.0
     ) -> JsonRpcResponse:
         """
         Synchronously request data from the client via JSON-RPC, blocking until a response is received.
         Args:
             request_msg: The JSON-RPC request message to send
-            timeout: The timeout in seconds to wait for a response (default: 1.0)
+            timeout: The timeout in seconds to wait for a response (default: 5.0)
         Returns:
             The JSON-RPC response from the client
         Raises:
@@ -185,4 +177,3 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         """
         logger.info("Closing connection", self.id)
         self._deregister_meta_path_finder()
-        self._plugin = None

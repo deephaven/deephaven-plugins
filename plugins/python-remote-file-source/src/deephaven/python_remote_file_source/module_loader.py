@@ -69,7 +69,7 @@ class RemoteMetaPathFinder:
             target: (not used).
         Returns: The module spec if found, None otherwise.
         """
-        if not self._connection or not self._plugin.is_sourced_by_execution_context(
+        if not self._connection or not self._plugin.is_sourced_by_plugin(
             fullname, self._connection.id
         ):
             # return None so that other finder/loaders can try
