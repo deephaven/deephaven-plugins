@@ -21,9 +21,7 @@ class PluginObject:
         Evict any cached modules that were loaded from the `RemoteModuleLoader`.
         """
         for mod_name in list(sys.modules.keys()):
-            if self.is_sourced_by_execution_context(
-                mod_name, self._execution_context_connection_id
-            ):
+            if self.is_sourced_by_plugin(mod_name):
                 del sys.modules[mod_name]
 
     def get_top_level_module_fullnames(self) -> set[str]:
@@ -32,12 +30,13 @@ class PluginObject:
         """
         return self._top_level_module_fullnames
 
-    def is_sourced_by_execution_context(
-        self, module_fullname: str, connection_id: Optional[str]
+    def is_sourced_by_plugin(
+        self, module_fullname: str, connection_id: Optional[str] = None
     ) -> bool:
         """
         Check if a module fullname is included in the registered top-level module
-        names and that the given connection id matches the current execution context.
+        names. Optionally check if a given connection id matches the current
+        connection id for the current execution context.
         Args:
             module_fullname: The full name of the module to check.
             connection_id: The connection id to check.
@@ -45,8 +44,8 @@ class PluginObject:
             bool: True if the check passes, False otherwise.
         """
         if (
-            connection_id is None
-            or connection_id != self._execution_context_connection_id
+            connection_id is not None
+            and connection_id != self._execution_context_connection_id
         ):
             return False
 

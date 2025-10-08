@@ -1,7 +1,7 @@
 {
   "name": "@deephaven/js-plugin-python-remote-file-source",
   "version": "0.0.1",
-  "description": "Deephaven plugin for sourcing Python files from a remote location",
+  "description": "Deephaven plugin for importing Python modules from a remote location",
   "keywords": [
     "Deephaven",
     "plugin"

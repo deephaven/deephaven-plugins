@@ -1,6 +1,6 @@
 # Deephaven Python Remote File Source Plugin
 
-A Deephaven bi-directional plugin to allow sourcing Python imports from a remote file source. It consists of a Python plugin installed and then instantiated in a Deephaven core / core+ worker. When a client connects to the plugin, a custom Python `sys.meta_path` finder and loader are registered that will send messages to the client to request content for loading modules.
+A Deephaven bi-directional plugin to allow sourcing Python imports from a remote file source. It consists of a Python plugin installed and then instantiated in a Deephaven Core / Core+ worker. When a client connects to the plugin, a custom Python `sys.meta_path` finder and loader are registered that will send messages to the client to request content for loading modules.
 
 ## Plugin Structure
 
@@ -8,13 +8,13 @@ The `src` directory contains the Python and JavaScript code for the plugin.
 Within the `src` directory, the `deephaven/python_remote_file_source` directory contains the Python code, and the `js` directory contains the JavaScript code.  
 
 The Python files have the following structure:  
-`plugin_object.py` defines a simple Python class that can send messages to the client. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
-`plugin_type.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
+`plugin_object.py` defines a simple Python class that can send messages to the client.
+`plugin_type.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
 `register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
 The JavaScript files have the following structure:  
 `PythonRemoteFileSourcePlugin.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `plugin_type.py` and these should be kept in sync.  
-`PythonRemoteFileSourcePluginView.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. This file is a good starting point for adding more complex plugin functionality.  
+`PythonRemoteFileSourcePluginView.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. 
 
 Additionally, the `test` directory contains Python tests for the plugin.
 It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
@@ -48,4 +48,4 @@ from deephaven.python_remote_file_source_plugin import (
 obj = DeephavenRemoteFileSourcePlugin()
 ```
 
-A panel should appear.
+A panel should appear for the plugin object showing the current configuration of the plugin. Any top-level module names that have been configured for the plugin to source remotely should show in a searchable list view.
