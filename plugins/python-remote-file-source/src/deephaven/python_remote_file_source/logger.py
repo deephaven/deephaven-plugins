@@ -4,7 +4,7 @@ class Logger:
     """
 
     def __init__(self, name: str):
-        self.name = "deephaven.python_remote_file_source." + name
+        self.name = "DeephavenPythonRemoteFileSourcePlugin." + name
 
     def debug(self, *args):
         print("[DEBUG]", f"[{self.name}]", *args)
