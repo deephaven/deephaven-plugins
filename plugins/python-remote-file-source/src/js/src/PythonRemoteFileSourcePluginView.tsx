@@ -13,6 +13,7 @@ import {
   Icon,
   ListView,
 } from '@deephaven/components';
+import pkg from '../package.json';
 
 const REQUEST_PLUGIN_INFO_MSG = {
   jsonrpc: '2.0',
@@ -20,9 +21,7 @@ const REQUEST_PLUGIN_INFO_MSG = {
   method: 'request_plugin_info',
 } as const;
 
-const log = Log.module(
-  '@deephaven/js-plugin-python-remote-file-source/PythonRemoteFileSourcePluginView'
-);
+const log = Log.module(`${pkg.name}/PythonRemoteFileSourcePluginView`);
 
 export function PythonRemoteFileSourcePluginView(
   props: WidgetComponentProps
@@ -48,6 +47,8 @@ export function PythonRemoteFileSourcePluginView(
 
   useEffect(() => {
     async function init() {
+      log.info('Initializing widget');
+
       // Fetch the widget from the server
       const fetchedWidget = (await fetch()) as DhType.Widget;
       setWidget(fetchedWidget);
