@@ -2,6 +2,91 @@
 
 A Deephaven bi-directional plugin to allow sourcing Python imports from a remote file source. It consists of a Python plugin installed and then instantiated in a Deephaven Core / Core+ worker. When a client connects to the plugin, a custom Python `sys.meta_path` finder and loader are registered that will send messages to the client to request content for loading modules.
 
+## Plugin Messages
+Bi-directional communication between the server plugin and a client uses JSON-RPC.
+
+### JSON-RPC Messages
+
+The plugin uses the following JSON-RPC v2 messages for communication between the Python server and the client:
+
+#### Request: `request_plugin_info`
+**Direction:** Client → Server
+
+Returns a list of top-level module names available for remote import.
+
+**Example:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<unique id>",
+   "method": "request_plugin_info",
+   "params": {}
+}
+```
+
+**Response:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<same id>",
+   "result": {
+      "full_names": ["module1", "module2", ...]
+   }
+}
+```
+
+#### Request: `set_connection_id`
+**Direction:** Client → Server
+
+Sets the connection id on the MessageStream and tells the MessageStream it can register a `RemoteMetaPathFinder` to source Python imports for scripts run with a matching execution context connection id.
+
+**Example:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<unique id>",
+   "method": "set_connection_id",
+   "params": {"id": "<connection id>"}
+}
+```
+
+**Response:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<same id>",
+   "result": null
+}
+```
+
+#### Request: `fetch_module`
+**Direction:** Server → Client
+
+Requests the source code and file path for a Python module from the client. Used by the server to fetch remote modules for import.
+
+**Example:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<unique id>",
+   "method": "fetch_module",
+   "params": {"module_name": "some.module.name"}
+}
+```
+
+**Response:**
+```json
+{
+   "jsonrpc": "2.0",
+   "id": "<same id>",
+   "result": {
+      "filepath": "/path/to/module.py",
+      "source": "<python source code as string>"
+   }
+}
+```
+If the module spec is not found `result` will be `None`. The `filepath` property will contain a filesystem path or `<script>` if no associated path can be provided. The `source` property will either contain the source of the module, or `None` if no content exists.
+
 ## Plugin Structure
 
 The `src` directory contains the Python and JavaScript code for the plugin.  
