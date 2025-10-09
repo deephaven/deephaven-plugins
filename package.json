@@ -17,7 +17,7 @@
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
     "test:lint": "jest --config jest.config.lint.cjs",
-    "test:remote-file-source": "npm run test --workspace=@deephaven/python-remote-file-source-test-client --",
+    "test:remote-file-source": "./tools/test_remote_file_source.sh",
     "test:ci": "run-p test:ci:*",
     "test:ci:unit": "jest --config jest.config.unit.cjs --ci --cacheDirectory $PWD/.jest-cache",
     "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache",
