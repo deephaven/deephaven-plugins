@@ -21,7 +21,25 @@ It's recommended to use `tox` to run the tests, and the `tox.ini` file is includ
 
 ## Building the Plugin
 
-Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the root directory to build the plugin.
+1. Install dependencies
+```sh
+# Install js dependencies
+nvm install
+npm install
+
+# Setup python venv and install dependencies
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade -r requirements.txt
+pip install click watchdog deephaven-server
+```
+
+2. Build the python-remote-file-source plugin
+```sh
+python tools/plugin_builder.py python-remote-file-source
+```
+
+See [`plugin_builder.py`](../../README.md#using-plugin_builderpy) docs for additional options.
 
 ## Installing the Plugin
 
@@ -49,3 +67,27 @@ obj = DeephavenRemoteFileSourcePlugin()
 ```
 
 A panel should appear for the plugin object showing the current configuration of the plugin. Any top-level module names that have been configured for the plugin to source remotely should show in a searchable list view.
+
+## Testing the Plugin
+
+
+1. Build the plugin (see [Building the Plugin](#building-the-plugin)).
+2. Start the server:
+
+   ```sh
+   python tools/plugin_builder.py \
+    python-remote-file-source \
+    --server \
+    --server-arg \
+    --jvm-args="-Dauthentication.psk=plugins.repo.test -Dprocess.info.system-info.enabled=false"
+   ```
+> Note that the `-Dprocess.info.system-info.enabled=false` is only required for M1 / M2 Mac.
+
+3. Before running tests for the first time, install dependencies for the test client:
+   ```sh
+   cd plugins/python-remote-file-source/test-node-client
+   nvm install
+   npm install
+   cd -
+   ```
+
