@@ -43,6 +43,7 @@ import {
   type ExpandableDisplayColumn,
   getColumnGroups,
   isCorePlusDh,
+  makeColumnSourceColumn,
 } from './PivotUtils';
 import {
   PivotColumnHeaderGroup,
@@ -314,20 +315,37 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     throw new Error('Method not implemented.');
   }
 
+  // TODO: warning! arrays with negative indexes lose negative items on maps, spreads, etc
   getCachedColumns = memoize(
     (
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
       virtualColumns: readonly ExpandableDisplayColumn[],
       valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
     ) => {
+      const columns = [];
+      this.pivotTable.columnSources.forEach((source, col) => {
+        // columns[-1 - col] = makeColumnSourceColumn({
+        //   name: source.name,
+        //   displayName: source.name,
+        //   description: source.description,
+        //   type: source.type,
+        //   // TODO: check how this is used
+        //   index: -1 - col,
+        //   depth: 1,
+        //   isExpanded: false,
+        //   hasChildren: false,
+        // });
+        const index = -this.pivotTable.columnSources.length + col;
+        columns[index] = makeColumnSourceColumn(source, index);
+      });
+      columns.push(...virtualColumns);
       if (snapshotColumns == null) {
         log.debug2('getCachedColumns', {
           snapshotColumns,
           valueSources,
         });
-        return virtualColumns;
+        return columns;
       }
-      const columns = [...virtualColumns];
       for (let i = 0; i < snapshotColumns.totalCount; i += 1) {
         const isColumnInViewport =
           i >= snapshotColumns.offset &&
@@ -568,12 +586,34 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     return EMPTY_ARRAY;
   }
 
+  /**
+   * Get the columns in the pivot model.
+   * Returned array includes column sources with negative indexes.
+   */
   get columns(): readonly ExpandableDisplayColumn[] {
+    // Having negative indexes in the columns array is risky, because they can be lost in maps, spreads, etc,
+    // but it is the least invasive change adding column source support to the existing IrisGrid functionality.
+    // A better solution would be to use string keys for indexing columns.
+    // TODO: add integration tests for the functionality that depends on negative indexes
+    // TODO: see if we REALLY need negative indexes in the columns array,
+    // or we can get away with adding a columnSources getter to the model.
     return this.getCachedColumns(
       this.snapshotColumns,
       this.virtualColumns,
       this.snapshotValueSources
     );
+  }
+
+  get columnSources(): readonly DhType.coreplus.pivot.PivotSource[] {
+    return this.pivotTable.columnSources;
+  }
+
+  getColumnSourceByIndex(index: number): DhType.coreplus.pivot.PivotSource {
+    if (index >= 0) {
+      throw new Error('Column source index must be negative');
+    }
+    // ColBy sources use negative indexes
+    return this.pivotTable.columnSources[1 - index];
   }
 
   get isChartBuilderAvailable(): boolean {
@@ -602,6 +642,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   isFilterable(columnIndex: ModelIndex): boolean {
     // TODO: DH-20363: Add support for Pivot filters
+    // log.debug(
+    //   'isFilterable',
+    //   columnIndex,
+    //   this.pivotTable.columnSources,
+    //   this.keyColumns
+    // );
+    if (columnIndex < 0) {
+      return this.pivotTable.columnSources.length >= -columnIndex;
+    }
     return (
       this.keyColumns.find(c => c.name === this.columns[columnIndex]?.name) !=
       null
@@ -790,6 +839,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
       for (let c = 0; c < keys.length; c += 1) {
         keyData.set(c, {
+          // TODO: do this in the group column:
+          // value: c < keys.length - 1 ? keys[c] : undefined,
           value: keys[c],
         });
       }
@@ -1235,24 +1286,18 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   dataForCell(x: ModelIndex, y: ModelIndex): CellData | undefined {
     const keyCount = this.keyColumns.length;
     const groupOffset = this.groupColumn == null ? 0 : 1;
-    // TODO:
-    // if (y === 3) {
-    //   log.debug('[5] dataForCell', {
-    //     x,
-    //     y,
-    //     keyCount,
-    //     groupOffset,
-    //     kD: this.row(y)?.keyData,
-    //     tD: this.row(y)?.depth,
-    //   });
-    // }
     if (groupOffset === 1 && x === 0) {
-      // TODO:
+      const rowDepth = this.row(y)?.depth ?? 2;
       return y === 0
-        ? { value: '' }
+        ? // Empty value for the group cell in the totals row
+          { value: '' }
         : {
-            value: this.row(y)?.keyData.get((this.row(y)?.depth ?? 2) - 1)
-              ?.value,
+            // Render all key values except the last one in the group column
+            // to match the Rollup UI
+            value:
+              rowDepth < keyCount
+                ? this.row(y)?.keyData.get(rowDepth - 1)?.value
+                : '',
           };
     }
     if (x < keyCount + groupOffset) {
@@ -1283,6 +1328,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   row(y: ModelIndex): R | null {
     if (y === 0) {
+      // log.debug('[1] totals row', this.viewportData);
       return this.viewportData?.totalsRow ?? null;
     }
     const offset = this.viewportData?.offset ?? 0;

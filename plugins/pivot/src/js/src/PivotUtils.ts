@@ -260,6 +260,32 @@ export function makeRowSourceColumn(
 }
 
 /**
+ * Create a column for a row source
+ * @param source Row source to create the column for
+ * @param index Column index
+ * @returns Created column
+ */
+export function makeColumnSourceColumn(
+  source: CorePlusDhType.coreplus.pivot.PivotSource,
+  index: number
+): ExpandableDisplayColumn {
+  const {
+    name,
+    type, // isSortable,
+    description,
+  } = source;
+  return makeColumn({
+    name,
+    type,
+    index,
+    isSortable: true,
+    description,
+    filter: source.filter.bind(source),
+    sort: source.sort.bind(source),
+  });
+}
+
+/**
  * Check if two column arrays are different
  * @param prevColumns Previous columns
  * @param newColumns New columns

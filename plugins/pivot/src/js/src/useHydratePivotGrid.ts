@@ -13,6 +13,7 @@ import { isCorePlusDh } from './PivotUtils';
 import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
 import { IrisGridPivotRenderer } from './IrisGridPivotRenderer';
 import { IrisGridPivotTheme } from './IrisGridPivotTheme';
+import PivotFilterMouseHandler from './PivotFilterMouseHandler';
 
 const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 
@@ -49,7 +50,10 @@ export function useHydratePivotGrid(
   );
 
   const mouseHandlers: MouseHandlersProp = useMemo(
-    () => [irisGrid => new PivotColumnGroupMouseHandler(irisGrid)],
+    () => [
+      irisGrid => new PivotColumnGroupMouseHandler(irisGrid),
+      irisGrid => new PivotFilterMouseHandler(irisGrid),
+    ],
     []
   );
 

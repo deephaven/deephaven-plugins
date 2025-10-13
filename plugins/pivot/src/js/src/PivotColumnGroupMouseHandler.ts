@@ -83,6 +83,7 @@ class PivotColumnGroupMouseHandler extends GridMouseHandler {
     ) {
       this.irisGrid.toggleExpandColumn(
         column,
+        // TODO: update types
         GridUtils.isModifierKeyDown(event)
       );
       return true;
