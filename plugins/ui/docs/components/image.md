@@ -83,7 +83,7 @@ image_variants_example = image_variants()
 ```
 
 ## Scrollable image
-While the image component itself is not scrollable, wrap the image in a container view with the desired dimensions and set its overflow property to 'scroll' to achieve the same effect.
+While the image component itself is not scrollable, wrap the image in a container view with the desired dimensions and set its overflow property to `scroll` to achieve the same effect.
 
 ```python
 from deephaven import ui
