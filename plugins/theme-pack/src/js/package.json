@@ -11,8 +11,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/plugin": "^1.6.0",
-    "typescript": "^5.9.3"
+    "@deephaven/plugin": "^1.6.0"
   },
   "private": true
 }
