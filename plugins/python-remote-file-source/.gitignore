@@ -1,0 +1,9 @@
+build/
+dist/
+.venv/
+/venv
+*.egg-info/
+.idea
+.DS_store
+__pycache__/
+node_modules
