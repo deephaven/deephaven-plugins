@@ -196,11 +196,10 @@ Table databars provide a visual representation of numeric data directly within t
 
 The `column` prop specifies which table column should display the databar. This is the only required property.
 
-> [!WARNING]  
-> This API is likely to change in the near future to be part of `ui.TableFormat` .
+> [!WARNING]
+> This API is likely to change in the near future to be part of `ui.TableFormat`.
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -212,7 +211,6 @@ t = ui.table(dx.data.stocks(), databars=[{"column": "Price"}])
 The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -229,7 +227,6 @@ The `min` and `max` props control the scaling of databars. These can be set to f
 By default these props will change to the min and max of the values in the column.
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -252,7 +249,6 @@ Options:
 - `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of value is ignored, and the databar will show the magnitude of the value (i.e. -7 and 7 are the same)
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -278,7 +274,6 @@ Options:
 - `"RTL"`: (right to left)
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -302,7 +297,6 @@ Options:
 - `"hide"`: not displayed
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -323,7 +317,6 @@ t = ui.table(
 The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -342,7 +335,6 @@ t = ui.table(
 The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -359,7 +351,6 @@ t = ui.table(
 The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
 
 ```python
-from deephaven import time_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
