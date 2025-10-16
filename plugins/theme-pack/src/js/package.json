@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@deephaven/plugin": "^1.6.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.9.3"
   },
   "private": true
 }
