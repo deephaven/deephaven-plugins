@@ -246,7 +246,7 @@ The `axis` prop controls how the zero point is positioned within the databar.
 Options:
 - `"proportional"` (default): relative to the min and max of the values
 - `"middle"`: always centered, regardless of values in column
-- `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of value is ignored, and the databar will show the magnitude of the value (i.e. -7 and 7 are the same)
+- `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of the value is ignored, and the databar will show the magnitude of the value (i.e., -7 and 7 are the same).
 
 ```python
 from deephaven import ui
