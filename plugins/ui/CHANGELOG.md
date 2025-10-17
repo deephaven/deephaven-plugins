@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.31.3 - 2025-10-17
+#### Other
+- Build version bump, republish
+
+- - -
 ## ui-v0.31.2 - 2025-10-15
 #### Bug Fixes
 - DH-19973: Ad-hoc aggregations not persisting on UI Table (#1232)
