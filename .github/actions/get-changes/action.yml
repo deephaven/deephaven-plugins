@@ -13,17 +13,8 @@ runs:
       uses: dorny/paths-filter@v3
       id: filter
       with:
+        # On this release/ui-v0.31 branch, just disable all the other plugins from being tested since it will just be deephaven.ui updates
         filters: |
-          plotly-express:
-            - plugins/plotly-express/**
-            - .github/workflows/test-*.yml
-            - sphinx_ext/*
-          matplotlib:
-            - plugins/matplotlib/**
-            - .github/workflows/test-*.yml
-          json:
-            - plugins/json/**
-            - .github/workflows/test-*.yml
           ui:
             - plugins/ui/**
             - .github/workflows/test-*.yml
@@ -33,10 +24,4 @@ runs:
             - .github/workflows/test-*.yml
           packaging:
             - plugins/packaging/**
-            - .github/workflows/test-*.yml
-          ag-grid:
-            - plugins/ag-grid/**
-            - .github/workflows/test-*.yml
-          simple-pivot:
-            - plugins/simple-pivot/**
             - .github/workflows/test-*.yml

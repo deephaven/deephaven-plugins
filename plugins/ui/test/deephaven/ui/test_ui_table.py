@@ -19,9 +19,7 @@ class UITableTestCase(BaseTestCase):
         context = RenderContext(on_change, on_queue)
         result = ui_table.render(context)
 
-        # Can replace 2nd param with result | expected_props after dropping Python 3.8
-        # https://stackoverflow.com/questions/20050913/python-unittests-assertdictcontainssubset-recommended-alternative
-        self.assertDictEqual(result, {**result, **expected_props})
+        self.assertDictEqual(result, result | expected_props)
 
     def test_empty_ui_table(self):
         import deephaven.ui as ui
