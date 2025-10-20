@@ -1,0 +1,25 @@
+{
+  "name": "@deephaven/python-remote-file-source-test-client",
+  "version": "1.0.0",
+  "private": true,
+  "decription": "",
+  "main": "lib/index.mjs",
+  "keywords": [],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.mts",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@deephaven/jsapi-types": "^1.0.0-dev0.40.2",
+    "@types/node": "^24.5.0",
+    "jest": "^30.2.0",
+    "tsx": "^4.20.5",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@deephaven/jsapi-nodejs": "1.7.1"
+  }
+}
