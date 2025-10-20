@@ -13,5 +13,7 @@
   "devDependencies": {
     "@deephaven/plugin": "^1.6.0"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  }
 }
