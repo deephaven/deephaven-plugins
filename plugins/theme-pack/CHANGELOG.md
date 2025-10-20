@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## theme-pack-v0.1.1 - 2025-10-20
+
+- - -
+
 ## theme-pack-v0.1.0 - 2025-10-20
 #### Features
 - publish theme pack as a python package (#1239) - (d99913d) - Don
