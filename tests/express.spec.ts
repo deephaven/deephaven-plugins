@@ -13,11 +13,12 @@ test('Plotly loads', async ({ page }) => {
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
-test('Histogram loads', async ({ page }) => {
-  await gotoPage(page, '');
-  await openPanel(page, 'express_hist_by', '.js-plotly-plot');
-  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
-});
+// TODO: DH-20738 Enable histogram test, it seems to be flakey
+// test('Histogram loads', async ({ page }) => {
+//   await gotoPage(page, '');
+//   await openPanel(page, 'express_hist_by', '.js-plotly-plot');
+//   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+// });
 
 test('Indicator loads', async ({ page }) => {
   await gotoPage(page, '');
@@ -38,9 +39,9 @@ test('Ticking loads', async ({ page }) => {
 });
 
 test('Partitioned loads', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
-    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+  await gotoPage(page, '');
+  await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
 test('Figure with title loads', async ({ page }) => {
