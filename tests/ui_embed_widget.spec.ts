@@ -22,5 +22,7 @@ test('UI dashboard loads in embed widget', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_dashboard');
   await expect(page.locator(SELECTORS.REACT_PANEL)).toHaveCount(4);
   await waitForLoad(page);
+  // Adding an artificial timeout as the dashboard panel comes up without headers initially
+  await page.waitForTimeout(1500);
   await expect(page).toHaveScreenshot();
 });
