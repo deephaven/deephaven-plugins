@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-theme-pack",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -11,8 +11,16 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/plugin": "^1.6.0",
-    "typescript": "^5.2.2"
+    "@deephaven/plugin": "^1.6.0"
   },
-  "private": true
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "bugs": {
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
+  }
 }
