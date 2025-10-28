@@ -190,6 +190,186 @@ t = ui.table(
 )
 ```
 
+### Formatting databars
+
+Table databars provide a visual representation of numeric data directly within table cells, making it easy to compare values at a glance. Databars appear as horizontal bars behind or alongside cell values.
+
+The `column` prop specifies which table column should display the databar. This is the only required property.
+
+> [!WARNING]
+> This API is likely to change in the near future to be part of `ui.TableFormat`.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(dx.data.stocks(), databars=[{"column": "Price"}])
+```
+
+##### Value Column
+
+The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[{"column": "Sym", "value_column": "Price", "color": "info"}],
+)
+```
+
+##### Scale Configuration
+
+The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
+
+By default these props will change to the min and max of the values in the column.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "min": 0, "max": 1000, "color": "positive"},
+        {"column": "Price", "min": 0, "max": "Dollars", "color": "positive"},
+    ],
+)
+```
+
+##### Axis Configuration
+
+The `axis` prop controls how the zero point is positioned within the databar.
+
+Options:
+- `"proportional"` (default): relative to the min and max of the values
+- `"middle"`: always centered, regardless of values in column
+- `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of the value is ignored, and the databar will show the magnitude of the value (i.e., -7 and 7 are the same).
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Size",
+        },
+        {"column": "Price", "axis": "middle"},
+        {"column": "Dollars", "axis": "directional"},
+    ],
+)
+```
+
+##### Direction
+
+The `direction` prop controls which direction the databar grows from its zero point.
+
+Options:
+- `"LTR"`: (left to right, default) 
+- `"RTL"`: (right to left)
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "direction": "LTR"},
+        {"column": "Price", "direction": "RTL"},
+    ],
+)
+```
+
+##### Value Placement
+
+The `value_placement` prop controls how cell values are displayed relative to the databar.
+
+Options:
+- `"beside"` (default): to the right of the databar 
+- `"overlap"`: on top of the databar
+- `"hide"`: not displayed
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Size",
+        },
+        {"column": "Price", "value_placement": "overlap"},
+        {"column": "Dollars", "value_placement": "hide"},
+    ],
+)
+```
+
+##### Color
+
+The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "color": "info"},
+        {"column": "Price", "color": ["negative", "positive"]},
+    ],
+)
+```
+
+##### Opacity
+
+The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "color": "info", "opacity": 0.3},
+    ],
+)
+```
+
+##### Markers
+
+The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Price",
+            "color": "positive",
+            "markers": [
+                {"value": "SPet500", "color": "accent"},
+                {"value": 50, "color": "notice"},
+            ],
+        }
+    ],
+)
+```
+
 ## Aggregations
 
 You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
