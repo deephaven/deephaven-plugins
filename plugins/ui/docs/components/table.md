@@ -433,8 +433,7 @@ Deephaven only fetches data for visible rows and columns within a window around 
 
 The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g. `on_row_press`) and context menu callbacks.
 
-> [!TIP]
-> **Best Practice for Event Callbacks**: When using event callbacks (such as `on_row_press`, `on_cell_press`, or `on_selection_change`), it's recommended to include any column you will be using in the callback in `always_fetch_columns`. This prevents potentially undefined columns if users hide those columns or scroll far right where the original columns are no longer in the viewport.
+When using event callbacks, include any columns referenced in the callback in `always_fetch_columns` to prevent undefined columns when users hide columns or scroll beyond the viewport.
 
 > [!WARNING]
 > Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
