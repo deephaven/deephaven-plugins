@@ -59,20 +59,33 @@
         position: absolute;
       }
     }
+
+    .dashboard-container {
+      border: 1px solid var(--dh-color-bg);
+    }
   }
 
-  &:has(.dh-inner-react-panel > .iris-grid:only-child),
+  &:has(> .dh-inner-react-panel > .iris-grid:only-child),
   &:has(
-      .dh-inner-react-panel
+      > .dh-inner-react-panel
         > .ui-table-container:only-child
         > .iris-grid:only-child
     ),
-  &:has(.dh-inner-react-panel > .chart-wrapper:only-child) {
+  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child) {
     // remove the default panel padding when grid or chart is the only child
     padding: 0 !important; // important required to override inline spectrum style
     .iris-grid {
       border: none;
       border-radius: 0;
+    }
+  }
+
+  // remove padding and border around single child dashboards in react panels
+  &:has(> .dh-inner-react-panel > .dashboard-container:only-child) {
+    padding: 0 !important; // important required to override inline spectrum style
+
+    > .dh-inner-react-panel > .dashboard-container {
+      border: none;
     }
   }
 }
@@ -101,47 +114,4 @@
 
 .ui-markdown {
   padding: 0;
-}
-
-$lm-header-nested-height: 18px;
-$lm-header-double-nested-height: 14px;
-$lm-header-nested-font-size: 11px;
-$lm-header-double-nested-font-size: 10px;
-$lm-header-nested-color: var(--dh-color-gray-600);
-$lm-header-double-nested-color: var(--dh-color-gray-500);
-$lm-header-nested-bg: var(--dh-color-gray-50);
-$lm-header-double-nested-bg: var(--dh-color-true-black);
-
-.dashboard-container {
-  .dashboard-container {
-    // border: 5px solid red;
-    .lm_tab {
-      height: $lm-header-nested-height;
-      font-size: $lm-header-nested-font-size;
-      // color: $lm-header-nested-color;
-    }
-    .lm_tabs {
-      background: $lm-header-nested-bg;
-    }
-    .lm_header {
-      height: $lm-header-nested-height;
-    }
-    .lm_close_tab {
-      display: none; // hide close icon for nested tabs
-    }
-    .dashboard-container {
-      // border: 5px solid blue;
-      .lm_tab {
-        height: $lm-header-double-nested-height;
-        font-size: $lm-header-double-nested-font-size;
-        // color: $lm-header-double-nested-color;
-      }
-      .lm_tabs {
-        background: $lm-header-double-nested-bg;
-      }
-      .lm_header {
-        height: $lm-header-double-nested-height;
-      }
-    }
-  }
 }
