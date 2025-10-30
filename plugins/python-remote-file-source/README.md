@@ -134,7 +134,7 @@ Exactly how this is done will depend on how you are running Deephaven.
 If using the venv created above, the plugin and server can be created with the following commands:
 ```sh
 pip install deephaven-server
-pip install dist/deephaven_python_remote_file_source-0.0.1.dev0-py3-none-any.whl
+pip install plugins/python-remote-file-source/dist/deephaven_plugin_python_remote_file_source-*.whl
 deephaven server
 ```
 See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/install-use-plugins/) for more information.
