@@ -24,7 +24,7 @@ def ui_resetable_table():
 resetable_table = ui_resetable_table()
 ```
 
-Clicking the "Reset" button displays an error:
+Clicking the "Reset" button displays a LivenessStateException error:
 
 ![Reset table error](../_assets/update-tables-in-state-1.png)
 
