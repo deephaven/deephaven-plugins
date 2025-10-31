@@ -765,6 +765,66 @@ def ui_combo_box_alignment_direction_examples():
 my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_examples()
 ```
 
+## How to create a multi-select component
+
+By leveraging the `on_change` handler of `ui.combo_box` to dynamically generate items, you can pair it with `ui.tag_group` to build a multi-select component.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_combo_box_multi_select_example():
+    input_value, set_input_value = ui.use_state("")
+    selection_state, set_selection_state = ui.use_state("")
+    items, set_items = ui.use_state([])
+
+    def handle_input_change(new_value):
+        set_selection_state("")
+        set_input_value(new_value)
+        print(f"Text changed to {input_value}")
+
+    def handle_selection_change(new_value):
+        set_input_value(new_value)
+        set_selection_state(new_value)
+        set_items(
+            lambda prev_items: prev_items + [new_value]
+            if new_value not in prev_items
+            else prev_items
+        )
+        print(f"Selection changed to {items}")
+
+    return [
+        ui.flex(
+            ui.combo_box(
+                ui.item("Option 1"),
+                ui.item("Option 2"),
+                ui.item("Option 3"),
+                ui.item("Option 4"),
+                ui.item("Option 5"),
+                ui.item("Option 6"),
+                ui.item("Option 7"),
+                ui.item("Option 8"),
+                ui.item("Option 9"),
+                input_value=input_value,
+                on_input_change=handle_input_change,
+                selected_key=None,
+                on_change=handle_selection_change,
+            ),
+            ui.tag_group(
+                *[ui.item(item, key=item.lower()) for item in items],
+                on_remove=lambda keys: set_items(
+                    [item for item in items if item.lower() not in keys]
+                ),
+            ),
+        )
+    ]
+
+
+my_combo_box_multi_select_example = ui_combo_box_multi_select_example()
+```
+
+
 ## API Reference
 
 ```{eval-rst}
