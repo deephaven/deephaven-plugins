@@ -26,8 +26,6 @@ class RemoteModuleLoader(Loader):
         return None
 
     def exec_module(self, module: ModuleType):
-        if module.__spec__:
-            print("[TESTING] spec:", module.__spec__.submodule_search_locations)
         """
         Execute the module source in the given module.
         Args:
