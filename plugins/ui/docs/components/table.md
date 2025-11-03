@@ -404,7 +404,7 @@ t_top = ui.table(
 
 ### Press Events
 
-You can listen for different user press events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
+You can listen for different user press events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport). Data specified via [`always_fetch_columns`](#always-fetching-some-columns) is also included.
 
 Note that there is no row index in event data because the row index is not a safe way to reference a row between the client and server since the user could have manipulated the table, resulting in a different client order.
 
@@ -427,11 +427,11 @@ t = ui.table(
 )
 ```
 
-### Selection Event
+### Selection Events
 
 The `on_selection_change` event is triggered when the user selects or deselects a row. The event data will contain all selected rows within the viewport as a list of dictionaries keyed by column name. There are a few caveats to the selection event.
 
-1. The event will **only** send data from columns in the `always_fetch_columns` prop.
+1. The event will **only** send data from columns in the [`always_fetch_columns`](#always-fetching-some-columns) prop.
 2. The event will **only** send data from rows that are visible in the viewport.
 3. The event will **not** be triggered if a ticking table row is replaced or shifted. This may cause what the user sees after row shifts to differ from the selection event data.
 
@@ -445,6 +445,31 @@ t = ui.table(
     dx.data.stocks(),
     on_selection_change=lambda data: print(f"Selection: {data}"),
     always_fetch_columns=["Sym", "Exchange"],
+)
+```
+
+### Always fetching some columns
+
+Deephaven only fetches data for visible rows and columns within a window around the viewport (typically the viewport plus 1 page in all directions). This reduces the amount of data transferred between the server and client and allows tables with billions of rows to be displayed. Sometimes you may need to always fetch columns, such as a key column for a row press event. You can use the `always_fetch_columns` prop to specify columns that should always be fetched regardless of their visibility.
+
+The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g., `on_row_press`) and context menu callbacks.
+
+When using event callbacks, include any columns referenced in the callback in `always_fetch_columns` to prevent undefined columns when users hide columns or scroll beyond the viewport.
+
+> [!WARNING]
+> Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
+
+This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    hidden_columns=["Sym"],
+    on_row_press=lambda d: print(d["Sym"]),
+    always_fetch_columns="Sym",
 )
 ```
 
@@ -609,29 +634,6 @@ t = ui.table(
 ```
 
 ![Example of column groups](../_assets/table_column_groups.png)
-
-## Always fetching some columns
-
-Deephaven only fetches data for visible rows and columns within a window around the viewport (typically the viewport plus 1 page in all directions). This reduces the amount of data transferred between the server and client and allows displaying tables with billions of rows. Sometimes you may need to always fetch columns, such as a key column for a row press event. You can use the `always_fetch_columns` prop to specify columns that should always be fetched regardless of their visibility.
-
-The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g. `on_row_press`) and context menu callbacks.
-
-> [!WARNING]
-> Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
-
-This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
-
-```python
-from deephaven import ui
-import deephaven.plot.express as dx
-
-t = ui.table(
-    dx.data.stocks(),
-    hidden_columns=["Sym"],
-    on_row_press=lambda d: print(d["Sym"]),
-    always_fetch_columns="Sym",
-)
-```
 
 ## Quick filters
 
