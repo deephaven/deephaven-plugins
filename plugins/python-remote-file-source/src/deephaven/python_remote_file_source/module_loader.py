@@ -1,3 +1,4 @@
+from importlib.abc import MetaPathFinder, Loader
 from importlib.machinery import ModuleSpec
 import logging
 from types import ModuleType
@@ -5,45 +6,45 @@ from typing import Optional, Sequence
 
 from .plugin_object import PluginObject
 from .json_rpc import create_request_msg
-from .types import RemoteModuleDescriptor, MessageStreamRequestInterface
+from .types import MessageStreamRequestInterface, RemotePythonModuleSpecData
 
 
 logger = logging.getLogger(__name__)
 
 
-class RemoteModuleLoader:
+class RemoteModuleLoader(Loader):
     """
     A custom module loader that loads modules from a remote source.
     """
 
-    _module_descriptor: RemoteModuleDescriptor | None
+    _source: str | None
 
-    def __init__(self, module_descriptor: RemoteModuleDescriptor | None):
-        self._module_descriptor = module_descriptor
+    def __init__(self, source: Optional[str]):
+        self._source = source
 
     def create_module(self, spec: ModuleSpec):
         return None
 
     def exec_module(self, module: ModuleType):
+        if module.__spec__:
+            print("[TESTING] spec:", module.__spec__.submodule_search_locations)
         """
         Execute the module source in the given module.
         Args:
             module: The module to execute the code in.
         Returns: None
         """
-        if self._module_descriptor is None:
+        if self._source is None:
             return
 
-        source = self._module_descriptor.get("source")
-        if source is None:
+        spec = module.__spec__
+        if spec is None:
             return
 
-        filepath = self._module_descriptor.get("filepath")
-
-        exec(compile(source, filepath, "exec"), module.__dict__)
+        exec(compile(self._source, spec.origin or "<string>", "exec"), module.__dict__)
 
 
-class RemoteMetaPathFinder:
+class RemoteMetaPathFinder(MetaPathFinder):
     """
     A custom meta path finder that finds modules that can be sourced remotely.
     """
@@ -75,7 +76,7 @@ class RemoteMetaPathFinder:
             # return None so that other finder/loaders can try
             return None
 
-        module_spec: RemoteModuleDescriptor | None = None
+        module_spec_data: RemotePythonModuleSpecData | None = None
 
         try:
             msg = create_request_msg("fetch_module", {"module_name": fullname})
@@ -86,23 +87,26 @@ class RemoteMetaPathFinder:
             )
             raise
 
-        module_spec = response.get("result")
-        if module_spec is None:
-            logger.info(f"Module spec not found: {fullname}")
+        module_spec_data: RemotePythonModuleSpecData | None = response.get("result")
+        if module_spec_data is None:
+            logger.error(f"Module spec not found: {fullname}", response.get("error"))
             return
 
         logger.info(
             "Fetched module spec: %s source=%s",
             fullname,
-            "True" if module_spec.get("source") else "None",
+            "True" if module_spec_data.get("source") else "None",
         )
 
-        origin = module_spec.get("filepath") if module_spec else None
-        is_package = origin is not None and origin.endswith("__init__.py")
-
-        return ModuleSpec(
-            name=fullname,
-            loader=RemoteModuleLoader(module_spec),  # type: ignore
-            origin=origin,
-            is_package=is_package,
+        module_spec = ModuleSpec(
+            name=module_spec_data.get("name"),
+            origin=module_spec_data.get("origin"),
+            is_package=module_spec_data.get("is_package"),
+            loader=RemoteModuleLoader(module_spec_data.get("source")),
         )
+
+        module_spec.submodule_search_locations = module_spec_data.get(
+            "submodule_search_locations"
+        )
+
+        return module_spec

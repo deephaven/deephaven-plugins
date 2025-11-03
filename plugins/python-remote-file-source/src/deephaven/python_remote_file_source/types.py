@@ -23,9 +23,12 @@ class JsonRpcError(TypedDict):
 JsonRpcResponse = Union[JsonRpcSuccess, JsonRpcError]
 
 
-class RemoteModuleDescriptor(TypedDict):
-    filepath: str
+class RemotePythonModuleSpecData(TypedDict):
+    name: str
+    is_package: bool
+    origin: Optional[str]
     source: Optional[str]
+    submodule_search_locations: Optional[list[str]]
 
 
 class MessageStreamRequestInterface(Protocol):
