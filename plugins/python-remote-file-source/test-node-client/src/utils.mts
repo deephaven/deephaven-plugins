@@ -15,6 +15,7 @@ import {
   SERVER_URL,
   TEST_WORKSPACE_PATH,
 } from './constants.mjs';
+import type { ModuleName, PythonModuleSpecData } from './types.mjs';
 
 /**
  * Create a message handler for the given plugin that responds to fetch_module
@@ -34,12 +35,12 @@ export function createModuleSourceRequestHandler(
         return;
       }
 
-      const [filepath, source] = await pythonModuleMap.getModuleSource(
+      const [spec, source] = await pythonModuleMap.getModuleSpec(
         message.params.module_name
       );
 
       plugin.sendMessage(
-        JSON.stringify(Msg.moduleSourceResponse(message.id, source, filepath))
+        JSON.stringify(Msg.moduleSpecResponse(message.id, spec, source))
       );
     } catch (e) {
       console.error('Error parsing message from server:', e);
@@ -48,40 +49,60 @@ export function createModuleSourceRequestHandler(
 }
 
 /**
- * Get a map of python module names to their file paths in the workspace.
- * @returns A map of module names to file paths.
+ * Get info about Python modules in the given workspace path.
+ * @returns A tuple of a set of top level module names and a map of module names
+ * to their spec data.
  */
-export async function getPythonModuleMaps(
+export async function getPythonModuleInfo(
   workspacePath: string
-): Promise<[Set<string>, Map<string, string | null>]> {
+): Promise<[Set<ModuleName>, Map<ModuleName, PythonModuleSpecData>]> {
   const workspaceEntries = await fs.promises.readdir(workspacePath, {
     recursive: true,
     withFileTypes: true,
   });
 
-  const topLevelModuleNames = new Set<string>();
-  const moduleMap = new Map<string, string | null>();
+  const topLevelModuleNames = new Set<ModuleName>();
+  const moduleMap = new Map<ModuleName, PythonModuleSpecData>();
 
   for (const dirent of workspaceEntries) {
-    const relativePath = path
-      .join(dirent.parentPath, dirent.name)
-      .replace(workspacePath, '');
+    const pathNoExt = path.join(dirent.parentPath, dirent.name);
+    const relativePathNoExt = pathNoExt.replace(workspacePath, '');
 
-    const moduleName = relativePath
+    const moduleName = relativePathNoExt
       .slice(1)
       .replace(/\.py$/, '')
-      .replaceAll(path.sep, '.');
+      .replaceAll(path.sep, '.') as ModuleName;
 
+    // Package directory
     if (dirent.isDirectory()) {
-      moduleMap.set(moduleName, null);
+      // Namespace package if no __init__.py file
+      const initFilePath = path.join(pathNoExt, '__init__.py');
+      const isNamespacePackage = !fs.existsSync(initFilePath);
+
+      moduleMap.set(moduleName, {
+        name: moduleName,
+        isPackage: true,
+        origin: isNamespacePackage ? undefined : initFilePath,
+        subModuleSearchLocations: [pathNoExt],
+      });
+
       if (!moduleName.includes('.')) {
         topLevelModuleNames.add(moduleName);
       }
       continue;
     }
 
+    // This should be handled by the package directory case
+    if (dirent.name === '__init__.py') {
+      continue;
+    }
+
     const fullPath = path.join(dirent.parentPath, dirent.name);
-    moduleMap.set(moduleName, fullPath);
+    moduleMap.set(moduleName, {
+      name: moduleName,
+      isPackage: false,
+      origin: fullPath,
+    });
   }
 
   return [topLevelModuleNames, moduleMap];

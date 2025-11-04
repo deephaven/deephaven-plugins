@@ -1,3 +1,5 @@
+import type { ModuleName, PythonModuleSpecData } from './types.mjs';
+
 interface JsonRpcRequestBase {
   jsonrpc: '2.0';
   id: string;
@@ -5,7 +7,7 @@ interface JsonRpcRequestBase {
 
 export interface JsonRpcFetchModuleRequest extends JsonRpcRequestBase {
   method: 'fetch_module';
-  params: { module_name: string };
+  params: { module_name: ModuleName };
 }
 
 export interface JsonRpcSetConnectionIdRequest extends JsonRpcRequestBase {
@@ -33,22 +35,25 @@ export interface JsonRpcError {
 export type JsonRpcResponse = JsonRpcSuccess | JsonRpcError;
 
 /**
- * Get a JsonRpc success response message to send module source to the server.
- * @param id The id of the request to respond to.
- * @param source The source code of the module, or undefined for no source.
- * @param filepath The path to the module source file (defaults to '<string>').
- * @returns A JsonRpc success response message.
+ * Get a JsonRpc success response message for a module spec to send to the server.
+ * @param id The request ID.
+ * @param spec The Python module spec data.
+ * @param source Optional source code of the module.
+ * @returns The JSON-RPC success response.
  */
-function moduleSourceResponse(
+function moduleSpecResponse(
   id: string,
-  source: string | undefined,
-  filepath: string = '<string>'
+  { name, isPackage, origin, subModuleSearchLocations }: PythonModuleSpecData,
+  source?: string | null
 ): JsonRpcSuccess {
   return {
     jsonrpc: '2.0',
     id,
     result: {
-      filepath,
+      name,
+      origin,
+      is_package: isPackage,
+      submodule_search_locations: subModuleSearchLocations,
       source,
     },
   };
@@ -69,5 +74,5 @@ function setConnectionId(id: string): JsonRpcSetConnectionIdRequest {
 
 export const Msg = {
   setConnectionId,
-  moduleSourceResponse,
+  moduleSpecResponse,
 };
