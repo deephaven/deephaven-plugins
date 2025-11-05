@@ -15,11 +15,13 @@ import {
 } from '@deephaven/components';
 import pkg from '../package.json';
 
-const REQUEST_PLUGIN_INFO_MSG = {
-  jsonrpc: '2.0',
-  id: '0',
-  method: 'request_plugin_info',
-} as const;
+function requestPluginInfoMsg() {
+  return {
+    jsonrpc: '2.0',
+    id: crypto.randomUUID(),
+    method: 'request_plugin_info',
+  } as const;
+}
 
 const log = Log.module(`${pkg.name}/PythonRemoteFileSourcePluginView`);
 
@@ -69,7 +71,7 @@ export function PythonRemoteFileSourcePluginView(
         }
       );
 
-      fetchedWidget.sendMessage(JSON.stringify(REQUEST_PLUGIN_INFO_MSG), []);
+      fetchedWidget.sendMessage(JSON.stringify(requestPluginInfoMsg()), []);
     }
 
     init();
@@ -79,7 +81,7 @@ export function PythonRemoteFileSourcePluginView(
     // Send the message to the server via the widget
     if (widget != null) {
       setItems([]);
-      widget.sendMessage(JSON.stringify(REQUEST_PLUGIN_INFO_MSG), []);
+      widget.sendMessage(JSON.stringify(requestPluginInfoMsg()), []);
     }
   }, [widget]);
 

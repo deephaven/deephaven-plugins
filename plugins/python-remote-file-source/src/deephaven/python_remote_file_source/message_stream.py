@@ -83,7 +83,8 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
         try:
             msg = json.loads(decoded_payload)
         except Exception:
-            logger.info(f"Received non-JSON payload: {decoded_payload}")
+            logger.exception(f"Received non-JSON payload: {decoded_payload}")
+            self._client_connection.on_close()
             return
 
         if is_valid_json_rpc_response(msg):
@@ -112,6 +113,7 @@ class MessageStream(MesssageStreamBase, MessageStreamRequestInterface):
                     self.send_message(create_response_msg(msg["id"], None))
         else:
             logger.error(f"Received invalid JSON-RPC payload: {decoded_payload}")
+            self._client_connection.on_close()
             return
 
     async def request_data(self, request_msg: JsonRpcRequest) -> JsonRpcResponse:

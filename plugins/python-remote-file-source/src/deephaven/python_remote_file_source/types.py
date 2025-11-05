@@ -5,7 +5,7 @@ class JsonRpcRequest(TypedDict):
     jsonrpc: Literal["2.0"]
     id: str
     method: str
-    params: dict
+    params: dict | list
 
 
 class JsonRpcSuccess(TypedDict):
@@ -14,10 +14,16 @@ class JsonRpcSuccess(TypedDict):
     result: Any
 
 
+class JsonRpcErrorObject(TypedDict):
+    code: int
+    message: str
+    data: Optional[Any]
+
+
 class JsonRpcError(TypedDict):
     jsonrpc: Literal["2.0"]
     id: str
-    error: dict
+    error: JsonRpcErrorObject
 
 
 JsonRpcResponse = Union[JsonRpcSuccess, JsonRpcError]

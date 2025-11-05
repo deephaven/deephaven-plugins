@@ -24,7 +24,7 @@ export interface JsonRpcSuccess {
 
 export interface JsonRpcError {
   jsonrpc: '2.0';
-  id: string;
+  id: string | null;
   error: {
     code: number;
     message: string;
