@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { nanoid } from 'nanoid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { vsRefresh } from '@deephaven/icons';
@@ -18,7 +19,7 @@ import pkg from '../package.json';
 function requestPluginInfoMsg() {
   return {
     jsonrpc: '2.0',
-    id: crypto.randomUUID(),
+    id: nanoid(),
     method: 'request_plugin_info',
   } as const;
 }
