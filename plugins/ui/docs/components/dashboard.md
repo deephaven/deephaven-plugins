@@ -165,7 +165,7 @@ dash_stack = ui.dashboard(
 )
 ```
 
-### Stack with active_item_index
+### Stack with an active item index
 
 ```python
 from deephaven import ui
@@ -175,7 +175,7 @@ dash_stack_active = ui.dashboard(
         ui.panel("A", title="A"),
         ui.panel("B", title="B"),
         ui.panel("C", title="C"),
-        active_item_index=2,
+        active_item_index=1,
     )
 )
 ```
