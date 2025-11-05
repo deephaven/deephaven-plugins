@@ -165,6 +165,21 @@ dash_stack = ui.dashboard(
 )
 ```
 
+### Stack with active_item_index
+
+```python
+from deephaven import ui
+
+dash_stack_active = ui.dashboard(
+    ui.stack(
+        ui.panel("A", title="A"),
+        ui.panel("B", title="B"),
+        ui.panel("C", title="C"),
+        active_item_index=2,
+    )
+)
+```
+
 ### Stack with nested tabs
 
 ```python
