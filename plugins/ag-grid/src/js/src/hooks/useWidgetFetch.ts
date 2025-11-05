@@ -7,6 +7,18 @@ import { AgGridTableType } from '../types';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/hooks/useWidgetFetch');
 
+function isWidget(obj: unknown): obj is DhType.Widget {
+  return (
+    obj != null &&
+    typeof obj === 'object' &&
+    'exportedObjects' in obj &&
+    'type' in obj &&
+    typeof (obj as DhType.Widget).type === 'string'
+  );
+}
+
+const PIVOT_TABLE_WIDGET_TYPE = 'PivotTable';
+
 export function useWidgetFetch(
   dh: typeof DhType | typeof CorePlusDhType,
   fetch: () => Promise<DhType.Widget>
@@ -22,15 +34,27 @@ export function useWidgetFetch(
       log.debug('Fetched widget of type', widget.type);
       switch (widget.type) {
         case 'deephaven.ag_grid.AgGrid': {
-          const newTable =
-            (await widget.exportedObjects[0].fetch()) as DhType.Table;
+          let newTable = await widget.exportedObjects[0].fetch();
+          if (isWidget(newTable)) {
+            if (newTable.type !== PIVOT_TABLE_WIDGET_TYPE) {
+              throw new Error(
+                `AgGrid widget contains unsupported widget type: ${newTable.type}`
+              );
+            }
+            if (!isCorePlusDhType(dh)) {
+              throw new Error(
+                'PivotTable widget is only supported in Core Plus builds'
+              );
+            }
+            newTable = new dh.coreplus.pivot.PivotTable(newTable);
+          }
           if (!cancelled) {
             log.info('Loaded table', newTable);
             setTable(newTable);
           }
           break;
         }
-        case 'PivotTable': {
+        case PIVOT_TABLE_WIDGET_TYPE: {
           if (!isCorePlusDhType(dh)) {
             throw new Error(
               'PivotTable widget is only supported in Core Plus builds'
