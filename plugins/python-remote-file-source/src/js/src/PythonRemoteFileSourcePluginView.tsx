@@ -93,6 +93,7 @@ export function PythonRemoteFileSourcePluginView(
         <Heading level={1} flex margin="size-160">
           Remote Modules
         </Heading>
+        <span>v{pkg.version}</span>
         <ActionButton isQuiet onPress={onRefresh}>
           <Icon>
             <FontAwesomeIcon icon={vsRefresh} />
