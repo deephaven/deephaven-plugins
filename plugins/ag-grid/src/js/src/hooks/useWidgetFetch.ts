@@ -54,27 +54,6 @@ export function useWidgetFetch(
           }
           break;
         }
-        case PIVOT_TABLE_WIDGET_TYPE: {
-          if (!isCorePlusDhType(dh)) {
-            throw new Error(
-              'PivotTable widget is only supported in Core Plus builds'
-            );
-          }
-          if (!cancelled) {
-            const pivotTable = new dh.coreplus.pivot.PivotTable(widget);
-            setTable(pivotTable);
-          }
-          break;
-        }
-        case dh.VariableType.TABLE:
-        case dh.VariableType.TREETABLE:
-        case dh.VariableType.HIERARCHICALTABLE: {
-          if (!cancelled) {
-            log.info('Loaded table', widget);
-            setTable(widget as unknown as AgGridTableType);
-          }
-          break;
-        }
         default:
           throw new Error(`Unsupported widget type: ${widget.type}`);
       }
