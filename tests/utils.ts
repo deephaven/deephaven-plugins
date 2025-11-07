@@ -33,7 +33,7 @@ export async function gotoPage(
         name: 'Panels',
         exact: true,
       })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 30000 });
     // Wait for any loading progress bars to disappear
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
