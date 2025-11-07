@@ -239,6 +239,31 @@ def extract_title_from_figure(fig: Figure | DeephavenFigure) -> str | None:
     return str(title)
 
 
+def map_user_index_to_grid_position(idx: int, rows: int, cols: int) -> tuple[int, int]:
+    """Map user's natural index to reversed grid position
+
+    Since the grid is reversed internally (to match plotly's bottom-to-top
+    coordinate system), we need to convert user's natural row-major index
+    (top-to-bottom, left-to-right) to the reversed grid position.
+
+    Args:
+      idx: User's index in natural row-major order (0 = top-left)
+      rows: Number of rows
+      cols: Number of columns
+
+    Returns:
+      Tuple of (row, col) in reversed grid coordinates
+
+    """
+    # Calculate row and col from index (row-major order in user's view)
+    user_row = idx // cols
+    col = idx % cols
+    # Reverse the row index to match the reversed grid
+    # User's row 0 (top) maps to reversed grid's row (rows-1)
+    row = (rows - 1) - user_row
+    return row, col
+
+
 def create_subplot_annotations(
     titles: list[str],
     col_starts: list[float],
@@ -266,21 +291,17 @@ def create_subplot_annotations(
     annotations = []
 
     for idx, title in enumerate(titles):
-        if not title:  # Skip empty titles
+        # Skip empty or whitespace-only titles
+        if not title or (isinstance(title, str) and not title.strip()):
             continue
 
-        # Calculate row and col from index (row-major order in user's view)
-        # Since the grid is reversed internally, we need to map user's row order
-        # to the reversed grid. User's row 0 (top) maps to reversed grid's row (rows-1)
-        user_row = idx // cols
-        col = idx % cols
-        # Reverse the row index to match the reversed grid
-        row = (rows - 1) - user_row
+        # Map user's natural index to reversed grid position
+        row, col = map_user_index_to_grid_position(idx, rows, cols)
 
         # Calculate x position (center of column)
         x = (col_starts[col] + col_ends[col]) / 2
 
-        # Calculate y position (top of row with small offset)
+        # Calculate y position (top of row)
         y = row_ends[row]
 
         annotation = {
