@@ -34,6 +34,66 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
+### Adding Subplot Titles
+
+You can add titles to individual subplots using the `subplot_titles` parameter. Provide a list or tuple of titles in row-major order.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# Add titles to subplots
+tipping_plots = dx.make_subplots(
+    dx.scatter(lunch_tips, x="TotalBill", y="Tip"),
+    dx.scatter(dinner_tips, x="TotalBill", y="Tip"),
+    rows=2,
+    subplot_titles=["Lunch Tips", "Dinner Tips"]
+)
+```
+
+### Using Existing Titles
+
+You can automatically use the titles from the original figures as subplot titles by setting `use_existing_titles=True`.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# Figures with titles
+lunch_chart = dx.scatter(lunch_tips, x="TotalBill", y="Tip", title="Lunch Tips")
+dinner_chart = dx.scatter(dinner_tips, x="TotalBill", y="Tip", title="Dinner Tips")
+
+# Use existing titles as subplot titles
+tipping_plots = dx.make_subplots(
+    lunch_chart, dinner_chart,
+    rows=2,
+    use_existing_titles=True
+)
+```
+
+### Adding an Overall Title
+
+You can add an overall title to the combined subplot figure using the `title` parameter.
+
+```python order=tipping_plots,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+tipping_plots = dx.make_subplots(
+    dx.scatter(tips, x="TotalBill", y="Tip", by="Day"),
+    dx.histogram(tips, x="TotalBill"),
+    rows=2,
+    subplot_titles=["Daily Patterns", "Distribution"],
+    title="Tipping Analysis"
+)
+```
+
 ### Share Axes
 
 Share axes between plots with the `shared_xaxes` and `shared_yaxes` parameters.
