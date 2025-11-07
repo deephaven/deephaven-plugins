@@ -584,16 +584,16 @@ class MakeSubplotsTestCase(BaseTestCase):
         layout = charts["plotly"]["layout"]
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
-        
+
         # Should have 2 annotations for 2 subplot titles
         self.assertEqual(len(annotations), 2)
-        
+
         # Check first annotation
         self.assertEqual(annotations[0]["text"], "Plot 1")
         self.assertEqual(annotations[0]["xref"], "paper")
         self.assertEqual(annotations[0]["yref"], "paper")
         self.assertFalse(annotations[0]["showarrow"])
-        
+
         # Check second annotation
         self.assertEqual(annotations[1]["text"], "Plot 2")
 
@@ -609,7 +609,7 @@ class MakeSubplotsTestCase(BaseTestCase):
         layout = charts["plotly"]["layout"]
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
-        
+
         # Should have 2 annotations (empty string skipped)
         self.assertEqual(len(annotations), 2)
         self.assertEqual(annotations[0]["text"], "Plot 1")
@@ -628,7 +628,7 @@ class MakeSubplotsTestCase(BaseTestCase):
         layout = charts["plotly"]["layout"]
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
-        
+
         # Should have 2 annotations
         self.assertEqual(len(annotations), 2)
         self.assertEqual(annotations[0]["text"], "First Chart")
@@ -638,9 +638,9 @@ class MakeSubplotsTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
 
         chart = dx.scatter(self.source, x="X", y="Y")
-        charts = dx.make_subplots(
-            chart, chart, rows=2, title="Overall Title"
-        ).to_dict(self.exporter)
+        charts = dx.make_subplots(chart, chart, rows=2, title="Overall Title").to_dict(
+            self.exporter
+        )
 
         # Check that the overall title was added
         layout = charts["plotly"]["layout"]
@@ -652,18 +652,20 @@ class MakeSubplotsTestCase(BaseTestCase):
 
         chart = dx.scatter(self.source, x="X", y="Y")
         charts = dx.make_subplots(
-            chart, chart, rows=2,
+            chart,
+            chart,
+            rows=2,
             subplot_titles=["Plot 1", "Plot 2"],
-            title="Combined Plot"
+            title="Combined Plot",
         ).to_dict(self.exporter)
 
         # Check that both subplot titles and overall title were added
         layout = charts["plotly"]["layout"]
-        
+
         # Check overall title
         self.assertIn("title", layout)
         self.assertEqual(layout["title"], "Combined Plot")
-        
+
         # Check subplot titles
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
@@ -678,17 +680,17 @@ class MakeSubplotsTestCase(BaseTestCase):
         chart2 = dx.scatter(self.source, x="X", y="Y", title="Chart B")
         chart3 = dx.scatter(self.source, x="X", y="Y", title="Chart C")
         chart4 = dx.scatter(self.source, x="X", y="Y", title="Chart D")
-        
+
         grid = [[chart1, chart2], [chart3, chart4]]
-        charts = dx.make_subplots(
-            grid=grid, use_existing_titles=True
-        ).to_dict(self.exporter)
+        charts = dx.make_subplots(grid=grid, use_existing_titles=True).to_dict(
+            self.exporter
+        )
 
         # Check that annotations were added with extracted titles
         layout = charts["plotly"]["layout"]
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
-        
+
         # Should have 4 annotations
         self.assertEqual(len(annotations), 4)
         self.assertEqual(annotations[0]["text"], "Chart A")
@@ -700,15 +702,17 @@ class MakeSubplotsTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
 
         chart = dx.scatter(self.source, x="X", y="Y")
-        
+
         # Should raise error when both use_existing_titles and subplot_titles are provided
         with self.assertRaises(ValueError) as context:
             dx.make_subplots(
-                chart, chart, rows=2,
+                chart,
+                chart,
+                rows=2,
                 subplot_titles=["Plot 1", "Plot 2"],
-                use_existing_titles=True
+                use_existing_titles=True,
             )
-        
+
         self.assertIn("Cannot use both", str(context.exception))
 
 

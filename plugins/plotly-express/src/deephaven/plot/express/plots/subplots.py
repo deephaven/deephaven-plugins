@@ -226,13 +226,13 @@ def extract_title_from_figure(fig: Figure | DeephavenFigure) -> str | None:
         if plotly_fig is None:
             return None
         fig = plotly_fig
-    
+
     layout = fig.to_dict().get("layout", {})
     title = layout.get("title")
-    
+
     if title is None:
         return None
-    
+
     # Title can be either a string or a dict with a 'text' key
     if isinstance(title, dict):
         return title.get("text")
@@ -264,21 +264,21 @@ def create_subplot_annotations(
 
     """
     annotations = []
-    
+
     for idx, title in enumerate(titles):
         if not title:  # Skip empty titles
             continue
-            
+
         # Calculate row and col from index (row-major order, but reversed since grid is reversed)
         row = idx // cols
         col = idx % cols
-        
+
         # Calculate x position (center of column)
         x = (col_starts[col] + col_ends[col]) / 2
-        
+
         # Calculate y position (top of row with small offset)
         y = row_ends[row]
-        
+
         annotation = {
             "text": title,
             "showarrow": False,
@@ -288,11 +288,11 @@ def create_subplot_annotations(
             "y": y,
             "xanchor": "center",
             "yanchor": "bottom",
-            "font": {"size": 16}
+            "font": {"size": 16},
         }
-        
+
         annotations.append(annotation)
-    
+
     return annotations
 
 
@@ -380,10 +380,10 @@ def atomic_make_subplots(
 
     # Handle subplot titles
     final_subplot_titles: list[str] = []
-    
+
     if use_existing_titles and subplot_titles is not None:
         raise ValueError("Cannot use both use_existing_titles and subplot_titles")
-    
+
     if use_existing_titles:
         # Extract titles from existing figures
         for fig_row in grid:
@@ -392,16 +392,20 @@ def atomic_make_subplots(
                     final_subplot_titles.append("")
                 else:
                     extracted_title = extract_title_from_figure(fig)
-                    final_subplot_titles.append(extracted_title if extracted_title else "")
+                    final_subplot_titles.append(
+                        extracted_title if extracted_title else ""
+                    )
     elif subplot_titles is not None:
         # Convert to list if tuple
         final_subplot_titles = list(subplot_titles)
-        
+
         # Pad with empty strings if needed
         total_subplots = rows * cols
         if len(final_subplot_titles) < total_subplots:
-            final_subplot_titles.extend([""] * (total_subplots - len(final_subplot_titles)))
-    
+            final_subplot_titles.extend(
+                [""] * (total_subplots - len(final_subplot_titles))
+            )
+
     # Create the custom update function to add annotations and title
     def custom_update_figure(fig: Figure) -> Figure:
         # Add subplot title annotations if any
@@ -415,15 +419,17 @@ def atomic_make_subplots(
                 rows,
                 cols,
             )
-            
+
             # Get existing annotations if any
-            existing_annotations = list(fig.layout.annotations) if fig.layout.annotations else []
+            existing_annotations = (
+                list(fig.layout.annotations) if fig.layout.annotations else []
+            )
             fig.update_layout(annotations=existing_annotations + annotations)
-        
+
         # Add overall title if provided
         if title:
             fig.update_layout(title=title)
-        
+
         # Apply user's unsafe_update_figure if provided
         result = unsafe_update_figure(fig)
         return result if result is not None else fig
