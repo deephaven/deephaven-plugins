@@ -439,6 +439,8 @@ def atomic_layer(
     specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
     remove_legend_title: bool = False,
+    subplot_annotations: list[dict] | None = None,
+    overall_title: str | None = None,
 ) -> DeephavenFigure:
     """
     Layers the provided figures. This is an atomic version of layer, so the
@@ -460,6 +462,10 @@ def atomic_layer(
             should be kept, but is necessary for other layering and subplotting as
             they may not use the same plot by (and similar) columns, so the legend
             title would be incorrect.
+        subplot_annotations:
+            List of annotation dictionaries to add to the layout for subplot titles.
+        overall_title:
+            Overall title to set for the figure.
 
     Returns:
         The layered chart
@@ -527,6 +533,17 @@ def atomic_layer(
     if remove_legend_title:
         new_fig.update_layout(legend_title_text=None)
 
+    # Add subplot annotations if provided
+    if subplot_annotations:
+        existing_annotations = (
+            list(new_fig.layout.annotations) if new_fig.layout.annotations else []
+        )
+        new_fig.update_layout(annotations=existing_annotations + subplot_annotations)
+
+    # Add overall title if provided
+    if overall_title:
+        new_fig.update_layout(title=overall_title)
+
     update_wrapper = partial(unsafe_figure_update_wrapper, unsafe_update_figure)
 
     return update_wrapper(
@@ -546,6 +563,7 @@ def layer(
     which_layout: int | None = None,
     specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
+    overall_title: str | None = None,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
     applied, so the layouts of later figures will override the layouts of early
@@ -571,6 +589,8 @@ def layer(
         Used to add any custom changes to the underlying plotly figure. Note that
         the existing data traces should not be removed. This may lead to unexpected
         behavior if traces are modified in a way that break data mappings.
+      overall_title:
+        Overall title to set for the figure.
 
     Returns:
       The layered chart
@@ -588,6 +608,7 @@ def layer(
         # remove the legend title as it is likely incorrect
         remove_legend_title=True,
         unsafe_update_figure=unsafe_update_figure,
+        overall_title=overall_title,
     )
 
     exec_ctx = make_user_exec_ctx()

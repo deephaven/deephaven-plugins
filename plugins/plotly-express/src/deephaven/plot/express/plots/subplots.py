@@ -211,31 +211,31 @@ def is_grid(specs: list[SubplotSpecDict] | Grid[SubplotSpecDict]) -> bool:
     return list_count == len(specs) and list_count > 0
 
 
-def extract_title_from_figure(fig: Figure | DeephavenFigure) -> str | None:
+def extract_title_from_figure(fig: Figure | DeephavenFigure) -> str:
     """Extract the title from a figure if it exists
 
     Args:
       fig: The figure to extract the title from
 
     Returns:
-      The title string if it exists, None otherwise
+      The title string if it exists, empty string otherwise
 
     """
     if isinstance(fig, DeephavenFigure):
         plotly_fig = fig.get_plotly_fig()
         if plotly_fig is None:
-            return None
+            return ""
         fig = plotly_fig
 
     layout = fig.to_dict().get("layout", {})
     title = layout.get("title")
 
     if title is None:
-        return None
+        return ""
 
     # Title can be either a string or a dict with a 'text' key
     if isinstance(title, dict):
-        return title.get("text")
+        return title.get("text", "")
     return str(title)
 
 
@@ -321,6 +321,49 @@ def create_subplot_annotations(
     return annotations
 
 
+def get_subplot_titles(
+    grid: Grid[Figure | DeephavenFigure],
+    subplot_titles: list[str] | tuple[str, ...] | None,
+    titles_as_subtitles: bool,
+    rows: int,
+    cols: int,
+) -> list[str]:
+    """Get the list of subplot titles based on parameters
+
+    Args:
+      grid: The grid of figures (already reversed)
+      subplot_titles: Explicit list of titles provided by user
+      titles_as_subtitles: Whether to extract titles from figures
+      rows: Number of rows
+      cols: Number of columns
+
+    Returns:
+      List of titles in user's natural order (top-to-bottom, left-to-right)
+
+    """
+    if titles_as_subtitles and subplot_titles is not None:
+        raise ValueError("Cannot use both titles_as_subtitles and subplot_titles")
+
+    if titles_as_subtitles:
+        # Extract titles from figures in natural order (reverse the grid)
+        return [
+            extract_title_from_figure(fig) if fig is not None else ""
+            for fig_row in reversed(grid)
+            for fig in fig_row
+        ]
+    elif subplot_titles is not None:
+        # Convert to list and adjust length
+        titles = list(subplot_titles)
+        total_subplots = rows * cols
+        if len(titles) > total_subplots:
+            return titles[:total_subplots]
+        elif len(titles) < total_subplots:
+            titles.extend([""] * (total_subplots - len(titles)))
+        return titles
+
+    return []
+
+
 def atomic_make_subplots(
     *figs: Figure | DeephavenFigure,
     rows: int = 0,
@@ -334,7 +377,7 @@ def atomic_make_subplots(
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
     subplot_titles: list[str] | tuple[str, ...] | None = None,
-    use_existing_titles: bool = False,
+    titles_as_subtitles: bool = False,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -354,7 +397,7 @@ def atomic_make_subplots(
       row_heights: See make_subplots
       specs: See make_subplots
       subplot_titles: See make_subplots
-      use_existing_titles: See make_subplots
+      titles_as_subtitles: See make_subplots
       title: See make_subplots
 
     Returns:
@@ -403,68 +446,25 @@ def atomic_make_subplots(
     col_starts, col_ends = get_domains(column_widths, horizontal_spacing)
     row_starts, row_ends = get_domains(row_heights, vertical_spacing)
 
-    # Handle subplot titles
-    final_subplot_titles: list[str] = []
+    # Get subplot titles using the helper function
+    final_subplot_titles = get_subplot_titles(
+        grid, subplot_titles, titles_as_subtitles, rows, cols
+    )
 
-    if use_existing_titles and subplot_titles is not None:
-        raise ValueError("Cannot use both use_existing_titles and subplot_titles")
+    # Create subplot annotations if we have titles
+    subplot_annotations = None
+    if final_subplot_titles:
+        subplot_annotations = create_subplot_annotations(
+            final_subplot_titles,
+            col_starts,
+            col_ends,
+            row_starts,
+            row_ends,
+            rows,
+            cols,
+        )
 
-    if use_existing_titles:
-        # Extract titles from existing figures
-        # Since grid is already reversed, we need to extract in reversed order
-        # to get titles in natural top-to-bottom order
-        for fig_row in reversed(grid):
-            for fig in fig_row:
-                if fig is None:
-                    final_subplot_titles.append("")
-                else:
-                    extracted_title = extract_title_from_figure(fig)
-                    # Explicitly check for None to handle empty strings correctly
-                    final_subplot_titles.append(
-                        extracted_title if extracted_title is not None else ""
-                    )
-    elif subplot_titles is not None:
-        # Convert to list if tuple
-        final_subplot_titles = list(subplot_titles)
-
-        # Validate and adjust length if needed
-        total_subplots = rows * cols
-        if len(final_subplot_titles) > total_subplots:
-            # Truncate if too many titles provided
-            final_subplot_titles = final_subplot_titles[:total_subplots]
-        elif len(final_subplot_titles) < total_subplots:
-            # Pad with empty strings if too few titles provided
-            final_subplot_titles.extend(
-                [""] * (total_subplots - len(final_subplot_titles))
-            )
-
-    # Create the custom update function to add annotations and title
-    def custom_update_figure(fig: Figure) -> Figure:
-        # Add subplot title annotations if any
-        if final_subplot_titles:
-            annotations = create_subplot_annotations(
-                final_subplot_titles,
-                col_starts,
-                col_ends,
-                row_starts,
-                row_ends,
-                rows,
-                cols,
-            )
-
-            # Get existing annotations if any
-            existing_annotations = (
-                list(fig.layout.annotations) if fig.layout.annotations else []
-            )
-            fig.update_layout(annotations=existing_annotations + annotations)
-
-        # Add overall title if provided
-        if title:
-            fig.update_layout(title=title)
-
-        # Apply user's unsafe_update_figure if provided
-        result = unsafe_update_figure(fig)
-        return result if result is not None else fig
+    return atomic_layer([""] * (total_subplots - len(final_subplot_titles)))
 
     return atomic_layer(
         *[fig for fig_row in grid for fig in fig_row],
@@ -477,7 +477,9 @@ def atomic_make_subplots(
             shared_xaxes,
             shared_yaxes,
         ),
-        unsafe_update_figure=custom_update_figure,
+        unsafe_update_figure=unsafe_update_figure,
+        subplot_annotations=subplot_annotations,
+        overall_title=title,
         # remove the legend title as it is likely incorrect
         remove_legend_title=True,
     )
@@ -527,7 +529,7 @@ def make_subplots(
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
     subplot_titles: list[str] | tuple[str, ...] | None = None,
-    use_existing_titles: bool = False,
+    titles_as_subtitles: bool = False,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -554,7 +556,7 @@ def make_subplots(
       vertical_spacing: Spacing between each row. Default 0.3 / rows
       column_widths: The widths of each column. Should sum to 1.
       row_heights: The heights of each row. Should sum to 1.
-      specs: (Default value = None)
+      specs:
         A list or grid of dicts that contain specs. An empty
         dictionary represents no specs, and None represents no figure, either
         to leave a gap on the subplots on provide room for a figure spanning
@@ -565,14 +567,15 @@ def make_subplots(
         'b' is a float that adds bottom padding
         'rowspan' is an int to make this figure span multiple rows
         'colspan' is an int to make this figure span multiple columns
-      subplot_titles: (Default value = None)
-        A list or tuple of titles for each subplot in row-major order.
+      subplot_titles:
+        A list or tuple of titles for each subplot, provided from left to right,
+        top to bottom.
         Empty strings ("") can be included in the list if no subplot title
-        is desired in that space. Cannot be used with use_existing_titles.
-      use_existing_titles: (Default value = False)
+        is desired in that space. Cannot be used with titles_as_subtitles.
+      titles_as_subtitles:
         If True, automatically extracts and uses titles from the input figures
         as subplot titles. Cannot be used with subplot_titles.
-      title: (Default value = None)
+      title:
         The overall title for the combined subplot figure.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is not
@@ -602,7 +605,7 @@ def make_subplots(
         row_heights=row_heights,
         specs=specs,
         subplot_titles=subplot_titles,
-        use_existing_titles=use_existing_titles,
+        titles_as_subtitles=titles_as_subtitles,
         title=title,
         unsafe_update_figure=unsafe_update_figure,
     )

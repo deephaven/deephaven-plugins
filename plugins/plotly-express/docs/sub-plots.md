@@ -42,7 +42,7 @@ tipping_plots = dx.make_subplots(
 
 ### Adding Subplot Titles
 
-You can add titles to individual subplots using the `subplot_titles` parameter. Provide a list or tuple of titles in row-major order.
+You can add titles to individual subplots using the `subplot_titles` parameter. Provide a list or tuple of titles, ordered from left to right, top to bottom.
 
 ```python order=tipping_plots,lunch_tips,dinner_tips
 import deephaven.plot.express as dx
@@ -63,7 +63,7 @@ tipping_plots = dx.make_subplots(
 
 ### Using Existing Titles
 
-You can automatically use the titles from the original figures as subplot titles by setting `use_existing_titles=True`.
+You can automatically use the titles from the original figures as subplot titles by setting `titles_as_subtitles=True`.
 
 ```python order=tipping_plots,lunch_tips,dinner_tips
 import deephaven.plot.express as dx
@@ -79,7 +79,7 @@ dinner_chart = dx.scatter(dinner_tips, x="TotalBill", y="Tip", title="Dinner Tip
 
 # Use existing titles as subplot titles
 tipping_plots = dx.make_subplots(
-    lunch_chart, dinner_chart, rows=2, use_existing_titles=True
+    lunch_chart, dinner_chart, rows=2, titles_as_subtitles=True
 )
 ```
 
