@@ -352,13 +352,11 @@ def get_subplot_titles(
             for fig in fig_row
         ]
     elif subplot_titles is not None:
-        # Convert to list and adjust length
+        # Convert to list and truncate if needed
         titles = list(subplot_titles)
         total_subplots = rows * cols
         if len(titles) > total_subplots:
             return titles[:total_subplots]
-        elif len(titles) < total_subplots:
-            titles.extend([""] * (total_subplots - len(titles)))
         return titles
 
     return []
@@ -463,8 +461,6 @@ def atomic_make_subplots(
             rows,
             cols,
         )
-
-    return atomic_layer([""] * (total_subplots - len(final_subplot_titles)))
 
     return atomic_layer(
         *[fig for fig_row in grid for fig in fig_row],

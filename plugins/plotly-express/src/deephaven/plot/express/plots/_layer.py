@@ -563,7 +563,7 @@ def layer(
     which_layout: int | None = None,
     specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
-    overall_title: str | None = None,
+    title: str | None = None,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
     applied, so the layouts of later figures will override the layouts of early
@@ -589,7 +589,7 @@ def layer(
         Used to add any custom changes to the underlying plotly figure. Note that
         the existing data traces should not be removed. This may lead to unexpected
         behavior if traces are modified in a way that break data mappings.
-      overall_title:
+      title:
         Overall title to set for the figure.
 
     Returns:
@@ -608,7 +608,7 @@ def layer(
         # remove the legend title as it is likely incorrect
         remove_legend_title=True,
         unsafe_update_figure=unsafe_update_figure,
-        overall_title=overall_title,
+        overall_title=title,
     )
 
     exec_ctx = make_user_exec_ctx()
