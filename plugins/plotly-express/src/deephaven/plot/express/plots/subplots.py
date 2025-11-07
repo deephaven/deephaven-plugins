@@ -269,9 +269,13 @@ def create_subplot_annotations(
         if not title:  # Skip empty titles
             continue
 
-        # Calculate row and col from index (row-major order, but reversed since grid is reversed)
-        row = idx // cols
+        # Calculate row and col from index (row-major order in user's view)
+        # Since the grid is reversed internally, we need to map user's row order
+        # to the reversed grid. User's row 0 (top) maps to reversed grid's row (rows-1)
+        user_row = idx // cols
         col = idx % cols
+        # Reverse the row index to match the reversed grid
+        row = (rows - 1) - user_row
 
         # Calculate x position (center of column)
         x = (col_starts[col] + col_ends[col]) / 2
@@ -386,7 +390,9 @@ def atomic_make_subplots(
 
     if use_existing_titles:
         # Extract titles from existing figures
-        for fig_row in grid:
+        # Since grid is already reversed, we need to extract in reversed order
+        # to get titles in natural top-to-bottom order
+        for fig_row in reversed(grid):
             for fig in fig_row:
                 if fig is None:
                     final_subplot_titles.append("")
