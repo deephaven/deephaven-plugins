@@ -789,7 +789,7 @@ def ui_combo_box_multi_select_example():
         set_selection_state(new_value)
         set_items(
             lambda prev_items: prev_items + [new_value]
-            if new_value not in prev_items
+            if new_value not in prev_items and new_value is not None
             else prev_items
         )
         print(f"Selection changed to {items}")
