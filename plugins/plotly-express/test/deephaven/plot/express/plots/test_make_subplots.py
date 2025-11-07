@@ -715,6 +715,26 @@ class MakeSubplotsTestCase(BaseTestCase):
 
         self.assertIn("Cannot use both", str(context.exception))
 
+    def test_make_subplots_with_too_many_subplot_titles(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y")
+        # Provide more titles than subplots - should be truncated
+        charts = dx.make_subplots(
+            chart,
+            chart,
+            rows=2,
+            subplot_titles=["Plot 1", "Plot 2", "Plot 3", "Plot 4"],
+        ).to_dict(self.exporter)
+
+        # Check that only 2 annotations were created (truncated)
+        layout = charts["plotly"]["layout"]
+        self.assertIn("annotations", layout)
+        annotations = layout["annotations"]
+        self.assertEqual(len(annotations), 2)
+        self.assertEqual(annotations[0]["text"], "Plot 1")
+        self.assertEqual(annotations[1]["text"], "Plot 2")
+
 
 if __name__ == "__main__":
     unittest.main()

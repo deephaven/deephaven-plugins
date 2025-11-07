@@ -398,16 +398,21 @@ def atomic_make_subplots(
                     final_subplot_titles.append("")
                 else:
                     extracted_title = extract_title_from_figure(fig)
+                    # Explicitly check for None to handle empty strings correctly
                     final_subplot_titles.append(
-                        extracted_title if extracted_title else ""
+                        extracted_title if extracted_title is not None else ""
                     )
     elif subplot_titles is not None:
         # Convert to list if tuple
         final_subplot_titles = list(subplot_titles)
 
-        # Pad with empty strings if needed
+        # Validate and adjust length if needed
         total_subplots = rows * cols
-        if len(final_subplot_titles) < total_subplots:
+        if len(final_subplot_titles) > total_subplots:
+            # Truncate if too many titles provided
+            final_subplot_titles = final_subplot_titles[:total_subplots]
+        elif len(final_subplot_titles) < total_subplots:
+            # Pad with empty strings if too few titles provided
             final_subplot_titles.extend(
                 [""] * (total_subplots - len(final_subplot_titles))
             )
