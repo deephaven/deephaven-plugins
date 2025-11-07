@@ -292,7 +292,7 @@ def create_subplot_annotations(
 
     for idx, title in enumerate(titles):
         # Skip empty or whitespace-only titles
-        if not title or (isinstance(title, str) and not title.strip()):
+        if not title or not title.strip():
             continue
 
         # Map user's natural index to reversed grid position
