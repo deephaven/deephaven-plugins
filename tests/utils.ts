@@ -27,6 +27,14 @@ export async function gotoPage(
 ): Promise<void> {
   await test.step(`Go to page (${url})`, async () => {
     await page.goto(url, options);
+    // Check the page loaded by waiting for the panels button to be visible
+    await expect(
+      page.getByRole('button', {
+        name: 'Panels',
+        exact: true,
+      })
+    ).toBeVisible();
+    // Wait for any loading progress bars to disappear
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
     ).toHaveCount(0);
