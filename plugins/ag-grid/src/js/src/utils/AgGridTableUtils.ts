@@ -152,10 +152,12 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
         const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
           ? {
               field: c.name,
+              headerName: c.name,
               rowGroup: true,
             }
           : {
               field: c.name,
+              headerName: c.name,
               enableRowGroup: isRowGroupable(c.type),
               enableValue: true,
             };
