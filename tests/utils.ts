@@ -27,13 +27,6 @@ export async function gotoPage(
 ): Promise<void> {
   await test.step(`Go to page (${url})`, async () => {
     await page.goto(url, options);
-    // Check the page loaded by waiting for the panels button to be visible
-    await expect(
-      page.getByRole('button', {
-        name: 'Panels',
-        exact: true,
-      })
-    ).toBeVisible({ timeout: 30000 });
     // Wait for any loading progress bars to disappear
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
@@ -63,14 +56,16 @@ export async function openPanel(
   awaitLoad = true
 ): Promise<void> {
   await test.step(`Open panel (${name})`, async () => {
-    const panelCount = await page.locator(panelLocator).count();
-
     // open app panels menu
     const appPanels = page.getByRole('button', {
       name: 'Panels',
       exact: true,
     });
     await expect(appPanels).toBeEnabled();
+
+    // Count how many panels are open before opening a new one
+    const panelCount = await page.locator(panelLocator).count();
+
     await appPanels.click();
 
     // search for the panel in list
