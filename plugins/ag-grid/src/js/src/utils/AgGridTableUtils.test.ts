@@ -216,6 +216,8 @@ describe('getColumnDefs', () => {
       expect(columnDefs).toHaveLength(2);
       expect(columnDefs[0].field).toBe('col1');
       expect(columnDefs[1].field).toBe('col2');
+      expect(columnDefs[0].headerName).toBe('col1');
+      expect(columnDefs[1].headerName).toBe('col2');
     });
   });
 
@@ -236,8 +238,10 @@ describe('getColumnDefs', () => {
       const columnDefs = getColumnDefs(treeTable);
       expect(columnDefs).toHaveLength(2);
       expect(columnDefs[0].field).toBe('col1');
+      expect(columnDefs[0].headerName).toBe('col1');
       expect(columnDefs[0].rowGroup).toBe(true);
       expect(columnDefs[1].field).toBe('col2');
+      expect(columnDefs[1].headerName).toBe('col2');
     });
   });
 
