@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## python-remote-file-source-v0.1.1 - 2025-11-12
+#### Bug Fixes
+- Python Remote File Source did not have correct repository (#1265) - (2a8f690) - mofojed
+
+- - -
+
 ## python-remote-file-source-v0.1.0 - 2025-11-12
 #### Features
 - DH-19715: Python remote file source plugin (#1243) - (8039d15) - bmingles
