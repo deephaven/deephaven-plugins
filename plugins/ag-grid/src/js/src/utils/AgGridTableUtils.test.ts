@@ -267,4 +267,37 @@ describe('getColumnDefs', () => {
       expect(columnDefs[2].field).toBe('value1');
     });
   });
+
+  describe('sets headerName explicitly', () => {
+    // AG Grid by default converts camelCase to 'Camel Case' for header names.
+    // We want to ensure that column names are used exactly as-is.
+    it('for table columns', () => {
+      const table = createMockTable({
+        columns: [
+          createMockColumn({ name: 'col1' }),
+          createMockColumn({ name: 'FooBar' }),
+          createMockColumn({ name: 'Foo_Bar' }),
+        ],
+      });
+      const columnDefs = getColumnDefs(table);
+      expect(columnDefs[0].headerName).toBe('col1');
+      expect(columnDefs[1].headerName).toBe('FooBar');
+      expect(columnDefs[2].headerName).toBe('Foo_Bar');
+    });
+
+    it('for tree table columns', () => {
+      const treeTable = createMockTreeTable({
+        columns: [
+          createMockColumn({ name: 'col1' }),
+          createMockColumn({ name: 'FooBar' }),
+          createMockColumn({ name: 'Foo_Bar' }),
+        ],
+        groupedColumns: [createMockColumn({ name: 'col1' })],
+      });
+      const columnDefs = getColumnDefs(treeTable);
+      expect(columnDefs[0].headerName).toBe('col1');
+      expect(columnDefs[1].headerName).toBe('FooBar');
+      expect(columnDefs[2].headerName).toBe('Foo_Bar');
+    });
+  });
 });
