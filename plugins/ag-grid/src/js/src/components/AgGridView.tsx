@@ -8,8 +8,8 @@ import {
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
   GetRowIdParams,
-} from '@ag-grid-community/core';
-import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
+} from 'ag-grid-community';
+import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AgGridFormatter,
