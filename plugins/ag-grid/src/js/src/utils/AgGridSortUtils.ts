@@ -1,5 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { ColumnState, SortModelItem } from '@ag-grid-community/core';
+import { ColumnState, SortModelItem } from 'ag-grid-community';
 
 export function isSortModelItem(item: ColumnState): item is SortModelItem {
   return item.sort != null;

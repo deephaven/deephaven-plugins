@@ -7,7 +7,7 @@ import {
   ISimpleFilterModel,
   NumberFilterModel,
   TextFilterModel,
-} from '@ag-grid-community/core';
+} from 'ag-grid-community';
 import { TableUtils } from '@deephaven/jsapi-utils';
 
 // These are the currently supported filters, which are a subset of the inbuilt
