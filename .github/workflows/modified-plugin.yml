@@ -17,6 +17,7 @@ on:
       - 'utilities-v*'
       - 'packaging-v*'
       - 'theme-pack-v*'
+      - 'python-remote-file-source-v*'
 
 jobs:
   changes:

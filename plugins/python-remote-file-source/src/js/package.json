@@ -9,6 +9,10 @@
   "author": "deephaven",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build"
