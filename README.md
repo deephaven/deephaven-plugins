@@ -375,14 +375,21 @@ If you've added a new plugin to the `plugins/` directory, there are a couple thi
 1. Add an entry for the new plugin in `cog.toml` under the `[package]` section. Use the existing entries as examples.
 2. Update the `tools/update_version.sh` script to include the new plugin and where its version is stored in source code. If your component has both a Python and JS component, you'll need to add it to both sections. Use the existing entries as examples.
    - For an example, check the [PR that added the pivot plugin for release](https://github.com/deephaven/deephaven-plugins/pull/1242/files).
-3. In PyPI, Add a new pending publisher for the project.
+3. Add the new plugin to the `.github/workflows/modified-plugin.yml` file so that a tag pushed with the name of the plugin will trigger the modified plugin workflow.
+4. In PyPI, Add a new pending publisher for the project.
    1. Go to https://pypi.org/manage/account/publishing/
    2. Under "Add a new pending publisher" section, enter the following:
       - PyPI Project Name: The name of the python plugin, e.g. `deephaven-plugin-ui`
       - Owner: `deephaven`
       - Repository name: `deephaven-plugins`
    3. Click "Add"
-4. For npmjs, the project should already be scoped to the `@deephaven` or `@deephaven-enterprise` organization, and you should not need to do anything extra.
+5. For npmjs, the project should already be scoped to the `@deephaven` or `@deephaven-enterprise` organization. You may need to update the `package.json` to include the correct `repository` if it is not already set. Add the following to your `package.json`:
+   ```json
+   "repository": {
+     "type": "git",
+     "url": "git+https://github.com/deephaven/deephaven-plugins.git"
+   }
+   ```
 
 After completing the above, you should be able to run the release script in the [Cutting a New Release](#cutting-a-new-release) section. After the first release, verify that the version numbers are being updated correctly in source code, and that the releases are being created correctly on GitHub, PyPI, and npmjs. You should also update the project and add `deephaven` as an owner on the project in PyPI.
 
