@@ -1,7 +1,6 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import { createFormatterFromSettings, Settings } from '@deephaven/jsapi-utils';
 import {
   ColDef,
   GridReadyEvent,
@@ -26,8 +25,13 @@ import { DeephavenViewportDatasource } from '../datasources';
 import { AgGridTableType } from '../types';
 
 export type AgGridViewProps = {
+  /** Table to be displayed */
   table: AgGridTableType;
-  settings?: WorkspaceSettings;
+
+  /** Settings controlling the formatting of the data */
+  settings?: Settings;
+
+  /** Other props to pass through to the `AgGridReact` component */
   agGridProps?: AgGridReactProps;
 };
 

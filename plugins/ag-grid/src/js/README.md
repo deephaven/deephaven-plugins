@@ -9,6 +9,8 @@ The easiest way to use this plugin is to import and use the provided `AgGridView
 ```tsx
 import React from 'react';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+// Only if using Core+ features
+import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { AgGridView } from '@deephaven/js-plugin-ag-grid';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
 
@@ -17,11 +19,47 @@ function DeephavenAgGridComponent({
   table,
 }: {
   api: typeof DhType;
-  table: DhType.Table;
+  table: DhType.Table | DhType.TreeTable | CorePlusDhType.PivotTable;
 }) {
   return (
     <ApiContext.Provider value={api}>
       <AgGridView table={table} />
+    </ApiContext.Provider>
+  );
+}
+```
+
+### Formatting
+
+You can pass in custom `Settings` to the `AgGridView` component to configure the grid's formatting. For example, to apply the Singapore time zone, display time down to the nanosecond, and show decimals to 4 places by default:
+
+```tsx
+import React, { useMemo } from 'react';
+import type { dh as DhType } from '@deephaven/jsapi-types';
+import { AgGridView } from '@deephaven/js-plugin-ag-grid';
+import { ApiContext } from '@deephaven/jsapi-bootstrap';
+
+function FormattedAgGridComponent({
+  api,
+  table,
+}: {
+  api: typeof DhType;
+  table: DhType.Table | DhType.TreeTable;
+}) {
+  const settings = useMemo(
+    () => ({
+      timeZone: 'Singapore',
+      defaultDateTimeFormat: 'yyyy-MM-dd HH:mm:ss.SSSSSSSSS',
+      defaultDecimalFormatOptions: {
+        defaultFormatString: '###,##0.0000',
+      },
+    }),
+    []
+  );
+
+  return (
+    <ApiContext.Provider value={api}>
+      <AgGridView table={table} settings={settings} />
     </ApiContext.Provider>
   );
 }
@@ -32,7 +70,7 @@ function DeephavenAgGridComponent({
 You can import the datasource directly if you want to manipulate the `AgGridReact` component directly. Import the DeephavenViewportDatasource and use it with your AG Grid view:
 
 ```tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { DeephavenViewportDatasource } from '@deephaven/js-plugin-ag-grid';
