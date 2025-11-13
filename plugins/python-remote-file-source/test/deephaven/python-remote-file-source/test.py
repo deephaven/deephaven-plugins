@@ -8,8 +8,6 @@ class Test(BaseTestCase):
     def test(self):
         result = PluginObject()
 
-        pass
-
 
 if __name__ == "__main__":
     unittest.main()
