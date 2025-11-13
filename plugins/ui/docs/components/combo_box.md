@@ -796,34 +796,38 @@ def ui_combo_box_multi_select_example():
 
     return [
         ui.flex(
-            ui.combo_box(
-                ui.item("Option 1"),
-                ui.item("Option 2"),
-                ui.item("Option 3"),
-                ui.item("Option 4"),
-                ui.item("Option 5"),
-                ui.item("Option 6"),
-                ui.item("Option 7"),
-                ui.item("Option 8"),
-                ui.item("Option 9"),
-                input_value=input_value,
-                on_input_change=handle_input_change,
-                selected_key=None,
-                on_change=handle_selection_change,
-            ),
-            ui.tag_group(
-                *[ui.item(item, key=item.lower()) for item in items],
-                on_remove=lambda keys: set_items(
-                    [item for item in items if item.lower() not in keys]
+            ui.flex(
+                ui.combo_box(
+                    ui.item("Option 1"),
+                    ui.item("Option 2"),
+                    ui.item("Option 3"),
+                    ui.item("Option 4"),
+                    ui.item("Option 5"),
+                    ui.item("Option 6"),
+                    ui.item("Option 7"),
+                    ui.item("Option 8"),
+                    ui.item("Option 9"),
+                    input_value=input_value,
+                    on_input_change=handle_input_change,
+                    selected_key=None,
+                    on_change=handle_selection_change,
                 ),
+                ui.tag_group(
+                    *[ui.item(item, key=item.lower()) for item in items],
+                    on_remove=lambda keys: set_items(
+                        [item for item in items if item.lower() not in keys]
+                    ),
+                ),
+                direction="row",
+                align_items="center",
             ),
+            align_items="start",
         )
     ]
 
 
 my_combo_box_multi_select_example = ui_combo_box_multi_select_example()
 ```
-
 
 ## API Reference
 
