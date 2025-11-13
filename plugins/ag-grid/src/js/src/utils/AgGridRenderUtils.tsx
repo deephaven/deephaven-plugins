@@ -1,5 +1,5 @@
-import { ColDef } from '@ag-grid-community/core';
-import { CustomCellRendererProps } from '@ag-grid-community/react';
+import { ColDef } from 'ag-grid-community';
+import { CustomCellRendererProps } from 'ag-grid-react';
 import { DeephavenViewportDatasource } from '../datasources';
 import { TreeCellRenderer } from '../renderers';
 

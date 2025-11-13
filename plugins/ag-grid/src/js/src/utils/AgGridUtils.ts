@@ -1,17 +1,29 @@
-import { AgGridReactProps } from '@ag-grid-community/react';
-import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
-import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
-import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
+import { AgGridReactProps } from 'ag-grid-react';
+import {
+  AllCommunityModule,
+  ColumnsToolPanelModule,
+  GroupFilterModule,
+  PivotModule,
+  RowGroupingModule,
+  RowGroupingPanelModule,
+  ServerSideRowModelModule,
+  TreeDataModule,
+  ViewportRowModelModule,
+} from 'ag-grid-enterprise';
 
 // eslint-disable-next-line import/prefer-default-export
 export function getDefaultProps(): AgGridReactProps {
   return {
     modules: [
       RowGroupingModule,
+      RowGroupingPanelModule,
+      GroupFilterModule,
+      TreeDataModule,
+      PivotModule,
       ViewportRowModelModule,
       ColumnsToolPanelModule,
       ServerSideRowModelModule,
+      AllCommunityModule,
     ],
     defaultColDef: {
       filterParams: {

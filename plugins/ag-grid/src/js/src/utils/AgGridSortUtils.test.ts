@@ -1,5 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { SortModelItem } from '@ag-grid-community/core';
+import { SortModelItem } from 'ag-grid-community';
 import AgGridSortUtils from './AgGridSortUtils';
 
 describe('AgGridSortUtils', () => {

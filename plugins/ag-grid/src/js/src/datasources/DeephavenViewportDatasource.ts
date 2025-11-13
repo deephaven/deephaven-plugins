@@ -12,7 +12,7 @@ import {
   IViewportDatasourceParams,
   SortChangedEvent,
   SortModelItem,
-} from '@ag-grid-community/core';
+} from 'ag-grid-community';
 import Log from '@deephaven/log';
 import { assertNotNull, Pending } from '@deephaven/utils';
 import { getAggregatedColumns, getRollupConfig } from '../utils/AgGridAggUtils';
