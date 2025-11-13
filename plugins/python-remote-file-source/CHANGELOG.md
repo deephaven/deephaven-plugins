@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## python-remote-file-source-v0.1.2 - 2025-11-13
+#### Tests
+- Added tox test (#1266) - (d65ebc6) - bmingles
+
+- - -
+
 ## python-remote-file-source-v0.1.1 - 2025-11-12
 #### Bug Fixes
 - Python Remote File Source did not have correct repository (#1265) - (2a8f690) - mofojed
