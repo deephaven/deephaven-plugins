@@ -12,7 +12,7 @@
     "types": "tsc",
     "watch:types": "tsc --watch",
     "serve:plugins": "vite",
-    "start:packages": "lerna run start --stream",
+    "start:packages": "lerna run start --stream --concurrency 20",
     "docs": "./tools/run_docker.sh ./docker-compose.docs.yml docs",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
