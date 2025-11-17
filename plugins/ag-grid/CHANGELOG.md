@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.5.1 - 2025-11-17
+#### Bug Fixes
+- DH-20656: Don't provide getRowId func unless necessary (#1269) - (6878de1) - mofojed
+
+- - -
+
 ## ag-grid-v0.5.0 - 2025-11-13
 #### Features
 - DH-20656: Update AG Grid to v34 (#1263) - (5cf3ad1) - mofojed
