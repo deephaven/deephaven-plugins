@@ -113,9 +113,12 @@ export function isStackElementNode(obj: unknown): obj is StackElementNode {
   );
 }
 
-export type DashboardElementProps = React.PropsWithChildren<
-  Record<string, unknown>
->;
+export type DashboardElementProps = React.PropsWithChildren<{
+  /** Whether to show the close icon in the top right corner of the dashboard */
+  showCloseIcon?: boolean;
+  /** Whether to show headers for the dashboard */
+  showHeaders?: boolean;
+}>;
 
 /**
  * Describes a dashboard element that can be rendered in the UI.
@@ -153,6 +156,7 @@ export function isDashboardElementNode(
 export function normalizeDashboardChildren(
   children: React.ReactNode
 ): React.ReactNode {
+  console.log('xxx normalizeDashboardChildren', children);
   const needsWrapper = Children.count(children) > 1;
   const hasRows = Children.toArray(children).some(
     child => isValidElement(child) && child.type === Row
