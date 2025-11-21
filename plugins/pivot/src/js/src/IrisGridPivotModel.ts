@@ -236,9 +236,48 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   set sort(sort: DhType.Sort[]) {
     // No-op
     // TODO: DH-20435: Add support for Pivot sorting
-    this._sort = sort;
+    this._sort = sort.map(s => {
+      const column = this.getColumnIndexByName(
+        (s as DhType.coreplus.pivot.PivotSort).name
+      );
+      if (column == null) {
+        throw new Error(
+          `Cannot sort on unknown column: ${
+            (s as DhType.coreplus.pivot.PivotSort).name
+          }`
+        );
+      }
+      // TODO: this is probably not needed, test:
+      return {
+        ...s,
+        direction: s.direction,
+        isAbs: s.isAbs,
+        column,
+        name: s.name,
+      } as unknown as DhType.Sort;
+    });
     // const pivotSort = ;
-    this.pivotTable.applyRowSort(sort as DhType.coreplus.pivot.PivotSort[]);
+    log.debug('[0] Setting sort on pivot table', sort);
+
+    const columnBySorts: DhType.coreplus.pivot.PivotSort[] = [];
+    const rowBySorts: DhType.coreplus.pivot.PivotSort[] = [];
+
+    // TODO: fix type cast
+    (sort as DhType.coreplus.pivot.PivotSort[]).forEach(s => {
+      log.debug('[1] Setting sort on pivot table', s);
+      const index = this.getColumnIndexByName(s.name);
+      if (index == null) {
+        throw new Error(`Cannot sort on unknown column: ${s.name}`);
+      }
+      if (index < 0) {
+        columnBySorts.push(s);
+      } else {
+        rowBySorts.push(s);
+      }
+    });
+
+    this.pivotTable.applyRowSort(rowBySorts);
+    this.pivotTable.applyColumnSort(columnBySorts);
   }
 
   get customColumns(): readonly string[] {
@@ -664,6 +703,10 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       columnIndex,
       this.columns[columnIndex]?.isSortable
     );
+    if (columnIndex < 0) {
+      // TODO: check if the column source is actually sortable
+      return this.pivotTable.columnSources.length >= -columnIndex;
+    }
     return this.columns[columnIndex]?.isSortable ?? false;
   }
 
@@ -732,7 +775,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   getColumnIndicesByNameMap = memoize(
     (columns: readonly DhType.Column[]): Map<ColumnName, ModelIndex> => {
       const indices = new Map();
-      columns.forEach(({ name }, i) => indices.set(name, i));
+      // Columns can have negative indexes for column sources
+      Object.entries(columns).forEach(([i, { name }]) => indices.set(name, i));
       return indices;
     }
   );

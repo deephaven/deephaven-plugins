@@ -6,14 +6,16 @@ import {
   type IrisGridPanelProps,
 } from '@deephaven/dashboard-core-plugins';
 import type { MouseHandlersProp } from '@deephaven/iris-grid';
-import { resolveCssVariablesInRecord, useTheme } from '@deephaven/components';
+import { useTheme } from '@deephaven/components';
 import Log from '@deephaven/log';
 import IrisGridPivotModel from './IrisGridPivotModel';
 import { isCorePlusDh } from './PivotUtils';
 import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
 import { IrisGridPivotRenderer } from './IrisGridPivotRenderer';
-import { IrisGridPivotTheme } from './IrisGridPivotTheme';
+import { getIrisGridPivotTheme } from './IrisGridPivotTheme';
 import PivotFilterMouseHandler from './PivotFilterMouseHandler';
+import PivotSortMouseHandler from './PivotSortMouseHandler';
+import IrisGridPivotMetricCalculator from './IrisGridPivotMetricCalculator';
 
 const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 
@@ -53,6 +55,7 @@ export function useHydratePivotGrid(
     () => [
       irisGrid => new PivotColumnGroupMouseHandler(irisGrid),
       irisGrid => new PivotFilterMouseHandler(irisGrid),
+      irisGrid => new PivotSortMouseHandler(irisGrid),
     ],
     []
   );
@@ -63,8 +66,13 @@ export function useHydratePivotGrid(
 
   const pivotTheme = useMemo(() => {
     log.debug('Theme changed, updating pivot theme', theme);
-    return resolveCssVariablesInRecord(IrisGridPivotTheme);
+    return getIrisGridPivotTheme();
   }, [theme]);
+
+  const getIrisGridPivotMetricCalculator = useCallback(
+    (...args) => new IrisGridPivotMetricCalculator(...args),
+    []
+  );
 
   const hydratedProps = useMemo(
     () => ({
@@ -77,8 +85,18 @@ export function useHydratePivotGrid(
       metadata,
       mouseHandlers,
       renderer,
+      getMetricCalculator: getIrisGridPivotMetricCalculator,
     }),
-    [api, fetchTable, id, loadPlugin, metadata, mouseHandlers, renderer]
+    [
+      api,
+      fetchTable,
+      id,
+      loadPlugin,
+      metadata,
+      mouseHandlers,
+      renderer,
+      getIrisGridPivotMetricCalculator,
+    ]
   );
 
   // Memoize the theme separately from the rest of the hydrated props

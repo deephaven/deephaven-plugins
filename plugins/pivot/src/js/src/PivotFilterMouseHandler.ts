@@ -22,16 +22,15 @@ class PivotFilterMouseHandler extends GridMouseHandler {
   irisGrid: IrisGrid;
 
   onDown(gridPoint: GridPoint): EventHandlerResult {
-    const { x, y, column, row } = gridPoint;
-    if (column !== null && row === null) {
+    const { x, y, column, row, columnHeaderDepth } = gridPoint;
+    if (column != null && columnHeaderDepth != null && row === null) {
       const { isFilterBarShown, metrics } = this.irisGrid.state;
       if (!metrics) throw new Error('Metrics not set');
 
       const { columnHeaderMaxDepth } = metrics;
       const theme = this.irisGrid.getTheme();
       // TODO: check X
-      const clickedIndex = Math.floor(y / theme.columnHeaderHeight);
-      const sourceIndex = -(columnHeaderMaxDepth + (-clickedIndex - 1));
+      const sourceIndex = -columnHeaderDepth;
       log.debug('onDown', {
         x,
         y,
@@ -56,43 +55,46 @@ class PivotFilterMouseHandler extends GridMouseHandler {
     return false;
   }
 
-  onMove(gridPoint: GridPoint): EventHandlerResult {
-    const { y, column } = gridPoint;
-    const { isFilterBarShown, hoverAdvancedFilter, metrics } =
-      this.irisGrid.state;
-    if (!metrics) throw new Error('Metrics not set');
-    const { columnHeaderMaxDepth } = metrics;
-    const theme = this.irisGrid.getTheme();
+  // onMove(gridPoint: GridPoint): EventHandlerResult {
+  //   const { y, column } = gridPoint;
+  //   const { isFilterBarShown, hoverAdvancedFilter, metrics } =
+  //     this.irisGrid.state;
+  //   if (!metrics) throw new Error('Metrics not set');
+  //   const { columnHeaderMaxDepth } = metrics;
+  //   const theme = this.irisGrid.getTheme();
 
-    let newHoverAdvancedFilter = null;
-    if (
-      isFilterBarShown &&
-      theme.columnHeaderHeight != null &&
-      theme.filterBarHeight != null &&
-      column !== null &&
-      y >= theme.columnHeaderHeight * columnHeaderMaxDepth &&
-      y <=
-        theme.columnHeaderHeight * columnHeaderMaxDepth + theme.filterBarHeight
-    ) {
-      newHoverAdvancedFilter = column;
-    }
+  //   let newHoverAdvancedFilter = null;
+  //   if (
+  //     isFilterBarShown &&
+  //     theme.columnHeaderHeight != null &&
+  //     theme.filterBarHeight != null &&
+  //     column !== null &&
+  //     y > 0 &&
+  //     y <= theme.columnHeaderHeight * (columnHeaderMaxDepth - 1) &&
+  //     column <= 3 // TODO: temporary limit until filter UI is done
+  //   ) {
+  //     newHoverAdvancedFilter = column;
+  //   }
 
-    if (newHoverAdvancedFilter !== hoverAdvancedFilter) {
-      this.irisGrid.setState({ hoverAdvancedFilter: newHoverAdvancedFilter });
-    }
+  //   console.log('[plugins] newHoverAdvancedFilter', newHoverAdvancedFilter);
 
-    return false;
-  }
+  //   if (newHoverAdvancedFilter !== hoverAdvancedFilter) {
+  //     this.irisGrid.setState({ hoverAdvancedFilter: newHoverAdvancedFilter });
+  //   }
 
-  onLeave(gridPoint: GridPoint): EventHandlerResult {
-    const { column } = gridPoint;
-    const { hoverAdvancedFilter } = this.irisGrid.state;
-    if (hoverAdvancedFilter !== null && column !== hoverAdvancedFilter) {
-      this.irisGrid.setState({ hoverAdvancedFilter: null });
-    }
+  //   // Stop propagation to block original onMove behavior
+  //   return true;
+  // }
 
-    return false;
-  }
+  // onLeave(gridPoint: GridPoint): EventHandlerResult {
+  //   const { column } = gridPoint;
+  //   const { hoverAdvancedFilter } = this.irisGrid.state;
+  //   if (hoverAdvancedFilter !== null && column !== hoverAdvancedFilter) {
+  //     this.irisGrid.setState({ hoverAdvancedFilter: null });
+  //   }
+
+  //   return false;
+  // }
 }
 
 export default PivotFilterMouseHandler;
