@@ -1,42 +1,39 @@
-import { IrisGridMetricCalculator } from '@deephaven/iris-grid';
+import {
+  IrisGridMetricCalculator,
+  type IrisGridMetricState,
+} from '@deephaven/iris-grid';
 import Log from '@deephaven/log';
 import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
 import type IrisGridPivotModel from './IrisGridPivotModel';
+import type { ModelIndex } from '@deephaven/grid';
+import { isIrisGridPivotModel } from './IrisGridPivotModel';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
 );
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
-  //   override calculateTextWidth(
-  //     context: CanvasRenderingContext2D,
-  //     font: string,
-  //     text: string,
-  //     maxWidth?: number
-  //   ): number {
-  //     // Customize text width calculation if needed
-  //     log.debug('Calculating text width for:', { text, font });
-  //     return super.calculateTextWidth(context, font, text, maxWidth);
-  //   }
-
-  getHeaderTextWidth(
-    context: CanvasRenderingContext2D,
-    headerText: string | undefined,
-    headerFont: string,
-    headerHorizontalPadding: number,
-    maxColumnWidth: number,
-    headerGroup: PivotColumnHeaderGroup | undefined,
-    model: IrisGridPivotModel | undefined
+  getColumnHeaderGroupWidth(
+    modelColumn: ModelIndex,
+    depth: number,
+    state: IrisGridMetricState,
+    maxColumnWidth: number
   ): number {
-    const baseWidth = super.getHeaderTextWidth(
-      context,
-      headerText,
-      headerFont,
-      headerHorizontalPadding,
-      maxColumnWidth,
-      headerGroup,
-      model
+    // Base width includes padding
+    const baseWidth = super.getColumnHeaderGroupWidth(
+      modelColumn,
+      depth,
+      state,
+      maxColumnWidth
     );
+    const { model } = state;
+    if (!isIrisGridPivotModel(model)) {
+      return baseWidth;
+    }
+    // Space between text and the filter input
+    // Should match CSS padding: TODO: verify
+    const headerHorizontalPadding = 16;
+    const headerGroup = model.getColumnHeaderGroup(modelColumn, depth);
     if (headerGroup?.isKeyColumnGroup === true) {
       //   let maxWidth = baseWidth;
       //   let parent: PivotColumnHeaderGroup | undefined = headerGroup;

@@ -16,7 +16,23 @@ export const ROOT_DEPTH = 2;
 export type SnapshotDimensionKeys = readonly (unknown | null)[];
 export type SnapshotDimensionKeyMap = Map<number, SnapshotDimensionKeys>;
 
-export type ExpandableDisplayColumn = DisplayColumn & {
+export type DisplayPivotColumn = DisplayColumn &
+  CorePlusDhType.coreplus.pivot.PivotSource & {
+    /**
+     * Name to display with the column.
+     * The `name` property on `Column` is a unique identifier and must be a valid Java identifier,
+     * whereas `displayName` can be any string and does not need to be unique.
+     */
+    displayName?: string;
+    /**
+     * Whether this column is a proxy column for other columns or not.
+     * If it's a proxy column, it may not appear in some lists.
+     */
+    isProxy?: boolean;
+
+    description?: string | undefined;
+  };
+export type ExpandableDisplayColumn = DisplayPivotColumn & {
   depth: number;
   isExpanded: boolean;
   hasChildren: boolean;
@@ -72,7 +88,7 @@ export function makeColumn({
   isExpanded?: boolean;
   isProxy?: boolean;
   filter?: () => DhType.FilterValue;
-  sort?: () => DhType.Sort;
+  sort?: () => CorePlusDhType.coreplus.pivot.PivotSort;
 }): ExpandableDisplayColumn {
   return {
     name,
@@ -81,7 +97,8 @@ export function makeColumn({
     isPartitionColumn: false,
     isSortable,
     isProxy,
-    description,
+    // TODO: check types
+    description: description ?? '',
     index,
     depth,
     hasChildren,

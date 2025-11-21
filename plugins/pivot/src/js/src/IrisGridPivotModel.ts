@@ -49,7 +49,7 @@ import {
   PivotColumnHeaderGroup,
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import IrisGridPivotTheme from './IrisGridPivotTheme';
+import { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
 
@@ -71,6 +71,16 @@ export function isIrisGridPivotModel(
     'hasExpandableRows' in model &&
     'hasExpandableColumns' in model
   );
+}
+
+// TODO: import from web-client-ui
+export interface SortDescriptor {
+  column: {
+    name: ColumnName;
+    type: string;
+  };
+  isAbs: boolean;
+  direction: string;
 }
 
 export interface IrisGridPivotModelConfig {
@@ -121,7 +131,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   private _isColumnHeaderGroupsInitialized = false;
 
-  private _sort?: readonly DhType.Sort[] = EMPTY_ARRAY;
+  private _sorts?: readonly SortDescriptor[] = EMPTY_ARRAY;
 
   private viewportData: UIPivotViewportData<R> | null = null;
 
@@ -223,56 +233,46 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   set filter(filters: DhType.FilterCondition[]) {
     // No-op
     log.debug('Setting filter on pivot table', filters);
-    // TODO: DH-20363: Add support for Pivot filters
     // TODO: hydrate columnBySources filters
     this.pivotTable.applyFilter(filters);
     this.applyViewport();
   }
 
-  get sort(): readonly DhType.Sort[] {
-    return this._sort ?? EMPTY_ARRAY;
+  hydratePivotSort(
+    sort: SortDescriptor
+  ): DhType.coreplus.pivot.PivotSort | null {
+    const sourceIndex = this.getColumnIndexByName(sort.column.name);
+    const source = this.columns[sourceIndex ?? -1];
+    return (
+      (source as DhType.coreplus.pivot.PivotSource)
+        ?.sort()
+        [sort.direction === 'ASC' ? 'asc' : 'desc']() ?? null
+    );
   }
 
-  set sort(sort: DhType.Sort[]) {
-    // No-op
-    // TODO: DH-20435: Add support for Pivot sorting
-    this._sort = sort.map(s => {
-      const column = this.getColumnIndexByName(
-        (s as DhType.coreplus.pivot.PivotSort).name
-      );
-      if (column == null) {
-        throw new Error(
-          `Cannot sort on unknown column: ${
-            (s as DhType.coreplus.pivot.PivotSort).name
-          }`
-        );
-      }
-      // TODO: this is probably not needed, test:
-      return {
-        ...s,
-        direction: s.direction,
-        isAbs: s.isAbs,
-        column,
-        name: s.name,
-      } as unknown as DhType.Sort;
-    });
-    // const pivotSort = ;
-    log.debug('[0] Setting sort on pivot table', sort);
+  get sort(): readonly SortDescriptor[] {
+    return this._sorts ?? EMPTY_ARRAY;
+  }
 
+  set sort(sorts: readonly SortDescriptor[]) {
+    log.debug('[0] Setting sorts on pivot table', sorts);
+    this._sorts = sorts;
     const columnBySorts: DhType.coreplus.pivot.PivotSort[] = [];
     const rowBySorts: DhType.coreplus.pivot.PivotSort[] = [];
 
-    // TODO: fix type cast
-    (sort as DhType.coreplus.pivot.PivotSort[]).forEach(s => {
+    sorts.forEach(s => {
       log.debug('[1] Setting sort on pivot table', s);
-      const index = this.getColumnIndexByName(s.name);
-      if (index == null) {
-        throw new Error(`Cannot sort on unknown column: ${s.name}`);
+      const sort = this.hydratePivotSort(s);
+      // TODO: clean up
+      const index = sort == null ? null : this.getColumnIndexByName(sort.name);
+      if (sort == null || index == null) {
+        log.warn(`Cannot hydrate sort for source: ${s.column.name}`, s);
+        return;
       }
       if (index < 0) {
-        columnBySorts.push(s);
+        columnBySorts.push(sort);
       } else {
-        rowBySorts.push(s);
+        rowBySorts.push(sort);
       }
     });
 
@@ -556,7 +556,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   colorForColumnHeader(
     x: ModelIndex,
     depth = 0,
-    theme: Partial<typeof IrisGridPivotTheme> = {}
+    theme: Partial<IrisGridPivotThemeType> = {}
   ): string | null {
     const column = this.columnAtDepth(x, depth);
     if (isPivotColumnHeaderGroup(column)) {
@@ -697,7 +697,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
-    // TODO: DH-20435: Add support for Pivot sorting
     log.debug(
       '[5] isColumnSortable',
       columnIndex,

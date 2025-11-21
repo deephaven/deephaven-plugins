@@ -94,6 +94,9 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     // Draw column source filters on top of headers
     this.drawColumnSourceFilters(context, state);
+
+    // Draw column source sort bar on top of headers
+    this.drawColumnSourceSorts(context, state);
   }
 
   drawColumnHeadersAtDepth(
@@ -481,6 +484,13 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     columnWidth: number,
     bounds: { minX: number; maxX: number }
   ): void {
+    console.log('drawColumnSourceSortIndicator', {
+      sort,
+      columnText,
+      columnX,
+      columnWidth,
+      bounds,
+    });
     const { metrics, model, theme } = state;
     const { gridX, columnHeaderHeight } = metrics;
 
@@ -527,6 +537,20 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     if (model.sort != null && model.sort.length > 0) {
       console.log('[0] drawColumnSourceSortIndicator', sort, columnText);
     }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  drawColumnSourceSorts(
+    context: CanvasRenderingContext2D,
+    state: IrisGridPivotRenderState
+  ): void {
+    const { model, theme } = state;
+    // const { columnSourceSortBarHeight } = theme;
+    const { sort } = model;
+    if (sort.length === 0) {
+      return;
+    }
+    console.log('[0] drawColumnSourceSorts', sort);
   }
 
   /* column filter headers start */

@@ -20,6 +20,7 @@ describe('PivotSortMouseHandler', () => {
       state: {
         metrics: mockMetrics,
       } as unknown as IrisGrid['state'],
+      props: {} as unknown as IrisGrid['props'],
       getTheme: jest.fn().mockReturnValue({
         columnHeaderHeight: 30,
       }),

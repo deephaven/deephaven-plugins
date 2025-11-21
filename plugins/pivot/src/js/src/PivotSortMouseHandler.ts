@@ -6,17 +6,14 @@ import {
   EventHandlerResult,
   type GridMouseEvent,
   type Grid,
-  type GridRangeIndex,
 } from '@deephaven/grid';
 import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import IrisGridPivotModel from './IrisGridPivotModel';
 
-const log = Log.module('@deephaven/js-plugin-pivot/PivotSortMouseHandler');
-
 /**
- * Trigger quick filters and advanced filters
+ * Trigger sorting on column source click.
+ * Column sources are represented as negative column indexes.
  */
 class PivotSortMouseHandler extends GridMouseHandler {
   constructor(irisGrid: IrisGrid) {
@@ -30,18 +27,15 @@ class PivotSortMouseHandler extends GridMouseHandler {
 
   irisGrid: IrisGrid;
 
-  getColumnFromGridPoint(gridPoint: GridPoint): GridRangeIndex {
-    const { column, row, columnHeaderDepth } = gridPoint;
-    if (column !== null && row === null && columnHeaderDepth === 0) {
-      return column;
-    }
-
-    return null;
-  }
-
+  /**
+   *
+   * @param gridPoint
+   * @returns
+   */
   getColumnSourceFromGridPoint(gridPoint: GridPoint): number | null {
     const { column, row, columnHeaderDepth } = gridPoint;
     const { model } = this.irisGrid.props;
+    // TODO: limit to only header groups that are column sources
     console.log(
       'getColumnHeaderFromGridPoint',
       {
@@ -83,6 +77,12 @@ class PivotSortMouseHandler extends GridMouseHandler {
     event: GridMouseEvent
   ): EventHandlerResult {
     const columnSourceIndex = this.getColumnSourceFromGridPoint(gridPoint);
+    console.log('[0] onClick', {
+      gridPoint,
+      columnSourceIndex,
+      rememberedColumnSource: this.columnSource,
+    });
+
     if (columnSourceIndex != null && columnSourceIndex === this.columnSource) {
       const addToExisting = ContextActionUtils.isModifierKeyDown(event);
       this.irisGrid.toggleSort(columnSourceIndex, addToExisting);
@@ -91,47 +91,6 @@ class PivotSortMouseHandler extends GridMouseHandler {
 
     return false;
   }
-
-  // onMove(gridPoint: GridPoint): EventHandlerResult {
-  //   const { y, column } = gridPoint;
-  //   const { isFilterBarShown, hoverAdvancedFilter, metrics } =
-  //     this.irisGrid.state;
-  //   if (!metrics) throw new Error('Metrics not set');
-  //   const { columnHeaderMaxDepth } = metrics;
-  //   const theme = this.irisGrid.getTheme();
-
-  //   let newHoverAdvancedFilter = null;
-  //   if (
-  //     isFilterBarShown &&
-  //     theme.columnHeaderHeight != null &&
-  //     theme.filterBarHeight != null &&
-  //     column !== null &&
-  //     y > 0 &&
-  //     y <= theme.columnHeaderHeight * (columnHeaderMaxDepth - 1) &&
-  //     column <= 3 // TODO: temporary limit until filter UI is done
-  //   ) {
-  //     newHoverAdvancedFilter = column;
-  //   }
-
-  //   console.log('[plugins] newHoverAdvancedFilter', newHoverAdvancedFilter);
-
-  //   if (newHoverAdvancedFilter !== hoverAdvancedFilter) {
-  //     this.irisGrid.setState({ hoverAdvancedFilter: newHoverAdvancedFilter });
-  //   }
-
-  //   // Stop propagation to block original onMove behavior
-  //   return true;
-  // }
-
-  // onLeave(gridPoint: GridPoint): EventHandlerResult {
-  //   const { column } = gridPoint;
-  //   const { hoverAdvancedFilter } = this.irisGrid.state;
-  //   if (hoverAdvancedFilter !== null && column !== hoverAdvancedFilter) {
-  //     this.irisGrid.setState({ hoverAdvancedFilter: null });
-  //   }
-
-  //   return false;
-  // }
 }
 
 export default PivotSortMouseHandler;
