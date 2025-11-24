@@ -67,6 +67,7 @@
         > .ui-table-container:only-child
         > .iris-grid:only-child
     ),
+  &:has(.dh-inner-react-panel > .widget-container:only-child),
   &:has(.dh-inner-react-panel > .chart-wrapper:only-child) {
     // remove the default panel padding when grid or chart is the only child
     padding: 0 !important; // important required to override inline spectrum style

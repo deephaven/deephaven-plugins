@@ -46,7 +46,7 @@ export function AgGridWidget(
   const table = useWidgetFetch(dh, fetch);
 
   return table != null ? (
-    <div className="ui-table-container">
+    <div className="ui-table-container widget-container">
       <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
     </div>
   ) : (
