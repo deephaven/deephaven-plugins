@@ -152,6 +152,16 @@
         ]
       },
       {
+        "label": "Extending",
+        "collapsible": false,
+        "items": [
+          {
+            "label": "Custom Element Plugin",
+            "path": "extending/creating_element_plugin.md"
+          }
+        ]
+      },
+      {
         "label": "Reference",
         "collapsible": false,
         "items": [
