@@ -10,6 +10,8 @@ import {
 import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
 import IrisGridPivotModel from './IrisGridPivotModel';
+import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
+import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 
 /**
  * Trigger sorting on column source click.
@@ -46,6 +48,10 @@ class PivotSortMouseHandler extends GridMouseHandler {
       model.isColumnSortable(-(columnHeaderDepth ?? 1000))
     );
     assertNotNull(model);
+    const keyColumnGroups = [...model.columnHeaderGroupMap.values()].filter(
+      (group): group is PivotColumnHeaderGroup =>
+        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
+    );
     if (
       column !== null &&
       row === null &&
@@ -53,7 +59,8 @@ class PivotSortMouseHandler extends GridMouseHandler {
       columnHeaderDepth > 0 &&
       // TODO:
       model instanceof IrisGridPivotModel &&
-      model.isColumnSortable(-columnHeaderDepth)
+      model.isColumnSortable(-columnHeaderDepth) &&
+      column <= keyColumnGroups.length
     ) {
       return -columnHeaderDepth;
     }

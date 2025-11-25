@@ -20,7 +20,10 @@ import type { dh } from '@deephaven/jsapi-types';
 import PivotColumnHeaderGroup, {
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
+import IrisGridPivotModel, {
+  isIrisGridPivotModel,
+  type SortDescriptor,
+} from './IrisGridPivotModel';
 import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 function getColumnGroupName(
@@ -37,8 +40,20 @@ function getColumnHeaderCoordinates(
 ): BoxCoordinates {
   const { metrics, theme } = state;
   const { childIndexes, depth } = group;
-  const firstColumn = childIndexes.at(0);
-  const lastColumn = childIndexes.at(-1);
+  if (
+    (childIndexes.length > 0 && typeof childIndexes[0] !== 'number') ||
+    (childIndexes.length > 1 &&
+      typeof childIndexes[childIndexes.length - 1] !== 'number')
+  ) {
+    console.log('Unexpected childIndexes types', childIndexes);
+  }
+  // TODO: fix childIndexes typing
+  const firstColumn = childIndexes[0]; // parseInt(String(childIndexes[0]) ?? '', 10);
+  const lastColumn = childIndexes[childIndexes.length - 1];
+  // parseInt(
+  //   String(childIndexes[childIndexes.length - 1]) ?? '',
+  //   10
+  // );
   if (firstColumn == null || lastColumn == null) {
     throw new Error('Group has no child columns');
   }
@@ -96,7 +111,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     this.drawColumnSourceFilters(context, state);
 
     // Draw column source sort bar on top of headers
-    this.drawColumnSourceSorts(context, state);
+    // this.drawColumnSourceSorts(context, state);
   }
 
   drawColumnHeadersAtDepth(
@@ -279,7 +294,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     bounds?: { minX?: number; maxX?: number },
     isExpandable = false,
     isExpanded = false,
-    sort: dh.Sort | null = null
+    sort: SortDescriptor | null = null
   ): void {
     if (columnWidth <= 0) {
       return;
@@ -478,7 +493,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   drawColumnSourceSortIndicator(
     context: CanvasRenderingContext2D,
     state: IrisGridRenderState,
-    sort: dh.Sort | null,
+    sort: SortDescriptor | null,
     columnText: string,
     columnX: Coordinate,
     columnWidth: number,
@@ -521,7 +536,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     context.save();
 
     // context.beginPath();
-    context.fillStyle = 'red';
+    // context.fillStyle = 'red';
     // context.translate(0, 0);
     // context.rect(columnX, 0, columnWidth, columnHeaderHeight);
     // context.rect(0, 0, 100, 100);
@@ -533,24 +548,105 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     context.fill(icon);
 
     context.restore();
-
-    if (model.sort != null && model.sort.length > 0) {
-      console.log('[0] drawColumnSourceSortIndicator', sort, columnText);
-    }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   drawColumnSourceSorts(
     context: CanvasRenderingContext2D,
     state: IrisGridPivotRenderState
   ): void {
     const { model, theme } = state;
     // const { columnSourceSortBarHeight } = theme;
-    const { sort } = model;
+    const { metrics } = state;
+    const { columnHeaderGroupMap, sort } = model;
     if (sort.length === 0) {
       return;
     }
     console.log('[0] drawColumnSourceSorts', sort);
+
+    const { gridX, gridY, columnHeaderHeight, columnHeaderMaxDepth } = metrics;
+    const { headerSeparatorColor, filterBarCollapsedHeight } = theme;
+
+    if (filterBarCollapsedHeight <= 0) {
+      return;
+    }
+
+    // TODO: store in the model
+    const keyColumnGroups = [...columnHeaderGroupMap.values()].filter(
+      (group): group is PivotColumnHeaderGroup =>
+        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
+    );
+
+    if (keyColumnGroups.length === 0) {
+      return;
+    }
+
+    const sortBarCoordinates = keyColumnGroups.map(group => {
+      const { x2, y1, y2 } = getColumnHeaderCoordinates(state, group);
+      return {
+        depth: group.depth,
+        x1: x2 - filterBarCollapsedHeight,
+        y1,
+        x2,
+        y2,
+      };
+    });
+
+    context.save();
+
+    // Draw the background of the sort bar
+    // const { x2 } = sortBarCoordinates[sortBarCoordinates.length - 1];
+    // context.fillStyle = headerSeparatorColor;
+    // context.fillRect(
+    //   gridX + x2 - filterBarCollapsedHeight,
+    //   gridY -
+    //     columnHeaderHeight * columnHeaderMaxDepth -
+    //     filterBarCollapsedHeight,
+    //   filterBarCollapsedHeight,
+    //   columnHeaderHeight * (columnHeaderMaxDepth - 1)
+    // );
+
+    sortBarCoordinates.forEach(({ x2: columnRight, depth }) => {
+      // context.fillStyle = theme.headerSortBarColor;
+      this.drawCollapsedColumnSourceSort(context, state, depth, columnRight);
+    });
+
+    context.restore();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  drawCollapsedColumnSourceSort(
+    context: CanvasRenderingContext2D,
+    state: IrisGridPivotRenderState,
+    headerDepth: number,
+    columnRight: Coordinate
+  ): void {
+    if (columnRight <= 0) {
+      return;
+    }
+    const { metrics, theme } = state;
+    const { columnHeaderHeight, gridY } = metrics;
+    // Negative index for column source filters
+
+    const { filterBarCollapsedHeight: sortHeight, headerSortBarColor } = theme;
+
+    // TODO:
+    const filterBarCollapsedHeight = sortHeight - 2;
+
+    context.save();
+
+    context.fillStyle = headerSortBarColor;
+
+    const x = columnRight - filterBarCollapsedHeight + 1;
+    const y =
+      gridY -
+      filterBarCollapsedHeight -
+      columnHeaderHeight -
+      columnHeaderHeight * headerDepth;
+    const rectWidth = filterBarCollapsedHeight - 1;
+    const rectHeight = columnHeaderHeight - 1 + 3; // TODO: why +3?
+    context.fillRect(x, y, rectWidth, rectHeight);
+
+    context.restore();
   }
 
   /* column filter headers start */
