@@ -765,6 +765,86 @@ def ui_combo_box_alignment_direction_examples():
 my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_examples()
 ```
 
+## How to create a multi-select component
+
+By leveraging the `on_change` handler of `ui.combo_box` to dynamically generate items, you can pair it with `ui.tag_group` to build a multi-select component.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_combo_box_multi_select_example(
+    options, on_input_change_callback=None, on_selection_change_callback=None
+):
+    input_value, set_input_value = ui.use_state("")
+    selection_state, set_selection_state = ui.use_state("")
+    items, set_items = ui.use_state([])
+
+    def handle_input_change(new_value):
+        set_selection_state("")
+        set_input_value(new_value)
+        print(f"Text changed to {new_value}")
+        if on_input_change_callback:
+            on_input_change_callback(new_value)
+
+    def handle_selection_change(new_value):
+        set_input_value("")
+        set_selection_state(new_value)
+        set_items(
+            lambda prev_items: prev_items + [new_value]
+            if new_value not in prev_items and new_value is not None
+            else prev_items
+        )
+        print(f"Selection changed to {items}")
+        if on_selection_change_callback:
+            on_selection_change_callback(new_value, items)
+
+    return [
+        ui.flex(
+            ui.flex(
+                ui.combo_box(
+                    *[ui.item(option) for option in options],
+                    input_value=input_value,
+                    on_input_change=handle_input_change,
+                    selected_key=selection_state,
+                    on_change=handle_selection_change,
+                ),
+                ui.tag_group(
+                    *[ui.item(item, key=item.lower()) for item in items],
+                    on_remove=lambda keys: set_items(
+                        [item for item in items if item.lower() not in keys]
+                    ),
+                ),
+                direction="row",
+                align_items="center",
+            ),
+            align_items="start",
+        )
+    ]
+
+
+my_options = [
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    "Option 5",
+    "Option 6",
+    "Option 7",
+    "Option 8",
+    "Option 9",
+]
+
+my_combo_box_multi_select_example = ui_combo_box_multi_select_example(
+    options=my_options,
+    on_input_change_callback=lambda value: print(f"Custom input handler: {value}"),
+    on_selection_change_callback=lambda value, items: print(
+        f"Custom selection handler: {value}, {items}"
+    ),
+)
+```
+
 ## API Reference
 
 ```{eval-rst}
