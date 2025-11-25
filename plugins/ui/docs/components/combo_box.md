@@ -774,7 +774,9 @@ from deephaven import ui
 
 
 @ui.component
-def ui_combo_box_multi_select_example():
+def ui_combo_box_multi_select_example(
+    options, on_input_change_callback=None, on_selection_change_callback=None
+):
     input_value, set_input_value = ui.use_state("")
     selection_state, set_selection_state = ui.use_state("")
     items, set_items = ui.use_state([])
@@ -782,10 +784,12 @@ def ui_combo_box_multi_select_example():
     def handle_input_change(new_value):
         set_selection_state("")
         set_input_value(new_value)
-        print(f"Text changed to {input_value}")
+        print(f"Text changed to {new_value}")
+        if on_input_change_callback:
+            on_input_change_callback(new_value)
 
     def handle_selection_change(new_value):
-        set_input_value(new_value)
+        set_input_value("")
         set_selection_state(new_value)
         set_items(
             lambda prev_items: prev_items + [new_value]
@@ -793,23 +797,17 @@ def ui_combo_box_multi_select_example():
             else prev_items
         )
         print(f"Selection changed to {items}")
+        if on_selection_change_callback:
+            on_selection_change_callback(new_value, items)
 
     return [
         ui.flex(
             ui.flex(
                 ui.combo_box(
-                    ui.item("Option 1"),
-                    ui.item("Option 2"),
-                    ui.item("Option 3"),
-                    ui.item("Option 4"),
-                    ui.item("Option 5"),
-                    ui.item("Option 6"),
-                    ui.item("Option 7"),
-                    ui.item("Option 8"),
-                    ui.item("Option 9"),
+                    *[ui.item(option) for option in options],
                     input_value=input_value,
                     on_input_change=handle_input_change,
-                    selected_key=None,
+                    selected_key=selection_state,
                     on_change=handle_selection_change,
                 ),
                 ui.tag_group(
@@ -826,7 +824,25 @@ def ui_combo_box_multi_select_example():
     ]
 
 
-my_combo_box_multi_select_example = ui_combo_box_multi_select_example()
+my_options = [
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    "Option 5",
+    "Option 6",
+    "Option 7",
+    "Option 8",
+    "Option 9",
+]
+
+my_combo_box_multi_select_example = ui_combo_box_multi_select_example(
+    options=my_options,
+    on_input_change_callback=lambda value: print(f"Custom input handler: {value}"),
+    on_selection_change_callback=lambda value, items: print(
+        f"Custom selection handler: {value}, {items}"
+    ),
+)
 ```
 
 ## API Reference
