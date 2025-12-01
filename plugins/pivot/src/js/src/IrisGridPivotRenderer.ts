@@ -15,12 +15,9 @@ import {
   type IrisGridRenderState,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
-import { TableUtils } from '@deephaven/jsapi-utils';
+import { TableUtils, type SortDescriptor } from '@deephaven/jsapi-utils';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
-import IrisGridPivotModel, {
-  isIrisGridPivotModel,
-  type SortDescriptor,
-} from './IrisGridPivotModel';
+import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
 import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 function getColumnGroupName(
@@ -427,7 +424,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     const { headerHorizontalPadding, iconSize: themeIconSize } = theme;
     const iconSize = Math.round(themeIconSize * 0.75); // The vsTriangle icons are a bit bigger than we want
 
-    if (!sort) {
+    if (sort == null) {
       return;
     }
 

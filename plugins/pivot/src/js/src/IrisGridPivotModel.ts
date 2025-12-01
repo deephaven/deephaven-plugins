@@ -5,7 +5,12 @@ import throttle from 'lodash.throttle';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import Log from '@deephaven/log';
-import { Formatter, FormatterUtils, TableUtils } from '@deephaven/jsapi-utils';
+import {
+  Formatter,
+  FormatterUtils,
+  TableUtils,
+  type SortDescriptor,
+} from '@deephaven/jsapi-utils';
 import {
   assertNotNull,
   EMPTY_ARRAY,
@@ -71,15 +76,6 @@ export function isIrisGridPivotModel(
     'hasExpandableRows' in model &&
     'hasExpandableColumns' in model
   );
-}
-
-export interface SortDescriptor {
-  column: {
-    name: ColumnName;
-    type: string;
-  };
-  isAbs: boolean;
-  direction: string;
 }
 
 export interface IrisGridPivotModelConfig {
