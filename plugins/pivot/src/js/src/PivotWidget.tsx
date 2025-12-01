@@ -3,18 +3,14 @@ import { type WidgetComponentProps } from '@deephaven/plugin';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { IrisGrid, type MouseHandlersProp } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import {
-  LoadingOverlay,
-  resolveCssVariablesInRecord,
-  useTheme,
-} from '@deephaven/components';
+import { LoadingOverlay, useTheme } from '@deephaven/components';
 import { getErrorMessage } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import { useIrisGridPivotModel } from './useIrisGridPivotModel';
 import PivotColumnGroupMouseHandler from './PivotColumnGroupMouseHandler';
 import { isCorePlusDh } from './PivotUtils';
 import IrisGridPivotRenderer from './IrisGridPivotRenderer';
-import IrisGridPivotTheme from './IrisGridPivotTheme';
+import { getIrisGridPivotTheme } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/PivotWidget');
 
@@ -34,7 +30,7 @@ export function PivotWidget({
 
   const pivotTheme = useMemo(() => {
     log.debug('Theme changed, updating pivot theme', theme);
-    return resolveCssVariablesInRecord(IrisGridPivotTheme);
+    return getIrisGridPivotTheme();
   }, [theme]);
 
   const pivotTableFetch = useCallback(
