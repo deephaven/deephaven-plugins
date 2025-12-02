@@ -63,6 +63,17 @@ const APPLY_VIEWPORT_THROTTLE = 0;
 const ROW_BUFFER_PAGES = 1;
 const COLUMN_BUFFER_PAGES = 1;
 
+const VirtualGroupColumn = Object.freeze(
+  makeColumn({
+    name: '__GROUP__',
+    displayName: 'Group',
+    type: 'java.lang.String',
+    index: 0,
+    depth: 2,
+    isProxy: true,
+  })
+);
+
 export function isIrisGridPivotModel(
   model: unknown
 ): model is IrisGridPivotModel {
@@ -108,9 +119,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
 
   // Group column is dependent on the number of row sources (and settings? check Rollups)
-  private groupColumn?: PivotDisplayColumn | null;
-
-  private keyColumns: readonly PivotDisplayColumn[];
+  private showExtraGroupCol = true;
 
   private _layoutHints: DhType.LayoutHints | null | undefined;
 
@@ -189,23 +198,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
     this.rowBufferPages = config.rowBufferPages ?? ROW_BUFFER_PAGES;
     this.columnBufferPages = config.columnBufferPages ?? COLUMN_BUFFER_PAGES;
-
-    this.groupColumn =
-      this.pivotTable.rowSources.length !== 1
-        ? makeColumn({
-            name: '__GROUP__',
-            displayName: 'Group',
-            type: 'java.lang.String',
-            index: 0,
-            depth: 2,
-            isProxy: true,
-          })
-        : null;
-
-    // Key columns don't change on snapshot updates, as opposed to totals and value sources
-    this.keyColumns = pivotTable.rowSources.map((source, index) =>
-      makeRowSourceColumn(source, index + (this.groupColumn == null ? 0 : 1))
-    );
 
     this._layoutHints = {
       backColumns: [],
@@ -385,7 +377,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   );
 
   getCachedTotalsColumns = memoize(
-    (pivotTable, valueSources): readonly PivotDisplayColumn[] =>
+    (pivotTable, valueSources, groupColumn): readonly PivotDisplayColumn[] =>
       valueSources.map(
         (source: CorePlusDhType.coreplus.pivot.PivotSource, col: number) =>
           makeColumn({
@@ -396,7 +388,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
             index:
               pivotTable.rowSources.length +
               col +
-              (this.groupColumn == null ? 0 : 1),
+              (groupColumn == null ? 0 : 1),
             depth: 2,
             isExpanded: true,
             hasChildren: true,
@@ -404,16 +396,53 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       )
   );
 
+  get showExtraGroupColumn(): boolean {
+    return this.showExtraGroupCol;
+  }
+
+  set showExtraGroupColumn(showExtraGroupCol: boolean) {
+    if (showExtraGroupCol === this.showExtraGroupCol) {
+      return;
+    }
+    this.showExtraGroupCol = showExtraGroupCol;
+    this.dispatchEvent(
+      new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
+        detail: this.columns,
+      })
+    );
+  }
+
+  get groupColumn(): PivotDisplayColumn | null {
+    return this.pivotTable.rowSources.length !== 1 && this.showExtraGroupCol
+      ? VirtualGroupColumn
+      : null;
+  }
+
+  getCachedKeyColumns = memoize(
+    (
+      pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
+      groupColumn: PivotDisplayColumn | null
+    ): readonly PivotDisplayColumn[] =>
+      pivotTable.rowSources.map((source, index) =>
+        makeRowSourceColumn(source, index + (groupColumn == null ? 0 : 1))
+      )
+  );
+
+  get keyColumns(): readonly PivotDisplayColumn[] {
+    return this.getCachedKeyColumns(this.pivotTable, this.groupColumn);
+  }
+
   get totalsColumns(): readonly PivotDisplayColumn[] {
     return this.getCachedTotalsColumns(
       this.pivotTable,
-      this.snapshotValueSources
+      this.snapshotValueSources,
+      this.groupColumn
     );
   }
 
   getCachedVirtualColumns = memoize(
     (
-      groupColumn: PivotDisplayColumn | null | undefined,
+      groupColumn: PivotDisplayColumn | null,
       keyColumns: readonly PivotDisplayColumn[],
       totalsColumns: readonly PivotDisplayColumn[]
     ) =>
@@ -438,6 +467,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private getCachedColumnHeaderGroups = memoize(
     (
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
+      groupColumn: PivotDisplayColumn | null,
       isRootColumnExpanded?: boolean,
       formatValue?: (value: unknown, type: string) => string
     ): readonly PivotColumnHeaderGroup[] =>
@@ -445,7 +475,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
         this.pivotTable,
         snapshotColumns,
         isRootColumnExpanded,
-        this.groupColumn != null,
+        groupColumn != null,
         formatValue
       )
   );
@@ -453,6 +483,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   get initialColumnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
     const groups = this.getCachedColumnHeaderGroups(
       this.snapshotColumns,
+      this.groupColumn,
       this.isRootColumnExpanded,
       (value, type) =>
         // Ignore name based formatting, pass empty column name
