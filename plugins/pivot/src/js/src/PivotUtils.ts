@@ -16,7 +16,7 @@ export const ROOT_DEPTH = 2;
 export type SnapshotDimensionKeys = readonly (unknown | null)[];
 export type SnapshotDimensionKeyMap = Map<number, SnapshotDimensionKeys>;
 
-export type PivotDisplayColumn = DisplayColumn &
+export type PivotDisplayColumn = Omit<DisplayColumn, 'sort' | 'filter'> &
   Omit<CorePlusDhType.coreplus.pivot.PivotSource, 'description'> & {
     description?: string;
     depth: number;

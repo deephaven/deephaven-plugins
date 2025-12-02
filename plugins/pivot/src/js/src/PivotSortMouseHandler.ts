@@ -28,11 +28,13 @@ class PivotSortMouseHandler extends GridMouseHandler {
   irisGrid: IrisGrid;
 
   /**
-   *
-   * @param gridPoint
-   * @returns
+   * Get the column source from a grid point
+   * @param gridPoint The grid point to check
+   * @returns The column source index if the grid point is in a column source header, else null
    */
-  getColumnSourceFromGridPoint(gridPoint: GridPoint): number | null {
+  private getColumnSourceHeaderFromGridPoint(
+    gridPoint: GridPoint
+  ): number | null {
     const { column, row, columnHeaderDepth } = gridPoint;
     const { model } = this.irisGrid.props;
     assertNotNull(model);
@@ -65,7 +67,7 @@ class PivotSortMouseHandler extends GridMouseHandler {
     grid: Grid,
     event: GridMouseEvent
   ): EventHandlerResult {
-    this.columnSource = this.getColumnSourceFromGridPoint(gridPoint);
+    this.columnSource = this.getColumnSourceHeaderFromGridPoint(gridPoint);
     return false;
   }
 
@@ -74,7 +76,7 @@ class PivotSortMouseHandler extends GridMouseHandler {
     grid: Grid,
     event: GridMouseEvent
   ): EventHandlerResult {
-    const columnSource = this.getColumnSourceFromGridPoint(gridPoint);
+    const columnSource = this.getColumnSourceHeaderFromGridPoint(gridPoint);
 
     if (columnSource != null && columnSource === this.columnSource) {
       const addToExisting = ContextActionUtils.isModifierKeyDown(event);

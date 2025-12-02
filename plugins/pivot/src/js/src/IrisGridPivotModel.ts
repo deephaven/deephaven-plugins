@@ -235,11 +235,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   ): DhType.coreplus.pivot.PivotSort | null {
     const sourceIndex = this.getColumnIndexByName(sort.column.name);
     const source = this.columns[sourceIndex ?? -1];
-    return (
-      (source as DhType.coreplus.pivot.PivotSource)
-        ?.sort()
-        [sort.direction === 'ASC' ? 'asc' : 'desc']() ?? null
-    );
+    return source?.sort()[sort.direction === 'ASC' ? 'asc' : 'desc']() ?? null;
   }
 
   get sort(): readonly SortDescriptor[] {
