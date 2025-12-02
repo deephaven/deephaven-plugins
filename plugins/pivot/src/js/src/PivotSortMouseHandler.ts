@@ -9,7 +9,6 @@ import {
 import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
-import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 
 /**
@@ -37,22 +36,26 @@ class PivotSortMouseHandler extends GridMouseHandler {
     const { column, row, columnHeaderDepth } = gridPoint;
     const { model } = this.irisGrid.props;
     assertNotNull(model);
-    const keyColumnGroups = [...model.columnHeaderGroupMap.values()].filter(
-      (group): group is PivotColumnHeaderGroup =>
-        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
-    );
     const sourceIndex = columnHeaderDepth != null ? -columnHeaderDepth : null;
+
+    if (column == null || row !== null || columnHeaderDepth == null) {
+      return null;
+    }
+
+    const group = model.getColumnHeaderGroup(column, columnHeaderDepth);
+
     if (
-      column !== null &&
-      row === null &&
       sourceIndex != null &&
       sourceIndex < 0 &&
       isIrisGridPivotModel(model) &&
       model.isColumnSortable(sourceIndex) &&
-      column <= keyColumnGroups.length
+      isPivotColumnHeaderGroup(group) &&
+      group.isKeyColumnGroup
     ) {
+      // Clicked on a sortable column header that is a key column group
       return sourceIndex;
     }
+
     return null;
   }
 

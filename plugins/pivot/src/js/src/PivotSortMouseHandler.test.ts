@@ -30,9 +30,14 @@ describe('PivotSortMouseHandler', () => {
       isExpandable: false,
     });
 
+    const columnHeaderGroupMap = new Map<string, PivotColumnHeaderGroup>([
+      [keyColumnGroup.name, keyColumnGroup],
+    ]);
+
     mockModel = createMockProxy({
-      columnHeaderGroupMap: new Map([['group1', keyColumnGroup]]),
+      columnHeaderGroupMap,
       isColumnSortable: jest.fn().mockReturnValue(true),
+      getColumnHeaderGroup: jest.fn().mockReturnValue(keyColumnGroup),
     });
 
     // Mock the isIrisGridPivotModel function to return true
@@ -82,6 +87,10 @@ describe('PivotSortMouseHandler', () => {
     const downResult = handler.onDown(gridPoint, mockGrid, mouseEvent);
     const clickResult = handler.onClick(gridPoint, mockGrid, mouseEvent);
 
+    expect(mockModel.getColumnHeaderGroup).toHaveBeenCalledWith(
+      gridPoint.column,
+      gridPoint.columnHeaderDepth
+    );
     expect(toggleSortSpy).toHaveBeenCalledWith(-2, false);
     expect(downResult).toBe(false);
     expect(clickResult).toBe(true);
@@ -188,9 +197,24 @@ describe('PivotSortMouseHandler', () => {
       metaKey: false,
     });
 
+    (mockModel.getColumnHeaderGroup as jest.Mock).mockReturnValue(
+      new PivotColumnHeaderGroup({
+        name: 'regularColumn',
+        children: [],
+        childIndexes: [],
+        isKeyColumnGroup: false,
+        depth: 1,
+        isExpandable: false,
+      })
+    );
+
     const downResult = handler.onDown(gridPoint, mockGrid, mouseEvent);
     const clickResult = handler.onClick(gridPoint, mockGrid, mouseEvent);
 
+    expect(mockModel.getColumnHeaderGroup).toHaveBeenCalledWith(
+      gridPoint.column,
+      gridPoint.columnHeaderDepth
+    );
     expect(toggleSortSpy).not.toHaveBeenCalled();
     expect(downResult).toBe(false);
     expect(clickResult).toBe(false);

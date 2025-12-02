@@ -247,7 +247,9 @@ export function makeRowSourceColumn(
 ): PivotDisplayColumn {
   const {
     name,
-    type, // isSortable,
+    type,
+    // TODO: DH-21047
+    // isSortable,
     description,
   } = source;
   return makeColumn({
@@ -273,7 +275,9 @@ export function makeColumnSourceColumn(
 ): PivotDisplayColumn {
   const {
     name,
-    type, // isSortable,
+    type,
+    // TODO: DH-21047
+    // isSortable,
     description,
   } = source;
   return makeColumn({
@@ -317,9 +321,7 @@ export function getKeyColumnGroups(
             displayName: '',
             // For empty row sources we will render a "dead column"
             // or a Groups column, depending on the table settings
-            children: includeGroupColumn
-              ? [...groupName, ...rowSources.map(c => c.name)]
-              : [...groupName, ...rowSources.map(c => c.name)],
+            children: [...groupName, ...rowSources.map(c => c.name)],
             childIndexes: [],
             isKeyColumnGroup: true,
             depth: 1,
