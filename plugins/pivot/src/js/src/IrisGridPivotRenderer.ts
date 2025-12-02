@@ -447,14 +447,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     context.save();
 
-    // context.beginPath();
-    // context.fillStyle = 'red';
-    // context.translate(0, 0);
-    // context.rect(columnX, 0, columnWidth, columnHeaderHeight);
-    // context.rect(0, 0, 100, 100);
-
-    // context.clip();
-
     context.fillStyle = theme.headerSortBarColor;
     context.translate(x, y);
     context.fill(icon);
