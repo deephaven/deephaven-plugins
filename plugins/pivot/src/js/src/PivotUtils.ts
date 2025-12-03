@@ -413,6 +413,8 @@ export function makeSnapshotColumnGroups(
  * @param pivotTable Pivot table
  * @param snapshotColumns Snapshot columns
  * @param isRootColumnExpanded Flag indicating if the root column group is expanded
+ * @param includeGroupColumn Flag indicating if the group column should be included
+ * @param formatValue Function to format values
  * @returns Column groups
  */
 export function makeColumnGroups(

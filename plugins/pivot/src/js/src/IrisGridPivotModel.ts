@@ -1108,14 +1108,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isColumnExpandable(x: ModelIndex, depth?: number): boolean {
-    log.debug2('isColumnExpandable', {
-      x,
-      depth,
-      name: this.columns[x]?.name,
-      v: this.virtualColumns,
-      cC: this.columnCount,
-      c: this.columns,
-    });
     // Root (grand total) columns
     if (this.isGrandTotalsColumn(x)) {
       // The grand total column is expandable if there are any columns
@@ -1152,13 +1144,10 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     isExpanded: boolean,
     expandDescendants = false
   ): void {
-    log.debug2('[0] setColumnExpanded', {
+    log.debug2('setColumnExpanded', {
       x,
       isExpanded,
-      name: this.columns[x]?.name,
-      v: this.virtualColumns,
-      cC: this.columnCount,
-      c: this.columns,
+      expandDescendants,
     });
     // Root (grand total) columns
     if (this.isGrandTotalsColumn(x)) {
