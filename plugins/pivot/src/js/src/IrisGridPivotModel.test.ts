@@ -419,6 +419,50 @@ describe('IrisGridPivotModel', () => {
     expect(model.columns[8].name).toBe('C1/Count');
   });
 
+  it('handles showExtraGroupColumn changes', () => {
+    const pivotTable = makePivotTable(['R', 'O'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    const mockColumnsChangedListener = jest.fn();
+    model.addEventListener(
+      IrisGridModel.EVENT.COLUMNS_CHANGED,
+      mockColumnsChangedListener
+    );
+
+    // Initially with 2 row sources, should have Group column
+    expect(model.columns.length).toBe(4); // Group + 2 row sources + totals
+    expect(model.columns[0].name).toBe('__GROUP__');
+    expect(model.showExtraGroupColumn).toBe(true);
+
+    // Disable the extra group column
+    model.showExtraGroupColumn = false;
+
+    expect(model.columns.length).toBe(3); // 2 row sources + totals (no Group)
+    expect(model.columns[0].name).toBe('R'); // First row source is now first column
+    expect(mockColumnsChangedListener).toHaveBeenCalledTimes(1);
+
+    // Re-enable the extra group column
+    mockColumnsChangedListener.mockClear();
+    model.showExtraGroupColumn = true;
+
+    expect(model.columns.length).toBe(4); // Group + 2 row sources + totals
+    expect(model.columns[0].name).toBe('__GROUP__');
+    expect(mockColumnsChangedListener).toHaveBeenCalledTimes(1);
+
+    // Setting to same value should not trigger event
+    mockColumnsChangedListener.mockClear();
+    model.showExtraGroupColumn = true;
+
+    expect(mockColumnsChangedListener).not.toHaveBeenCalled();
+  });
+
   it('returns correct data for the viewport with just the totals row', () => {
     const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
 
