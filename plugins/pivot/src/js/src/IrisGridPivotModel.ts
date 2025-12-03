@@ -118,7 +118,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 {
   private pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
 
-  // Group column is dependent on the number of row sources (and settings? check Rollups)
   private showExtraGroupCol = true;
 
   private _layoutHints: DhType.LayoutHints | null | undefined;
@@ -448,41 +447,35 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   /**
-   * Get the cached header groups data, including max depth, parent map, and group map
-   */
-  private getCachedParsedColumnHeaderGroups = memoize(
-    (groups: readonly PivotColumnHeaderGroup[]) =>
-      IrisGridUtils.parseColumnHeaderGroups(
-        this,
-        groups,
-        args => new PivotColumnHeaderGroup(args)
-      )
-  );
-
-  /**
-   * Get the cached PivotColumnHeaderGroup array for the given snapshot and column data.
+   * Get the cached header groups data, including groups array, max depth, parent map, and group map.
    * Returns groups for the key columns, totals, and the snapshot column in the current viewport.
    * Placeholder columns are not included in the groups.
    */
-  private getCachedColumnHeaderGroups = memoize(
+  private getCachedParsedColumnHeaderData = memoize(
     (
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
       groupColumn: PivotDisplayColumn | null,
       formatter: Formatter,
       isRootColumnExpanded?: boolean
-    ): readonly PivotColumnHeaderGroup[] =>
-      getColumnGroups(
+    ) => {
+      const columnGroups = getColumnGroups(
         this.pivotTable,
         snapshotColumns,
         isRootColumnExpanded,
         groupColumn != null,
         (value, type) =>
           this.getCachedFormattedString(formatter, value, type, '')
-      )
+      );
+      return IrisGridUtils.parseColumnHeaderGroups(
+        this,
+        columnGroups,
+        args => new PivotColumnHeaderGroup(args)
+      );
+    }
   );
 
-  get initialColumnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
-    return this.getCachedColumnHeaderGroups(
+  private getParsedColumnHeaderData() {
+    return this.getCachedParsedColumnHeaderData(
       this.snapshotColumns,
       this.groupColumn,
       this.formatter,
@@ -490,31 +483,27 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     );
   }
 
+  get initialColumnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
+    return this.columnHeaderGroups;
+  }
+
   get columnHeaderMaxDepth(): number {
-    const { maxDepth } = this.getCachedParsedColumnHeaderGroups(
-      this.initialColumnHeaderGroups
-    );
+    const { maxDepth } = this.getParsedColumnHeaderData();
     return maxDepth;
   }
 
   get columnHeaderParentMap(): Map<string, PivotColumnHeaderGroup> {
-    const { parentMap } = this.getCachedParsedColumnHeaderGroups(
-      this.initialColumnHeaderGroups
-    );
+    const { parentMap } = this.getParsedColumnHeaderData();
     return parentMap;
   }
 
   get columnHeaderGroupMap(): Map<string, PivotColumnHeaderGroup> {
-    const { groupMap } = this.getCachedParsedColumnHeaderGroups(
-      this.initialColumnHeaderGroups
-    );
+    const { groupMap } = this.getParsedColumnHeaderData();
     return groupMap;
   }
 
   get columnHeaderGroups(): readonly PivotColumnHeaderGroup[] {
-    const { groups } = this.getCachedParsedColumnHeaderGroups(
-      this.initialColumnHeaderGroups
-    );
+    const { groups } = this.getParsedColumnHeaderData();
     return groups;
   }
 
