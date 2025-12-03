@@ -40,15 +40,14 @@ import {
 } from '@deephaven/iris-grid';
 import {
   checkColumnsChanged,
-  makePivotDisplayColumn,
-  makePlaceholderDisplayColumn,
-  makeRowSourceColumn,
+  makeColumnFromSnapshot,
+  makePlaceholderColumn,
+  makeColumnFromSource,
   makeGrandTotalColumnName,
   makeColumn,
   type PivotDisplayColumn,
-  getColumnGroups,
+  makeColumnGroups,
   isCorePlusDh,
-  makeColumnSourceColumn,
 } from './PivotUtils';
 import {
   PivotColumnHeaderGroup,
@@ -332,7 +331,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       const columns = [];
       this.pivotTable.columnSources.forEach((source, col) => {
         const index = -this.pivotTable.columnSources.length + col;
-        columns[index] = makeColumnSourceColumn(source, index);
+        columns[index] = makeColumnFromSource(source, index);
       });
       columns.push(...virtualColumns);
       if (snapshotColumns == null) {
@@ -345,17 +344,13 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
         for (let v = 0; v < valueSources.length; v += 1) {
           columns.push(
             isColumnInViewport
-              ? makePivotDisplayColumn(
+              ? makeColumnFromSnapshot(
                   snapshotColumns,
                   valueSources[v],
                   i,
                   virtualColumns.length
                 )
-              : makePlaceholderDisplayColumn(
-                  valueSources[v],
-                  i,
-                  virtualColumns.length
-                )
+              : makePlaceholderColumn(valueSources[v], i, virtualColumns.length)
           );
         }
       }
@@ -411,7 +406,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       groupColumn: PivotDisplayColumn | null
     ): readonly PivotDisplayColumn[] =>
       pivotTable.rowSources.map((source, index) =>
-        makeRowSourceColumn(source, index + (groupColumn == null ? 0 : 1))
+        makeColumnFromSource(source, index + (groupColumn == null ? 0 : 1))
       )
   );
 
@@ -458,7 +453,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       formatter: Formatter,
       isRootColumnExpanded?: boolean
     ) => {
-      const columnGroups = getColumnGroups(
+      const columnGroups = makeColumnGroups(
         this.pivotTable,
         snapshotColumns,
         isRootColumnExpanded,
