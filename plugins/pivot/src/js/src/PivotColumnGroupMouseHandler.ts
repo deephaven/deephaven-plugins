@@ -6,6 +6,7 @@ import {
   GridPoint,
   GridRangeIndex,
   EventHandlerResult,
+  GridUtils,
 } from '@deephaven/grid';
 import { IrisGridType } from '@deephaven/iris-grid';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
@@ -80,7 +81,10 @@ class PivotColumnGroupMouseHandler extends GridMouseHandler {
       column === this.column &&
       this.isExpandableColumnGroup(column, gridPoint.columnHeaderDepth)
     ) {
-      this.irisGrid.toggleExpandColumn(column);
+      this.irisGrid.toggleExpandColumn(
+        column,
+        GridUtils.isModifierKeyDown(event)
+      );
       return true;
     }
 
