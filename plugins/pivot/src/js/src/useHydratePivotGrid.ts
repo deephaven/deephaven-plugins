@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApi, useObjectFetch } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven-enterprise/jsapi-coreplus-types';
 import {
@@ -27,9 +27,14 @@ export interface HydratePivotGridResultError {
 }
 
 export interface HydratePivotGridResultSuccess {
-  hydratedProps: { localDashboardId: string } & Pick<
+  props: { localDashboardId: string } & Pick<
     IrisGridPanelProps,
-    'loadPlugin' | 'makeModel'
+    | 'loadPlugin'
+    | 'makeModel'
+    | 'metadata'
+    | 'mouseHandlers'
+    | 'renderer'
+    | 'theme'
   >;
   status: 'success';
 }
@@ -46,78 +51,59 @@ export type HydratePivotGridResult =
  * @returns Props hydrated for a Pivot grid panel
  */
 export function useHydratePivotGrid(
+  fetch: () => Promise<dh.Widget>,
   id: string,
   metadata: dh.ide.VariableDescriptor | undefined
 ): HydratePivotGridResult {
   assertNotNull(metadata, 'Missing Pivot metadata');
 
-  const [wrapper, setWrapper] = useState<HydratePivotGridResult>({
-    status: 'loading',
-  });
-
+  // Manage loading and error states
+  const objectFetch = useObjectFetch<dh.Widget>(metadata);
   const api = useApi();
   const loadPlugin = useLoadTablePlugin();
-  const objectFetch = useObjectFetch<dh.Widget>(metadata);
   const mouseHandlers = usePivotMouseHandlers();
   const renderer = usePivotRenderer();
-  const pivotTheme = usePivotTheme();
-
-  useEffect(() => {
-    const { status } = objectFetch;
-
-    if (status === 'loading') {
-      log.debug('Widget is loading');
-      setWrapper({ status: 'loading' });
-      return;
+  const theme = usePivotTheme();
+  const makeModel = useCallback(async () => {
+    assertNotNull(fetch, 'Widget fetch function is null');
+    log.debug('Fetching pivot widget');
+    const widget = await fetch();
+    log.debug('Pivot fetch result:', widget);
+    if (!isCorePlusDh(api)) {
+      throw new Error('CorePlus is not available');
     }
+    const pivotTable = new api.coreplus.pivot.PivotTable(widget);
+    log.debug('Created pivot table:', pivotTable);
+    return new IrisGridPivotModel(api, pivotTable);
+  }, [api, fetch]);
 
-    if (status === 'error') {
-      log.debug('Error fetching widget:', objectFetch.error);
-      setWrapper({
-        status: 'error',
-        error: objectFetch.error,
-      });
-      return;
-    }
+  const { status } = objectFetch;
 
-    const { fetch: fetchWidget } = objectFetch;
+  if (status === 'loading') {
+    log.debug('Widget is loading');
+    return { status: 'loading' };
+  }
 
-    const hydratedProps = {
+  if (status === 'error') {
+    log.debug('Error fetching widget:', objectFetch.error);
+    return {
+      status: 'error',
+      error: objectFetch.error,
+    };
+  }
+
+  return {
+    status: 'success',
+    props: {
       loadPlugin,
       localDashboardId: id,
-      makeModel: async () => {
-        log.debug('Fetching pivot widget');
-        const widget = await fetchWidget();
-        log.debug('Pivot fetch result:', widget);
-        if (!isCorePlusDh(api)) {
-          throw new Error('CorePlus is not available');
-        }
-        const pivotTable = new api.coreplus.pivot.PivotTable(widget);
-        log.debug('Created pivot table:', pivotTable);
-        return new IrisGridPivotModel(api, pivotTable);
-      },
+      makeModel,
       metadata,
       mouseHandlers,
       renderer,
-      theme: pivotTheme,
-    };
-
-    setWrapper({
-      status: 'success',
-      hydratedProps,
-    });
-  }, [
-    api,
-    loadPlugin,
-    metadata,
-    objectFetch,
-    id,
-    mouseHandlers,
-    pivotTheme,
-    renderer,
-  ]);
-
-  return wrapper;
+      theme,
+    },
+  };
 }
 
 export default useHydratePivotGrid;

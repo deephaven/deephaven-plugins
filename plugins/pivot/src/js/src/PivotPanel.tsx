@@ -11,9 +11,13 @@ import { getErrorMessage } from '@deephaven/utils';
 export const PivotPanel = forwardRef<any, WidgetPanelProps<dh.Widget>>(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (props: WidgetPanelProps<dh.Widget>, ref: React.Ref<any>): JSX.Element => {
-    const { localDashboardId, metadata } = props;
+    const { localDashboardId, fetch, metadata } = props;
 
-    const hydrateResult = useHydratePivotGrid(localDashboardId, metadata);
+    const hydrateResult = useHydratePivotGrid(
+      fetch,
+      localDashboardId,
+      metadata
+    );
 
     if (hydrateResult.status === 'loading') {
       return <LoadingOverlay isLoading />;
@@ -28,7 +32,7 @@ export const PivotPanel = forwardRef<any, WidgetPanelProps<dh.Widget>>(
       );
     }
 
-    const { hydratedProps } = hydrateResult;
+    const { props: hydratedProps } = hydrateResult;
 
     return (
       <IrisGridPanel
