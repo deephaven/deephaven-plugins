@@ -22,13 +22,11 @@ export function DashboardPlugin({
   const handlePanelOpen = useCallback(
     ({
       dragEvent,
-      fetch,
       metadata = {},
       panelId = nanoid(),
       widget,
     }: {
       dragEvent?: DragEvent;
-      fetch: () => Promise<dh.Widget>;
       metadata?: Record<string, unknown>;
       panelId?: string;
       widget: dh.ide.VariableDescriptor;
@@ -49,7 +47,6 @@ export function DashboardPlugin({
             ...metadata,
             ...widget,
           },
-          fetch,
         },
         title: name ?? undefined,
         id: panelId,
