@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.5.2 - 2025-12-05
+#### Bug Fixes
+- DH-20953: AG Grid styling only worked when deephaven.ui installed (#1271) - (7dae890) - mofojed
+
+- - -
+
 ## ag-grid-v0.5.1 - 2025-11-17
 #### Bug Fixes
 - DH-20656: Don't provide getRowId func unless necessary (#1269) - (6878de1) - mofojed
