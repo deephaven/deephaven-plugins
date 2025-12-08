@@ -8,14 +8,10 @@ import { getErrorMessage } from '@deephaven/utils';
 import type { DashboardPanelProps } from '@deephaven/dashboard';
 import { type Ref, type ForwardRefExoticComponent, forwardRef } from 'react';
 import useHydratePivotGrid from './useHydratePivotGrid';
+import type { WidgetPanelProps } from '@deephaven/plugin';
 
-export const PivotPanel: ForwardRefExoticComponent<DashboardPanelProps> =
-  forwardRef(function PivotPanel(
-    panelProps: DashboardPanelProps,
-    // Unconnected IrisGridPanel type is not exported from dashboard-core-plugins
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ref: Ref<any>
-  ): JSX.Element {
+export const PivotPanel = forwardRef(
+  (panelProps: WidgetPanelProps<dh.Widget>, ref: React.Ref<any>) => {
     const { localDashboardId, metadata, panelState, ...props } =
       panelProps as DashboardPanelProps & {
         metadata?: dh.ide.VariableDescriptor;
@@ -49,7 +45,8 @@ export const PivotPanel: ForwardRefExoticComponent<DashboardPanelProps> =
         panelState={panelState}
       />
     );
-  });
+  }
+);
 
 PivotPanel.displayName = 'PivotPanel';
 
