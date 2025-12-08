@@ -1,23 +1,28 @@
-import { forwardRef } from 'react';
 import { type dh } from '@deephaven/jsapi-types';
 import { LoadingOverlay } from '@deephaven/components';
-import { IrisGridPanel } from '@deephaven/dashboard-core-plugins';
-import { WidgetPanelProps } from '@deephaven/plugin';
+import {
+  IrisGridPanel,
+  type IrisGridPanelProps,
+} from '@deephaven/dashboard-core-plugins';
 import { getErrorMessage } from '@deephaven/utils';
+import type { DashboardPanelProps } from '@deephaven/dashboard';
+import { type Ref, type ForwardRefExoticComponent, forwardRef } from 'react';
 import useHydratePivotGrid from './useHydratePivotGrid';
 
-// Unconnected IrisGridPanel type is not exported from dashboard-core-plugins
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const PivotPanel = forwardRef<any, WidgetPanelProps<dh.Widget>>(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (props: WidgetPanelProps<dh.Widget>, ref: React.Ref<any>): JSX.Element => {
-    const { localDashboardId, fetch, metadata } = props;
+export const PivotPanel: ForwardRefExoticComponent<DashboardPanelProps> =
+  forwardRef(function PivotPanel(
+    panelProps: DashboardPanelProps,
+    // Unconnected IrisGridPanel type is not exported from dashboard-core-plugins
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ref: Ref<any>
+  ): JSX.Element {
+    const { localDashboardId, metadata, panelState, ...props } =
+      panelProps as DashboardPanelProps & {
+        metadata?: dh.ide.VariableDescriptor;
+        panelState?: IrisGridPanelProps['panelState'];
+      };
 
-    const hydrateResult = useHydratePivotGrid(
-      fetch,
-      localDashboardId,
-      metadata
-    );
+    const hydrateResult = useHydratePivotGrid(localDashboardId, metadata);
 
     if (hydrateResult.status === 'loading') {
       return <LoadingOverlay isLoading />;
@@ -41,10 +46,10 @@ export const PivotPanel = forwardRef<any, WidgetPanelProps<dh.Widget>>(
         {...props}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...hydratedProps}
+        panelState={panelState}
       />
     );
-  }
-);
+  });
 
 PivotPanel.displayName = 'PivotPanel';
 

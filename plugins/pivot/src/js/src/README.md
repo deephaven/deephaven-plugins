@@ -12,10 +12,10 @@ import { IrisGridPanel } from '@deephaven/dashboard-core-plugins';
 import useHydratePivotGrid from './useHydratePivotGrid';
 
 function PivotPanel(props: WidgetPanelProps<dh.Widget>): JSX.Element {
-  const { localDashboardId, fetch, metadata } = props;
+  const { localDashboardId, metadata } = props;
 
   // Provides makeModel, custom renderer, theme, and other props needed to render a Pivot in IrisGridPanel
-  const hydratedProps = useHydratePivotGrid(fetch, localDashboardId, metadata);
+  const hydratedProps = useHydratePivotGrid(localDashboardId, metadata);
 
   return (
     <IrisGridPanel
