@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useApi, useObjectFetch } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven-enterprise/jsapi-coreplus-types';
 import {
