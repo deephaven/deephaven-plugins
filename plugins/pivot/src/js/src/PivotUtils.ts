@@ -245,18 +245,12 @@ export function makeColumnFromSource(
   source: CorePlusDhType.coreplus.pivot.PivotSource,
   index: number
 ): PivotDisplayColumn {
-  const {
-    name,
-    type,
-    // TODO: DH-21047
-    // isSortable,
-    description,
-  } = source;
+  const { name, type, isSortable, description } = source;
   return makeColumn({
     name,
     type,
     index,
-    isSortable: true,
+    isSortable,
     description,
     filter: source.filter.bind(source),
     sort: source.sort.bind(source),
