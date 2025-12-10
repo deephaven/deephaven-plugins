@@ -8,11 +8,9 @@ import { assertNotNull } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import IrisGridPivotModel from './IrisGridPivotModel';
 import { isCorePlusDh } from './PivotUtils';
-import {
-  usePivotMouseHandlers,
-  usePivotRenderer,
-  usePivotTheme,
-} from './usePivotTableUtils';
+import { usePivotMouseHandlers } from './hooks/usePivotMouseHandlers';
+import { usePivotRenderer } from './hooks/usePivotRenderer';
+import { usePivotTheme } from './hooks/usePivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 

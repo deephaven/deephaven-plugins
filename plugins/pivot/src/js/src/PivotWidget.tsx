@@ -4,12 +4,10 @@ import { IrisGrid } from '@deephaven/iris-grid';
 import { LoadingOverlay } from '@deephaven/components';
 import { getErrorMessage } from '@deephaven/utils';
 import { useIrisGridPivotModel } from './useIrisGridPivotModel';
-import {
-  usePivotTableFetch,
-  usePivotMouseHandlers,
-  usePivotRenderer,
-  usePivotTheme,
-} from './usePivotTableUtils';
+import { usePivotTableFetch } from './hooks/usePivotTableFetch';
+import { usePivotMouseHandlers } from './hooks/usePivotMouseHandlers';
+import { usePivotRenderer } from './hooks/usePivotRenderer';
+import { usePivotTheme } from './hooks/usePivotTheme';
 
 export function PivotWidget({
   fetch,
