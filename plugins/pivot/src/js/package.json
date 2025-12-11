@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-pivot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pivot plugin for Deephaven",
   "keywords": [
     "Deephaven",
