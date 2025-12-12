@@ -1,19 +1,12 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build"]
-      }
-    }
-  },
   "defaultBase": "main",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "!{projectRoot}/dist/**/*"]
   },
   "targetDefaults": {
     "build": {
-      "outputs": ["{projectRoot}/dist"]
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
     }
   }
 }

@@ -1,6 +1,15 @@
 name: Publish JS Packages
 on:
   workflow_dispatch:
+    inputs:
+      preid:
+        description: 'Preid used to publish package. Must be unique per branch. Leave empty for stable release.'
+        required: false
+        default: ''
+      ref:
+        description: 'Commit to deploy from. Defaults to branch used for workflow_dispatch action.'
+        required: false
+        default: ''
   release:
     types: [created]
 jobs:
@@ -14,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event.inputs.ref }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -23,9 +32,11 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Build production
+      - name: Build packages
         run: npm run build
-      - name: Publish packages
+      - name: Publish stable packages
+        if: ${{ !github.event.inputs.preid }}
         run: ./node_modules/.bin/lerna publish from-package --yes
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.DEEPHAVENBOT_NPM_TOKEN }}
+      - name: Publish canary packages
+        if: ${{ github.event.inputs.preid }}
+        run: ./node_modules/.bin/lerna publish --canary --preid ${{ github.event.inputs.preid }} --dist-tag canary --yes
