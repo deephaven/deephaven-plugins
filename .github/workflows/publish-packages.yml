@@ -39,4 +39,4 @@ jobs:
         run: ./node_modules/.bin/lerna publish from-package --yes
       - name: Publish canary packages
         if: ${{ github.event.inputs.preid }}
-        run: ./node_modules/.bin/lerna publish --canary --force-publish=\* --preid ${{ github.event.inputs.preid }} --dist-tag canary --yes
+        run: ./node_modules/.bin/lerna publish --canary --preid ${{ github.event.inputs.preid }} --dist-tag canary --yes
