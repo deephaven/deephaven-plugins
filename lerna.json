@@ -2,6 +2,7 @@
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "useNx": false,
   "version": "independent",
+  "packages": ["plugins/*/src/js"],
   "command": {
     "version": {
       "changelogPreset": "conventionalcommits"
