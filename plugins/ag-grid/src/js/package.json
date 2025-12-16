@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ag-grid",
-  "version": "0.4.0",
+  "version": "0.5.2",
   "description": "Deephaven AG Grid plugin",
   "keywords": [
     "Deephaven",
@@ -41,23 +41,16 @@
     "@deephaven/test-utils": "^0.106.0",
     "@types/react": "^17.0.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "typescript": "^4.5.4"
+    "react-dom": "^17.0.2"
   },
   "peerDependencies": {
     "react": "^17.0.2 || ^18.0.0 || ^19.0.0",
     "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@ag-grid-community/core": "^32.3.9",
-    "@ag-grid-community/react": "^32.3.9",
-    "@ag-grid-community/styles": "^32.3.9",
-    "@ag-grid-community/theming": "^32.3.9",
-    "@ag-grid-enterprise/column-tool-panel": "^32.3.9",
-    "@ag-grid-enterprise/core": "^32.3.9",
-    "@ag-grid-enterprise/row-grouping": "^32.3.9",
-    "@ag-grid-enterprise/server-side-row-model": "^32.3.9",
-    "@ag-grid-enterprise/viewport-row-model": "^32.3.9",
+    "ag-grid-community": "^34.3.1",
+    "ag-grid-react": "^34.3.1",
+    "ag-grid-enterprise": "^34.3.1",
     "@deephaven/icons": "^0.106.0",
     "@deephaven/jsapi-bootstrap": "^0.106.2",
     "@deephaven/jsapi-utils": "^0.106.2",

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { type IrisGridModel } from '@deephaven/iris-grid';
 import IrisGridPivotModel from './IrisGridPivotModel';
 
-export type PivotWidgetFetch = () => Promise<dh.coreplus.pivot.PivotTable>;
+export type PivotTableFetch = () => Promise<dh.coreplus.pivot.PivotTable>;
 
 export type IrisGridModelFetchErrorResult = {
   error: NonNullable<unknown>;
@@ -30,7 +30,7 @@ export type IrisGridModelFetchResult = (
 
 /** Pass in a table `fetch` function, will load the model and handle any errors */
 export function useIrisGridPivotModel(
-  fetch: PivotWidgetFetch
+  fetch: PivotTableFetch
 ): IrisGridModelFetchResult {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -48,8 +48,8 @@ export function useIrisGridPivotModel(
   );
 
   const makeModel = useCallback(async () => {
-    const pivotWidget = await fetch();
-    return new IrisGridPivotModel(dh, pivotWidget);
+    const pivotTable = await fetch();
+    return new IrisGridPivotModel(dh, pivotTable);
   }, [dh, fetch]);
 
   const reload = useCallback(async () => {

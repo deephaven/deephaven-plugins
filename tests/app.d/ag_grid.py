@@ -19,3 +19,16 @@ by_list = ["Group", "Subgroup"]
 
 rollup = source.rollup(aggs=agg_list, by=by_list)
 ag_rollup = AgGrid(rollup)
+
+from deephaven import new_table
+from deephaven.column import string_col
+from deephaven.ag_grid import AgGrid
+
+foo_bar_table = new_table(
+    [
+        string_col("Foo_Bar", ["Foo"]),
+        string_col("FooBar", ["Bar"]),
+    ]
+)
+
+ag_foo_bar = AgGrid(foo_bar_table)

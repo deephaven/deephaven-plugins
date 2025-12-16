@@ -112,7 +112,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   /**
    * Map of table index to cleanup function for the subscription.
    */
-  subscriptionCleanupMap: Map<number, () => void> = new Map();
+  subscriptionCleanupMap: Map<number, Set<() => void>> = new Map();
 
   /**
    * Map of table index to map of column names to array of paths where the data should be replaced.
@@ -188,6 +188,21 @@ export class PlotlyExpressChartModel extends ChartModel {
    * If any of these columns are not in the filter map, the chart will not render.
    */
   requiredColumns: Set<string> = new Set();
+
+  cleanupSubscriptions(id: number): void {
+    this.subscriptionCleanupMap.get(id)?.forEach(cleanup => {
+      cleanup();
+    });
+
+    try {
+      this.tableSubscriptionMap.get(id)?.close();
+    } catch {
+      // ignore
+    }
+
+    this.subscriptionCleanupMap.delete(id);
+    this.tableSubscriptionMap.delete(id);
+  }
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -688,11 +703,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     log.debug('Updating downsampled table', downsampleInfo);
 
     this.fireDownsampleStart(null);
-    this.subscriptionCleanupMap.get(id)?.();
-    this.tableSubscriptionMap.get(id)?.close();
-    this.subscriptionCleanupMap.delete(id);
-    this.tableSubscriptionMap.delete(id);
+
+    this.cleanupSubscriptions(id);
+
     this.tableReferenceMap.delete(id);
+
     this.addTable(id, oldDownsampleInfo.originalTable);
   }
 
@@ -807,24 +822,35 @@ export class PlotlyExpressChartModel extends ChartModel {
       const columns = table.columns.filter(({ name }) => columnNames.has(name));
       const subscription = table.subscribe(columns);
       this.tableSubscriptionMap.set(id, subscription);
-      this.subscriptionCleanupMap.set(
-        id,
+
+      if (!this.subscriptionCleanupMap.has(id)) {
+        this.subscriptionCleanupMap.set(id, new Set());
+      }
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const cleanupSet = this.subscriptionCleanupMap.get(id)!;
+
+      cleanupSet.add(
         subscription.addEventListener<DhType.SubscriptionTableData>(
           this.dh.Table.EVENT_UPDATED,
           e => this.handleFigureUpdated(e, id)
+        )
+      );
+
+      cleanupSet.add(
+        table.addEventListener<DhType.Table>(
+          this.dh.Table.EVENT_DISCONNECT,
+          e => this.fireDisconnect()
         )
       );
     }
   }
 
   removeTable(id: number): void {
-    this.subscriptionCleanupMap.get(id)?.();
-    this.tableSubscriptionMap.get(id)?.close();
+    this.cleanupSubscriptions(id);
 
     this.tableReferenceMap.delete(id);
+
     this.downsampleMap.delete(id);
-    this.subscriptionCleanupMap.delete(id);
-    this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
     this.tableDataMap.delete(id);
     this.tableColumnReplacementMap.delete(id);

@@ -190,6 +190,186 @@ t = ui.table(
 )
 ```
 
+### Formatting databars
+
+Table databars provide a visual representation of numeric data directly within table cells, making it easy to compare values at a glance. Databars appear as horizontal bars behind or alongside cell values.
+
+The `column` prop specifies which table column should display the databar. This is the only required property.
+
+> [!WARNING]
+> This API is likely to change in the near future to be part of `ui.TableFormat`.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(dx.data.stocks(), databars=[{"column": "Price"}])
+```
+
+##### Value Column
+
+The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[{"column": "Sym", "value_column": "Price", "color": "info"}],
+)
+```
+
+##### Scale Configuration
+
+The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
+
+By default these props will change to the min and max of the values in the column.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "min": 0, "max": 1000, "color": "positive"},
+        {"column": "Price", "min": 0, "max": "Dollars", "color": "positive"},
+    ],
+)
+```
+
+##### Axis Configuration
+
+The `axis` prop controls how the zero point is positioned within the databar.
+
+Options:
+- `"proportional"` (default): relative to the min and max of the values
+- `"middle"`: always centered, regardless of values in column
+- `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of the value is ignored, and the databar will show the magnitude of the value (i.e., -7 and 7 are the same).
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Size",
+        },
+        {"column": "Price", "axis": "middle"},
+        {"column": "Dollars", "axis": "directional"},
+    ],
+)
+```
+
+##### Direction
+
+The `direction` prop controls which direction the databar grows from its zero point.
+
+Options:
+- `"LTR"`: (left to right, default) 
+- `"RTL"`: (right to left)
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "direction": "LTR"},
+        {"column": "Price", "direction": "RTL"},
+    ],
+)
+```
+
+##### Value Placement
+
+The `value_placement` prop controls how cell values are displayed relative to the databar.
+
+Options:
+- `"beside"` (default): to the right of the databar 
+- `"overlap"`: on top of the databar
+- `"hide"`: not displayed
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Size",
+        },
+        {"column": "Price", "value_placement": "overlap"},
+        {"column": "Dollars", "value_placement": "hide"},
+    ],
+)
+```
+
+##### Color
+
+The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "color": "info"},
+        {"column": "Price", "color": ["negative", "positive"]},
+    ],
+)
+```
+
+##### Opacity
+
+The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {"column": "Size", "color": "info", "opacity": 0.3},
+    ],
+)
+```
+
+##### Markers
+
+The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+t = ui.table(
+    dx.data.stocks(),
+    databars=[
+        {
+            "column": "Price",
+            "color": "positive",
+            "markers": [
+                {"value": "SPet500", "color": "accent"},
+                {"value": 50, "color": "notice"},
+            ],
+        }
+    ],
+)
+```
+
 ## Aggregations
 
 You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
@@ -224,7 +404,7 @@ t_top = ui.table(
 
 ### Press Events
 
-You can listen for different user press events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
+You can listen for different user press events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport). Data specified via [`always_fetch_columns`](#always-fetching-some-columns) is also included.
 
 Note that there is no row index in event data because the row index is not a safe way to reference a row between the client and server since the user could have manipulated the table, resulting in a different client order.
 
@@ -247,11 +427,11 @@ t = ui.table(
 )
 ```
 
-### Selection Event
+### Selection Events
 
 The `on_selection_change` event is triggered when the user selects or deselects a row. The event data will contain all selected rows within the viewport as a list of dictionaries keyed by column name. There are a few caveats to the selection event.
 
-1. The event will **only** send data from columns in the `always_fetch_columns` prop.
+1. The event will **only** send data from columns in the [`always_fetch_columns`](#always-fetching-some-columns) prop.
 2. The event will **only** send data from rows that are visible in the viewport.
 3. The event will **not** be triggered if a ticking table row is replaced or shifted. This may cause what the user sees after row shifts to differ from the selection event data.
 
@@ -265,6 +445,31 @@ t = ui.table(
     dx.data.stocks(),
     on_selection_change=lambda data: print(f"Selection: {data}"),
     always_fetch_columns=["Sym", "Exchange"],
+)
+```
+
+### Always fetching some columns
+
+Deephaven only fetches data for visible rows and columns within a window around the viewport (typically the viewport plus 1 page in all directions). This reduces the amount of data transferred between the server and client and allows tables with billions of rows to be displayed. Sometimes you may need to always fetch columns, such as a key column for a row press event. You can use the `always_fetch_columns` prop to specify columns that should always be fetched regardless of their visibility.
+
+The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g., `on_row_press`) and context menu callbacks.
+
+When using event callbacks, include any columns referenced in the callback in `always_fetch_columns` to prevent undefined columns when users hide columns or scroll beyond the viewport.
+
+> [!WARNING]
+> Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
+
+This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    hidden_columns=["Sym"],
+    on_row_press=lambda d: print(d["Sym"]),
+    always_fetch_columns="Sym",
 )
 ```
 
@@ -429,29 +634,6 @@ t = ui.table(
 ```
 
 ![Example of column groups](../_assets/table_column_groups.png)
-
-## Always fetching some columns
-
-Deephaven only fetches data for visible rows and columns within a window around the viewport (typically the viewport plus 1 page in all directions). This reduces the amount of data transferred between the server and client and allows displaying tables with billions of rows. Sometimes you may need to always fetch columns, such as a key column for a row press event. You can use the `always_fetch_columns` prop to specify columns that should always be fetched regardless of their visibility.
-
-The `always_fetch_columns` prop takes a single column name, a list of column names, or a boolean to always fetch all columns. The data for these columns is included in row event data (e.g. `on_row_press`) and context menu callbacks.
-
-> [!WARNING]
-> Setting `always_fetch_columns` to `True` will fetch all columns and can be slow for tables with many columns.
-
-This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
-
-```python
-from deephaven import ui
-import deephaven.plot.express as dx
-
-t = ui.table(
-    dx.data.stocks(),
-    hidden_columns=["Sym"],
-    on_row_press=lambda d: print(d["Sym"]),
-    always_fetch_columns="Sym",
-)
-```
 
 ## Quick filters
 

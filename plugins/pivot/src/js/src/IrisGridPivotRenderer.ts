@@ -15,15 +15,11 @@ import {
   type IrisGridRenderState,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
-import { TableUtils } from '@deephaven/jsapi-utils';
-import type { dh } from '@deephaven/jsapi-types';
+import { TableUtils, type SortDescriptor } from '@deephaven/jsapi-utils';
 import PivotColumnHeaderGroup, {
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import IrisGridPivotModel, {
-  isIrisGridPivotModel,
-  type SortDescriptor,
-} from './IrisGridPivotModel';
+import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
 import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 function getColumnGroupName(
@@ -489,7 +485,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     );
   }
 
-  /* column sort indicator start */
   drawColumnSourceSortIndicator(
     context: CanvasRenderingContext2D,
     state: IrisGridRenderState,
@@ -499,20 +494,13 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     columnWidth: number,
     bounds: { minX: number; maxX: number }
   ): void {
-    console.log('drawColumnSourceSortIndicator', {
-      sort,
-      columnText,
-      columnX,
-      columnWidth,
-      bounds,
-    });
-    const { metrics, model, theme } = state;
+    const { metrics, theme } = state;
     const { gridX, columnHeaderHeight } = metrics;
 
     const { headerHorizontalPadding, iconSize: themeIconSize } = theme;
     const iconSize = Math.round(themeIconSize * 0.75); // The vsTriangle icons are a bit bigger than we want
 
-    if (!sort) {
+    if (sort == null) {
       return;
     }
 
@@ -534,14 +522,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     const y = (columnHeaderHeight - iconSize) * 0.5;
 
     context.save();
-
-    // context.beginPath();
-    // context.fillStyle = 'red';
-    // context.translate(0, 0);
-    // context.rect(columnX, 0, columnWidth, columnHeaderHeight);
-    // context.rect(0, 0, 100, 100);
-
-    // context.clip();
 
     context.fillStyle = theme.headerSortBarColor;
     context.translate(x, y);

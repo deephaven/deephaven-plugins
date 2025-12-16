@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.18.2 - 2025-11-18
+#### Bug Fixes
+- DH-20908: Handle table disconnects in Plotly Express (#1267) - (37e8a11) - bmingles
+
+- - -
+
+## plotly-express-v0.18.1 - 2025-11-04
+#### Features
+- Deephaven Pivot plugin (#1231) - (ac5d6f5) - vbabich
+#### Bug Fixes
+- update data generators to be deterministic when columns evaluated in parallel (#1240) - (dc17eab) - Don
+#### Build system
+- Update TypeScript to v5 (#1247) - (e98edd9) - mofojed
+
+- - -
+
 ## plotly-express-v0.18.0 - 2025-09-10
 #### Features
 - Pivot table example generator (#1230) - (2ff9325) - Don

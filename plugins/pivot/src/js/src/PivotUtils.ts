@@ -16,27 +16,13 @@ export const ROOT_DEPTH = 2;
 export type SnapshotDimensionKeys = readonly (unknown | null)[];
 export type SnapshotDimensionKeyMap = Map<number, SnapshotDimensionKeys>;
 
-export type DisplayPivotColumn = DisplayColumn &
-  CorePlusDhType.coreplus.pivot.PivotSource & {
-    /**
-     * Name to display with the column.
-     * The `name` property on `Column` is a unique identifier and must be a valid Java identifier,
-     * whereas `displayName` can be any string and does not need to be unique.
-     */
-    displayName?: string;
-    /**
-     * Whether this column is a proxy column for other columns or not.
-     * If it's a proxy column, it may not appear in some lists.
-     */
-    isProxy?: boolean;
-
-    description?: string | undefined;
+export type PivotDisplayColumn = Omit<DisplayColumn, 'sort' | 'filter'> &
+  Omit<CorePlusDhType.coreplus.pivot.PivotSource, 'description'> & {
+    description?: string;
+    depth: number;
+    isExpanded: boolean;
+    hasChildren: boolean;
   };
-export type ExpandableDisplayColumn = DisplayPivotColumn & {
-  depth: number;
-  isExpanded: boolean;
-  hasChildren: boolean;
-};
 
 /**
  * Pluralize a string based on a value
@@ -57,7 +43,7 @@ export function pluralize(
 }
 
 /**
- * Create a an ExpandableDisplayColumn object
+ * Create a PivotDisplayColumn object
  */
 export function makeColumn({
   name,
@@ -89,7 +75,7 @@ export function makeColumn({
   isProxy?: boolean;
   filter?: () => DhType.FilterValue;
   sort?: () => CorePlusDhType.coreplus.pivot.PivotSort;
-}): ExpandableDisplayColumn {
+}): PivotDisplayColumn {
   return {
     name,
     displayName,
@@ -97,8 +83,7 @@ export function makeColumn({
     isPartitionColumn: false,
     isSortable,
     isProxy,
-    // TODO: check types
-    description: description ?? '',
+    description,
     index,
     depth,
     hasChildren,
@@ -193,19 +178,19 @@ export function makeValueSourceColumnName(
 }
 
 /**
- * Create a column with displayName property based on the dimension data
+ * Create a PivotDisplayColumn based on the dimension data
  * @param snapshotDim Snapshot dimension data
  * @param valueSource Value source data
  * @param originalIndex Original column index in the dimension
  * @param offset Offset to apply to the column index
  * @returns Column with the displayName
  */
-export function makeExpandableDisplayColumn(
+export function makeColumnFromSnapshot(
   snapshotDim: CorePlusDhType.coreplus.pivot.DimensionData,
   valueSource: CorePlusDhType.coreplus.pivot.PivotSource,
   originalIndex: number,
   offset: number
-): ExpandableDisplayColumn {
+): PivotDisplayColumn {
   const keys = snapshotDim.getKeys(originalIndex);
   const depth = snapshotDim.getDepth(originalIndex);
   const hasChildren = snapshotDim.hasChildren(originalIndex);
@@ -229,16 +214,16 @@ export function makeExpandableDisplayColumn(
 }
 
 /**
- * Create a placeholder column with displayName property based on the dimension data
+ * Create a placeholder column based on the dimension data
  * @param valueSource Value source data
  * @param originalIndex Original column index in the dimension
  * @returns Column with the displayName
  */
-export function makePlaceholderDisplayColumn(
+export function makePlaceholderColumn(
   valueSource: CorePlusDhType.coreplus.pivot.PivotSource,
   originalIndex: number,
   offset: number
-): ExpandableDisplayColumn {
+): PivotDisplayColumn {
   return makeColumn({
     name: makePlaceholderColumnName(originalIndex, valueSource),
     displayName: '',
@@ -251,51 +236,21 @@ export function makePlaceholderDisplayColumn(
 }
 
 /**
- * Create a column for a row source
- * @param source Row source to create the column for
+ * Create a PivotDisplayColumn for a row or column pivot source
+ * @param source Pivot source to create the PivotDisplayColumn for
  * @param index Column index
- * @returns Created column
+ * @returns Created PivotDisplayColumn
  */
-export function makeRowSourceColumn(
+export function makeColumnFromSource(
   source: CorePlusDhType.coreplus.pivot.PivotSource,
   index: number
-): ExpandableDisplayColumn {
-  const {
-    name,
-    type, // isSortable,
-    description,
-  } = source;
+): PivotDisplayColumn {
+  const { name, type, isSortable, description } = source;
   return makeColumn({
     name,
     type,
     index,
-    isSortable: true,
-    description,
-    filter: source.filter.bind(source),
-    sort: source.sort.bind(source),
-  });
-}
-
-/**
- * Create a column for a row source
- * @param source Row source to create the column for
- * @param index Column index
- * @returns Created column
- */
-export function makeColumnSourceColumn(
-  source: CorePlusDhType.coreplus.pivot.PivotSource,
-  index: number
-): ExpandableDisplayColumn {
-  const {
-    name,
-    type, // isSortable,
-    description,
-  } = source;
-  return makeColumn({
-    name,
-    type,
-    index,
-    isSortable: true,
+    isSortable,
     description,
     filter: source.filter.bind(source),
     sort: source.sort.bind(source),
@@ -318,7 +273,7 @@ export function checkColumnsChanged(
   );
 }
 
-export function getKeyColumnGroups(
+export function makeKeyColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   rowSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   includeGroupColumn: boolean
@@ -332,9 +287,7 @@ export function getKeyColumnGroups(
             displayName: '',
             // For empty row sources we will render a "dead column"
             // or a Groups column, depending on the table settings
-            children: includeGroupColumn
-              ? [...groupName, ...rowSources.map(c => c.name)]
-              : [...groupName, ...rowSources.map(c => c.name)],
+            children: [...groupName, ...rowSources.map(c => c.name)],
             childIndexes: [],
             isKeyColumnGroup: true,
             depth: 1,
@@ -362,7 +315,7 @@ export function getKeyColumnGroups(
     : groups;
 }
 
-export function getTotalsColumnGroups(
+export function makeTotalsColumnGroups(
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   isRootColumnExpanded: boolean
@@ -397,7 +350,7 @@ export function getTotalsColumnGroups(
       );
 }
 
-export function getSnapshotColumnGroups(
+export function makeSnapshotColumnGroups(
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData,
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
   valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
@@ -454,9 +407,11 @@ export function getSnapshotColumnGroups(
  * @param pivotTable Pivot table
  * @param snapshotColumns Snapshot columns
  * @param isRootColumnExpanded Flag indicating if the root column group is expanded
+ * @param includeGroupColumn Flag indicating if the group column should be included
+ * @param formatValue Function to format values
  * @returns Column groups
  */
-export function getColumnGroups(
+export function makeColumnGroups(
   pivotTable: CorePlusDhType.coreplus.pivot.PivotTable,
   snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
   isRootColumnExpanded = true,
@@ -464,12 +419,12 @@ export function getColumnGroups(
   formatValue: (value: unknown, type: string) => string = (v, t) => String(v)
 ): PivotColumnHeaderGroup[] {
   const virtualColumnGroups = [
-    ...getKeyColumnGroups(
+    ...makeKeyColumnGroups(
       pivotTable.columnSources,
       pivotTable.rowSources,
       includeGroupColumn
     ),
-    ...getTotalsColumnGroups(
+    ...makeTotalsColumnGroups(
       pivotTable.columnSources,
       pivotTable.valueSources,
       isRootColumnExpanded
@@ -479,7 +434,7 @@ export function getColumnGroups(
   const snapshotColumnGroups =
     snapshotColumns == null
       ? []
-      : getSnapshotColumnGroups(
+      : makeSnapshotColumnGroups(
           snapshotColumns,
           pivotTable.columnSources,
           pivotTable.valueSources,

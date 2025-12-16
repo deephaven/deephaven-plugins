@@ -1,0 +1,3 @@
+from package_with_absolute_imports import create_simple_ticking
+
+simple_ticking_absolute = create_simple_ticking()

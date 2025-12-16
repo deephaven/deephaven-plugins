@@ -6,7 +6,7 @@ import {
   DateFilterModel,
   ICombinedSimpleModel,
   ISimpleFilterModel,
-} from '@ag-grid-community/core';
+} from 'ag-grid-community';
 import AgGridFilterUtils from './AgGridFilterUtils';
 
 describe('AgGridFilterUtils', () => {

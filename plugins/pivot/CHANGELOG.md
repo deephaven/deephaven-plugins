@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## pivot-v0.2.0 - 2025-12-11
+#### Bug Fixes
+- Use isSortable flag to determine if colBy and rowBy sources are sortable (#1275) - (e748cd7) - vbabich
+- DH-20654: Fix pivot still showing after worker is dead (#1274) - (acc3eb9) - vbabich
+#### Build system
+- Update TypeScript to v5 (#1247) - (e98edd9) - mofojed
+#### Features
+- Pivot sort UI (#1272) - (5f3d5f3) - vbabich
+
+- - -
+
 ## pivot-v0.1.0 - 2025-10-02
 #### Features
 - Deephaven Pivot plugin (#1231) - (ac5d6f5) - vbabich

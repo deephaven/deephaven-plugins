@@ -2,7 +2,7 @@ import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import { TestUtils } from '@deephaven/test-utils';
 import {
   GRAND_TOTALS_GROUP_NAME,
-  getColumnGroups,
+  makeColumnGroups,
   ROOT_DEPTH,
 } from './PivotUtils';
 
@@ -50,7 +50,7 @@ describe('getColumnGroups', () => {
     });
 
   it('creates key column and grand total groups', () => {
-    const result = getColumnGroups(mockPivotTable, null);
+    const result = makeColumnGroups(mockPivotTable, null);
     expect(result).toHaveLength(2);
     const keyGroup = result[0];
     expect(keyGroup).toEqual(
@@ -73,7 +73,7 @@ describe('getColumnGroups', () => {
   });
 
   it('create data column groups based on snapshot columns', () => {
-    const result = getColumnGroups(mockPivotTable, mockSnapshotColumns);
+    const result = makeColumnGroups(mockPivotTable, mockSnapshotColumns);
 
     expect(result.length).toBe(3);
 

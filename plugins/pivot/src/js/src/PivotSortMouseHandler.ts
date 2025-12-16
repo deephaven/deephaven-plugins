@@ -1,4 +1,3 @@
-/* eslint class-methods-use-this: "off" */
 import { ContextActionUtils } from '@deephaven/components';
 import {
   GridMouseHandler,
@@ -9,8 +8,7 @@ import {
 } from '@deephaven/grid';
 import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
-import IrisGridPivotModel from './IrisGridPivotModel';
-import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
+import { isIrisGridPivotModel } from './IrisGridPivotModel';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 
 /**
@@ -30,39 +28,34 @@ class PivotSortMouseHandler extends GridMouseHandler {
   irisGrid: IrisGrid;
 
   /**
-   *
-   * @param gridPoint
-   * @returns
+   * Get the column source from a grid point
+   * @param gridPoint The grid point to check
+   * @returns The column source index if the grid point is in a column source header, else null
    */
-  getColumnSourceFromGridPoint(gridPoint: GridPoint): number | null {
+  private getColumnSourceHeaderFromGridPoint(
+    gridPoint: GridPoint
+  ): number | null {
     const { column, row, columnHeaderDepth } = gridPoint;
     const { model } = this.irisGrid.props;
-    // TODO: limit to only header groups that are column sources
-    console.log(
-      'getColumnHeaderFromGridPoint',
-      {
-        gridPoint,
-        model,
-        columnHeaderDepth,
-      },
-      model.isColumnSortable(-(columnHeaderDepth ?? 1000))
-    );
     assertNotNull(model);
-    const keyColumnGroups = [...model.columnHeaderGroupMap.values()].filter(
-      (group): group is PivotColumnHeaderGroup =>
-        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
-    );
+    const sourceIndex = columnHeaderDepth != null ? -columnHeaderDepth : null;
+
+    if (column == null || row !== null || columnHeaderDepth == null) {
+      return null;
+    }
+
+    const group = model.getColumnHeaderGroup(column, columnHeaderDepth);
+
     if (
-      column !== null &&
-      row === null &&
-      columnHeaderDepth != null &&
-      columnHeaderDepth > 0 &&
-      // TODO:
-      model instanceof IrisGridPivotModel &&
-      model.isColumnSortable(-columnHeaderDepth) &&
-      column <= keyColumnGroups.length
+      sourceIndex != null &&
+      sourceIndex < 0 &&
+      isIrisGridPivotModel(model) &&
+      model.isColumnSortable(sourceIndex) &&
+      isPivotColumnHeaderGroup(group) &&
+      group.isKeyColumnGroup
     ) {
-      return -columnHeaderDepth;
+      // Clicked on a sortable column header that is a key column group
+      return sourceIndex;
     }
 
     return null;
@@ -74,7 +67,7 @@ class PivotSortMouseHandler extends GridMouseHandler {
     grid: Grid,
     event: GridMouseEvent
   ): EventHandlerResult {
-    this.columnSource = this.getColumnSourceFromGridPoint(gridPoint);
+    this.columnSource = this.getColumnSourceHeaderFromGridPoint(gridPoint);
     return false;
   }
 
@@ -83,16 +76,11 @@ class PivotSortMouseHandler extends GridMouseHandler {
     grid: Grid,
     event: GridMouseEvent
   ): EventHandlerResult {
-    const columnSourceIndex = this.getColumnSourceFromGridPoint(gridPoint);
-    console.log('[0] onClick', {
-      gridPoint,
-      columnSourceIndex,
-      rememberedColumnSource: this.columnSource,
-    });
+    const columnSource = this.getColumnSourceHeaderFromGridPoint(gridPoint);
 
-    if (columnSourceIndex != null && columnSourceIndex === this.columnSource) {
+    if (columnSource != null && columnSource === this.columnSource) {
       const addToExisting = ContextActionUtils.isModifierKeyDown(event);
-      this.irisGrid.toggleSort(columnSourceIndex, addToExisting);
+      this.irisGrid.toggleSort(columnSource, addToExisting);
       return true;
     }
 
