@@ -105,9 +105,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     // Draw column source filters on top of headers
     this.drawColumnSourceFilters(context, state);
-
-    // Draw column source sort bar on top of headers
-    // this.drawColumnSourceSorts(context, state);
   }
 
   drawColumnHeadersAtDepth(
@@ -530,108 +527,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     context.restore();
   }
 
-  drawColumnSourceSorts(
-    context: CanvasRenderingContext2D,
-    state: IrisGridPivotRenderState
-  ): void {
-    const { model, theme } = state;
-    // const { columnSourceSortBarHeight } = theme;
-    const { metrics } = state;
-    const { columnHeaderGroupMap, sort } = model;
-    if (sort.length === 0) {
-      return;
-    }
-    console.log('[0] drawColumnSourceSorts', sort);
-
-    const { gridX, gridY, columnHeaderHeight, columnHeaderMaxDepth } = metrics;
-    const { headerSeparatorColor, filterBarCollapsedHeight } = theme;
-
-    if (filterBarCollapsedHeight <= 0) {
-      return;
-    }
-
-    // TODO: store in the model
-    const keyColumnGroups = [...columnHeaderGroupMap.values()].filter(
-      (group): group is PivotColumnHeaderGroup =>
-        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
-    );
-
-    if (keyColumnGroups.length === 0) {
-      return;
-    }
-
-    const sortBarCoordinates = keyColumnGroups.map(group => {
-      const { x2, y1, y2 } = getColumnHeaderCoordinates(state, group);
-      return {
-        depth: group.depth,
-        x1: x2 - filterBarCollapsedHeight,
-        y1,
-        x2,
-        y2,
-      };
-    });
-
-    context.save();
-
-    // Draw the background of the sort bar
-    // const { x2 } = sortBarCoordinates[sortBarCoordinates.length - 1];
-    // context.fillStyle = headerSeparatorColor;
-    // context.fillRect(
-    //   gridX + x2 - filterBarCollapsedHeight,
-    //   gridY -
-    //     columnHeaderHeight * columnHeaderMaxDepth -
-    //     filterBarCollapsedHeight,
-    //   filterBarCollapsedHeight,
-    //   columnHeaderHeight * (columnHeaderMaxDepth - 1)
-    // );
-
-    sortBarCoordinates.forEach(({ x2: columnRight, depth }) => {
-      // context.fillStyle = theme.headerSortBarColor;
-      this.drawCollapsedColumnSourceSort(context, state, depth, columnRight);
-    });
-
-    context.restore();
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  drawCollapsedColumnSourceSort(
-    context: CanvasRenderingContext2D,
-    state: IrisGridPivotRenderState,
-    headerDepth: number,
-    columnRight: Coordinate
-  ): void {
-    if (columnRight <= 0) {
-      return;
-    }
-    const { metrics, theme } = state;
-    const { columnHeaderHeight, gridY } = metrics;
-    // Negative index for column source filters
-
-    const { filterBarCollapsedHeight: sortHeight, headerSortBarColor } = theme;
-
-    // TODO:
-    const filterBarCollapsedHeight = sortHeight - 2;
-
-    context.save();
-
-    context.fillStyle = headerSortBarColor;
-
-    const x = columnRight - filterBarCollapsedHeight + 1;
-    const y =
-      gridY -
-      filterBarCollapsedHeight -
-      columnHeaderHeight -
-      columnHeaderHeight * headerDepth;
-    const rectWidth = filterBarCollapsedHeight - 1;
-    const rectHeight = columnHeaderHeight - 1 + 3; // TODO: why +3?
-    context.fillRect(x, y, rectWidth, rectHeight);
-
-    context.restore();
-  }
-
-  /* column filter headers start */
-  // TODO: remove ^
-
   drawColumnSourceFilters(
     context: CanvasRenderingContext2D,
     state: IrisGridPivotRenderState
@@ -662,13 +557,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     // TODO: get columnSourceFilterWidth from metrics
     const columnSourceFilterWidth = columnSourceFilterMinWidth;
 
-    // TODO: store keyColumnGroups in the model
-    const keyColumnGroups = [...model.columnHeaderGroupMap.values()].filter(
-      (group): group is PivotColumnHeaderGroup =>
-        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
-    );
-
-    const filterBoxes = keyColumnGroups.map(group => {
+    const filterBoxes = this.getKeyColumnGroups(model).map(group => {
       const { x2, y1, y2 } = getColumnHeaderCoordinates(state, group);
       return {
         depth: group.depth,
@@ -827,12 +716,24 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   }
 
   // eslint-disable-next-line class-methods-use-this
+  getKeyColumnGroups(model: IrisGridPivotModel): PivotColumnHeaderGroup[] {
+    // Instead of iterating the entire map, iterate over the parent groups of the column 0
+    const keyColumnGroups: PivotColumnHeaderGroup[] = [];
+    // Iterate depth from 0 to max depth and get the header groups for column 0
+    for (let depth = 0; depth <= model.columnHeaderMaxDepth; depth += 1) {
+      const group = model.getColumnHeaderGroup(0, depth);
+      if (isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup) {
+        keyColumnGroups.push(group);
+      }
+    }
+    return keyColumnGroups;
+  }
+
   drawCollapsedColumnSourceFilters(
     context: CanvasRenderingContext2D,
     state: IrisGridPivotRenderState
   ): void {
     const { metrics, model, theme } = state;
-    const { columnHeaderGroupMap } = model;
     const { gridX, gridY, columnHeaderHeight, columnHeaderMaxDepth } = metrics;
     const { headerSeparatorColor, filterBarCollapsedHeight } = theme;
 
@@ -840,17 +741,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       return;
     }
 
-    // TODO: store in the model
-    const keyColumnGroups = [...columnHeaderGroupMap.values()].filter(
-      (group): group is PivotColumnHeaderGroup =>
-        isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup
-    );
-
-    if (keyColumnGroups.length === 0) {
-      return;
-    }
-
-    const filterBoxes = keyColumnGroups.map(group => {
+    const filterBoxes = this.getKeyColumnGroups(model).map(group => {
       const { x2, y1, y2 } = getColumnHeaderCoordinates(state, group);
       return {
         depth: group.depth,
@@ -860,6 +751,10 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
         y2,
       };
     });
+
+    if (filterBoxes.length === 0) {
+      return;
+    }
 
     context.save();
 
@@ -937,9 +832,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     context.restore();
   }
-
-  /* column filter headers end */
-  // TODO: remove ^
 }
 
 export default IrisGridPivotRenderer;
