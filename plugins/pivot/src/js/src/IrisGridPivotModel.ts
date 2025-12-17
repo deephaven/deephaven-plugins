@@ -48,7 +48,6 @@ import {
   type PivotDisplayColumn,
   makeColumnGroups,
   isCorePlusDh,
-  makeColumnSourceColumn,
 } from './PivotUtils';
 import {
   PivotColumnHeaderGroup,
@@ -89,16 +88,6 @@ export function isIrisGridPivotModel(
   );
 }
 
-// TODO: import from web-client-ui
-export interface SortDescriptor {
-  column: {
-    name: ColumnName;
-    type: string;
-  };
-  isAbs: boolean;
-  direction: string;
-}
-
 export interface IrisGridPivotModelConfig {
   rowBufferPages?: number;
   columnBufferPages?: number;
@@ -131,8 +120,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   private showExtraGroupCol = true;
 
   private _layoutHints: DhType.LayoutHints | null | undefined;
-
-  private _sorts?: readonly SortDescriptor[] = EMPTY_ARRAY;
 
   private _sorts?: readonly SortDescriptor[] = EMPTY_ARRAY;
 

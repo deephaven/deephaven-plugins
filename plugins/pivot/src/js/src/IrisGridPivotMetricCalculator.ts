@@ -2,15 +2,8 @@ import {
   IrisGridMetricCalculator,
   type IrisGridMetricState,
 } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
-import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
-import type IrisGridPivotModel from './IrisGridPivotModel';
 import type { ModelIndex } from '@deephaven/grid';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
-
-const log = Log.module(
-  '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
-);
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
   getColumnHeaderGroupWidth(
