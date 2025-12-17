@@ -21,6 +21,7 @@ export type PivotDisplayColumn = Omit<DisplayColumn, 'sort' | 'filter'> &
     description?: string;
     depth: number;
     isExpanded: boolean;
+    isFilterable: boolean;
     hasChildren: boolean;
   };
 
@@ -51,6 +52,7 @@ export function makeColumn({
   type,
   index,
   description,
+  isFilterable = false,
   isSortable = false,
   depth = ROOT_DEPTH,
   hasChildren = false,
@@ -68,6 +70,7 @@ export function makeColumn({
   type: string;
   index: number;
   description?: string;
+  isFilterable?: boolean;
   isSortable?: boolean;
   depth?: number;
   hasChildren?: boolean;
@@ -81,6 +84,7 @@ export function makeColumn({
     displayName,
     type,
     isPartitionColumn: false,
+    isFilterable,
     isSortable,
     isProxy,
     description,
@@ -246,10 +250,13 @@ export function makeColumnFromSource(
   index: number
 ): PivotDisplayColumn {
   const { name, type, isSortable, description } = source;
+  // All rowBy/columnBy sources are filterable
+  const isFilterable = true;
   return makeColumn({
     name,
     type,
     index,
+    isFilterable,
     isSortable,
     description,
     filter: source.filter.bind(source),

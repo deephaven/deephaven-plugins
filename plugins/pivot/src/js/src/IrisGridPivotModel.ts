@@ -204,9 +204,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   set filter(filters: DhType.FilterCondition[]) {
-    // No-op
-    log.debug('Setting filter on pivot table', filters);
-    // TODO: hydrate columnBySources filters
+    log.debug2('Setting filter on pivot table', filters);
     this.pivotTable.applyFilter(filters);
     this.applyViewport();
   }
@@ -325,7 +323,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     throw new Error('Method not implemented.');
   }
 
-  // TODO: warning! arrays with negative indexes lose negative items on maps, spreads, etc
   getCachedColumns = memoize(
     (
       snapshotColumns: CorePlusDhType.coreplus.pivot.DimensionData | null,
@@ -606,18 +603,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     );
   }
 
-  get columnSources(): readonly DhType.coreplus.pivot.PivotSource[] {
-    return this.pivotTable.columnSources;
-  }
-
-  getColumnSourceByIndex(index: number): DhType.coreplus.pivot.PivotSource {
-    if (index >= 0) {
-      throw new Error('Column source index must be negative');
-    }
-    // ColBy sources use negative indexes
-    return this.pivotTable.columnSources[1 - index];
-  }
-
   get isChartBuilderAvailable(): boolean {
     return false;
   }
@@ -643,20 +628,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isFilterable(columnIndex: ModelIndex): boolean {
-    // TODO: DH-20363: Add support for Pivot filters
-    // log.debug(
-    //   'isFilterable',
-    //   columnIndex,
-    //   this.pivotTable.columnSources,
-    //   this.keyColumns
-    // );
-    if (columnIndex < 0) {
-      return this.pivotTable.columnSources.length >= -columnIndex;
-    }
-    return (
-      this.keyColumns.find(c => c.name === this.columns[columnIndex]?.name) !=
-      null
-    );
+    return this.columns[columnIndex]?.isFilterable ?? false;
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
@@ -1308,7 +1280,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   row(y: ModelIndex): R | null {
     if (y === 0) {
-      // log.debug('[1] totals row', this.viewportData);
       return this.viewportData?.totalsRow ?? null;
     }
     const offset = this.viewportData?.offset ?? 0;
@@ -1451,7 +1422,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       if (!this.viewport) {
         return;
       }
-      log.debug2('applyViewport', this.viewport, this.filter);
+      log.debug2('applyViewport', this.viewport);
       const { top, bottom, columns } = this.viewport;
       const [viewportTop, viewportBottom] = this.getCachedViewportRowRange(
         top,
