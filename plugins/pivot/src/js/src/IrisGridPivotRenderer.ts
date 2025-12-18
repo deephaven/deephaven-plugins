@@ -36,35 +36,13 @@ function getColumnHeaderCoordinates(
 ): BoxCoordinates {
   const { metrics, theme } = state;
   const { childIndexes, depth } = group;
-  if (
-    (childIndexes.length > 0 && typeof childIndexes[0] !== 'number') ||
-    (childIndexes.length > 1 &&
-      typeof childIndexes[childIndexes.length - 1] !== 'number')
-  ) {
-    console.log('Unexpected childIndexes types', childIndexes);
-  }
-  // TODO: fix childIndexes typing
-  const firstColumn = childIndexes[0]; // parseInt(String(childIndexes[0]) ?? '', 10);
+  const firstColumn = childIndexes[0];
   const lastColumn = childIndexes[childIndexes.length - 1];
-  // parseInt(
-  //   String(childIndexes[childIndexes.length - 1]) ?? '',
-  //   10
-  // );
   if (firstColumn == null || lastColumn == null) {
     throw new Error('Group has no child columns');
   }
-  const { allColumnXs, allColumnWidths, gridX, gridY, maxX, lastLeft } =
-    metrics;
+  const { allColumnXs, allColumnWidths, gridX, gridY, maxX } = metrics;
   const { filterBarHeight, columnHeaderHeight } = theme;
-  console.log('getColumnHeaderCoordinates', {
-    allColumnXs,
-    allColumnWidths,
-    gridX,
-    maxX,
-    firstColumn,
-    lastColumn,
-    lastLeft,
-  });
   let firstColumnX = allColumnXs.get(firstColumn);
   let lastColumnX = allColumnXs.get(lastColumn);
   let lastColumnWidth = allColumnWidths.get(lastColumn);
