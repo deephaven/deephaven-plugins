@@ -1,7 +1,11 @@
-import { DisplayColumn } from '@deephaven/iris-grid';
+import { DisplayColumn, type IrisGridModel } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
+import PivotColumnHeaderGroup, {
+  isPivotColumnHeaderGroup,
+} from './PivotColumnHeaderGroup';
+import type { GridPoint } from '@deephaven/grid';
+import { isIrisGridPivotModel } from './IrisGridPivotModel';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
