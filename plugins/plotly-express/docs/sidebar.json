@@ -38,18 +38,6 @@
             "path": "density-map.md"
           },
           {
-            "label": "Dot Map",
-            "path": "dot-map.md"
-          },
-          {
-            "label": "Funnel Area Map",
-            "path": "funnel-area-map.md"
-          },
-          {
-            "label": "Funnel Map",
-            "path": "funnel-map.md"
-          },
-          {
             "label": "Funnel",
             "path": "funnel.md"
           },
