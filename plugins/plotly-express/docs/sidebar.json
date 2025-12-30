@@ -34,6 +34,10 @@
             "path": "density_heatmap.md"
           },
           {
+            "label": "Density Map",
+            "path": "density-map.md"
+          },
+          {
             "label": "Funnel",
             "path": "funnel.md"
           },
@@ -62,6 +66,14 @@
             "path": "line-3d.md"
           },
           {
+            "label": "Line Geo",
+            "path": "line-geo.md"
+          },
+          {
+            "label": "Line Map",
+            "path": "line-map.md"
+          },
+          {
             "label": "Line Polar",
             "path": "line-polar.md"
           },
@@ -84,6 +96,14 @@
           {
             "label": "Scatter 3d",
             "path": "scatter-3d.md"
+          },
+          {
+            "label": "Scatter Geo",
+            "path": "scatter-geo.md"
+          },
+          {
+            "label": "Scatter Map",
+            "path": "scatter-map.md"
           },
           {
             "label": "Scatter Polar",

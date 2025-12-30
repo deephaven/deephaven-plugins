@@ -238,7 +238,7 @@ def scatter_map(
     range_color: list[float] | None = None,
     color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
-    zoom: float | None = None,
+    zoom: float | None = 0,
     center: dict[str, float] | None = None,
     map_style: str = "open-street-map",
     title: str | None = None,
@@ -308,7 +308,7 @@ def scatter_map(
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
@@ -516,7 +516,7 @@ def line_map(
     size_map: dict[str | tuple[str], str] | None = None,
     width_sequence: list[int] | None = None,
     width_map: dict[str | tuple[str], str] | None = None,
-    zoom: float | None = None,
+    zoom: float | None = 0,
     map_style: str = "open-street-map",
     center: dict[str, float] | None = None,
     title: str | None = None,
@@ -595,7 +595,7 @@ def line_map(
         widths, widths will be reused. This is overriden if "line_dash" is specified.
       line_dash_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to line_dash.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
@@ -633,7 +633,7 @@ def density_map(
     labels: dict[str, str] | None = None,
     radius: int = 30,
     opacity: float | None = None,
-    zoom: float | None = None,
+    zoom: float | None = 0,
     center: dict[str, float] | None = None,
     map_style: str = "open-street-map",
     title: str | None = None,
@@ -656,7 +656,7 @@ def density_map(
       radius: The radius of each point.
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
