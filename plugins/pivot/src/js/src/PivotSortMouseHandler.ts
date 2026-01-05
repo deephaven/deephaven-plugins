@@ -50,7 +50,6 @@ class PivotSortMouseHandler extends GridMouseHandler {
     const { model } = this.irisGrid.props;
     assertNotNull(model);
     const columnSource = getColumnSourceHeaderFromGridPoint(model, gridPoint);
-
     if (columnSource != null && columnSource === this.columnSource) {
       const addToExisting = ContextActionUtils.isModifierKeyDown(event);
       this.irisGrid.toggleSort(columnSource, addToExisting);

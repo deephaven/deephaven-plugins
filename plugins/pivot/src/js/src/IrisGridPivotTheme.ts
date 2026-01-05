@@ -14,7 +14,6 @@ export const IrisGridPivotThemeColors = Object.freeze({
 export function getIrisGridPivotTheme(): IrisGridPivotThemeType {
   return Object.freeze({
     ...resolveCssVariablesInRecord(IrisGridPivotThemeColors),
-    // TODO: 120
-    columnSourceFilterMinWidth: 180,
+    columnSourceFilterMinWidth: 120,
   });
 }

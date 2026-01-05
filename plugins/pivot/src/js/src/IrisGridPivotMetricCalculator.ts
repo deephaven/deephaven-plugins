@@ -2,64 +2,92 @@ import {
   IrisGridMetricCalculator,
   type IrisGridMetricState,
 } from '@deephaven/iris-grid';
-import type { ModelIndex } from '@deephaven/grid';
+import type { GridMetrics, ModelIndex, ModelSizeMap } from '@deephaven/grid';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
 
+export interface PivotGridMetrics extends GridMetrics {
+  // Width of the widest column source header text, including padding
+  sourceTextWidth: number;
+}
+
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
+  // Gets the text width for a column header group, including padding
+  getColumnHeaderGroupTextWidth(
+    modelColumn: ModelIndex,
+    depth: number,
+    state: IrisGridMetricState,
+    maxColumnWidth: number
+  ): number {
+    return super.getColumnHeaderGroupWidth(
+      modelColumn,
+      depth,
+      state,
+      maxColumnWidth
+    );
+  }
+
   getColumnHeaderGroupWidth(
     modelColumn: ModelIndex,
     depth: number,
     state: IrisGridMetricState,
     maxColumnWidth: number
   ): number {
-    // Base width includes padding
-    const baseWidth = super.getColumnHeaderGroupWidth(
+    return this.getColumnHeaderGroupTextWidth(
       modelColumn,
       depth,
       state,
       maxColumnWidth
     );
-    const { model } = state;
+  }
+
+  // TODO: fix performance, cache results?
+  calculateSourceTextWidths(
+    model: unknown,
+    state: IrisGridMetricState
+  ): ModelSizeMap {
+    const sourceTextWidths: ModelSizeMap = new Map();
     if (!isIrisGridPivotModel(model)) {
-      return baseWidth;
+      return sourceTextWidths;
     }
-    // Space between text and the filter input
-    // Should match CSS padding: TODO: verify
-    const headerHorizontalPadding = 16;
-    const headerGroup = model.getColumnHeaderGroup(modelColumn, depth);
-    if (headerGroup?.isKeyColumnGroup === true) {
-      //   let maxWidth = baseWidth;
-      //   let parent: PivotColumnHeaderGroup | undefined = headerGroup;
-      //   let depth = 0;
-      //   while (parent != null) {
-      //     const parentWidth = super.getHeaderTextWidth(
-      //       context,
-      //       parent.name,
-      //       headerFont,
-      //       headerHorizontalPadding,
-      //       maxColumnWidth,
-      //       parent,
-      //       model
-      //     );
-      //     // log.debug('Checking parent group for key column:', parent, {
-      //     //   maxWidth,
-      //     //   parentWidth,
-      //     // });
-      //     maxWidth = Math.max(maxWidth, parentWidth);
-      //     depth += 1;
-      //     parent = model?.getColumnHeaderParentGroup(
-      //       parent.childIndexes[0] as ModelIndex,
-      //       depth
-      //     );
-      //   }
-      //   log.debug(
-      //     'Checking parent group for key column: FINAL:',
-      //     maxWidth,
-      //     maxWidth + 180 + headerHorizontalPadding
-      //   );
-      return baseWidth + 180 + headerHorizontalPadding;
-    }
-    return baseWidth;
+
+    const { theme } = state;
+    const { headerHorizontalPadding, maxColumnWidth } = theme;
+
+    // TODO: iterate over parents of column 0 to find source columns
+
+    const sourceIndexes: ModelIndex[] = Object.keys(model.columns)
+      .map(Number)
+      .filter(key => key < 0);
+
+    sourceIndexes.forEach(sourceIndex => {
+      const width = this.getColumnHeaderGroupTextWidth(
+        sourceIndex,
+        0,
+        state,
+        maxColumnWidth
+      );
+      // Extra padding between the text and the sort icon
+      sourceTextWidths.set(sourceIndex, width + headerHorizontalPadding);
+    });
+    return sourceTextWidths;
+  }
+
+  /**
+   * Gets the metrics for the current state. This method has to be called before setColumnSize or resetColumnSize.
+   * @param state The current IrisGridMetricState
+   * @returns The metrics for the current state
+   */
+  getMetrics(state: IrisGridMetricState): PivotGridMetrics {
+    const { model } = state;
+    // Update column widths if columns in the cached model don't match the current model passed in the state
+    const sourceTextWidths = this.calculateSourceTextWidths(model, state);
+
+    const sourceTextWidth = Math.max(...sourceTextWidths.values());
+
+    return {
+      ...super.getMetrics(state),
+      sourceTextWidth,
+    };
   }
 }
 
