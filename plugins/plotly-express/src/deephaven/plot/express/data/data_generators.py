@@ -1339,3 +1339,102 @@ def fish_market(ticking: bool = True) -> Table:
         )
     else:
         return generate(empty_table(base_rows).update("Index = ii"))
+
+
+def outages(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic dataset of service outage locations.
+
+    This dataset generates latitude and longitude coordinates using a mixture of distributions
+    to simulate outage density patterns across a metropolitan region. The coordinates are sampled
+    from three overlapping regions: two Gaussian distributions centered on urban cores with higher
+    population density, and a uniform distribution covering the broader surrounding area.
+    The mixture weights emphasize the urban centers while still providing coverage of suburban areas.
+
+    Notes:
+        - The default configuration simulates the Minneapolis-St. Paul metro area
+        - Urban center 1 (Minneapolis): centered at (44.9778, -93.2650)
+        - Urban center 2 (St. Paul): centered at (44.9537, -93.0900)
+        - Broader metro area: bounding box
+        - All coordinates are deterministically generated using the row index as a random seed
+
+    Columns:
+        - Lat (Double): Latitude coordinate of the outage location
+        - Lon (Double): Longitude coordinate of the outage location
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table containing outage location coordinates
+    """
+    base_rows = 100
+
+    # Configuration for geographic distribution of outages
+    # Default values simulate the Minneapolis-St. Paul metro area
+    # Weights determine relative sampling frequency from each distribution
+    config: dict[str, Any] = {
+        "weights": [6, 3, 2],
+        "distributions": [
+            {
+                # Urban center 1 (Minneapolis downtown)
+                "distribution": "gauss",
+                "lat_center": 44.9778,
+                "lon_center": -93.2650,
+                "lat_sd": 0.0316,
+                "lon_sd": 0.0229,
+            },
+            {
+                # Urban center 2 (St. Paul downtown)
+                "distribution": "gauss",
+                "lat_center": 44.9537,
+                "lon_center": -93.0900,
+                "lat_sd": 0.0108,
+                "lon_sd": 0.0491,
+            },
+            {
+                # Broader central metro bounding box
+                "distribution": "uniform",
+                "lat_north": 45.130,
+                "lat_south": 44.790,
+                "lon_west": -93.410,
+                "lon_east": -92.880,
+            },
+        ],
+    }
+
+    def sample_distribution_index(index: int) -> int:
+        """Select which distribution to sample from based on configured weights."""
+        return Random(index).choices([0, 1, 2], config["weights"])[0]
+
+    def generate_lat(dist_index: int, index: int) -> float:
+        """Generate a latitude coordinate based on the selected distribution."""
+        rand = Random(index * 2)  # Use different seed than lon for independence
+        dist = config["distributions"][dist_index]
+        if dist["distribution"] == "gauss":
+            return round(rand.gauss(dist["lat_center"], dist["lat_sd"]), 4)
+        else:
+            return round(rand.uniform(dist["lat_south"], dist["lat_north"]), 4)
+
+    def generate_lon(dist_index: int, index: int) -> float:
+        """Generate a longitude coordinate based on the selected distribution."""
+        rand = Random(index * 3)  # Use different seed than lat for independence
+        dist = config["distributions"][dist_index]
+        if dist["distribution"] == "gauss":
+            return round(rand.gauss(dist["lon_center"], dist["lon_sd"]), 4)
+        else:
+            return round(rand.uniform(dist["lon_west"], dist["lon_east"]), 4)
+
+    query_strings = [
+        "DistIndex = sample_distribution_index(ii)",
+        "Lat = generate_lat(DistIndex, ii)",
+        "Lon = generate_lon(DistIndex, ii)",
+    ]
+
+    outage_table = empty_table(base_rows)
+
+    if ticking:
+        outage_table = merge([outage_table, time_table("PT1S")])
+
+    return outage_table.update(query_strings).view(["Lat", "Lon"])
