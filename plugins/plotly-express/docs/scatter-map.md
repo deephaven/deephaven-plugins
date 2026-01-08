@@ -13,37 +13,51 @@ Scatter map plots are appropriate when the dataset contains geographic coordinat
 
 ### A basic scatter map plot
 
-Visualize geographic paths by passing longitude and latitude column names to the `lon` and `lat` arguments. Click and drag on the resulting map to pan and zoom.
+Visualize geographic points by passing longitude and latitude column names to the `lon` and `lat` arguments.
+It's recommended to set the initial `zoom` level and `center` coordinates for better visualization based on the data. Click and drag on the resulting map to pan and zoom.
 
-```python order=scatter_map_plot,path
+```python order=scatter_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple path dataset
-path = time_table("PT1s").update_view(
-    ["Lon = ((ii - 90) % 360)", "Lat = cos(ii/10) * 30"]
+# Load the outages dataset
+outages_table = dx_data.outages()
+
+# Create a scatter map showing individual outage points
+# Color is set for visibility
+# Zoom and center are set for better initial view
+scatter_map_plot = dx.scatter_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    color_discrete_sequence="black",
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
 )
-
-# Create the scatter map plot
-# Color is set for better visibility
-scatter_map_plot = dx.scatter_map(path, lat="Lat", lon="Lon", color_discrete_sequence="black")
 ```
 
 ### Color by group
 
-Denote different routes or paths by using the color of the lines as group indicators by passing the grouping column name to the `by` argument.
+Denote different categories by using the color of the points as group indicators by passing the grouping column name to the `by` argument. Set the color of each group using the `color_discrete_sequence` argument.
 
-```python order=scatter_map_plot,paths
+```python order=scatter_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple dataset with two paths
-paths = time_table("PT1s").update_view(
-    ["Path = i % 2", "Lon = ((ii - 90) % 360)", "Lat = Path == 0 ? cos(ii/10) * 30 : sin(ii/10) * 30"]
+# Load the outages dataset
+outages_table = dx_data.outages().sort_descending("Severity")
+
+# Color each outage point differently based on the cause
+# Zoom and center are set for better initial view
+scatter_map_plot = dx.scatter_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    by="Severity",
+    color_discrete_sequence=["black", "blue", "purple", "green"],
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
 )
-# Create the scatter map plot
-# Color is set for better visibility
-scatter_map_plot = dx.scatter_map(paths, lat="Lat", lon="Lon", color_discrete_sequence=["black", "darkgrey"], by="Path")
 ```
 
 ## API Reference

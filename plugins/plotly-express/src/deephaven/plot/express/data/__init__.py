@@ -8,4 +8,6 @@ from .data_generators import (
     wind,
     gapminder,
     fish_market,
+    outages,
+    flights,
 )

@@ -1359,8 +1359,10 @@ def outages(ticking: bool = True) -> Table:
         - All coordinates are deterministically generated using the row index as a random seed
 
     Columns:
+        - Timestamp (Instant): Timestamp of the outage event
         - Lat (Double): Latitude coordinate of the outage location
         - Lon (Double): Longitude coordinate of the outage location
+        - Severity (Int): Severity level of the outage from 1 (least severe) to 4 (most severe)
 
     Args:
         ticking:
@@ -1426,15 +1428,265 @@ def outages(ticking: bool = True) -> Table:
         else:
             return round(rand.uniform(dist["lon_west"], dist["lon_east"]), 4)
 
-    query_strings = [
-        "DistIndex = sample_distribution_index(ii)",
-        "Lat = generate_lat(DistIndex, ii)",
-        "Lon = generate_lon(DistIndex, ii)",
-    ]
+    def generate_severity(index: int) -> int:
+        """Generate a severity level between 1 and 4, where 4 is rarest but most severe."""
+        rand = Random(index * 5)
+        return rand.choices([1, 2, 3, 4], weights=[50, 30, 15, 5])[0]
 
-    outage_table = empty_table(base_rows)
+    outage_table = empty_table(base_rows).update(["Index = ii"])
 
     if ticking:
-        outage_table = merge([outage_table, time_table("PT1S")])
+        ticking_table = (
+            time_table("PT1S")
+            .update(f"Index = ii + {base_rows}")
+            .drop_columns("Timestamp")
+        )
+        outage_table = merge([outage_table, ticking_table])
 
-    return outage_table.update(query_strings).view(["Lat", "Lon"])
+    base_time = to_j_instant(STARTING_TIME)
+
+    return (
+        outage_table.update(
+            [
+                "Timestamp = base_time + Index * SECOND",
+                "DistIndex = sample_distribution_index(Index)",
+                "Lat = generate_lat(DistIndex, Index)",
+                "Lon = generate_lon(DistIndex, Index)",
+                "Severity = generate_severity(Index)",
+            ]
+        )
+        .view(["Timestamp", "Lat", "Lon", "Severity"])
+        .sort_descending("Severity")
+    )
+
+
+def flights(ticking: bool = True, speed_multiplier: int = 1) -> Table:
+    """
+    Returns a synthetic dataset of in-progress flight positions across Canada.
+
+    This dataset generates realistic flight path data for three routes between major Canadian cities.
+    Each flight computes its position based on elapsed time and varying ground speed, following
+    great-circle paths between origin and destination airports. Flights start at different times
+    and complete their journeys based on realistic flight durations.
+
+    Notes:
+        - Routes: Toronto to Vancouver (~4h), Montreal to Calgary (~4h), Calgary to Toronto (~3.5h)
+        - Speeds vary realistically between 800-950 km/h with deterministic randomness,
+        although they do not account for landing/takeoff phases
+        - Static data shows partial progress for each flight
+        - Ticking stops automatically when all flights reach their destinations
+        - Positions are computed using great-circle interpolation
+        - Flights do not adjust for air traffic control maneuvers such as weather, holding patterns, waypoints, etc.
+
+    Columns:
+        - FlightId (String): Unique identifier for the flight (e.g., "AC101")
+        - Lat (Double): Current latitude of the aircraft
+        - Lon (Double): Current longitude of the aircraft
+        - Speed (Double): Current ground speed in km/h
+        - Origin (String): Origin airport code (YYZ, YUL, YYC)
+        - Destination (String): Destination airport code (YVR, YYC, YYZ)
+
+    Args:
+        ticking:
+            If true, the table will tick new positions every second until all flights arrive.
+        speed_multiplier:
+            A multiplier to increase flight speeds for faster simulation. Defaults to 1 (realistic speeds).
+
+    Returns:
+        A Deephaven Table containing flight position data
+    """
+    # Canadian airport coordinates
+    airports = {
+        "YYZ": (43.6777, -79.6248),  # Toronto
+        "YVR": (49.1947, -123.1790),  # Vancouver
+        "YUL": (45.4706, -73.7408),  # Montreal
+        "YYC": (51.1215, -114.0076),  # Calgary
+    }
+
+    # Flight configurations: (flight_id, origin, destination, duration_seconds)
+    # Durations based on realistic flight times, modified by speed_multiplier
+    flight_configs = [
+        (
+            "SAL101",
+            "YYZ",
+            "YVR",
+            (4 * 3600 + 30 * 60) / speed_multiplier,
+        ),  # Toronto to Vancouver: 4.5 hours
+        (
+            "LCF202",
+            "YUL",
+            "YYC",
+            (4 * 3600 + 15 * 60) / speed_multiplier,
+        ),  # Montreal to Calgary: 4.25 hours
+        (
+            "SAL303",
+            "YYC",
+            "YYZ",
+            (3 * 3600 + 45 * 60) / speed_multiplier,
+        ),  # Calgary to Toronto: 3.75 hours
+        (
+            "LCF404",
+            "YVR",
+            "YUL",
+            (5 * 3600) / speed_multiplier,
+        ),  # Vancouver to Montreal: 5 hours
+    ]
+
+    # Base and variable speed parameters (km/h)
+    base_speed = 850.0
+    speed_variation = 75.0  # +/- variation
+
+    def get_speed(flight_index: int, time_index: int, progress: float) -> float:
+        """
+        Generate a realistic varying ground speed.
+        This doesn't actually affect position calculation, but on average the position will align.
+        """
+        if progress <= 0.0 or progress >= 1.0:
+            return 0.0
+        rand = Random(flight_index * 10000 + time_index)
+        speed = (
+            base_speed + rand.uniform(-speed_variation, speed_variation)
+        ) * speed_multiplier
+        return round(speed, 1)
+
+    def interpolate_position(
+        origin: tuple[float, float],
+        destination: tuple[float, float],
+        progress: float,
+    ) -> tuple[float, float]:
+        """
+        Interpolate position along a great-circle path.
+        Progress is 0.0 at origin, 1.0 at destination.
+        Uses spherical linear interpolation for realistic flight paths.
+        """
+        if progress <= 0:
+            return origin
+        if progress >= 1:
+            return destination
+
+        # Convert degrees to radians
+        lat1, lon1 = math.radians(origin[0]), math.radians(origin[1])
+        lat2, lon2 = math.radians(destination[0]), math.radians(destination[1])
+
+        # Great-circle angle distance
+        d = math.acos(
+            math.sin(lat1) * math.sin(lat2)
+            + math.cos(lat1) * math.cos(lat2) * math.cos(lon2 - lon1)
+        )
+
+        if d == 0:
+            return origin
+
+        # Interpolation coefficients for spherical linear interpolation
+        a = math.sin((1 - progress) * d) / math.sin(d)
+        b = math.sin(progress * d) / math.sin(d)
+
+        # Convert spherical to Cartesian coordinates
+        x1 = math.cos(lat1) * math.cos(lon1)
+        y1 = math.cos(lat1) * math.sin(lon1)
+        z1 = math.sin(lat1)
+        x2 = math.cos(lat2) * math.cos(lon2)
+        y2 = math.cos(lat2) * math.sin(lon2)
+        z2 = math.sin(lat2)
+
+        # Interpolate in Cartesian space
+        x = a * x1 + b * x2
+        y = a * y1 + b * y2
+        z = a * z1 + b * z2
+
+        # Convert from Cartesian back to spherical coordinates in radians
+        lat = math.atan2(z, math.sqrt(x * x + y * y))
+        lon = math.atan2(y, x)
+
+        # Convert back to degrees and round
+        return round(math.degrees(lat), 4), round(math.degrees(lon), 4)
+
+    def get_flight_position(
+        flight_index: int, elapsed_seconds: int
+    ) -> tuple[float, float, float]:
+        """
+        Calculate flight position at a given elapsed time.
+        Returns None if flight hasn't departed yet or has arrived.
+        """
+        config = flight_configs[flight_index]
+        flight_id, origin_code, dest_code, duration = config
+
+        origin = airports[origin_code]
+        destination = airports[dest_code]
+
+        flight_time = max(elapsed_seconds, 0)
+        progress = flight_time / duration
+        speed = get_speed(flight_index, elapsed_seconds, progress)
+        lat, lon = interpolate_position(origin, destination, progress)
+
+        return lat, lon, speed
+
+    # Calculate max duration to know when all flights complete
+    max_duration = max(config[3] for i, config in enumerate(flight_configs))
+
+    # For static data, show flights at ~25% progress of longest flight
+    static_seconds = int(max_duration * 0.25)
+
+    def compute_lat(flight_idx: int, elapsed: int) -> float:
+        return get_flight_position(flight_idx, elapsed)[0]
+
+    def compute_lon(flight_idx: int, elapsed: int) -> float:
+        return get_flight_position(flight_idx, elapsed)[1]
+
+    def compute_speed(flight_idx: int, elapsed: int) -> float:
+        return get_flight_position(flight_idx, elapsed)[2]
+
+    def is_flight_active(flight_idx: int, elapsed: int) -> bool:
+        """Check if a flight is still in progress."""
+        config = flight_configs[flight_idx]
+        duration = config[3]
+        return 0 <= elapsed <= duration
+
+    def get_flight_id(flight_idx: int) -> str:
+        return flight_configs[flight_idx][0]
+
+    def get_origin_code(flight_idx: int) -> str:
+        return flight_configs[flight_idx][1]
+
+    def get_destination_code(flight_idx: int) -> str:
+        return flight_configs[flight_idx][2]
+
+    num_flights = len(flight_configs)
+
+    tables = []
+
+    base_time = to_j_instant(STARTING_TIME)
+
+    for flight in range(num_flights):
+        flight_table = empty_table(static_seconds).update("ElapsedSeconds = ii")
+        if ticking:
+            ticking_table = (
+                time_table("PT1S")
+                .drop_columns(["Timestamp"])
+                .update("ElapsedSeconds = ii + static_seconds")
+            )
+            flight_table = merge([flight_table, ticking_table]).update(
+                [
+                    "FlightIdx = flight",
+                    "Timestamp = base_time + ElapsedSeconds * SECOND",
+                ]
+            )
+        tables.append(flight_table)
+
+    return (
+        merge(tables)
+        .update(
+            [
+                "FlightId = get_flight_id(FlightIdx)",
+                "Lat = compute_lat(FlightIdx, ElapsedSeconds)",
+                "Lon = compute_lon(FlightIdx, ElapsedSeconds)",
+                "Speed = compute_speed(FlightIdx, ElapsedSeconds)",
+                "Origin = get_origin_code(FlightIdx)",
+                "Destination = get_destination_code(FlightIdx)",
+                "Active = is_flight_active(FlightIdx, ElapsedSeconds)",
+            ]
+        )
+        .where("Active")
+        .drop_columns(["FlightIdx", "Active"])
+        .sort(["Timestamp", "FlightId"])
+    )

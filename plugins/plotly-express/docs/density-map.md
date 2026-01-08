@@ -13,42 +13,98 @@ Density map plots are appropriate when the dataset contains geographic coordinat
 
 ### A basic density map plot
 
-Visualize geographic density by passing longitude and latitude column names to the `lon` and `lat` arguments. Click and drag on the resulting map to pan and zoom.
+Visualize geographic density by passing longitude and latitude column names to the `lon` and `lat` arguments.
+It's recommended to set the initial `zoom` level and `center` coordinates for better visualization based on the data. Click and drag on the resulting map to pan and zoom.
 
-```python order=density_map_plot,path
+```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple path dataset
-path = time_table("PT1s").update_view(
-    ["Lon = ((ii - 90) % 360)", "Lat = cos(ii/10) * 30"]
+# Load the outages dataset
+outages_table = dx_data.outages()
+
+# Create a density map showing concentration of outages
+# Zoom and center are set for better initial view
+density_map_plot = dx.density_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
 )
-
-# Create the density map plot
-# Color is set for better visibility
-density_map_plot = dx.density_map(path, lat="Lat", lon="Lon")
 ```
 
-### Variable density plot
+### Adjust the density radius
 
-Provide variable geographic densities by using the `z` argument to specify a column that contains density values.
+Control how spread out the density visualization appears using the `radius` argument.
 
-```python order=density_map_plot,path
+```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple dataset with density values
-path = time_table("PT1s").update_view(
-    ["Lon = ((ii - 90) % 360)", "Lat = cos(ii/10) * 30", "Z = ii % 100"]
+# Load the outages dataset
+outages_table = dx_data.outages()
+
+# Use a larger radius for a more diffuse heatmap
+# Zoom and center are set for better initial view
+density_map_plot = dx.density_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    radius=10,
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
 )
+```
 
-# Create the density map plot
-# Color is set for better visibility
-density_map_plot = dx.density_map(path, lat="Lat", lon="Lon", z="Z")
+### Customize the color scale
+
+Change the color scale using the `color_continuous_scale` argument.
+
+```python order=density_map_plot,outages_table
+import deephaven.plot.express as dx
+from deephaven.plot.express import data as dx_data
+
+# Load the outages dataset
+outages_table = dx_data.outages()
+
+# Use a different color scale
+# Zoom and center are set for better initial view
+density_map_plot = dx.density_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    color_continuous_scale=["yellow", "orange", "red"],
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
+)
+```
+
+### Change map style
+
+Use different base map styles with the `map_style` argument. Recommended options are 'open-street-map', 'carto-positron', and 'carto-darkmatter'.
+
+```python order=density_map_plot,outages_table
+import deephaven.plot.express as dx
+from deephaven.plot.express import data as dx_data
+
+# Load the outages dataset
+outages_table = dx_data.outages()
+
+# Use a dark map style for better contrast
+# Zoom and center are set for better initial view
+density_map_plot = dx.density_map(
+    outages_table,
+    lat="Lat",
+    lon="Lon",
+    map_style="carto-darkmatter",
+    zoom=9,
+    center={"lat": 44.97, "lon": -93.17}
+)
 ```
 
 ## API Reference
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.express.line_map
+.. dhautofunction:: deephaven.plot.express.density_map
 ```

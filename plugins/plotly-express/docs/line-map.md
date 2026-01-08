@@ -14,37 +14,78 @@ Line map plots are appropriate when the dataset contains geographic coordinates 
 
 ### A basic line map plot
 
-Visualize geographic paths by passing longitude and latitude column names to the `lon` and `lat` arguments. Click and drag on the resulting map to pan and zoom.
+Visualize geographic paths by passing longitude and latitude column names to the `lon` and `lat` arguments. It's recommended to set the initial `zoom` level and `center` coordinates for better visualization based on the data. Click and drag on the resulting map to pan and zoom.
 
-```python order=line_map_plot,path
+```python order=line_map_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple path dataset
-path = time_table("PT1s").update_view(
-    ["Lon = ((ii - 90) % 360)", "Lat = cos(ii/10) * 30"]
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Plot a single flight path
+# Color is set for visibility
+# Zoom and center are set for better initial view
+single_flight = flights_table.where("FlightId = `SAL101`")
+line_map_plot = dx.line_map(
+    single_flight,
+    lat="Lat",
+    lon="Lon",
+    color_discrete_sequence="red",
+    zoom=3,
+    center={"lat": 50, "lon": -100}
 )
-
-# Create the line map plot
-# Color is set for better visibility
-line_map_plot = dx.line_map(path, lat="Lat", lon="Lon", color_discrete_sequence="black")
 ```
 
 ### Color by group
 
-Denote different routes or paths by using the color of the lines as group indicators by passing the grouping column name to the `by` argument.
+Denote different routes by using the color of the lines as group indicators by passing the grouping column name to the `by` argument. Set the color of each group using the `color_discrete_sequence` argument.
 
-```python order=line_geo_plot,paths
+```python order=line_map_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple dataset with two paths
-paths = time_table("PT1s").update_view(
-    ["Path = i % 2", "Lon = ((ii - 90) % 360)", "Lat = Path == 0 ? cos(ii/10) * 30 : sin(ii/10) * 30"]
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Color each flight path differently
+# Zoom and center are set for better initial view
+line_map_plot = dx.line_map(
+    flights_table,
+    lat="Lat",
+    lon="Lon",
+    by="FlightId",
+    color_discrete_sequence=["red", "blue", "green", "orange"],
+    zoom=3,
+    center={"lat": 50, "lon": -100}
 )
-# Create the line map plot
-# Color is set for better visibility
-line_map_plot = dx.line_map(paths, lat="Lat", lon="Lon", color_discrete_sequence=["black", "darkgrey"], by="Path")
+```
+
+### Customize map style
+
+Change the appearance of the base map using the `map_style` argument. Recommended options are 'open-street-map', 'carto-positron', and 'carto-darkmatter'.
+
+```python order=line_map_plot,flights_table
+import deephaven.plot.express as dx
+from deephaven.plot.express import data as dx_data
+
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Use a dark map style for contrast
+# Zoom and center are set for better initial view
+line_map_plot = dx.line_map(
+    flights_table,
+    lat="Lat",
+    lon="Lon",
+    by="FlightId",
+    zoom=3,
+    center={"lat": 50, "lon": -100},
+    map_style="carto-darkmatter"
+)
 ```
 
 ## API Reference

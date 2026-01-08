@@ -14,34 +14,76 @@ Line geo plots are appropriate when the dataset contains geographic coordinates 
 
 ### A basic line geo plot
 
-Visualize geographic paths by passing longitude and latitude column names to the `lon` and `lat` arguments. Click and drag on the resulting map to pan and zoom.
+Visualize geographic paths by passing longitude and latitude column names to the `lon` and `lat` arguments. It's recommended to set `fitbounds` to `"locations"`, which automatically adjusts the map view to include all points, unless a broader view is desired. Click and drag on the resulting map to pan and zoom.
 
-```python order=line_geo_plot,path
+```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple path dataset
-path = time_table("PT1s").update_view(
-    ["Lon = ((ii - 90) % 360)", "Lat = cos(ii/10) * 30"]
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Plot a single flight path
+# color is set for visibility
+# fitbounds is set for better initial view
+single_flight = flights_table.where("FlightId = `SAL101`")
+line_geo_plot = dx.line_geo(
+    single_flight,
+    lat="Lat",
+    lon="Lon",
+    color_discrete_sequence="red",
+    fitbounds="locations",
 )
-
-line_geo_plot = dx.line_geo(path, lat="Lat", lon="Lon")
 ```
 
 ### Color by group
 
-Denote different routes or paths by using the color of the lines as group indicators by passing the grouping column name to the `by` argument.
+Denote different routes by using the color of the lines as group indicators by passing the grouping column name to the `by` argument. Set the color of each group using the `color_discrete_sequence` argument.
 
-```python order=line_geo_plot,paths
+```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven import time_table
+from deephaven.plot.express import data as dx_data
 
-# Create a simple dataset with two paths
-paths = time_table("PT1s").update_view(
-    ["Path = i % 2", "Lon = ((ii - 90) % 360)", "Lat = Path == 0 ? cos(ii/10) * 30 : sin(ii/10) * 30"]
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Color each flight path differently
+# fitbounds is set for better view
+line_geo_plot = dx.line_geo(
+    flights_table,
+    lat="Lat",
+    lon="Lon",
+    by="FlightId",
+    color_discrete_sequence=["red", "blue", "green", "orange"],
+    fitbounds="locations",
 )
+```
 
-line_geo_colors = dx.line_geo(paths, lat="Lat", lon="Lon", by="Path")
+### Use different projections and scopes
+
+Change the map projection using the `projection` argument. Options include 'natural earth', 'mercator', and 'orthographic'. Adjust the geographic scope using the `scope` argument to focus on specific regions such as 'world', 'usa', 'europe', or 'north america'. Set the `center` argument for a better initial view, especially when scoping to a specific region.
+
+```python order=line_geo_plot,flights_table
+import deephaven.plot.express as dx
+from deephaven.plot.express import data as dx_data
+
+# Load the flights dataset
+# The speed_multiplier parameter speeds up the flight
+flights_table = dx_data.flights(speed_multiplier=50)
+
+# Use an orthographic (globe) projection and set scope to North America
+# center is set for better initial view
+line_geo_plot = dx.line_geo(
+    flights_table,
+    lat="Lat",
+    lon="Lon",
+    by="FlightId",
+    projection="orthographic",
+    scope="north america",
+    center={"lat": 50, "lon": -100}
+)
 ```
 
 ## API Reference
