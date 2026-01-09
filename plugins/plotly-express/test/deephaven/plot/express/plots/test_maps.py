@@ -44,7 +44,11 @@ class MapTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "fitbounds": False},
+            "geo": {
+                "center": {"lat": 0, "lon": 0},
+                "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "fitbounds": False,
+            },
             "legend": {"tracegroupgap": 0},
         }
 
@@ -80,15 +84,13 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": NULL_INT, "lon": NULL_INT},
+                "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
-                "zoom": 8,
+                "zoom": 0,
             },
             "mapbox": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
-                "style": "open-street-map",
-                "zoom": 8,
+                "center": {"lat": 0, "lon": 0},
+                "zoom": 0,
             },
         }
 
@@ -123,7 +125,11 @@ class MapTestCase(BaseTestCase):
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
-            "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "fitbounds": False},
+            "geo": {
+                "center": {"lat": 0, "lon": 0},
+                "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "fitbounds": False,
+            },
             "legend": {"tracegroupgap": 0},
         }
 
@@ -158,15 +164,13 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
+                "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
-                "zoom": 8,
+                "zoom": 0,
             },
             "mapbox": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
-                "style": "open-street-map",
-                "zoom": 8,
+                "center": {"lat": 0, "lon": 0},
+                "zoom": 0,
             },
         }
 
@@ -217,15 +221,13 @@ class MapTestCase(BaseTestCase):
             },
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
+                "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
-                "zoom": 8,
+                "zoom": 0,
             },
             "mapbox": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
-                "style": "open-street-map",
-                "zoom": 8,
+                "center": {"lat": 0, "lon": 0},
+                "zoom": 0,
             },
         }
 
