@@ -29,7 +29,7 @@ density_map_plot = dx.density_map(
     lat="Lat",
     lon="Lon",
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 
@@ -51,7 +51,7 @@ density_map_plot = dx.density_map(
     lon="Lon",
     radius=10,
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 
@@ -73,13 +73,13 @@ density_map_plot = dx.density_map(
     lon="Lon",
     color_continuous_scale=["yellow", "orange", "red"],
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 
 ### Change map style
 
-Use different base map styles with the `map_style` argument. Recommended options are 'open-street-map', 'carto-positron', and 'carto-darkmatter'.
+Use different base map styles with the `map_style` argument. The default style is dependent on the theme.
 
 ```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
@@ -87,15 +87,15 @@ import deephaven.plot.express as dx
 # Load the outages dataset
 outages_table = dx.data.outages()
 
-# Use a dark map style for better contrast
+# Change the map style for different tiles
 # Zoom and center are set for better initial view
 density_map_plot = dx.density_map(
     outages_table,
     lat="Lat",
     lon="Lon",
-    map_style="carto-darkmatter",
+    map_style="open-street-map",
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 

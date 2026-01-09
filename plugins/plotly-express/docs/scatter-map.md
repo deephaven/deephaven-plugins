@@ -31,7 +31,7 @@ scatter_map_plot = dx.scatter_map(
     lon="Lon",
     color_discrete_sequence="black",
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 
@@ -54,7 +54,7 @@ scatter_map_plot = dx.scatter_map(
     by="Severity",
     color_discrete_sequence=["black", "blue", "purple", "green"],
     zoom=9,
-    center={"lat": 44.97, "lon": -93.17}
+    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
 )
 ```
 

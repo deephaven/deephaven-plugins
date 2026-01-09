@@ -10,4 +10,8 @@ from .data_generators import (
     fish_market,
     outages,
     flights,
+    OUTAGE_LAT,
+    OUTAGE_LON,
+    FLIGHT_LAT,
+    FLIGHT_LON,
 )

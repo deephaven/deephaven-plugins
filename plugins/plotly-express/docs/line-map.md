@@ -33,7 +33,7 @@ line_map_plot = dx.line_map(
     lon="Lon",
     color_discrete_sequence="red",
     zoom=3,
-    center={"lat": 50, "lon": -100}
+    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON}
 )
 ```
 
@@ -57,13 +57,13 @@ line_map_plot = dx.line_map(
     by="FlightId",
     color_discrete_sequence=["red", "blue", "green", "orange"],
     zoom=3,
-    center={"lat": 50, "lon": -100}
+    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON}
 )
 ```
 
 ### Customize map style
 
-Change the appearance of the base map using the `map_style` argument. Recommended options are 'open-street-map', 'carto-positron', and 'carto-darkmatter'.
+Use different base map styles with the `map_style` argument. The default style is dependent on the theme.
 
 ```python order=line_map_plot,flights_table
 import deephaven.plot.express as dx
@@ -72,16 +72,16 @@ import deephaven.plot.express as dx
 # The speed_multiplier parameter speeds up the flight
 flights_table = dx.data.flights(speed_multiplier=50)
 
-# Use a dark map style for contrast
+# Change the map style for different tiles
 # Zoom and center are set for better initial view
 line_map_plot = dx.line_map(
     flights_table,
     lat="Lat",
     lon="Lon",
     by="FlightId",
+    map_style="open-street-map",
     zoom=3,
-    center={"lat": 50, "lon": -100},
-    map_style="carto-darkmatter"
+    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON},
 )
 ```
 

@@ -26,6 +26,12 @@ SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
 
+# Constants for easy access in charts
+OUTAGE_LAT = 44.97
+OUTAGE_LON = -93.17
+FLIGHT_LAT = 50
+FLIGHT_LON = -100
+
 
 # Helper converters to satisfy static type checkers when dealing with pandas/numpy scalars
 def _to_py_float(x: Any) -> float:
