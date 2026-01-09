@@ -18,10 +18,9 @@ It's recommended to set the initial `zoom` level and `center` coordinates for be
 
 ```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages()
+outages_table = dx.data.outages()
 
 # Create a density map showing concentration of outages
 # Zoom and center are set for better initial view
@@ -40,10 +39,9 @@ Control how spread out the density visualization appears using the `radius` argu
 
 ```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages()
+outages_table = dx.data.outages()
 
 # Use a larger radius for a more diffuse heatmap
 # Zoom and center are set for better initial view
@@ -63,10 +61,9 @@ Change the color scale using the `color_continuous_scale` argument.
 
 ```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages()
+outages_table = dx.data.outages()
 
 # Use a different color scale
 # Zoom and center are set for better initial view
@@ -86,10 +83,9 @@ Use different base map styles with the `map_style` argument. Recommended options
 
 ```python order=density_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages()
+outages_table = dx.data.outages()
 
 # Use a dark map style for better contrast
 # Zoom and center are set for better initial view

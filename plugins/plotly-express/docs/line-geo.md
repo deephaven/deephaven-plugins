@@ -18,11 +18,10 @@ Visualize geographic paths by passing longitude and latitude column names to the
 
 ```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the flights dataset
 # The speed_multiplier parameter speeds up the flight
-flights_table = dx_data.flights(speed_multiplier=50)
+flights_table = dx.data.flights(speed_multiplier=50)
 
 # Plot a single flight path
 # color is set for visibility
@@ -43,11 +42,10 @@ Denote different routes by using the color of the lines as group indicators by p
 
 ```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the flights dataset
 # The speed_multiplier parameter speeds up the flight
-flights_table = dx_data.flights(speed_multiplier=50)
+flights_table = dx.data.flights(speed_multiplier=50)
 
 # Color each flight path differently
 # fitbounds is set for better view
@@ -67,11 +65,10 @@ Change the map projection using the `projection` argument. Options include 'natu
 
 ```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the flights dataset
 # The speed_multiplier parameter speeds up the flight
-flights_table = dx_data.flights(speed_multiplier=50)
+flights_table = dx.data.flights(speed_multiplier=50)
 
 # Use an orthographic (globe) projection and set scope to North America
 # center is set for better initial view

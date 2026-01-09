@@ -18,10 +18,9 @@ It's recommended to set the initial `zoom` level and `center` coordinates for be
 
 ```python order=scatter_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages()
+outages_table = dx.data.outages()
 
 # Create a scatter map showing individual outage points
 # Color is set for visibility
@@ -42,10 +41,9 @@ Denote different categories by using the color of the points as group indicators
 
 ```python order=scatter_map_plot,outages_table
 import deephaven.plot.express as dx
-from deephaven.plot.express import data as dx_data
 
 # Load the outages dataset
-outages_table = dx_data.outages().sort_descending("Severity")
+outages_table = dx.data.outages().sort_descending("Severity")
 
 # Color each outage point differently based on the cause
 # Zoom and center are set for better initial view
