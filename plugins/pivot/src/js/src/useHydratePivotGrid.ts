@@ -11,6 +11,7 @@ import { isCorePlusDh } from './PivotUtils';
 import { usePivotMouseHandlers } from './hooks/usePivotMouseHandlers';
 import { usePivotRenderer } from './hooks/usePivotRenderer';
 import { usePivotTheme } from './hooks/usePivotTheme';
+import usePivotMetricCalculator from './hooks/usePivotMetricCalculator';
 
 const log = Log.module('@deephaven/js-plugin-pivot/useHydratePivotGrid');
 
@@ -26,6 +27,7 @@ export interface HydratePivotGridResultError {
 export interface HydratePivotGridResultSuccess {
   props: { localDashboardId: string } & Pick<
     IrisGridPanelProps,
+    | 'getMetricCalculator'
     | 'loadPlugin'
     | 'makeModel'
     | 'metadata'
@@ -60,6 +62,7 @@ export function useHydratePivotGrid(
   const mouseHandlers = usePivotMouseHandlers();
   const renderer = usePivotRenderer();
   const theme = usePivotTheme();
+  const getMetricCalculator = usePivotMetricCalculator();
 
   const { status } = objectFetch;
 
@@ -98,6 +101,7 @@ export function useHydratePivotGrid(
       mouseHandlers,
       renderer,
       theme,
+      getMetricCalculator,
     },
   };
 }
