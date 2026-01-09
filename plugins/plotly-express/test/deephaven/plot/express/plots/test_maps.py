@@ -86,12 +86,10 @@ class MapTestCase(BaseTestCase):
             "map": {
                 "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
                 "zoom": 0,
             },
             "mapbox": {
                 "center": {"lat": 0, "lon": 0},
-                "style": "open-street-map",
                 "zoom": 0,
             },
         }
@@ -168,12 +166,10 @@ class MapTestCase(BaseTestCase):
             "map": {
                 "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
                 "zoom": 0,
             },
             "mapbox": {
                 "center": {"lat": 0, "lon": 0},
-                "style": "open-street-map",
                 "zoom": 0,
             },
         }
@@ -227,12 +223,10 @@ class MapTestCase(BaseTestCase):
             "map": {
                 "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "style": "open-street-map",
                 "zoom": 0,
             },
             "mapbox": {
                 "center": {"lat": 0, "lon": 0},
-                "style": "open-street-map",
                 "zoom": 0,
             },
         }
