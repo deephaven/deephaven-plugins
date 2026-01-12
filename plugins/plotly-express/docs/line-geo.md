@@ -79,7 +79,7 @@ line_geo_plot = dx.line_geo(
     by="FlightId",
     projection="orthographic",
     scope="north america",
-    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON}
+    center=dx.data.FLIGHT_CENTER
 )
 ```
 

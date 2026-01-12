@@ -29,7 +29,7 @@ density_map_plot = dx.density_map(
     lat="Lat",
     lon="Lon",
     zoom=9,
-    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
+    center=dx.data.OUTAGE_CENTER
 )
 ```
 
@@ -51,7 +51,7 @@ density_map_plot = dx.density_map(
     lon="Lon",
     radius=10,
     zoom=9,
-    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
+    center=dx.data.OUTAGE_CENTER
 )
 ```
 
@@ -73,7 +73,7 @@ density_map_plot = dx.density_map(
     lon="Lon",
     color_continuous_scale=["yellow", "orange", "red"],
     zoom=9,
-    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
+    center=dx.data.OUTAGE_CENTER
 )
 ```
 
@@ -95,7 +95,7 @@ density_map_plot = dx.density_map(
     lon="Lon",
     map_style="open-street-map",
     zoom=9,
-    center={"lat": dx.data.OUTAGE_LAT, "lon": dx.data.OUTAGE_LON}
+    center=dx.data.OUTAGE_CENTER
 )
 ```
 

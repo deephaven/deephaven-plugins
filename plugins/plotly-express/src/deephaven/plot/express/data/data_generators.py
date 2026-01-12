@@ -29,8 +29,10 @@ STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
 # Constants for easy access in charts
 OUTAGE_LAT = 44.97
 OUTAGE_LON = -93.17
+OUTAGE_CENTER = {"lat": OUTAGE_LAT, "lon": OUTAGE_LON}
 FLIGHT_LAT = 50
 FLIGHT_LON = -100
+FLIGHT_CENTER = {"lat": FLIGHT_LAT, "lon": FLIGHT_LON}
 
 
 # Helper converters to satisfy static type checkers when dealing with pandas/numpy scalars

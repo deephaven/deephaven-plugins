@@ -33,7 +33,7 @@ line_map_plot = dx.line_map(
     lon="Lon",
     color_discrete_sequence="red",
     zoom=3,
-    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON}
+    center=dx.data.FLIGHT_CENTER
 )
 ```
 
@@ -57,7 +57,7 @@ line_map_plot = dx.line_map(
     by="FlightId",
     color_discrete_sequence=["red", "blue", "green", "orange"],
     zoom=3,
-    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON}
+    center=dx.data.FLIGHT_CENTER
 )
 ```
 
@@ -81,7 +81,7 @@ line_map_plot = dx.line_map(
     by="FlightId",
     map_style="open-street-map",
     zoom=3,
-    center={"lat": dx.data.FLIGHT_LAT, "lon": dx.data.FLIGHT_LON},
+    center=dx.data.FLIGHT_CENTER,
 )
 ```
 
