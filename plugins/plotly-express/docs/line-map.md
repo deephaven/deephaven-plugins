@@ -8,7 +8,7 @@ Line map plots are appropriate when the dataset contains geographic coordinates 
 
 - **Geographic relationships**: They are excellent for showing connections or relationships between different geographic locations, such as routes or paths.
 - **Detailed geographic context**: Line map plots provide a rich and detailed way to visualize geographic data with map tile features.
-- **Sequential geographic data**: Geographic line plots specialize in showing how data changes across connected geographic points over time or other ordered dimensions.
+- **Sequential geographic data**: Line map plots specialize in showing how data changes across connected geographic points over time or other ordered dimensions.
 
 ## Examples
 

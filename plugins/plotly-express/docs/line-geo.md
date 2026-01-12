@@ -1,6 +1,6 @@
 # Line Geo
 
-A line geo plot is a geographic visualization that connects data points with lines on a map using latitude and longitude coordinates or locations. The lines are ideal for visualizing relationships between geographic locations such as paths or routes.
+A line geo plot is a geographic visualization that connects data points with lines on a map using latitude and longitude coordinates or locations. The lines are ideal for visualizing relationships between geographic locations, such as paths or routes.
 
 Line geo plots are appropriate when the dataset contains geographic coordinates (latitude and longitude) or locations that connect across geographic areas. `line_geo` visualizes data using a basic map projection, without a high degree of detail. For richer tile maps, use [`line_map`](./line-map.md). For visualizing values at individual locations, consider using [`scatter_geo`](./scatter-geo.md).
 
@@ -8,7 +8,7 @@ Line geo plots are appropriate when the dataset contains geographic coordinates 
 
 - **Geographic relationships**: They are excellent for showing connections or relationships between different geographic locations, such as routes or paths.
 - **Simple geographic context**: Line geo plots provide a clear and straightforward way to visualize geographic data that does not require detailed map features.
-- **Sequential geographic data**: Geographic line plots specialize in showing how data changes across connected geographic points over time or other ordered dimensions.
+- **Sequential geographic data**: Line geo plots specialize in showing how data changes across connected geographic points over time or other ordered dimensions.
 
 ## Examples
 
@@ -61,7 +61,7 @@ line_geo_plot = dx.line_geo(
 
 ### Use different projections and scopes
 
-Change the map projection using the `projection` argument. Options include 'natural earth', 'mercator', and 'orthographic'. Adjust the geographic scope using the `scope` argument to focus on specific regions such as 'world', 'usa', 'europe', or 'north america'. Set the `center` argument for a better initial view, especially when scoping to a specific region.
+Change the map projection using the `projection` argument. Options include "natural earth", "mercator", and "orthographic". Adjust the geographic scope using the `scope` argument to focus on specific regions such as "world", "usa", "europe," or "north american". Set the `center` argument for a better initial view, especially when scoping to a specific region.
 
 ```python order=line_geo_plot,flights_table
 import deephaven.plot.express as dx

@@ -60,7 +60,7 @@ scatter_geo_plot = dx.scatter_geo(
 
 ### Use different projections and scopes
 
-Change the map projection using the `projection` argument. Options include 'natural earth', 'mercator', and 'orthographic'. Adjust the geographic scope using the `scope` argument to focus on specific regions such as 'world', 'usa', 'europe', or 'north america'. Set the `center` argument for a better initial view, especially when scoping to a specific region.
+Change the map projection using the `projection` argument. Options include "natural earth", "mercator", and "orthographic". Adjust the geographic scope using the `scope` argument to focus on specific regions such as "world", "usa", "europe," or "north american". Set the `center` argument for a better initial view, especially when scoping to a specific region.
 
 ```python order=scatter_geo_plot,flights_table
 import deephaven.plot.express as dx
