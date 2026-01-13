@@ -11,6 +11,7 @@ import {
   type IrisGridState,
 } from '@deephaven/iris-grid';
 import Log from '@deephaven/log';
+import { assertNotNull } from '@deephaven/utils';
 import { getColumnSourceHeaderFromGridPoint } from './PivotMouseHandlerUtils';
 import type IrisGridPivotMetricCalculator from './IrisGridPivotMetricCalculator';
 import type { PivotGridMetrics } from './IrisGridPivotMetricCalculator';
@@ -49,6 +50,10 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
+      assertNotNull(
+        metrics.sourceTextWidth,
+        'sourceTextWidth not set in metrics'
+      );
 
       const theme = this.irisGrid.getTheme();
 
@@ -83,6 +88,10 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
+      assertNotNull(
+        metrics.sourceTextWidth,
+        'sourceTextWidth not set in metrics'
+      );
 
       const theme = this.irisGrid.getTheme();
 

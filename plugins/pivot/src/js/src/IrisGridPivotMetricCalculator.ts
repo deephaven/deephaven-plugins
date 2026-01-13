@@ -1,13 +1,33 @@
 import {
   IrisGridMetricCalculator,
   type IrisGridMetricState,
+  type IrisGridThemeType,
 } from '@deephaven/iris-grid';
-import type { GridMetrics, ModelIndex, ModelSizeMap } from '@deephaven/grid';
+import {
+  GridUtils,
+  type GridMetrics,
+  type ModelIndex,
+  type ModelSizeMap,
+  type VisibleIndex,
+} from '@deephaven/grid';
+import Log from '@deephaven/log';
+import { assertNotNull } from '@deephaven/utils';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
+import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
+import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
+
+const log = Log.module(
+  '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
+);
 
 export interface PivotGridMetrics extends GridMetrics {
   // Width of the widest column source header text, including padding
   sourceTextWidth: number;
+}
+
+export interface IrisGridPivotMetricState extends IrisGridMetricState {
+  columnSourceFilterMinWidth: number;
+  theme: IrisGridThemeType & IrisGridPivotThemeType;
 }
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
@@ -15,7 +35,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
   getColumnHeaderGroupTextWidth(
     modelColumn: ModelIndex,
     depth: number,
-    state: IrisGridMetricState,
+    state: IrisGridPivotMetricState,
     maxColumnWidth: number
   ): number {
     return super.getColumnHeaderGroupWidth(
@@ -88,6 +108,142 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       ...super.getMetrics(state),
       sourceTextWidth,
     };
+  }
+
+  /**
+   * Get metrics for positioning the filter bar input field.
+   * @param index The visible index of the column to get the filter box coordinates for
+   * @param state The current IrisGridMetricState
+   * @param metrics The grid metrics
+   * @returns Coordinates for the filter input field, or null if positioning cannot be calculated
+   */
+  // eslint-disable-next-line class-methods-use-this
+  getFilterInputCoordinates(
+    index: VisibleIndex,
+    state: IrisGridPivotMetricState,
+    metrics: PivotGridMetrics
+  ): { x: number; y: number; width: number; height: number } | null {
+    if (index >= 0) {
+      log.debug('getFilterInputCoordinates for index:', index);
+      return super.getFilterInputCoordinates(index, state, metrics);
+    }
+
+    const { model, theme } = state;
+    if (!isIrisGridPivotModel(model)) {
+      return null;
+    }
+
+    assertNotNull(metrics.sourceTextWidth, 'sourceTextWidth is null');
+
+    const {
+      allColumnXs,
+      allColumnWidths,
+      gridX,
+      gridY,
+      sourceTextWidth,
+      left,
+      leftOffset,
+      userColumnWidths,
+      movedColumns,
+    } = metrics;
+
+    const {
+      columnSourceFilterMinWidth,
+      filterBarHeight,
+      columnWidth: themeColumnWidth,
+    } = theme;
+
+    // Find the key column group for this source index
+    // index is negative (-1, -2, etc.), and depth is positive (1, 2, etc.)
+    const depth = -index;
+    const keyColumnGroup = model.getColumnHeaderGroup(0, depth);
+
+    if (
+      keyColumnGroup == null ||
+      !isPivotColumnHeaderGroup(keyColumnGroup) ||
+      !keyColumnGroup.isKeyColumnGroup
+    ) {
+      return null;
+    }
+
+    const firstChildIndex = keyColumnGroup.childIndexes[0];
+    const lastChildIndex =
+      keyColumnGroup.childIndexes[keyColumnGroup.childIndexes.length - 1];
+
+    if (firstChildIndex == null || lastChildIndex == null) {
+      return null;
+    }
+
+    // Calculate the absolute left edge of the group by summing all column widths from the start
+    let groupX1 = 0;
+    for (let i = 0; i < firstChildIndex; i += 1) {
+      const modelIndex = GridUtils.getModelIndex(i, movedColumns) ?? i;
+      const width =
+        userColumnWidths.get(modelIndex) ??
+        allColumnWidths.get(i) ??
+        themeColumnWidth;
+      groupX1 += width;
+    }
+
+    // Calculate the absolute right edge
+    let groupX2 = groupX1;
+    for (let i = firstChildIndex; i <= lastChildIndex; i += 1) {
+      const modelIndex = GridUtils.getModelIndex(i, movedColumns) ?? i;
+      const width =
+        userColumnWidths.get(modelIndex) ??
+        allColumnWidths.get(i) ??
+        themeColumnWidth;
+      groupX2 += width;
+    }
+
+    // Adjust for scroll position
+    groupX1 -= leftOffset;
+    groupX2 -= leftOffset;
+
+    const groupWidth = groupX2 - groupX1;
+
+    const columnWidth = Math.max(
+      columnSourceFilterMinWidth,
+      groupWidth - sourceTextWidth
+    );
+
+    const columnX = groupX2 - columnWidth;
+
+    const columnY =
+      -theme.columnHeaderHeight - (1 - index) * (filterBarHeight ?? 0);
+    if (columnX != null && columnWidth != null) {
+      const x = gridX + columnX;
+      const y = gridY + columnY;
+      const fieldWidth = columnWidth + 1; // cover right border
+      const fieldHeight = (filterBarHeight ?? 0) - 1; // remove bottom border
+      return {
+        x,
+        y,
+        width: fieldWidth,
+        height: fieldHeight,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Calculate the new left index to bring the given column into view.
+   * @param column The column that should be scrolled into view
+   * @param state The current IrisGridMetricState
+   * @param metrics The grid metrics
+   * @returns The left column index to scroll to, or null if no scroll is needed
+   */
+  getScrollLeftForColumn(
+    column: VisibleIndex,
+    state: IrisGridMetricState,
+    metrics: GridMetrics
+  ): VisibleIndex | null {
+    if (column < 0) {
+      return 0;
+    }
+
+    return super.getScrollLeftForColumn(column, state, metrics);
   }
 }
 

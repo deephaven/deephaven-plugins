@@ -169,7 +169,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       let columnIndex = startIndex;
 
       while (columnIndex <= endIndex) {
-        const { columnCount } = metrics;
+        const { columnCount, calculatedColumnWidths } = metrics;
         const modelColumn = getOrThrow(modelColumns, columnIndex);
 
         const columnGroupColor = model.colorForColumnHeader(
@@ -192,10 +192,21 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
           columnGroupLeft + getOrThrow(allColumnWidths, columnIndex);
 
         if (columnGroupName != null) {
+          const sort = TableUtils.getSortForColumn(model.sort, columnGroupName);
           // Need to determine if the column group is at least the width of the bounds
           // And if the left/right of the group extend past the bounds
           // The group will be drawn as if it were a column with a max width of the bounds width
           let prevColumnIndex = columnIndex - 1;
+          if (sort != null) {
+            console.log('[0] Drawing column group, before while:', {
+              columnGroupLeft,
+              prevColumnIndex,
+              aCW: allColumnWidths.get(prevColumnIndex),
+              c1: columnGroupRight - columnGroupLeft < viewportWidth,
+              c2: columnGroupLeft > minX,
+              gridX,
+            });
+          }
           while (
             prevColumnIndex >= 0 &&
             (columnGroupRight - columnGroupLeft < viewportWidth ||
@@ -216,7 +227,19 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
             const prevColumnWidth =
               userColumnWidths.get(prevModelIndex) ??
               allColumnWidths.get(prevColumnIndex) ??
+              calculatedColumnWidths.get(prevModelIndex) ??
               themeColumnWidth;
+            if (sort != null) {
+              console.log('[0] Drawing column group, expanding left:', {
+                columnGroupLeft,
+                uCW: userColumnWidths.get(prevModelIndex),
+                aCW: allColumnWidths.get(prevColumnIndex),
+                cCW: calculatedColumnWidths.get(prevModelIndex),
+                themeColumnWidth,
+                minX,
+                prevColumnIndex,
+              });
+            }
 
             columnGroupLeft -= prevColumnWidth;
             prevColumnIndex -= 1;
@@ -264,10 +287,19 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
           // For column sources with filter bars, limit the max text width to the column width minus the filter width
           const group = model.getColumnHeaderGroup(modelColumn, depth);
+
           const columnWidth = Math.min(
             columnGroupRight - columnGroupLeft,
             viewportWidth
           );
+          if (sort != null) {
+            console.log('[0] Drawing column group:', {
+              columnGroupLeft,
+              columnGroupRight,
+              viewportWidth,
+              columnWidth,
+            });
+          }
           const columnWidthAdjust =
             isFilterBarShown &&
             isPivotColumnHeaderGroup(group) &&
@@ -291,7 +323,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
             bounds,
             isExpandable,
             isExpanded,
-            TableUtils.getSortForColumn(model.sort, columnGroupName),
+            sort,
             columnWidthAdjust
           );
         }
@@ -320,6 +352,15 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   ): void {
     if (columnWidth <= 0) {
       return;
+    }
+
+    if (sort != null) {
+      console.log('[0] Drawing column:', {
+        columnX,
+        columnWidth,
+        columnWidthAdjust,
+        bounds,
+      });
     }
     const { metrics, theme } = state;
 
