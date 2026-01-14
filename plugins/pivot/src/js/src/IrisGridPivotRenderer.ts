@@ -17,7 +17,10 @@ import { TableUtils, type SortDescriptor } from '@deephaven/jsapi-utils';
 import { isNotNullOrUndefined } from '@deephaven/utils';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
-import { getColumnHeaderCoordinates } from './IrisGridPivotMetricCalculator';
+import {
+  getColumnHeaderCoordinates,
+  getColumnWidth,
+} from './IrisGridPivotMetricCalculator';
 import type { IrisGridPivotRenderState } from './IrisGridPivotTypes';
 import { getKeyColumnGroups } from './PivotUtils';
 
@@ -51,14 +54,8 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     if (!isIrisGridPivotModel(model)) {
       throw new Error('Unsupported model type');
     }
-    const {
-      modelColumns,
-      allColumnXs,
-      gridX,
-      userColumnWidths,
-      allColumnWidths,
-      movedColumns,
-    } = metrics;
+    const { modelColumns, allColumnXs, gridX, allColumnWidths, movedColumns } =
+      metrics;
     const { columnHeaderHeight, columnWidth: themeColumnWidth } = theme;
     const { columnHeaderMaxDepth } = model;
     const { minX, maxX } = bounds;
@@ -92,12 +89,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       let columnIndex = startIndex;
 
       while (columnIndex <= endIndex) {
-        const {
-          columnCount,
-          calculatedColumnWidths,
-          firstColumn,
-          treePaddingX,
-        } = metrics;
+        const { columnCount } = metrics;
         const modelColumn = getOrThrow(modelColumns, columnIndex);
 
         const columnGroupColor = model.colorForColumnHeader(
@@ -141,18 +133,11 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
               break;
             }
 
-            const prevColumnWidth =
-              userColumnWidths.get(prevModelIndex) ??
-              allColumnWidths.get(prevColumnIndex) ??
-              // TODO: extract into a method for clarity
-              // calculatedColumnWidth does not include treePaddingX, so we need to account for that here
-              // See calculatedColumnWidth in GridMetricsCalculator.ts
-              (calculatedColumnWidths.has(prevModelIndex)
-                ? (calculatedColumnWidths.get(prevModelIndex) ?? 0) +
-                  (prevColumnIndex === firstColumn ? treePaddingX : 0)
-                : undefined) ??
-              themeColumnWidth;
-            columnGroupLeft -= prevColumnWidth;
+            columnGroupLeft -= getColumnWidth(
+              prevColumnIndex,
+              metrics,
+              themeColumnWidth
+            );
             prevColumnIndex -= 1;
           }
 
@@ -173,12 +158,11 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
               break;
             }
 
-            const nextColumnWidth =
-              userColumnWidths.get(nextModelIndex) ??
-              allColumnWidths.get(nextColumnIndex) ??
-              themeColumnWidth;
-
-            columnGroupRight += nextColumnWidth;
+            columnGroupRight += getColumnWidth(
+              nextColumnIndex,
+              metrics,
+              themeColumnWidth
+            );
             nextColumnIndex += 1;
           }
 

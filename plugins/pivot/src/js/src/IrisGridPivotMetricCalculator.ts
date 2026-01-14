@@ -2,6 +2,7 @@ import {
   IrisGridMetricCalculator,
   type IrisGridMetricState,
 } from '@deephaven/iris-grid';
+import memoize from 'memoize-one';
 import {
   GridUtils,
   type BoxCoordinates,
@@ -26,6 +27,43 @@ const log = Log.module(
 );
 
 /**
+ * Get the width of a column that may be not in the viewport,
+ * based on the user, calculated, and theme widths.
+ * @param column The visible index of the column
+ * @param metrics The grid metrics
+ * @param themeColumnWidth The default column width from the theme
+ * @returns The width of the column
+ */
+export function getColumnWidth(
+  column: VisibleIndex,
+  metrics: PivotGridMetrics,
+  themeColumnWidth: number
+): number {
+  const {
+    firstColumn,
+    allColumnWidths,
+    calculatedColumnWidths,
+    userColumnWidths,
+    treePaddingX,
+  } = metrics;
+
+  const modelColumn = GridUtils.getModelIndex(column, metrics.movedColumns);
+
+  // userColumnWidths and allColumnWidths include the treePaddingX on the first column
+  // calculatedColumnWidths does not, so we need to account for that here
+  // See GridMetricCalculator.calculateColumnWidth for reference
+  return (
+    userColumnWidths.get(modelColumn) ??
+    allColumnWidths.get(column) ??
+    (calculatedColumnWidths.has(modelColumn)
+      ? (calculatedColumnWidths.get(modelColumn) ?? 0) +
+        (column === firstColumn ? treePaddingX : 0)
+      : undefined) ??
+    themeColumnWidth
+  );
+}
+
+/**
  * Get the coordinates of a column header group
  * @param state The current render state of the IrisGridPivot
  * @param group The PivotColumnHeaderGroup for which to get coordinates
@@ -42,19 +80,8 @@ export function getColumnHeaderCoordinates(
   if (firstChildIndex == null || lastChildIndex == null) {
     throw new Error('Group has no child columns');
   }
-  const {
-    firstColumn,
-    left,
-    right,
-    allColumnXs,
-    allColumnWidths,
-    calculatedColumnWidths,
-    userColumnWidths,
-    gridX,
-    gridY,
-    maxX,
-    treePaddingX,
-  } = metrics;
+  const { left, right, allColumnXs, allColumnWidths, gridX, gridY, maxX } =
+    metrics;
   const {
     filterBarHeight,
     columnHeaderHeight,
@@ -75,18 +102,7 @@ export function getColumnHeaderCoordinates(
   }
   let groupX1 = firstVisibleX;
   for (let i = firstChildIndex; i < firstVisible; i += 1) {
-    const modelIndex = GridUtils.getModelIndex(i, metrics.movedColumns) ?? i;
-    // userColumnWidths and allColumnWidths include the treePaddingX on the first column
-    // calculatedColumnWidths does not, so we need to account for that here
-    const width =
-      userColumnWidths.get(modelIndex) ??
-      allColumnWidths.get(i) ??
-      (calculatedColumnWidths.has(modelIndex)
-        ? (calculatedColumnWidths.get(modelIndex) ?? 0) +
-          (i === firstColumn ? treePaddingX : 0)
-        : undefined) ??
-      themeColumnWidth;
-    groupX1 -= width;
+    groupX1 -= getColumnWidth(i, metrics, themeColumnWidth);
   }
 
   const lastColumnX = allColumnXs.get(lastVisible);
@@ -103,6 +119,28 @@ export function getColumnHeaderCoordinates(
 }
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
+  private getCachedColumnSourceLabelWidth = memoize(
+    (
+      keyColumnGroups: PivotColumnHeaderGroup[],
+      headerHorizontalPadding: number,
+      maxColumnWidth: number,
+      state: IrisGridMetricState
+    ): number => {
+      let result = 0;
+      keyColumnGroups.forEach(group => {
+        const sourceIndex = -group.depth;
+        const width = this.getColumnHeaderGroupTextWidth(
+          sourceIndex,
+          0,
+          state,
+          maxColumnWidth
+        );
+        result = Math.max(result, width + headerHorizontalPadding);
+      });
+      return result;
+    }
+  );
+
   // Gets the text width for a column header group, including padding
   getColumnHeaderGroupTextWidth(
     modelColumn: ModelIndex,
@@ -132,27 +170,26 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     );
   }
 
+  /**
+   * Calculate the width needed for the column source labels
+   * @param model The IrisGridPivotModel instance
+   * @param state The current IrisGridMetricState
+   * @returns The calculated width for the column source labels
+   */
   calculateColumnSourceLabelWidth(
     model: IrisGridPivotModel,
     state: IrisGridMetricState
   ): number {
     const { theme } = state;
     const { headerHorizontalPadding, maxColumnWidth } = theme;
+    const keyColumnGroups = getKeyColumnGroups(model);
 
-    let result = 0;
-
-    // Use key column groups to find source columns (negative depth = source index)
-    getKeyColumnGroups(model).forEach(group => {
-      const sourceIndex = -group.depth;
-      const width = this.getColumnHeaderGroupTextWidth(
-        sourceIndex,
-        0,
-        state,
-        maxColumnWidth
-      );
-      result = Math.max(result, width + headerHorizontalPadding);
-    });
-    return result;
+    return this.getCachedColumnSourceLabelWidth(
+      keyColumnGroups,
+      headerHorizontalPadding,
+      maxColumnWidth,
+      state
+    );
   }
 
   /**
