@@ -1,16 +1,35 @@
-import { DisplayColumn, type IrisGridModel } from '@deephaven/iris-grid';
+import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import PivotColumnHeaderGroup, {
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import type { GridPoint } from '@deephaven/grid';
-import { isIrisGridPivotModel } from './IrisGridPivotModel';
+import type IrisGridPivotModel from './IrisGridPivotModel';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
 ): dh is typeof CorePlusDhType {
   return 'coreplus' in dh;
+}
+
+/**
+ * Get all key column groups from the model
+ * @param model The pivot model
+ * @returns Array of PivotColumnHeaderGroup objects that are key column groups
+ */
+export function getKeyColumnGroups(
+  model: IrisGridPivotModel
+): PivotColumnHeaderGroup[] {
+  // Instead of iterating the entire map, iterate over the parent groups of the column 0
+  const keyColumnGroups: PivotColumnHeaderGroup[] = [];
+  // Iterate depth from 0 to max depth and get the header groups for column 0
+  for (let depth = 0; depth <= model.columnHeaderMaxDepth; depth += 1) {
+    const group = model.getColumnHeaderGroup(0, depth);
+    if (isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup) {
+      keyColumnGroups.push(group);
+    }
+  }
+  return keyColumnGroups;
 }
 
 export const GRAND_TOTALS_GROUP_NAME = 'Grand Total';

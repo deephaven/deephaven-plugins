@@ -15,12 +15,11 @@ import {
 } from '@deephaven/iris-grid';
 import { TableUtils, type SortDescriptor } from '@deephaven/jsapi-utils';
 import { isNotNullOrUndefined } from '@deephaven/utils';
-import PivotColumnHeaderGroup, {
-  isPivotColumnHeaderGroup,
-} from './PivotColumnHeaderGroup';
-import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
+import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
+import { isIrisGridPivotModel } from './IrisGridPivotModel';
 import { getColumnHeaderCoordinates } from './IrisGridPivotMetricCalculator';
 import type { IrisGridPivotRenderState } from './IrisGridPivotTypes';
+import { getKeyColumnGroups } from './PivotUtils';
 
 function getColumnGroupName(
   model: GridModel,
@@ -546,7 +545,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     const { sourceTextWidth } = metrics;
 
-    const filterBoxes = this.getKeyColumnGroups(model)
+    const filterBoxes = getKeyColumnGroups(model)
       .map(group => {
         const coords = getColumnHeaderCoordinates(state, group);
         if (coords == null) {
@@ -712,20 +711,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     context.restore();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  getKeyColumnGroups(model: IrisGridPivotModel): PivotColumnHeaderGroup[] {
-    // Instead of iterating the entire map, iterate over the parent groups of the column 0
-    const keyColumnGroups: PivotColumnHeaderGroup[] = [];
-    // Iterate depth from 0 to max depth and get the header groups for column 0
-    for (let depth = 0; depth <= model.columnHeaderMaxDepth; depth += 1) {
-      const group = model.getColumnHeaderGroup(0, depth);
-      if (isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup) {
-        keyColumnGroups.push(group);
-      }
-    }
-    return keyColumnGroups;
-  }
-
   drawCollapsedColumnSourceFilters(
     context: CanvasRenderingContext2D,
     state: IrisGridPivotRenderState
@@ -738,7 +723,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       return;
     }
 
-    const filterBoxes = this.getKeyColumnGroups(model)
+    const filterBoxes = getKeyColumnGroups(model)
       .map(group => {
         const coords = getColumnHeaderCoordinates(state, group);
         if (coords == null) {

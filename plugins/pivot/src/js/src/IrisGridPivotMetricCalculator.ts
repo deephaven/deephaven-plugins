@@ -7,12 +7,10 @@ import {
   type BoxCoordinates,
   type GridMetrics,
   type ModelIndex,
-  type ModelSizeMap,
   type VisibleIndex,
 } from '@deephaven/grid';
 import Log from '@deephaven/log';
-import { assertNotNull } from '@deephaven/utils';
-import { isIrisGridPivotModel } from './IrisGridPivotModel';
+import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
 import PivotColumnHeaderGroup, {
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
@@ -21,6 +19,7 @@ import {
   type IrisGridPivotRenderState,
   type PivotGridMetrics,
 } from './IrisGridPivotTypes';
+import { getKeyColumnGroups } from './PivotUtils';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
@@ -133,36 +132,27 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     );
   }
 
-  // TODO: fix performance, cache results?
-  calculateSourceTextWidths(
-    model: unknown,
+  calculateSourceTextWidth(
+    model: IrisGridPivotModel,
     state: IrisGridMetricState
-  ): ModelSizeMap {
-    const sourceTextWidths: ModelSizeMap = new Map();
-    if (!isIrisGridPivotModel(model)) {
-      return sourceTextWidths;
-    }
-
+  ): number {
     const { theme } = state;
     const { headerHorizontalPadding, maxColumnWidth } = theme;
 
-    // TODO: iterate over parents of column 0 to find source columns
+    let result = 0;
 
-    const sourceIndexes: ModelIndex[] = Object.keys(model.columns)
-      .map(Number)
-      .filter(key => key < 0);
-
-    sourceIndexes.forEach(sourceIndex => {
+    // Use key column groups to find source columns (negative depth = source index)
+    getKeyColumnGroups(model).forEach(group => {
+      const sourceIndex = -group.depth;
       const width = this.getColumnHeaderGroupTextWidth(
         sourceIndex,
         0,
         state,
         maxColumnWidth
       );
-      // Extra padding between the text and the sort icon
-      sourceTextWidths.set(sourceIndex, width + headerHorizontalPadding);
+      result = Math.max(result, width + headerHorizontalPadding);
     });
-    return sourceTextWidths;
+    return result;
   }
 
   /**
@@ -172,10 +162,13 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
    */
   getMetrics(state: IrisGridMetricState): PivotGridMetrics {
     const { model } = state;
-    // Update column widths if columns in the cached model don't match the current model passed in the state
-    const sourceTextWidths = this.calculateSourceTextWidths(model, state);
 
-    const sourceTextWidth = Math.max(...sourceTextWidths.values());
+    if (!isIrisGridPivotModel(model)) {
+      throw new Error('Model is not an IrisGridPivotModel');
+    }
+
+    // Update column widths if columns in the cached model don't match the current model passed in the state
+    const sourceTextWidth = this.calculateSourceTextWidth(model, state);
 
     return {
       ...super.getMetrics(state),
@@ -206,9 +199,8 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       return null;
     }
 
-    assertNotNull(metrics.sourceTextWidth, 'sourceTextWidth is null');
-
     const { gridY, sourceTextWidth } = metrics;
+
     const { columnSourceFilterMinWidth, filterBarHeight } = theme;
 
     // Find the key column group for this source index

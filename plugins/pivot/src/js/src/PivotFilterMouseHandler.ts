@@ -10,13 +10,10 @@ import {
   IrisGridType as IrisGrid,
   type IrisGridState,
 } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import { getColumnSourceHeaderFromGridPoint } from './PivotMouseHandlerUtils';
 import type IrisGridPivotMetricCalculator from './IrisGridPivotMetricCalculator';
-import type { PivotGridMetrics } from './IrisGridPivotMetricCalculator';
-
-const log = Log.module('@deephaven/js-plugin-pivot/PivotFilterMouseHandler');
+import type { PivotGridMetrics } from './IrisGridPivotTypes';
 
 interface IrisGridPivotState extends IrisGridState {
   metricCalculator: IrisGridPivotMetricCalculator;
@@ -46,8 +43,6 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     const sourceIndex = getColumnSourceHeaderFromGridPoint(model, gridPoint);
 
-    log.debug('onDown', gridPoint, sourceIndex);
-
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
       assertNotNull(
@@ -59,7 +54,6 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
       const { sourceTextWidth } = metrics;
 
-      log.debug('onDown', sourceTextWidth);
       if (
         isFilterBarShown &&
         theme.columnHeaderHeight != null &&
@@ -84,8 +78,6 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     const sourceIndex = getColumnSourceHeaderFromGridPoint(model, gridPoint);
 
-    log.debug('onClick', gridPoint, sourceIndex);
-
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
       assertNotNull(
@@ -96,7 +88,7 @@ class PivotFilterMouseHandler extends GridMouseHandler {
       const theme = this.irisGrid.getTheme();
 
       const { sourceTextWidth } = metrics;
-      log.debug('onClick', sourceTextWidth);
+
       // Consume onClick if clicked within the filter box
       if (
         isFilterBarShown &&
