@@ -118,13 +118,24 @@ export function getColumnHeaderCoordinates(
   };
 }
 
+/**
+ * Type predicate to check if a metric calculator is an IrisGridPivotMetricCalculator
+ * @param calculator The metric calculator to check
+ * @returns True if the calculator is an IrisGridPivotMetricCalculator
+ */
+export function isIrisGridPivotMetricCalculator(
+  calculator: IrisGridMetricCalculator
+): calculator is IrisGridPivotMetricCalculator {
+  return calculator instanceof IrisGridPivotMetricCalculator;
+}
+
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
   private getCachedColumnSourceLabelWidth = memoize(
     (
       keyColumnGroups: PivotColumnHeaderGroup[],
       headerHorizontalPadding: number,
       maxColumnWidth: number,
-      state: IrisGridMetricState
+      state: IrisGridPivotMetricState
     ): number => {
       let result = 0;
       keyColumnGroups.forEach(group => {
@@ -159,7 +170,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
   getColumnHeaderGroupWidth(
     modelColumn: ModelIndex,
     depth: number,
-    state: IrisGridMetricState,
+    state: IrisGridPivotMetricState,
     maxColumnWidth: number
   ): number {
     return this.getColumnHeaderGroupTextWidth(
@@ -173,12 +184,12 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
   /**
    * Calculate the width needed for the column source labels
    * @param model The IrisGridPivotModel instance
-   * @param state The current IrisGridMetricState
+   * @param state The current IrisGridPivotMetricState
    * @returns The calculated width for the column source labels
    */
   calculateColumnSourceLabelWidth(
     model: IrisGridPivotModel,
-    state: IrisGridMetricState
+    state: IrisGridPivotMetricState
   ): number {
     const { theme } = state;
     const { headerHorizontalPadding, maxColumnWidth } = theme;
@@ -194,10 +205,10 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
 
   /**
    * Gets the metrics for the current state. This method has to be called before setColumnSize or resetColumnSize.
-   * @param state The current IrisGridMetricState
+   * @param state The current IrisGridPivotMetricState
    * @returns The metrics for the current state
    */
-  getMetrics(state: IrisGridMetricState): PivotGridMetrics {
+  getMetrics(state: IrisGridPivotMetricState): PivotGridMetrics {
     const { model } = state;
 
     if (!isIrisGridPivotModel(model)) {

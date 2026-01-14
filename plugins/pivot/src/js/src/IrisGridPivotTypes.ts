@@ -7,6 +7,12 @@ import { type GridMetrics } from '@deephaven/grid';
 import type IrisGridPivotModel from './IrisGridPivotModel';
 import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
+export function isPivotGridMetrics(
+  metrics: GridMetrics
+): metrics is PivotGridMetrics {
+  return (metrics as PivotGridMetrics).columnSourceLabelWidth !== undefined;
+}
+
 export interface PivotGridMetrics extends GridMetrics {
   // Width of the widest column source header text, including padding
   columnSourceLabelWidth: number;

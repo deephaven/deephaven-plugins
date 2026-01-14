@@ -6,36 +6,22 @@ import {
   type Grid,
   type GridMouseEvent,
 } from '@deephaven/grid';
-import {
-  IrisGridType as IrisGrid,
-  type IrisGridState,
-} from '@deephaven/iris-grid';
+import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
 import { getColumnSourceHeaderFromGridPoint } from './PivotMouseHandlerUtils';
-import type IrisGridPivotMetricCalculator from './IrisGridPivotMetricCalculator';
-import type { PivotGridMetrics } from './IrisGridPivotTypes';
-
-interface IrisGridPivotState extends IrisGridState {
-  metricCalculator: IrisGridPivotMetricCalculator;
-  metrics?: PivotGridMetrics;
-}
-
-interface IrisGridPivot extends IrisGrid {
-  metricCalculator: IrisGridPivotMetricCalculator;
-  state: IrisGridPivotState;
-}
+import { isPivotGridMetrics } from './IrisGridPivotTypes';
 
 /**
  * Trigger quick filters on pivot columnBy source headers
  */
 class PivotFilterMouseHandler extends GridMouseHandler {
-  constructor(irisGrid: IrisGridPivot) {
+  constructor(irisGrid: IrisGrid) {
     super();
 
     this.irisGrid = irisGrid;
   }
 
-  irisGrid: IrisGridPivot;
+  irisGrid: IrisGrid;
 
   onDown(gridPoint: GridPoint): EventHandlerResult {
     const { model } = this.irisGrid.props;
@@ -44,8 +30,11 @@ class PivotFilterMouseHandler extends GridMouseHandler {
     const sourceIndex = getColumnSourceHeaderFromGridPoint(model, gridPoint);
 
     if (sourceIndex != null) {
-      if (!metrics) throw new Error('Metrics not set');
+      assertNotNull(metrics, 'Metrics not set');
 
+      if (!isPivotGridMetrics(metrics)) {
+        throw new Error('PivotGridMetrics required');
+      }
       const theme = this.irisGrid.getTheme();
 
       const { columnSourceLabelWidth } = metrics;
@@ -75,7 +64,11 @@ class PivotFilterMouseHandler extends GridMouseHandler {
     const sourceIndex = getColumnSourceHeaderFromGridPoint(model, gridPoint);
 
     if (sourceIndex != null) {
-      if (!metrics) throw new Error('Metrics not set');
+      assertNotNull(metrics, 'Metrics not set');
+
+      if (!isPivotGridMetrics(metrics)) {
+        throw new Error('PivotGridMetrics required');
+      }
 
       const theme = this.irisGrid.getTheme();
 
