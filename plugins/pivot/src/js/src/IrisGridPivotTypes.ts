@@ -9,7 +9,7 @@ import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 export interface PivotGridMetrics extends GridMetrics {
   // Width of the widest column source header text, including padding
-  sourceTextWidth: number;
+  columnSourceLabelWidth: number;
 }
 
 export interface IrisGridPivotMetricState extends IrisGridMetricState {

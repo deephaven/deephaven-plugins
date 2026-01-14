@@ -211,7 +211,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
             theme.columnSourceFilterMinWidth != null
               ? Math.max(
                   theme.columnSourceFilterMinWidth,
-                  columnWidth - metrics.sourceTextWidth
+                  columnWidth - metrics.columnSourceLabelWidth
                 )
               : undefined;
 
@@ -492,10 +492,10 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       return;
     }
 
-    const { sourceTextWidth } = metrics;
+    const { columnSourceLabelWidth } = metrics;
 
     const columnSourceFilterWidth = Math.max(
-      columnWidth - sourceTextWidth,
+      columnWidth - columnSourceLabelWidth,
       columnSourceFilterMinWidth
     );
 
@@ -543,7 +543,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       return;
     }
 
-    const { sourceTextWidth } = metrics;
+    const { columnSourceLabelWidth } = metrics;
 
     const filterBoxes = getKeyColumnGroups(model)
       .map(group => {
@@ -554,7 +554,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
         const { x1, y1, x2, y2 } = coords;
         // Take all available space minus text width, with a minimum width of columnSourceFilterMinWidth
         const columnSourceFilterWidth = Math.max(
-          x2 - x1 - sourceTextWidth,
+          x2 - x1 - columnSourceLabelWidth,
           columnSourceFilterMinWidth
         );
         return {

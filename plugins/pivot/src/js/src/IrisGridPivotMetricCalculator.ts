@@ -132,7 +132,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     );
   }
 
-  calculateSourceTextWidth(
+  calculateColumnSourceLabelWidth(
     model: IrisGridPivotModel,
     state: IrisGridMetricState
   ): number {
@@ -168,11 +168,14 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     }
 
     // Update column widths if columns in the cached model don't match the current model passed in the state
-    const sourceTextWidth = this.calculateSourceTextWidth(model, state);
+    const columnSourceLabelWidth = this.calculateColumnSourceLabelWidth(
+      model,
+      state
+    );
 
     return {
       ...super.getMetrics(state),
-      sourceTextWidth,
+      columnSourceLabelWidth,
     };
   }
 
@@ -199,7 +202,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       return null;
     }
 
-    const { gridY, sourceTextWidth } = metrics;
+    const { gridY, columnSourceLabelWidth } = metrics;
 
     const { columnSourceFilterMinWidth, filterBarHeight } = theme;
 
@@ -229,7 +232,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     const groupWidth = groupCoords.x2 - groupCoords.x1;
     const columnWidth = Math.max(
       columnSourceFilterMinWidth,
-      groupWidth - sourceTextWidth
+      groupWidth - columnSourceLabelWidth
     );
 
     const x = groupCoords.x2 - columnWidth;

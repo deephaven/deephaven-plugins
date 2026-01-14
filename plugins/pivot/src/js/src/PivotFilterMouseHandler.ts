@@ -45,20 +45,16 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
-      assertNotNull(
-        metrics.sourceTextWidth,
-        'sourceTextWidth not set in metrics'
-      );
 
       const theme = this.irisGrid.getTheme();
 
-      const { sourceTextWidth } = metrics;
+      const { columnSourceLabelWidth } = metrics;
 
       if (
         isFilterBarShown &&
         theme.columnHeaderHeight != null &&
         theme.filterBarHeight != null &&
-        gridPoint.x > sourceTextWidth
+        gridPoint.x > columnSourceLabelWidth
       ) {
         this.irisGrid.focusFilterBar(sourceIndex);
         return true;
@@ -80,21 +76,17 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     if (sourceIndex != null) {
       if (!metrics) throw new Error('Metrics not set');
-      assertNotNull(
-        metrics.sourceTextWidth,
-        'sourceTextWidth not set in metrics'
-      );
 
       const theme = this.irisGrid.getTheme();
 
-      const { sourceTextWidth } = metrics;
+      const { columnSourceLabelWidth } = metrics;
 
       // Consume onClick if clicked within the filter box
       if (
         isFilterBarShown &&
         theme.columnHeaderHeight != null &&
         theme.filterBarHeight != null &&
-        gridPoint.x > sourceTextWidth
+        gridPoint.x > columnSourceLabelWidth
       ) {
         return true;
       }
