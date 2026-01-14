@@ -1,10 +1,10 @@
 import {
   IrisGridMetricCalculator,
   type IrisGridMetricState,
-  type IrisGridThemeType,
 } from '@deephaven/iris-grid';
 import {
   GridUtils,
+  type BoxCoordinates,
   type GridMetrics,
   type ModelIndex,
   type ModelSizeMap,
@@ -13,21 +13,94 @@ import {
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
-import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
-import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
+import PivotColumnHeaderGroup, {
+  isPivotColumnHeaderGroup,
+} from './PivotColumnHeaderGroup';
+import {
+  type IrisGridPivotMetricState,
+  type IrisGridPivotRenderState,
+  type PivotGridMetrics,
+} from './IrisGridPivotTypes';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
 );
 
-export interface PivotGridMetrics extends GridMetrics {
-  // Width of the widest column source header text, including padding
-  sourceTextWidth: number;
-}
+/**
+ * Get the coordinates of a column header group
+ * @param state The current render state of the IrisGridPivot
+ * @param group The PivotColumnHeaderGroup for which to get coordinates
+ * @returns The BoxCoordinates for the group, or null if not visible
+ */
+export function getColumnHeaderCoordinates(
+  state: IrisGridPivotRenderState,
+  group: PivotColumnHeaderGroup
+): BoxCoordinates | null {
+  const { metrics, theme } = state;
+  const { childIndexes, depth } = group;
+  const firstChildIndex = childIndexes[0];
+  const lastChildIndex = childIndexes[childIndexes.length - 1];
+  if (firstChildIndex == null || lastChildIndex == null) {
+    throw new Error('Group has no child columns');
+  }
+  const {
+    firstColumn,
+    left,
+    right,
+    allColumnXs,
+    allColumnWidths,
+    calculatedColumnWidths,
+    userColumnWidths,
+    gridX,
+    gridY,
+    maxX,
+    treePaddingX,
+  } = metrics;
+  const {
+    filterBarHeight,
+    columnHeaderHeight,
+    columnWidth: themeColumnWidth,
+  } = theme;
 
-export interface IrisGridPivotMetricState extends IrisGridMetricState {
-  columnSourceFilterMinWidth: number;
-  theme: IrisGridThemeType & IrisGridPivotThemeType;
+  const firstVisible = Math.max(left, firstChildIndex);
+  const lastVisible = Math.min(right, lastChildIndex);
+  if (firstVisible > lastChildIndex || lastVisible < firstChildIndex) {
+    // Group is not visible
+    return null;
+  }
+
+  // Calculate the left edge by summing widths of all columns before firstVisible
+  const firstVisibleX = allColumnXs.get(firstVisible);
+  if (firstVisibleX == null) {
+    return null;
+  }
+  let groupX1 = firstVisibleX;
+  for (let i = firstChildIndex; i < firstVisible; i += 1) {
+    const modelIndex = GridUtils.getModelIndex(i, metrics.movedColumns) ?? i;
+    // userColumnWidths and allColumnWidths include the treePaddingX on the first column
+    // calculatedColumnWidths does not, so we need to account for that here
+    const width =
+      userColumnWidths.get(modelIndex) ??
+      allColumnWidths.get(i) ??
+      (calculatedColumnWidths.has(modelIndex)
+        ? (calculatedColumnWidths.get(modelIndex) ?? 0) +
+          (i === firstColumn ? treePaddingX : 0)
+        : undefined) ??
+      themeColumnWidth;
+    groupX1 -= width;
+  }
+
+  const lastColumnX = allColumnXs.get(lastVisible);
+  const lastColumnWidth = allColumnWidths.get(lastVisible);
+  if (lastColumnX == null || lastColumnWidth == null) {
+    return null;
+  }
+  return {
+    x1: gridX + groupX1,
+    y1: gridY - filterBarHeight - (depth + 1) * columnHeaderHeight,
+    x2: Math.min(gridX + lastColumnX + lastColumnWidth, maxX),
+    y2: gridY - filterBarHeight - depth * columnHeaderHeight,
+  };
 }
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
@@ -135,23 +208,8 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
 
     assertNotNull(metrics.sourceTextWidth, 'sourceTextWidth is null');
 
-    const {
-      allColumnXs,
-      allColumnWidths,
-      gridX,
-      gridY,
-      sourceTextWidth,
-      left,
-      leftOffset,
-      userColumnWidths,
-      movedColumns,
-    } = metrics;
-
-    const {
-      columnSourceFilterMinWidth,
-      filterBarHeight,
-      columnWidth: themeColumnWidth,
-    } = theme;
+    const { gridY, sourceTextWidth } = metrics;
+    const { columnSourceFilterMinWidth, filterBarHeight } = theme;
 
     // Find the key column group for this source index
     // index is negative (-1, -2, etc.), and depth is positive (1, 2, etc.)
@@ -166,65 +224,34 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       return null;
     }
 
-    const firstChildIndex = keyColumnGroup.childIndexes[0];
-    const lastChildIndex =
-      keyColumnGroup.childIndexes[keyColumnGroup.childIndexes.length - 1];
+    // Get the coordinates of the key column group
+    const groupCoords = getColumnHeaderCoordinates(
+      { metrics, theme, model } as IrisGridPivotRenderState,
+      keyColumnGroup
+    );
 
-    if (firstChildIndex == null || lastChildIndex == null) {
+    if (groupCoords == null) {
       return null;
     }
 
-    // Calculate the absolute left edge of the group by summing all column widths from the start
-    let groupX1 = 0;
-    for (let i = 0; i < firstChildIndex; i += 1) {
-      const modelIndex = GridUtils.getModelIndex(i, movedColumns) ?? i;
-      const width =
-        userColumnWidths.get(modelIndex) ??
-        allColumnWidths.get(i) ??
-        themeColumnWidth;
-      groupX1 += width;
-    }
-
-    // Calculate the absolute right edge
-    let groupX2 = groupX1;
-    for (let i = firstChildIndex; i <= lastChildIndex; i += 1) {
-      const modelIndex = GridUtils.getModelIndex(i, movedColumns) ?? i;
-      const width =
-        userColumnWidths.get(modelIndex) ??
-        allColumnWidths.get(i) ??
-        themeColumnWidth;
-      groupX2 += width;
-    }
-
-    // Adjust for scroll position
-    groupX1 -= leftOffset;
-    groupX2 -= leftOffset;
-
-    const groupWidth = groupX2 - groupX1;
-
+    const groupWidth = groupCoords.x2 - groupCoords.x1;
     const columnWidth = Math.max(
       columnSourceFilterMinWidth,
       groupWidth - sourceTextWidth
     );
 
-    const columnX = groupX2 - columnWidth;
+    const x = groupCoords.x2 - columnWidth;
+    const y =
+      gridY - theme.columnHeaderHeight - (1 - index) * (filterBarHeight ?? 0);
+    const fieldWidth = columnWidth + 1; // cover right border
+    const fieldHeight = (filterBarHeight ?? 0) - 1; // remove bottom border
 
-    const columnY =
-      -theme.columnHeaderHeight - (1 - index) * (filterBarHeight ?? 0);
-    if (columnX != null && columnWidth != null) {
-      const x = gridX + columnX;
-      const y = gridY + columnY;
-      const fieldWidth = columnWidth + 1; // cover right border
-      const fieldHeight = (filterBarHeight ?? 0) - 1; // remove bottom border
-      return {
-        x,
-        y,
-        width: fieldWidth,
-        height: fieldHeight,
-      };
-    }
-
-    return null;
+    return {
+      x,
+      y,
+      width: fieldWidth,
+      height: fieldHeight,
+    };
   }
 
   /**
