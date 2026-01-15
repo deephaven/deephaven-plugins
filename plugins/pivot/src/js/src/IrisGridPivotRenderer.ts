@@ -2,7 +2,6 @@ import clamp from 'lodash.clamp';
 import {
   getOrThrow,
   GridRenderer,
-  GridUtils,
   type BoundedAxisRange,
   type BoxCoordinates,
   type Coordinate,
@@ -17,10 +16,7 @@ import { TableUtils, type SortDescriptor } from '@deephaven/jsapi-utils';
 import { isNotNullOrUndefined } from '@deephaven/utils';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 import { isIrisGridPivotModel } from './IrisGridPivotModel';
-import {
-  getColumnHeaderCoordinates,
-  getColumnWidth,
-} from './IrisGridPivotMetricCalculator';
+import { getColumnHeaderCoordinates } from './IrisGridPivotMetricCalculator';
 import type { IrisGridPivotRenderState } from './IrisGridPivotTypes';
 import { getKeyColumnGroups } from './PivotUtils';
 
@@ -54,12 +50,10 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     if (!isIrisGridPivotModel(model)) {
       throw new Error('Unsupported model type');
     }
-    const { modelColumns, allColumnXs, gridX, allColumnWidths, movedColumns } =
-      metrics;
-    const { columnHeaderHeight, columnWidth: themeColumnWidth } = theme;
+    const { modelColumns } = metrics;
+    const { columnHeaderHeight } = theme;
     const { columnHeaderMaxDepth } = model;
     const { minX, maxX } = bounds;
-    const viewportWidth = maxX - minX;
 
     if (columnHeaderMaxDepth === 0) {
       return;
@@ -89,7 +83,6 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       let columnIndex = startIndex;
 
       while (columnIndex <= endIndex) {
-        const { columnCount } = metrics;
         const modelColumn = getOrThrow(modelColumns, columnIndex);
 
         const columnGroupColor = model.colorForColumnHeader(
@@ -98,124 +91,65 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
           theme
         );
 
-        const headerGroup = model.getColumnHeaderGroup(modelColumn, depth ?? 0);
+        const headerGroup = model.getColumnHeaderGroup(modelColumn, depth);
 
         const isExpandable =
           isPivotColumnHeaderGroup(headerGroup) && headerGroup.isExpandable;
         const isExpanded =
           isPivotColumnHeaderGroup(headerGroup) && headerGroup.isExpanded;
 
-        const columnGroupName = getColumnGroupName(model, modelColumn, depth);
+        const groupName = getColumnGroupName(model, modelColumn, depth);
 
-        let columnGroupLeft = getOrThrow(allColumnXs, columnIndex) + gridX;
-        let columnGroupRight =
-          columnGroupLeft + getOrThrow(allColumnWidths, columnIndex);
+        if (groupName != null && isPivotColumnHeaderGroup(headerGroup)) {
+          const coords = getColumnHeaderCoordinates(state, headerGroup);
 
-        if (columnGroupName != null) {
-          // Need to determine if the column group is at least the width of the bounds
-          // And if the left/right of the group extend past the bounds
-          // The group will be drawn as if it were a column with a max width of the bounds width
-          let prevColumnIndex = columnIndex - 1;
-          while (
-            prevColumnIndex >= 0 &&
-            (columnGroupRight - columnGroupLeft < viewportWidth ||
-              columnGroupLeft > minX)
-          ) {
-            const prevModelIndex =
-              modelColumns.get(prevColumnIndex) ??
-              GridUtils.getModelIndex(prevColumnIndex, movedColumns);
+          if (coords != null) {
+            const { x1: columnGroupLeft, x2: columnGroupRight } = coords;
+
+            // Set column index to end of the current group
+            columnIndex =
+              headerGroup.childIndexes[headerGroup.childIndexes.length - 1];
+
+            const columnWidth = columnGroupRight - columnGroupLeft;
+
+            // For column sources with filter bars, limit the max text width to the column width minus the filter width
+            let headerRightPadding: number | undefined;
             if (
-              prevModelIndex == null ||
-              getColumnGroupName(model, prevModelIndex, depth) !==
-                columnGroupName
+              isPivotColumnHeaderGroup(headerGroup) &&
+              headerGroup.isKeyColumnGroup === true &&
+              theme.columnSourceFilterMinWidth != null
             ) {
-              // Previous column not in the same group
-              break;
-            }
-
-            columnGroupLeft -= getColumnWidth(
-              prevColumnIndex,
-              metrics,
-              themeColumnWidth
-            );
-            prevColumnIndex -= 1;
-          }
-
-          let nextColumnIndex = columnIndex + 1;
-          while (
-            nextColumnIndex < columnCount &&
-            (columnGroupRight - columnGroupLeft < viewportWidth ||
-              columnGroupRight < maxX)
-          ) {
-            const nextModelIndex =
-              modelColumns.get(nextColumnIndex) ??
-              GridUtils.getModelIndex(nextColumnIndex, movedColumns);
-            if (
-              getColumnGroupName(model, nextModelIndex, depth) !==
-              columnGroupName
-            ) {
-              // Next column not in the same group
-              break;
-            }
-
-            columnGroupRight += getColumnWidth(
-              nextColumnIndex,
-              metrics,
-              themeColumnWidth
-            );
-            nextColumnIndex += 1;
-          }
-
-          // Set column index to end of the current group
-          columnIndex = nextColumnIndex - 1;
-
-          const isFullWidth =
-            columnGroupRight - columnGroupLeft >= viewportWidth;
-          let x = columnGroupLeft;
-          if (isFullWidth) {
-            if (columnGroupRight < maxX) {
-              x = columnGroupRight - viewportWidth;
-            } else if (columnGroupLeft < minX) {
-              x = minX;
-            }
-          }
-
-          // For column sources with filter bars, limit the max text width to the column width minus the filter width
-          const group = model.getColumnHeaderGroup(modelColumn, depth);
-
-          const columnWidth = Math.min(
-            columnGroupRight - columnGroupLeft,
-            viewportWidth
-          );
-
-          const columnWidthAdjust =
-            isFilterBarShown &&
-            isPivotColumnHeaderGroup(group) &&
-            group.isKeyColumnGroup === true &&
-            theme.columnSourceFilterMinWidth != null
-              ? Math.max(
+              if (isFilterBarShown) {
+                headerRightPadding = Math.max(
                   theme.columnSourceFilterMinWidth,
                   columnWidth - metrics.columnSourceLabelWidth
-                )
-              : undefined;
+                );
+              } else {
+                const { advancedFilters, quickFilters } = state;
+                const { filterBarCollapsedHeight } = theme;
+                if (advancedFilters.size > 0 || quickFilters.size > 0) {
+                  headerRightPadding = filterBarCollapsedHeight;
+                }
+              }
+            }
+            const sort = TableUtils.getSortForColumn(model.sort, groupName);
 
-          const sort = TableUtils.getSortForColumn(model.sort, columnGroupName);
-
-          this.drawColumnHeader(
-            context,
-            state,
-            model.textForColumnHeader(modelColumn, depth) ?? '',
-            x,
-            Math.min(columnGroupRight - columnGroupLeft, viewportWidth),
-            {
-              backgroundColor: columnGroupColor ?? undefined,
-            },
-            bounds,
-            isExpandable,
-            isExpanded,
-            sort,
-            columnWidthAdjust
-          );
+            this.drawColumnHeader(
+              context,
+              state,
+              model.textForColumnHeader(modelColumn, depth) ?? '',
+              columnGroupLeft,
+              columnWidth,
+              {
+                backgroundColor: columnGroupColor ?? undefined,
+              },
+              bounds,
+              isExpandable,
+              isExpanded,
+              sort,
+              headerRightPadding
+            );
+          }
         }
         columnIndex += 1;
       }
@@ -238,20 +172,12 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     isExpandable = false,
     isExpanded = false,
     sort: SortDescriptor | null = null,
-    columnWidthAdjust?: number
+    headerRightPadding?: number
   ): void {
     if (columnWidth <= 0) {
       return;
     }
 
-    if (sort != null) {
-      console.log('[0] Drawing column:', {
-        columnX,
-        columnWidth,
-        columnWidthAdjust,
-        bounds,
-      });
-    }
     const { metrics, theme } = state;
 
     const {
@@ -266,8 +192,8 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     } = theme;
     const { fontWidthsLower, fontWidthsUpper, width } = metrics;
 
-    const maxWidth =
-      columnWidth - headerHorizontalPadding * 2 - (columnWidthAdjust ?? 0);
+    const maxLabelWidth =
+      columnWidth - headerHorizontalPadding * 2 - (headerRightPadding ?? 0);
 
     const {
       backgroundColor = headerBackgroundColor,
@@ -330,7 +256,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     const renderText = this.textCellRenderer.getCachedTruncatedString(
       context,
       columnText,
-      maxWidth,
+      maxLabelWidth,
       fontWidthLower,
       fontWidthUpper
     );
@@ -342,14 +268,16 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     const treeMarkerPadding = isExpandable ? iconSize : 0;
     const contentLeft = columnX + headerHorizontalPadding;
-    const viewportLeft = clamp(contentLeft, minX, maxX);
+    const contentViewportLeft = clamp(contentLeft, minX, maxX);
     const contentRight =
       columnX +
       columnWidth -
       headerHorizontalPadding -
-      (columnWidthAdjust ?? 0);
-    const viewportRight = clamp(contentRight, minX, maxX);
-    const viewportWidth = viewportRight - viewportLeft;
+      (headerRightPadding ?? 0);
+
+    const contentViewportRight = clamp(contentRight, minX, maxX);
+
+    const contentViewportWidth = contentViewportRight - contentViewportLeft;
 
     const textWidth = this.getCachedHeaderWidth(context, renderText);
     const contentWidth = textWidth + treeMarkerPadding;
@@ -357,7 +285,7 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
 
     if (isBeyondLeft) {
       // Column name would be off the left side of the canvas
-      if (contentWidth < viewportWidth) {
+      if (contentWidth < contentViewportWidth) {
         // Can render the entire text in the visible space. Stick to left
         x = minX;
       } else {
@@ -456,10 +384,16 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
     columnWidth: number,
     bounds: { minX: number; maxX: number }
   ): void {
-    const { isFilterBarShown, metrics, theme } = state;
-    const { gridX, columnHeaderHeight } = metrics;
+    const { isFilterBarShown, metrics, theme, quickFilters, advancedFilters } =
+      state;
+    const { gridX, columnHeaderHeight, columnSourceLabelWidth } = metrics;
 
-    const { iconSize: themeIconSize, columnSourceFilterMinWidth } = theme;
+    const {
+      iconSize: themeIconSize,
+      columnSourceFilterMinWidth,
+      filterBarCollapsedHeight,
+    } = theme;
+
     const iconSize = Math.round(themeIconSize * 0.75); // The vsTriangle icons are a bit bigger than we want
 
     if (sort == null) {
@@ -476,19 +410,26 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
       return;
     }
 
-    const { columnSourceLabelWidth } = metrics;
-
-    const columnSourceFilterWidth = Math.max(
+    const expandedFilterWidth = Math.max(
       columnWidth - columnSourceLabelWidth,
       columnSourceFilterMinWidth
     );
 
+    const collapsedFilterWidth =
+      advancedFilters.size > 0 || quickFilters.size > 0
+        ? filterBarCollapsedHeight
+        : 0;
+
     // If the text is partially off the screen, put the icon to the right of the text
     // else put it at the right edge of the column/grid (whichever is smaller)
 
-    const x = isFilterBarShown
-      ? gridX + columnX + columnWidth - iconSize - columnSourceFilterWidth - 1
-      : gridX + columnX + columnWidth - iconSize - 1;
+    const x =
+      gridX +
+      columnX +
+      columnWidth -
+      iconSize -
+      (isFilterBarShown ? expandedFilterWidth : collapsedFilterWidth) -
+      1;
     const y = (columnHeaderHeight - iconSize) * 0.5;
 
     context.save();

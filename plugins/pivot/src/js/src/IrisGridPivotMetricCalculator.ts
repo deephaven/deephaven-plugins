@@ -64,7 +64,7 @@ export function getColumnWidth(
 }
 
 /**
- * Get the coordinates of a column header group
+ * Get the coordinates of a column header group, not clamped to the viewport.
  * @param state The current render state of the IrisGridPivot
  * @param group The PivotColumnHeaderGroup for which to get coordinates
  * @returns The BoxCoordinates for the group, or null if not visible
@@ -80,8 +80,7 @@ export function getColumnHeaderCoordinates(
   if (firstChildIndex == null || lastChildIndex == null) {
     throw new Error('Group has no child columns');
   }
-  const { left, right, allColumnXs, allColumnWidths, gridX, gridY, maxX } =
-    metrics;
+  const { left, right, allColumnXs, allColumnWidths, gridX, gridY } = metrics;
   const {
     filterBarHeight,
     columnHeaderHeight,
@@ -110,10 +109,16 @@ export function getColumnHeaderCoordinates(
   if (lastColumnX == null || lastColumnWidth == null) {
     return null;
   }
+
+  let groupX2 = lastColumnX + lastColumnWidth;
+  for (let i = lastVisible + 1; i <= lastChildIndex; i += 1) {
+    groupX2 += getColumnWidth(i, metrics, themeColumnWidth);
+  }
+
   return {
     x1: gridX + groupX1,
     y1: gridY - filterBarHeight - (depth + 1) * columnHeaderHeight,
-    x2: Math.min(gridX + lastColumnX + lastColumnWidth, maxX),
+    x2: gridX + groupX2,
     y2: gridY - filterBarHeight - depth * columnHeaderHeight,
   };
 }
@@ -277,23 +282,21 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       return null;
     }
 
-    const groupWidth = groupCoords.x2 - groupCoords.x1;
-    const columnWidth = Math.max(
+    const { x1, x2 } = groupCoords;
+    const columnSourceFilterWidth = Math.max(
       columnSourceFilterMinWidth,
-      groupWidth - columnSourceLabelWidth
+      x2 - x1 - columnSourceLabelWidth
     );
 
-    const x = groupCoords.x2 - columnWidth;
+    const x = x2 - columnSourceFilterWidth;
     const y =
       gridY - theme.columnHeaderHeight - (1 - index) * (filterBarHeight ?? 0);
-    const fieldWidth = columnWidth + 1; // cover right border
-    const fieldHeight = (filterBarHeight ?? 0) - 1; // remove bottom border
 
     return {
       x,
       y,
-      width: fieldWidth,
-      height: fieldHeight,
+      width: columnSourceFilterWidth + 1, // cover right border
+      height: (filterBarHeight ?? 0) - 1, // remove bottom border
     };
   }
 
@@ -310,7 +313,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     metrics: GridMetrics
   ): VisibleIndex | null {
     if (column < 0) {
-      return 0;
+      return null;
     }
 
     return super.getScrollLeftForColumn(column, state, metrics);

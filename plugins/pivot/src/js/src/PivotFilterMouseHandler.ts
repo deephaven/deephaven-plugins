@@ -6,10 +6,17 @@ import {
   type Grid,
   type GridMouseEvent,
 } from '@deephaven/grid';
-import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
+import {
+  IrisGridType as IrisGrid,
+  type IrisGridThemeType,
+} from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
-import { getColumnSourceHeaderFromGridPoint } from './PivotMouseHandlerUtils';
+import {
+  getColumnSourceHeaderFromGridPoint,
+  isGridPointInColumnSourceFilterBox,
+} from './PivotMouseHandlerUtils';
 import { isPivotGridMetrics } from './IrisGridPivotTypes';
+import type { IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 /**
  * Trigger quick filters on pivot columnBy source headers
@@ -35,15 +42,14 @@ class PivotFilterMouseHandler extends GridMouseHandler {
       if (!isPivotGridMetrics(metrics)) {
         throw new Error('PivotGridMetrics required');
       }
-      const theme = this.irisGrid.getTheme();
-
-      const { columnSourceLabelWidth } = metrics;
+      const theme = this.irisGrid.getTheme() as IrisGridThemeType &
+        IrisGridPivotThemeType;
 
       if (
         isFilterBarShown &&
         theme.columnHeaderHeight != null &&
         theme.filterBarHeight != null &&
-        gridPoint.x > columnSourceLabelWidth
+        isGridPointInColumnSourceFilterBox(model, gridPoint, metrics, theme)
       ) {
         this.irisGrid.focusFilterBar(sourceIndex);
         return true;
@@ -70,16 +76,15 @@ class PivotFilterMouseHandler extends GridMouseHandler {
         throw new Error('PivotGridMetrics required');
       }
 
-      const theme = this.irisGrid.getTheme();
-
-      const { columnSourceLabelWidth } = metrics;
+      const theme = this.irisGrid.getTheme() as IrisGridThemeType &
+        IrisGridPivotThemeType;
 
       // Consume onClick if clicked within the filter box
       if (
         isFilterBarShown &&
         theme.columnHeaderHeight != null &&
         theme.filterBarHeight != null &&
-        gridPoint.x > columnSourceLabelWidth
+        isGridPointInColumnSourceFilterBox(model, gridPoint, metrics, theme)
       ) {
         return true;
       }
