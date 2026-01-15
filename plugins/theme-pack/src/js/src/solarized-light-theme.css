@@ -1,0 +1,347 @@
+/* Solarized Light Theme for Deephaven */
+/* Generated from Solarized color palette by Ethan Schoonover */
+/* Source: https://ethanschoonover.com/solarized/ */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Light theme: gray-100 (#fdf6e3) is lightest, gray-900 (#657b83) is darkest */
+  /* Anchors from VS Code: editor.background, sideBar.background, activityBar.background, etc. */
+  --dh-color-gray-50: #fffbe8;
+  --dh-color-gray-75: #fff9e5;
+  --dh-color-gray-100: #fdf6e3;
+  --dh-color-gray-200: #eee8d5;
+  --dh-color-gray-300: #ddd6c1;
+  --dh-color-gray-400: #d3cbb7;
+  --dh-color-gray-500: #ccc4b0;
+  --dh-color-gray-600: #adb4a0;
+  --dh-color-gray-700: #8fa295;
+  --dh-color-gray-800: #778f8d;
+  --dh-color-gray-900: #657b83;
+
+  /* ============ RED PALETTE ============ */
+  /* Solarized Red (#dc322f) - errors, deletion anchored at 800 */
+  --dh-color-red-100: #fff1ed;
+  --dh-color-red-200: #fff1ed;
+  --dh-color-red-300: #ffe6e1;
+  --dh-color-red-400: #ffcac1;
+  --dh-color-red-500: #ffa79b;
+  --dh-color-red-600: #ff796d;
+  --dh-color-red-700: #f95048;
+  --dh-color-red-800: #dc322f;
+  --dh-color-red-900: #bb151a;
+  --dh-color-red-1000: #9f0005;
+  --dh-color-red-1100: #800000;
+  --dh-color-red-1200: #620000;
+  --dh-color-red-1300: #490103;
+  --dh-color-red-1400: #310504;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* Solarized Orange (#cb4b16) - warnings, constants anchored at 800 */
+  --dh-color-orange-100: #fff2e8;
+  --dh-color-orange-200: #fff2e8;
+  --dh-color-orange-300: #ffe5d7;
+  --dh-color-orange-400: #ffc9b2;
+  --dh-color-orange-500: #ffa784;
+  --dh-color-orange-600: #ff8256;
+  --dh-color-orange-700: #e76535;
+  --dh-color-orange-800: #cb4b16;
+  --dh-color-orange-900: #ac3500;
+  --dh-color-orange-1000: #912100;
+  --dh-color-orange-1100: #741200;
+  --dh-color-orange-1200: #590e00;
+  --dh-color-orange-1300: #420c00;
+  --dh-color-orange-1400: #2c0901;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* Solarized Yellow (#b58900) - accent color anchored at 700 */
+  --dh-color-yellow-100: #fff7e0;
+  --dh-color-yellow-200: #fff7d0;
+  --dh-color-yellow-300: #ffeab4;
+  --dh-color-yellow-400: #f5d590;
+  --dh-color-yellow-500: #e3bd67;
+  --dh-color-yellow-600: #cda23c;
+  --dh-color-yellow-700: #b58900;
+  --dh-color-yellow-800: #9c7100;
+  --dh-color-yellow-900: #805b00;
+  --dh-color-yellow-1000: #684800;
+  --dh-color-yellow-1100: #513700;
+  --dh-color-yellow-1200: #3e2800;
+  --dh-color-yellow-1300: #2e1d00;
+  --dh-color-yellow-1400: #1e1300;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Derived - between yellow and green anchored at 700 */
+  --dh-color-chartreuse-100: #f1fbe0;
+  --dh-color-chartreuse-200: #e1f1c6;
+  --dh-color-chartreuse-300: #cee3a8;
+  --dh-color-chartreuse-400: #b8d186;
+  --dh-color-chartreuse-500: #9fbd5f;
+  --dh-color-chartreuse-600: #85a437;
+  --dh-color-chartreuse-700: #6d8c00;
+  --dh-color-chartreuse-800: #577400;
+  --dh-color-chartreuse-900: #435b00;
+  --dh-color-chartreuse-1000: #334700;
+  --dh-color-chartreuse-1100: #233300;
+  --dh-color-chartreuse-1200: #162300;
+  --dh-color-chartreuse-1300: #0d1700;
+  --dh-color-chartreuse-1400: #050b00;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived - between chartreuse and green anchored at 700 */
+  --dh-color-celery-100: #f2fee1;
+  --dh-color-celery-200: #ecffd0;
+  --dh-color-celery-300: #d8f1b1;
+  --dh-color-celery-400: #c0e08d;
+  --dh-color-celery-500: #a7cb65;
+  --dh-color-celery-600: #8cb33b;
+  --dh-color-celery-700: #739a00;
+  --dh-color-celery-800: #5c8100;
+  --dh-color-celery-900: #496800;
+  --dh-color-celery-1000: #385300;
+  --dh-color-celery-1100: #293f00;
+  --dh-color-celery-1200: #1c2e00;
+  --dh-color-celery-1300: #132100;
+  --dh-color-celery-1400: #0a1400;
+
+  /* ============ GREEN PALETTE ============ */
+  /* Solarized Green (#859900) - keywords, success anchored at 700 */
+  --dh-color-green-100: #f5fde0;
+  --dh-color-green-200: #f4ffd1;
+  --dh-color-green-300: #e3f2b3;
+  --dh-color-green-400: #cee08f;
+  --dh-color-green-500: #b7cb66;
+  --dh-color-green-600: #9db23c;
+  --dh-color-green-700: #859900;
+  --dh-color-green-800: #6e8000;
+  --dh-color-green-900: #586800;
+  --dh-color-green-1000: #465300;
+  --dh-color-green-1100: #353f00;
+  --dh-color-green-1200: #262f00;
+  --dh-color-green-1300: #1b2200;
+  --dh-color-green-1400: #101500;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Derived - between green and cyan anchored at 700 */
+  --dh-color-seafoam-100: #e8fff1;
+  --dh-color-seafoam-200: #d4fae4;
+  --dh-color-seafoam-300: #b8edd0;
+  --dh-color-seafoam-400: #99ddb8;
+  --dh-color-seafoam-500: #75ca9e;
+  --dh-color-seafoam-600: #4fb283;
+  --dh-color-seafoam-700: #2a9a6a;
+  --dh-color-seafoam-800: #008153;
+  --dh-color-seafoam-900: #00693f;
+  --dh-color-seafoam-1000: #00542d;
+  --dh-color-seafoam-1100: #003f1f;
+  --dh-color-seafoam-1200: #002d14;
+  --dh-color-seafoam-1300: #001e0c;
+  --dh-color-seafoam-1400: #001106;
+
+  /* ============ CYAN PALETTE ============ */
+  /* Solarized Cyan (#2aa198) - strings anchored at 700 */
+  --dh-color-cyan-100: #e6fefb;
+  --dh-color-cyan-200: #dbfffd;
+  --dh-color-cyan-300: #bff6ef;
+  --dh-color-cyan-400: #9fe5dd;
+  --dh-color-cyan-500: #79d1c9;
+  --dh-color-cyan-600: #52b9b0;
+  --dh-color-cyan-700: #2aa198;
+  --dh-color-cyan-800: #008880;
+  --dh-color-cyan-900: #007068;
+  --dh-color-cyan-1000: #005b54;
+  --dh-color-cyan-1100: #004540;
+  --dh-color-cyan-1200: #00342f;
+  --dh-color-cyan-1300: #002522;
+  --dh-color-cyan-1400: #001715;
+
+  /* ============ BLUE PALETTE ============ */
+  /* Solarized Blue (#268bd2) - functions, variables anchored at 700 */
+  --dh-color-blue-100: #e7fbff;
+  --dh-color-blue-200: #d8f4ff;
+  --dh-color-blue-300: #b8e6ff;
+  --dh-color-blue-400: #95d3ff;
+  --dh-color-blue-500: #71bdfc;
+  --dh-color-blue-600: #4ba4e9;
+  --dh-color-blue-700: #268bd2;
+  --dh-color-blue-800: #0072b8;
+  --dh-color-blue-900: #005b9a;
+  --dh-color-blue-1000: #004681;
+  --dh-color-blue-1100: #003365;
+  --dh-color-blue-1200: #00244b;
+  --dh-color-blue-1300: #001834;
+  --dh-color-blue-1400: #000d1f;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Derived - between blue and violet anchored at 700 */
+  --dh-color-indigo-100: #e0edff;
+  --dh-color-indigo-200: #cce0ff;
+  --dh-color-indigo-300: #b5cfff;
+  --dh-color-indigo-400: #9bbbfc;
+  --dh-color-indigo-500: #7fa4f1;
+  --dh-color-indigo-600: #638adf;
+  --dh-color-indigo-700: #4a71c8;
+  --dh-color-indigo-800: #3459ae;
+  --dh-color-indigo-900: #224290;
+  --dh-color-indigo-1000: #132f77;
+  --dh-color-indigo-1100: #071d5b;
+  --dh-color-indigo-1200: #031040;
+  --dh-color-indigo-1300: #010729;
+  --dh-color-indigo-1400: #000214;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* Solarized Violet (#6c71c4) anchored at 700 */
+  --dh-color-purple-100: #edf1ff;
+  --dh-color-purple-200: #dde3ff;
+  --dh-color-purple-300: #cbd1ff;
+  --dh-color-purple-400: #b5bcfb;
+  --dh-color-purple-500: #9da4ee;
+  --dh-color-purple-600: #848adb;
+  --dh-color-purple-700: #6c71c4;
+  --dh-color-purple-800: #5659aa;
+  --dh-color-purple-900: #42438d;
+  --dh-color-purple-1000: #313074;
+  --dh-color-purple-1100: #211f59;
+  --dh-color-purple-1200: #151340;
+  --dh-color-purple-1300: #0b0a2a;
+  --dh-color-purple-1400: #040416;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* Derived - between magenta and red anchored at 700 */
+  --dh-color-fuchsia-100: #ffe0ee;
+  --dh-color-fuchsia-200: #ffcbe1;
+  --dh-color-fuchsia-300: #ffb3d2;
+  --dh-color-fuchsia-400: #fe97bf;
+  --dh-color-fuchsia-500: #f277aa;
+  --dh-color-fuchsia-600: #dd5592;
+  --dh-color-fuchsia-700: #c4357a;
+  --dh-color-fuchsia-800: #a81263;
+  --dh-color-fuchsia-900: #8a004d;
+  --dh-color-fuchsia-1000: #6c003a;
+  --dh-color-fuchsia-1100: #4e0027;
+  --dh-color-fuchsia-1200: #360019;
+  --dh-color-fuchsia-1300: #23000d;
+  --dh-color-fuchsia-1400: #110004;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* Solarized Magenta (#d33682) - numbers anchored at 700 */
+  --dh-color-magenta-100: #ffecf7;
+  --dh-color-magenta-200: #ffd8ea;
+  --dh-color-magenta-300: #ffbeda;
+  --dh-color-magenta-400: #ff9dc8;
+  --dh-color-magenta-500: #ff7bb2;
+  --dh-color-magenta-600: #ec589a;
+  --dh-color-magenta-700: #d33682;
+  --dh-color-magenta-800: #b7106b;
+  --dh-color-magenta-900: #980054;
+  --dh-color-magenta-1000: #790041;
+  --dh-color-magenta-1100: #5a002e;
+  --dh-color-magenta-1200: #41001f;
+  --dh-color-magenta-1300: #2d0013;
+  --dh-color-magenta-1400: #1a0009;
+
+  /* ============ SEMANTIC - ACCENT (Yellow) ============ */
+  /* Accent closest to #AC9D57 - using yellow-600 as base */
+  --dh-color-accent-100: var(--dh-color-yellow-100);
+  --dh-color-accent-200: var(--dh-color-yellow-200);
+  --dh-color-accent-300: var(--dh-color-yellow-300);
+  --dh-color-accent-400: var(--dh-color-yellow-400);
+  --dh-color-accent-500: var(--dh-color-yellow-500);
+  --dh-color-accent-600: var(--dh-color-yellow-600);
+  --dh-color-accent-700: var(--dh-color-yellow-700);
+  --dh-color-accent-800: var(--dh-color-yellow-800);
+  --dh-color-accent-900: var(--dh-color-yellow-900);
+  --dh-color-accent-1000: var(--dh-color-yellow-1000);
+  --dh-color-accent-1100: var(--dh-color-yellow-1100);
+  --dh-color-accent-1200: var(--dh-color-yellow-1200);
+  --dh-color-accent-1300: var(--dh-color-yellow-1300);
+  --dh-color-accent-1400: var(--dh-color-yellow-1400);
+
+  /* Accent semantic - adjusted for yellow-600 as primary accent */
+  --dh-color-accent: var(--dh-color-yellow-600);
+  --dh-color-accent-bg: var(--dh-color-yellow-600);
+  --dh-color-accent-hover-bg: var(--dh-color-yellow-700);
+  --dh-color-accent-down-bg: var(--dh-color-yellow-500);
+  --dh-color-accent-key-focus-bg: var(--dh-color-yellow-700);
+  --dh-color-accent-contrast: var(--dh-color-gray-100);
+
+  /* ============ SEMANTIC - POSITIVE (Green) ============ */
+  --dh-color-visual-positive: var(--dh-color-green-700);
+
+  /* ============ SEMANTIC - NEGATIVE (Red) ============ */
+  --dh-color-visual-negative: var(--dh-color-red-800);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using Solarized background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-300);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-50);
+
+  /* Grid text color - matches editor string color (cyan) */
+  --dh-color-grid-text: var(--dh-color-cyan-800);
+
+  /* Chart colorway using Solarized palette colors */
+  --dh-color-chart-colorway: var(--dh-color-blue-700) var(--dh-color-cyan-700)
+    var(--dh-color-green-700) var(--dh-color-orange-800)
+    var(--dh-color-purple-700) var(--dh-color-yellow-700)
+    var(--dh-color-red-800) var(--dh-color-magenta-700)
+    var(--dh-color-chartreuse-700) var(--dh-color-indigo-700);
+
+  /* ============ EDITOR SEMANTIC - SOLARIZED SYNTAX ============ */
+  /* Based on official Solarized syntax colors */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-100);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-200);
+  --dh-color-editor-selection-bg: var(--dh-color-gray-200);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
+
+  /* Code syntax highlighting per Solarized */
+  --dh-color-editor-comment: var(
+    --dh-color-gray-700
+  ); /* Comments - one shade darker */
+  --dh-color-editor-keyword: var(
+    --dh-color-green-700
+  ); /* Keywords - green #859900 */
+  --dh-color-editor-storage: var(
+    --dh-color-gray-800
+  ); /* Storage - base01 #586E75 */
+  --dh-color-editor-number: var(
+    --dh-color-magenta-700
+  ); /* Numbers - magenta #d33682 */
+  --dh-color-editor-string: var(
+    --dh-color-cyan-800
+  ); /* Strings - one shade darker */
+  --dh-color-editor-string-delim: var(
+    --dh-color-cyan-800
+  ); /* String delimiters */
+  --dh-color-editor-identifier: var(
+    --dh-color-gray-900
+  ); /* Default identifiers */
+  --dh-color-editor-identifier-js: var(
+    --dh-color-blue-700
+  ); /* Functions - blue #268bd2 */
+  --dh-color-editor-identifier-namespace: var(
+    --dh-color-orange-800
+  ); /* Classes - orange #cb4b16 */
+  --dh-color-editor-predefined: var(
+    --dh-color-blue-700
+  ); /* Support functions - blue */
+  --dh-color-editor-operator: var(--dh-color-green-700); /* Operators - green */
+  --dh-color-editor-delimiter: var(--dh-color-gray-900); /* Delimiters */
+  --dh-color-editor-error-fg: var(
+    --dh-color-red-800
+  ); /* Errors - red #dc322f */
+
+  /* Bracket colors - Solarized accent cycle */
+  --dh-color-editor-bracket-fg1: var(--dh-color-blue-700);
+  --dh-color-editor-bracket-fg2: var(--dh-color-green-700);
+  --dh-color-editor-bracket-fg3: var(--dh-color-orange-800);
+  --dh-color-editor-bracket-fg4: var(--dh-color-cyan-700);
+  --dh-color-editor-bracket-fg5: var(--dh-color-magenta-700);
+  --dh-color-editor-bracket-fg6: var(--dh-color-purple-700);
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-800);
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-500);
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-800);
+}

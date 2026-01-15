@@ -1,57 +1,122 @@
-import { expect, test } from '@playwright/test';
-import { gotoPage } from './utils';
+import { expect, test, Page } from '@playwright/test';
+import { gotoPage, SELECTORS, waitForLoad } from './utils';
 
-/**
- * Helper function to select a theme and take a screenshot.
- * Extracted to avoid await-in-loop lint errors.
- */
-async function selectThemeAndScreenshot(
-  page: import('@playwright/test').Page,
-  themeName: string,
-  colorSchemeDropdown: import('@playwright/test').Locator
-): Promise<void> {
-  await colorSchemeDropdown.click();
-  const themeOption = page.getByRole('option', { name: themeName });
-  await themeOption.click();
-  // Wait for theme to be applied
-  await page.waitForTimeout(500);
-  // Reset mouse position to avoid hover effects
+async function openThemeDemoPanel(page: Page): Promise<void> {
+  const appPanels = page.getByRole('button', { name: 'Panels', exact: true });
+  await expect(appPanels).toBeEnabled();
+  await appPanels.click();
+
+  const search = page.getByRole('searchbox', {
+    name: 'Find Table, Plot or Widget',
+    exact: true,
+  });
+  await search.fill('theme_demo');
+
+  const targetPanel = page.getByRole('button', {
+    name: 'theme_demo',
+    exact: true,
+  });
+  await expect(targetPanel).toBeEnabled();
+  await targetPanel.click();
+
   await page.mouse.move(0, 0);
-  // Take a screenshot of the whole UI
+  await expect(page.locator(SELECTORS.REACT_PANEL)).toHaveCount(4);
+  await waitForLoad(page);
+}
+
+async function openSettingsAndGetThemes(page: Page): Promise<string[]> {
+  // Open settings sidebar
+  const settingsButton = page.getByLabel('User Settings');
+  await settingsButton.click();
+
+  // Expand theme section
+  const settingsMenu = page.locator('.app-settings-menu');
+  await expect(settingsMenu).toBeVisible();
+  const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
+  await themeSection.click();
+
+  // Open color scheme dropdown and get all theme names
+  const colorSchemeDropdown = page.getByRole('button', {
+    name: 'Pick a color scheme',
+  });
+  await expect(colorSchemeDropdown).toBeVisible();
+  await colorSchemeDropdown.click();
+
+  const popover = page.getByTestId('popover');
+  await expect(popover).toBeVisible();
+  const themeNames = await popover.getByRole('option').allTextContents();
+
+  // Close dropdown
+  await page.keyboard.press('Escape');
+
+  return themeNames;
+}
+
+async function selectTheme(page: Page, themeName: string): Promise<void> {
+  const colorSchemeDropdown = page.getByRole('button', {
+    name: 'Pick a color scheme',
+  });
+  await colorSchemeDropdown.click();
+
+  const popover = page.getByTestId('popover');
+  await expect(popover).toBeVisible();
+
+  const themeOption = popover.getByRole('option', { name: themeName });
+  await themeOption.click();
+
+  // Wait for theme to apply
+  await page.waitForTimeout(2000);
+}
+
+async function closeSettings(page: Page): Promise<void> {
+  const closeButton = page.getByLabel('Close', { exact: true });
+  await closeButton.click();
+
+  const settingsMenu = page.locator('.app-settings-menu');
+  await expect(settingsMenu).not.toBeVisible();
+}
+
+async function openSettings(page: Page): Promise<void> {
+  const settingsButton = page.getByLabel('User Settings');
+  await settingsButton.click();
+
+  const settingsMenu = page.locator('.app-settings-menu');
+  await expect(settingsMenu).toBeVisible();
+}
+
+async function fillThemeName(page: Page, themeName: string): Promise<void> {
+  const themeNameInput = page.getByLabel('Current Theme');
+  await themeNameInput.clear();
+  await themeNameInput.fill(themeName);
+}
+
+async function takeScreenshot(page: Page, themeName: string): Promise<void> {
+  await waitForLoad(page);
+  await page.waitForTimeout(500);
+  await page.mouse.move(0, 0);
   await expect(page).toHaveScreenshot(`theme-${themeName}.png`);
 }
 
 test.describe('Theme switching', () => {
-  test('All themes render correctly', async ({ page }) => {
+  let themeNames: string[] = [];
+
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
     await gotoPage(page, '');
+    themeNames = await openSettingsAndGetThemes(page);
+    await context.close();
+  });
 
-    // Open settings sidebar using aria-label "User Settings"
-    const settingsButton = page.getByLabel('User Settings');
-    await settingsButton.click();
-
-    // Find and click the theme section in app-settings-menu to expand it
-    const settingsMenu = page.locator('.app-settings-menu');
-    const themeSection = settingsMenu.getByRole('button', {
-      name: /theme/i,
+  themeNames.forEach(themeName => {
+    test(`Theme ${themeName} renders correctly`, async ({ page }) => {
+      await gotoPage(page, '');
+      await openThemeDemoPanel(page);
+      await openSettings(page);
+      await selectTheme(page, themeName);
+      await closeSettings(page);
+      await fillThemeName(page, themeName);
+      await takeScreenshot(page, themeName);
     });
-    await themeSection.click();
-
-    // Click the react-spectrum dropdown "Pick a color scheme"
-    const colorSchemeDropdown = page.getByRole('button', {
-      name: 'Pick a color scheme',
-    });
-    await colorSchemeDropdown.click();
-
-    // Get all theme names at once using allTextContents()
-    const themeNames = await page.getByRole('option').allTextContents();
-
-    // Close the dropdown by pressing Escape
-    await page.keyboard.press('Escape');
-
-    // Test each theme sequentially using reduce to chain promises
-    await themeNames.reduce(async (promise, themeName) => {
-      await promise;
-      await selectThemeAndScreenshot(page, themeName, colorSchemeDropdown);
-    }, Promise.resolve() as Promise<void>);
   });
 });

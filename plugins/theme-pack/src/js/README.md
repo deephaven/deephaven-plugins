@@ -4,6 +4,10 @@ This plugin demonstrates how to create a custom theme for the Deephaven web UI. 
 
 ![Example Theme](example-theme.jpg)
 
+## Claude.md
+
+A CLAUDE.md file is available to assist in generating new themes based on a supplied color palette from an agentic CLI. You can find it in the same directory as this README. You can prompt it with providing a theme name and a set of base colors to generate a new theme CSS file, or pass in an existing VS Code scheme file to convert it to a Deephaven theme.
+
 ## Prerequisites
 
 Requires Deephaven Core version 0.33.0 or higher.
@@ -91,6 +95,8 @@ The Deephaven design system is based on the [Adobe spectrum](https://spectrum.ad
 - 13 shades of each of the 12 colors in the "color" palette: Red, Orange, Yellow, Chartreuse, Celery, Green, Seafoam, Cyan, Blue, Indigo, Purple, Fuschia and Magenta
 
 You can create color palettes with shades for each color using tools like Adobe's [Leonardo](https://leonardocolor.io/theme.html) color tool (recommended), or [Coolors](https://coolors.co/gradient-palette/fae7d5-24211d?number=11). You may already have an existing brand guide at your company that gives you full palettes. Leonardo is a great tool for creating color ramps, and has an "Export as CSS" feature to get the HEX values for each color in the ramp. Below we use hsl values, but you can use any color format listed in the previous section.
+
+You can inspect VS code themes for inspiration by running `Developer: Generate Color Theme From Current Settings` from the VS Code command palette.
 
 The background colors are defined using a set of 11 colors, ranging from light to dark for light themes, and inverted from dark to light for dark themes. The 50, 75, and 100 colors are closer together, and 100-900 are a more equal distribution. The other colors are more evenly distributed across lightness.
 

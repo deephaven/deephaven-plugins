@@ -11,7 +11,8 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/plugin": "^1.6.0"
+    "@deephaven/plugin": "^1.6.0",
+    "colorjs.io": "^0.6.0"
   },
   "publishConfig": {
     "access": "public"
