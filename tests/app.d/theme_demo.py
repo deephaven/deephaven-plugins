@@ -41,7 +41,7 @@ def theme_controls():
     theme_name, set_theme_name = ui.use_state("")
     count, set_count = ui.use_state(0)
 
-    return ui.flex(
+    return [
         ui.text_field(
             label="Current Theme",
             value=theme_name,
@@ -50,14 +50,11 @@ def theme_controls():
         ),
         ui.button(
             f"Clicked {count} times",
-            on_press=lambda: set_count(count + 1),
-            variant="primary",
+            on_press=lambda _: set_count(count + 1),
         ),
         ui.switch("Enable feature"),
         ui.slider(label="Opacity", default_value=75, min_value=0, max_value=100),
-        direction="column",
-        gap="size-200",
-    )
+    ]
 
 
 @ui.component

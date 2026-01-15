@@ -53,6 +53,11 @@ async function openSettingsAndGetThemes(page: Page): Promise<string[]> {
 }
 
 async function selectTheme(page: Page, themeName: string): Promise<void> {
+  const settingsMenu = page.locator('.app-settings-menu');
+  await expect(settingsMenu).toBeVisible();
+  const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
+  await themeSection.click();
+
   const colorSchemeDropdown = page.getByRole('button', {
     name: 'Pick a color scheme',
   });
@@ -69,10 +74,10 @@ async function selectTheme(page: Page, themeName: string): Promise<void> {
 }
 
 async function closeSettings(page: Page): Promise<void> {
-  const closeButton = page.getByLabel('Close', { exact: true });
+  const settingsMenu = page.locator('.app-settings-menu');
+  const closeButton = settingsMenu.getByLabel('Close');
   await closeButton.click();
 
-  const settingsMenu = page.locator('.app-settings-menu');
   await expect(settingsMenu).not.toBeVisible();
 }
 
@@ -98,25 +103,21 @@ async function takeScreenshot(page: Page, themeName: string): Promise<void> {
 }
 
 test.describe('Theme switching', () => {
-  let themeNames: string[] = [];
-
-  test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  test('All themes render correctly', async ({ page }) => {
     await gotoPage(page, '');
-    themeNames = await openSettingsAndGetThemes(page);
-    await context.close();
-  });
+    const themeNames = await openSettingsAndGetThemes(page);
 
-  themeNames.forEach(themeName => {
-    test(`Theme ${themeName} renders correctly`, async ({ page }) => {
-      await gotoPage(page, '');
-      await openThemeDemoPanel(page);
+    await closeSettings(page);
+
+    await openThemeDemoPanel(page);
+
+    await themeNames.reduce(async (previous, themeName) => {
+      await previous;
       await openSettings(page);
       await selectTheme(page, themeName);
       await closeSettings(page);
       await fillThemeName(page, themeName);
       await takeScreenshot(page, themeName);
-    });
+    }, Promise.resolve());
   });
 });
