@@ -97,7 +97,6 @@ async function fillThemeName(page: Page, themeName: string): Promise<void> {
 
 async function takeScreenshot(page: Page, themeName: string): Promise<void> {
   await waitForLoad(page);
-  await page.waitForTimeout(500);
   await page.mouse.move(0, 0);
   await expect(page).toHaveScreenshot(`theme-${themeName}.png`);
 }
