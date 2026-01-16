@@ -3,10 +3,10 @@ from deephaven import ui
 import deephaven.plot.express as dx
 
 # Get stocks data (non-ticking for stable screenshots)
-_stocks = dx.data.stocks(ticking=False).tail(100)
+_theme_stocks = dx.data.stocks(ticking=False).tail(100)
 
-_last_prices = _stocks.last_by("Sym")
-_chart = dx.bar(_last_prices, x="Sym", y="Price", by="Sym")
+_theme_last_prices = _theme_stocks.last_by("Sym")
+_chart_theme = dx.bar(_theme_last_prices, x="Sym", y="Price", by="Sym")
 
 # Fibonacci code example for markdown panel
 _fibonacci_code = """
@@ -58,15 +58,15 @@ def theme_controls():
 
 
 @ui.component
-def layout():
+def theme_layout():
     """Dashboard layout for theme demo."""
     return ui.column(
         ui.row(
             ui.stack(
-                ui.panel(ui.table(_stocks), title="Stocks Table"),
+                ui.panel(ui.table(_theme_stocks), title="Stocks Table"),
             ),
             ui.stack(
-                ui.panel(_chart, title="Price by Symbol"),
+                ui.panel(_chart_theme, title="Price by Symbol"),
             ),
         ),
         ui.row(
@@ -80,4 +80,4 @@ def layout():
     )
 
 
-theme_demo = ui.dashboard(layout())
+theme_demo = ui.dashboard(theme_layout())
