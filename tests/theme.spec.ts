@@ -61,6 +61,7 @@ async function selectTheme(page: Page, themeName: string): Promise<void> {
   const colorSchemeDropdown = page.getByRole('button', {
     name: 'Pick a color scheme',
   });
+  await expect(colorSchemeDropdown).toBeVisible();
   await colorSchemeDropdown.click();
 
   const popover = page.getByTestId('popover');
@@ -102,21 +103,34 @@ async function takeScreenshot(page: Page, themeName: string): Promise<void> {
 }
 
 test.describe('Theme switching', () => {
-  test('All themes render correctly', async ({ page }) => {
+  let themeNames: string[] = [];
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
     await gotoPage(page, '');
-    const themeNames = await openSettingsAndGetThemes(page);
+    themeNames = await openSettingsAndGetThemes(page);
+    await page.close();
+  });
 
-    await closeSettings(page);
-
+  test.beforeEach(async ({ page }) => {
+    await gotoPage(page, '');
     await openThemeDemoPanel(page);
+  });
 
+  test('All themes render correctly', async ({ page }) => {
+    // It needs a longer timeout because it's all one test with steps.
+    // It can't be seperated into multiple tests because it only knows
+    // the theme names dynamically at runtime.
+    test.setTimeout(30000);
     await themeNames.reduce(async (previous, themeName) => {
       await previous;
-      await openSettings(page);
-      await selectTheme(page, themeName);
-      await closeSettings(page);
-      await fillThemeName(page, themeName);
-      await takeScreenshot(page, themeName);
+      await test.step(`Theme: ${themeName}`, async () => {
+        await openSettings(page);
+        await selectTheme(page, themeName);
+        await closeSettings(page);
+        await fillThemeName(page, themeName);
+        await takeScreenshot(page, themeName);
+      });
     }, Promise.resolve());
   });
 });
