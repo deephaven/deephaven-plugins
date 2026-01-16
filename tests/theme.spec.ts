@@ -32,6 +32,7 @@ async function openSettingsAndGetThemes(page: Page): Promise<string[]> {
   // Expand theme section
   const settingsMenu = page.locator('.app-settings-menu');
   await expect(settingsMenu).toBeVisible();
+  await settingsMenu.getByRole('button', { name: /Default Format/i }).click();
   const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
   await themeSection.click();
 
@@ -55,6 +56,11 @@ async function openSettingsAndGetThemes(page: Page): Promise<string[]> {
 async function selectTheme(page: Page, themeName: string): Promise<void> {
   const settingsMenu = page.locator('.app-settings-menu');
   await expect(settingsMenu).toBeVisible();
+  // close the default section and open the theme section
+  // otherwise playwrigt completes the next click so fast
+  // that spectrum (which opens on mousedown, and selects on up)
+  // which can trigger the wrong items as the parent is still moving the control
+  await settingsMenu.getByRole('button', { name: /Default Format/i }).click();
   const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
   await themeSection.click();
 
@@ -105,23 +111,16 @@ async function takeScreenshot(page: Page, themeName: string): Promise<void> {
 test.describe('Theme switching', () => {
   let themeNames: string[] = [];
 
-  test.beforeAll(async ({ browser }) => {
-    const page = await browser.newPage();
+  test('All themes render correctly', async ({ page }) => {
     await gotoPage(page, '');
     themeNames = await openSettingsAndGetThemes(page);
-    await page.close();
-  });
-
-  test.beforeEach(async ({ page }) => {
-    await gotoPage(page, '');
+    await closeSettings(page);
     await openThemeDemoPanel(page);
-  });
 
-  test('All themes render correctly', async ({ page }) => {
     // It needs a longer timeout because it's all one test with steps.
     // It can't be seperated into multiple tests because it only knows
     // the theme names dynamically at runtime.
-    test.setTimeout(30000);
+    test.setTimeout(90000);
     await themeNames.reduce(async (previous, themeName) => {
       await previous;
       await test.step(`Theme: ${themeName}`, async () => {
