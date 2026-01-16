@@ -1,0 +1,345 @@
+/* Tomorrow Night Blue Theme for Deephaven */
+/* Generated from VS Code Tomorrow Night Blue theme */
+/* Deep blue backgrounds with soft pastel syntax colors */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Background (#002451) at gray-100, Foreground (#ffffff) at gray-900 */
+  /* Using VS Code theme backgrounds: titleBar (#001126), tabs (#001733), editor (#002451), sidebar (#001c40) */
+  --dh-color-gray-50: #000d1f;
+  --dh-color-gray-75: #001126; /* titleBar.activeBackground */
+  --dh-color-gray-100: #001733; /* editorGroupHeader.tabsBackground, input */
+  --dh-color-gray-200: #001c40; /* sideBar.background, tab.inactiveBackground */
+  --dh-color-gray-300: #002451; /* editor.background */
+  --dh-color-gray-400: #1a4a7a;
+  --dh-color-gray-500: #3d6a9a;
+  --dh-color-gray-600: #6089b5;
+  --dh-color-gray-700: #85a7cc;
+  --dh-color-gray-800: #acc5e0;
+  --dh-color-gray-900: #ffffff; /* editor.foreground */
+
+  /* ============ RED PALETTE ============ */
+  /* Tomorrow Night Blue Red/Pink - variables, tags (#FF9DA4) anchored at 900 */
+  --dh-color-red-100: #3d1215;
+  --dh-color-red-200: #52191d;
+  --dh-color-red-300: #682126;
+  --dh-color-red-400: #832c33;
+  --dh-color-red-500: #a33b42;
+  --dh-color-red-600: #c24e57;
+  --dh-color-red-700: #de656e;
+  --dh-color-red-800: #f47f88;
+  --dh-color-red-900: #ff9da4; /* #FF9DA4 - variables, tags */
+  --dh-color-red-1000: #ffb5ba;
+  --dh-color-red-1100: #ffcbce;
+  --dh-color-red-1200: #ffdfe1;
+  --dh-color-red-1300: #ffeff0;
+  --dh-color-red-1400: #fff7f8;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* Tomorrow Night Blue Orange - numbers, constants (#FFC58F) anchored at 900 */
+  --dh-color-orange-100: #2d1a00;
+  --dh-color-orange-200: #402600;
+  --dh-color-orange-300: #543300;
+  --dh-color-orange-400: #6e4400;
+  --dh-color-orange-500: #8c5800;
+  --dh-color-orange-600: #aa6f14;
+  --dh-color-orange-700: #c7882e;
+  --dh-color-orange-800: #e3a24f;
+  --dh-color-orange-900: #ffc58f; /* #FFC58F - numbers, constants */
+  --dh-color-orange-1000: #ffd4a8;
+  --dh-color-orange-1100: #ffe2c2;
+  --dh-color-orange-1200: #ffedd9;
+  --dh-color-orange-1300: #fff5eb;
+  --dh-color-orange-1400: #fffaf5;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* Tomorrow Night Blue Yellow - classes, types (#FFEEAD) anchored at 1000 */
+  --dh-color-yellow-100: #2e2600;
+  --dh-color-yellow-200: #403500;
+  --dh-color-yellow-300: #534500;
+  --dh-color-yellow-400: #6b5900;
+  --dh-color-yellow-500: #877000;
+  --dh-color-yellow-600: #a38900;
+  --dh-color-yellow-700: #c0a31f;
+  --dh-color-yellow-800: #dcbe46;
+  --dh-color-yellow-900: #f2d86e;
+  --dh-color-yellow-1000: #ffeead; /* #FFEEAD - classes, types */
+  --dh-color-yellow-1100: #fff4c6;
+  --dh-color-yellow-1200: #fff8d9;
+  --dh-color-yellow-1300: #fffbe9;
+  --dh-color-yellow-1400: #fffdf4;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Derived - between yellow and green */
+  --dh-color-chartreuse-100: #1a2200;
+  --dh-color-chartreuse-200: #253100;
+  --dh-color-chartreuse-300: #314100;
+  --dh-color-chartreuse-400: #425600;
+  --dh-color-chartreuse-500: #566e00;
+  --dh-color-chartreuse-600: #6c8800;
+  --dh-color-chartreuse-700: #84a300;
+  --dh-color-chartreuse-800: #9ebf1a;
+  --dh-color-chartreuse-900: #b8da42;
+  --dh-color-chartreuse-1000: #d0f06c;
+  --dh-color-chartreuse-1100: #e2ff96;
+  --dh-color-chartreuse-1200: #edffb8;
+  --dh-color-chartreuse-1300: #f5ffd6;
+  --dh-color-chartreuse-1400: #faffeb;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived - yellowish green */
+  --dh-color-celery-100: #132200;
+  --dh-color-celery-200: #1c3100;
+  --dh-color-celery-300: #264100;
+  --dh-color-celery-400: #345600;
+  --dh-color-celery-500: #456e00;
+  --dh-color-celery-600: #588800;
+  --dh-color-celery-700: #6da300;
+  --dh-color-celery-800: #84bf15;
+  --dh-color-celery-900: #9cda3a;
+  --dh-color-celery-1000: #b5f060;
+  --dh-color-celery-1100: #cdff8a;
+  --dh-color-celery-1200: #dffeae;
+  --dh-color-celery-1300: #edffce;
+  --dh-color-celery-1400: #f6ffe7;
+
+  /* ============ GREEN PALETTE ============ */
+  /* Tomorrow Night Blue Green - strings (#D1F1A9) anchored at 1000 */
+  --dh-color-green-100: #0f2400;
+  --dh-color-green-200: #173300;
+  --dh-color-green-300: #204300;
+  --dh-color-green-400: #2c5800;
+  --dh-color-green-500: #3b7100;
+  --dh-color-green-600: #4c8b00;
+  --dh-color-green-700: #5fa600;
+  --dh-color-green-800: #76c21a;
+  --dh-color-green-900: #8fdd40;
+  --dh-color-green-1000: #d1f1a9; /* #D1F1A9 - strings */
+  --dh-color-green-1100: #e0f8c2;
+  --dh-color-green-1200: #ecfcd8;
+  --dh-color-green-1300: #f5fee9;
+  --dh-color-green-1400: #fafff4;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Derived - between green and cyan */
+  --dh-color-seafoam-100: #002416;
+  --dh-color-seafoam-200: #003320;
+  --dh-color-seafoam-300: #00432b;
+  --dh-color-seafoam-400: #00583a;
+  --dh-color-seafoam-500: #00714c;
+  --dh-color-seafoam-600: #008b60;
+  --dh-color-seafoam-700: #00a676;
+  --dh-color-seafoam-800: #1ac28e;
+  --dh-color-seafoam-900: #42dda8;
+  --dh-color-seafoam-1000: #6cf0c2;
+  --dh-color-seafoam-1100: #96ffd9;
+  --dh-color-seafoam-1200: #b8ffe8;
+  --dh-color-seafoam-1300: #d6fff2;
+  --dh-color-seafoam-1400: #ebfff9;
+
+  /* ============ CYAN PALETTE ============ */
+  /* Tomorrow Night Blue Cyan - operators (#99FFFF) anchored at 1000 */
+  --dh-color-cyan-100: #002626;
+  --dh-color-cyan-200: #003636;
+  --dh-color-cyan-300: #004747;
+  --dh-color-cyan-400: #005d5d;
+  --dh-color-cyan-500: #007676;
+  --dh-color-cyan-600: #009090;
+  --dh-color-cyan-700: #00abab;
+  --dh-color-cyan-800: #1ac7c7;
+  --dh-color-cyan-900: #4de2e2;
+  --dh-color-cyan-1000: #99ffff; /* #99FFFF - operators */
+  --dh-color-cyan-1100: #b3ffff;
+  --dh-color-cyan-1200: #ccffff;
+  --dh-color-cyan-1300: #e0ffff;
+  --dh-color-cyan-1400: #f0ffff;
+
+  /* ============ BLUE PALETTE ============ */
+  /* Tomorrow Night Blue Blue - functions, accent (#BBDAFF) anchored at 1000 */
+  --dh-color-blue-100: #001733;
+  --dh-color-blue-200: #002147;
+  --dh-color-blue-300: #002c5c;
+  --dh-color-blue-400: #003a77;
+  --dh-color-blue-500: #004c96;
+  --dh-color-blue-600: #1060b3;
+  --dh-color-blue-700: #3077cd;
+  --dh-color-blue-800: #5591e3;
+  --dh-color-blue-900: #7dadf3;
+  --dh-color-blue-1000: #bbdaff; /* #BBDAFF - functions */
+  --dh-color-blue-1100: #cee5ff;
+  --dh-color-blue-1200: #deefff;
+  --dh-color-blue-1300: #ecf6ff;
+  --dh-color-blue-1400: #f5faff;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Derived - between blue and purple */
+  --dh-color-indigo-100: #0f0f33;
+  --dh-color-indigo-200: #171747;
+  --dh-color-indigo-300: #20205c;
+  --dh-color-indigo-400: #2c2c77;
+  --dh-color-indigo-500: #3b3b96;
+  --dh-color-indigo-600: #4e4eb3;
+  --dh-color-indigo-700: #6464cd;
+  --dh-color-indigo-800: #7d7de3;
+  --dh-color-indigo-900: #9898f3;
+  --dh-color-indigo-1000: #b5b5ff;
+  --dh-color-indigo-1100: #cccfff;
+  --dh-color-indigo-1200: #dedeff;
+  --dh-color-indigo-1300: #ececff;
+  --dh-color-indigo-1400: #f5f5ff;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* Tomorrow Night Blue Purple/Magenta - keywords, storage (#EBBBFF) anchored at 1000 */
+  --dh-color-purple-100: #1f0a2b;
+  --dh-color-purple-200: #2d1040;
+  --dh-color-purple-300: #3c1755;
+  --dh-color-purple-400: #4f2170;
+  --dh-color-purple-500: #662e8e;
+  --dh-color-purple-600: #7e3fab;
+  --dh-color-purple-700: #9854c6;
+  --dh-color-purple-800: #b36ddf;
+  --dh-color-purple-900: #ce8af5;
+  --dh-color-purple-1000: #ebbbff; /* #EBBBFF - keywords, storage */
+  --dh-color-purple-1100: #f1ccff;
+  --dh-color-purple-1200: #f6dcff;
+  --dh-color-purple-1300: #faeaff;
+  --dh-color-purple-1400: #fdf5ff;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* Derived - between purple and magenta */
+  --dh-color-fuchsia-100: #2b0a22;
+  --dh-color-fuchsia-200: #401032;
+  --dh-color-fuchsia-300: #551743;
+  --dh-color-fuchsia-400: #702158;
+  --dh-color-fuchsia-500: #8e2e72;
+  --dh-color-fuchsia-600: #ab3f8c;
+  --dh-color-fuchsia-700: #c654a6;
+  --dh-color-fuchsia-800: #df6dc0;
+  --dh-color-fuchsia-900: #f58ada;
+  --dh-color-fuchsia-1000: #ffbbee;
+  --dh-color-fuchsia-1100: #ffccf2;
+  --dh-color-fuchsia-1200: #ffdcf6;
+  --dh-color-fuchsia-1300: #ffeafa;
+  --dh-color-fuchsia-1400: #fff5fd;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* Derived - reddish purple */
+  --dh-color-magenta-100: #2b0a17;
+  --dh-color-magenta-200: #401023;
+  --dh-color-magenta-300: #551730;
+  --dh-color-magenta-400: #702140;
+  --dh-color-magenta-500: #8e2e54;
+  --dh-color-magenta-600: #ab3f6b;
+  --dh-color-magenta-700: #c65483;
+  --dh-color-magenta-800: #df6d9d;
+  --dh-color-magenta-900: #f58ab8;
+  --dh-color-magenta-1000: #ffbbd4;
+  --dh-color-magenta-1100: #ffccdf;
+  --dh-color-magenta-1200: #ffdcea;
+  --dh-color-magenta-1300: #ffeaf2;
+  --dh-color-magenta-1400: #fff5f9;
+
+  /* ============ SEMANTIC - ACCENT (Blue) ============ */
+  /* Tomorrow Night Blue uses blue (#BBDAFF) as its primary accent */
+  --dh-color-accent-100: var(--dh-color-blue-100);
+  --dh-color-accent-200: var(--dh-color-blue-200);
+  --dh-color-accent-300: var(--dh-color-blue-300);
+  --dh-color-accent-400: var(--dh-color-blue-400);
+  --dh-color-accent-500: var(--dh-color-blue-500);
+  --dh-color-accent-600: var(--dh-color-blue-600);
+  --dh-color-accent-700: var(--dh-color-blue-700);
+  --dh-color-accent-800: var(--dh-color-blue-800);
+  --dh-color-accent-900: var(--dh-color-blue-900);
+  --dh-color-accent-1000: var(--dh-color-blue-1000);
+  --dh-color-accent-1100: var(--dh-color-blue-1100);
+  --dh-color-accent-1200: var(--dh-color-blue-1200);
+  --dh-color-accent-1300: var(--dh-color-blue-1300);
+  --dh-color-accent-1400: var(--dh-color-blue-1400);
+
+  /* ============ SEMANTIC - POSITIVE (Green) ============ */
+  --dh-color-visual-positive: var(--dh-color-green-1000);
+
+  /* ============ SEMANTIC - NEGATIVE (Red) ============ */
+  --dh-color-negative: var(--dh-color-red-700);
+  --dh-color-negative-bg: var(--dh-color-negative);
+  --dh-color-negative-hover-bg: var(--dh-color-red-600);
+  --dh-color-negative-down-bg: var(--dh-color-red-500);
+  --dh-color-negative-key-focus-bg: var(--dh-color-red-600);
+  --dh-color-visual-negative: var(--dh-color-red-900);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using Tomorrow Night Blue background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-300);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
+
+  /* Chart colorway using Tomorrow Night Blue colors */
+  --dh-color-chart-colorway: var(--dh-color-blue-1000) var(--dh-color-red-900)
+    var(--dh-color-green-1000) var(--dh-color-yellow-1000)
+    var(--dh-color-purple-1000) var(--dh-color-cyan-1000)
+    var(--dh-color-orange-900) var(--dh-color-fuchsia-900)
+    var(--dh-color-seafoam-900) var(--dh-color-indigo-900);
+
+  /* ============ EDITOR SEMANTIC - TOMORROW NIGHT BLUE SYNTAX ============ */
+  /* Based on VS Code Tomorrow Night Blue token colors */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-300);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-400);
+  --dh-color-editor-selection-bg: var(--dh-color-blue-500);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-blue-400);
+
+  /* Code syntax highlighting per Tomorrow Night Blue */
+  --dh-color-editor-comment: var(
+    --dh-color-gray-600
+  ); /* Comments - #7285B7 mapped to blue palette */
+  --dh-color-editor-keyword: var(
+    --dh-color-purple-1000
+  ); /* Keywords - #EBBBFF */
+  --dh-color-editor-storage: var(
+    --dh-color-purple-1000
+  ); /* Storage types - #EBBBFF */
+  --dh-color-editor-number: var(
+    --dh-color-orange-900
+  ); /* Numbers, constants - #FFC58F */
+  --dh-color-editor-string: var(--dh-color-green-1000); /* Strings - #D1F1A9 */
+  --dh-color-editor-string-delim: var(
+    --dh-color-green-900
+  ); /* String delimiters */
+  --dh-color-editor-identifier: var(
+    --dh-color-gray-900
+  ); /* Default identifiers - Foreground */
+  --dh-color-editor-identifier-js: var(
+    --dh-color-blue-1000
+  ); /* Functions, methods - #BBDAFF */
+  --dh-color-editor-identifier-namespace: var(
+    --dh-color-yellow-1000
+  ); /* Classes, types - #FFEEAD */
+  --dh-color-editor-predefined: var(
+    --dh-color-blue-1000
+  ); /* Support functions - #BBDAFF */
+  --dh-color-editor-operator: var(
+    --dh-color-cyan-1000
+  ); /* Operators - #99FFFF */
+  --dh-color-editor-delimiter: var(
+    --dh-color-gray-900
+  ); /* Delimiters - Foreground */
+  --dh-color-editor-error-fg: var(
+    --dh-color-red-700
+  ); /* Errors - #A92049 mapped */
+
+  /* Bracket colors - Tomorrow Night Blue style */
+  --dh-color-editor-bracket-fg1: var(--dh-color-blue-1000); /* Blue */
+  --dh-color-editor-bracket-fg2: var(--dh-color-purple-1000); /* Purple */
+  --dh-color-editor-bracket-fg3: var(--dh-color-cyan-1000); /* Cyan */
+  --dh-color-editor-bracket-fg4: var(--dh-color-yellow-1000); /* Yellow */
+  --dh-color-editor-bracket-fg5: var(--dh-color-green-1000); /* Green */
+  --dh-color-editor-bracket-fg6: var(--dh-color-orange-900); /* Orange */
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-700); /* Red */
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-500); /* Dimmed */
+  --dh-color-editor-line-number-active-fg: var(
+    --dh-color-gray-700
+  ); /* Brighter */
+}
