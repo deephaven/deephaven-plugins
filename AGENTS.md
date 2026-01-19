@@ -6,6 +6,16 @@ This guide provides essential information for AI agents working in the deephaven
 
 This repository contains Deephaven plugin modules, including both Python and JavaScript plugins located in the `plugins/` folder.
 
+## Feature Planning
+
+For complex features, create detailed plan documents in `plugins/<plugin-name>/plans/`:
+
+- **Naming**: Use ticket numbers (e.g., `DH-12345.md`)
+- **Structure**: Include overview, goals, technical design, implementation plan, testing strategy, documentation needs, and open questions
+- **Purpose**: Design documentation, implementation reference, and historical record of decisions
+
+See [plugins/ui/plans/README.md](plugins/ui/plans/README.md) for complete guidelines.
+
 ## Environment Setup
 
 ### Python Environment
