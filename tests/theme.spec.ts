@@ -1,99 +1,37 @@
 import { expect, test, Page } from '@playwright/test';
-import { gotoPage, SELECTORS, waitForLoad } from './utils';
+import * as fs from 'fs';
+import * as path from 'path';
+import { SELECTORS, waitForLoad } from './utils';
 
-async function openThemeDemoPanel(page: Page): Promise<void> {
-  const appPanels = page.getByRole('button', { name: 'Panels', exact: true });
-  await expect(appPanels).toBeEnabled();
-  await appPanels.click();
+// Parse theme names directly from theme-pack source
+// Can't just import due to vite ?inline statements
+function getThemeNames(): string[] {
+  const themePackIndex = path.join(
+    __dirname,
+    '../plugins/theme-pack/src/js/src/index.ts'
+  );
+  const content = fs.readFileSync(themePackIndex, 'utf-8');
 
-  const search = page.getByRole('searchbox', {
-    name: 'Find Table, Plot or Widget',
-    exact: true,
-  });
-  await search.fill('theme_demo');
+  // Extract theme names from the source using regex
+  // Handle single-quoted and double-quoted strings separately
+  // (double-quoted may contain single quotes like "SynthWave '84")
+  const singleQuoteRegex = /name:\s*'([^']+)'/g;
+  const doubleQuoteRegex = /name:\s*"([^"]+)"/g;
 
-  const targetPanel = page.getByRole('button', {
-    name: 'theme_demo',
-    exact: true,
-  });
-  await expect(targetPanel).toBeEnabled();
-  await targetPanel.click();
+  const singleMatches = Array.from(
+    content.matchAll(singleQuoteRegex),
+    m => m[1]
+  );
+  const doubleMatches = Array.from(
+    content.matchAll(doubleQuoteRegex),
+    m => m[1]
+  );
 
-  await page.mouse.move(0, 0);
-  await expect(page.locator(SELECTORS.REACT_PANEL)).toHaveCount(4);
-  await waitForLoad(page);
-}
+  const names = [...singleMatches, ...doubleMatches].filter(
+    name => name !== 'theme-pack'
+  );
 
-async function openSettingsAndGetThemes(page: Page): Promise<string[]> {
-  // Open settings sidebar
-  const settingsButton = page.getByLabel('User Settings');
-  await settingsButton.click();
-
-  // Expand theme section
-  const settingsMenu = page.locator('.app-settings-menu');
-  await expect(settingsMenu).toBeVisible();
-  await settingsMenu.getByRole('button', { name: /Default Format/i }).click();
-  const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
-  await themeSection.click();
-
-  // Open color scheme dropdown and get all theme names
-  const colorSchemeDropdown = page.getByRole('button', {
-    name: 'Pick a color scheme',
-  });
-  await expect(colorSchemeDropdown).toBeVisible();
-  await colorSchemeDropdown.click();
-
-  const popover = page.getByTestId('popover');
-  await expect(popover).toBeVisible();
-  const themeNames = await popover.getByRole('option').allTextContents();
-
-  // Close dropdown
-  await page.keyboard.press('Escape');
-
-  return themeNames;
-}
-
-async function selectTheme(page: Page, themeName: string): Promise<void> {
-  const settingsMenu = page.locator('.app-settings-menu');
-  await expect(settingsMenu).toBeVisible();
-  // close the default section and open the theme section
-  // otherwise playwrigt completes the next click so fast
-  // that spectrum (which opens on mousedown, and selects on up)
-  // which can trigger the wrong items as the parent is still moving the control
-  await settingsMenu.getByRole('button', { name: /Default Format/i }).click();
-  const themeSection = settingsMenu.getByRole('button', { name: /theme/i });
-  await themeSection.click();
-
-  const colorSchemeDropdown = page.getByRole('button', {
-    name: 'Pick a color scheme',
-  });
-  await expect(colorSchemeDropdown).toBeVisible();
-  await colorSchemeDropdown.click();
-
-  const popover = page.getByTestId('popover');
-  await expect(popover).toBeVisible();
-
-  const themeOption = popover.getByRole('option', { name: themeName });
-  await themeOption.click();
-
-  // Wait for theme to apply
-  await page.waitForTimeout(2000);
-}
-
-async function closeSettings(page: Page): Promise<void> {
-  const settingsMenu = page.locator('.app-settings-menu');
-  const closeButton = settingsMenu.getByLabel('Close');
-  await closeButton.click();
-
-  await expect(settingsMenu).not.toBeVisible();
-}
-
-async function openSettings(page: Page): Promise<void> {
-  const settingsButton = page.getByLabel('User Settings');
-  await settingsButton.click();
-
-  const settingsMenu = page.locator('.app-settings-menu');
-  await expect(settingsMenu).toBeVisible();
+  return names;
 }
 
 async function fillThemeName(page: Page, themeName: string): Promise<void> {
@@ -104,32 +42,31 @@ async function fillThemeName(page: Page, themeName: string): Promise<void> {
 
 async function takeScreenshot(page: Page, themeName: string): Promise<void> {
   await waitForLoad(page);
-  await page.mouse.move(0, 0);
+  await page.mouse.move(-1, -1); // Move mouse out of the way for screenshot
   await expect(page).toHaveScreenshot(`theme-${themeName}.png`);
 }
 
+// Read theme names at module level for parallel test creation
+const themeNames = getThemeNames();
+
 test.describe('Theme switching', () => {
-  let themeNames: string[] = [];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const themeName of themeNames) {
+    test(`Theme: ${themeName}`, async ({ page }) => {
+      // weird that we require ' do be encoded, but encodeURIComponent doesn't do it
+      const encodedTheme = encodeURIComponent(themeName);
+      // theme expects a themeKey, which is in the format "pluginName_themeName" url-encoded.
+      // for docker builds the pluginName is the full js package name with scope
+      await page.goto(
+        `/iframe/widget/?name=theme_demo&theme=@deephaven/js-plugin-theme-pack_${encodedTheme}`
+      );
 
-  test('All themes render correctly', async ({ page }) => {
-    await gotoPage(page, '');
-    themeNames = await openSettingsAndGetThemes(page);
-    await closeSettings(page);
-    await openThemeDemoPanel(page);
-
-    // It needs a longer timeout because it's all one test with steps.
-    // It can't be seperated into multiple tests because it only knows
-    // the theme names dynamically at runtime.
-    test.setTimeout(90000);
-    await themeNames.reduce(async (previous, themeName) => {
-      await previous;
-      await test.step(`Theme: ${themeName}`, async () => {
-        await openSettings(page);
-        await selectTheme(page, themeName);
-        await closeSettings(page);
-        await fillThemeName(page, themeName);
-        await takeScreenshot(page, themeName);
+      await expect(page.locator(SELECTORS.REACT_PANEL)).toHaveCount(4, {
+        timeout: 30000,
       });
-    }, Promise.resolve());
-  });
+      await waitForLoad(page);
+      await fillThemeName(page, themeName);
+      await takeScreenshot(page, themeName);
+    });
+  }
 });
