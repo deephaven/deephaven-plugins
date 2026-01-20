@@ -3,11 +3,16 @@ import type { GetMetricCalculatorType } from '@deephaven/iris-grid';
 import IrisGridPivotMetricCalculator from '../IrisGridPivotMetricCalculator';
 
 /**
- * Hook that creates a pivot metric calculator
- * @returns Pivot metric calculator
+ * Hook that creates a factory returning a pivot metric calculator
+ * @returns Factory returning a pivot metric calculator
  */
 export function usePivotMetricCalculator(): GetMetricCalculatorType {
-  return useMemo(() => args => new IrisGridPivotMetricCalculator(args), []);
+  return useMemo(
+    () =>
+      (...args) =>
+        new IrisGridPivotMetricCalculator(...args),
+    []
+  );
 }
 
 export default usePivotMetricCalculator;
