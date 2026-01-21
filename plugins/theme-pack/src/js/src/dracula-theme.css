@@ -1,0 +1,346 @@
+/* Dracula Theme for Deephaven */
+/* Generated with exact anchor points from official Dracula colors */
+/* Source: https://spec.draculatheme.com/ */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Background (#282A36) at gray-100, Foreground (#F8F8F2) at gray-900 */
+  --dh-color-gray-50: #1a1c27;
+  --dh-color-gray-75: #20232e;
+  --dh-color-gray-100: #282a36; /* Dracula Background */
+  --dh-color-gray-200: #343d46;
+  --dh-color-gray-300: #455157;
+  --dh-color-gray-400: #616e71;
+  --dh-color-gray-500: #818d8b;
+  --dh-color-gray-600: #a3aca7;
+  --dh-color-gray-700: #c7ccc5;
+  --dh-color-gray-800: #e4e6e0;
+  --dh-color-gray-900: #f8f8f2; /* Dracula Foreground */
+
+  /* ============ RED PALETTE ============ */
+  /* Dracula Red - errors, warnings, deletion anchored at 600 */
+  --dh-color-red-100: #671f1e;
+  --dh-color-red-200: #7e2424;
+  --dh-color-red-300: #96292a;
+  --dh-color-red-400: #b53536;
+  --dh-color-red-500: #da4545;
+  --dh-color-red-600: #f55; /* #FF5555 */
+  --dh-color-red-700: #ff827c;
+  --dh-color-red-800: #ffafa8;
+  --dh-color-red-900: #ffd6d1;
+  --dh-color-red-1000: #fff1ee;
+  --dh-color-red-1100: #fff1ee;
+  --dh-color-red-1200: #fff1ee;
+  --dh-color-red-1300: #fff1ee;
+  --dh-color-red-1400: #fff1ee;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* Dracula Orange - numbers, constants, booleans anchored at 900 */
+  --dh-color-orange-100: #391e00;
+  --dh-color-orange-200: #4a2800;
+  --dh-color-orange-300: #5c3300;
+  --dh-color-orange-400: #754400;
+  --dh-color-orange-500: #915806;
+  --dh-color-orange-600: #ad6e22;
+  --dh-color-orange-700: #c98637;
+  --dh-color-orange-800: #e49f52;
+  --dh-color-orange-900: #ffb86c; /* #FFB86C */
+  --dh-color-orange-1000: #ffce8f;
+  --dh-color-orange-1100: #ffe9c4;
+  --dh-color-orange-1200: #fff3da;
+  --dh-color-orange-1300: #fff3da;
+  --dh-color-orange-1400: #fff4df;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* Dracula Yellow - functions, methods (naturally light) anchored at 1000 */
+  --dh-color-yellow-100: #353706;
+  --dh-color-yellow-200: #424505;
+  --dh-color-yellow-300: #4f5301;
+  --dh-color-yellow-400: #636808;
+  --dh-color-yellow-500: #7a8016;
+  --dh-color-yellow-600: #92982d;
+  --dh-color-yellow-700: #abb242;
+  --dh-color-yellow-800: #c4cc5e;
+  --dh-color-yellow-900: #dde678;
+  --dh-color-yellow-1000: #f1fa8c; /* #F1FA8C */
+  --dh-color-yellow-1100: #f9ffa6;
+  --dh-color-yellow-1200: #f9ffb6;
+  --dh-color-yellow-1300: #f8feca;
+  --dh-color-yellow-1400: #f8fcdd;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Derived - between yellow and green anchored at 1000 */
+  --dh-color-chartreuse-100: #0f1f00;
+  --dh-color-chartreuse-200: #182c00;
+  --dh-color-chartreuse-300: #223a00;
+  --dh-color-chartreuse-400: #314e00;
+  --dh-color-chartreuse-500: #426600;
+  --dh-color-chartreuse-600: #557f00;
+  --dh-color-chartreuse-700: #689a00;
+  --dh-color-chartreuse-800: #7cb500;
+  --dh-color-chartreuse-900: #91d000;
+  --dh-color-chartreuse-1000: #a4e400; /* #A4E400 */
+  --dh-color-chartreuse-1100: #bdf561;
+  --dh-color-chartreuse-1200: #d3ff8f;
+  --dh-color-chartreuse-1300: #e5ffb9;
+  --dh-color-chartreuse-1400: #ecffd2;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived - yellowish green anchored at 1000 */
+  --dh-color-celery-100: #091b00;
+  --dh-color-celery-200: #122800;
+  --dh-color-celery-300: #1b3600;
+  --dh-color-celery-400: #284a00;
+  --dh-color-celery-500: #396300;
+  --dh-color-celery-600: #4a7c00;
+  --dh-color-celery-700: #5c9600;
+  --dh-color-celery-800: #6eb200;
+  --dh-color-celery-900: #85cc00;
+  --dh-color-celery-1000: #98e024; /* #98E024 */
+  --dh-color-celery-1100: #b2f166;
+  --dh-color-celery-1200: #cafe90;
+  --dh-color-celery-1300: #e1ffbc;
+  --dh-color-celery-1400: #ebffd5;
+
+  /* ============ GREEN PALETTE ============ */
+  /* Dracula Green - strings, inherited classes anchored at 900 */
+  --dh-color-green-100: #003b05;
+  --dh-color-green-200: #004b05;
+  --dh-color-green-300: #005b09;
+  --dh-color-green-400: #007214;
+  --dh-color-green-500: #008d20;
+  --dh-color-green-600: #00a932;
+  --dh-color-green-700: #00c446;
+  --dh-color-green-800: #25df61;
+  --dh-color-green-900: #50fa7b; /* #50FA7B */
+  --dh-color-green-1000: #95ffa8;
+  --dh-color-green-1100: #d9ffde;
+  --dh-color-green-1200: #d9ffde;
+  --dh-color-green-1300: #d9ffde;
+  --dh-color-green-1400: #dbffe0;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Derived - between green and cyan anchored at 900 */
+  --dh-color-seafoam-100: #003a10;
+  --dh-color-seafoam-200: #004a15;
+  --dh-color-seafoam-300: #005a1a;
+  --dh-color-seafoam-400: #007125;
+  --dh-color-seafoam-500: #008c34;
+  --dh-color-seafoam-600: #00a648;
+  --dh-color-seafoam-700: #00c25c;
+  --dh-color-seafoam-800: #36dc75;
+  --dh-color-seafoam-900: #5af78e; /* #5AF78E */
+  --dh-color-seafoam-1000: #8dffae;
+  --dh-color-seafoam-1100: #d8ffe1;
+  --dh-color-seafoam-1200: #d8ffe1;
+  --dh-color-seafoam-1300: #d8ffe1;
+  --dh-color-seafoam-1400: #ddffe5;
+
+  /* ============ CYAN PALETTE ============ */
+  /* Dracula Cyan - support functions, regex anchored at 900 */
+  --dh-color-cyan-100: #0d373f;
+  --dh-color-cyan-200: #10454f;
+  --dh-color-cyan-300: #125460;
+  --dh-color-cyan-400: #1d6977;
+  --dh-color-cyan-500: #2b8293;
+  --dh-color-cyan-600: #419bad;
+  --dh-color-cyan-700: #56b5c8;
+  --dh-color-cyan-800: #71cfe2;
+  --dh-color-cyan-900: #8be9fd; /* #8BE9FD */
+  --dh-color-cyan-1000: #a9fbff;
+  --dh-color-cyan-1100: #d0ffff;
+  --dh-color-cyan-1200: #d0ffff;
+  --dh-color-cyan-1300: #d6ffff;
+  --dh-color-cyan-1400: #e4feff;
+
+  /* ============ BLUE PALETTE ============ */
+  /* Dracula Comment - comments, disabled code anchored at 700 */
+  --dh-color-blue-100: #05091c;
+  --dh-color-blue-200: #0e142c;
+  --dh-color-blue-300: #171f3c;
+  --dh-color-blue-400: #263053;
+  --dh-color-blue-500: #39456f;
+  --dh-color-blue-600: #4d5b89;
+  --dh-color-blue-700: #6272a4; /* #6272A4 */
+  --dh-color-blue-800: #798abe;
+  --dh-color-blue-900: #91a3d8;
+  --dh-color-blue-1000: #a4b6e9;
+  --dh-color-blue-1100: #b9c9f8;
+  --dh-color-blue-1200: #ccdaff;
+  --dh-color-blue-1300: #dde7ff;
+  --dh-color-blue-1400: #ebf1ff;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Derived - between blue and purple anchored at 700 */
+  --dh-color-indigo-100: #0b0a2a;
+  --dh-color-indigo-200: #15143d;
+  --dh-color-indigo-300: #1f1f51;
+  --dh-color-indigo-400: #2f306b;
+  --dh-color-indigo-500: #42448a;
+  --dh-color-indigo-600: #575aa6;
+  --dh-color-indigo-700: #6c71c4; /* #6C71C4 */
+  --dh-color-indigo-800: #8389df;
+  --dh-color-indigo-900: #9ba2fa;
+  --dh-color-indigo-1000: #aeb6ff;
+  --dh-color-indigo-1100: #c5ccff;
+  --dh-color-indigo-1200: #d8deff;
+  --dh-color-indigo-1300: #e8edff;
+  --dh-color-indigo-1400: #f4f7ff;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* Dracula Purple - classes, types, variables anchored at 900 */
+  --dh-color-purple-100: #16042a;
+  --dh-color-purple-200: #230b3c;
+  --dh-color-purple-300: #311450;
+  --dh-color-purple-400: #45246a;
+  --dh-color-purple-500: #5c3689;
+  --dh-color-purple-600: #734ca6;
+  --dh-color-purple-700: #8c62c3;
+  --dh-color-purple-800: #a47ade;
+  --dh-color-purple-900: #bd93f9; /* #BD93F9 */
+  --dh-color-purple-1000: #cfa8ff;
+  --dh-color-purple-1100: #dec1ff;
+  --dh-color-purple-1200: #ebd7ff;
+  --dh-color-purple-1300: #f5e8ff;
+  --dh-color-purple-1400: #fdf3ff;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* Dracula Pink - keywords, storage types anchored at 900 */
+  --dh-color-fuchsia-100: #2b001a;
+  --dh-color-fuchsia-200: #3e0028;
+  --dh-color-fuchsia-300: #510036;
+  --dh-color-fuchsia-400: #6c034a;
+  --dh-color-fuchsia-500: #8b1862;
+  --dh-color-fuchsia-600: #a92f7b;
+  --dh-color-fuchsia-700: #c74594;
+  --dh-color-fuchsia-800: #e35fad;
+  --dh-color-fuchsia-900: #ff79c6; /* #FF79C6 */
+  --dh-color-fuchsia-1000: #ff95d6;
+  --dh-color-fuchsia-1100: #ffb8e4;
+  --dh-color-fuchsia-1200: #ffd3f0;
+  --dh-color-fuchsia-1300: #ffe7fa;
+  --dh-color-fuchsia-1400: #ffeffe;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* Derived - purple-magenta (distinct hue) anchored at 900 */
+  --dh-color-magenta-100: #170017;
+  --dh-color-magenta-200: #280028;
+  --dh-color-magenta-300: #390039;
+  --dh-color-magenta-400: #510051;
+  --dh-color-magenta-500: #6d0e6c;
+  --dh-color-magenta-600: #892787;
+  --dh-color-magenta-700: #a53da2;
+  --dh-color-magenta-800: #bf57bc;
+  --dh-color-magenta-900: #da70d6; /* #DA70D6 */
+  --dh-color-magenta-1000: #ec86e7;
+  --dh-color-magenta-1100: #fb9ff6;
+  --dh-color-magenta-1200: #ffb7fe;
+  --dh-color-magenta-1300: #ffcdff;
+  --dh-color-magenta-1400: #ffe0fe;
+
+  /* ============ SEMANTIC - ACCENT (Purple) ============ */
+  --dh-color-accent-100: var(--dh-color-purple-100);
+  --dh-color-accent-200: var(--dh-color-purple-200);
+  --dh-color-accent-300: var(--dh-color-purple-300);
+  --dh-color-accent-400: var(--dh-color-purple-400);
+  --dh-color-accent-500: var(--dh-color-purple-500);
+  --dh-color-accent-600: var(--dh-color-purple-600);
+  --dh-color-accent-700: var(--dh-color-purple-700);
+  --dh-color-accent-800: var(--dh-color-purple-800);
+  --dh-color-accent-900: var(--dh-color-purple-900);
+  --dh-color-accent-1000: var(--dh-color-purple-1000);
+  --dh-color-accent-1100: var(--dh-color-purple-1100);
+  --dh-color-accent-1200: var(--dh-color-purple-1200);
+  --dh-color-accent-1300: var(--dh-color-purple-1300);
+  --dh-color-accent-1400: var(--dh-color-purple-1400);
+
+  /** ============ SEMANTIC - POSITIVE (Green) ============ */
+  --dh-color-visual-positive: var(--dh-color-green-900);
+
+  /* ============ SEMANTIC - NEGATIVE (Pink/Fuchsia) ============ */
+  /* Dracula uses Pink for emphasis instead of traditional red */
+  --dh-color-negative: var(--dh-color-fuchsia-900);
+  --dh-color-negative-bg: var(--dh-color-negative);
+  --dh-color-negative-hover-bg: var(--dh-color-fuchsia-800);
+  --dh-color-negative-down-bg: var(--dh-color-fuchsia-700);
+  --dh-color-negative-key-focus-bg: var(--dh-color-fuchsia-800);
+  --dh-color-visual-negative: var(--dh-color-fuchsia-900);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using Dracula background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-200);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
+
+  /* Chart colorway using Dracula colors at anchor points */
+  --dh-color-chart-colorway: var(--dh-color-purple-900) var(--dh-color-cyan-900)
+    var(--dh-color-green-900) var(--dh-color-orange-900)
+    var(--dh-color-fuchsia-900) var(--dh-color-yellow-1000)
+    var(--dh-color-red-600) var(--dh-color-blue-700) var(--dh-color-magenta-900)
+    var(--dh-color-indigo-700);
+
+  /* ============ EDITOR SEMANTIC - DRACULA SYNTAX ============ */
+  /* Based on official Dracula spec using palette variables */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-100);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-200);
+  --dh-color-editor-selection-bg: var(--dh-color-gray-300);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
+
+  /* Code syntax highlighting per Dracula spec */
+  --dh-color-editor-comment: var(--dh-color-blue-700); /* Comments - #6272A4 */
+  --dh-color-editor-keyword: var(
+    --dh-color-fuchsia-900
+  ); /* Keywords - Pink #FF79C6 */
+  --dh-color-editor-storage: var(
+    --dh-color-fuchsia-900
+  ); /* Storage types - Pink */
+  --dh-color-editor-number: var(
+    --dh-color-purple-1000
+  ); /* Numbers, constants - Orange #FFB86C */
+  --dh-color-editor-string: var(
+    --dh-color-yellow-1000
+  ); /* Strings - Yellow #F1FA8C */
+  --dh-color-editor-string-delim: var(
+    --dh-color-green-900
+  ); /* String delimiters - Green */
+  --dh-color-editor-identifier: var(
+    --dh-color-gray-900
+  ); /* Default identifiers - Foreground */
+  --dh-color-editor-identifier-js: var(
+    --dh-color-yellow-1000
+  ); /* Functions, methods - Yellow #F1FA8C */
+  --dh-color-editor-identifier-namespace: var(
+    --dh-color-purple-900
+  ); /* Classes, types - Purple #BD93F9 */
+  --dh-color-editor-predefined: var(
+    --dh-color-cyan-900
+  ); /* Support functions, regex - Cyan #8BE9FD */
+  --dh-color-editor-operator: var(
+    --dh-color-fuchsia-900
+  ); /* Operators - Pink */
+  --dh-color-editor-delimiter: var(
+    --dh-color-gray-900
+  ); /* Delimiters - Foreground */
+  --dh-color-editor-error-fg: var(
+    --dh-color-red-600
+  ); /* Errors - Red #FF5555 */
+
+  /* Bracket colors - Dracula style cycling through accent colors */
+  --dh-color-editor-bracket-fg1: var(--dh-color-fuchsia-900); /* Pink */
+  --dh-color-editor-bracket-fg2: var(--dh-color-purple-900); /* Purple */
+  --dh-color-editor-bracket-fg3: var(--dh-color-cyan-900); /* Cyan */
+  --dh-color-editor-bracket-fg4: var(--dh-color-green-900); /* Green */
+  --dh-color-editor-bracket-fg5: var(--dh-color-orange-900); /* Orange */
+  --dh-color-editor-bracket-fg6: var(--dh-color-yellow-1000); /* Yellow */
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-600); /* Red */
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(
+    --dh-color-blue-700
+  ); /* Comment color */
+  --dh-color-editor-line-number-active-fg: var(
+    --dh-color-gray-900
+  ); /* Foreground */
+}

@@ -28,6 +28,7 @@ services:
       - ../tests:/work/tests
       - ../test-results:/work/test-results
       - ../playwright-report:/work/playwright-report
+      - ../plugins:/work/plugins
     entrypoint: 'npx playwright test --config=playwright-docker.config.ts'
     depends_on:
       deephaven-plugins:
