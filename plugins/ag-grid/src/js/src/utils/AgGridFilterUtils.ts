@@ -99,7 +99,7 @@ export class AgGridFilterUtils {
     );
   }
 
-  private static parseAdvancedFilterModel(
+  static parseAdvancedFilterModel(
     dh: typeof DhType,
     table: DhType.Table | DhType.TreeTable,
     model: AdvancedFilterModel

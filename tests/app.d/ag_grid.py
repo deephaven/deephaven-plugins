@@ -32,3 +32,18 @@ foo_bar_table = new_table(
 )
 
 ag_foo_bar = AgGrid(foo_bar_table)
+
+# Table for testing advanced filters
+from deephaven import empty_table
+from deephaven.ag_grid import AgGrid
+
+filter_test_table = empty_table(100).update(
+    [
+        "Name = i % 2 == 0 ? `Alice` : `Bob`",
+        "Age = 20 + (i % 50)",
+        "Score = (i % 100)",
+        "Active = i % 3 == 0",
+    ]
+)
+
+ag_filter_test = AgGrid(filter_test_table)

@@ -2,6 +2,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import {
+  AdvancedFilterModel,
   ColumnGroupOpenedEvent,
   ColumnRowGroupChangedEvent,
   ColumnValueChangedEvent,
@@ -204,7 +205,9 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
   private handleFilterChanged(event: FilterChangedEvent): void {
     log.debug('Filter changed', event);
     this.queueOperation(async () => {
-      this.applyFilter(this.gridApi.getFilterModel());
+      const filterModel = this.gridApi.getFilterModel();
+      const advancedFilterModel = this.gridApi.getAdvancedFilterModel();
+      this.applyFilter(filterModel, advancedFilterModel);
       this.refreshViewport();
     });
   }
@@ -355,18 +358,44 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     this.table.applySort(AgGridSortUtils.parseSortModel(this.table, sortModel));
   }
 
-  private applyFilter(filterModel: FilterModel): void {
+  private applyFilter(
+    filterModel: FilterModel,
+    advancedFilterModel: AdvancedFilterModel | null = null
+  ): void {
     if (isPivotTable(this.table)) {
       throw new Error('Pivot table filter not yet implemented.');
     }
-    log.debug('Applying filter', filterModel);
-    this.table.applyFilter(
-      AgGridFilterUtils.parseFilterModel(
+    log.debug('Applying filter', filterModel, advancedFilterModel);
+
+    const filters = [];
+
+    // Parse regular filter model
+    const regularFilters = AgGridFilterUtils.parseFilterModel(
+      this.dh,
+      this.table,
+      filterModel
+    );
+    if (regularFilters.length > 0) {
+      filters.push(...regularFilters);
+    }
+
+    // Parse advanced filter model
+    if (advancedFilterModel != null) {
+      const advancedFilter = AgGridFilterUtils.parseAdvancedFilterModel(
         this.dh,
         this.table,
-        this.gridApi.getFilterModel()
-      )
-    );
+        advancedFilterModel
+      );
+      filters.push(advancedFilter);
+    }
+
+    // Combine all filters with AND logic
+    const combinedFilter =
+      filters.length === 0
+        ? []
+        : [filters.reduce((acc, filter) => acc.and(filter))];
+
+    this.table.applyFilter(combinedFilter);
   }
 
   private applyViewport(firstRow: number, lastRow: number): void {

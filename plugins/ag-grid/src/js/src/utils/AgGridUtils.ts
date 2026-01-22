@@ -1,5 +1,6 @@
 import { AgGridReactProps } from 'ag-grid-react';
 import {
+  AdvancedFilterModule,
   AllCommunityModule,
   ColumnsToolPanelModule,
   GroupFilterModule,
@@ -15,6 +16,7 @@ import {
 export function getDefaultProps(): AgGridReactProps {
   return {
     modules: [
+      AdvancedFilterModule,
       RowGroupingModule,
       RowGroupingPanelModule,
       GroupFilterModule,
@@ -47,5 +49,6 @@ export function getDefaultProps(): AgGridReactProps {
     // `/` is not a valid Java identifier so is good as a separator.
     serverSidePivotResultFieldSeparator: '/',
     suppressAggFuncInHeader: true,
+    enableAdvancedFilter: true,
   };
 }
