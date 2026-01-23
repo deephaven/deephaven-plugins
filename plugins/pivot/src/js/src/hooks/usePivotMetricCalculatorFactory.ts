@@ -6,7 +6,7 @@ import IrisGridPivotMetricCalculator from '../IrisGridPivotMetricCalculator';
  * Hook that creates a factory returning a pivot metric calculator
  * @returns Factory returning a pivot metric calculator
  */
-export function usePivotMetricCalculator(): GetMetricCalculatorType {
+export function usePivotMetricCalculatorFactory(): GetMetricCalculatorType {
   return useMemo(
     () =>
       (...args) =>
@@ -15,4 +15,4 @@ export function usePivotMetricCalculator(): GetMetricCalculatorType {
   );
 }
 
-export default usePivotMetricCalculator;
+export default usePivotMetricCalculatorFactory;
