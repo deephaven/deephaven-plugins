@@ -145,7 +145,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       let result = 0;
       keyColumnGroups.forEach(group => {
         const sourceIndex = -group.depth;
-        const width = this.getColumnHeaderGroupTextWidth(
+        const width = this.getColumnHeaderGroupWidth(
           sourceIndex,
           0,
           state,
@@ -157,33 +157,36 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     }
   );
 
-  // Gets the text width for a column header group, including padding
-  getColumnHeaderGroupTextWidth(
-    modelColumn: ModelIndex,
-    depth: number,
-    state: IrisGridPivotMetricState,
-    maxColumnWidth: number
-  ): number {
-    return super.getColumnHeaderGroupWidth(
-      modelColumn,
-      depth,
-      state,
-      maxColumnWidth
-    );
-  }
-
   getColumnHeaderGroupWidth(
     modelColumn: ModelIndex,
     depth: number,
     state: IrisGridPivotMetricState,
     maxColumnWidth: number
   ): number {
-    return this.getColumnHeaderGroupTextWidth(
+    const baseWidth = super.getColumnHeaderGroupWidth(
       modelColumn,
       depth,
       state,
       maxColumnWidth
     );
+
+    // If modelColumn and depth correspond to a key column group,
+    // and the filter bar is visible, add space for the filter box
+    const { isFilterBarShown, model } = state;
+
+    if (!isFilterBarShown) {
+      return baseWidth;
+    }
+
+    const group = model.getColumnHeaderGroup(modelColumn, depth);
+    if (!isPivotColumnHeaderGroup(group) || !group.isKeyColumnGroup) {
+      return baseWidth;
+    }
+
+    const { theme } = state;
+    const { columnSourceFilterMinWidth } = theme;
+
+    return baseWidth + columnSourceFilterMinWidth;
   }
 
   /**
