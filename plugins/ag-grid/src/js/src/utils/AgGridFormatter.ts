@@ -2,7 +2,7 @@ import {
   CellClassParams,
   CellStyle,
   DataTypeDefinition,
-} from '@ag-grid-community/core';
+} from 'ag-grid-community';
 import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
 import { AgGridCellColors } from './AgGridColors';
 

@@ -12,9 +12,13 @@ import {
 } from './PlotlyExpressChartUtils';
 
 const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
+  addEventListener: jest.fn(() => jest.fn()),
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
   size: 500,
-  subscribe: () => TestUtils.createMockProxy(),
+  subscribe: () =>
+    TestUtils.createMockProxy<DhType.TableSubscription>({
+      addEventListener: jest.fn(() => jest.fn()),
+    }),
 });
 
 const LARGE_TABLE = TestUtils.createMockProxy<DhType.Table>({
@@ -113,6 +117,7 @@ function createMockWidget(
       close: jest.fn(),
     })),
     addEventListener: jest.fn(),
+    close: jest.fn(),
     sendMessage: jest.fn(),
   } satisfies Partial<DhType.Widget> as unknown as DhType.Widget;
 }
@@ -187,7 +192,7 @@ const checkEventTypes = (mockSubscribe: jest.Mock, eventTypes: string[]) => {
 };
 
 beforeEach(() => {
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('PlotlyExpressChartModel', () => {
@@ -613,5 +618,51 @@ describe('PlotlyExpressChartModel', () => {
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_LAYOUT_UPDATED)
     );
+  });
+
+  it('should emit disconnect event when table disconnects', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+
+    const table0: DhType.Table = await mockWidget.exportedObjects[0].fetch();
+
+    const handler = TestUtils.findLastCall(
+      TestUtils.asMock(table0.addEventListener),
+      () => true
+    );
+
+    handler?.[1](new CustomEvent(mockDh.Table.EVENT_DISCONNECT));
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_DISCONNECT)
+    );
+  });
+
+  it('should cleanup subscriptions', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+
+    expect(chartModel.subscriptionCleanupMap.size).toBe(1);
+
+    chartModel.unsubscribe(jest.fn());
+
+    expect(chartModel.subscriptionCleanupMap.size).toBe(0);
   });
 });

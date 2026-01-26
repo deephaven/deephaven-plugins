@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import classNames from 'classnames';
-import { CustomCellRendererProps } from '@ag-grid-community/react';
+import { CustomCellRendererProps } from 'ag-grid-react';
 import { TREE_NODE_KEY, TreeNode } from '../utils/AgGridTableUtils';
 import DeephavenViewportDatasource from '../datasources/DeephavenViewportDatasource';
 

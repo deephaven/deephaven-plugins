@@ -2,6 +2,31 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.5.2 - 2025-12-05
+#### Bug Fixes
+- DH-20953: AG Grid styling only worked when deephaven.ui installed (#1271) - (7dae890) - mofojed
+
+- - -
+
+## ag-grid-v0.5.1 - 2025-11-17
+#### Bug Fixes
+- DH-20656: Don't provide getRowId func unless necessary (#1269) - (6878de1) - mofojed
+
+- - -
+
+## ag-grid-v0.5.0 - 2025-11-13
+#### Features
+- DH-20656: Update AG Grid to v34 (#1263) - (5cf3ad1) - mofojed
+#### Bug Fixes
+- DH-20415: AG Grid headers should match column names (#1261) - (c58ccec) - mofojed
+- DH-19912: Fix AG Grid not opening Pivots when wrapped in AgGrid (#1259) - (8186466) - mofojed
+#### Documentation
+- DOC-926: How to use formatting in AG Grid (#1262) - (cb43627) - mofojed
+#### Build system
+- Update TypeScript to v5 (#1247) - (e98edd9) - mofojed
+
+- - -
+
 ## ag-grid-v0.4.0 - 2025-09-17
 #### Features
 - **(ag-grid)** Remove dependencies on @deephaven/component (#1234) - (0c7bb03) - *mofojed*

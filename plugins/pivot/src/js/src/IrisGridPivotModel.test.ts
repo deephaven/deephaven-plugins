@@ -329,7 +329,7 @@ describe('IrisGridPivotModel', () => {
     model.startListening();
 
     expect(model.rowCount).toBe(0); // Initially, no rows. We get the count from the snapshot in the update event.
-    expect(model.columns.length).toBe(3); // Only the virtual columns initially. RowBy sources and the totals.
+    expect(model.columns.length).toBe(4); // Group column + 2 row sources + totals column
 
     model.setViewport(0, 10);
 
@@ -339,11 +339,12 @@ describe('IrisGridPivotModel', () => {
     asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
 
     expect(model.rowCount).toBe(4); // 3 rows + 1 totals
-    expect(model.columns.length).toBe(8); // 3 virtual columns (row source labels, totals) + 2 actual columns (C0, C1) + 3 children columns (D0, D1, D2)
+    expect(model.columns.length).toBe(9); // 4 virtual columns (Group + 2 row sources + totals) + 2 actual columns (C0, C1) + 3 children columns (D0, D1, D2)
 
     expect(
       getModelRowText(model, 0) // Totals row
     ).toEqual([
+      '', // Group
       '', // R
       '', // O
       `${DEFAULT_GRAND_TOTAL}`, // Grand total
@@ -357,6 +358,7 @@ describe('IrisGridPivotModel', () => {
     expect(
       getModelRowText(model, 1) // R0
     ).toEqual([
+      'R0', // Group
       'R0',
       '', // O
       `${DEFAULT_ROW_TOTAL}`, // Total for R0
@@ -379,41 +381,86 @@ describe('IrisGridPivotModel', () => {
 
     // Expandable columns
 
-    // Virtual columns are not expandable
+    // Virtual columns are not expandable (Group, R, O)
     expect(model.isColumnExpandable(0)).toBe(false);
     expect(model.isColumnExpandable(1)).toBe(false);
+    expect(model.isColumnExpandable(2)).toBe(false);
 
     // Totals column is expandable  and expanded by default
-    expect(model.isColumnExpandable(2)).toBe(true);
-    expect(model.isColumnExpanded(2)).toBe(true);
-
-    // C0
     expect(model.isColumnExpandable(3)).toBe(true);
     expect(model.isColumnExpanded(3)).toBe(true);
-    expect(model.depthForColumn(3)).toBe(2);
-    expect(model.columns[3].name).toBe('C0/Count');
+
+    // C0
+    expect(model.isColumnExpandable(4)).toBe(true);
+    expect(model.isColumnExpanded(4)).toBe(true);
+    expect(model.depthForColumn(4)).toBe(2);
+    expect(model.columns[4].name).toBe('C0/Count');
 
     // C0 children - D0, D1, D2
-    expect(model.isColumnExpandable(4)).toBe(false);
-    expect(model.isColumnExpanded(4)).toBe(false);
-    expect(model.depthForColumn(4)).toBe(3);
-    expect(model.columns[4].name).toBe('C0/D0/Count');
-
     expect(model.isColumnExpandable(5)).toBe(false);
     expect(model.isColumnExpanded(5)).toBe(false);
     expect(model.depthForColumn(5)).toBe(3);
-    expect(model.columns[5].name).toBe('C0/D2/Count');
+    expect(model.columns[5].name).toBe('C0/D0/Count');
 
     expect(model.isColumnExpandable(6)).toBe(false);
     expect(model.isColumnExpanded(6)).toBe(false);
     expect(model.depthForColumn(6)).toBe(3);
-    expect(model.columns[6].name).toBe('C0/D1/Count');
+    expect(model.columns[6].name).toBe('C0/D2/Count');
+
+    expect(model.isColumnExpandable(7)).toBe(false);
+    expect(model.isColumnExpanded(7)).toBe(false);
+    expect(model.depthForColumn(7)).toBe(3);
+    expect(model.columns[7].name).toBe('C0/D1/Count');
 
     // C1
-    expect(model.isColumnExpandable(7)).toBe(true);
-    expect(model.isColumnExpanded(7)).toBe(false);
-    expect(model.depthForColumn(7)).toBe(2);
-    expect(model.columns[7].name).toBe('C1/Count');
+    expect(model.isColumnExpandable(8)).toBe(true);
+    expect(model.isColumnExpanded(8)).toBe(false);
+    expect(model.depthForColumn(8)).toBe(2);
+    expect(model.columns[8].name).toBe('C1/Count');
+  });
+
+  it('handles showExtraGroupColumn changes', () => {
+    const pivotTable = makePivotTable(['R', 'O'], ['C'], ['Count']);
+
+    const model = new IrisGridPivotModel(
+      mockDh,
+      pivotTable,
+      formatter,
+      DEFAULT_CONFIG
+    );
+    model.startListening();
+
+    const mockColumnsChangedListener = jest.fn();
+    model.addEventListener(
+      IrisGridModel.EVENT.COLUMNS_CHANGED,
+      mockColumnsChangedListener
+    );
+
+    // Initially with 2 row sources, should have Group column
+    expect(model.columns.length).toBe(4); // Group + 2 row sources + totals
+    expect(model.columns[0].name).toBe('__GROUP__');
+    expect(model.showExtraGroupColumn).toBe(true);
+
+    // Disable the extra group column
+    model.showExtraGroupColumn = false;
+
+    expect(model.columns.length).toBe(3); // 2 row sources + totals (no Group)
+    expect(model.columns[0].name).toBe('R'); // First row source is now first column
+    expect(mockColumnsChangedListener).toHaveBeenCalledTimes(1);
+
+    // Re-enable the extra group column
+    mockColumnsChangedListener.mockClear();
+    model.showExtraGroupColumn = true;
+
+    expect(model.columns.length).toBe(4); // Group + 2 row sources + totals
+    expect(model.columns[0].name).toBe('__GROUP__');
+    expect(mockColumnsChangedListener).toHaveBeenCalledTimes(1);
+
+    // Setting to same value should not trigger event
+    mockColumnsChangedListener.mockClear();
+    model.showExtraGroupColumn = true;
+
+    expect(mockColumnsChangedListener).not.toHaveBeenCalled();
   });
 
   it('returns correct data for the viewport with just the totals row', () => {
@@ -848,19 +895,19 @@ describe('IrisGridPivotModel', () => {
       );
       model.startListening();
 
-      expect(model.columnCount).toBe(3);
+      expect(model.columnCount).toBe(4);
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'C',
-          children: ['R', 'O'],
+          children: ['__GROUP__', 'R', 'O'],
           depth: 1,
-          childIndexes: [0, 1],
+          childIndexes: [0, 1, 2],
         }),
         expect.objectContaining({
           name: `__GRAND_TOTAL/C`,
           children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
           depth: 1,
-          childIndexes: [2],
+          childIndexes: [3],
         }),
       ]);
     });
@@ -876,7 +923,7 @@ describe('IrisGridPivotModel', () => {
       );
       model.startListening();
 
-      model.setViewport(0, 0, model.columns.slice(5, 8)); // Viewport with 3 columns starting from index 5
+      model.setViewport(0, 0, model.columns.slice(7, 10)); // Viewport with 3 columns at indices 7, 8, 9 (data columns C3, C4, C5)
       jest.runOnlyPendingTimers();
 
       // Pivot responds with the update event, 3 columns starting from adjusted index 3
@@ -888,19 +935,19 @@ describe('IrisGridPivotModel', () => {
         })
       );
 
-      expect(model.columnCount).toBe(10);
+      expect(model.columnCount).toBe(11);
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'C',
-          children: ['R', 'O'],
+          children: ['__GROUP__', 'R', 'O'],
           depth: 1,
-          childIndexes: [0, 1],
+          childIndexes: [0, 1, 2],
         }),
         expect.objectContaining({
           name: '__GRAND_TOTAL/C',
           children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
           depth: 1,
-          childIndexes: [2],
+          childIndexes: [3],
         }),
 
         // groups for columns in the viewport
@@ -908,21 +955,21 @@ describe('IrisGridPivotModel', () => {
           name: 'C3',
           children: ['C3/Count'],
           depth: 1,
-          childIndexes: [6],
+          childIndexes: [7],
         }),
 
         expect.objectContaining({
           name: 'C4',
           children: ['C4/Count'],
           depth: 1,
-          childIndexes: [7],
+          childIndexes: [8],
         }),
 
         expect.objectContaining({
           name: 'C5',
           children: ['C5/Count'],
           depth: 1,
-          childIndexes: [8],
+          childIndexes: [9],
         }),
       ]);
     });
@@ -938,13 +985,13 @@ describe('IrisGridPivotModel', () => {
       );
       model.startListening();
 
-      expect(model.columnCount).toBe(3);
+      expect(model.columnCount).toBe(4);
       expect(model.columnHeaderGroups).toEqual([
         expect.objectContaining({
           name: 'D',
-          children: ['R', 'O'],
+          children: ['__GROUP__', 'R', 'O'],
           depth: 1,
-          childIndexes: [0, 1],
+          childIndexes: [0, 1, 2],
           parent: 'C',
         }),
         // Parent for the group D above
@@ -953,20 +1000,20 @@ describe('IrisGridPivotModel', () => {
           children: ['D'],
           depth: 2,
           // Same as group D
-          childIndexes: [0, 1],
+          childIndexes: [0, 1, 2],
         }),
         expect.objectContaining({
           name: '__GRAND_TOTAL/D',
           children: [makeGrandTotalColumnName(pivotTable.valueSources[0])],
           depth: 1,
           parent: '__GRAND_TOTAL/C',
-          childIndexes: [2],
+          childIndexes: [3],
         }),
         expect.objectContaining({
           name: '__GRAND_TOTAL/C',
           children: ['__GRAND_TOTAL/D'],
           depth: 2,
-          childIndexes: [2],
+          childIndexes: [3],
         }),
       ]);
 
@@ -998,7 +1045,7 @@ describe('IrisGridPivotModel', () => {
       // Simulate the update event with the data
       asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
 
-      expect(model.columnCount).toBe(8);
+      expect(model.columnCount).toBe(9);
     });
   });
 });
