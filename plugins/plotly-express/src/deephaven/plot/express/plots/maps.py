@@ -29,7 +29,7 @@ def scatter_geo(
     text: str | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
-    color_discrete_sequence: list[str] | None = None,
+    color_discrete_sequence: str | list[str] | None = None,
     color_discrete_map: str
     | tuple[str, dict[str | tuple[str], str]]
     | dict[str | tuple[str], str]
@@ -222,7 +222,7 @@ def scatter_map(
     text: str | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
-    color_discrete_sequence: list[str] | None = None,
+    color_discrete_sequence: str | list[str] | None = None,
     color_discrete_map: str
     | tuple[str, dict[str | tuple[str], str]]
     | dict[str | tuple[str], str]
@@ -238,9 +238,9 @@ def scatter_map(
     range_color: list[float] | None = None,
     color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
-    zoom: float | None = None,
+    zoom: float | None = 0,
     center: dict[str, float] | None = None,
-    map_style: str = "open-street-map",
+    map_style: str | None = None,
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
@@ -308,13 +308,14 @@ def scatter_map(
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      map_style: The style of the map.
-        One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
-        and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
+      map_style: The style of the map. Defaults to None, which uses the theme's default.
+        If a str, one of 'basic', 'carto-darkmatter', 'carto-darkmatter-nolabels', 'carto-positron',
+        'carto-positron-nolabels', 'carto-voyager', 'carto-voyager-nolabels', 'dark', 'light',
+        'open-street-map', 'outdoors', 'satellite', 'satellite-streets', 'streets', 'white-bg'.
       title: The title of the chart
       template: The template for the chart.
       unsafe_update_figure: An update function that takes a plotly figure
@@ -353,7 +354,7 @@ def line_geo(
     text: str | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
-    color_discrete_sequence: list[str] | None = None,
+    color_discrete_sequence: str | list[str] | None = None,
     color_discrete_map: dict[str | tuple[str], str] | None = None,
     symbol_sequence: list[str] | None = None,
     symbol_map: dict[str | tuple[str], str] | None = None,
@@ -506,7 +507,7 @@ def line_map(
     line_dash: str | None = None,
     hover_name: str | None = None,
     labels: dict[str, str] | None = None,
-    color_discrete_sequence: list[str] | None = None,
+    color_discrete_sequence: str | list[str] | None = None,
     color_discrete_map: dict[str | tuple[str], str] | None = None,
     line_dash_sequence: list[str] | None = None,
     line_dash_map: dict[str | tuple[str], str] | None = None,
@@ -516,8 +517,8 @@ def line_map(
     size_map: dict[str | tuple[str], str] | None = None,
     width_sequence: list[int] | None = None,
     width_map: dict[str | tuple[str], str] | None = None,
-    zoom: float | None = None,
-    map_style: str = "open-street-map",
+    zoom: float | None = 0,
+    map_style: str | None = None,
     center: dict[str, float] | None = None,
     title: str | None = None,
     template: str | None = None,
@@ -595,13 +596,14 @@ def line_map(
         widths, widths will be reused. This is overriden if "line_dash" is specified.
       line_dash_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to line_dash.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      map_style: The style of the map.
-        One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
-        and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
+      map_style: The style of the map. Defaults to None, which uses the theme's default.
+        If a str, one of 'basic', 'carto-darkmatter', 'carto-darkmatter-nolabels', 'carto-positron',
+        'carto-positron-nolabels', 'carto-voyager', 'carto-voyager-nolabels', 'dark', 'light',
+        'open-street-map', 'outdoors', 'satellite', 'satellite-streets', 'streets', 'white-bg'.
       title: The title of the chart
       template: The template for the chart.
       unsafe_update_figure: An update function that takes a plotly figure
@@ -633,9 +635,9 @@ def density_map(
     labels: dict[str, str] | None = None,
     radius: int = 30,
     opacity: float | None = None,
-    zoom: float | None = None,
+    zoom: float | None = 0,
     center: dict[str, float] | None = None,
-    map_style: str = "open-street-map",
+    map_style: str | None = None,
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
@@ -656,13 +658,14 @@ def density_map(
       radius: The radius of each point.
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      zoom: The zoom level of the map.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
       center: A dictionary of center coordinates.
         The keys should be 'lat' and 'lon' and the values should be floats
         that represent the lat and lon of the center of the map.
-      map_style: The style of the map.
-        One of 'open-street-map', 'white-bg', 'carto-positron', 'carto-darkmatter',
-        and 'stamen-terrain', 'stamen-toner', 'stamen-watercolor'
+      map_style: The style of the map. Defaults to None, which uses the theme's default.
+        If a str, one of 'basic', 'carto-darkmatter', 'carto-darkmatter-nolabels', 'carto-positron',
+        'carto-positron-nolabels', 'carto-voyager', 'carto-voyager-nolabels', 'dark', 'light',
+        'open-street-map', 'outdoors', 'satellite', 'satellite-streets', 'streets', 'white-bg'.
       title: The title of the chart
       template: The template for the chart.
       unsafe_update_figure: An update function that takes a plotly figure

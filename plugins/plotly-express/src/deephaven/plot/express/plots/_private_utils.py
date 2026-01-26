@@ -428,6 +428,19 @@ def process_args(
     render_args["args"]["filter_by"] = filter_by
     render_args["args"]["required_filter_by"] = required_filter_by
 
+    if "center" in render_args["args"]:
+        center = render_args["args"].pop("center")
+        if center is None:
+            # Set a default center to prevent px from auto-centering based on data
+            # which breaks the initial view for map plots since the data may be null initially
+            # Auto centering on the server side is also a bad idea since the data can change,
+            # so that should be done on the client side if desired
+            center = {
+                "lat": 0,
+                "lon": 0,
+            }
+        render_args["args"]["center"] = center
+
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
