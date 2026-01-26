@@ -56,14 +56,14 @@ dinner_tips = tips.where("Time = `Dinner`")
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip"),
     dx.scatter(dinner_tips, x="TotalBill", y="Tip"),
-    rows=2,
+    cols=2,
     subplot_titles=["Lunch Tips", "Dinner Tips"],
 )
 ```
 
 ### Using Existing Titles
 
-You can automatically use the titles from the original figures as subplot titles by setting `titles_as_subtitles=True`.
+You can automatically use the titles from the original figures as subplot titles by setting `subplot_titles=True`.
 
 ```python order=tipping_plots,lunch_tips,dinner_tips
 import deephaven.plot.express as dx
@@ -79,13 +79,13 @@ dinner_chart = dx.scatter(dinner_tips, x="TotalBill", y="Tip", title="Dinner Tip
 
 # Use existing titles as subplot titles
 tipping_plots = dx.make_subplots(
-    lunch_chart, dinner_chart, rows=2, titles_as_subtitles=True
+    lunch_chart, dinner_chart, cols=2, subplot_titles=True
 )
 ```
 
-### Adding an Overall Title
+### Adding a Title
 
-You can add an overall title to the combined subplot figure using the `title` parameter.
+You can add an title to the combined subplot figure using the `title` parameter.
 
 ```python order=tipping_plots,tips
 import deephaven.plot.express as dx
@@ -95,8 +95,7 @@ tips = dx.data.tips()
 tipping_plots = dx.make_subplots(
     dx.scatter(tips, x="TotalBill", y="Tip", by="Day"),
     dx.histogram(tips, x="TotalBill"),
-    rows=2,
-    subplot_titles=["Daily Patterns", "Distribution"],
+    cols=2,
     title="Tipping Analysis",
 )
 ```

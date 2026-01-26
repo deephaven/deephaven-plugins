@@ -158,7 +158,9 @@ def make_grid(items: list[T], rows: int, cols: int, fill: Any = None) -> Grid[T]
     return grid
 
 
-def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[float]]:
+def get_domains(
+    values: list[float], spacing: float, end_margin: float = 0
+) -> tuple[list[float], list[float]]:
     """Get the domains from a list of percentage values. The domains are
     cumulative and account for spacing.
 
@@ -167,29 +169,29 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
         The list of values to scale due to spacing then
       spacing:
         The spacing between each value.
+      end_margin:
+        The margin to add to the end of the domain. Used to provide extra space
+        at the end of the domain.
 
     Returns:
       A tuple of (list of domain starts, list of domain ends)
 
     """
-    # scale the values by however much the spacing uses between each col or row
-    scale = 1 - (spacing * (len(values) - 1))
+    # scale the values by however much the spacing uses between each col or row and the margin
+    scale = 1 - (spacing * (len(values) - 1)) - end_margin
     scaled = [v * scale for v in values]
 
-    # the first start value is just 0 since there is no spacing preceeding it
     starts = [0.0]
     # ignore the last value as it is not needed for the start of any domain
     for i in range(len(scaled) - 1):
-        starts.append(starts[-1] + scaled[i] + spacing)
+        starts.append(starts[-1] + scaled[i] + spacing - end_margin)
 
-    # the first end value is just the first scaled value since there is no
-    # spacing preceeding the figure
     ends = [scaled[0]]
     for i in range(1, len(scaled)):
-        ends.append(ends[-1] + scaled[i] + spacing)
+        ends.append(ends[-1] + scaled[i] + spacing - end_margin)
 
-    # the last end value is always 1.0, and sometimes it ends up off due to rounding errors
-    ends[-1] = 1.0
+    # the last end value is always 1.0 minus the end margin
+    ends[-1] = 1.0 - end_margin
 
     return starts, ends
 
@@ -323,8 +325,7 @@ def create_subplot_annotations(
 
 def get_subplot_titles(
     grid: Grid[Figure | DeephavenFigure],
-    subplot_titles: list[str] | tuple[str, ...] | None,
-    titles_as_subtitles: bool,
+    subplot_titles: list[str] | tuple[str, ...] | bool | None,
     rows: int,
     cols: int,
 ) -> list[str]:
@@ -332,8 +333,8 @@ def get_subplot_titles(
 
     Args:
       grid: The grid of figures (already reversed)
-      subplot_titles: Explicit list of titles provided by user
-      titles_as_subtitles: Whether to extract titles from figures
+      subplot_titles: Explicit list of titles provided by user or
+      True to extract from figures
       rows: Number of rows
       cols: Number of columns
 
@@ -341,17 +342,14 @@ def get_subplot_titles(
       List of titles in user's natural order (top-to-bottom, left-to-right)
 
     """
-    if titles_as_subtitles and subplot_titles is not None:
-        raise ValueError("Cannot use both titles_as_subtitles and subplot_titles")
-
-    if titles_as_subtitles:
+    if subplot_titles is True:
         # Extract titles from figures in natural order (reverse the grid)
         return [
             extract_title_from_figure(fig) if fig is not None else ""
             for fig_row in reversed(grid)
             for fig in fig_row
         ]
-    elif subplot_titles is not None:
+    elif isinstance(subplot_titles, (list, tuple)):
         # Convert to list and truncate if needed
         titles = list(subplot_titles)
         total_subplots = rows * cols
@@ -374,8 +372,7 @@ def atomic_make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
-    subplot_titles: list[str] | tuple[str, ...] | None = None,
-    titles_as_subtitles: bool = False,
+    subplot_titles: list[str] | tuple[str, ...] | bool | None = None,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -395,8 +392,8 @@ def atomic_make_subplots(
       row_heights: See make_subplots
       specs: See make_subplots
       subplot_titles: See make_subplots
-      titles_as_subtitles: See make_subplots
       title: See make_subplots
+      unsafe_update_figure: See make_subplots
 
     Returns:
       DeephavenFigure: The DeephavenFigure with subplots
@@ -441,13 +438,20 @@ def atomic_make_subplots(
 
     row_heights = list(reversed(row_heights))
 
+    top_margin = 0.0
+    if title and subplot_titles:
+        # there is a title and any subplot titles, so leave more space at the top
+        # for the title
+        top_margin = 0.03
+
     col_starts, col_ends = get_domains(column_widths, horizontal_spacing)
-    row_starts, row_ends = get_domains(row_heights, vertical_spacing)
+    # In the case of rows, the last figure is the one at the top, so add an end_margin
+    row_starts, row_ends = get_domains(
+        row_heights, vertical_spacing, end_margin=top_margin
+    )
 
     # Get subplot titles using the helper function
-    final_subplot_titles = get_subplot_titles(
-        grid, subplot_titles, titles_as_subtitles, rows, cols
-    )
+    final_subplot_titles = get_subplot_titles(grid, subplot_titles, rows, cols)
 
     # Create subplot annotations if we have titles
     subplot_annotations = None
@@ -462,6 +466,10 @@ def atomic_make_subplots(
             cols,
         )
 
+    # If there are subplot annotations and no overall title provided, remove the default title as it is
+    # likely not desired
+    updated_title = False if subplot_annotations and not title else title
+
     return atomic_layer(
         *[fig for fig_row in grid for fig in fig_row],
         specs=get_new_specs(
@@ -475,7 +483,7 @@ def atomic_make_subplots(
         ),
         unsafe_update_figure=unsafe_update_figure,
         subplot_annotations=subplot_annotations,
-        overall_title=title,
+        title=updated_title,
         # remove the legend title as it is likely incorrect
         remove_legend_title=True,
     )
@@ -524,8 +532,7 @@ def make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
-    subplot_titles: list[str] | tuple[str, ...] | None = None,
-    titles_as_subtitles: bool = False,
+    subplot_titles: list[str] | tuple[str, ...] | bool | None = None,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -564,13 +571,12 @@ def make_subplots(
         'rowspan' is an int to make this figure span multiple rows
         'colspan' is an int to make this figure span multiple columns
       subplot_titles:
-        A list or tuple of titles for each subplot, provided from left to right,
-        top to bottom.
+        If a list or tuple is provided, these are the titles for each subplot.
+        Titles are filled left to right, top to bottom.
         Empty strings ("") can be included in the list if no subplot title
-        is desired in that space. Cannot be used with titles_as_subtitles.
-      titles_as_subtitles:
+        is desired in that space.
         If True, automatically extracts and uses titles from the input figures
-        as subplot titles. Cannot be used with subplot_titles.
+        as subplot titles.
       title:
         The overall title for the combined subplot figure.
       unsafe_update_figure: An update function that takes a plotly figure
@@ -601,7 +607,6 @@ def make_subplots(
         row_heights=row_heights,
         specs=specs,
         subplot_titles=subplot_titles,
-        titles_as_subtitles=titles_as_subtitles,
         title=title,
         unsafe_update_figure=unsafe_update_figure,
     )

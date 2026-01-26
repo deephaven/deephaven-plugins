@@ -137,3 +137,19 @@ ohlc_fig = dx.ohlc(
 candlestick_fig = dx.candlestick(
     ohlc_source, x="Timestamp", open="Open", high="High", low="Low", close="Close"
 )
+
+# Add titles to subplots
+titles_fig = dx.make_subplots(
+    dx.scatter(express_source, x="Values", y="Values2"),
+    dx.scatter(express_source, x="Values", y="Values2"),
+    cols=2,
+    subplot_titles=["Subplot 1", "Subplot 2"],
+    title="Title",
+)
+
+keep_subplot_titles_fig = dx.make_subplots(
+    dx.scatter(express_source, x="Values", y="Values2", title="Subplot 1"),
+    dx.scatter(express_source, x="Values", y="Values2", title="Subplot 2"),
+    cols=2,
+    subplot_titles=True,
+)
