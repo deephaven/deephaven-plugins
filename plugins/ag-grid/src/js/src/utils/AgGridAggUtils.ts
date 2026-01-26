@@ -1,4 +1,4 @@
-import { Column, ColumnState, GridApi } from '@ag-grid-community/core';
+import { Column, ColumnState, GridApi } from 'ag-grid-community';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 
 export type AggregatedColumn = {

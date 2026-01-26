@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.18.2 - 2025-11-18
+#### Bug Fixes
+- DH-20908: Handle table disconnects in Plotly Express (#1267) - (37e8a11) - bmingles
+
+- - -
+
 ## plotly-express-v0.18.1 - 2025-11-04
 #### Features
 - Deephaven Pivot plugin (#1231) - (ac5d6f5) - vbabich

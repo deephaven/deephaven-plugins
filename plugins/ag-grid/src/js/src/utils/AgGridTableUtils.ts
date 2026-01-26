@@ -1,5 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import type { ColDef, SideBarDef } from '@ag-grid-community/core';
+import type { ColDef, SideBarDef } from 'ag-grid-community';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { AgGridTableType } from '../types';
@@ -152,10 +152,12 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
         const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
           ? {
               field: c.name,
+              headerName: c.name,
               rowGroup: true,
             }
           : {
               field: c.name,
+              headerName: c.name,
               enableRowGroup: isRowGroupable(c.type),
               enableValue: true,
             };

@@ -1,7 +1,6 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import { createFormatterFromSettings, Settings } from '@deephaven/jsapi-utils';
 import {
   ColDef,
   GridReadyEvent,
@@ -9,8 +8,8 @@ import {
   GridSizeChangedEvent,
   FirstDataRenderedEvent,
   GetRowIdParams,
-} from '@ag-grid-community/core';
-import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
+} from 'ag-grid-community';
+import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AgGridFormatter,
@@ -18,6 +17,7 @@ import {
   getColumnDefs,
   getSideBar,
   isPivotTable,
+  isTable,
   toGroupKeyString,
   TREE_NODE_KEY,
   TreeNode,
@@ -26,8 +26,13 @@ import { DeephavenViewportDatasource } from '../datasources';
 import { AgGridTableType } from '../types';
 
 export type AgGridViewProps = {
+  /** Table to be displayed */
   table: AgGridTableType;
-  settings?: WorkspaceSettings;
+
+  /** Settings controlling the formatting of the data */
+  settings?: Settings;
+
+  /** Other props to pass through to the `AgGridReact` component */
   agGridProps?: AgGridReactProps;
 };
 
@@ -133,8 +138,8 @@ export function AgGridView({
     (params: GetRowIdParams): string => {
       const { data } = params;
       if (data == null) {
-        log.warn('getRowId called with null data', params);
-        return '';
+        log.error('getRowId called with null data', params);
+        throw new Error('getRowId called with null data');
       }
 
       if (isPivotTable(table)) {
@@ -149,7 +154,11 @@ export function AgGridView({
       }
 
       const treeNode: TreeNode | undefined = data?.[TREE_NODE_KEY];
-      return `${treeNode?.index ?? ''}`;
+      if (treeNode == null) {
+        log.error('getRowId called with missing tree node info', params);
+        throw new Error('Tree node info missing from row data');
+      }
+      return `${treeNode.index}`;
     },
     [table]
   );
@@ -166,7 +175,8 @@ export function AgGridView({
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
       rowModelType="viewport"
-      getRowId={getRowId}
+      // With a regular table, the row IDs are just the row indices, so we don't need to specify getRowId
+      getRowId={isTable(table) ? undefined : getRowId}
       sideBar={sideBar}
     />
   );

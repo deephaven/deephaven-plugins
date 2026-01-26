@@ -51,3 +51,6 @@ plugins-dev-venv/
 # Docs snapshots
 extract-results/
 snapshot-results/
+
+.nx/workspace-data
+.nx/cache

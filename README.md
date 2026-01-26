@@ -364,9 +364,34 @@ You can also use `npm` to snapshot the docs instead of using the `--snapshots` f
 
 In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
 
-The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
+The main configuration file is `cog.toml`, which we run using some helper scripts located in the `tools/` directory.
 
 You will also need the [GitHub CLI](https://cli.github.com/) tool installed to create and push releases to GitHub.
+
+### Publishing a New Plugin
+
+If you've added a new plugin to the `plugins/` directory, there are a couple things you need to do to get it setup for releases and automatically bumping using `cog`.
+
+1. Add an entry for the new plugin in `cog.toml` under the `[package]` section. Use the existing entries as examples.
+2. Update the `tools/update_version.sh` script to include the new plugin and where its version is stored in source code. If your component has both a Python and JS component, you'll need to add it to both sections. Use the existing entries as examples.
+   - For an example, check the [PR that added the pivot plugin for release](https://github.com/deephaven/deephaven-plugins/pull/1242/files).
+3. Add the new plugin to the `.github/workflows/modified-plugin.yml` file so that a tag pushed with the name of the plugin will trigger the modified plugin workflow.
+4. In PyPI, Add a new pending publisher for the project.
+   1. Go to https://pypi.org/manage/account/publishing/
+   2. Under "Add a new pending publisher" section, enter the following:
+      - PyPI Project Name: The name of the python plugin, e.g. `deephaven-plugin-ui`
+      - Owner: `deephaven`
+      - Repository name: `deephaven-plugins`
+   3. Click "Add"
+5. For npmjs, the project should already be scoped to the `@deephaven` or `@deephaven-enterprise` organization. You may need to update the `package.json` to include the correct `repository` if it is not already set. Add the following to your `package.json`:
+   ```json
+   "repository": {
+     "type": "git",
+     "url": "git+https://github.com/deephaven/deephaven-plugins.git"
+   }
+   ```
+
+After completing the above, you should be able to run the release script in the [Cutting a New Release](#cutting-a-new-release) section. After the first release, verify that the version numbers are being updated correctly in source code, and that the releases are being created correctly on GitHub, PyPI, and npmjs. You should also update the project and add `deephaven` as an owner on the project in PyPI.
 
 ### Cutting a New Release
 
