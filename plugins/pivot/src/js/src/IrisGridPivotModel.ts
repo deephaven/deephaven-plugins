@@ -174,6 +174,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
     this.handleModelEvent = this.handleModelEvent.bind(this);
     this.handlePivotUpdated = this.handlePivotUpdated.bind(this);
+    this.handleTableDisconnect = this.handleTableDisconnect.bind(this);
+    this.handleTableReconnect = this.handleTableReconnect.bind(this);
 
     this.pivotTable = pivotTable;
     this.irisFormatter = formatter;
@@ -720,6 +722,18 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.dispatchEvent(new EventShimCustomEvent(type, { detail }));
   }
 
+  handleTableDisconnect(): void {
+    log.info('Pivot table disconnected');
+    this.dispatchEvent(
+      new EventShimCustomEvent(IrisGridModel.EVENT.DISCONNECT)
+    );
+  }
+
+  handleTableReconnect(): void {
+    log.info('Pivot table reconnected');
+    this.dispatchEvent(new EventShimCustomEvent(IrisGridModel.EVENT.RECONNECT));
+  }
+
   handlePivotUpdated(
     event: CorePlusDhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
   ): void {
@@ -920,6 +934,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED,
       this.handlePivotUpdated
     );
+
+    this.pivotTable.addEventListener(
+      this.dh.coreplus.pivot.PivotTable.EVENT_DISCONNECT,
+      this.handleTableDisconnect
+    );
+    this.pivotTable.addEventListener(
+      this.dh.coreplus.pivot.PivotTable.EVENT_RECONNECT,
+      this.handleTableReconnect
+    );
   }
 
   stopListening(): void {
@@ -928,6 +951,15 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.pivotTable.removeEventListener(
       this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED,
       this.handlePivotUpdated
+    );
+
+    this.pivotTable.removeEventListener(
+      this.dh.coreplus.pivot.PivotTable.EVENT_DISCONNECT,
+      this.handleTableDisconnect
+    );
+    this.pivotTable.removeEventListener(
+      this.dh.coreplus.pivot.PivotTable.EVENT_RECONNECT,
+      this.handleTableReconnect
     );
   }
 
