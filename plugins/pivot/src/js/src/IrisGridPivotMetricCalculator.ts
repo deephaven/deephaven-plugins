@@ -10,7 +10,6 @@ import {
   type ModelIndex,
   type VisibleIndex,
 } from '@deephaven/grid';
-import Log from '@deephaven/log';
 import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
 import PivotColumnHeaderGroup, {
   isPivotColumnHeaderGroup,
@@ -21,10 +20,6 @@ import {
   type PivotGridMetrics,
 } from './IrisGridPivotTypes';
 import { getKeyColumnGroups } from './PivotUtils';
-
-const log = Log.module(
-  '@deephaven/js-plugin-pivot/IrisGridPivotMetricCalculator'
-);
 
 /**
  * Get the width of a column that may be not in the viewport,
@@ -249,7 +244,6 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     metrics: PivotGridMetrics
   ): { x: number; y: number; width: number; height: number } | null {
     if (index >= 0) {
-      log.debug('getFilterInputCoordinates for index:', index);
       return super.getFilterInputCoordinates(index, state, metrics);
     }
 
