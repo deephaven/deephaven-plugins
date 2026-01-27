@@ -130,6 +130,9 @@ export function isIrisGridPivotMetricCalculator(
 }
 
 class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
+  // Initialize with null to ensure the first check always triggers reset
+  private cachedIsFilterBarShown: boolean | null = null;
+
   private getCachedColumnSourceLabelWidth = memoize(
     (
       keyColumnGroups: PivotColumnHeaderGroup[],
@@ -151,6 +154,22 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       return result;
     }
   );
+
+  /**
+   * Resets column width caches if filter bar visibility has changed
+   * to adjust for the minimum filter box width.
+   * @param state The current IrisGridPivotMetricState
+   */
+  private resetHeaderWidthsIfFilterBarChanged(
+    state: IrisGridPivotMetricState
+  ): void {
+    const { isFilterBarShown } = state;
+
+    if (this.cachedIsFilterBarShown !== isFilterBarShown) {
+      this.resetCalculatedHeaderGroupWidths();
+    }
+    this.cachedIsFilterBarShown = isFilterBarShown;
+  }
 
   getColumnHeaderGroupWidth(
     modelColumn: ModelIndex,
@@ -223,6 +242,8 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
       model,
       state
     );
+
+    this.resetHeaderWidthsIfFilterBarChanged(state);
 
     return {
       ...super.getMetrics(state),
