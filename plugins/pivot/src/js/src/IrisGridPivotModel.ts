@@ -930,8 +930,6 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   startListening(): void {
     super.startListening();
 
-    log.info('Pivot Table start listening');
-
     this.pivotTable.addEventListener(
       this.dh.coreplus.pivot.PivotTable.EVENT_UPDATED,
       this.handlePivotUpdated
