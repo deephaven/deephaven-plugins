@@ -34,7 +34,7 @@ This feature will integrate databars into the `ui.TableFormat` construct to prov
 
 #### 1. Python API Changes
 
-**Update `TableFormat` to fully support databars:**
+**Update `TableFormat` to accept `TableDatabar` in `mode`:**
 
 ```python
 @dataclass
@@ -45,9 +45,13 @@ class TableFormat:
     background_color: Color | None = None
     alignment: Literal["left", "center", "right"] | None = None
     value: str | None = None
-    mode: Literal["databar"] | None = None  # Change from TableDatabar to literal
+    mode: TableDatabar | None = None  # Accepts TableDatabar instance
 
-    # Databar-specific properties (only used when mode="databar")
+
+@dataclass
+class TableDatabar:
+    # Databar-specific properties
+    color: Color | None = None
     value_column: ColumnName | None = None
     min: ColumnName | float | None = None
     max: ColumnName | float | None = None
@@ -65,15 +69,25 @@ t = ui.table(
     dx.data.stocks(),
     format_=[
         # Simple databar
-        ui.TableFormat(cols="Price", mode="databar", color="positive"),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="positive")),
         # Databar with conditional formatting
         ui.TableFormat(
             cols="Size",
             if_="Size > 100",
-            mode="databar",
-            color=["negative", "positive"],
-            min=0,
-            max=1000,
+            mode=ui.TableDatabar(
+                color=["negative", "positive"],
+                min=0,
+                max=1000,
+            ),
+        ),
+        # Apply databars to multiple columns
+        ui.TableFormat(
+            cols=["Volume", "Dollars"],
+            mode=ui.TableDatabar(
+                color="blue-600",
+                value_placement="overlap",
+                opacity=0.7,
+            ),
         ),
         # Other formatting still works
         ui.TableFormat(cols="Sym", background_color="accent-100"),
@@ -97,7 +111,7 @@ t = ui.table(
 **UITableModel.ts:**
 
 - Merge databar processing with format rule processing
-- Extract databar configs from format rules where `mode === "databar"`
+- Extract databar configs from format rules where `mode` is a `TableDatabar` object
 - Maintain existing databar rendering logic
 - Support legacy `databars` parameter during deprecation period
 
@@ -112,7 +126,7 @@ t = ui.table(
 **Update table.md:**
 
 - Move databar documentation from separate section into formatting section
-- Show examples using `ui.TableFormat` with `mode="databar"`
+- Show examples using `ui.TableFormat` with `mode=ui.TableDatabar(...)`
 - Add migration guide from old to new API
 - Keep warning about API changes but update to point to new approach
 
@@ -161,7 +175,7 @@ t = ui.table(
 
 ### Unit Tests (Python)
 
-- `TableFormat` with `mode="databar"` validates correctly
+- `TableFormat` with `mode=ui.TableDatabar(...)` validates correctly
 - Databar properties are serialized properly
 - Invalid configurations raise appropriate errors
 - Mixing databars with other format properties works
@@ -211,7 +225,9 @@ t = ui.table(
    ui.table(t, databars=[{"column": "Price", "color": "positive"}])
 
    # New API
-   ui.table(t, format_=[ui.TableFormat(cols="Price", mode="databar", color="positive")])
+   ui.table(
+       t, format_=[ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="positive"))]
+   )
    ```
 
 ## Open Questions
@@ -219,16 +235,17 @@ t = ui.table(
 1. **Should we keep `TableDatabar` dataclass?**
 
    - Option A: Remove it entirely, flatten all properties into `TableFormat`
-   - Option B: Keep it as `mode=TableDatabar(...)` for grouping databar options
-   - **Recommendation**: Option A (flatten) for simplicity and consistency
+   - Option B: Keep it as `mode=ui.TableDatabar(...)` for grouping databar options
+   - **Recommendation**: Option B (pass TableDatabar into mode)
+   - **Rationale**: Using Option B avoids polluting the top-level `TableFormat` with databar-specific properties. This prevents having many keywords that may not be applicable at all to the format being applied. It provides better separation of concerns and cleaner API design.
 
 2. **How long should we support the deprecated `databars` parameter?**
 
    - **Recommendation**: 3-4 releases (~3-6 months) with deprecation warnings
 
-3. **Should databar-specific properties be valid when `mode != "databar"`?**
+3. **Should databar-specific properties be valid when `mode` is not a `TableDatabar`?**
 
-   - **Recommendation**: Ignore them (don't raise errors) for forward compatibility
+   - **Recommendation**: N/A - with Option B, databar properties are only available within `TableDatabar`, not on `TableFormat`
 
 4. **Can multiple format rules create databars on the same column?**
 
