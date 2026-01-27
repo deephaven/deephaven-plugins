@@ -161,9 +161,11 @@ t = ui.table(
 ### Phase 4: Documentation
 
 12. Update component documentation
-13. Create migration guide
-14. Update code examples throughout docs
-15. Update CHANGELOG with deprecation notice
+    1.  Move databar section under formatting
+    2.  Add new examples
+    3.  Write migration guide
+    4.  Remove notes about API potentially moving
+13. Update code examples throughout docs
 
 ### Phase 5: Cleanup (Future Release)
 
