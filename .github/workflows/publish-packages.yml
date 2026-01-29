@@ -47,8 +47,6 @@ jobs:
           else
             ./node_modules/.bin/lerna publish from-package --yes
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish canary packages
         if: ${{ github.event.inputs.preid }}
         run: |
