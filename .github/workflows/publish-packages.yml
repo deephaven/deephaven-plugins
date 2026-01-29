@@ -58,5 +58,3 @@ jobs:
           else
             ./node_modules/.bin/lerna publish --canary --preid "$PREID" --dist-tag canary --yes
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
