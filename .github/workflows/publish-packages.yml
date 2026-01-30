@@ -6,6 +6,10 @@ on:
         description: 'Preid used to publish package. Must be unique per branch. Leave empty for stable release.'
         required: false
         default: ''
+      package:
+        description: 'Package name to publish (e.g., @deephaven/js-plugin-ui, @deephaven/js-plugin-pivot). Leave empty to publish all packages.'
+        required: false
+        default: ''
       ref:
         description: 'Commit to deploy from. Defaults to branch used for workflow_dispatch action.'
         required: false
@@ -36,7 +40,21 @@ jobs:
         run: npm run build
       - name: Publish stable packages
         if: ${{ !github.event.inputs.preid }}
-        run: ./node_modules/.bin/lerna publish from-package --yes
+        run: |
+          PACKAGE="${{ github.event.inputs.package }}"
+          if [ -n "$PACKAGE" ]; then
+            npm publish --workspace="$PACKAGE"
+          else
+            ./node_modules/.bin/lerna publish from-package --yes
+          fi
       - name: Publish canary packages
         if: ${{ github.event.inputs.preid }}
-        run: ./node_modules/.bin/lerna publish --canary --preid ${{ github.event.inputs.preid }} --dist-tag canary --yes
+        run: |
+          PACKAGE="${{ github.event.inputs.package }}"
+          PREID="${{ github.event.inputs.preid }}"
+          if [ -n "$PACKAGE" ]; then
+            npm version prerelease --preid="$PREID" --no-git-tag-version --workspace="$PACKAGE"
+            npm publish --tag canary --workspace="$PACKAGE"
+          else
+            ./node_modules/.bin/lerna publish --canary --preid "$PREID" --dist-tag canary --yes
+          fi
