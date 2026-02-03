@@ -51,9 +51,14 @@ jobs:
         if: ${{ github.event.inputs.preid }}
         run: |
           PACKAGE="${{ github.event.inputs.package }}"
-          PREID="${{ github.event.inputs.preid }}"
+          PREID="${{ github.event.inputs.preid }}.$(git rev-parse --short HEAD)"
           if [ -n "$PACKAGE" ]; then
-            npm version prerelease --preid="$PREID" --no-git-tag-version --workspace="$PACKAGE"
+            BASE_VERSION=$(npm pkg get version --workspace="$PACKAGE" | jq -r --arg pkg "$PACKAGE" '.[$pkg]' | cut -d'-' -f1)
+            if [ "$BASE_VERSION" = "null" ]; then
+              echo "Error: Package $PACKAGE not found"
+              exit 1
+            fi
+            npm version "${BASE_VERSION}-${PREID}" --no-git-tag-version --workspace="$PACKAGE"
             npm publish --tag canary --workspace="$PACKAGE"
           else
             ./node_modules/.bin/lerna publish --canary --preid "$PREID" --dist-tag canary --yes
