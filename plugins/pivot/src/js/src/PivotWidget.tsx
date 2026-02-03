@@ -8,6 +8,7 @@ import { usePivotTableFetch } from './hooks/usePivotTableFetch';
 import { usePivotMouseHandlers } from './hooks/usePivotMouseHandlers';
 import { usePivotRenderer } from './hooks/usePivotRenderer';
 import { usePivotTheme } from './hooks/usePivotTheme';
+import usePivotMetricCalculatorFactory from './hooks/usePivotMetricCalculatorFactory';
 
 export function PivotWidget({
   fetch,
@@ -16,6 +17,7 @@ export function PivotWidget({
   const mouseHandlers = usePivotMouseHandlers();
   const renderer = usePivotRenderer();
   const pivotTheme = usePivotTheme();
+  const getPivotMetricCalculator = usePivotMetricCalculatorFactory();
 
   const fetchResult = useIrisGridPivotModel(pivotFetch);
 
@@ -40,6 +42,7 @@ export function PivotWidget({
       mouseHandlers={mouseHandlers}
       renderer={renderer}
       theme={pivotTheme}
+      getMetricCalculator={getPivotMetricCalculator}
     />
   );
 }

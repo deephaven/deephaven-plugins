@@ -200,12 +200,13 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   dh: typeof CorePlusDhType;
 
   get filter(): readonly DhType.FilterCondition[] {
-    return EMPTY_ARRAY;
+    return this.pivotTable.filter;
   }
 
-  set filter(_: readonly DhType.FilterCondition[]) {
-    // No-op
-    // TODO: DH-20363: Add support for Pivot filters
+  set filter(filters: DhType.FilterCondition[]) {
+    log.debug2('Setting filter on pivot table', filters);
+    this.pivotTable.applyFilter(filters);
+    this.applyViewport();
   }
 
   hydratePivotSort(
@@ -627,8 +628,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   isFilterable(columnIndex: ModelIndex): boolean {
-    // TODO: DH-20363: Add support for Pivot filters
-    return false;
+    return this.columns[columnIndex]?.isFilterable ?? false;
   }
 
   isColumnSortable(columnIndex: ModelIndex): boolean {
