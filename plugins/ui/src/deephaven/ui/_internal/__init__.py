@@ -21,6 +21,7 @@ from .utils import (
     to_camel_case,
     dict_to_camel_case,
     dict_to_react_props,
+    convert_dataclasses_to_dicts,
     remove_empty_keys,
     wrap_callable,
 )

@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Any, Optional
 import logging
+import warnings
 from deephaven.table import Table
 from ..elements import Element, resolve
 from ..elements.UriElement import UriElement
@@ -17,7 +18,7 @@ from ..types import (
     ResolvableContextMenuItem,
     SelectionChangeCallback,
 )
-from .._internal import dict_to_react_props, RenderContext
+from .._internal import dict_to_react_props, convert_dataclasses_to_dicts, RenderContext
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,7 @@ class TableFormat:
 
     Args:
         cols: The columns to format. If None, the format will apply to the entire row.
+            Required when using mode=TableDatabar()
         if_: Deephaven expression to filter which rows should be formatted. Must resolve to a boolean.
         color: The font color.
         background_color: The cell background color.
@@ -92,6 +94,8 @@ class TableDatabar:
 
     Args:
         column: Name of the column to display as a databar.
+            Only used with the deprecated databars parameter: ui.table(table, databars=[...]).
+            Should not be specified when used as mode in TableFormat.
         value_column: Name of the column to use as the value for the databar.
             If not provided, the databar will use the column value.
 
@@ -101,20 +105,22 @@ class TableDatabar:
         min: Minimum value for the databar. Defaults to the minimum value in the column.
 
             If a column name is provided, the minimum value will be the value in that column.
-            If a constant is providded, the minimum value will be that constant.
+            If a constant is provided, the minimum value will be that constant.
         max: Maximum value for the databar. Defaults to the maximum value in the column.
 
             If a column name is provided, the maximum value will be the value in that column.
-            If a constant is providded, the maximum value will be that constant.
+            If a constant is provided, the maximum value will be that constant.
         axis: Whether the databar 0 value should be proportional to the min and max values,
             in the middle of the cell, or on one side of the databar based on direction.
         direction: The direction of the databar.
         value_placement: Placement of the value relative to the databar.
         color: The color of the databar.
         opacity: The opacity of the databar.
+        markers: List of marker lines to display on the databar.
+            NOTE: cleanup: Each marker is a dictionary with 'value' (number or column name) and optional 'color'.
     """
 
-    column: ColumnName
+    column: ColumnName | None = None
     value_column: ColumnName | None = None
     min: ColumnName | float | None = None
     max: ColumnName | float | None = None
@@ -123,6 +129,7 @@ class TableDatabar:
     value_placement: Literal["beside", "overlap", "hide"] | None = None
     color: Color | None = None
     opacity: float | None = None
+    markers: list[dict[str, Any]] | None = None
 
 
 class table(Element):
@@ -177,7 +184,7 @@ class table(Element):
         context_header_menu: The context menu items to show when a column header is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the column header data and returns the context menu items or None.
-        databars: Databars are experimental and will be moved to column_formatting in the future.
+        databars: Deprecated in favor of format_ with mode=ui.TableDatabar().
         key: A unique identifier used by React to render elements in a list.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
@@ -299,6 +306,35 @@ class table(Element):
                 "ui.table on_selection_change requires always_fetch_columns to be set"
             )
 
+        if databars is not None:
+            warnings.warn(
+                "The 'databars' parameter is deprecated and will be removed in a future release. "
+                "Use format_=[ui.TableFormat(cols='column', mode=ui.TableDatabar(...))] instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
+        if databars is not None and format_ is not None:
+            format_list = format_ if isinstance(format_, list) else [format_]
+            has_format_databars = any(f.mode is not None for f in format_list)
+            if has_format_databars:
+                raise ValueError(
+                    "Cannot use both 'databars' parameter and 'format_' with mode=ui.TableDatabar(). "
+                )
+
+        if format_ is not None:
+            format_list = format_ if isinstance(format_, list) else [format_]
+            for f in format_list:
+                if f.mode is not None:
+                    if f.cols is None:
+                        raise ValueError(
+                            "TableFormat with mode=TableDatabar() requires cols to be specified. "
+                        )
+                    if f.mode.column is not None:
+                        raise ValueError(
+                            "TableDatabar.column cannot be specified when used as mode in TableFormat. "
+                        )
+
         props = locals()
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]
@@ -314,5 +350,6 @@ class table(Element):
         return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:
-        logger.debug("Returning props %s", self._props)
-        return dict_to_react_props(self._props)
+        converted_props = convert_dataclasses_to_dicts(self._props)
+        logger.debug("Returning props %s", converted_props)
+        return dict_to_react_props(converted_props)
