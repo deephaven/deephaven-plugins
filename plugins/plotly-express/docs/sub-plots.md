@@ -85,7 +85,7 @@ tipping_plots = dx.make_subplots(
 
 ### Adding a Title
 
-You can add an title to the combined subplot figure using the `title` parameter.
+You can add a title to the combined subplot figure using the `title` parameter.
 
 ```python order=tipping_plots,tips
 import deephaven.plot.express as dx

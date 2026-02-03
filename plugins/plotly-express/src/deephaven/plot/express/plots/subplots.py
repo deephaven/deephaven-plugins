@@ -184,13 +184,15 @@ def get_domains(
     starts = [0.0]
     # ignore the last value as it is not needed for the start of any domain
     for i in range(len(scaled) - 1):
-        starts.append(starts[-1] + scaled[i] + spacing - end_margin)
+        starts.append(starts[-1] + scaled[i] + spacing)
 
+    # account for end margin with the first end value
     ends = [scaled[0]]
     for i in range(1, len(scaled)):
-        ends.append(ends[-1] + scaled[i] + spacing - end_margin)
+        ends.append(ends[-1] + scaled[i] + spacing)
 
     # the last end value is always 1.0 minus the end margin
+    # set it explicitly to avoid floating point issues
     ends[-1] = 1.0 - end_margin
 
     return starts, ends
