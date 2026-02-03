@@ -44,6 +44,7 @@ import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
+  extractDatabarsFromFormatRules,
   FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
@@ -186,8 +187,8 @@ export function UITable({
   density,
   contextMenu = EMPTY_ARRAY as unknown as ResolvableUIContextItem[],
   contextHeaderMenu,
-  // TODO: #981 move databars to format and rewire for databar support
-  databars = EMPTY_ARRAY as unknown as DatabarConfig[],
+  // Legacy databars prop deprecated in favor of format_ with mode=ui.TableDatabar()
+  databars: legacyDatabars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
@@ -252,6 +253,20 @@ export function UITable({
     }),
     [frontColumns, backColumns, frozenColumns, hiddenColumns, columnGroups]
   );
+
+  const databars = useMemo(() => {
+    const formatDatabars = extractDatabarsFromFormatRules(format);
+
+    if (legacyDatabars.length > 0) {
+      log.warn(
+        "The 'databars' prop is deprecated and will be removed in a future release. " +
+          'Use format_=[ui.TableFormat(cols="column", mode=ui.TableDatabar(...))] instead.'
+      );
+      return legacyDatabars;
+    }
+
+    return formatDatabars;
+  }, [format, legacyDatabars]);
 
   const colorMap = useMemo(() => {
     log.debug('Theme changed, updating databar color map', theme);

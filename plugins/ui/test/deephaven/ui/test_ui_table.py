@@ -251,3 +251,102 @@ class UITableTestCase(BaseTestCase):
                 "onSelectionChange": on_change,
             },
         )
+
+    def test_format_with_databar_full_options(self):
+        import deephaven.ui as ui
+        from deephaven.ui.components.table import TableFormat, TableDatabar
+
+        t = ui.table(
+            self.source,
+            format_=TableFormat(
+                cols="X",
+                mode=TableDatabar(
+                    value_column="Y",
+                    min=0,
+                    max=100,
+                    axis="middle",
+                    direction="LTR",
+                    value_placement="overlap",
+                    color="blue",
+                    opacity=0.7,
+                    markers=[{"value": 50, "color": "red"}],
+                ),
+            ),
+        )
+
+        self.expect_render(
+            t,
+            {
+                "format": {
+                    "cols": "X",
+                    "mode": {
+                        "valueColumn": "Y",
+                        "min": 0,
+                        "max": 100,
+                        "axis": "middle",
+                        "direction": "LTR",
+                        "valuePlacement": "overlap",
+                        "color": "blue",
+                        "opacity": 0.7,
+                        "markers": [{"value": 50, "color": "red"}],
+                    },
+                },
+            },
+        )
+
+    def test_format_multiple_columns_with_databar(self):
+        import deephaven.ui as ui
+        from deephaven.ui.components.table import TableFormat, TableDatabar
+
+        t = ui.table(
+            self.source,
+            format_=[
+                TableFormat(
+                    cols=["X", "Y"],
+                    mode=TableDatabar(
+                        color="positive", markers=[{"value": 50, "color": "red"}]
+                    ),
+                ),
+            ],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "format": [
+                    {
+                        "cols": ["X", "Y"],
+                        "mode": {
+                            "color": "positive",
+                            "markers": [{"value": 50, "color": "red"}],
+                        },
+                    },
+                ],
+            },
+        )
+
+    def test_format_databar_with_conditional(self):
+        import deephaven.ui as ui
+        from deephaven.ui.components.table import TableFormat, TableDatabar
+
+        t = ui.table(
+            self.source,
+            format_=TableFormat(
+                cols="X",
+                if_="X > 50",
+                mode=TableDatabar(color="positive"),
+            ),
+        )
+
+        self.expect_render(
+            t,
+            {
+                "format": {
+                    "cols": "X",
+                    "if": "X > 50",
+                    "mode": {
+                        "color": "positive",
+                    },
+                },
+            },
+        )
