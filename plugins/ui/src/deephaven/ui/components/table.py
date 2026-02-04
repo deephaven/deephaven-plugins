@@ -117,7 +117,6 @@ class TableDatabar:
         color: The color of the databar.
         opacity: The opacity of the databar.
         markers: List of marker lines to display on the databar.
-            NOTE: cleanup: Each marker is a dictionary with 'value' (number or column name) and optional 'color'.
     """
 
     column: ColumnName | None = None
