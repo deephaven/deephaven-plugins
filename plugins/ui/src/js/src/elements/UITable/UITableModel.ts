@@ -275,7 +275,7 @@ class UITableModel extends IrisGridModel {
     }
 
     const mode = this.getFormatOptionForCell(column, row, 'mode');
-    if (mode != null) {
+    if (mode?.type === 'databar') {
       return 'dataBar';
     }
 
