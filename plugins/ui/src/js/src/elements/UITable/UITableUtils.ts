@@ -41,6 +41,7 @@ export type RowDataMap = Record<ColumnName, RowDataValue>;
 export type ColorGradient = string[];
 
 export type DatabarConfig = {
+  type: 'databar';
   column?: ColumnName;
   value_column?: ColumnName;
   min?: number | ColumnName;

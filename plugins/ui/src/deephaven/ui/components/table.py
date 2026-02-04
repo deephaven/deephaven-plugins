@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Any, Optional
 import logging
 import warnings
@@ -119,6 +119,7 @@ class TableDatabar:
         markers: List of marker lines to display on the databar.
     """
 
+    type: str = field(default="databar", init=False)
     column: ColumnName | None = None
     value_column: ColumnName | None = None
     min: ColumnName | float | None = None

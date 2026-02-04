@@ -280,6 +280,7 @@ class UITableTestCase(BaseTestCase):
                 "format": {
                     "cols": "X",
                     "mode": {
+                        "type": "databar",
                         "valueColumn": "Y",
                         "min": 0,
                         "max": 100,
@@ -317,6 +318,7 @@ class UITableTestCase(BaseTestCase):
                     {
                         "cols": ["X", "Y"],
                         "mode": {
+                            "type": "databar",
                             "color": "positive",
                             "markers": [{"value": 50, "color": "red"}],
                         },
@@ -345,6 +347,7 @@ class UITableTestCase(BaseTestCase):
                     "cols": "X",
                     "if": "X > 50",
                     "mode": {
+                        "type": "databar",
                         "color": "positive",
                     },
                 },
@@ -369,7 +372,7 @@ class UITableTestCase(BaseTestCase):
             {
                 "format": [
                     {"cols": "X", "backgroundColor": "accent-100"},
-                    {"cols": "Y", "mode": {"color": "blue"}},
+                    {"cols": "Y", "mode": {"type": "databar", "color": "blue"}},
                     {"cols": "X", "if": "X > 50", "color": "positive"},
                 ],
             },

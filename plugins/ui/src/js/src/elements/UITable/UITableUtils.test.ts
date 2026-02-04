@@ -28,7 +28,7 @@ describe('extractDatabarsFromFormatRules', () => {
     const formatRules = [
       {
         cols: 'Price',
-        mode: { color: 'blue' },
+        mode: { type: 'databar' as const, color: 'blue' },
       },
     ];
 
@@ -36,6 +36,7 @@ describe('extractDatabarsFromFormatRules', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
+      type: 'databar',
       color: 'blue',
       column: 'Price',
     });
@@ -45,7 +46,7 @@ describe('extractDatabarsFromFormatRules', () => {
     const formatRules = [
       {
         cols: ['Price', 'Size'],
-        mode: { color: 'positive', opacity: 0.8 },
+        mode: { type: 'databar' as const, color: 'positive', opacity: 0.8 },
       },
     ];
 
@@ -53,11 +54,13 @@ describe('extractDatabarsFromFormatRules', () => {
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
+      type: 'databar',
       color: 'positive',
       opacity: 0.8,
       column: 'Price',
     });
     expect(result[1]).toEqual({
+      type: 'databar',
       color: 'positive',
       opacity: 0.8,
       column: 'Size',
@@ -72,7 +75,7 @@ describe('extractDatabarsFromFormatRules', () => {
       },
       {
         cols: 'Size',
-        mode: { color: 'blue' },
+        mode: { type: 'databar' as const, color: 'blue' },
       },
     ];
 
