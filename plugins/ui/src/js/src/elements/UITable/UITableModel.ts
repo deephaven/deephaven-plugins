@@ -275,8 +275,17 @@ class UITableModel extends IrisGridModel {
     }
 
     const mode = this.getFormatOptionForCell(column, row, 'mode');
+    if (mode != null) {
+      return 'dataBar';
+    }
 
-    return mode != null ? 'dataBar' : this.model.renderTypeForCell(column, row);
+    // Check legacy databars prop
+    const columnName = this.columns[column].name;
+    if (this.databars.has(columnName)) {
+      return 'dataBar';
+    }
+
+    return this.model.renderTypeForCell(column, row);
   }
 
   /**
@@ -328,7 +337,10 @@ class UITableModel extends IrisGridModel {
 
     const columnName = this.columns[columnIndex].name;
 
-    const config = this.getFormatOptionForCell(columnIndex, rowIndex, 'mode');
+    // Check format rules first, then fall back to legacy databars prop
+    const config =
+      this.getFormatOptionForCell(columnIndex, rowIndex, 'mode') ??
+      this.databars.get(columnName);
     if (config == null) {
       throw new Error(`No databar config for column ${columnName}`);
     }
