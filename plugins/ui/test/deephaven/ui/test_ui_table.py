@@ -252,7 +252,7 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_format_with_databar_full_options(self):
+    def test_databar_full_options(self):
         import deephaven.ui as ui
         from deephaven.ui.components.table import TableFormat, TableDatabar
 
@@ -294,7 +294,7 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_format_multiple_columns_with_databar(self):
+    def test_databar_multiple_columns(self):
         import deephaven.ui as ui
         from deephaven.ui.components.table import TableFormat, TableDatabar
 
@@ -325,7 +325,7 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_format_databar_with_conditional(self):
+    def test_databar_conditional(self):
         import deephaven.ui as ui
         from deephaven.ui.components.table import TableFormat, TableDatabar
 
@@ -348,5 +348,29 @@ class UITableTestCase(BaseTestCase):
                         "color": "positive",
                     },
                 },
+            },
+        )
+
+    def test_databar_mixed_formatting(self):
+        import deephaven.ui as ui
+        from deephaven.ui.components.table import TableFormat, TableDatabar
+
+        t = ui.table(
+            self.source,
+            format_=[
+                TableFormat(cols="X", background_color="accent-100"),
+                TableFormat(cols="Y", mode=TableDatabar(color="blue")),
+                TableFormat(cols="X", if_="X > 50", color="positive"),
+            ],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "format": [
+                    {"cols": "X", "backgroundColor": "accent-100"},
+                    {"cols": "Y", "mode": {"color": "blue"}},
+                    {"cols": "X", "if": "X > 50", "color": "positive"},
+                ],
             },
         )
