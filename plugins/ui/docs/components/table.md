@@ -206,6 +206,19 @@ t = ui.table(
 )
 ```
 
+> [!WARNING]
+> Migrating from the `databars` parameter
+>
+> The legacy `databars` parameter is deprecated and will be removed in a future version. Use `format_` with `mode=ui.TableDatabar()` instead.
+>
+> ```diff
+> t = ui.table(
+>     dx.data.stocks(),
+> -   databars=[ui.TableDatabar(column="Price", color="positive")]
+> +   format_=[ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="positive"))]
+> )
+> ```
+
 ##### Value Column
 
 The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
