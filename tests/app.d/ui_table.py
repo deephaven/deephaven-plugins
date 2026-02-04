@@ -199,3 +199,108 @@ def t_selection_component():
 
 
 t_selection = t_selection_component()
+
+t_databar_basic = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="positive")),
+    ],
+)
+
+t_databar_multi_cols = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols=["Price", "Size"],
+            mode=ui.TableDatabar(color="info", value_placement="beside"),
+        ),
+    ],
+)
+
+t_databar_full_options = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(
+                min=-2,
+                max=2,
+                axis="middle",
+                direction="LTR",
+                value_placement="beside",
+                color={"positive": "positive", "negative": "negative"},
+                opacity=0.5,
+                markers=[{"value": 1, "color": "info"}],
+            ),
+        ),
+    ],
+)
+
+t_databar_conditional = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size",
+            if_="Size > 50",
+            mode=ui.TableDatabar(color="positive", max=1000),
+        ),
+    ],
+)
+
+t_databar_priority = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            mode=ui.TableDatabar(color="info"),
+        ),
+        ui.TableFormat(
+            cols="Price",
+            if_="Index > 10",
+            mode=ui.TableDatabar(color="positive"),
+        ),
+        ui.TableFormat(
+            cols="Price",
+            if_="Index < 5",
+            mode=ui.TableDatabar(color="negative"),
+        ),
+    ],
+)
+
+t_databar_mixed = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Sym", background_color="lemonchiffon"),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="info")),
+        ui.TableFormat(cols="Size", if_="Size > 100", color="positive"),
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar(color="salmon", opacity=0.5)),
+    ],
+)
+
+t_databar_gradient = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            mode=ui.TableDatabar(color=["blue-400", "purple-800"]),
+        ),
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(
+                color={
+                    "positive": ["green-400", "green-800"],
+                    "negative": ["red-400", "red-800"],
+                },
+                axis="middle",
+            ),
+        ),
+    ],
+)
+
+t_databar_legacy = ui.table(
+    _stocks,
+    databars=[
+        ui.TableDatabar(column="Price", color="positive"),
+        ui.TableDatabar(column="Random", color="info", value_placement="overlap"),
+    ],
+)
