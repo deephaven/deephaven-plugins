@@ -104,28 +104,24 @@ export class AgGridFilterUtils {
     table: DhType.Table | DhType.TreeTable,
     model: AdvancedFilterModel
   ): DhType.FilterCondition {
+    // Handle ColumnAdvancedFilterModel (single column condition)
     if (model.filterType !== 'join') {
-      throw new Error(`Unsupported advanced filter type: ${model.filterType}`);
+      const columnModel = model as ColumnAdvancedFilterModel;
+      if (!('colId' in columnModel) || !columnModel.colId) {
+        throw new Error('Advanced filter condition must have colId');
+      }
+      const column = table.findColumn(columnModel.colId);
+      return this.parseAdvancedColumnFilter(dh, column, columnModel);
     }
 
-    if (!model.conditions || model.conditions.length === 0) {
+    // Handle JoinAdvancedFilterModel (multiple conditions joined together)
+    if (model.conditions.length === 0) {
       throw new Error('Advanced filter must have conditions');
     }
 
-    const conditions = model.conditions.map(condition => {
-      if ('filterType' in condition && condition.filterType === 'join') {
-        // Nested AdvancedFilterModel - recurse
-        return this.parseAdvancedFilterModel(dh, table, condition);
-      }
-
-      // Column condition - parse directly
-      if (!('colId' in condition) || !condition.colId) {
-        throw new Error('Advanced filter condition must have colId');
-      }
-
-      const column = table.findColumn(condition.colId);
-      return this.parseAdvancedColumnFilter(dh, column, condition);
-    });
+    const conditions = model.conditions.map(condition =>
+      this.parseAdvancedFilterModel(dh, table, condition)
+    );
 
     // Combine conditions based on operator
     return conditions.reduce((prev, curr, index) => {
@@ -184,13 +180,11 @@ export class AgGridFilterUtils {
         return this.parseTextFilter(dh, column, objModel);
       }
       case 'boolean': {
-        // Boolean filters use text filter with true/false type
-        const boolModel: TextFilterModel = {
-          filterType: 'text',
-          type: condition.type as any,
-          filter: '',
-        };
-        return this.parseTextFilter(dh, column, boolModel);
+        // Handle boolean filters directly
+        if (condition.type === 'true') {
+          return column.filter().isTrue();
+        }
+        return column.filter().isFalse();
       }
       default:
         throw new Error(

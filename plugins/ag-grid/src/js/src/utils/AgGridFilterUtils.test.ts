@@ -894,5 +894,109 @@ describe('AgGridFilterUtils', () => {
       expect(mockAnd).toHaveBeenCalledWith(conditionAge2);
       expect(mockOr).toHaveBeenCalled();
     });
+
+    it('should parse ColumnAdvancedFilterModel directly (text filter)', () => {
+      const model: AdvancedFilterModel = {
+        filterType: 'text',
+        type: 'contains',
+        filter: 'searchValue',
+        colId: 'Name',
+      };
+
+      const mockContains = jest.fn().mockReturnValue('result');
+      mockColumn.filter.mockReturnValueOnce({ contains: mockContains });
+      mockDh.FilterValue.ofString.mockReturnValueOnce('searchValue');
+
+      const result = AgGridFilterUtils.parseAdvancedFilterModel(
+        mockDh as unknown as typeof DhType,
+        mockTable as unknown as DhType.Table,
+        model
+      );
+
+      expect(result).toBe('result');
+      expect(mockTable.findColumn).toHaveBeenCalledWith('Name');
+      expect(mockContains).toHaveBeenCalledWith('searchValue');
+    });
+
+    it('should parse ColumnAdvancedFilterModel directly (number filter)', () => {
+      const model: AdvancedFilterModel = {
+        filterType: 'number',
+        type: 'greaterThan',
+        filter: 42,
+        colId: 'Age',
+      };
+
+      const mockGreaterThan = jest.fn().mockReturnValue('result');
+      mockColumn.filter.mockReturnValueOnce({ greaterThan: mockGreaterThan });
+      mockDh.FilterValue.ofNumber.mockReturnValueOnce(42);
+
+      const result = AgGridFilterUtils.parseAdvancedFilterModel(
+        mockDh as unknown as typeof DhType,
+        mockTable as unknown as DhType.Table,
+        model
+      );
+
+      expect(result).toBe('result');
+      expect(mockTable.findColumn).toHaveBeenCalledWith('Age');
+      expect(mockGreaterThan).toHaveBeenCalledWith(42);
+    });
+
+    it('should parse ColumnAdvancedFilterModel directly (boolean true filter)', () => {
+      const model: AdvancedFilterModel = {
+        filterType: 'boolean',
+        type: 'true',
+        colId: 'IsActive',
+      };
+
+      const mockIsTrue = jest.fn().mockReturnValue('result');
+      mockColumn.filter.mockReturnValueOnce({ isTrue: mockIsTrue });
+
+      const result = AgGridFilterUtils.parseAdvancedFilterModel(
+        mockDh as unknown as typeof DhType,
+        mockTable as unknown as DhType.Table,
+        model
+      );
+
+      expect(result).toBe('result');
+      expect(mockTable.findColumn).toHaveBeenCalledWith('IsActive');
+      expect(mockIsTrue).toHaveBeenCalled();
+    });
+
+    it('should parse ColumnAdvancedFilterModel directly (boolean false filter)', () => {
+      const model: AdvancedFilterModel = {
+        filterType: 'boolean',
+        type: 'false',
+        colId: 'IsActive',
+      };
+
+      const mockIsFalse = jest.fn().mockReturnValue('result');
+      mockColumn.filter.mockReturnValueOnce({ isFalse: mockIsFalse });
+
+      const result = AgGridFilterUtils.parseAdvancedFilterModel(
+        mockDh as unknown as typeof DhType,
+        mockTable as unknown as DhType.Table,
+        model
+      );
+
+      expect(result).toBe('result');
+      expect(mockTable.findColumn).toHaveBeenCalledWith('IsActive');
+      expect(mockIsFalse).toHaveBeenCalled();
+    });
+
+    it('should throw error for ColumnAdvancedFilterModel with missing colId', () => {
+      const model = {
+        filterType: 'text',
+        type: 'contains',
+        filter: 'test',
+      } as AdvancedFilterModel;
+
+      expect(() =>
+        AgGridFilterUtils.parseAdvancedFilterModel(
+          mockDh as unknown as typeof DhType,
+          mockTable as unknown as DhType.Table,
+          model
+        )
+      ).toThrow('Advanced filter condition must have colId');
+    });
   });
 });
