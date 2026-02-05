@@ -264,3 +264,130 @@ class RenderUnmountChildrenTestCase(BaseTestCase):
 
         state = rc.export_state()
         self.assertEqual(state, {"state": {0: 1}})
+
+
+class RenderDirtyTrackingTestCase(BaseTestCase):
+    def test_initial_dirty_state(self):
+        """Test that a new context starts clean (not dirty)."""
+        rc = make_render_context()
+        self.assertFalse(rc._is_dirty)
+        self.assertFalse(rc._has_dirty_descendant)
+        self.assertIsNone(rc._parent_context)
+
+    def test_set_state_marks_dirty(self):
+        """Test that setting state marks the context as dirty."""
+        rc = make_render_context()
+        with rc.open():
+            rc.init_state(0, "initial")
+            self.assertFalse(rc._is_dirty)
+
+            rc.set_state(0, "updated")
+            self.assertTrue(rc._is_dirty)
+
+    def test_child_context_has_parent(self):
+        """Test that child contexts have their parent set."""
+        rc = make_render_context()
+        with rc.open():
+            child = rc.get_child_context("child")
+            self.assertIs(child._parent_context, rc)
+
+    def test_dirty_propagates_to_ancestors(self):
+        """Test that marking a child dirty propagates _has_dirty_descendant to ancestors."""
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, "root")
+            child = rc.get_child_context("child")
+            with child.open():
+                child.init_state(0, "child-state")
+                grandchild = child.get_child_context("grandchild")
+                with grandchild.open():
+                    grandchild.init_state(0, "grandchild-state")
+
+        # Initially, none are dirty
+        self.assertFalse(rc._is_dirty)
+        self.assertFalse(rc._has_dirty_descendant)
+        self.assertFalse(child._is_dirty)
+        self.assertFalse(child._has_dirty_descendant)
+        self.assertFalse(grandchild._is_dirty)
+        self.assertFalse(grandchild._has_dirty_descendant)
+
+        # Set state in grandchild
+        with rc.open():
+            child = rc.get_child_context("child")
+            with child.open():
+                grandchild = child.get_child_context("grandchild")
+                with grandchild.open():
+                    grandchild.set_state(0, "new-grandchild-state")
+
+        # Grandchild should be dirty
+        self.assertTrue(grandchild._is_dirty)
+        self.assertFalse(grandchild._has_dirty_descendant)
+
+        # Child should have dirty descendant but not be dirty itself
+        self.assertFalse(child._is_dirty)
+        self.assertTrue(child._has_dirty_descendant)
+
+        # Root should have dirty descendant but not be dirty itself
+        self.assertFalse(rc._is_dirty)
+        self.assertTrue(rc._has_dirty_descendant)
+
+    def test_dirty_propagation_stops_at_already_marked_ancestor(self):
+        """Test that dirty propagation stops when it encounters an already marked ancestor."""
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, "root")
+            child1 = rc.get_child_context("child1")
+            with child1.open():
+                child1.init_state(0, "child1-state")
+                grandchild1 = child1.get_child_context("grandchild1")
+                with grandchild1.open():
+                    grandchild1.init_state(0, "grandchild1-state")
+            child2 = rc.get_child_context("child2")
+            with child2.open():
+                child2.init_state(0, "child2-state")
+
+        # Mark grandchild1 dirty - need to also access child2 to keep it alive
+        with rc.open():
+            child1 = rc.get_child_context("child1")
+            with child1.open():
+                grandchild1 = child1.get_child_context("grandchild1")
+                with grandchild1.open():
+                    grandchild1.set_state(0, "new-grandchild1-state")
+            # Must access child2 to prevent it from being unmounted
+            child2 = rc.get_child_context("child2")
+            with child2.open():
+                pass
+
+        self.assertTrue(rc._has_dirty_descendant)
+        self.assertTrue(child1._has_dirty_descendant)
+
+        # Now mark child2 dirty - propagation should stop at rc since it's already marked
+        with rc.open():
+            child1 = rc.get_child_context("child1")
+            with child1.open():
+                grandchild1 = child1.get_child_context("grandchild1")
+                with grandchild1.open():
+                    pass
+            child2 = rc.get_child_context("child2")
+            with child2.open():
+                child2.set_state(0, "new-child2-state")
+
+        # child2 should be dirty (not just has_dirty_descendant)
+        self.assertTrue(child2._is_dirty)
+        # rc should still have _has_dirty_descendant (unchanged)
+        self.assertTrue(rc._has_dirty_descendant)
+
+    def test_multiple_set_state_calls(self):
+        """Test that multiple set_state calls still result in dirty context."""
+        rc = make_render_context()
+        with rc.open():
+            rc.init_state(0, "val0")
+            rc.init_state(1, "val1")
+
+        with rc.open():
+            rc.set_state(0, "new0")
+            self.assertTrue(rc._is_dirty)
+            rc.set_state(1, "new1")
+            self.assertTrue(rc._is_dirty)

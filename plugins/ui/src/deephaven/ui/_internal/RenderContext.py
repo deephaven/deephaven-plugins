@@ -221,13 +221,34 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
-    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
+    _is_dirty: bool
+    """
+    Flag to indicate if this context needs to be re-rendered due to a state change.
+    """
+
+    _has_dirty_descendant: bool
+    """
+    Flag to indicate if any descendant context needs to be re-rendered.
+    """
+
+    _parent_context: Optional["RenderContext"]
+    """
+    The parent context, if any. Used to propagate dirty flags up the tree.
+    """
+
+    def __init__(
+        self,
+        on_change: OnChangeCallable,
+        on_queue_render: OnChangeCallable,
+        parent: Optional["RenderContext"] = None,
+    ):
         """
         Create a new render context.
 
         Args:
             on_change: The callback to call when the state in the context has changes.
             on_queue_render: The callback to call when work is being requested for the render loop.
+            parent: The parent context, if any. Used to propagate dirty flags up the tree.
         """
 
         self._hook_index = _READY_TO_OPEN
@@ -242,6 +263,9 @@ class RenderContext:
         self._collected_contexts = []
         self._top_level_scope = None
         self._is_mounted = True
+        self._is_dirty = False
+        self._has_dirty_descendant = False
+        self._parent_context = parent
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -429,6 +453,9 @@ class RenderContext:
         if key not in self._state:
             raise KeyError(f"Key {key} not initialized")
 
+        # Mark this context as dirty and propagate to ancestors
+        self._mark_dirty()
+
         # We queue up the state change in a callable that will get called from the render loop
         def update_state():
             if callable(value):
@@ -442,13 +469,29 @@ class RenderContext:
         # This is not the initial state, queue up the state change on the render loop
         self._on_change(update_state)
 
+    def _mark_dirty(self) -> None:
+        """
+        Mark this context as dirty and propagate to ancestors.
+        """
+        self._is_dirty = True
+        parent = self._parent_context
+        while parent is not None:
+            if parent._has_dirty_descendant:
+                break  # Already marked, ancestors are too
+            parent._has_dirty_descendant = True
+            parent = parent._parent_context
+
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
         Get the child context for the given key.
         """
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            child_context = RenderContext(self._on_change, self._on_queue_render)
+            child_context = RenderContext(
+                self._on_change,
+                self._on_queue_render,
+                parent=self,
+            )
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
