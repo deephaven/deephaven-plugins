@@ -134,7 +134,7 @@ def _render_children_only(context: RenderContext) -> RenderedNode:
     # Render children without opening parent context
     # This preserves parent's effects and state while updating children
     if cached_props is not None:
-        rendered_props = _render_props_without_opening_context(cached_props, context)
+        rendered_props = _render_dict_in_open_context(cached_props, context)
     else:
         rendered_props = {}
 
@@ -144,47 +144,6 @@ def _render_children_only(context: RenderContext) -> RenderedNode:
     rendered = RenderedNode(cached_node.name, rendered_props)
     context._cached_rendered_node = rendered
     return rendered
-
-
-def _render_props_without_opening_context(
-    props: PropsType, context: RenderContext
-) -> PropsType:
-    """
-    Render props (which may contain Elements) without opening the parent context.
-
-    This is used when re-rendering children only. We iterate over props and render
-    any Elements or collections that might contain Elements.
-    """
-    result = {}
-    for key, value in props.items():
-        result[key] = _render_prop_item_without_context(value, context, key)
-    return result
-
-
-def _render_prop_item_without_context(
-    item: Any, context: RenderContext, key: str
-) -> Any:
-    """
-    Render a single prop item without opening the parent context.
-    """
-    if isinstance(item, (list, map, tuple)):
-        # For collections, we need to get/create a child context and render them properly
-        child_ctx = context.get_child_context(key)
-        return _render_list(item, child_ctx)
-
-    if isinstance(item, dict):
-        child_ctx = context.get_child_context(key)
-        return _render_dict(item, child_ctx)
-
-    if is_dataclass(item) and not isinstance(item, type):
-        child_ctx = context.get_child_context(key)
-        return _render_dict(remove_empty_keys(dataclass_asdict(item)), child_ctx)
-
-    if isinstance(item, Element):
-        elem_key = item.key or f"{key}-{item.name}"
-        return _render_element(item, context.get_child_context(elem_key))
-
-    return item
 
 
 def _render_element(element: Element, context: RenderContext) -> RenderedNode:
@@ -206,13 +165,16 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     is_function_element = isinstance(element, FunctionElement)
 
     # Check if we can skip rendering this component
-    if is_function_element and context._cached_rendered_node is not None:
-        if not context._is_dirty and not context._has_dirty_descendant:
+    if (
+        is_function_element
+        and context._cached_rendered_node is not None
+        and not context._is_dirty
+    ):
+        if not context._has_dirty_descendant:
             # Component and all descendants are clean - reuse cache entirely
             logger.debug("Skipping render for %s - using cached node", element.name)
             return context._cached_rendered_node
-
-        if not context._is_dirty and context._has_dirty_descendant:
+        else:
             # This component is clean but has dirty descendants
             # Re-render children only, not this component's function
             logger.debug(

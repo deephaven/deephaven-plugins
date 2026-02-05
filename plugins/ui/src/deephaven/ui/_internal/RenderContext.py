@@ -291,20 +291,13 @@ class RenderContext:
             self.unmount()
 
     @contextmanager
-    def open(
-        self, skip_hook_validation: bool = False
-    ) -> Generator[RenderContext, None, None]:
+    def open(self) -> Generator[RenderContext, None, None]:
         """
         Opens this context to track hook creation, sets this context as active on
         this thread, and opens the liveness scope for user-created objects.
 
         This is not reentrant and not safe across threads, ensure it is only opened
         once at a time. After it has been closed, it is safe to be opened again.
-
-        Args:
-            skip_hook_validation: If True, skip the hook count validation. Used when
-                re-rendering children only (selective re-rendering optimization) where
-                we don't call the element's render function.
 
         Returns:
             A context manager to manage RenderContext resources.
@@ -397,7 +390,7 @@ class RenderContext:
             # Reset the after render listeners. No need to retain the old ones.
             self._collected_effects = []
 
-        if not skip_hook_validation and self._hook_count != hook_count:
+        if self._hook_count != hook_count:
             # It isn't ideal to throw this anywhere - but this speaks to a malformed component, and there is no
             # good way to recover from that. We don't want to prevent liveness wiring above from working, so we
             # throw here at the end of the method instead.
