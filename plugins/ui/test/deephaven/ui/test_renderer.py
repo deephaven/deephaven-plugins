@@ -251,7 +251,8 @@ class SelectiveRenderingTestCase(BaseTestCase):
 
     def _get_text_content(self, rendered_node):
         """Helper to get text content from a rendered text node.
-        ui.text() passes children as keyword arg which becomes a list/tuple after rendering."""
+        ui.text() passes children as keyword arg which becomes a list/tuple after rendering.
+        """
         children = rendered_node.props["children"]
         if isinstance(children, list):
             return children[0] if len(children) == 1 else children
@@ -411,3 +412,121 @@ class SelectiveRenderingTestCase(BaseTestCase):
         self.assertEqual(grandparent_count[0], 1)  # Did NOT re-render
         self.assertEqual(parent_count[0], 1)  # Did NOT re-render
         self.assertEqual(child_count[0], 2)  # DID re-render
+
+    def test_multiple_child_state_updates(self):
+        """Test that multiple state changes on a child component all trigger re-renders.
+
+        This reproduces a bug where only the first click/state update triggers a re-render,
+        and subsequent updates are ignored.
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        parent_render_count = [0]
+        child_a_render_count = [0]
+        child_b_render_count = [0]
+        set_child_a_count_ref = [None]
+        set_child_b_count_ref = [None]
+
+        @ui.component
+        def child_with_state(name):
+            if name == "A":
+                child_a_render_count[0] += 1
+            else:
+                child_b_render_count[0] += 1
+
+            count, set_count = ui.use_state(0)
+
+            if name == "A":
+                set_child_a_count_ref[0] = set_count
+            else:
+                set_child_b_count_ref[0] = set_count
+
+            return ui.text(f"{name}: {count}")
+
+        @ui.component
+        def parent_component():
+            parent_render_count[0] += 1
+            return ui.flex(
+                ui.heading("Parent"),
+                child_with_state("A"),
+                child_with_state("B"),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        result = renderer.render(parent_component())
+        self.assertEqual(parent_render_count[0], 1)
+        self.assertEqual(child_a_render_count[0], 1)
+        self.assertEqual(child_b_render_count[0], 1)
+
+        # First click on Child A - should trigger re-render
+        set_child_a_count_ref[0](1)
+        result = renderer.render(parent_component())
+        self.assertEqual(parent_render_count[0], 1)  # Parent did NOT re-render
+        self.assertEqual(child_a_render_count[0], 2)  # Child A DID re-render
+        self.assertEqual(child_b_render_count[0], 1)  # Child B did NOT re-render
+
+        # Second click on Child A - should ALSO trigger re-render
+        set_child_a_count_ref[0](2)
+        result = renderer.render(parent_component())
+        self.assertEqual(parent_render_count[0], 1)  # Parent did NOT re-render
+        self.assertEqual(child_a_render_count[0], 3)  # Child A DID re-render again
+        self.assertEqual(child_b_render_count[0], 1)  # Child B did NOT re-render
+
+        # Third click on Child A - should ALSO trigger re-render
+        set_child_a_count_ref[0](3)
+        result = renderer.render(parent_component())
+        self.assertEqual(parent_render_count[0], 1)  # Parent did NOT re-render
+        self.assertEqual(child_a_render_count[0], 4)  # Child A DID re-render again
+        self.assertEqual(child_b_render_count[0], 1)  # Child B did NOT re-render
+
+        # Now click on Child B - should trigger re-render of Child B
+        set_child_b_count_ref[0](1)
+        result = renderer.render(parent_component())
+        self.assertEqual(parent_render_count[0], 1)  # Parent did NOT re-render
+        self.assertEqual(child_a_render_count[0], 4)  # Child A did NOT re-render
+        self.assertEqual(child_b_render_count[0], 2)  # Child B DID re-render
+
+    def test_simple_multiple_state_updates(self):
+        """Simplified test for multiple state updates on a single dirty component."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        render_count = [0]
+        set_count_ref = [None]
+
+        @ui.component
+        def counter():
+            render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            set_count_ref[0] = set_count
+            return ui.text(f"Count: {count}")
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        result = renderer.render(counter())
+        self.assertEqual(render_count[0], 1)
+
+        # First state update
+        set_count_ref[0](1)
+        # Check that context is marked dirty
+        self.assertTrue(
+            rc._is_dirty, "Context should be dirty after first state update"
+        )
+        result = renderer.render(counter())
+        self.assertEqual(render_count[0], 2)
+        self.assertFalse(rc._is_dirty, "Context should be clean after render")
+
+        # Second state update
+        set_count_ref[0](2)
+        # Check that context is marked dirty again
+        self.assertTrue(
+            rc._is_dirty, "Context should be dirty after second state update"
+        )
+        result = renderer.render(counter())
+        self.assertEqual(render_count[0], 3)

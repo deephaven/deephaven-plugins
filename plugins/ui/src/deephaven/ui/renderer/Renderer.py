@@ -66,10 +66,16 @@ def _render_list(
     """
     logger.debug("_render_list %s", item)
     with context.open():
-        return [
+        result = [
             _render_child_item(value, context, str(key))
             for key, value in enumerate(item)
         ]
+        # Clear dirty flags after processing children to ensure proper propagation
+        # on subsequent state changes. Without this, the _mark_dirty optimization
+        # that stops early when a parent already has _has_dirty_descendant=True
+        # would fail to propagate to ancestors.
+        context._has_dirty_descendant = False
+        return result
 
 
 def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
@@ -87,7 +93,11 @@ def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
     logger.debug("_render_dict %s", item)
 
     with context.open():
-        return _render_dict_in_open_context(item, context)
+        result = _render_dict_in_open_context(item, context)
+        # Clear dirty flags after processing children to ensure proper propagation
+        # on subsequent state changes
+        context._has_dirty_descendant = False
+        return result
 
 
 def _render_dict_in_open_context(item: PropsType, context: RenderContext) -> PropsType:
