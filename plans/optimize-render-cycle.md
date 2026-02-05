@@ -8,12 +8,23 @@
 - Phase 2: Cache rendered output
 - Phase 3: Selective re-rendering
 - Phase 4: Handle edge cases (key-based reconciliation, effect behavior with selective re-rendering)
+- Performance benchmarks (see results below)
+
+**Benchmark Results:**
+
+| Metric                                                 | Result                              |
+| ------------------------------------------------------ | ----------------------------------- |
+| Render speedup (selective vs full)                     | **38-44x faster**                   |
+| Re-render rate (111 component tree, leaf state change) | **0.90%** (<10% target achieved)    |
+| Deep nesting (20 levels, leaf state change)            | Only 1 component re-renders         |
+| Sibling isolation                                      | Verified - siblings don't re-render |
 
 **Key Implementation Notes:**
 
 - Caching optimization only applies to `FunctionElement` (components with `@ui.component`), not to `BaseElement`. This is because `BaseElement` props are determined at construction time, not by hooks/state.
 - When a component is clean but has dirty descendants, we re-render children WITHOUT opening the parent's context. This preserves the parent's effects (they don't run again).
 - Effects with no dependencies will NOT run every render if the component is clean - they only run when the component is dirty. This is a behavior change from before but is more efficient.
+- **Current limitation:** Caching is based on context dirty state, not props. Children with clean contexts return cached values even if their props changed. This is similar to having `React.memo()` everywhere but without props comparison. Future work: props-based memoization.
 
 ## Current Architecture Summary
 
