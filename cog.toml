@@ -33,8 +33,8 @@ post_package_bump_hooks = [
     "../../tools/update_version.sh {{package}} {{version}} --dev",
     "git commit --all --message 'chore(version): update {{package}} version to {{version}}.dev0'",
     # push the tag and the commits to main 
-    "git push origin {{package}}-v{{version}}",
-    "git push origin main",
+    "git push ${RELEASE_REMOTE:-origin} {{package}}-v{{version}}",
+    "git push ${RELEASE_REMOTE:-origin} main",
     # cut a github release using our conventional-commit changelog
     "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title {{package}}-v{{version}} --verify-tag"
 ]

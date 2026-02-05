@@ -396,7 +396,13 @@ After completing the above, you should be able to run the release script in the 
 ### Cutting a New Release
 
 In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
-This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
+This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` by default.
+
+You can specify a different remote using the `--remote` (or `-r`) flag:
+```bash
+tools/release.sh --remote upstream <pluginName>
+```
+This is useful when your `origin` points to a fork and you want to release to the upstream repository.
 
 `tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
 which will invoke the necessary programs and scripts to automate a version bump and GitHub release.
