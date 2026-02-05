@@ -4,7 +4,7 @@ import logging
 from typing import Any, Union
 
 from .._internal import RenderContext, remove_empty_keys
-from ..elements import Element, PropsType
+from ..elements import Element, FunctionElement, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
@@ -105,9 +105,91 @@ def _render_dict_in_open_context(item: PropsType, context: RenderContext) -> Pro
     return {key: _render_child_item(value, context, key) for key, value in item.items()}
 
 
+def _render_children_only(context: RenderContext) -> RenderedNode:
+    """
+    Re-render only the children of a component, reusing the parent's cached props.
+
+    This is used when a component is clean but has dirty descendants. We don't need to
+    re-execute the component's render function, but we do need to re-render children
+    (which may include dirty descendants).
+
+    IMPORTANT: We do NOT open the parent context here. Opening the context would
+    reset effects and cause cleanup functions to run incorrectly. Instead, we just
+    iterate over the cached props and render any child Elements, which will open
+    their own contexts.
+
+    Args:
+        context: The context to render in. Must have cached_props from a previous render.
+
+    Returns:
+        A new RenderedNode with re-rendered children.
+    """
+    cached_node = context._cached_rendered_node
+    cached_props = context._cached_props
+
+    logger.debug(
+        "Re-rendering children only for %s in context %s", cached_node.name, context
+    )
+
+    # Render children without opening parent context
+    # This preserves parent's effects and state while updating children
+    if cached_props is not None:
+        rendered_props = _render_props_without_opening_context(cached_props, context)
+    else:
+        rendered_props = {}
+
+    # Clear the dirty descendant flag after processing children
+    context._has_dirty_descendant = False
+
+    rendered = RenderedNode(cached_node.name, rendered_props)
+    context._cached_rendered_node = rendered
+    return rendered
+
+
+def _render_props_without_opening_context(
+    props: PropsType, context: RenderContext
+) -> PropsType:
+    """
+    Render props (which may contain Elements) without opening the parent context.
+
+    This is used when re-rendering children only. We iterate over props and render
+    any Elements or collections that might contain Elements.
+    """
+    result = {}
+    for key, value in props.items():
+        result[key] = _render_prop_item_without_context(value, context, key)
+    return result
+
+
+def _render_prop_item_without_context(
+    item: Any, context: RenderContext, key: str
+) -> Any:
+    """
+    Render a single prop item without opening the parent context.
+    """
+    if isinstance(item, (list, map, tuple)):
+        # For collections, we need to get/create a child context and render them properly
+        child_ctx = context.get_child_context(key)
+        return _render_list(item, child_ctx)
+
+    if isinstance(item, dict):
+        child_ctx = context.get_child_context(key)
+        return _render_dict(item, child_ctx)
+
+    if is_dataclass(item) and not isinstance(item, type):
+        child_ctx = context.get_child_context(key)
+        return _render_dict(remove_empty_keys(dataclass_asdict(item)), child_ctx)
+
+    if isinstance(item, Element):
+        elem_key = item.key or f"{key}-{item.name}"
+        return _render_element(item, context.get_child_context(elem_key))
+
+    return item
+
+
 def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     """
-    Render an Element.
+    Render an Element, potentially reusing cached output for clean components.
 
     Args:
         element: The element to render.
@@ -118,13 +200,47 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     """
     logger.debug("Rendering element %s in context %s", element.name, context)
 
+    # Caching optimization only applies to FunctionElements (components with state).
+    # BaseElements and other element types always get their props from their constructor,
+    # so they need to re-render when their props change (which we can't track).
+    is_function_element = isinstance(element, FunctionElement)
+
+    # Check if we can skip rendering this component
+    if is_function_element and context._cached_rendered_node is not None:
+        if not context._is_dirty and not context._has_dirty_descendant:
+            # Component and all descendants are clean - reuse cache entirely
+            logger.debug("Skipping render for %s - using cached node", element.name)
+            return context._cached_rendered_node
+
+        if not context._is_dirty and context._has_dirty_descendant:
+            # This component is clean but has dirty descendants
+            # Re-render children only, not this component's function
+            logger.debug(
+                "Re-rendering children only for %s - component is clean but has dirty descendants",
+                element.name,
+            )
+            return _render_children_only(context)
+
+    # Full re-render needed (either first render or component is dirty)
+    logger.debug("Full re-render for %s", element.name)
+
     with context.open():
         props = element.render(context)
+
+        # Cache the pre-rendered props (containing Elements) for potential re-use
+        # when this component is clean but has dirty descendants
+        context._cached_props = props
 
         # We also need to render any elements that are passed in as props (including `children`)
         props = _render_dict_in_open_context(props, context)
 
-    return RenderedNode(element.name, props)
+        # Clear dirty flags after successful render
+        context._is_dirty = False
+        context._has_dirty_descendant = False
+
+    rendered = RenderedNode(element.name, props)
+    context._cached_rendered_node = rendered
+    return rendered
 
 
 class Renderer:

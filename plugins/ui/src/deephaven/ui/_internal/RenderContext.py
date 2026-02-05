@@ -92,7 +92,7 @@ The serializable state of a RenderContext. Used to serialize the state for the c
 
 
 def _value_or_call(
-    value: T | None | Callable[[], T | None]
+    value: T | None | Callable[[], T | None],
 ) -> ValueWithLiveness[T | None]:
     """
     Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
@@ -236,6 +236,20 @@ class RenderContext:
     The parent context, if any. Used to propagate dirty flags up the tree.
     """
 
+    _cached_rendered_node: Any
+    """
+    The cached RenderedNode from the last render. Used for selective re-rendering.
+    When the component (and its descendants) are clean, we can return this cached value.
+    Type is Any to avoid circular import with RenderedNode.
+    """
+
+    _cached_props: Any
+    """
+    The cached props from the last element.render() call (before children are rendered).
+    Contains Elements that can be re-rendered when the component is clean but has dirty descendants.
+    Type is Any to avoid circular import with PropsType.
+    """
+
     def __init__(
         self,
         on_change: OnChangeCallable,
@@ -266,6 +280,8 @@ class RenderContext:
         self._is_dirty = False
         self._has_dirty_descendant = False
         self._parent_context = parent
+        self._cached_rendered_node = None
+        self._cached_props = None
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -275,13 +291,20 @@ class RenderContext:
             self.unmount()
 
     @contextmanager
-    def open(self) -> Generator[RenderContext, None, None]:
+    def open(
+        self, skip_hook_validation: bool = False
+    ) -> Generator[RenderContext, None, None]:
         """
         Opens this context to track hook creation, sets this context as active on
         this thread, and opens the liveness scope for user-created objects.
 
         This is not reentrant and not safe across threads, ensure it is only opened
         once at a time. After it has been closed, it is safe to be opened again.
+
+        Args:
+            skip_hook_validation: If True, skip the hook count validation. Used when
+                re-rendering children only (selective re-rendering optimization) where
+                we don't call the element's render function.
 
         Returns:
             A context manager to manage RenderContext resources.
@@ -374,7 +397,7 @@ class RenderContext:
             # Reset the after render listeners. No need to retain the old ones.
             self._collected_effects = []
 
-        if self._hook_count != hook_count:
+        if not skip_hook_validation and self._hook_count != hook_count:
             # It isn't ideal to throw this anywhere - but this speaks to a malformed component, and there is no
             # good way to recover from that. We don't want to prevent liveness wiring above from working, so we
             # throw here at the end of the method instead.

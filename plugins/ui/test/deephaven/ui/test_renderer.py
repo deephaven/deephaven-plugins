@@ -129,7 +129,10 @@ class RendererTestCase(BaseTestCase):
         assert count_btn.props != None
         self.assertEqual(count_btn.props["children"], "Count is 1")
 
-        # Only the counter with deps effect and no deps effects should have been called
+        # With selective re-rendering optimization:
+        # - Counter is dirty, so counter effects run
+        # - Parent is clean (only has dirty descendant), so parent effects DON'T run
+        # This is the expected behavior - parent function isn't called, so hooks don't run
         self.assertEqual(
             called_funcs,
             [
@@ -137,8 +140,6 @@ class RendererTestCase(BaseTestCase):
                 "counter_with_deps_cleanup",
                 "counter_no_deps_effect",
                 "counter_with_deps_effect",
-                "parent_no_deps_cleanup",
-                "parent_no_deps_effect",
             ],
         )
         called_funcs.clear()
@@ -243,3 +244,170 @@ class RendererTestCase(BaseTestCase):
         )
 
         self.assertIsInstance(nested_dataclass["b"], RenderedNode)
+
+
+class SelectiveRenderingTestCase(BaseTestCase):
+    """Tests for selective re-rendering optimization."""
+
+    def _get_text_content(self, rendered_node):
+        """Helper to get text content from a rendered text node.
+        ui.text() passes children as keyword arg which becomes a list/tuple after rendering."""
+        children = rendered_node.props["children"]
+        if isinstance(children, list):
+            return children[0] if len(children) == 1 else children
+        return children
+
+    def test_clean_component_returns_cached_node(self):
+        """Test that a clean component (no state change) returns its cached rendered node."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        render_count = [0]
+
+        @ui.component
+        def counter():
+            render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.text(f"Count: {count}")
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        result1 = renderer.render(counter())
+        self.assertEqual(render_count[0], 1)
+        text_node1 = result1.props["children"]
+        self.assertEqual(self._get_text_content(text_node1), "Count: 0")
+
+        # Second render without state change - should return cached
+        result2 = renderer.render(counter())
+        # Component should NOT re-render since it's clean
+        self.assertEqual(render_count[0], 1)
+        # Should return the same cached node
+        self.assertIs(result2, result1)
+
+    def test_dirty_component_fully_rerenders(self):
+        """Test that a dirty component (state changed) fully re-renders."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        render_count = [0]
+        set_count_ref = [None]
+
+        @ui.component
+        def counter():
+            render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            set_count_ref[0] = set_count
+            return ui.text(f"Count: {count}")
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        result1 = renderer.render(counter())
+        self.assertEqual(render_count[0], 1)
+        text_node1 = result1.props["children"]
+        self.assertEqual(self._get_text_content(text_node1), "Count: 0")
+
+        # Change state
+        set_count_ref[0](1)
+
+        # Second render with state change - should fully re-render
+        result2 = renderer.render(counter())
+        self.assertEqual(render_count[0], 2)
+        text_node2 = result2.props["children"]
+        self.assertEqual(self._get_text_content(text_node2), "Count: 1")
+        # Should be a new node, not the cached one
+        self.assertIsNot(result2, result1)
+
+    def test_parent_clean_child_dirty_only_child_rerenders(self):
+        """Test that when child state changes, only the child re-renders, not the parent."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        parent_render_count = [0]
+        child_render_count = [0]
+        set_child_count_ref = [None]
+
+        @ui.component
+        def child():
+            child_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            set_child_count_ref[0] = set_count
+            return ui.text(f"Child count: {count}")
+
+        @ui.component
+        def parent():
+            parent_render_count[0] += 1
+            # Return child directly (no wrapper) to simplify the test
+            return child()
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        result1 = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 1)
+        self.assertEqual(child_render_count[0], 1)
+
+        # Change child state
+        set_child_count_ref[0](1)
+
+        # Second render - parent should NOT re-render, only child should
+        result2 = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 1)  # Parent did NOT re-render
+        self.assertEqual(child_render_count[0], 2)  # Child DID re-render
+
+        # Navigate to the text content
+        # result2 = parent RenderedNode
+        # result2.props["children"] = child RenderedNode
+        # result2.props["children"].props["children"] = Text RenderedNode
+        child_node = result2.props["children"]
+        text_node = child_node.props["children"]
+        self.assertEqual(self._get_text_content(text_node), "Child count: 1")
+
+    def test_deeply_nested_dirty_child(self):
+        """Test selective re-rendering with deeply nested components."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_count = [0]
+        parent_count = [0]
+        child_count = [0]
+        set_child_state_ref = [None]
+
+        @ui.component
+        def child():
+            child_count[0] += 1
+            value, set_value = ui.use_state("initial")
+            set_child_state_ref[0] = set_value
+            return ui.text(value)
+
+        @ui.component
+        def parent_comp():
+            parent_count[0] += 1
+            return ui.view(child())
+
+        @ui.component
+        def grandparent():
+            grandparent_count[0] += 1
+            return ui.view(parent_comp())
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # First render
+        renderer.render(grandparent())
+        self.assertEqual(grandparent_count[0], 1)
+        self.assertEqual(parent_count[0], 1)
+        self.assertEqual(child_count[0], 1)
+
+        # Change child state
+        set_child_state_ref[0]("updated")
+
+        # Second render - only child should re-render
+        renderer.render(grandparent())
+        self.assertEqual(grandparent_count[0], 1)  # Did NOT re-render
+        self.assertEqual(parent_count[0], 1)  # Did NOT re-render
+        self.assertEqual(child_count[0], 2)  # DID re-render

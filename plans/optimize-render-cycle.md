@@ -1,5 +1,17 @@
 # Render Cycle Optimization Plan: Selective Re-rendering
 
+## Implementation Status
+
+**Completed:**
+- Phase 1: Dirty tracking infrastructure (committed as b42007a6)
+- Phase 2: Cache rendered output  
+- Phase 3: Selective re-rendering
+
+**Key Implementation Notes:**
+- Caching optimization only applies to `FunctionElement` (components with `@ui.component`), not to `BaseElement`. This is because `BaseElement` props are determined at construction time, not by hooks/state.
+- When a component is clean but has dirty descendants, we re-render children WITHOUT opening the parent's context. This preserves the parent's effects (they don't run again).
+- Effects with no dependencies will NOT run every render if the component is clean - they only run when the component is dirty. This is a behavior change from before but is more efficient.
+
 ## Current Architecture Summary
 
 **Key Components:**
@@ -136,21 +148,25 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
 #### 3.2 Add helper for children-only re-rendering
 
 ```python
-def _render_children_only(
-    cached_node: RenderedNode, context: RenderContext
-) -> RenderedNode:
-    """Re-render only the children of a component, reusing the parent's cached props."""
+def _render_children_only(context: RenderContext) -> RenderedNode:
+    """Re-render only the children of a component, reusing the parent's cached props.
 
-    with context.open():
-        # Don't call element.render() - reuse cached props structure
-        # But re-render any Element children that might be dirty
-        new_props = {}
-        for key, value in cached_node.props.items():
-            new_props[key] = _render_child_item(value, context, key)
+    IMPORTANT: We do NOT open the parent context here. This preserves the parent's
+    effects - they won't be re-run. We just iterate over cached props and render
+    any child Elements (which will open their own contexts).
+    """
+    cached_node = context._cached_rendered_node
+    cached_props = context._cached_props  # Pre-rendered props with Elements
 
-        context._has_dirty_descendant = False
+    # Render children without opening parent context
+    rendered_props = _render_props_without_opening_context(cached_props, context)
 
-    return RenderedNode(cached_node.name, new_props)
+    # Clear the dirty descendant flag
+    context._has_dirty_descendant = False
+
+    rendered = RenderedNode(cached_node.name, rendered_props)
+    context._cached_rendered_node = rendered
+    return rendered
 ```
 
 ---
@@ -177,14 +193,16 @@ This matches the behavior described in Phase 3 - the key insight is that `_rende
 
 Ensure components with different keys don't reuse each other's state (already handled by `get_child_context(key)`).
 
-#### 4.3 Effect cleanup on re-render skip
+#### 4.3 Effect behavior with selective re-rendering
 
-When skipping a render, effects from the previous render should NOT be re-run.
+**Important behavior change:** When a component is clean (not dirty) but has dirty descendants:
+- The component's function is NOT re-called
+- The component's effects do NOT run (including effects with no dependencies)
+- Only the dirty descendant's effects run
 
-```python
-# In context.open(), track if this is a "real" render or a children-only pass
-self._is_full_render = True  # Set based on dirty state
-```
+This means effects with no dependencies will only run when the component itself is dirty (has a state change), not on every render cycle. This is more efficient but is a change from the original behavior.
+
+If an effect must truly run every render, the component should ensure it has state that changes, or the effect should be moved to a child component that re-renders more frequently.
 
 ---
 
