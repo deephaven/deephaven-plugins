@@ -391,3 +391,87 @@ class RenderDirtyTrackingTestCase(BaseTestCase):
             self.assertTrue(rc._is_dirty)
             rc.set_state(1, "new1")
             self.assertTrue(rc._is_dirty)
+
+    def test_different_keys_have_separate_state(self):
+        """Test that child contexts with different keys have separate state (key-based reconciliation)."""
+        rc = make_render_context()
+
+        # Create two child contexts with different keys
+        with rc.open():
+            child_a = rc.get_child_context("key_a")
+            child_b = rc.get_child_context("key_b")
+            with child_a.open():
+                child_a.init_state(0, "value_a")
+            with child_b.open():
+                child_b.init_state(0, "value_b")
+
+        # Verify they have separate state
+        with rc.open():
+            child_a = rc.get_child_context("key_a")
+            child_b = rc.get_child_context("key_b")
+            with child_a.open():
+                self.assertEqual(child_a.get_state(0), "value_a")
+            with child_b.open():
+                self.assertEqual(child_b.get_state(0), "value_b")
+
+    def test_changed_key_creates_new_context(self):
+        """Test that changing a key creates a new context with fresh state.
+
+        When accessing a different key, a new context is created. The old context
+        will be unmounted if not accessed in subsequent renders.
+        """
+        rc = make_render_context()
+
+        # Create initial child context
+        with rc.open():
+            child = rc.get_child_context("original_key")
+            with child.open():
+                child.init_state(0, "original_value")
+
+        # Access with original key - should get existing state
+        with rc.open():
+            child = rc.get_child_context("original_key")
+            with child.open():
+                self.assertEqual(child.get_state(0), "original_value")
+
+        # Access with new key AND original key - both should work with separate state
+        with rc.open():
+            original_child = rc.get_child_context("original_key")
+            new_child = rc.get_child_context("new_key")
+            with original_child.open():
+                # Original state should still be there
+                self.assertEqual(original_child.get_state(0), "original_value")
+            with new_child.open():
+                # New context should have no state
+                self.assertFalse(new_child.has_state(0))
+                new_child.init_state(0, "new_value")
+
+        # Verify both contexts maintain separate state
+        with rc.open():
+            original_child = rc.get_child_context("original_key")
+            new_child = rc.get_child_context("new_key")
+            with original_child.open():
+                self.assertEqual(original_child.get_state(0), "original_value")
+            with new_child.open():
+                self.assertEqual(new_child.get_state(0), "new_value")
+
+    def test_unused_key_context_is_unmounted(self):
+        """Test that child contexts with keys that are no longer used get unmounted."""
+        rc = make_render_context()
+
+        # Create initial child context with key "to_be_unmounted"
+        with rc.open():
+            child = rc.get_child_context("to_be_unmounted")
+            with child.open():
+                child.init_state(0, "will_be_lost")
+
+        # Verify the child context exists
+        self.assertIn("to_be_unmounted", rc._children_context)
+
+        # Re-render without accessing "to_be_unmounted" key
+        with rc.open():
+            # Don't access the "to_be_unmounted" child
+            pass
+
+        # The child context should have been unmounted
+        self.assertNotIn("to_be_unmounted", rc._children_context)

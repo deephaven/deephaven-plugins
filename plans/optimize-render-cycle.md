@@ -3,11 +3,14 @@
 ## Implementation Status
 
 **Completed:**
+
 - Phase 1: Dirty tracking infrastructure (committed as b42007a6)
-- Phase 2: Cache rendered output  
+- Phase 2: Cache rendered output
 - Phase 3: Selective re-rendering
+- Phase 4: Handle edge cases (key-based reconciliation, effect behavior with selective re-rendering)
 
 **Key Implementation Notes:**
+
 - Caching optimization only applies to `FunctionElement` (components with `@ui.component`), not to `BaseElement`. This is because `BaseElement` props are determined at construction time, not by hooks/state.
 - When a component is clean but has dirty descendants, we re-render children WITHOUT opening the parent's context. This preserves the parent's effects (they don't run again).
 - Effects with no dependencies will NOT run every render if the component is clean - they only run when the component is dirty. This is a behavior change from before but is more efficient.
@@ -196,6 +199,7 @@ Ensure components with different keys don't reuse each other's state (already ha
 #### 4.3 Effect behavior with selective re-rendering
 
 **Important behavior change:** When a component is clean (not dirty) but has dirty descendants:
+
 - The component's function is NOT re-called
 - The component's effects do NOT run (including effects with no dependencies)
 - Only the dirty descendant's effects run

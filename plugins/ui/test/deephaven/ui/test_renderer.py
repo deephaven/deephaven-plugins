@@ -530,3 +530,124 @@ class SelectiveRenderingTestCase(BaseTestCase):
         )
         result = renderer.render(counter())
         self.assertEqual(render_count[0], 3)
+
+    def test_clean_component_effects_dont_run(self):
+        """Test that effects (including no-dep effects) don't run when component is clean.
+
+        This tests the Phase 4.3 edge case: when a component is clean but has dirty
+        descendants, the clean component's effects should NOT run.
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        effect_calls: List[str] = []
+        set_child_state_ref = [None]
+
+        @ui.component
+        def child_component():
+            value, set_value = ui.use_state(0)
+            set_child_state_ref[0] = set_value
+            ui.use_effect(lambda: effect_calls.append("child_no_deps"))
+            ui.use_effect(lambda: effect_calls.append("child_empty_deps"), [])
+            ui.use_effect(lambda: effect_calls.append("child_with_deps"), [value])
+            return ui.text(f"Child: {value}")
+
+        @ui.component
+        def parent_component():
+            ui.use_effect(lambda: effect_calls.append("parent_no_deps"))
+            ui.use_effect(lambda: effect_calls.append("parent_empty_deps"), [])
+            return child_component()
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render - all effects should run
+        renderer.render(parent_component())
+        self.assertEqual(
+            effect_calls,
+            [
+                "child_no_deps",
+                "child_empty_deps",
+                "child_with_deps",
+                "parent_no_deps",
+                "parent_empty_deps",
+            ],
+        )
+        effect_calls.clear()
+
+        # Update child state - only child effects should run
+        set_child_state_ref[0](1)
+        renderer.render(parent_component())
+
+        # Parent effects should NOT run because parent is clean
+        # Child's no_deps and with_deps effects run (empty_deps only runs on mount)
+        self.assertEqual(
+            effect_calls,
+            [
+                "child_no_deps",
+                "child_with_deps",
+            ],
+        )
+        effect_calls.clear()
+
+        # Update child state again - parent still clean, only child effects run
+        set_child_state_ref[0](2)
+        renderer.render(parent_component())
+        self.assertEqual(
+            effect_calls,
+            [
+                "child_no_deps",
+                "child_with_deps",
+            ],
+        )
+
+    def test_key_change_unmounts_old_component(self):
+        """Test that changing a component's key unmounts the old instance and creates a new one.
+
+        This tests Phase 4.2: key-based reconciliation ensures components with
+        different keys don't reuse each other's state.
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        effect_calls: List[str] = []
+        set_current_key_ref = [None]
+
+        def make_cleanup(name: str):
+            def cleanup():
+                effect_calls.append(f"{name}_cleanup")
+
+            def effect():
+                effect_calls.append(f"{name}_effect")
+                return cleanup
+
+            return effect
+
+        @ui.component
+        def keyed_child():
+            value, set_value = ui.use_state(0)
+            ui.use_effect(make_cleanup("keyed_child"), [])
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent_component():
+            key, set_key = ui.use_state("key_a")
+            set_current_key_ref[0] = set_key
+            # Use key prop to control component identity
+            return ui.flex(keyed_child(key=key))
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        renderer.render(parent_component())
+        self.assertEqual(effect_calls, ["keyed_child_effect"])
+        effect_calls.clear()
+
+        # Change the key - should unmount old keyed_child and mount new one
+        set_current_key_ref[0]("key_b")
+        renderer.render(parent_component())
+
+        # Old keyed_child cleanup should run, new keyed_child effect should run
+        self.assertIn("keyed_child_cleanup", effect_calls)
+        self.assertIn("keyed_child_effect", effect_calls)
