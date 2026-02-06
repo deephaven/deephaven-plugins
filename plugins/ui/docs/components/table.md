@@ -92,7 +92,7 @@ t = ui.table(
 
 ### Formatting color
 
-Formatting rules for colors support [Deephaven theme colors](https://deephaven.io/company/brand/#colors), hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
+Formatting rules for colors support Deephaven theme colors (view a full list in the dropdown menus [here](#tableformat)), hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
 
 #### Formatting text color
 
