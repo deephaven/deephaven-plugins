@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import GeneratorType
 from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
@@ -47,6 +48,37 @@ _TIME_CONVERTERS = {
     "java.time.Instant": to_j_instant,
     "java.time.LocalTime": to_j_local_time,
 }
+
+
+def materialize_lazy_iterators(item: Any) -> Any:
+    """
+    Recursively materialize lazy iterators (map, generators) to lists.
+
+    This is necessary when storing or caching props for later re-use.
+    Lazy iterators like map() can only be consumed once, so if we store
+    them and try to iterate again later, they'll be exhausted and yield nothing.
+
+    Args:
+        item: The item to materialize.
+
+    Returns:
+        The item with all lazy iterators converted to lists.
+    """
+    if isinstance(item, (map, GeneratorType)):
+        # Materialize and recursively process contents
+        return [materialize_lazy_iterators(x) for x in item]
+
+    if isinstance(item, list):
+        return [materialize_lazy_iterators(x) for x in item]
+
+    if isinstance(item, tuple):
+        return tuple(materialize_lazy_iterators(x) for x in item)
+
+    if isinstance(item, dict):
+        return {k: materialize_lazy_iterators(v) for k, v in item.items()}
+
+    # Elements, primitives, etc. are returned as-is
+    return item
 
 
 def is_nullish(value: Any) -> bool:

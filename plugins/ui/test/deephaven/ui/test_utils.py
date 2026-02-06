@@ -12,6 +12,7 @@ from deephaven.ui._internal.utils import (
     convert_date_for_labeled_value,
     is_primitive,
     is_iterable,
+    materialize_lazy_iterators,
     remove_empty_keys,
     to_camel_case,
     to_react_prop_case,
@@ -470,6 +471,80 @@ class UtilsTest(BaseTestCase):
                 return iter([1, 2, 3])
 
         self.assertFalse(is_iterable(CustomIterable()))
+
+    def test_materialize_lazy_iterators_primitives(self):
+        """Test that primitives are returned as-is."""
+        self.assertEqual(materialize_lazy_iterators(1), 1)
+        self.assertEqual(materialize_lazy_iterators("hello"), "hello")
+        self.assertIsNone(materialize_lazy_iterators(None))
+        self.assertEqual(materialize_lazy_iterators(True), True)
+        self.assertEqual(materialize_lazy_iterators(3.14), 3.14)
+
+    def test_materialize_lazy_iterators_map(self):
+        """Test that map objects are converted to lists."""
+        result = materialize_lazy_iterators(map(lambda x: x * 2, [1, 2, 3]))
+        self.assertEqual(result, [2, 4, 6])
+        self.assertIsInstance(result, list)
+
+    def test_materialize_lazy_iterators_generator(self):
+        """Test that generators are converted to lists."""
+
+        def gen():
+            yield 1
+            yield 2
+            yield 3
+
+        result = materialize_lazy_iterators(gen())
+        self.assertEqual(result, [1, 2, 3])
+        self.assertIsInstance(result, list)
+
+    def test_materialize_lazy_iterators_nested_map(self):
+        """Test that nested maps are recursively materialized."""
+        # Tuple containing a map
+        result = materialize_lazy_iterators((map(lambda x: x, [1, 2]),))
+        self.assertEqual(result, ([1, 2],))
+        self.assertIsInstance(result, tuple)
+        self.assertIsInstance(result[0], list)
+
+    def test_materialize_lazy_iterators_list(self):
+        """Test that lists are recursively processed."""
+        result = materialize_lazy_iterators([1, map(lambda x: x, [2, 3]), 4])
+        self.assertEqual(result, [1, [2, 3], 4])
+
+    def test_materialize_lazy_iterators_tuple(self):
+        """Test that tuples are recursively processed and remain tuples."""
+        result = materialize_lazy_iterators((1, map(lambda x: x, [2, 3]), 4))
+        self.assertEqual(result, (1, [2, 3], 4))
+        self.assertIsInstance(result, tuple)
+
+    def test_materialize_lazy_iterators_dict(self):
+        """Test that dicts are recursively processed."""
+        result = materialize_lazy_iterators(
+            {"a": 1, "b": map(lambda x: x, [2, 3]), "c": {"d": map(lambda x: x, [4])}}
+        )
+        self.assertEqual(result, {"a": 1, "b": [2, 3], "c": {"d": [4]}})
+
+    def test_materialize_lazy_iterators_objects_unchanged(self):
+        """Test that objects (like Elements) are returned as-is."""
+
+        class MyElement:
+            pass
+
+        elem = MyElement()
+        result = materialize_lazy_iterators(elem)
+        self.assertIs(result, elem)
+
+    def test_materialize_lazy_iterators_exhaustion_prevention(self):
+        """Test the main use case: preventing iterator exhaustion."""
+        # Create a map and materialize it
+        my_map = map(lambda x: x * 2, [1, 2, 3])
+        result = materialize_lazy_iterators(my_map)
+
+        # The result should be a list we can iterate multiple times
+        first_iteration = list(result)
+        second_iteration = list(result)
+        self.assertEqual(first_iteration, [2, 4, 6])
+        self.assertEqual(second_iteration, [2, 4, 6])
 
 
 if __name__ == "__main__":
