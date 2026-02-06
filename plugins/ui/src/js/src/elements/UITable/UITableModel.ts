@@ -19,7 +19,7 @@ import {
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import { ensureArray } from '@deephaven/utils';
+import { assertNotNull, ensureArray } from '@deephaven/utils';
 import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
@@ -70,6 +70,7 @@ export async function makeUiTableModel(
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
   databars.forEach(config => {
+    assertNotNull(config.column);
     const { column, value_column: valueColumn = column, min, max } = config;
 
     try {
@@ -192,6 +193,7 @@ class UITableModel extends IrisGridModel {
 
     this.databars = new Map<ColumnName, DatabarConfig>();
     databars.forEach(databar => {
+      assertNotNull(databar.column);
       this.databars.set(databar.column, databar);
     });
 
@@ -271,10 +273,19 @@ class UITableModel extends IrisGridModel {
     ) {
       return this.model.renderTypeForCell(column, row);
     }
+
+    const mode = this.getFormatOptionForCell(column, row, 'mode');
+    if (mode?.type === 'databar') {
+      return 'dataBar';
+    }
+
+    // Check legacy databars prop
     const columnName = this.columns[column].name;
-    return this.databars.has(columnName)
-      ? 'dataBar'
-      : this.model.renderTypeForCell(column, row);
+    if (this.databars.has(columnName)) {
+      return 'dataBar';
+    }
+
+    return this.model.renderTypeForCell(column, row);
   }
 
   /**
@@ -326,14 +337,16 @@ class UITableModel extends IrisGridModel {
 
     const columnName = this.columns[columnIndex].name;
 
-    const config = this.databars.get(columnName);
+    // Check format rules first, then fall back to legacy databars prop
+    const config =
+      this.getFormatOptionForCell(columnIndex, rowIndex, 'mode') ??
+      this.databars.get(columnName);
     if (config == null) {
       throw new Error(`No databar config for column ${columnName}`);
     }
 
     const {
-      column,
-      value_column: valueColumnName = column,
+      value_column: valueColumnName = columnName,
       min = `${valueColumnName}__DATABAR_Min`,
       max = `${valueColumnName}__DATABAR_Max`,
       axis = 'proportional',
