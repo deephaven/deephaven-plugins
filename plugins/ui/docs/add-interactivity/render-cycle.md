@@ -66,7 +66,7 @@ This process is recursive: if the updated component returns some other component
 
 ### Selective re-rendering
 
-When a component's state changes, `deephaven.ui` uses selective re-rendering to optimize performance. Only the component whose state changed and its descendants will re-render—parent components and siblings remain unchanged. This means if you have a deeply nested component tree and a leaf component updates its state, only that leaf component re-renders, not the entire tree.
+When a component's state changes, `deephaven.ui` uses selective re-rendering to optimize performance. Only the component whose state changed and its descendants will re-render — parent components and siblings remain unchanged. This means if you have a deeply nested component tree and a leaf component updates its state, only that leaf component re-renders, not the entire tree.
 
 For example, consider a parent component with multiple child components. If one child updates its own state, the parent and other siblings won't re-execute their component functions. This optimization happens automatically and helps keep your application responsive, especially with complex component hierarchies.
 
