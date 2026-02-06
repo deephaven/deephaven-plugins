@@ -48,9 +48,9 @@
     "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "ag-grid-community": "^34.3.1",
-    "ag-grid-react": "^34.3.1",
-    "ag-grid-enterprise": "^34.3.1",
+    "ag-grid-community": "^35.0.0",
+    "ag-grid-react": "^35.0.0",
+    "ag-grid-enterprise": "^35.0.0",
     "@deephaven/icons": "^0.106.0",
     "@deephaven/jsapi-bootstrap": "^0.106.2",
     "@deephaven/jsapi-utils": "^0.106.2",
