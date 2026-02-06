@@ -651,3 +651,132 @@ class SelectiveRenderingTestCase(BaseTestCase):
         # Old keyed_child cleanup should run, new keyed_child effect should run
         self.assertIn("keyed_child_cleanup", effect_calls)
         self.assertIn("keyed_child_effect", effect_calls)
+
+    def test_keys_for_lists_child_state_change(self):
+        """Test that keyed list items preserve state correctly when a child's internal state changes.
+
+        This replicates the 'Using keys for lists works' e2e test flow:
+        1. Start with a list of cells [0]
+        2. Add cells to get [0, 1, 2]
+        3. Update internal state of a cell (filling text)
+        4. Verify all cells are still present after the child state change
+
+        The bug: when adding text to a cell after adding a few cells, all cells disappear.
+        This was caused by using map() (a lazy iterator) in the component - when the
+        cached props were re-rendered, the map was already exhausted.
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        cell_render_counts: dict[int, int] = {}
+        cell_set_text_refs: dict[int, Any] = {}
+        cells_render_count = [0]
+        set_cells_ref = [None]
+
+        @ui.component
+        def ui_cell(cell_id: int, label: str):
+            """Individual cell component with its own internal state (text)."""
+            cell_render_counts[cell_id] = cell_render_counts.get(cell_id, 0) + 1
+            text, set_text = ui.use_state("")
+            cell_set_text_refs[cell_id] = set_text
+            return ui.text_field(label=label, value=text)
+
+        @ui.component
+        def ui_cells():
+            """Parent component that manages a list of cell IDs.
+
+            IMPORTANT: Uses map() like the real component, which is a lazy iterator.
+            """
+            cells_render_count[0] += 1
+            cells, set_cells = ui.use_state([0])
+            set_cells_ref[0] = set_cells
+
+            # Use map() like the real ui_cells_component does - this is key to reproducing the bug
+            return ui.view(
+                map(
+                    lambda i: ui_cell(i, label=f"Cell {i}", key=str(i)),
+                    cells,
+                ),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        def get_all_text_fields(result):
+            """Helper to find all text_field nodes in the rendered tree."""
+            text_fields = []
+
+            def find_text_fields(node, depth=0):
+                if isinstance(node, RenderedNode):
+                    if node.name == "deephaven.ui.components.TextField":
+                        text_fields.append(node)
+                    if node.props:
+                        # Check all props, not just children
+                        for key, value in node.props.items():
+                            if isinstance(value, list):
+                                for child in value:
+                                    find_text_fields(child, depth + 1)
+                            elif isinstance(value, RenderedNode):
+                                find_text_fields(value, depth + 1)
+                elif isinstance(node, list):
+                    for child in node:
+                        find_text_fields(child, depth + 1)
+
+            find_text_fields(result)
+            return text_fields
+
+        # Initial render - should have 1 cell
+        result = renderer.render(ui_cells())
+        self.assertEqual(cells_render_count[0], 1)
+        self.assertEqual(cell_render_counts.get(0, 0), 1)
+        text_fields = get_all_text_fields(result)
+        self.assertEqual(len(text_fields), 1, "Should have 1 text field initially")
+        self.assertEqual(text_fields[0].props["label"], "Cell 0")
+
+        # Add cell 1 - should now have [0, 1]
+        set_cells_ref[0]([0, 1])
+        result = renderer.render(ui_cells())
+        self.assertEqual(cells_render_count[0], 2)
+        text_fields = get_all_text_fields(result)
+        self.assertEqual(
+            len(text_fields), 2, "Should have 2 text fields after adding cell 1"
+        )
+
+        # Add cell 2 - should now have [0, 1, 2]
+        set_cells_ref[0]([0, 1, 2])
+        result = renderer.render(ui_cells())
+        self.assertEqual(cells_render_count[0], 3)
+        text_fields = get_all_text_fields(result)
+        self.assertEqual(
+            len(text_fields), 3, "Should have 3 text fields after adding cell 2"
+        )
+
+        # Now fill Cell 0 with text 'a' - this is a CHILD state change
+        # The parent (ui_cells) should NOT re-render
+        # All cells should still be present
+        cell_set_text_refs[0]("a")
+        result = renderer.render(ui_cells())
+
+        # CRITICAL: All text fields should still be present!
+        # This is the main bug being tested - cells disappear after child state change
+        text_fields = get_all_text_fields(result)
+        self.assertEqual(
+            len(text_fields),
+            3,
+            f"Should still have 3 text fields after filling Cell 0, but got {len(text_fields)}",
+        )
+
+        # Parent should NOT have re-rendered (selective re-rendering)
+        self.assertEqual(
+            cells_render_count[0],
+            3,
+            "Parent should NOT re-render when child state changes",
+        )
+
+        # Verify the labels are correct
+        labels = sorted([tf.props["label"] for tf in text_fields])
+        self.assertEqual(labels, ["Cell 0", "Cell 1", "Cell 2"])
+
+        # Verify Cell 0 now has the value 'a'
+        cell_0_field = next(tf for tf in text_fields if tf.props["label"] == "Cell 0")
+        self.assertEqual(cell_0_field.props["value"], "a")

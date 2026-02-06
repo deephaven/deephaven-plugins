@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from .Element import Element
-from .._internal import dict_to_react_props, RenderContext
+from .._internal import dict_to_react_props, materialize_lazy_iterators, RenderContext
 
 
 class BaseElement(Element):
@@ -39,7 +39,11 @@ class BaseElement(Element):
         if len(children) == 1:
             # If there's only one child, we pass it as a single child, not a list
             # There are many React elements that expect only a single child, and will fail if they get a list (even if it only has one element)
-            props["children"] = children[0]
+            # Materialize lazy iterators to prevent exhaustion issues during re-rendering
+            props["children"] = materialize_lazy_iterators(children[0])
+        elif "children" in props:
+            # Also materialize children passed via keyword argument
+            props["children"] = materialize_lazy_iterators(props["children"])
         self._props = dict_to_react_props(props, _nullable_props)
 
     @property

@@ -18,6 +18,7 @@ from .RenderContext import (
 from .utils import (
     get_component_name,
     get_component_qualname,
+    materialize_lazy_iterators,
     to_camel_case,
     dict_to_camel_case,
     dict_to_react_props,

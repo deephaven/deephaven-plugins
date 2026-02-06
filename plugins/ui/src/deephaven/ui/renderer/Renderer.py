@@ -3,7 +3,7 @@ from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
 from typing import Any, Union
 
-from .._internal import RenderContext, remove_empty_keys
+from .._internal import materialize_lazy_iterators, RenderContext, remove_empty_keys
 from ..elements import Element, FunctionElement, PropsType
 from .RenderedNode import RenderedNode
 
@@ -199,8 +199,16 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     with context.open():
         props = element.render(context)
 
+        # Materialize lazy iterators (like map()) before processing.
+        # This is necessary because:
+        # 1. Lazy iterators can only be consumed once
+        # 2. We need to cache props for potential re-use in _render_children_only
+        # 3. We also need to render the props now
+        # If we don't materialize, the iterator would be exhausted after the first use.
+        props = materialize_lazy_iterators(props)
+
         # Cache the pre-rendered props (containing Elements) for potential re-use
-        # when this component is clean but has dirty descendants
+        # when this component is clean but has dirty descendants.
         context._cached_props = props
 
         # We also need to render any elements that are passed in as props (including `children`)
