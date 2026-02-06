@@ -277,16 +277,16 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format": {
+                "format_": {
                     "cols": "X",
                     "mode": {
                         "type": "databar",
-                        "valueColumn": "Y",
+                        "value_column": "Y",
                         "min": 0,
                         "max": 100,
                         "axis": "middle",
                         "direction": "LTR",
-                        "valuePlacement": "overlap",
+                        "value_placement": "overlap",
                         "color": "blue",
                         "opacity": 0.7,
                         "markers": [{"value": 50, "color": "red"}],
@@ -314,7 +314,7 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format": [
+                "format_": [
                     {
                         "cols": ["X", "Y"],
                         "mode": {
@@ -343,9 +343,9 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format": {
+                "format_": {
                     "cols": "X",
-                    "if": "X > 50",
+                    "if_": "X > 50",
                     "mode": {
                         "type": "databar",
                         "color": "positive",
@@ -370,10 +370,10 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format": [
-                    {"cols": "X", "backgroundColor": "accent-100"},
+                "format_": [
+                    {"cols": "X", "background_color": "accent-100"},
                     {"cols": "Y", "mode": {"type": "databar", "color": "blue"}},
-                    {"cols": "X", "if": "X > 50", "color": "positive"},
+                    {"cols": "X", "if_": "X > 50", "color": "positive"},
                 ],
             },
         )
