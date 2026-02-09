@@ -374,7 +374,7 @@ def atomic_make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
-    subplot_titles: list[str] | tuple[str, ...] | bool = True,
+    subplot_titles: list[str] | tuple[str, ...] | bool = False,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -394,6 +394,9 @@ def atomic_make_subplots(
       row_heights: See make_subplots
       specs: See make_subplots
       subplot_titles: See make_subplots
+      Note that subplot_titles is False by default to maintain old behavior of
+      one title becoming the overall title for internal use of this function.
+      Users should not be accessing this function directly.
       title: See make_subplots
       unsafe_update_figure: See make_subplots
 
