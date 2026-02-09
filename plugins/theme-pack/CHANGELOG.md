@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## theme-pack-v0.2.0 - 2026-02-09
+#### Features
+- expands theme pack with 10 new themes  (#1281) - (b62b60d) - Don
+
+- - -
+
 ## theme-pack-v0.1.2 - 2025-10-21
 #### Bug Fixes
 - Add repository information for theme-pack plugin (#1252) - (539806c) - mofojed
