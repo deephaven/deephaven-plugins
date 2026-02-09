@@ -620,9 +620,7 @@ class MakeSubplotsTestCase(BaseTestCase):
 
         chart1 = dx.scatter(self.source, x="X", y="Y", title="First Chart")
         chart2 = dx.scatter(self.source, x="X", y="Y", title="Second Chart")
-        charts = dx.make_subplots(chart1, chart2, rows=2, subplot_titles=True).to_dict(
-            self.exporter
-        )
+        charts = dx.make_subplots(chart1, chart2, rows=2).to_dict(self.exporter)
 
         # Check that annotations were added with extracted titles
         layout = charts["plotly"]["layout"]
@@ -682,7 +680,7 @@ class MakeSubplotsTestCase(BaseTestCase):
         chart4 = dx.scatter(self.source, x="X", y="Y", title="Chart D")
 
         grid = [[chart1, chart2], [chart3, chart4]]
-        charts = dx.make_subplots(grid=grid, subplot_titles=True).to_dict(self.exporter)
+        charts = dx.make_subplots(grid=grid).to_dict(self.exporter)
 
         # Check that annotations were added with extracted titles
         layout = charts["plotly"]["layout"]

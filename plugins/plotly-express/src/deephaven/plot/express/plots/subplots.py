@@ -327,7 +327,7 @@ def create_subplot_annotations(
 
 def get_subplot_titles(
     grid: Grid[Figure | DeephavenFigure],
-    subplot_titles: list[str] | tuple[str, ...] | bool | None,
+    subplot_titles: list[str] | tuple[str, ...] | bool,
     rows: int,
     cols: int,
 ) -> list[str]:
@@ -374,7 +374,7 @@ def atomic_make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
-    subplot_titles: list[str] | tuple[str, ...] | bool | None = None,
+    subplot_titles: list[str] | tuple[str, ...] | bool = True,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -534,7 +534,7 @@ def make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
-    subplot_titles: list[str] | tuple[str, ...] | bool | None = None,
+    subplot_titles: list[str] | tuple[str, ...] | bool = True,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -573,12 +573,14 @@ def make_subplots(
         'rowspan' is an int to make this figure span multiple rows
         'colspan' is an int to make this figure span multiple columns
       subplot_titles:
+        True by default, which automatically extracts and uses titles from the input figures
+        as subplot titles.
+        If False, one of the subplot titles ends up as the chart title.
+        See the title parameter to override this behavior.
         If a list or tuple is provided, these are the titles for each subplot.
         Titles are filled left to right, top to bottom.
         Empty strings ("") can be included in the list if no subplot title
         is desired in that space.
-        If True, automatically extracts and uses titles from the input figures
-        as subplot titles.
       title:
         The overall title for the combined subplot figure.
       unsafe_update_figure: An update function that takes a plotly figure

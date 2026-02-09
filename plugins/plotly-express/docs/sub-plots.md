@@ -40,9 +40,31 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
-### Adding Subplot Titles
+### Existing Titles as Subplot Titles
 
-You can add titles to individual subplots using the `subplot_titles` parameter. Provide a list or tuple of titles, ordered from left to right, top to bottom.
+By default, titles from the original figures are converted to subplot titles if they exist.
+
+```python order=tipping_plots,lunch_tips,dinner_tips
+import deephaven.plot.express as dx
+
+tips = dx.data.tips()
+
+lunch_tips = tips.where("Time = `Lunch`")
+dinner_tips = tips.where("Time = `Dinner`")
+
+# Figures with titles
+lunch_chart = dx.scatter(lunch_tips, x="TotalBill", y="Tip", title="Lunch Tips")
+dinner_chart = dx.scatter(dinner_tips, x="TotalBill", y="Tip", title="Dinner Tips")
+
+# Use existing titles as subplot titles
+tipping_plots = dx.make_subplots(
+    lunch_chart, dinner_chart, cols=2
+)
+```
+
+### Adding New Subplot Titles
+
+Add titles to individual subplots using the `subplot_titles` parameter. Provide a list or tuple of titles, ordered from left to right, top to bottom.
 
 ```python order=tipping_plots,lunch_tips,dinner_tips
 import deephaven.plot.express as dx
@@ -61,31 +83,9 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
-### Using Existing Titles
-
-You can automatically use the titles from the original figures as subplot titles by setting `subplot_titles=True`.
-
-```python order=tipping_plots,lunch_tips,dinner_tips
-import deephaven.plot.express as dx
-
-tips = dx.data.tips()
-
-lunch_tips = tips.where("Time = `Lunch`")
-dinner_tips = tips.where("Time = `Dinner`")
-
-# Figures with titles
-lunch_chart = dx.scatter(lunch_tips, x="TotalBill", y="Tip", title="Lunch Tips")
-dinner_chart = dx.scatter(dinner_tips, x="TotalBill", y="Tip", title="Dinner Tips")
-
-# Use existing titles as subplot titles
-tipping_plots = dx.make_subplots(
-    lunch_chart, dinner_chart, cols=2, subplot_titles=True
-)
-```
-
 ### Adding a Title
 
-You can add a title to the combined subplot figure using the `title` parameter.
+Add a title to the combined subplot figure using the `title` parameter.
 
 ```python order=tipping_plots,tips
 import deephaven.plot.express as dx
