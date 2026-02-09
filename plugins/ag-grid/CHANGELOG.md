@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ag-grid-v0.5.3 - 2026-02-09
+#### Documentation
+- (**ag-grid**) Add some more documentation to AG Grid JS plugin (#1280) - (ec2e8aa) - *mofojed*
+#### Build system
+- (**ag-grid**) upgrade ag-grid to v35 (#1297) - (d6710b4) - *mofojed*
+
+- - -
+
 ## ag-grid-v0.5.2 - 2025-12-05
 #### Bug Fixes
 - DH-20953: AG Grid styling only worked when deephaven.ui installed (#1271) - (7dae890) - mofojed
