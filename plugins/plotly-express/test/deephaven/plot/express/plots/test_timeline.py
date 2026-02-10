@@ -34,9 +34,16 @@ class TimelineTestCase(BaseTestCase):
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
+        # base might differ based on precision, but precision doesn't need to match
+        # as long as the values are correct
+        expected_bases = ["2000-01-01T00:00:00.000000", "2000-01-01T00:00:00.000000000"]
+
+        plotly_base = plotly["data"][0].pop("base")[0]
+
+        self.assertIn(plotly_base, expected_bases)
+
         expected_data = [
             {
-                "base": ["2000-01-01T00:00:00.000000000"],
                 "hovertemplate": "Start=%{base}<br>Category=%{y}<br>x_diff=%{x}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},

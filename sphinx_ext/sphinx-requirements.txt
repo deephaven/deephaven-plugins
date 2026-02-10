@@ -1,5 +1,5 @@
 deephaven-server
-Sphinx
+Sphinx<9.0
 myst-parser
 sphinx-markdown-builder
 sphinx-autodoc-typehints
