@@ -1,0 +1,663 @@
+"""
+Tests for component memoization (ui.memo decorator).
+
+The @ui.memo decorator allows components to skip re-rendering when their props haven't
+changed, similar to React.memo().
+"""
+
+from __future__ import annotations
+from unittest.mock import Mock
+from typing import Any, Callable, List, Union
+from deephaven.ui.renderer.Renderer import Renderer
+from deephaven.ui.renderer.RenderedNode import RenderedNode
+from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
+from deephaven import ui
+from .BaseTest import BaseTestCase
+
+run_on_change: OnChangeCallable = lambda x: x()
+
+
+class MemoTestCase(BaseTestCase):
+    """Tests for component memoization (@ui.memo decorator)."""
+
+    def _find_node(self, root: RenderedNode, name: str) -> RenderedNode:
+        """Helper to find a node by name in the rendered tree."""
+        if root.name == name:
+            return root
+        children: Union[Any, List[Any]] = (
+            root.props.get("children", []) if root.props is not None else []
+        )
+        if not isinstance(children, list):
+            children = [children]
+        for child in children:
+            if isinstance(child, RenderedNode):
+                try:
+                    return self._find_node(child, name)
+                except ValueError:
+                    pass
+        raise ValueError(f"Could not find node with name {name}")
+
+    def _find_action_button(self, root: RenderedNode) -> RenderedNode:
+        return self._find_node(root, "deephaven.ui.components.ActionButton")
+
+    def test_memo_skips_rerender_with_same_props(self):
+        """Test that @ui.memo() skips re-render when props are unchanged."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        parent_render_count = [0]
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            parent_render_count[0] += 1
+            parent_state, set_parent_state = ui.use_state(0)
+            # Pass same value to child regardless of parent state
+            return ui.flex(
+                ui.action_button(
+                    str(parent_state),
+                    on_press=lambda _: set_parent_state(parent_state + 1),
+                ),
+                memoized_child(value=42),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 1)
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render (change parent state)
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 2)  # Parent re-rendered
+        self.assertEqual(child_render_count[0], 1)  # Child SKIPPED (memoized)
+
+    def test_memo_rerenders_when_props_change(self):
+        """Test that @ui.memo() re-renders when props change."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            value, set_value = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    f"Increment: {value}",
+                    on_press=lambda _: set_value(value + 1),
+                ),
+                memoized_child(value=value),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Change the prop value by clicking the button
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 2)  # Child re-rendered (props changed)
+
+    def test_memo_rerenders_when_own_state_changes(self):
+        """Test that @ui.memo() re-renders when the memoized component's own state changes."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value: int):
+            child_render_count[0] += 1
+            internal_state, set_internal_state = ui.use_state(0)
+            return ui.action_button(
+                f"Value: {value}, Internal: {internal_state}",
+                on_press=lambda _: set_internal_state(internal_state + 1),
+            )
+
+        @ui.component
+        def parent():
+            # Always pass the same props
+            return memoized_child(value=42)
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Change state within memoized component
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(parent())
+        # Child should re-render because its own state changed (context is dirty)
+        self.assertEqual(child_render_count[0], 2)
+
+    def test_memo_rerenders_when_both_props_and_state_change(self):
+        """Test that @ui.memo() re-renders when both props and internal state change."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+        button_ref = [None]
+        parent_setter_ref = [None]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value: int):
+            child_render_count[0] += 1
+            internal_state, set_internal_state = ui.use_state(0)
+            btn = ui.action_button(
+                f"Value: {value}, Internal: {internal_state}",
+                on_press=lambda _: set_internal_state(internal_state + 1),
+            )
+            button_ref[0] = btn
+            return btn
+
+        @ui.component
+        def parent():
+            prop_value, set_prop_value = ui.use_state(0)
+            parent_setter_ref[0] = set_prop_value
+            return memoized_child(value=prop_value)
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Change both props (via parent) and internal state
+        button = self._find_action_button(result)
+        button.props["onPress"](None)  # Change internal state
+        parent_setter_ref[0](1)  # Change props
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 2)  # Re-rendered due to both changes
+
+    def test_memo_no_rerender_when_nothing_changes(self):
+        """Test that @ui.memo() doesn't re-render when nothing changes (forced parent re-render)."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        parent_render_count = [0]
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child():
+            child_render_count[0] += 1
+            return ui.text("Static content")
+
+        @ui.component
+        def parent():
+            parent_render_count[0] += 1
+            counter, set_counter = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    f"Count: {counter}",
+                    on_press=lambda _: set_counter(counter + 1),
+                ),
+                memoized_child(),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 1)
+        self.assertEqual(child_render_count[0], 1)
+
+        # Force several parent re-renders
+        for i in range(3):
+            button = self._find_action_button(result)
+            button.props["onPress"](None)
+            result = renderer.render(parent())
+
+        self.assertEqual(parent_render_count[0], 4)  # Parent re-rendered 4 times total
+        self.assertEqual(child_render_count[0], 1)  # Child NEVER re-rendered
+
+    def test_memo_with_custom_compare(self):
+        """Test that custom compare function controls memoization."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Custom compare that only checks 'value', ignores 'on_click'
+        def compare_only_value(prev, next):
+            return prev.get("value") == next.get("value")
+
+        @ui.memo(are_props_equal=compare_only_value)
+        @ui.component
+        def child_with_callback(value: int, on_click):
+            child_render_count[0] += 1
+            return ui.action_button(str(value), on_press=on_click)
+
+        @ui.component
+        def parent():
+            count, set_count = ui.use_state(0)
+            # Create new callback on each render (normally would cause re-render)
+            callback = lambda _: set_count(count + 1)
+            return ui.flex(
+                ui.action_button(
+                    f"Parent count: {count}",
+                    on_press=lambda _: set_count(count + 1),
+                ),
+                child_with_callback(value=42, on_click=callback),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render (creates new callback, but custom compare ignores it)
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(parent())
+        # Child SKIPPED because custom compare only checks 'value' which is still 42
+        self.assertEqual(child_render_count[0], 1)
+
+    def test_memo_with_object_props_same_reference(self):
+        """Test memoization behavior with object props (same reference)."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def child_with_list(items: list):
+            child_render_count[0] += 1
+            return ui.text(str(len(items)))
+
+        # Same list object each time (defined outside component)
+        shared_list = [1, 2, 3]
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                child_with_list(items=shared_list),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger re-render
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)  # SKIPPED (same list reference)
+
+    def test_memo_with_object_props_new_reference(self):
+        """Test that memoization re-renders with new object references."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def child_with_list(items: list):
+            child_render_count[0] += 1
+            return ui.text(str(len(items)))
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            # Creates new list object each render
+            items = [1, 2, 3]
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                child_with_list(items=items),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger re-render
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 2)  # Re-rendered (new list reference)
+
+    def test_memo_nested_components(self):
+        """Test memoization with nested components."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_count = [0]
+        parent_count = [0]
+        child_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value: int):
+            child_count[0] += 1
+            return ui.text(f"Child: {value}")
+
+        @ui.memo()
+        @ui.component
+        def memoized_parent(value: int):
+            parent_count[0] += 1
+            return ui.flex(
+                ui.text(f"Parent: {value}"),
+                memoized_child(value=value),
+            )
+
+        @ui.component
+        def grandparent():
+            grandparent_count[0] += 1
+            gp_state, set_gp_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    str(gp_state), on_press=lambda _: set_gp_state(gp_state + 1)
+                ),
+                memoized_parent(value=42),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_count[0], 1)
+        self.assertEqual(parent_count[0], 1)
+        self.assertEqual(child_count[0], 1)
+
+        # Trigger grandparent re-render with same props to children
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_count[0], 2)  # Grandparent re-rendered
+        self.assertEqual(parent_count[0], 1)  # Parent SKIPPED (props unchanged)
+        self.assertEqual(child_count[0], 1)  # Child SKIPPED (parent didn't re-render)
+
+    def test_memo_nested_with_internal_state(self):
+        """Test memoization with nested components where inner has state."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_count = [0]
+        parent_count = [0]
+        child_state_setter = [None]
+
+        @ui.memo()
+        @ui.component
+        def memoized_parent(value: int):
+            parent_count[0] += 1
+            child_state, set_child_state = ui.use_state("initial")
+            child_state_setter[0] = set_child_state
+            return ui.text(f"{value}: {child_state}")
+
+        @ui.component
+        def grandparent():
+            grandparent_count[0] += 1
+            gp_state, set_gp_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    str(gp_state), on_press=lambda _: set_gp_state(gp_state + 1)
+                ),
+                memoized_parent(value=42),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_count[0], 1)
+        self.assertEqual(parent_count[0], 1)
+
+        # Change state within memoized component (dirty tracking should work)
+        child_state_setter[0]("updated")
+        result = renderer.render(grandparent())
+        # grandparent component function always runs when we render grandparent()
+        self.assertEqual(
+            grandparent_count[0], 2
+        )  # Grandparent re-rendered (root element)
+        # parent_count should be 2 because its own context is dirty (state changed)
+        self.assertEqual(parent_count[0], 2)  # Parent re-rendered (own state dirty)
+
+        # Now trigger grandparent re-render with same props to memoized_parent
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(grandparent())
+        self.assertEqual(
+            grandparent_count[0], 3
+        )  # Grandparent re-rendered (state changed)
+        self.assertEqual(
+            parent_count[0], 2
+        )  # Parent SKIPPED (props unchanged, not dirty)
+
+    def test_memo_with_multiple_props(self):
+        """Test memoization with multiple props."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(a: int, b: str, c: bool):
+            child_render_count[0] += 1
+            return ui.text(f"{a}-{b}-{c}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                memoized_child(a=1, b="hello", c=True),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render with same props
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)  # SKIPPED (all props same)
+
+    def test_memo_with_one_prop_changed(self):
+        """Test memoization re-renders when one of multiple props changes."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(a: int, b: str, c: bool):
+            child_render_count[0] += 1
+            return ui.text(f"{a}-{b}-{c}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            # Only 'a' changes with state
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                memoized_child(a=state, b="hello", c=True),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render - prop 'a' changes
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 2)  # Re-rendered (prop 'a' changed)
+
+    def test_memo_with_children_prop(self):
+        """Test memoization with children passed as positional args."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        wrapper_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_wrapper(child_element):
+            wrapper_render_count[0] += 1
+            return ui.view(child_element)
+
+        # Create a stable child element
+        stable_child = ui.text("Static child")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                memoized_wrapper(stable_child),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(wrapper_render_count[0], 1)
+
+        # Trigger parent re-render
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        # Should skip because the same stable_child object is passed
+        self.assertEqual(wrapper_render_count[0], 1)
+
+    def test_memo_with_none_props(self):
+        """Test memoization handles None props correctly."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.memo()
+        @ui.component
+        def memoized_child(value):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                memoized_child(value=None),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render with same None prop
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)  # SKIPPED (None == None)
+
+    def test_non_memoized_always_rerenders(self):
+        """Test that non-memoized components always re-render with parent."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        parent_render_count = [0]
+        child_render_count = [0]
+
+        @ui.component
+        def non_memoized_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            parent_render_count[0] += 1
+            parent_state, set_parent_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    str(parent_state),
+                    on_press=lambda _: set_parent_state(parent_state + 1),
+                ),
+                non_memoized_child(value=42),  # Same props each time
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 1)
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        result = renderer.render(parent())
+        self.assertEqual(parent_render_count[0], 2)
+        # Non-memoized child should re-render even with same props
+        self.assertEqual(child_render_count[0], 2)
+
+
+if __name__ == "__main__":
+    import unittest
+
+    unittest.main()
