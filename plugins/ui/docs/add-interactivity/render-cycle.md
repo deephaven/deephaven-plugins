@@ -125,3 +125,40 @@ clock_example = clock_wrapper()
 This works because during this last step, React only updates the content of `ui.header` with the new time. It sees that the `ui.text_field` appears in the JSX in the same place as last time, so React doesn’t touch the `ui.text_field` or its value.
 
 After rendering is done and React updated the DOM, the browser will repaint the screen.
+
+## Optimizing Re-renders with `@ui.memo`
+
+By default, when any component's state changes, `deephaven.ui` re-renders the entire component tree from the root—not just the component that triggered the change or its children, but every component in the tree. This is usually not a problem, but if you have a deeply nested tree or expensive components, you can optimize performance by wrapping components with `@ui.memo`.
+
+The `@ui.memo` decorator tells `deephaven.ui` to skip re-rendering a component when its props haven't changed:
+
+```python
+from deephaven import ui
+
+
+@ui.memo
+@ui.component
+def expensive_child(value):
+    # This component will only re-render when `value` changes
+    return ui.text(f"Value: {value}")
+
+
+@ui.component
+def parent():
+    count, set_count = ui.use_state(0)
+    static_value = "hello"
+
+    return ui.flex(
+        ui.button("Increment", on_press=lambda: set_count(count + 1)),
+        ui.text(f"Count: {count}"),
+        # This child won't re-render when count changes because static_value stays the same
+        expensive_child(static_value),
+    )
+
+
+parent_example = parent()
+```
+
+In this example, clicking the button updates `count`, which causes `parent` to re-render. However, `expensive_child` will skip re-rendering because its `value` prop (`"hello"`) hasn't changed.
+
+For more details on when and how to use memoization effectively, see [Memoizing Components](./memoizing-components.md).
