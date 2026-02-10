@@ -23,9 +23,9 @@ The old api auto-picks light/dark text based on the background. The new api shou
 
 ### 4. Named Color Scales (Viridis, Plasma, etc.)
 
-Deffer for now. Named color scales are just predefined lists of hex colors that would be passed to the `colors` parameter. The api shape doesn't need to change to support them, we'd just expose constants.
+Defer for now. Named color scales are just predefined lists of hex colors that would be passed to the `colors` parameter. The api shape doesn't need to change to support them, we'd just expose constants.
 
-How should name color scales be specified? using strings (e.g., 'viridis') or provide a module of built-in scales organized by type, such as dh.ui.colors.sequential and dh.ui.colors.diverging
+How should named color scales be specified? using strings (e.g., 'viridis') or provide a module of built-in scales organized by type, such as dh.ui.colors.sequential and dh.ui.colors.diverging
 
 ### 5. Diverging Scales
 
@@ -122,7 +122,7 @@ class TableHeatmap:
     apply_to: Literal["background", "text"] | None = None
 ```
 
-Note: Unlike `TableDatabar`, there is no (legacy) `column` field. The target column should always comes from `TableFormat.cols`. This is consistent with how `TableDatabar` works when used as `mode` (where `column` must not be specified).
+Note: Unlike `TableDatabar`, there is no (legacy) `column` field. The target column should always come from `TableFormat.cols`. This is consistent with how `TableDatabar` works when used as `mode` (where `column` must not be specified).
 
 ### Python: Updated `TableFormat`
 
@@ -192,7 +192,7 @@ ui.table(students, format_=ui.TableFormat(
     mode=ui.TableHeatmap(colors=["red-500", "green-500"])
 ))
 
-# Can also specify seperately
+# Can also specify separately
 ui.table(students, format_=[
     ui.TableFormat(
         cols="GPA",
