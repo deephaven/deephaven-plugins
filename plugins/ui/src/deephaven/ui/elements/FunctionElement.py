@@ -17,6 +17,7 @@ class FunctionElement(Element):
         Args:
             name: Name of the component. Typically, the module joined with the name of the function.
             render: The render function to call when the component needs to be rendered.
+            key: The key of this element.
         """
         self._name = name
         self._render = render
@@ -30,12 +31,9 @@ class FunctionElement(Element):
     def key(self) -> str | None:
         return self._key
 
-    def render(self, context: RenderContext) -> PropsType:
+    def render(self) -> PropsType:
         """
         Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
-
-        Args:
-            context: Context to render the component in
 
         Returns:
             The props of this element.

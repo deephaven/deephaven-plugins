@@ -50,5 +50,5 @@ class BaseElement(Element):
     def key(self) -> str | None:
         return self._key
 
-    def render(self, context: RenderContext) -> dict[str, Any]:
+    def render(self) -> dict[str, Any]:
         return self._props
