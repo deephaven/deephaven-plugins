@@ -4,7 +4,7 @@ import logging
 from typing import Any, Union
 
 from .._internal import RenderContext, remove_empty_keys
-from ..elements import Element, PropsType
+from ..elements import Element, MemoizedElement, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
@@ -116,15 +116,55 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     Returns:
         The RenderedNode representing the element.
     """
-    logger.debug("Rendering element %s in context %s", element.name, context)
+    logger.debug(
+        "Rendering element %s (%s) in context %s, cache: %s",
+        element.name,
+        type(element),
+        context,
+        context.cache,
+    )
+
+    element_props = None
+
+    if isinstance(element, MemoizedElement):
+        element_props = element.props
+
+        if element_props is not None and context.cache is not None:
+            logger.debug(
+                "Element is a MemoizedElement, checking if it needs to be re-rendered"
+            )
+
+            prev_props, prev_rendered_node = context.cache
+
+            if (
+                prev_rendered_node is not None
+                and prev_props is not None
+                and not context.is_dirty
+                and element.are_props_equal(prev_props)
+            ):
+                logger.debug(
+                    "MemoizedElement props are equal and context is not dirty, returning cached rendered node"
+                )
+                return prev_rendered_node
+
+            logger.debug(
+                "MemoizedElement props have changed or context is dirty, re-rendering element"
+            )
 
     with context.open():
-        props = element.render(context)
+        props = element.render()
 
         # We also need to render any elements that are passed in as props (including `children`)
         props = _render_dict_in_open_context(props, context)
 
-    return RenderedNode(element.name, props)
+    rendered_node = RenderedNode(element.name, props)
+
+    logger.debug("Rendered element %s with input props %s", element.name, element_props)
+
+    if isinstance(element, MemoizedElement) and element_props is not None:
+        context.cache = (element_props, rendered_node)
+
+    return rendered_node
 
 
 class Renderer:

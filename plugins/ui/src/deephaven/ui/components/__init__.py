@@ -48,8 +48,9 @@ from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .list_view import list_view
 from .logic_button import logic_button
-from .make_component import make_component as component
+from .component import component
 from .markdown import markdown
+from .memo import memo
 from .menu import menu
 from .menu_trigger import menu_trigger
 from .meter import meter
@@ -138,6 +139,7 @@ __all__ = [
     "logic_button",
     "html",
     "markdown",
+    "memo",
     "menu",
     "menu_trigger",
     "meter",
