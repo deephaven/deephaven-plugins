@@ -41,14 +41,14 @@ class MemoTestCase(BaseTestCase):
         return self._find_node(root, "deephaven.ui.components.ActionButton")
 
     def test_memo_skips_rerender_with_same_props(self):
-        """Test that @ui.memo() skips re-render when props are unchanged."""
+        """Test that @ui.memo skips re-render when props are unchanged."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         parent_render_count = [0]
         child_render_count = [0]
 
-        @ui.memo()
+        @ui.memo
         @ui.component
         def memoized_child(value: int):
             child_render_count[0] += 1
@@ -85,13 +85,13 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 1)  # Child SKIPPED (memoized)
 
     def test_memo_rerenders_when_props_change(self):
-        """Test that @ui.memo() re-renders when props change."""
+        """Test that @ui.memo re-renders when props change."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         child_render_count = [0]
 
-        @ui.memo()
+        @ui.memo
         @ui.component
         def memoized_child(value: int):
             child_render_count[0] += 1
@@ -123,13 +123,13 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 2)  # Child re-rendered (props changed)
 
     def test_memo_rerenders_when_own_state_changes(self):
-        """Test that @ui.memo() re-renders when the memoized component's own state changes."""
+        """Test that @ui.memo re-renders when the memoized component's own state changes."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         child_render_count = [0]
 
-        @ui.memo()
+        @ui.memo
         @ui.component
         def memoized_child(value: int):
             child_render_count[0] += 1
@@ -288,6 +288,221 @@ class MemoTestCase(BaseTestCase):
         result = renderer.render(parent())
         # Child SKIPPED because custom compare only checks 'value' which is still 42
         self.assertEqual(child_render_count[0], 1)
+
+    def test_memo_custom_compare_deep_equality(self):
+        """Test custom compare with deep equality for object props."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Custom compare that does deep equality on lists
+        def deep_equal_items(prev, next):
+            prev_items = prev.get("children", [[]])[0]  # positional arg
+            next_items = next.get("children", [[]])[0]
+            return prev_items == next_items  # List equality compares contents
+
+        @ui.memo(are_props_equal=deep_equal_items)
+        @ui.component
+        def child_with_list(items: list):
+            child_render_count[0] += 1
+            return ui.text(str(items))
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            # Creates new list object each render, but with same contents
+            items = [1, 2, 3]
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                child_with_list(items),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger re-render - new list object but same contents
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        # SKIPPED because custom compare does deep equality
+        self.assertEqual(child_render_count[0], 1)
+
+    def test_memo_custom_compare_always_rerender(self):
+        """Test custom compare that always returns False (always re-renders)."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Custom compare that always returns False - props are never "equal"
+        def always_different(prev, next):
+            return False
+
+        @ui.memo(are_props_equal=always_different)
+        @ui.component
+        def always_rerender_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                always_rerender_child(value=42),  # Same props every time
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger re-render
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        # Re-rendered because custom compare returns False
+        self.assertEqual(child_render_count[0], 2)
+
+    def test_memo_custom_compare_always_skip(self):
+        """Test custom compare that always returns True (never re-renders)."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Custom compare that always returns True - props are always "equal"
+        def always_equal(prev, next):
+            return True
+
+        @ui.memo(are_props_equal=always_equal)
+        @ui.component
+        def never_rerender_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                never_rerender_child(value=state),  # Props actually change!
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger re-render - props change but custom compare says they're equal
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        # SKIPPED even though props changed, because custom compare returns True
+        self.assertEqual(child_render_count[0], 1)
+
+    def test_memo_custom_compare_selective_props(self):
+        """Test custom compare that checks only specific props."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Only re-render if 'important_value' changes, ignore 'metadata' and 'callback'
+        def compare_important_only(prev, next):
+            return prev.get("important_value") == next.get("important_value")
+
+        @ui.memo(are_props_equal=compare_important_only)
+        @ui.component
+        def selective_child(important_value: int, metadata: dict, callback):
+            child_render_count[0] += 1
+            return ui.action_button(f"Important: {important_value}", on_press=callback)
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            # metadata changes each render, but important_value stays the same
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                selective_child(
+                    important_value=42,
+                    metadata={"render_count": state},  # Changes each time
+                    callback=lambda _: None,  # New function each time
+                ),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger multiple re-renders - metadata and callback change, important_value doesn't
+        for _ in range(3):
+            button = self._find_action_button(result)
+            button.props["onPress"](None)
+            result = renderer.render(parent())
+
+        # Child never re-rendered because important_value stayed at 42
+        self.assertEqual(child_render_count[0], 1)
+
+    def test_memo_custom_compare_with_threshold(self):
+        """Test custom compare that only re-renders on significant changes."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        # Only re-render if value changes by more than 5
+        def significant_change_only(prev, next):
+            prev_val = prev.get("children", [[0]])[0]  # positional arg
+            next_val = next.get("children", [[0]])[0]
+            return abs(next_val - prev_val) <= 5
+
+        @ui.memo(are_props_equal=significant_change_only)
+        @ui.component
+        def threshold_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
+
+        value_ref = [0]
+
+        @ui.component
+        def parent():
+            return ui.flex(
+                threshold_child(value_ref[0]),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Small change (within threshold) - should skip
+        value_ref[0] = 3
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Another small change - should skip
+        value_ref[0] = 5
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Big change (exceeds threshold) - should re-render
+        value_ref[0] = 15
+        renderer.render(parent())
+        self.assertEqual(child_render_count[0], 2)
 
     def test_memo_with_object_props_same_reference(self):
         """Test memoization behavior with object props (same reference)."""
@@ -655,6 +870,54 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(parent_render_count[0], 2)
         # Non-memoized child should re-render even with same props
         self.assertEqual(child_render_count[0], 2)
+
+    def test_memo_both_syntaxes_work(self):
+        """Test that both @ui.memo and @ui.memo() syntaxes work identically."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        no_parens_count = [0]
+        with_parens_count = [0]
+
+        # Syntax without parentheses
+        @ui.memo
+        @ui.component
+        def memoized_no_parens(value: int):
+            no_parens_count[0] += 1
+            return ui.text(f"No parens: {value}")
+
+        # Syntax with parentheses
+        @ui.memo()
+        @ui.component
+        def memoized_with_parens(value: int):
+            with_parens_count[0] += 1
+            return ui.text(f"With parens: {value}")
+
+        @ui.component
+        def parent():
+            state, set_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
+                memoized_no_parens(value=42),
+                memoized_with_parens(value=42),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(no_parens_count[0], 1)
+        self.assertEqual(with_parens_count[0], 1)
+
+        # Trigger parent re-render with same props to children
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        renderer.render(parent())
+        # Both should skip re-render
+        self.assertEqual(no_parens_count[0], 1)
+        self.assertEqual(with_parens_count[0], 1)
 
 
 if __name__ == "__main__":
