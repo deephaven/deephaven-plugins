@@ -328,12 +328,13 @@ class table(Element):
                 if f.mode is not None:
                     if f.cols is None:
                         raise ValueError(
-                            "TableFormat with mode=TableDatabar() requires cols to be specified. "
+                            "TableFormat with mode requires cols to be specified. "
                         )
-                    if f.mode.column is not None:
-                        raise ValueError(
-                            "TableDatabar.column cannot be specified when used as mode in TableFormat. "
-                        )
+                    if isinstance(f.mode, TableDatabar):
+                        if f.mode.column is not None:
+                            raise ValueError(
+                                "TableDatabar.column cannot be specified when used as mode in TableFormat. "
+                            )
 
         props = locals()
         props["table"] = resolve(table) if isinstance(table, str) else table
