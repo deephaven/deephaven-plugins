@@ -16,7 +16,7 @@ Note: Nesting rows within rows or columns within columns will sub-divide the row
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](../components/tabs.md), [`flex`](../components/flex.md), `grid`, and [`view`](../components/view.md).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. For layouts within a panel, see [`tabs`](../components/tabs.md), [`flex`](../components/flex.md), [`grid`](../components/grid.md), and [nested dashboards](../components/dashboard.md#nested-dashboards).
 
 ## Automatic Wrapping
 
@@ -140,3 +140,155 @@ example_dashboard = ui.dashboard(
     create_dashboard(today, today.plusSeconds(SECONDS_IN_DAY * 10), _table)
 )
 ```
+
+## Nested Dashboards
+
+Dashboards can be nested inside panels to create complex layouts with isolated drag-and-drop regions. Each nested dashboard has its own independent layout that users can rearrange without affecting the parent dashboard.
+
+Unlike root-level dashboards, nested dashboards can be returned from `@ui.component` functions, making them ideal for creating reusable dashboard components with encapsulated state.
+
+### Basic nested dashboard
+
+A nested dashboard is created by placing a `ui.dashboard` inside a `ui.panel`:
+
+```python
+from deephaven import ui
+
+nested_example = ui.dashboard(
+    ui.row(
+        ui.panel(
+            ui.dashboard(
+                ui.row(
+                    ui.panel("Nested A", title="A"),
+                    ui.panel("Nested B", title="B"),
+                )
+            ),
+            title="Nested Dashboard",
+        ),
+        ui.panel("Main Content", title="Main"),
+    )
+)
+```
+
+### Nested dashboard component with state
+
+Nested dashboards shine when combined with `@ui.component` to create stateful, reusable dashboard sections:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def data_viewer(initial_filter):
+    """A reusable dashboard component for viewing filtered data."""
+    filter_text, set_filter_text = ui.use_state(initial_filter)
+    view_mode, set_view_mode = ui.use_state("table")
+
+    return ui.panel(
+        ui.dashboard(
+            ui.column(
+                ui.panel(
+                    ui.flex(
+                        ui.text_field(
+                            label="Filter",
+                            value=filter_text,
+                            on_change=set_filter_text,
+                        ),
+                        ui.picker(
+                            "table",
+                            "chart",
+                            label="View",
+                            selected_key=view_mode,
+                            on_change=set_view_mode,
+                        ),
+                        direction="row",
+                        gap="size-100",
+                    ),
+                    title="Controls",
+                ),
+                ui.panel(
+                    f"Showing {view_mode} with filter: {filter_text}",
+                    title="Data View",
+                ),
+            )
+        ),
+        title="Data Viewer",
+    )
+
+
+multi_viewer_dashboard = ui.dashboard(
+    ui.row(
+        data_viewer("Region = 'North'"),
+        data_viewer("Region = 'South'"),
+    )
+)
+```
+
+### Sharing state between nested dashboards
+
+State can be shared between nested dashboards by lifting state up to a common parent component. This allows multiple nested dashboards to react to the same state changes:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def filter_dashboard(filter_text, on_filter_change):
+    """A nested dashboard that displays and can modify a shared filter."""
+    return ui.panel(
+        ui.dashboard(
+            ui.column(
+                ui.panel(
+                    ui.text_field(
+                        label="Filter",
+                        value=filter_text,
+                        on_change=on_filter_change,
+                    ),
+                    title="Filter Input",
+                ),
+                ui.panel(f"Current filter: {filter_text}", title="Filter Display"),
+            )
+        ),
+        title="Filter Dashboard",
+    )
+
+
+@ui.component
+def results_dashboard(filter_text):
+    """A nested dashboard that displays results based on the shared filter."""
+    return ui.panel(
+        ui.dashboard(
+            ui.row(
+                ui.panel(f"Results for: {filter_text}", title="Results"),
+                ui.panel(f"Count for: {filter_text}", title="Count"),
+            )
+        ),
+        title="Results Dashboard",
+    )
+
+
+@ui.component
+def connected_dashboards():
+    """Parent component that shares state between nested dashboards."""
+    filter_text, set_filter_text = ui.use_state("initial filter")
+
+    return ui.row(
+        filter_dashboard(filter_text, set_filter_text),
+        results_dashboard(filter_text),
+    )
+
+
+shared_state_dashboard = ui.dashboard(connected_dashboards())
+```
+
+In this example, `connected_dashboards` holds the shared `filter_text` state. Both `filter_dashboard` and `results_dashboard` receive this state as props. When the user types in the filter input, both nested dashboards update to reflect the new filter value.
+
+### Key considerations for nested dashboards
+
+1. **Isolation**: Panels within a nested dashboard can only be dragged within that nested dashboard. Cross-dashboard drag-and-drop is not supported.
+
+2. **State persistence**: Each nested dashboard maintains its own layout state. When the page is reloaded, the arrangement of panels within nested dashboards is preserved.
+
+3. **Unlimited nesting**: Dashboards can be nested arbitrarily deep (dashboard in panel in dashboard in panel, etc.), though deeply nested layouts may become difficult for users to navigate.
+
+4. **Performance**: Each nested dashboard creates its own layout instance. For most use cases this has negligible impact, but consider the complexity when creating many nested dashboards.
