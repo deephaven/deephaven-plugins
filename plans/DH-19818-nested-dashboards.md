@@ -415,45 +415,35 @@ This approach mirrors `UITable`'s pattern:
 - Dehydrates on layout change, hydrates only on initial mount
 - Works recursively for deeply nested dashboards (each level stores its layout in its parent panel's state)
 
-### Phase 3: Event Handling
-
-#### 3.1 Event Isolation
-
-GoldenLayout instances are naturally isolated - events on the nested instance don't bubble to the parent. The `LayoutManagerContext` ensures each dashboard's children interact with the correct layout.
-
-#### 3.2 Resize Handling
-
-The nested dashboard must respond to parent panel resize:
-
-```tsx
-useEffect(() => {
-  const resizeObserver = new ResizeObserver(() => {
-    layoutManager?.updateSize();
-  });
-
-  if (containerRef.current) {
-    resizeObserver.observe(containerRef.current);
-  }
-
-  return () => resizeObserver.disconnect();
-}, [layoutManager, containerRef]);
-```
-
 ### Phase 4: Serialization & Rehydration
+
+_Note: Phase 3 (Event Handling) was removed as GoldenLayout instances are naturally isolated and resize handling is managed automatically by GoldenLayout._
 
 #### 4.1 Layout State Persistence
 
-Nested dashboard layout state follows the same dehydration/hydration pattern as `UITable` (see Phase 2.2):
+Nested dashboard layout state is persisted using `usePersistentState` from `@deephaven/plugin`. The implementation:
 
-1. **Dehydration**: `makeLayoutDehydrator()` converts the GoldenLayout config to a serializable format, stripping non-essential data
-2. **Storage**: `usePersistentState` stores the dehydrated config in the parent panel's state
-3. **Hydration**: `hydrateLayoutConfig()` restores the full layout config from the dehydrated state on mount
+1. **Storage**: Uses `usePersistentState` with key `'NestedDashboardLayout'` to store/retrieve the dehydrated layout config
+2. **Initial State**: Stores the initial config in a ref to avoid re-hydration on config changes
+3. **Dehydration**: Uses `LayoutUtils.dehydrateLayoutConfig` to convert the GoldenLayout config to a serializable format when layout changes
+4. **Debouncing**: Uses `useDebouncedCallback` to avoid flooding with layout change saves
+5. **Event Listening**: Listens to GoldenLayout `'stateChanged'` events via `onLayoutConfigChange` callback
 
-The dehydration/hydration utilities should handle:
+```tsx
+// Key implementation in NestedDashboard.tsx
+const [savedLayoutConfig, setSavedLayoutConfig] = usePersistentState<
+  DashboardLayoutConfig | undefined
+>(undefined, { type: 'NestedDashboardLayout', version: 1 });
 
-- Stripping runtime-only properties from the layout config
-- Handling version migrations if the format changes
-- Graceful fallback if hydration fails (start with default layout)
+const initialLayoutConfig = useRef(savedLayoutConfig);
+
+// Pass to DHCDashboard
+<DHCDashboard
+  layoutConfig={initialLayoutConfig.current}
+  onLayoutConfigChange={setSavedLayoutConfig}
+  onLayoutInitialized={handleLayoutInitialized}
+>
+```
 
 ### Phase 5: Documentation Updates
 
@@ -489,30 +479,25 @@ my_widget = nested_dashboard_example()
 
 ### Task 1: Core Components
 
-- [ ] Create `NestedDashboard` component with `DHCDashboard`, `PortalPanelManager`, and context providers
-- [ ] Modify `Dashboard` to detect nesting and delegate to `NestedDashboard`
-- [ ] Reset `ReactPanelContext` in nested dashboards (done in `NestedDashboard`)
-- [ ] Add resize handling for nested layouts
+- [x] Create `NestedDashboard` component with `DHCDashboard`, `PortalPanelManager`, and context providers
+- [x] Modify `Dashboard` to detect nesting and delegate to `NestedDashboard`
+- [x] Reset `ReactPanelContext` in nested dashboards (done in `NestedDashboardContent`)
+- [x] Add resize handling for nested layouts (handled automatically by GoldenLayout)
 
 ### Task 2: State Management
 
-- [ ] Ensure `PortalPanelManager` works correctly for nested dashboards
-- [ ] Create `makeLayoutDehydrator()` and `hydrateLayoutConfig()` utility functions
-- [ ] Use `usePersistentState` with dehydration/hydration pattern in `NestedDashboard`
-- [ ] Verify layout state is correctly dehydrated/hydrated with parent panel
+- [x] Ensure `PortalPanelManager` works correctly for nested dashboards
+- [x] Use `LayoutUtils.dehydrateLayoutConfig` for layout dehydration
+- [x] Use `usePersistentState` with dehydration pattern in `NestedDashboard`
+- [x] Listen to `stateChanged` events via `onGoldenLayoutChange` for persistence
 
-### Task 3: Event System
+### Task 3: Run Tests & Iterate
 
-- [ ] Verify event isolation between nested and parent layouts
-- [ ] Disable cross-dashboard panel dragging (if needed)
-
-### Task 4: Run Tests & Iterate
-
-- [ ] Run E2E tests and fix failures
-- [ ] Run unit tests and fix failures
+- [x] Run E2E tests and fix failures
+- [x] Run unit tests and fix failures
 - [ ] Add additional test cases as edge cases are discovered
 
-### Task 5: Documentation
+### Task 4: Documentation
 
 - [ ] Update [dashboard.md](../plugins/ui/docs/components/dashboard.md) component docs
 - [ ] Update [creating-dashboards.md](../plugins/ui/docs/creating-layouts/creating-dashboards.md) guide
@@ -549,16 +534,17 @@ my_widget = nested_dashboard_example()
 
 ## Timeline Estimate
 
-| Phase                                | Estimated Duration |
-| ------------------------------------ | ------------------ |
-| Phase 0: Write Tests First           | 1 week             |
-| Phase 1: Core Infrastructure         | 1.5 weeks          |
-| Phase 2: State Management            | 1 week             |
-| Phase 3: Event Handling              | 0.5 week           |
-| Phase 4: Serialization & Rehydration | 1 week             |
-| Phase 5: Documentation               | 0.5 week           |
-| Test Iteration & Bug Fixes           | 1.5 weeks          |
-| **Total**                            | **7 weeks**        |
+| Phase                                     | Estimated Duration |
+| ----------------------------------------- | ------------------ |
+| Phase 0: Write Tests First                | 1 week             |
+| Phase 1: Core Infrastructure              | 1.5 weeks          |
+| Phase 2: State Management (including 2.2) | 1 week             |
+| Phase 4: Serialization & Rehydration      | 0.5 week           |
+| Phase 5: Documentation                    | 0.5 week           |
+| Test Iteration & Bug Fixes                | 1.5 weeks          |
+| **Total**                                 | **6 weeks**        |
+
+_Note: Phase 3 (Event Handling) was removed as GoldenLayout provides natural event isolation._
 
 ## References
 
