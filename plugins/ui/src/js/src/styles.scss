@@ -59,21 +59,34 @@
         position: absolute;
       }
     }
+
+    .dashboard-container {
+      border: 1px solid var(--dh-color-bg);
+    }
   }
 
-  &:has(.dh-inner-react-panel > .iris-grid:only-child),
+  &:has(> .dh-inner-react-panel > .iris-grid:only-child),
   &:has(
-      .dh-inner-react-panel
+      > .dh-inner-react-panel
         > .ui-table-container:only-child
         > .iris-grid:only-child
     ),
-  &:has(.dh-inner-react-panel > .widget-container:only-child),
-  &:has(.dh-inner-react-panel > .chart-wrapper:only-child) {
+  &:has(> .dh-inner-react-panel > .widget-container:only-child),
+  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child) {
     // remove the default panel padding when grid or chart is the only child
     padding: 0 !important; // important required to override inline spectrum style
     .iris-grid {
       border: none;
       border-radius: 0;
+    }
+  }
+
+  // remove padding and border around single child dashboards in react panels
+  &:has(> .dh-inner-react-panel > .dashboard-container:only-child) {
+    padding: 0 !important; // important required to override inline spectrum style
+
+    > .dh-inner-react-panel > .dashboard-container {
+      border: none;
     }
   }
 }
