@@ -886,6 +886,347 @@ class MemoTestCase(BaseTestCase):
         # Should re-render because component is not memoized
         self.assertEqual(child_render_count[0], 2)
 
+    def test_memo_child_with_internal_state(self):
+        """Test that a memoized component's child with internal state renders correctly when state changes."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        memoized_render_count = [0]
+        stateful_child_render_count = [0]
+
+        @ui.component
+        def stateful_child():
+            """A non-memoized child component with internal state."""
+            stateful_child_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"Child count: {count}",
+                on_press=lambda _: set_count(count + 1),
+            )
+
+        @ui.component(memo=True)
+        def memoized_parent(prop_value: int):
+            """A memoized parent that renders a stateful child."""
+            memoized_render_count[0] += 1
+            return ui.flex(
+                ui.text(f"Prop: {prop_value}"),
+                stateful_child(),
+            )
+
+        @ui.component
+        def root():
+            """Root component that renders the memoized parent with same props."""
+            return memoized_parent(prop_value=42)
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(root())
+        self.assertEqual(memoized_render_count[0], 1)
+        self.assertEqual(stateful_child_render_count[0], 1)
+
+        # Find the child's button and click it to change internal state
+        button = self._find_action_button(result)
+        self.assertEqual(button.props["children"], "Child count: 0")
+
+        # Click the button to update child's internal state
+        button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(root())
+
+        # The memoized parent should NOT re-render (props unchanged)
+        # But the stateful child SHOULD re-render (its state changed)
+        self.assertEqual(memoized_render_count[0], 1)  # Memoized parent skipped
+        self.assertEqual(stateful_child_render_count[0], 2)  # Child re-rendered
+
+        # Verify the child's state was actually updated in the rendered output
+        button = self._find_action_button(result)
+        self.assertEqual(button.props["children"], "Child count: 1")
+
+    def _find_action_buttons(self, root: RenderedNode) -> list[RenderedNode]:
+        """Helper to find all action buttons in the rendered tree."""
+        buttons = []
+        if root.name == "deephaven.ui.components.ActionButton":
+            buttons.append(root)
+        children = root.props.get("children", []) if root.props is not None else []
+        if not isinstance(children, list):
+            children = [children]
+        for child in children:
+            if isinstance(child, RenderedNode):
+                buttons.extend(self._find_action_buttons(child))
+        return buttons
+
+    def test_selective_rerender_scenario1_grandparent_state_no_prop_change(self):
+        """
+        Scenario 1: Grandparent state changes but does NOT affect MemoizedParent's props.
+
+        Expected:
+        - Grandparent: re-renders (state changed)
+        - MemoizedParent: skipped (props unchanged)
+        - ChildA: skipped (parent skipped, own state unchanged)
+        - UnmemoizedParent: re-renders (not memoized)
+        - ChildB: re-renders (parent re-rendered)
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_render_count = [0]
+        memoized_parent_render_count = [0]
+        unmemoized_parent_render_count = [0]
+        child_a_render_count = [0]
+        child_b_render_count = [0]
+
+        @ui.component
+        def child_a():
+            child_a_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildA: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component
+        def child_b():
+            child_b_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildB: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component(memo=True)
+        def memoized_parent(prop_value: int):
+            memoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"MemoizedParent prop: {prop_value}"), child_a())
+
+        @ui.component
+        def unmemoized_parent(prop_value: int):
+            unmemoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"UnmemoizedParent prop: {prop_value}"), child_b())
+
+        @ui.component
+        def grandparent():
+            grandparent_render_count[0] += 1
+            gp_state, set_gp_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    f"Grandparent: {gp_state}",
+                    on_press=lambda _: set_gp_state(gp_state + 1),
+                ),
+                memoized_parent(prop_value=42),  # Always same prop
+                unmemoized_parent(prop_value=gp_state),  # Prop changes with state
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_render_count[0], 1)
+        self.assertEqual(memoized_parent_render_count[0], 1)
+        self.assertEqual(unmemoized_parent_render_count[0], 1)
+        self.assertEqual(child_a_render_count[0], 1)
+        self.assertEqual(child_b_render_count[0], 1)
+
+        # Find grandparent's button and click it
+        buttons = self._find_action_buttons(result)
+        gp_button = next(b for b in buttons if "Grandparent:" in b.props["children"])
+        gp_button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(grandparent())
+
+        # Grandparent re-rendered (state changed)
+        self.assertEqual(grandparent_render_count[0], 2)
+        # MemoizedParent skipped (props unchanged: prop_value=42)
+        self.assertEqual(memoized_parent_render_count[0], 1)
+        # ChildA skipped (parent skipped, own state unchanged)
+        self.assertEqual(child_a_render_count[0], 1)
+        # UnmemoizedParent re-rendered (not memoized, parent re-rendered)
+        self.assertEqual(unmemoized_parent_render_count[0], 2)
+        # ChildB re-rendered (parent re-rendered)
+        self.assertEqual(child_b_render_count[0], 2)
+
+    def test_selective_rerender_scenario2_grandparent_state_with_prop_change(self):
+        """
+        Scenario 2: Grandparent state changes AND affects MemoizedParent's props.
+
+        Expected:
+        - Grandparent: re-renders (state changed)
+        - MemoizedParent: re-renders (props changed)
+        - ChildA: re-renders (parent re-rendered)
+        - UnmemoizedParent: re-renders (not memoized)
+        - ChildB: re-renders (parent re-rendered)
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_render_count = [0]
+        memoized_parent_render_count = [0]
+        unmemoized_parent_render_count = [0]
+        child_a_render_count = [0]
+        child_b_render_count = [0]
+
+        @ui.component
+        def child_a():
+            child_a_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildA: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component
+        def child_b():
+            child_b_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildB: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component(memo=True)
+        def memoized_parent(prop_value: int):
+            memoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"MemoizedParent prop: {prop_value}"), child_a())
+
+        @ui.component
+        def unmemoized_parent(prop_value: int):
+            unmemoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"UnmemoizedParent prop: {prop_value}"), child_b())
+
+        @ui.component
+        def grandparent():
+            grandparent_render_count[0] += 1
+            gp_state, set_gp_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    f"Grandparent: {gp_state}",
+                    on_press=lambda _: set_gp_state(gp_state + 1),
+                ),
+                memoized_parent(prop_value=gp_state),  # Prop changes with state
+                unmemoized_parent(prop_value=gp_state),  # Prop changes with state
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_render_count[0], 1)
+        self.assertEqual(memoized_parent_render_count[0], 1)
+        self.assertEqual(unmemoized_parent_render_count[0], 1)
+        self.assertEqual(child_a_render_count[0], 1)
+        self.assertEqual(child_b_render_count[0], 1)
+
+        # Find grandparent's button and click it
+        buttons = self._find_action_buttons(result)
+        gp_button = next(b for b in buttons if "Grandparent:" in b.props["children"])
+        gp_button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(grandparent())
+
+        # All components should re-render
+        self.assertEqual(grandparent_render_count[0], 2)
+        self.assertEqual(memoized_parent_render_count[0], 2)  # Props changed
+        self.assertEqual(child_a_render_count[0], 2)
+        self.assertEqual(unmemoized_parent_render_count[0], 2)
+        self.assertEqual(child_b_render_count[0], 2)
+
+    def test_selective_rerender_scenario3_child_state_change_only(self):
+        """
+        Scenario 3: Child state changes (within memoized parent).
+
+        Expected:
+        - Grandparent: NOT re-rendered (state unchanged)
+        - MemoizedParent: NOT re-rendered (props unchanged)
+        - ChildA: re-renders (its own state changed)
+        - UnmemoizedParent: NOT re-rendered (parent unchanged)
+        - ChildB: NOT re-rendered (state unchanged)
+        """
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        grandparent_render_count = [0]
+        memoized_parent_render_count = [0]
+        unmemoized_parent_render_count = [0]
+        child_a_render_count = [0]
+        child_b_render_count = [0]
+
+        @ui.component
+        def child_a():
+            child_a_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildA: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component
+        def child_b():
+            child_b_render_count[0] += 1
+            count, set_count = ui.use_state(0)
+            return ui.action_button(
+                f"ChildB: {count}", on_press=lambda _: set_count(count + 1)
+            )
+
+        @ui.component(memo=True)
+        def memoized_parent(prop_value: int):
+            memoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"MemoizedParent prop: {prop_value}"), child_a())
+
+        @ui.component
+        def unmemoized_parent(prop_value: int):
+            unmemoized_parent_render_count[0] += 1
+            return ui.flex(ui.text(f"UnmemoizedParent prop: {prop_value}"), child_b())
+
+        @ui.component
+        def grandparent():
+            grandparent_render_count[0] += 1
+            gp_state, set_gp_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    f"Grandparent: {gp_state}",
+                    on_press=lambda _: set_gp_state(gp_state + 1),
+                ),
+                memoized_parent(prop_value=42),  # Always same prop
+                unmemoized_parent(prop_value=42),  # Always same prop
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(grandparent())
+        self.assertEqual(grandparent_render_count[0], 1)
+        self.assertEqual(memoized_parent_render_count[0], 1)
+        self.assertEqual(unmemoized_parent_render_count[0], 1)
+        self.assertEqual(child_a_render_count[0], 1)
+        self.assertEqual(child_b_render_count[0], 1)
+
+        # Find ChildA's button and click it to change its internal state
+        buttons = self._find_action_buttons(result)
+        child_a_button = next(b for b in buttons if "ChildA:" in b.props["children"])
+        self.assertEqual(child_a_button.props["children"], "ChildA: 0")
+        child_a_button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(grandparent())
+
+        # Grandparent should NOT re-render (state unchanged)
+        self.assertEqual(grandparent_render_count[0], 1)
+        # MemoizedParent should NOT re-render (props unchanged)
+        self.assertEqual(memoized_parent_render_count[0], 1)
+        # ChildA SHOULD re-render (its state changed)
+        self.assertEqual(child_a_render_count[0], 2)
+        # UnmemoizedParent should NOT re-render
+        self.assertEqual(unmemoized_parent_render_count[0], 1)
+        # ChildB should NOT re-render
+        self.assertEqual(child_b_render_count[0], 1)
+
+        # Verify ChildA's state was actually updated in the rendered output
+        buttons = self._find_action_buttons(result)
+        child_a_button = next(b for b in buttons if "ChildA:" in b.props["children"])
+        self.assertEqual(child_a_button.props["children"], "ChildA: 1")
+
 
 if __name__ == "__main__":
     import unittest
