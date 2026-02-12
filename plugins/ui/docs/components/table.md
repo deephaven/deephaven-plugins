@@ -219,7 +219,7 @@ t = ui.table(
 > )
 > ```
 
-##### Value Column
+#### Value Column
 
 The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
 
@@ -237,7 +237,7 @@ t = ui.table(
 )
 ```
 
-##### Scale Configuration
+#### Scale Configuration
 
 The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
 
@@ -260,7 +260,7 @@ t = ui.table(
 )
 ```
 
-##### Axis Configuration
+#### Axis Configuration
 
 The `axis` prop controls how the zero point is positioned within the databar.
 
@@ -285,7 +285,7 @@ t = ui.table(
 )
 ```
 
-##### Direction
+#### Direction
 
 The `direction` prop controls which direction the databar grows from its zero point.
 
@@ -308,7 +308,7 @@ t = ui.table(
 )
 ```
 
-##### Value Placement
+#### Value Placement
 
 The `value_placement` prop controls how cell values are displayed relative to the databar.
 
@@ -332,7 +332,7 @@ t = ui.table(
 )
 ```
 
-##### Color
+#### Color
 
 The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
 
@@ -352,7 +352,7 @@ t = ui.table(
 )
 ```
 
-##### Opacity
+#### Opacity
 
 The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
 
@@ -368,7 +368,7 @@ t = ui.table(
 )
 ```
 
-##### Markers
+#### Markers
 
 The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
 
