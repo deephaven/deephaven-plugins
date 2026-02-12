@@ -1254,6 +1254,177 @@ Only populated for MemoizedFunctionElement components.
 
 ---
 
+## Selective Re-rendering Scenarios
+
+A key challenge with memoization is ensuring that child components with internal state can still re-render when their state changes, even when their memoized parent is skipped. This requires selective re-rendering: the ability to re-render specific subtrees without re-rendering ancestor components.
+
+### Problem Statement
+
+When a memoized component's props haven't changed, the renderer returns the cached rendered node. However, if a child component within that memoized component has dirty state (state that changed), the child needs to re-render. The current implementation does not handle this case - the child never re-renders because the memoized parent short-circuits the entire subtree.
+
+**Bug identified**: `test_memo_child_with_internal_state` demonstrates this issue - when a memoized parent is skipped, child components with dirty state do not re-render.
+
+### Test Scenario: Grandparent with Memoized and Unmemoized Parents
+
+Consider this component tree:
+
+```
+Grandparent (has state)
+├── MemoizedParent (memo=True, renders child)
+│   └── ChildA (has state)
+└── UnmemoizedParent (renders child)
+    └── ChildB (has state)
+```
+
+```python
+@ui.component
+def child_a():
+    count, set_count = ui.use_state(0)
+    return ui.action_button(f"ChildA: {count}", on_press=lambda _: set_count(count + 1))
+
+
+@ui.component
+def child_b():
+    count, set_count = ui.use_state(0)
+    return ui.action_button(f"ChildB: {count}", on_press=lambda _: set_count(count + 1))
+
+
+@ui.component(memo=True)
+def memoized_parent(prop_value: int):
+    return ui.flex(ui.text(f"MemoizedParent prop: {prop_value}"), child_a())
+
+
+@ui.component
+def unmemoized_parent(prop_value: int):
+    return ui.flex(ui.text(f"UnmemoizedParent prop: {prop_value}"), child_b())
+
+
+@ui.component
+def grandparent():
+    gp_state, set_gp_state = ui.use_state(0)
+    return ui.flex(
+        ui.action_button(
+            f"Grandparent: {gp_state}", on_press=lambda _: set_gp_state(gp_state + 1)
+        ),
+        memoized_parent(prop_value=42),  # Always receives same prop
+        unmemoized_parent(prop_value=gp_state),  # Receives changing prop
+    )
+```
+
+### Scenario 1: Grandparent state changes but does NOT affect MemoizedParent's props
+
+**Action**: Click Grandparent's button (changes `gp_state` from 0 to 1)
+
+**Expected behavior**:
+| Component | Should Re-render? | Reason |
+|-----------|-------------------|--------|
+| Grandparent | ✅ Yes | Its state changed |
+| MemoizedParent | ❌ No | Props unchanged (`prop_value=42`) |
+| ChildA | ❌ No | Parent skipped, child state unchanged |
+| UnmemoizedParent | ✅ Yes | Not memoized, parent re-rendered |
+| ChildB | ✅ Yes | Parent re-rendered |
+
+### Scenario 2: Grandparent state changes AND affects MemoizedParent's props
+
+**Setup modification**: `memoized_parent(prop_value=gp_state)` (props now depend on grandparent state)
+
+**Action**: Click Grandparent's button (changes `gp_state` from 0 to 1)
+
+**Expected behavior**:
+| Component | Should Re-render? | Reason |
+|-----------|-------------------|--------|
+| Grandparent | ✅ Yes | Its state changed |
+| MemoizedParent | ✅ Yes | Props changed (`prop_value` 0→1) |
+| ChildA | ✅ Yes | Parent re-rendered |
+| UnmemoizedParent | ✅ Yes | Not memoized, parent re-rendered |
+| ChildB | ✅ Yes | Parent re-rendered |
+
+### Scenario 3: Child state changes (within memoized parent)
+
+**Action**: Click ChildA's button (changes ChildA's internal `count` from 0 to 1)
+
+**Expected behavior**:
+| Component | Should Re-render? | Reason |
+|-----------|-------------------|--------|
+| Grandparent | ❌ No | Its state unchanged |
+| MemoizedParent | ❌ No | Props unchanged |
+| ChildA | ✅ Yes | **Its own state changed** |
+| UnmemoizedParent | ❌ No | Parent unchanged |
+| ChildB | ❌ No | Its state unchanged |
+
+**This is the bug**: Currently, ChildA does NOT re-render because MemoizedParent's memoization check short-circuits before checking if ChildA has dirty state.
+
+### Required Fix
+
+The renderer must support selective re-rendering of dirty descendants even when a memoized parent is skipped. This requires two changes:
+
+#### 1. Propagate re-renders down to dirty children
+
+When a child context is dirty and re-renders, all of its children (and children's children) must also re-render **unless** they are memoized and not dirty themselves. This ensures that:
+
+- Dirty components always re-render
+- Non-memoized children of re-rendered parents always re-render (current behavior)
+- Memoized children can still skip if their props haven't changed and they're not dirty
+
+#### 2. Add `get_existing_child_context` to RenderContext
+
+When a memoized component is skipped (props unchanged, not dirty), it still needs to check if any of its children need re-rendering. To do this, the renderer must:
+
+1. Iterate over the cached rendered node's children
+2. For each child that is an Element, call `_render_child_item` but use a new `get_existing_child_context` method instead of `get_child_context`
+
+The new `get_existing_child_context` method:
+
+- Returns the existing child context for the given key
+- **Throws** if the context doesn't exist (this would indicate a bug - the child should have been rendered before)
+- **Does NOT** add the key to `_collected_contexts` (since we're not re-rendering the parent, we don't want to affect its context collection)
+
+```python
+def get_existing_child_context(self, key: ContextKey) -> "RenderContext":
+    """
+    Get an existing child context for the given key.
+
+    Unlike get_child_context, this:
+    - Throws if the context doesn't exist
+    - Does NOT add the key to _collected_contexts
+
+    Used when a memoized parent is skipped but we need to check/render dirty children.
+    """
+    return self._children_context[key]
+```
+
+#### Renderer changes
+
+In `_render_element`, when a MemoizedElement's props are equal and context is not dirty:
+
+```python
+if (
+    prev_rendered_node is not None
+    and prev_props is not None
+    and not context.is_dirty
+    and element.are_props_equal(prev_props)
+):
+    # Memoized component can be skipped, but we still need to render dirty children
+    # Use a special render pass that only traverses existing child contexts
+    _render_dirty_children(prev_rendered_node, context)
+    return prev_rendered_node
+```
+
+The `_render_dirty_children` function would:
+
+1. Walk the cached rendered node tree
+2. For each child Element, get the existing child context
+3. If the child context is dirty or has dirty descendants, re-render that subtree
+4. Otherwise, recursively check that child's children
+
+This approach ensures:
+
+- Memoized parents don't re-execute their render function when props are unchanged
+- Dirty children within memoized parents still re-render correctly
+- Context collection remains correct (we don't add contexts that weren't actually rendered)
+
+---
+
 ## Documentation Updates Needed
 
 1. Add `@ui.memo` to public API docs
