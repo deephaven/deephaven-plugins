@@ -1,7 +1,7 @@
 from __future__ import annotations
 import functools
 import logging
-from typing import Any, Callable, Union, overload
+from typing import Any, Callable, overload
 from .._internal import get_component_qualname, dict_shallow_equal
 from ..elements import Element, FunctionElement, MemoizedElement, PropsType
 
@@ -14,17 +14,16 @@ CompareFunction = Callable[[PropsType, PropsType], bool]
 
 @overload
 def component(func: Callable[..., Any]) -> Callable[..., Element]:
-    """Basic usage without parentheses."""
+    """Basic usage without parentheses: @ui.component"""
     ...
 
 
 @overload
 def component(
-    func: None = None,
     *,
-    memo: Union[bool, CompareFunction] = False,
+    memo: bool | CompareFunction = ...,
 ) -> Callable[[Callable[..., Any]], Callable[..., Element]]:
-    """Usage with parameters."""
+    """Usage with parameters: @ui.component() or @ui.component(memo=True)"""
     ...
 
 
