@@ -1,19 +1,19 @@
 # Memoizing Components
 
-`@ui.memo` is a decorator that optimizes component rendering by skipping re-renders when a component's props haven't changed. This is similar to [React.memo](https://react.dev/reference/react/memo) and is useful for improving performance in components that render often with the same props.
+The `memo` parameter on `@ui.component` optimizes component rendering by skipping re-renders when a component's props haven't changed. This is similar to [React.memo](https://react.dev/reference/react/memo) and is useful for improving performance in components that render often with the same props.
 
-> [!NOTE] > `@ui.memo` is for memoizing entire components. To memoize a value or computation within a component, use the [`use_memo`](../hooks/use_memo.md) hook instead.
+> [!NOTE]
+> The `memo` parameter is for memoizing entire components. To memoize a value or computation within a component, use the [`use_memo`](../hooks/use_memo.md) hook instead.
 
 ## Basic Usage
 
-Wrap your component with `@ui.memo` to skip re-renders when props are unchanged:
+Add `memo=True` to your component to skip re-renders when props are unchanged:
 
 ```python
 from deephaven import ui
 
 
-@ui.memo
-@ui.component
+@ui.component(memo=True)
 def greeting(name):
     print(f"Rendering greeting for {name}")
     return ui.text(f"Hello, {name}!")
@@ -38,7 +38,7 @@ In this example, clicking the button increments `count`, causing `app` to re-ren
 
 ## How It Works
 
-By default, when a parent component re-renders, all of its child components re-render too. With `@ui.memo`, `deephaven.ui` compares the new props with the previous props using shallow equality. If all props are equal, the component skips rendering and reuses its previous result.
+By default, when a parent component re-renders, all of its child components re-render too. With `memo=True`, `deephaven.ui` compares the new props with the previous props using shallow equality. If all props are equal, the component skips rendering and reuses its previous result.
 
 The render cycle with memoization:
 
@@ -46,15 +46,15 @@ The render cycle with memoization:
 2. **Render**: Parent re-renders, but memoized children with unchanged props are skipped
 3. **Commit**: Only changed parts of the UI are updated
 
-## When to Use `@ui.memo`
+## When to Use `memo`
 
-Use `@ui.memo` when:
+Use `memo=True` when:
 
 - A component renders often with the same props
 - A component is expensive to render (complex calculations, many children)
 - A parent component re-renders frequently but passes stable props to children
 
-Don't use `@ui.memo` when:
+Don't use `memo` when:
 
 - The component's props change on almost every render
 - The component is cheap to render
@@ -65,8 +65,7 @@ from deephaven import ui
 
 
 # Good candidate: renders same static content while parent updates
-@ui.memo
-@ui.component
+@ui.component(memo=True)
 def expensive_chart(data):
     # Imagine this does complex data processing
     return ui.text(f"Chart with {len(data)} points")
@@ -94,9 +93,9 @@ def dashboard():
 dashboard_example = dashboard()
 ```
 
-## Custom Comparison with `are_props_equal`
+## Custom Comparison Function
 
-By default, `@ui.memo` uses shallow equality to compare props. You can provide a custom comparison function using the `are_props_equal` parameter:
+By default, `memo=True` uses shallow equality to compare props. You can provide a custom comparison function by passing it directly to `memo`:
 
 ```python
 from deephaven import ui
@@ -107,8 +106,7 @@ def compare_by_id(prev_props, next_props):
     return prev_props.get("id") == next_props.get("id")
 
 
-@ui.memo(are_props_equal=compare_by_id)
-@ui.component
+@ui.component(memo=compare_by_id)
 def user_card(id, name, last_updated):
     return ui.flex(
         ui.text(f"User #{id}"),
@@ -135,7 +133,7 @@ def user_profile():
 user_profile_example = user_profile()
 ```
 
-The `are_props_equal` function receives two dictionaries:
+The custom comparison function receives two dictionaries:
 
 - `prev_props`: The props from the previous render
 - `next_props`: The props for the current render
@@ -159,8 +157,7 @@ def deep_equal(prev_props, next_props):
     )
 
 
-@ui.memo(are_props_equal=deep_equal)
-@ui.component
+@ui.component(memo=deep_equal)
 def data_display(config):
     return ui.text(f"Config: {config}")
 
@@ -196,8 +193,7 @@ def significant_change(prev_props, next_props, threshold=5):
     return abs(next_value - prev_value) <= threshold
 
 
-@ui.memo(are_props_equal=significant_change)
-@ui.component
+@ui.component(memo=significant_change)
 def progress_bar(value):
     return ui.progress_bar(value=value, label=f"{value}%")
 
@@ -218,28 +214,25 @@ def app():
 app_example = app()
 ```
 
-## Decorator Syntax
+## Syntax Options
 
-Both syntax forms are supported:
+The `memo` parameter accepts different values:
 
 ```python
-# Without parentheses (uses default shallow comparison)
-@ui.memo
+# Memoization disabled (default behavior)
 @ui.component
 def my_component(prop):
     return ui.text(prop)
 
 
-# With parentheses (allows custom comparison)
-@ui.memo()
-@ui.component
-def my_component_with_parens(prop):
+# Memoization with shallow comparison
+@ui.component(memo=True)
+def my_memoized_component(prop):
     return ui.text(prop)
 
 
-# With custom comparison function
-@ui.memo(are_props_equal=my_custom_compare)
-@ui.component
+# Memoization with custom comparison function
+@ui.component(memo=my_custom_compare)
 def my_component_custom(prop):
     return ui.text(prop)
 ```
@@ -254,8 +247,7 @@ When you pass a new object, list, or dictionary as a prop, it will always be a d
 from deephaven import ui
 
 
-@ui.memo
-@ui.component
+@ui.component(memo=True)
 def item_list(items):
     return ui.flex(*[ui.text(item) for item in items], direction="column")
 
@@ -290,8 +282,7 @@ Lambda functions and inline function definitions create new references each rend
 from deephaven import ui
 
 
-@ui.memo
-@ui.component
+@ui.component(memo=True)
 def button_row(on_click):
     return ui.button("Click me", on_press=on_click)
 
@@ -318,11 +309,11 @@ app_example = app()
 
 ## Comparison with `use_memo`
 
-| Feature | `@ui.memo`                    | `use_memo`             |
+| Feature | `memo` parameter              | `use_memo`             |
 | ------- | ----------------------------- | ---------------------- |
 | Purpose | Skip re-rendering a component | Cache a computed value |
-| Usage   | Decorator on component        | Hook inside component  |
+| Usage   | Parameter on `@ui.component`  | Hook inside component  |
 | Input   | Component props               | Dependencies array     |
 | Output  | Memoized component            | Memoized value         |
 
-Use `@ui.memo` to optimize component rendering. Use `use_memo` to optimize expensive calculations within a component.
+Use `memo=True` on `@ui.component` to optimize component rendering. Use `use_memo` to optimize expensive calculations within a component.
