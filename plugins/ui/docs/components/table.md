@@ -25,7 +25,7 @@ The first argument to `ui.table` is the table data source. This can be any Deeph
 
 ## Formatting
 
-You can format the table using the `format_` prop. This prop takes a `ui.TableFormmat` object or list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
+You can format the table using the `format_` prop. This prop takes a `ui.TableFormat` object or list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
 
 ### Formatting rows and columns
 
@@ -92,7 +92,7 @@ t = ui.table(
 
 ### Formatting color
 
-Formatting rules for colors support Deephaven theme colors, hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
+Formatting rules for colors support Deephaven theme colors (view a full list in the dropdown menus [here](#tableformat)), hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
 
 #### Formatting text color
 
