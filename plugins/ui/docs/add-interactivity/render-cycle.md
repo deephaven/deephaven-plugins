@@ -126,18 +126,17 @@ This works because during this last step, React only updates the content of `ui.
 
 After rendering is done and React updated the DOM, the browser will repaint the screen.
 
-## Optimizing Re-renders with `@ui.memo`
+## Optimizing Re-renders with `memo`
 
-By default, when any component's state changes, `deephaven.ui` re-renders the entire component tree from the root—not just the component that triggered the change or its children, but every component in the tree. This is usually not a problem, but if you have a deeply nested tree or expensive components, you can optimize performance by wrapping components with `@ui.memo`.
+By default, when any component's state changes, `deephaven.ui` re-renders the entire component tree from the root—not just the component that triggered the change or its children, but every component in the tree. This is usually not a problem, but if you have a deeply nested tree or expensive components, you can optimize performance by using the `memo` parameter on `@ui.component`.
 
-The `@ui.memo` decorator tells `deephaven.ui` to skip re-rendering a component when its props haven't changed:
+The `memo` parameter tells `deephaven.ui` to skip re-rendering a component when its props haven't changed:
 
 ```python
 from deephaven import ui
 
 
-@ui.memo
-@ui.component
+@ui.component(memo=True)
 def expensive_child(value):
     # This component will only re-render when `value` changes
     return ui.text(f"Value: {value}")
