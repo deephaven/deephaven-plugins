@@ -117,6 +117,8 @@ class TableDatabar:
         color: The color of the databar.
         opacity: The opacity of the databar.
         markers: List of marker lines to display on the databar.
+    Returns:
+        The TableDatabar.
     """
 
     type: str = field(default="databar", init=False)
