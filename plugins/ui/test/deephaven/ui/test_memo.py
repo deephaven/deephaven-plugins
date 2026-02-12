@@ -1,7 +1,7 @@
 """
-Tests for component memoization (ui.memo decorator).
+Tests for component memoization (memo parameter on @ui.component).
 
-The @ui.memo decorator allows components to skip re-rendering when their props haven't
+The memo parameter on @ui.component allows components to skip re-rendering when their props haven't
 changed, similar to React.memo().
 """
 
@@ -18,7 +18,7 @@ run_on_change: OnChangeCallable = lambda x: x()
 
 
 class MemoTestCase(BaseTestCase):
-    """Tests for component memoization (@ui.memo decorator)."""
+    """Tests for component memoization (memo parameter on @ui.component)."""
 
     def _find_node(self, root: RenderedNode, name: str) -> RenderedNode:
         """Helper to find a node by name in the rendered tree."""
@@ -41,15 +41,14 @@ class MemoTestCase(BaseTestCase):
         return self._find_node(root, "deephaven.ui.components.ActionButton")
 
     def test_memo_skips_rerender_with_same_props(self):
-        """Test that @ui.memo skips re-render when props are unchanged."""
+        """Test that memo=True skips re-render when props are unchanged."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         parent_render_count = [0]
         child_render_count = [0]
 
-        @ui.memo
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value: int):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -85,14 +84,13 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 1)  # Child SKIPPED (memoized)
 
     def test_memo_rerenders_when_props_change(self):
-        """Test that @ui.memo re-renders when props change."""
+        """Test that memo=True re-renders when props change."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         child_render_count = [0]
 
-        @ui.memo
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value: int):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -123,14 +121,13 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 2)  # Child re-rendered (props changed)
 
     def test_memo_rerenders_when_own_state_changes(self):
-        """Test that @ui.memo re-renders when the memoized component's own state changes."""
+        """Test that memo=True re-renders when the memoized component's own state changes."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         child_render_count = [0]
 
-        @ui.memo
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value: int):
             child_render_count[0] += 1
             internal_state, set_internal_state = ui.use_state(0)
@@ -160,7 +157,7 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 2)
 
     def test_memo_rerenders_when_both_props_and_state_change(self):
-        """Test that @ui.memo() re-renders when both props and internal state change."""
+        """Test that memo=True re-renders when both props and internal state change."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
@@ -168,8 +165,7 @@ class MemoTestCase(BaseTestCase):
         button_ref = [None]
         parent_setter_ref = [None]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value: int):
             child_render_count[0] += 1
             internal_state, set_internal_state = ui.use_state(0)
@@ -202,15 +198,14 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 2)  # Re-rendered due to both changes
 
     def test_memo_no_rerender_when_nothing_changes(self):
-        """Test that @ui.memo() doesn't re-render when nothing changes (forced parent re-render)."""
+        """Test that memo=True doesn't re-render when nothing changes (forced parent re-render)."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
         parent_render_count = [0]
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child():
             child_render_count[0] += 1
             return ui.text("Static content")
@@ -255,8 +250,7 @@ class MemoTestCase(BaseTestCase):
         def compare_only_value(prev, next):
             return prev.get("value") == next.get("value")
 
-        @ui.memo(are_props_equal=compare_only_value)
-        @ui.component
+        @ui.component(memo=compare_only_value)
         def child_with_callback(value: int, on_click):
             child_render_count[0] += 1
             return ui.action_button(str(value), on_press=on_click)
@@ -302,8 +296,7 @@ class MemoTestCase(BaseTestCase):
             next_items = next.get("children", [[]])[0]
             return prev_items == next_items  # List equality compares contents
 
-        @ui.memo(are_props_equal=deep_equal_items)
-        @ui.component
+        @ui.component(memo=deep_equal_items)
         def child_with_list(items: list):
             child_render_count[0] += 1
             return ui.text(str(items))
@@ -343,8 +336,7 @@ class MemoTestCase(BaseTestCase):
         def always_different(prev, next):
             return False
 
-        @ui.memo(are_props_equal=always_different)
-        @ui.component
+        @ui.component(memo=always_different)
         def always_rerender_child(value: int):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -382,8 +374,7 @@ class MemoTestCase(BaseTestCase):
         def always_equal(prev, next):
             return True
 
-        @ui.memo(are_props_equal=always_equal)
-        @ui.component
+        @ui.component(memo=always_equal)
         def never_rerender_child(value: int):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -421,8 +412,7 @@ class MemoTestCase(BaseTestCase):
         def compare_important_only(prev, next):
             return prev.get("important_value") == next.get("important_value")
 
-        @ui.memo(are_props_equal=compare_important_only)
-        @ui.component
+        @ui.component(memo=compare_important_only)
         def selective_child(important_value: int, metadata: dict, callback):
             child_render_count[0] += 1
             return ui.action_button(f"Important: {important_value}", on_press=callback)
@@ -468,8 +458,7 @@ class MemoTestCase(BaseTestCase):
             next_val = next.get("children", [[0]])[0]
             return abs(next_val - prev_val) <= 5
 
-        @ui.memo(are_props_equal=significant_change_only)
-        @ui.component
+        @ui.component(memo=significant_change_only)
         def threshold_child(value: int):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -511,8 +500,7 @@ class MemoTestCase(BaseTestCase):
 
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def child_with_list(items: list):
             child_render_count[0] += 1
             return ui.text(str(len(items)))
@@ -548,8 +536,7 @@ class MemoTestCase(BaseTestCase):
 
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def child_with_list(items: list):
             child_render_count[0] += 1
             return ui.text(str(len(items)))
@@ -586,14 +573,12 @@ class MemoTestCase(BaseTestCase):
         parent_count = [0]
         child_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value: int):
             child_count[0] += 1
             return ui.text(f"Child: {value}")
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_parent(value: int):
             parent_count[0] += 1
             return ui.flex(
@@ -639,8 +624,7 @@ class MemoTestCase(BaseTestCase):
         parent_count = [0]
         child_state_setter = [None]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_parent(value: int):
             parent_count[0] += 1
             child_state, set_child_state = ui.use_state("initial")
@@ -695,8 +679,7 @@ class MemoTestCase(BaseTestCase):
 
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(a: int, b: str, c: bool):
             child_render_count[0] += 1
             return ui.text(f"{a}-{b}-{c}")
@@ -729,8 +712,7 @@ class MemoTestCase(BaseTestCase):
 
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(a: int, b: str, c: bool):
             child_render_count[0] += 1
             return ui.text(f"{a}-{b}-{c}")
@@ -764,8 +746,7 @@ class MemoTestCase(BaseTestCase):
 
         wrapper_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_wrapper(child_element):
             wrapper_render_count[0] += 1
             return ui.view(child_element)
@@ -802,8 +783,7 @@ class MemoTestCase(BaseTestCase):
 
         child_render_count = [0]
 
-        @ui.memo()
-        @ui.component
+        @ui.component(memo=True)
         def memoized_child(value):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
@@ -871,53 +851,39 @@ class MemoTestCase(BaseTestCase):
         # Non-memoized child should re-render even with same props
         self.assertEqual(child_render_count[0], 2)
 
-    def test_memo_both_syntaxes_work(self):
-        """Test that both @ui.memo and @ui.memo() syntaxes work identically."""
+    def test_memo_component_with_parentheses_no_args(self):
+        """Test that @ui.component() (with empty parens) still works without memoization."""
         on_change = Mock(side_effect=run_on_change)
         on_queue = Mock(side_effect=run_on_change)
 
-        no_parens_count = [0]
-        with_parens_count = [0]
+        child_render_count = [0]
 
-        # Syntax without parentheses
-        @ui.memo
-        @ui.component
-        def memoized_no_parens(value: int):
-            no_parens_count[0] += 1
-            return ui.text(f"No parens: {value}")
-
-        # Syntax with parentheses
-        @ui.memo()
-        @ui.component
-        def memoized_with_parens(value: int):
-            with_parens_count[0] += 1
-            return ui.text(f"With parens: {value}")
+        @ui.component()
+        def non_memoized_child(value: int):
+            child_render_count[0] += 1
+            return ui.text(f"Value: {value}")
 
         @ui.component
         def parent():
             state, set_state = ui.use_state(0)
             return ui.flex(
                 ui.action_button(str(state), on_press=lambda _: set_state(state + 1)),
-                memoized_no_parens(value=42),
-                memoized_with_parens(value=42),
+                non_memoized_child(value=42),
             )
 
         rc = RenderContext(on_change, on_queue)
         renderer = Renderer(rc)
 
-        # Initial render
         result = renderer.render(parent())
-        self.assertEqual(no_parens_count[0], 1)
-        self.assertEqual(with_parens_count[0], 1)
+        self.assertEqual(child_render_count[0], 1)
 
-        # Trigger parent re-render with same props to children
+        # Trigger parent re-render
         button = self._find_action_button(result)
         button.props["onPress"](None)
 
         renderer.render(parent())
-        # Both should skip re-render
-        self.assertEqual(no_parens_count[0], 1)
-        self.assertEqual(with_parens_count[0], 1)
+        # Should re-render because component is not memoized
+        self.assertEqual(child_render_count[0], 2)
 
 
 if __name__ == "__main__":
