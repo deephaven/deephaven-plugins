@@ -32,6 +32,7 @@ function NestedDashboard({ children }: NestedDashboardProps): JSX.Element {
       <DHCDashboard
         onLayoutInitialized={() => setLayoutInitialized(true)}
         // TODO: There's an issue the web-client-ui package that has this typed incorrectly
+        // https://github.com/deephaven/web-client-ui/pull/2622
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onLayoutConfigChange={setSavedLayoutConfig as any}
         layoutConfig={initialLayoutConfig.current}
