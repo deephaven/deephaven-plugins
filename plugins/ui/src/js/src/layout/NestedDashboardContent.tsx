@@ -1,13 +1,10 @@
 import React, { useMemo } from 'react';
-import { useLayoutManager } from '@deephaven/dashboard';
 import { nanoid } from 'nanoid';
-import { normalizeDashboardChildren } from './LayoutUtils';
 import { ReactPanelContext } from './ReactPanelContext';
 import {
   ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
-import { ParentItemContext } from './ParentItemContext';
 import PortalPanelManager from './PortalPanelManager';
 import DashboardContent from './DashboardContent';
 
