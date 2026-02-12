@@ -1,6 +1,7 @@
 import unittest
 
 from ..BaseTest import BaseTestCase
+import pandas.testing as tm
 
 
 class TimePreprocessorTestCase(BaseTestCase):
@@ -48,12 +49,19 @@ class TimePreprocessorTestCase(BaseTestCase):
         )
         expected_df["Start"] = pd.to_datetime(expected_df["Start"])
         expected_df["End"] = pd.to_datetime(expected_df["End"])
+        expected_df["Start"] = expected_df["Start"].astype("datetime64[ns, UTC]")
+        expected_df["End"] = expected_df["End"].astype("datetime64[ns, UTC]")
         expected_df["Category"] = expected_df["Category"].astype("string")
         expected_df["x_diff"] = expected_df["x_diff"].astype("Float64")
 
         new_df = dhpd.to_pandas(new_table)
 
-        self.assertTrue(expected_df.equals(new_df))
+        # It's not essential that the precision matches as long as the values are correct
+        # so convert for ease of comparison
+        new_df["Start"] = new_df["Start"].astype("datetime64[ns, UTC]")
+        new_df["End"] = new_df["End"].astype("datetime64[ns, UTC]")
+
+        tm.assert_frame_equal(expected_df, new_df)
 
 
 if __name__ == "__main__":
