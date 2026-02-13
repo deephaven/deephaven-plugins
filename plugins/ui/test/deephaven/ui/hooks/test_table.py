@@ -576,3 +576,181 @@ class UseTableTestCase(BaseTestCase):
         result, rerender = itemgetter("result", "rerender")(render_result)
 
         self.assertTrue(pd.isna(result))
+
+
+class UseTableFilteringTestCase(BaseTestCase):
+    """Tests to verify hooks properly filter tables before listening"""
+
+    def test_cell_data_filters_to_one_row_one_column(self):
+        """use_cell_data should filter the table to 1 row and 1 column"""
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [4, 5, 6]),
+                int_col("Z", [7, 8, 9]),
+            ]
+        )
+
+        captured_table = None
+
+        original_use_table_data = use_table_data
+
+        def mock_use_table_data(t, sentinel=None, transformer=None):
+            nonlocal captured_table
+            captured_table = t
+            return original_use_table_data(t, sentinel, transformer)
+
+        from unittest.mock import patch
+
+        with patch(
+            "deephaven.ui.hooks.use_cell_data.use_table_data", mock_use_table_data
+        ):
+
+            def _test_cell_data(t=table):
+                return use_cell_data(t)
+
+            render_hook(_test_cell_data)
+
+        self.assertIsNotNone(captured_table)
+        self.assertEqual(captured_table.size, 1, "Table should have 1 row")
+        self.assertEqual(len(captured_table.columns), 1, "Table should have 1 column")
+        self.assertEqual(
+            captured_table.column_names[0], "X", "Should keep first column"
+        )
+
+    def test_row_data_filters_to_one_row_all_columns(self):
+        """use_row_data should filter to 1 row but keep all columns"""
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [4, 5, 6]),
+                int_col("Z", [7, 8, 9]),
+            ]
+        )
+
+        captured_table = None
+
+        original_use_table_data = use_table_data
+
+        def mock_use_table_data(t, sentinel=None, transformer=None):
+            nonlocal captured_table
+            captured_table = t
+            return original_use_table_data(t, sentinel, transformer)
+
+        from unittest.mock import patch
+
+        with patch(
+            "deephaven.ui.hooks.use_row_data.use_table_data", mock_use_table_data
+        ):
+
+            def _test_row_data(t=table):
+                return use_row_data(t)
+
+            render_hook(_test_row_data)
+
+        self.assertIsNotNone(captured_table)
+        self.assertEqual(captured_table.size, 1, "Table should have 1 row")
+        self.assertEqual(
+            len(captured_table.columns), 3, "Table should keep all 3 columns"
+        )
+
+    def test_row_list_filters_to_one_row_all_columns(self):
+        """use_row_list should filter to 1 row but keep all columns"""
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [4, 5, 6]),
+                int_col("Z", [7, 8, 9]),
+            ]
+        )
+
+        captured_table = None
+
+        original_use_table_data = use_table_data
+
+        def mock_use_table_data(t, sentinel=None, transformer=None):
+            nonlocal captured_table
+            captured_table = t
+            return original_use_table_data(t, sentinel, transformer)
+
+        from unittest.mock import patch
+
+        with patch(
+            "deephaven.ui.hooks.use_row_list.use_table_data", mock_use_table_data
+        ):
+
+            def _test_row_list(t=table):
+                return use_row_list(t)
+
+            render_hook(_test_row_list)
+
+        self.assertIsNotNone(captured_table)
+        self.assertEqual(captured_table.size, 1, "Table should have 1 row")
+        self.assertEqual(
+            len(captured_table.columns), 3, "Table should keep all 3 columns"
+        )
+
+    def test_column_data_filters_to_one_column_all_rows(self):
+        """use_column_data should filter to 1 column but keep all rows"""
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [4, 5, 6]),
+                int_col("Z", [7, 8, 9]),
+            ]
+        )
+
+        captured_table = None
+
+        original_use_table_data = use_table_data
+
+        def mock_use_table_data(t, sentinel=None, transformer=None):
+            nonlocal captured_table
+            captured_table = t
+            return original_use_table_data(t, sentinel, transformer)
+
+        from unittest.mock import patch
+
+        with patch(
+            "deephaven.ui.hooks.use_column_data.use_table_data", mock_use_table_data
+        ):
+
+            def _test_column_data(t=table):
+                return use_column_data(t)
+
+            render_hook(_test_column_data)
+
+        self.assertIsNotNone(captured_table)
+        self.assertEqual(captured_table.size, 3, "Table should keep all 3 rows")
+        self.assertEqual(len(captured_table.columns), 1, "Table should have 1 column")
+        self.assertEqual(
+            captured_table.column_names[0], "X", "Should keep first column"
+        )
+
+    def test_cell_data_with_single_cell_table(self):
+        """use_cell_data with a 1x1 table should not change dimensions"""
+        table = new_table([int_col("X", [42])])
+
+        captured_table = None
+
+        original_use_table_data = use_table_data
+
+        def mock_use_table_data(t, sentinel=None, transformer=None):
+            nonlocal captured_table
+            captured_table = t
+            return original_use_table_data(t, sentinel, transformer)
+
+        from unittest.mock import patch
+
+        with patch(
+            "deephaven.ui.hooks.use_cell_data.use_table_data", mock_use_table_data
+        ):
+
+            def _test_cell_data(t=table):
+                return use_cell_data(t)
+
+            render_hook(_test_cell_data)
+
+        self.assertIsNotNone(captured_table)
+        self.assertEqual(captured_table.size, 1)
+        self.assertEqual(len(captured_table.columns), 1)
