@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, List, Mapping, Tuple, Union
 
-PropsType = Dict[str, Any]
+PropsType = Mapping[str, Any]
 
 
 class Element(ABC):
@@ -45,5 +45,5 @@ class Element(ABC):
 
 # Some props don't support Undefined, so they need to add it themselves
 NodeType = Union[
-    None, bool, int, str, Element, List["NodeType"], Tuple["NodeType", ...]
+    None, bool, float, int, str, Element, List["NodeType"], Tuple["NodeType", ...]
 ]
