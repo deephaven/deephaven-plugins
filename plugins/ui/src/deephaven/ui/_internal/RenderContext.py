@@ -659,6 +659,7 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
+        self._is_dirty = True
 
         if "state" in state:
             for key, value in state["state"].items():
