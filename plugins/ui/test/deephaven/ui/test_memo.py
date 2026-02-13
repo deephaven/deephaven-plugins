@@ -451,6 +451,7 @@ class MemoTestCase(BaseTestCase):
         on_queue = Mock(side_effect=run_on_change)
 
         child_render_count = [0]
+        parent_set_value = [None]
 
         # Only re-render if value changes by more than 5
         def significant_change_only(prev, next):
@@ -463,12 +464,12 @@ class MemoTestCase(BaseTestCase):
             child_render_count[0] += 1
             return ui.text(f"Value: {value}")
 
-        value_ref = [0]
-
         @ui.component
         def parent():
+            value, set_value = ui.use_state(0)
+            parent_set_value[0] = set_value
             return ui.flex(
-                threshold_child(value_ref[0]),
+                threshold_child(value),
             )
 
         rc = RenderContext(on_change, on_queue)
@@ -479,17 +480,17 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(child_render_count[0], 1)
 
         # Small change (within threshold) - should skip
-        value_ref[0] = 3
+        parent_set_value[0](3)
         renderer.render(parent())
         self.assertEqual(child_render_count[0], 1)
 
         # Another small change - should skip
-        value_ref[0] = 5
+        parent_set_value[0](5)
         renderer.render(parent())
         self.assertEqual(child_render_count[0], 1)
 
         # Big change (exceeds threshold) - should re-render
-        value_ref[0] = 15
+        parent_set_value[0](15)
         renderer.render(parent())
         self.assertEqual(child_render_count[0], 2)
 
@@ -653,9 +654,9 @@ class MemoTestCase(BaseTestCase):
         # Change state within memoized component (dirty tracking should work)
         child_state_setter[0]("updated")
         result = renderer.render(grandparent())
-        # grandparent component function always runs when we render grandparent()
+        # grandparent component function should not re-run because it's own state didn't change
         self.assertEqual(
-            grandparent_count[0], 2
+            grandparent_count[0], 1
         )  # Grandparent re-rendered (root element)
         # parent_count should be 2 because its own context is dirty (state changed)
         self.assertEqual(parent_count[0], 2)  # Parent re-rendered (own state dirty)
@@ -666,7 +667,7 @@ class MemoTestCase(BaseTestCase):
 
         result = renderer.render(grandparent())
         self.assertEqual(
-            grandparent_count[0], 3
+            grandparent_count[0], 2
         )  # Grandparent re-rendered (state changed)
         self.assertEqual(
             parent_count[0], 2
