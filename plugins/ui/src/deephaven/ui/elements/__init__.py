@@ -13,10 +13,7 @@ __all__ = [
     "DashboardElement",
     "Element",
     "FunctionElement",
-<<<<<<< HEAD
-=======
     "MemoizedElement",
->>>>>>> 9c91ad10 (WIP add ui.memo functionality)
     "NodeType",
     "PropsType",
     "resolve",
