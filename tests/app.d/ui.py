@@ -63,18 +63,20 @@ def ui_cells_component():
         set_cells(lambda old_cells: [c for c in old_cells if c != delete_id])
 
     return ui.view(
-        map(
-            lambda i: ui.flex(
-                ui_cell(label=f"Cell {i}"),
-                ui.action_button(
-                    ui.icon("trash"),
-                    aria_label="Delete cell",
-                    on_press=lambda _: delete_cell(i),
+        list(
+            map(
+                lambda i: ui.flex(
+                    ui_cell(label=f"Cell {i}"),
+                    ui.action_button(
+                        ui.icon("trash"),
+                        aria_label="Delete cell",
+                        on_press=lambda _: delete_cell(i),
+                    ),
+                    align_items="end",
+                    key=str(i),
                 ),
-                align_items="end",
-                key=str(i),
-            ),
-            cells,
+                cells,
+            )
         ),
         ui.action_button(ui.icon("add"), "Add cell", on_press=add_cell),
         overflow="auto",
