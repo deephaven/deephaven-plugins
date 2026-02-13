@@ -468,11 +468,27 @@ class RenderContext:
         self._on_change(update_state)
         self._is_dirty = True
 
-    def get_child_context(self, key: ContextKey) -> "RenderContext":
+    def get_child_context(
+        self, key: ContextKey, fetch_only: bool = False
+    ) -> "RenderContext":
         """
         Get the child context for the given key.
+
+        Args:
+            key: The key of the child context to get.
+            fetch_only: If True, only return an existing context without creating
+                a new one or adding it to collected contexts. Raises KeyError if
+                the context doesn't exist.
+
+        Returns:
+            The child context for the given key.
+
+        Raises:
+            KeyError: If fetch_only is True and the context doesn't exist.
         """
         logger.debug("Getting child context for key %s", key)
+        if fetch_only:
+            return self._children_context[key]
         if key not in self._children_context:
             child_context = RenderContext(self._on_change, self._on_queue_render)
             logger.debug(
