@@ -10,12 +10,12 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import BadgeVariant
 
 
 def badge(
-    *children: Any,
+    *children: NodeType,
     variant: BadgeVariant | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
