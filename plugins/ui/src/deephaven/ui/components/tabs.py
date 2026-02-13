@@ -15,7 +15,7 @@ from .types import (
 )
 
 from ..types import Key, TabDensity, Undefined, UndefinedType
-from ..elements import BaseElement
+from ..elements import BaseElement, Element
 
 TabElement = BaseElement
 
@@ -24,7 +24,7 @@ _NULLABLE_PROPS = ["selected_key"]
 
 
 def tabs(
-    *children: Any,
+    *children: Element,
     disabled_keys: Iterable[Key] | None = None,
     is_disabled: bool | None = None,
     is_quiet: bool | None = None,

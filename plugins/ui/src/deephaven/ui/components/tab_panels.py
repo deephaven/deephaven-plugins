@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
+from ..elements import NodeType
 from .basic import component_element
 
 from .types import (
@@ -14,7 +15,7 @@ from .types import (
 
 
 def tab_panels(
-    *children: Any,
+    *children: NodeType,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,

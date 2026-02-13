@@ -10,11 +10,11 @@ from .types import (
     HeadingLevel,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def disclosure_title(
-    *children: Any,
+    *children: NodeType,
     level: HeadingLevel = 3,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,

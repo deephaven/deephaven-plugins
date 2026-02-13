@@ -15,14 +15,14 @@ from .types import (
     AlignItems,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import Undefined, UndefinedType
 
 _NULLABLE_PROPS = ["justify_content", "align_content", "align_items"]
 
 
 def grid(
-    *children: Any,
+    *children: NodeType,
     areas: list[str] | None = None,
     rows: str | list[DimensionValue] | None = None,
     columns: str | list[DimensionValue] | None = None,

@@ -17,12 +17,12 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 
 
 def action_group(
-    *children: Any,
+    *children: NodeType,
     is_emphasized: bool | None = None,
     density: ActionGroupDensity | None = "regular",
     is_justified: bool | None = None,
