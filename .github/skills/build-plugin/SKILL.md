@@ -10,9 +10,6 @@ Use `plugin_builder.py` from repo root. Requires venv activation first.
 ## Commands
 
 ```bash
-# Activate venv first
-source .venv/bin/activate
-
 # Build and install a plugin
 python tools/plugin_builder.py --install ui
 
@@ -39,5 +36,6 @@ python tools/plugin_builder.py --reinstall --server ui
 
 ## Notes
 
+- Assumes Python `.venv` is already sourced (`source .venv/bin/activate`)
 - Use `--reinstall` during development when version hasn't changed
 - First run may take longer to install dependencies

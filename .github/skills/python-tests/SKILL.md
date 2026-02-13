@@ -5,13 +5,12 @@ description: Run Python plugin tests using tox. Use when asked to run Python tes
 
 # Running Python Tests
 
-Use `tox` from the plugin directory. Requires venv activation first.
+Use `tox` from the plugin directory.
 
 ## Commands
 
 ```bash
-# Activate venv and run tests for a plugin
-source .venv/bin/activate
+# Run tests for a plugin
 cd plugins/<plugin>
 tox -e py3.12
 ```
@@ -29,6 +28,7 @@ tox -e py3.12 -- test.deephaven.ui.test_utils.UtilsTest.test_create_props -v
 
 ## Notes
 
+- Assumes Python `.venv` is already sourced (`source .venv/bin/activate`)
 - First run creates tox environment (~30s setup)
 - Use `-v` flag for verbose output to see individual test names
 - If tox env is corrupted, delete `plugins/<plugin>/.tox/` and retry

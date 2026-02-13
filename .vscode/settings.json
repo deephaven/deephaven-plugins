@@ -10,5 +10,8 @@
   "markdown.validate.ignoredLinks": ["/**"],
   "markdown.preferredMdPathExtensionStyle": "includeExtension",
   "markdown.updateLinksOnFileMove.enabled": "prompt",
-  "markdown.validate.referenceLinks.enabled": "error"
+  "markdown.validate.referenceLinks.enabled": "error",
+  "chat.tools.terminal.autoApprove": {
+    "tox": true
+  }
 }
