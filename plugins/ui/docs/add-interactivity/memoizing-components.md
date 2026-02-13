@@ -218,7 +218,7 @@ app_example = app()
 
 The `memo` parameter accepts different values:
 
-```python
+```python skip-test
 # Memoization disabled (default behavior)
 @ui.component
 def my_component(prop):
