@@ -1,8 +1,10 @@
 from __future__ import annotations
 from operator import itemgetter
+import sys
 import threading
 from queue import Queue
 from typing import Any, Callable, Union
+from unittest.mock import patch
 from ..BaseTest import BaseTestCase
 from .render_utils import render_hook
 from deephaven.ui.hooks import (
@@ -19,6 +21,12 @@ from deephaven import DynamicTableWriter
 from deephaven.table_listener import TableUpdate
 import deephaven.dtypes as dht
 import pandas as pd
+
+# Get modules from sys.modules for patching (needed for Python 3.10 compatibility)
+use_cell_data_module = sys.modules["deephaven.ui.hooks.use_cell_data"]
+use_column_data_module = sys.modules["deephaven.ui.hooks.use_column_data"]
+use_row_data_module = sys.modules["deephaven.ui.hooks.use_row_data"]
+use_row_list_module = sys.modules["deephaven.ui.hooks.use_row_list"]
 
 LISTENER_TIMEOUT = 2.0
 QUEUE_TIMEOUT = 1.0
@@ -600,11 +608,7 @@ class UseTableFilteringTestCase(BaseTestCase):
             captured_table = t
             return original_use_table_data(t, sentinel, transformer)
 
-        from unittest.mock import patch
-
-        with patch(
-            "deephaven.ui.hooks.use_cell_data.use_table_data", mock_use_table_data
-        ):
+        with patch.object(use_cell_data_module, "use_table_data", mock_use_table_data):
 
             def _test_cell_data(t=table):
                 return use_cell_data(t)
@@ -637,11 +641,7 @@ class UseTableFilteringTestCase(BaseTestCase):
             captured_table = t
             return original_use_table_data(t, sentinel, transformer)
 
-        from unittest.mock import patch
-
-        with patch(
-            "deephaven.ui.hooks.use_row_data.use_table_data", mock_use_table_data
-        ):
+        with patch.object(use_row_data_module, "use_table_data", mock_use_table_data):
 
             def _test_row_data(t=table):
                 return use_row_data(t)
@@ -673,11 +673,7 @@ class UseTableFilteringTestCase(BaseTestCase):
             captured_table = t
             return original_use_table_data(t, sentinel, transformer)
 
-        from unittest.mock import patch
-
-        with patch(
-            "deephaven.ui.hooks.use_row_list.use_table_data", mock_use_table_data
-        ):
+        with patch.object(use_row_list_module, "use_table_data", mock_use_table_data):
 
             def _test_row_list(t=table):
                 return use_row_list(t)
@@ -709,10 +705,8 @@ class UseTableFilteringTestCase(BaseTestCase):
             captured_table = t
             return original_use_table_data(t, sentinel, transformer)
 
-        from unittest.mock import patch
-
-        with patch(
-            "deephaven.ui.hooks.use_column_data.use_table_data", mock_use_table_data
+        with patch.object(
+            use_column_data_module, "use_table_data", mock_use_table_data
         ):
 
             def _test_column_data(t=table):
@@ -740,11 +734,7 @@ class UseTableFilteringTestCase(BaseTestCase):
             captured_table = t
             return original_use_table_data(t, sentinel, transformer)
 
-        from unittest.mock import patch
-
-        with patch(
-            "deephaven.ui.hooks.use_cell_data.use_table_data", mock_use_table_data
-        ):
+        with patch.object(use_cell_data_module, "use_table_data", mock_use_table_data):
 
             def _test_cell_data(t=table):
                 return use_cell_data(t)
