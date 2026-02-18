@@ -1186,10 +1186,26 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       }
 
       const column = this.columns[x];
+
+      // Determine the source column type for formatting
+      // Group column displays key values - use the appropriate key column's type
+      let columnType = column.type;
+      let columnName = column.name;
+      const groupOffset = this.groupColumn == null ? 0 : 1;
+      if (groupOffset === 1 && x === 0 && y !== 0) {
+        const rowDepth = this.row(y)?.depth ?? 2;
+        const keyCount = this.keyColumns.length;
+        if (rowDepth > 0 && rowDepth < keyCount) {
+          const sourceKeyColumn = this.keyColumns[rowDepth - 1];
+          columnType = sourceKeyColumn.type;
+          columnName = sourceKeyColumn.name;
+        }
+      }
+
       const hasCustomColumnFormat = this.getCachedCustomColumnFormatFlag(
         this.formatter,
-        column.name,
-        column.type
+        columnName,
+        columnType
       );
       let formatOverride;
       if (!hasCustomColumnFormat) {
@@ -1200,8 +1216,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       }
       const text = this.displayString(
         value,
-        column.type,
-        column.name,
+        columnType,
+        columnName,
         formatOverride
       );
       this.cacheFormattedValue(x, y, text);
