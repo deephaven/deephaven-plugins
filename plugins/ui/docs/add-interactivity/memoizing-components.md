@@ -292,7 +292,7 @@ def app():
     count, set_count = ui.use_state(0)
 
     # BAD: Creates a new function reference every render
-    # handle_click_bad = lambda: print("clicked")
+    handle_click_bad = lambda: print("clicked")
 
     # GOOD: Use use_callback to memoize the function
     handle_click_good = ui.use_callback(lambda: print("clicked"), [])
