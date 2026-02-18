@@ -58,23 +58,28 @@ const DEFAULT_COLUMN_COUNT = 2;
  * @param rowByColumns The columns to use for rows.
  * @param columnByColumns The columns to use for columns.
  * @param valueSources The value sources.
+ * @param options Optional configuration for column types.
  * @returns The created pivot table.
  */
 function makePivotTable(
   rowByColumns: string[],
   columnByColumns: string[],
-  valueSources: string[]
+  valueSources: string[],
+  options?: {
+    rowTypes?: string[];
+    columnTypes?: string[];
+  }
 ): DhType.coreplus.pivot.PivotTable {
   return createMockProxy<DhType.coreplus.pivot.PivotTable>({
-    rowSources: rowByColumns.map(name =>
+    rowSources: rowByColumns.map((name, i) =>
       createMockProxy<DhType.coreplus.pivot.PivotSource>({
-        type: 'java.lang.String',
+        type: options?.rowTypes?.[i] ?? 'java.lang.String',
         name,
       })
     ),
-    columnSources: columnByColumns.map(name =>
+    columnSources: columnByColumns.map((name, i) =>
       createMockProxy<DhType.coreplus.pivot.PivotSource>({
-        type: 'java.lang.String',
+        type: options?.columnTypes?.[i] ?? 'java.lang.String',
         name,
       })
     ),
@@ -108,7 +113,7 @@ function makeUpdateEvent(
     columnOffset = 0,
     totalColumnCount = DEFAULT_COLUMN_COUNT,
     rowGetDepth = (_i: number): number => 2,
-    rowGetKeys = (i: number): (string | null)[] => [
+    rowGetKeys = (i: number): unknown[] => [
       `${pivotTable.rowSources[0].name}${i}`,
     ],
     rowGetTotal = (
@@ -118,7 +123,7 @@ function makeUpdateEvent(
     rowIsExpanded = (_i: number): boolean => false,
     rowHasChildren = (_i: number): boolean => false,
     columnGetDepth = (_i: number): number => 2,
-    columnGetKeys = (i: number): (string | null)[] => [
+    columnGetKeys = (i: number): unknown[] => [
       `${pivotTable.columnSources[0].name}${i}`,
     ],
     columnGetTotal = (
@@ -1046,6 +1051,98 @@ describe('IrisGridPivotModel', () => {
       asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
 
       expect(model.columnCount).toBe(9);
+    });
+  });
+
+  describe('textForCell with non-string key types', () => {
+    it('formats numeric key values as strings in group column', () => {
+      // Use int and long types for row keys to test the fix for text.slice error
+      const pivotTable = makePivotTable(
+        ['IntKey', 'LongKey'],
+        ['C'],
+        ['Count'],
+        {
+          rowTypes: ['int', 'long'],
+        }
+      );
+
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+      model.startListening();
+
+      model.setViewport(0, 10);
+      jest.runOnlyPendingTimers();
+
+      // Return numeric values for keys (not strings)
+      const updateEvent = makeUpdateEvent(pivotTable, {
+        rowCount: 3,
+        totalRowCount: 3,
+        // Return numeric values, not strings - this was causing the original bug
+        rowGetKeys: i => [i * 10, (i + 1) * 100],
+        rowGetDepth: () => 2, // First level (IntKey)
+        rowHasChildren: () => true,
+        rowIsExpanded: () => false,
+      });
+
+      asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
+
+      // Group column (index 0) should contain formatted numeric values
+      // The fix ensures numeric values are properly formatted through displayString
+      expect(model.textForCell(0, 1)).toBe('0'); // First row IntKey value
+      expect(model.textForCell(0, 2)).toBe('10'); // Second row IntKey value
+      expect(model.textForCell(0, 3)).toBe('20'); // Third row IntKey value
+
+      // Verify values are strings (the original bug was passing numbers to text.slice)
+      expect(typeof model.textForCell(0, 1)).toBe('string');
+      expect(typeof model.textForCell(0, 2)).toBe('string');
+      expect(typeof model.textForCell(0, 3)).toBe('string');
+    });
+
+    it('formats BigInteger and BigDecimal key values as strings', () => {
+      const pivotTable = makePivotTable(
+        ['BigIntKey'],
+        ['BigDecKey'],
+        ['Count'],
+        {
+          rowTypes: ['java.math.BigInteger'],
+          columnTypes: ['java.math.BigDecimal'],
+        }
+      );
+
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+      model.startListening();
+
+      model.setViewport(0, 10);
+      jest.runOnlyPendingTimers();
+
+      const updateEvent = makeUpdateEvent(pivotTable, {
+        rowCount: 2,
+        totalRowCount: 2,
+        columnCount: 2,
+        totalColumnCount: 2,
+        // BigInteger and BigDecimal values (simulated as numbers)
+        rowGetKeys: i => [BigInt(i * 12345)],
+        columnGetKeys: i => [i * 1.5],
+        rowGetDepth: () => 2,
+        columnGetDepth: () => 2,
+        rowHasChildren: () => false,
+        columnHasChildren: () => false,
+      });
+
+      asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
+
+      // Row key values should be formatted as strings
+      expect(typeof model.textForCell(0, 1)).toBe('string');
+      expect(typeof model.textForCell(0, 2)).toBe('string');
     });
   });
 });
