@@ -236,6 +236,10 @@ dash_holy_grail = ui.dashboard(
 
 Dashboards can be nested inside panels to create complex layouts with isolated drag-and-drop regions. Each nested dashboard creates its own independent layout that users can rearrange without affecting the parent dashboard.
 
+> [!NOTE]
+> Nested dashboard will not appear in your Panels list, or in your Shared Dashboards list on Enterprise. They are only accessible through the parent dashboard that contains them.
+> To have them appear in your Panels list or Shared Dashboards list, a dashboard must be assigned to a variable at the top level.
+
 ### Basic nested dashboard
 
 ```python
@@ -351,7 +355,8 @@ dash_nested_state = ui.dashboard(
 )
 ```
 
-> **Note:** Panels within a nested dashboard can only be dragged within that nested dashboard. Cross-dashboard drag-and-drop is not supported.
+> [!NOTE]
+> Panels within a nested dashboard can only be dragged within that nested dashboard. Cross-dashboard drag-and-drop is not supported.
 
 ## Stateful Example
 

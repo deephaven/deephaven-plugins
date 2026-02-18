@@ -16,7 +16,7 @@ Note: Nesting rows within rows or columns within columns will sub-divide the row
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. For layouts within a panel, see [`tabs`](../components/tabs.md), [`flex`](../components/flex.md), [`grid`](../components/grid.md), and [nested dashboards](../components/dashboard.md#nested-dashboards).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. For layouts within a panel, see [`tabs`](../components/tabs.md), [`flex`](../components/flex.md), [`grid`](../components/grid.md), [`view`](../components/view.md), and [nested dashboards](../components/dashboard.md#nested-dashboards).
 
 ## Automatic Wrapping
 
