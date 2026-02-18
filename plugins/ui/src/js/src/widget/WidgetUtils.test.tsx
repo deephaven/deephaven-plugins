@@ -2,6 +2,7 @@ import React from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 import { Text } from '@deephaven/components';
 import { TestUtils } from '@deephaven/test-utils';
+import type { Operation } from 'fast-json-patch';
 import {
   ELEMENT_NAME,
   ELEMENT_PREFIX,
@@ -20,6 +21,7 @@ import {
   getComponentTypeForElement,
   getPreservedData,
   wrapCallable,
+  clonePatchPaths,
 } from './WidgetUtils';
 
 const mockJsonRequest = jest.fn(() =>
@@ -526,5 +528,177 @@ describe('transformNode', () => {
         ],
       },
     });
+  });
+});
+
+describe('clonePatchPaths', () => {
+  it('clones objects along patch paths and never clones the same object twice', () => {
+    type TestObj = {
+      a: { b: { c: number }; x: { y: number } };
+      d: { e: number };
+      f: { g: string };
+    };
+    const obj: TestObj = {
+      a: {
+        b: {
+          c: 1,
+        },
+        x: {
+          y: 99,
+        },
+      },
+      d: {
+        e: 2,
+      },
+      f: {
+        g: '3',
+      },
+    };
+    const patch = [
+      { op: 'replace', path: '/a/b/c', value: 42 },
+      { op: 'replace', path: '/d/e', value: 99 },
+    ] as Operation[];
+    const cloned = clonePatchPaths(obj, patch) as TestObj;
+    // The top-level object and each object along the patch path should be new objects
+    expect(cloned).not.toBe(obj);
+    expect(cloned.a).not.toBe(obj.a);
+    expect(cloned.a.b).not.toBe(obj.a.b);
+    expect(cloned.d).not.toBe(obj.d);
+    // The objects not along the patch path should be the same
+    expect(cloned.f).toBe(obj.f);
+    expect(cloned.a.x).toBe(obj.a.x);
+    // The values should be unchanged (cloning only, not patching)
+    expect(cloned.a.b.c).toBe(1);
+    expect(cloned.a.x.y).toBe(99);
+    expect(cloned.d.e).toBe(2);
+    expect(cloned.f.g).toBe('3');
+    // If two patch paths share an ancestor, it should only be cloned once
+    const patch2 = [
+      { op: 'replace', path: '/a/b/c', value: 42 },
+      { op: 'replace', path: '/a/b', value: { c: 99 } },
+    ] as Operation[];
+    const cloned2 = clonePatchPaths(obj, patch2) as TestObj;
+    expect(cloned2.a).not.toBe(obj.a);
+    expect(cloned2.a.b).not.toBe(obj.a.b);
+    // Should not clone the same object twice
+    expect(cloned2.a.b).toBe(cloned2.a.b);
+  });
+
+  it('clones objects along patch paths with nested arrays and objects', () => {
+    type TestDoc = {
+      __dhElemName: string;
+      props: {
+        children: Array<{
+          __dhElemName: string;
+          props: Record<string, unknown>;
+        }>;
+      };
+    };
+    const doc: TestDoc = {
+      __dhElemName: '__main__.outer',
+      props: {
+        children: [
+          {
+            __dhElemName: 'deephaven.ui.components.Button',
+            props: {
+              variant: 'accent',
+              style: 'fill',
+              type: 'button',
+              onPress: {
+                __dhCbid: 'cb1',
+              },
+              children: '1',
+            },
+          },
+          {
+            __dhElemName: 'deephaven.ui.components.Flex',
+            props: {
+              gap: 'size-100',
+              flex: 'auto',
+              children: [
+                {
+                  __dhElemName: '__main__.inner_frozen',
+                  props: {
+                    children: {
+                      __dhElemName: 'deephaven.ui.elements.UITable',
+                      props: {
+                        table: {
+                          __dhObid: 0,
+                        },
+                        showQuickFilters: false,
+                        showGroupingColumn: true,
+                        showSearch: false,
+                        reverse: false,
+                        frozenColumns: ['Timestamp'],
+                      },
+                    },
+                  },
+                },
+                {
+                  __dhElemName: '__main__.inner',
+                  props: {
+                    children: {
+                      __dhElemName: 'deephaven.ui.elements.UITable',
+                      props: {
+                        table: {
+                          __dhObid: 1,
+                        },
+                        showQuickFilters: false,
+                        showGroupingColumn: true,
+                        showSearch: false,
+                        reverse: false,
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    const patch = [
+      {
+        op: 'replace',
+        path: '/props/children/0/props/onPress/__dhCbid',
+        value: 'cb1',
+      },
+      {
+        op: 'replace',
+        path: '/props/children/0/props/children',
+        value: '1',
+      },
+    ] as Operation[];
+
+    const cloned = clonePatchPaths(doc, patch) as TestDoc;
+
+    // Root and objects along the patch should be cloned
+    expect(cloned).not.toBe(doc);
+    expect(cloned.props).not.toBe(doc.props);
+    expect(cloned.props.children).not.toBe(doc.props.children);
+    expect(cloned.props.children[0]).not.toBe(doc.props.children[0]);
+    expect(cloned.props.children[0].props).not.toBe(
+      doc.props.children[0].props
+    );
+    expect(cloned.props.children[0].props.onPress).not.toBe(
+      doc.props.children[0].props.onPress
+    );
+
+    // Objects not along the patch should remain the same
+    expect(cloned.props.children[1]).toBe(doc.props.children[1]);
+    expect(cloned.props.children[1].props).toBe(doc.props.children[1].props);
+    expect(cloned.props.children[1].props.children).toBe(
+      doc.props.children[1].props.children
+    );
+
+    // Values should be unchanged (cloning only, not patching)
+    expect(
+      // eslint-disable-next-line no-underscore-dangle
+      (cloned.props.children[0].props.onPress as Record<string, unknown>)
+        .__dhCbid
+    ).toBe('cb1');
+    expect(cloned.props.children[0].props.children).toBe('1');
+    expect(cloned.props.children[0].props.variant).toBe('accent');
   });
 });

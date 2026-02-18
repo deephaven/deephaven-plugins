@@ -35,6 +35,7 @@ import {
 import { ValueOf, EMPTY_MAP } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import type { ElementMap } from '@deephaven/plugin';
+import { Operation } from 'fast-json-patch';
 import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
@@ -410,4 +411,83 @@ export function wrapCallable(
   }
 
   return callable;
+}
+
+/**
+ * Shallowly clone objects along each patch path, never cloning the same object twice.
+ *
+ * @param obj The object to clone along the patch paths
+ * @param patch The patch to determine which paths to clone along
+ * @returns A new root object with clones along the patch paths
+ */
+export function clonePatchPaths(obj: object, patch: Operation[]): object {
+  // Use two separate sets for arrays and objects for type safety
+  const clonedArrays = new Set<unknown[]>();
+  const clonedObjects = new Set<object>();
+
+  let root: object = obj;
+  patch.forEach(op => {
+    if (!op.path) return;
+
+    // Remove leading slash and split the path into segments
+    const segments = op.path.split('/').slice(1);
+
+    // We need to keep track of the parent and key at each level to update the reference to the cloned object/array if we cloned
+    let parent: unknown = root;
+    let prev: unknown = null;
+    let prevKey: string | number | null = null;
+
+    // Iterate through the path segments, cloning objects/arrays as needed.
+    segments.forEach((seg, i) => {
+      // Determine the key to access the next level, using the original string segment for objects and numeric index for arrays
+      const key = /^\d+$/.test(seg) ? Number(seg) : seg;
+
+      // Get the next level value before cloning so we can continue traversing down the original object structure
+      let next: unknown;
+      if (Array.isArray(parent)) {
+        next = parent[key as number];
+      } else if (parent !== null && typeof parent === 'object') {
+        next = (parent as Record<string, unknown>)[key as string];
+      }
+
+      // Only clone if not already cloned
+      let clonedParent: unknown;
+      if (Array.isArray(parent) && !clonedArrays.has(parent)) {
+        const copy = [...parent];
+        clonedArrays.add(copy);
+        clonedParent = copy;
+      } else if (
+        parent !== null &&
+        typeof parent === 'object' &&
+        !clonedObjects.has(parent)
+      ) {
+        const copy = { ...(parent as object) };
+        clonedObjects.add(copy);
+        clonedParent = copy;
+      } else {
+        clonedParent = parent;
+      }
+
+      // Update the reference in the parent to the cloned parent if we cloned, otherwise it stays the same
+      if (prev != null && prevKey != null) {
+        if (Array.isArray(prev) && typeof prevKey === 'number') {
+          (prev as unknown[])[prevKey] = clonedParent;
+        } else if (
+          prev !== null &&
+          typeof prev === 'object' &&
+          typeof prevKey === 'string'
+        ) {
+          (prev as Record<string, unknown>)[prevKey] = clonedParent;
+        }
+      } else if (i === 0) {
+        root = clonedParent as object;
+      }
+
+      // Update prev and parent for the next iteration
+      prev = clonedParent;
+      prevKey = key;
+      parent = next;
+    });
+  });
+  return root;
 }

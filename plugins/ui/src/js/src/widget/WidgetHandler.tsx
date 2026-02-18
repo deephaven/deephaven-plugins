@@ -47,6 +47,7 @@ import {
   WIDGET_ELEMENT,
   wrapCallable,
   DASHBOARD_ELEMENT,
+  clonePatchPaths,
 } from './WidgetUtils';
 import WidgetStatusContext, {
   WidgetStatus,
@@ -367,11 +368,17 @@ function WidgetHandler({
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            setDocument(
-              oldDocument =>
-                applyPatch(oldDocument ?? {}, patch, undefined, false)
-                  .newDocument
-            );
+            setDocument(oldDocument => {
+              const { newDocument } = applyPatch(
+                oldDocument ?? {},
+                patch,
+                undefined,
+                true
+              );
+              // After patching, shallow clone objects along each patch path
+              const clonedDocument = clonePatchPaths(newDocument, patch);
+              return clonedDocument;
+            });
             setIsLoading(false);
           });
           if (stateParam != null) {
