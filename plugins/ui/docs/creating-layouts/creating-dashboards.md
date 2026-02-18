@@ -289,6 +289,4 @@ In this example, `connected_dashboards` holds the shared `filter_text` state. Bo
 
 2. **State persistence**: Each nested dashboard maintains its own layout state. When the page is reloaded, the arrangement of panels within nested dashboards is preserved.
 
-3. **Unlimited nesting**: Dashboards can be nested arbitrarily deep (dashboard in panel in dashboard in panel, etc.), though deeply nested layouts may become difficult for users to navigate.
-
-4. **Performance**: Each nested dashboard creates its own layout instance. For most use cases this has negligible impact, but consider the complexity when creating many nested dashboards.
+3. **Performance**: Each nested dashboard creates its own layout instance. For most use cases this has negligible impact, but consider the complexity when creating many nested dashboards.

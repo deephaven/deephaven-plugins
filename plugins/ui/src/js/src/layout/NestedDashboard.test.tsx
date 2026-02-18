@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { render, screen } from '@testing-library/react';
 import { LayoutManagerContext, useLayoutManager } from '@deephaven/dashboard';
 import NestedDashboard from './NestedDashboard';
@@ -44,7 +44,7 @@ function PanelIdReader(): JSX.Element {
  * Helper component that reads from ReactPanelManagerContext
  */
 function PanelManagerReader(): JSX.Element {
-  const panelManager = React.useContext(ReactPanelManagerContext);
+  const panelManager = useContext(ReactPanelManagerContext);
   return (
     <div data-testid="panel-manager">
       {panelManager != null ? 'has-manager' : 'no-manager'}
