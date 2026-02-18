@@ -4,6 +4,7 @@ import pandas as pd
 
 from deephaven.table import Table
 
+from .use_memo import use_memo
 from .use_table_data import use_table_data
 from ..types import Sentinel, RowData
 
@@ -32,7 +33,7 @@ def use_row_data(
     table: Table | None, sentinel: Sentinel = None
 ) -> RowData | Sentinel | None:
     """
-    Return the first row of the table as a dictionary. The table should already be filtered to only have a single row.
+    Return the first row of the table as a dictionary. The first row of the table will be returned as a dictionary.
 
     Args:
         table: The table to extract the row from.
@@ -41,4 +42,5 @@ def use_row_data(
     Returns:
         The first row of the table as a dictionary or the sentinel value.
     """
-    return use_table_data(table, sentinel, _row_data)
+    filtered_table = use_memo(lambda: None if table is None else table.head(1), [table])
+    return use_table_data(filtered_table, sentinel, _row_data)
