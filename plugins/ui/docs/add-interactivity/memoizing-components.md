@@ -256,11 +256,11 @@ def item_list(items):
 def app():
     count, set_count = ui.use_state(0)
 
-    # BAD: Creates a new list on every render
+    # ❌ Creates a new list on every render
     # item_list will re-render every time even though content is the same
     items_bad = ["apple", "banana"]
 
-    # GOOD: Use use_memo to keep the same reference
+    # ✅ Use use_memo to keep the same reference
     items_good = ui.use_memo(lambda: ["apple", "banana"], [])
 
     return ui.flex(
@@ -291,10 +291,10 @@ def button_row(on_click):
 def app():
     count, set_count = ui.use_state(0)
 
-    # BAD: Creates a new function reference every render
+    # ❌ Creates a new function reference every render
     handle_click_bad = lambda: print("clicked")
 
-    # GOOD: Use use_callback to memoize the function
+    # ✅ Use use_callback to memoize the function
     handle_click_good = ui.use_callback(lambda: print("clicked"), [])
 
     return ui.flex(
