@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## pivot-v0.3.1 - 2026-02-19
+#### Bug Fixes
+- DH-21704: Fix formatting for mixed key types in the Group column (#1306) - (6d70c5c) - vbabich
+
+- - -
+
 ## pivot-v0.3.0 - 2026-02-06
 #### Features
 - Pivot filter UI (#1278) - (3a22a9b) - vbabich
