@@ -421,11 +421,13 @@ export function wrapCallable(
  * @returns A new root object with clones along the patch paths
  */
 export function clonePatchPaths(obj: object, patch: Operation[]): object {
-  // Use two separate sets for arrays and objects for type safety
-  const clonedArrays = new Set<unknown[]>();
-  const clonedObjects = new Set<object>();
+  // Use a single set for cloned arrays and objects
+  const clonedItems = new Set<unknown>();
 
-  let root: object = obj;
+  // Always clone the root immediately as an object, since it is always on the patch path
+  const root: object = { ...obj };
+  clonedItems.add(obj);
+
   patch.forEach(op => {
     if (!op.path) return;
 
@@ -438,7 +440,7 @@ export function clonePatchPaths(obj: object, patch: Operation[]): object {
     let prevKey: string | number | null = null;
 
     // Iterate through the path segments, cloning objects/arrays as needed.
-    segments.forEach((seg, i) => {
+    segments.forEach(seg => {
       // Determine the key to access the next level, using the original string segment for objects and numeric index for arrays
       const key = /^\d+$/.test(seg) ? Number(seg) : seg;
 
@@ -450,37 +452,31 @@ export function clonePatchPaths(obj: object, patch: Operation[]): object {
         next = (parent as Record<string, unknown>)[key as string];
       }
 
-      // Only clone if not already cloned
-      let clonedParent: unknown;
-      if (Array.isArray(parent) && !clonedArrays.has(parent)) {
-        const copy = [...parent];
-        clonedArrays.add(copy);
-        clonedParent = copy;
-      } else if (
-        parent !== null &&
-        typeof parent === 'object' &&
-        !clonedObjects.has(parent)
+      // Only clone if not already cloned (skip root, already cloned)
+      let clonedParent: unknown = parent;
+      if (
+        parent !== root &&
+        (Array.isArray(parent) ||
+          (parent !== null && typeof parent === 'object')) &&
+        !clonedItems.has(parent)
       ) {
-        const copy = { ...(parent as object) };
-        clonedObjects.add(copy);
+        const copy = Array.isArray(parent)
+          ? parent.slice()
+          : { ...(parent as object) };
+        clonedItems.add(parent);
         clonedParent = copy;
-      } else {
-        clonedParent = parent;
-      }
-
-      // Update the reference in the parent to the cloned parent if we cloned, otherwise it stays the same
-      if (prev != null && prevKey != null) {
-        if (Array.isArray(prev) && typeof prevKey === 'number') {
-          (prev as unknown[])[prevKey] = clonedParent;
-        } else if (
-          prev !== null &&
-          typeof prev === 'object' &&
-          typeof prevKey === 'string'
-        ) {
-          (prev as Record<string, unknown>)[prevKey] = clonedParent;
+        // Update the reference in the parent to the cloned parent
+        if (prev != null && prevKey != null) {
+          if (Array.isArray(prev) && typeof prevKey === 'number') {
+            (prev as unknown[])[prevKey] = clonedParent;
+          } else if (
+            prev !== null &&
+            typeof prev === 'object' &&
+            typeof prevKey === 'string'
+          ) {
+            (prev as Record<string, unknown>)[prevKey] = clonedParent;
+          }
         }
-      } else if (i === 0) {
-        root = clonedParent as object;
       }
 
       // Update prev and parent for the next iteration

@@ -537,6 +537,7 @@ describe('clonePatchPaths', () => {
       a: { b: { c: number }; x: { y: number } };
       d: { e: number };
       f: { g: string };
+      h: { i: number[] };
     };
     const obj: TestObj = {
       a: {
@@ -553,31 +554,44 @@ describe('clonePatchPaths', () => {
       f: {
         g: '3',
       },
+      h: {
+        i: [1, 3, 4],
+      },
     };
     const patch = [
       { op: 'replace', path: '/a/b/c', value: 42 },
       { op: 'replace', path: '/d/e', value: 99 },
+      { op: 'replace', path: '/h/i/1', value: 100 },
     ] as Operation[];
     const cloned = clonePatchPaths(obj, patch) as TestObj;
-    // The top-level object and each object along the patch path should be new objects
-    expect(cloned).not.toBe(obj);
+
+    // The top-level object (root) and each object along the patch path should be new objects
+    expect(cloned).not.toBe(obj); // root is always cloned
     expect(cloned.a).not.toBe(obj.a);
     expect(cloned.a.b).not.toBe(obj.a.b);
     expect(cloned.d).not.toBe(obj.d);
+    expect(cloned.h).not.toBe(obj.h);
+
     // The objects not along the patch path should be the same
     expect(cloned.f).toBe(obj.f);
     expect(cloned.a.x).toBe(obj.a.x);
+
     // The values should be unchanged (cloning only, not patching)
     expect(cloned.a.b.c).toBe(1);
     expect(cloned.a.x.y).toBe(99);
     expect(cloned.d.e).toBe(2);
     expect(cloned.f.g).toBe('3');
+
+    // The resulting object should be deeply equal to the original
+    expect(cloned).toEqual(obj);
+
     // If two patch paths share an ancestor, it should only be cloned once
     const patch2 = [
       { op: 'replace', path: '/a/b/c', value: 42 },
       { op: 'replace', path: '/a/b', value: { c: 99 } },
     ] as Operation[];
     const cloned2 = clonePatchPaths(obj, patch2) as TestObj;
+    expect(cloned2).not.toBe(obj); // root is always cloned
     expect(cloned2.a).not.toBe(obj.a);
     expect(cloned2.a.b).not.toBe(obj.a.b);
     // Should not clone the same object twice
@@ -674,7 +688,7 @@ describe('clonePatchPaths', () => {
     const cloned = clonePatchPaths(doc, patch) as TestDoc;
 
     // Root and objects along the patch should be cloned
-    expect(cloned).not.toBe(doc);
+    expect(cloned).not.toBe(doc); // root is always cloned
     expect(cloned.props).not.toBe(doc.props);
     expect(cloned.props.children).not.toBe(doc.props.children);
     expect(cloned.props.children[0]).not.toBe(doc.props.children[0]);
@@ -700,5 +714,8 @@ describe('clonePatchPaths', () => {
     ).toBe('cb1');
     expect(cloned.props.children[0].props.children).toBe('1');
     expect(cloned.props.children[0].props.variant).toBe('accent');
+
+    // The resulting object should be deeply equal to the original
+    expect(cloned).toEqual(doc);
   });
 });
