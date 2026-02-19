@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from .types import (
     LayoutFlex,
     Direction,
@@ -18,7 +18,7 @@ from .types import (
 
 
 def flex(
-    *children: Any,
+    *children: NodeType,
     direction: Direction | None = None,
     wrap: Wrap | None = None,
     justify_content: JustifyContent | None = None,

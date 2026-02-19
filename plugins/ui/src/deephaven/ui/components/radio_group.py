@@ -18,7 +18,7 @@ from .types import (
     ValidationBehavior,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import Undefined, UndefinedType
 from .._internal.utils import create_props
 
@@ -27,7 +27,7 @@ _NULLABLE_PROPS = ["value", "default_value"]
 
 
 def radio_group(
-    *children: Any,
+    *children: NodeType,
     is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
     value: str | None | UndefinedType = Undefined,

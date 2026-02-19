@@ -16,12 +16,12 @@ from .types import (
     LabelPosition,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import Key, Selection
 
 
 def checkbox_group(
-    *children: Any,
+    *children: NodeType,
     orientation: Orientation = "vertical",
     is_emphasized: bool | None = None,
     value: Selection | None = None,

@@ -1,6 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Set,
+    Tuple,
+    cast,
+    Sequence,
+    TypeVar,
+    Union,
+)
 from deephaven.dtypes import (
     Instant as DTypeInstant,
     ZonedDateTime as DTypeZonedDateTime,
@@ -950,3 +962,19 @@ def is_iterable(value: Any) -> bool:
         True if the value is a standard iterable type.
     """
     return isinstance(value, (list, tuple, set, dict, map, filter, range))
+
+
+def dict_shallow_equal(dict1: Mapping[str, Any], dict2: Mapping[str, Any]) -> bool:
+    """
+    Check if two dictionaries are shallowly equal. By default Python does a deep equals check, but for props comparison we may just want a shallow equals.
+
+    Args:
+        dict1: The first dict to compare.
+        dict2: The second dict to compare.
+    """
+    if dict1.keys() != dict2.keys():
+        return False
+    for key in dict1:
+        if dict1[key] is not dict2[key]:
+            return False
+    return True
