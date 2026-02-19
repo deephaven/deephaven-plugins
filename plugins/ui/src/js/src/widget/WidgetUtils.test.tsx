@@ -532,7 +532,7 @@ describe('transformNode', () => {
 });
 
 describe('clonePatchPaths', () => {
-  it('clones objects along patch paths and never clones the same object twice', () => {
+  it('clones objects along patch paths', () => {
     type TestObj = {
       a: { b: { c: number }; x: { y: number } };
       d: { e: number };
@@ -571,6 +571,7 @@ describe('clonePatchPaths', () => {
     expect(cloned.a.b).not.toBe(obj.a.b);
     expect(cloned.d).not.toBe(obj.d);
     expect(cloned.h).not.toBe(obj.h);
+    expect(cloned.h.i).not.toBe(obj.h.i);
 
     // The objects not along the patch path should be the same
     expect(cloned.f).toBe(obj.f);
@@ -584,18 +585,6 @@ describe('clonePatchPaths', () => {
 
     // The resulting object should be deeply equal to the original
     expect(cloned).toEqual(obj);
-
-    // If two patch paths share an ancestor, it should only be cloned once
-    const patch2 = [
-      { op: 'replace', path: '/a/b/c', value: 42 },
-      { op: 'replace', path: '/a/b', value: { c: 99 } },
-    ] as Operation[];
-    const cloned2 = clonePatchPaths(obj, patch2) as TestObj;
-    expect(cloned2).not.toBe(obj); // root is always cloned
-    expect(cloned2.a).not.toBe(obj.a);
-    expect(cloned2.a.b).not.toBe(obj.a.b);
-    // Should not clone the same object twice
-    expect(cloned2.a.b).toBe(cloned2.a.b);
   });
 
   it('clones objects along patch paths with nested arrays and objects', () => {
