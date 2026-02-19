@@ -2,6 +2,27 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.32.2 - 2026-02-19
+#### Bug Fixes
+- DH-21670: Memory leak when using use_row_data hooks (#1305) - (274feda) - mofojed
+- DH-20953: AG Grid styling only worked when deephaven.ui installed (#1271) - (7dae890) - mofojed
+- DH-19973: Ad-hoc aggregations not persisting on UI Table (#1232) - (abedaee) - Matthew Runyon
+#### Documentation
+- DOC-1109: Deephaven UI table docs should link to theme colors (p2 - fix link) (#1304) - (d1cb0cf) - elijahpetty
+- DOC-1109: Deephaven UI table docs should link to theme colors (#1294) - (65b1c50) - elijahpetty
+- DOC-1127: Clarify that all components re-render on state changes and emphasize use_memo for expensive calculations (#1291) - (b5c1f3d) - mofojed
+- DOC-824: multi select combo_box example (#1255) - (910d174) - ethanalvizo
+- Add active_item_index example to ui.stack documentation (#1258) - (ea7793e) - Copilot
+- Move always fetch columns section to events documentation (#1254) - (c2529ff) - Copilot
+- Update error message description in documentation (#1256) - (b7ace57) - Don
+- DOC-896: ui.table databar examples (#1235) - (0d94f49) - ethanalvizo
+- scrollable image (#1236) - (a0c06f1) - ethanalvizo
+- ui.TableFormat text alignment property example (#1229) - (1024cca) - Don
+#### Build system
+- Update TypeScript to v5 (#1247) - (e98edd9) - mofojed
+
+- - -
+
 ## ui-v0.32.1 - 2025-09-03
 #### Bug Fixes
 - DH-18443: Fix `dx` and `dh.ui` tooltips (#1226) - (371bfcd) - Joe
