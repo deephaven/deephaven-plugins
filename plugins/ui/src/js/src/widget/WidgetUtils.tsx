@@ -434,8 +434,8 @@ export function clonePatchPaths(obj: object, patch: Operation[]): object {
     // Remove leading slash and split the path into segments
     const segments = op.path.split('/').slice(1);
 
-    // We need to keep track of the parent and key at each level to update the reference to the cloned object/array if we cloned
-    let parent: unknown = root;
+    // We need to keep track of the current node and key at each level to update the reference to the cloned object/array if we cloned
+    let current: unknown = root;
     let prev: unknown = null;
     let prevKey: string | number | null = null;
 
@@ -446,43 +446,43 @@ export function clonePatchPaths(obj: object, patch: Operation[]): object {
 
       // Get the next level value before cloning so we can continue traversing down the original object structure
       let next: unknown;
-      if (Array.isArray(parent)) {
-        next = parent[key as number];
-      } else if (parent !== null && typeof parent === 'object') {
-        next = (parent as Record<string, unknown>)[key as string];
+      if (Array.isArray(current)) {
+        next = current[key as number];
+      } else if (current !== null && typeof current === 'object') {
+        next = (current as Record<string, unknown>)[key as string];
       }
 
       // Only clone if not already cloned (skip root, already cloned)
-      let clonedParent: unknown = parent;
+      let clonedCurrent: unknown = current;
       if (
-        parent !== root &&
-        (Array.isArray(parent) ||
-          (parent !== null && typeof parent === 'object')) &&
-        !clonedItems.has(parent)
+        current !== root &&
+        (Array.isArray(current) ||
+          (current !== null && typeof current === 'object')) &&
+        !clonedItems.has(current)
       ) {
-        const copy = Array.isArray(parent)
-          ? parent.slice()
-          : { ...(parent as object) };
-        clonedItems.add(parent);
-        clonedParent = copy;
-        // Update the reference in the parent to the cloned parent
+        const copy = Array.isArray(current)
+          ? current.slice()
+          : { ...(current as object) };
+        clonedItems.add(current);
+        clonedCurrent = copy;
+        // Update the reference in the current to the cloned current
         if (prev != null && prevKey != null) {
           if (Array.isArray(prev) && typeof prevKey === 'number') {
-            (prev as unknown[])[prevKey] = clonedParent;
+            (prev as unknown[])[prevKey] = clonedCurrent;
           } else if (
             prev !== null &&
             typeof prev === 'object' &&
             typeof prevKey === 'string'
           ) {
-            (prev as Record<string, unknown>)[prevKey] = clonedParent;
+            (prev as Record<string, unknown>)[prevKey] = clonedCurrent;
           }
         }
       }
 
-      // Update prev and parent for the next iteration
-      prev = clonedParent;
+      // Update prev and current for the next iteration
+      prev = clonedCurrent;
       prevKey = key;
-      parent = next;
+      current = next;
     });
   });
   return root;
