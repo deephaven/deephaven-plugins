@@ -287,9 +287,9 @@ describe('WidgetJsonPatch', () => {
   describe('shallow copy behavior', () => {
     it('performs shallow copy on modified objects', () => {
       const originalNested = { x: 1 };
-      const document = { a: originalNested, b: 2 };
+      const document: Record<string, unknown> = { a: originalNested, b: 2 };
       const patch: Operation[] = [{ op: 'replace', path: '/a/x', value: 10 }];
-      const result = applyJsonPatch(document, patch);
+      const result = applyJsonPatch(document, patch) as Record<string, unknown>;
       // The nested object should be a different reference (shallow copied)
       expect(result.a).not.toBe(originalNested);
       // But unmodified objects should maintain reference equality where possible
@@ -298,9 +298,13 @@ describe('WidgetJsonPatch', () => {
 
     it('preserves unchanged nested objects', () => {
       const unchangedNested = { y: 2 };
-      const document = { a: { x: 1 }, b: unchangedNested, c: 3 };
+      const document: Record<string, unknown> = {
+        a: { x: 1 },
+        b: unchangedNested,
+        c: 3,
+      };
       const patch: Operation[] = [{ op: 'replace', path: '/a/x', value: 10 }];
-      const result = applyJsonPatch(document, patch);
+      const result = applyJsonPatch(document, patch) as Record<string, unknown>;
       // The unchanged nested object reference should be preserved
       expect(result.b).toBe(unchangedNested);
       expect(result.c).toBe(3);
