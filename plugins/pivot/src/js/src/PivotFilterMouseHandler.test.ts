@@ -17,6 +17,11 @@ describe('PivotFilterMouseHandler', () => {
   let getColumnSourceHeaderFromGridPointSpy: jest.SpyInstance;
   let isGridPointInColumnSourceFilterBoxSpy: jest.SpyInstance;
   let setStateSpy: jest.SpyInstance;
+  let mockState: {
+    isFilterBarShown: boolean;
+    metrics: unknown;
+    hoverAdvancedFilter: number | null;
+  };
 
   const mockMetrics = {
     gridY: 100,
@@ -44,12 +49,14 @@ describe('PivotFilterMouseHandler', () => {
       .spyOn(PivotMouseHandlerUtilsModule, 'isGridPointInColumnSourceFilterBox')
       .mockReturnValue(true);
 
+    mockState = {
+      isFilterBarShown: true,
+      metrics: mockMetrics,
+      hoverAdvancedFilter: null,
+    };
+
     mockIrisGrid = createMockProxy<IrisGrid>({
-      state: {
-        isFilterBarShown: true,
-        metrics: mockMetrics,
-        hoverAdvancedFilter: null,
-      } as unknown as IrisGrid['state'],
+      state: mockState as unknown as IrisGrid['state'],
       props: {
         model: mockModel,
       } as unknown as IrisGrid['props'],
@@ -75,7 +82,7 @@ describe('PivotFilterMouseHandler', () => {
     const mockEvent = createMockProxy<MouseEvent>();
 
     it('should return false when filter bar is not shown', () => {
-      mockIrisGrid.state.isFilterBarShown = false;
+      mockState.isFilterBarShown = false;
 
       const gridPoint: GridPoint = { x: 50, y: 50, column: null, row: null };
       const result = handler.onMove(gridPoint, mockGrid, mockEvent);
@@ -85,7 +92,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should return false when metrics is null', () => {
-      mockIrisGrid.state.metrics = null;
+      mockState.metrics = null;
 
       const gridPoint: GridPoint = { x: 50, y: 50, column: null, row: null };
       const result = handler.onMove(gridPoint, mockGrid, mockEvent);
@@ -116,7 +123,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should not update state if already hovering the same filter box', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -1;
+      mockState.hoverAdvancedFilter = -1;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(-1);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(true);
 
@@ -128,7 +135,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should update hoverAdvancedFilter when moving to a different filter box', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -1;
+      mockState.hoverAdvancedFilter = -1;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(-2);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(true);
 
@@ -140,7 +147,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should keep hover stable when over same column source header but not in filter box', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -1;
+      mockState.hoverAdvancedFilter = -1;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(-1);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(false);
 
@@ -152,7 +159,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should clear hover when mouse moves to a different column source header', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -1;
+      mockState.hoverAdvancedFilter = -1;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(-2);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(false);
 
@@ -164,7 +171,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should clear hover when sourceIndex is null', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -1;
+      mockState.hoverAdvancedFilter = -1;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(null);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(false);
 
@@ -176,7 +183,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should return false when hoverAdvancedFilter is a regular column (non-negative)', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = 5;
+      mockState.hoverAdvancedFilter = 5;
       getColumnSourceHeaderFromGridPointSpy.mockReturnValue(null);
       isGridPointInColumnSourceFilterBoxSpy.mockReturnValue(false);
 
@@ -192,7 +199,7 @@ describe('PivotFilterMouseHandler', () => {
     const gridPoint: GridPoint = { x: 0, y: 0, column: null, row: null };
 
     it('should clear hoverAdvancedFilter for a negative index', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = -3;
+      mockState.hoverAdvancedFilter = -3;
 
       const result = handler.onLeave(gridPoint, mockGrid, mockEvent);
 
@@ -201,7 +208,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should not clear hoverAdvancedFilter when it is null', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = null;
+      mockState.hoverAdvancedFilter = null;
 
       const result = handler.onLeave(gridPoint, mockGrid, mockEvent);
 
@@ -210,7 +217,7 @@ describe('PivotFilterMouseHandler', () => {
     });
 
     it('should not clear hoverAdvancedFilter when it is a regular column (non-negative)', () => {
-      mockIrisGrid.state.hoverAdvancedFilter = 5;
+      mockState.hoverAdvancedFilter = 5;
 
       const result = handler.onLeave(gridPoint, mockGrid, mockEvent);
 
