@@ -26,7 +26,37 @@ export function applyJsonPatch(document: object, patch: Operation[]): object {
  * @param path The JSON pointer path to the property to copy.
  */
 function shallowCopyPath(document: object, path: string): void {
-  // TODO implement
+  if (path === '' || path === '/') return;
+
+  // Parse the pointer path - split by '/' and handle RFC 6901 escaping
+  const parts = path
+    .split('/')
+    .slice(1) // Remove the first empty part from leading '/'
+    .map(segment => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let current: any = document;
+
+  // Walk down the path, shallow copying each object/array
+  for (let i = 0; i < parts.length; i += 1) {
+    const part = parts[i];
+    const value = current[part];
+
+    // If the value is an object or array, shallow copy it
+    if (value != null && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        current[part] = [...value];
+      } else {
+        current[part] = { ...value };
+      }
+    }
+
+    // Move to the next level
+    current = current[part];
+
+    // If current is null or undefined, stop
+    if (current == null) break;
+  }
 }
 
 export default applyJsonPatch;
