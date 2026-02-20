@@ -385,7 +385,7 @@ describe('WidgetJsonPatch', () => {
     it('shallow copies an object along the path', () => {
       const originalNested = { x: 1, y: 2 };
       const document = { a: originalNested };
-      shallowCopyPath(document, '/a');
+      shallowCopyPath(document, '/a', new Set<string>());
       // The nested object should be a different reference
       expect(document.a).not.toBe(originalNested);
       // But have the same contents
@@ -395,7 +395,7 @@ describe('WidgetJsonPatch', () => {
     it('shallow copies an array along the path', () => {
       const originalArray = [1, 2, 3];
       const document = { items: originalArray };
-      shallowCopyPath(document, '/items');
+      shallowCopyPath(document, '/items', new Set<string>());
       // The array should be a different reference
       expect(document.items).not.toBe(originalArray);
       // But have the same contents
@@ -406,7 +406,7 @@ describe('WidgetJsonPatch', () => {
       const originalDeep = { z: 1 };
       const originalMid = { deep: originalDeep };
       const document = { mid: originalMid };
-      shallowCopyPath(document, '/mid/deep');
+      shallowCopyPath(document, '/mid/deep', new Set<string>());
       // Both should be shallow copied
       expect(document.mid).not.toBe(originalMid);
       expect(document.mid.deep).not.toBe(originalDeep);
@@ -418,7 +418,7 @@ describe('WidgetJsonPatch', () => {
     it('handles empty path gracefully', () => {
       const originalNested = { x: 1 };
       const document = { a: originalNested };
-      shallowCopyPath(document, '');
+      shallowCopyPath(document, '', new Set<string>());
       // Root should not be re-assigned (empty path does nothing)
       expect(document.a).toBe(originalNested);
     });
@@ -426,7 +426,7 @@ describe('WidgetJsonPatch', () => {
     it('handles root path gracefully', () => {
       const originalNested = { x: 1 };
       const document = { a: originalNested };
-      shallowCopyPath(document, '/');
+      shallowCopyPath(document, '/', new Set<string>());
       // Root path should not copy root
       expect(document.a).toBe(originalNested);
     });
@@ -435,14 +435,14 @@ describe('WidgetJsonPatch', () => {
       const document = { a: { b: 1 } };
       // Should not throw on non-existent path
       expect(() => {
-        shallowCopyPath(document, '/x/y/z');
+        shallowCopyPath(document, '/x/y/z', new Set<string>());
       }).not.toThrow();
     });
 
     it('shallow copies array elements', () => {
       const originalElement = { id: 1 };
       const document = { items: [originalElement, { id: 2 }] };
-      shallowCopyPath(document, '/items/0');
+      shallowCopyPath(document, '/items/0', new Set<string>());
       // The array should be shallow copied
       expect(document.items).toEqual([originalElement, { id: 2 }]);
       // The element should also be shallow copied since it's in the path
@@ -453,7 +453,7 @@ describe('WidgetJsonPatch', () => {
     it('shallow copies object properties', () => {
       const originalValue = { x: 1 };
       const document = { obj: { prop: originalValue } };
-      shallowCopyPath(document, '/obj/prop');
+      shallowCopyPath(document, '/obj/prop', new Set<string>());
       // The parent object should be shallow copied
       expect(document.obj).toEqual({ prop: originalValue });
       // The property value itself should also be shallow copied
@@ -465,10 +465,49 @@ describe('WidgetJsonPatch', () => {
       const originalValue = { x: 1 };
       const document = { 'a/b': { 'c~d': originalValue } };
       // Use escaped path: a/b -> a~1b, c~d -> c~0d
-      shallowCopyPath(document, '/a~1b/c~0d');
+      shallowCopyPath(document, '/a~1b/c~0d', new Set<string>());
       // Should shallow copy the nested object
       expect(document['a/b']['c~d']).not.toBe(originalValue);
       expect(document['a/b']['c~d']).toEqual(originalValue);
+    });
+
+    it('does not copy the same path twice', () => {
+      const originalNested = { x: 1, y: 2 };
+      const document = { a: originalNested };
+      const shallowCopiedPaths = new Set<string>();
+
+      // First call should shallow copy
+      shallowCopyPath(document, '/a', shallowCopiedPaths);
+      const firstCopy = document.a;
+      expect(firstCopy).not.toBe(originalNested);
+      expect(firstCopy).toEqual(originalNested);
+
+      // Second call with the same path should not copy again
+      shallowCopyPath(document, '/a', shallowCopiedPaths);
+      expect(document.a).toBe(firstCopy); // Should be the exact same reference
+    });
+
+    it('tracks multiple paths in a single Set', () => {
+      const obj1 = { x: 1 };
+      const obj2 = { y: 2 };
+      const document = { a: obj1, b: obj2 };
+      const shallowCopiedPaths = new Set<string>();
+
+      // Copy both paths with the same Set
+      shallowCopyPath(document, '/a', shallowCopiedPaths);
+      const firstACopy = document.a;
+      shallowCopyPath(document, '/b', shallowCopiedPaths);
+      const firstBCopy = document.b;
+
+      // Both should be copied
+      expect(firstACopy).not.toBe(obj1);
+      expect(firstBCopy).not.toBe(obj2);
+
+      // Second call to same paths should not copy again
+      shallowCopyPath(document, '/a', shallowCopiedPaths);
+      shallowCopyPath(document, '/b', shallowCopiedPaths);
+      expect(document.a).toBe(firstACopy);
+      expect(document.b).toBe(firstBCopy);
     });
   });
 });

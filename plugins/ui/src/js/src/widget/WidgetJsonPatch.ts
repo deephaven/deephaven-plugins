@@ -9,10 +9,11 @@ import { Operation, applyOperation } from 'fast-json-patch';
  */
 export function applyJsonPatch(document: object, patch: Operation[]): object {
   const shallowCopyDocument = { ...document };
+  const shallowCopiedPaths = new Set<string>();
   patch.forEach(operation => {
-    shallowCopyPath(shallowCopyDocument, operation.path);
+    shallowCopyPath(shallowCopyDocument, operation.path, shallowCopiedPaths);
     if (operation.op === 'move') {
-      shallowCopyPath(shallowCopyDocument, operation.from);
+      shallowCopyPath(shallowCopyDocument, operation.from, shallowCopiedPaths);
     }
     applyOperation(shallowCopyDocument, operation, false, true);
   });
@@ -24,8 +25,13 @@ export function applyJsonPatch(document: object, patch: Operation[]): object {
  *
  * @param document The document to perform the shallow copy on.
  * @param path The JSON pointer path to the property to copy.
+ * @param shallowCopiedPaths A set to track which paths have already been shallow copied.
  */
-export function shallowCopyPath(document: object, path: string): void {
+export function shallowCopyPath(
+  document: object,
+  path: string,
+  shallowCopiedPaths: Set<string> = new Set()
+): void {
   if (path === '' || path === '/') return;
 
   // Parse the pointer path - split by '/' and handle RFC 6901 escaping
@@ -36,18 +42,24 @@ export function shallowCopyPath(document: object, path: string): void {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let current: any = document;
+  let currentPath = '';
 
   // Walk down the path, shallow copying each object/array
   for (let i = 0; i < parts.length; i += 1) {
     const part = parts[i];
     const value = current[part];
+    currentPath += `/${part}`;
 
-    // If the value is an object or array, shallow copy it
-    if (value != null && typeof value === 'object') {
-      if (Array.isArray(value)) {
-        current[part] = [...value];
-      } else {
-        current[part] = { ...value };
+    // Skip if this path has already been shallow copied
+    if (!shallowCopiedPaths.has(currentPath)) {
+      // If the value is an object or array, shallow copy it
+      if (value != null && typeof value === 'object') {
+        if (Array.isArray(value)) {
+          current[part] = [...value];
+        } else {
+          current[part] = { ...value };
+        }
+        shallowCopiedPaths.add(currentPath);
       }
     }
 
