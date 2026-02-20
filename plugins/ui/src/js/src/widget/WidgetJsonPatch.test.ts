@@ -282,6 +282,42 @@ describe('WidgetJsonPatch', () => {
       expect(result).toEqual({ a: 1, c: 1, d: 2 });
       expect(result).toEqual(fastResult);
     });
+
+    it('applies all operation types in a single patch', () => {
+      const document = {
+        a: 1,
+        b: 2,
+        c: 3,
+        items: [10, 20, 30],
+        nested: { x: 100, y: 200 },
+      };
+      const patch: Operation[] = [
+        // test - verify a value before we modify anything
+        { op: 'test', path: '/items/1', value: 20 },
+        // add - add new property
+        { op: 'add', path: '/e', value: 5 },
+        // remove - remove property
+        { op: 'remove', path: '/b' },
+        // replace - replace value
+        { op: 'replace', path: '/a', value: 99 },
+        // copy - copy nested value to new location
+        { op: 'copy', from: '/nested/x', path: '/copied' },
+        // move - move a nested property
+        { op: 'move', from: '/nested/y', path: '/moved' },
+      ];
+      const fastResult = applyPatch(document, patch, false, false).newDocument;
+      const result = applyJsonPatch(document, patch);
+      expect(result).toEqual({
+        a: 99,
+        c: 3,
+        e: 5,
+        items: [10, 20, 30],
+        nested: { x: 100 },
+        copied: 100,
+        moved: 200,
+      });
+      expect(result).toEqual(fastResult);
+    });
   });
 
   describe('shallow copy behavior', () => {
