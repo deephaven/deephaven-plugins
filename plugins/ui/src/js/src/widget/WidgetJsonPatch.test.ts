@@ -345,6 +345,40 @@ describe('WidgetJsonPatch', () => {
       expect(result.b).toBe(unchangedNested);
       expect(result.c).toBe(3);
     });
+
+    it('selectively shallow copies only modified paths', () => {
+      const unchangedObjA = { x: 1 };
+      const unchangedObjB = { y: 2 };
+      const unchangedArray = [10, 20, 30];
+      const document: Record<string, unknown> = {
+        unchanged_a: unchangedObjA,
+        unchanged_b: unchangedObjB,
+        modified_obj: { nested: { value: 100 } },
+        modified_array: unchangedArray,
+      };
+      const patch: Operation[] = [
+        // Modify a nested object
+        { op: 'replace', path: '/modified_obj/nested/value', value: 999 },
+        // Modify an array
+        { op: 'add', path: '/modified_array/-', value: 40 },
+      ];
+      const result = applyJsonPatch(document, patch) as Record<string, unknown>;
+
+      // Paths that were modified should have shallow copies
+      expect(result.modified_obj).not.toBe(document.modified_obj);
+      const modifiedObj = result.modified_obj as Record<string, unknown>;
+      const origModifiedObj = document.modified_obj as Record<string, unknown>;
+      expect(modifiedObj.nested).not.toBe(origModifiedObj.nested);
+      expect(result.modified_array).not.toBe(unchangedArray);
+
+      // Paths that were not modified should preserve original references
+      expect(result.unchanged_a).toBe(unchangedObjA);
+      expect(result.unchanged_b).toBe(unchangedObjB);
+
+      // Verify the modifications were applied correctly
+      expect((modifiedObj.nested as Record<string, unknown>).value).toBe(999);
+      expect(result.modified_array).toEqual([10, 20, 30, 40]);
+    });
   });
 
   describe('shallowCopyPath', () => {
