@@ -371,8 +371,20 @@ describe('WidgetJsonPatch', () => {
       shallowCopyPath(document, '/items/0');
       // The array should be shallow copied
       expect(document.items).toEqual([originalElement, { id: 2 }]);
-      // The element reference should be preserved (we copy the array, not elements)
-      expect(document.items[0]).toBe(originalElement);
+      // The element should also be shallow copied since it's in the path
+      expect(document.items[0]).not.toBe(originalElement);
+      expect(document.items[0]).toEqual(originalElement);
+    });
+
+    it('shallow copies object properties', () => {
+      const originalValue = { x: 1 };
+      const document = { obj: { prop: originalValue } };
+      shallowCopyPath(document, '/obj/prop');
+      // The parent object should be shallow copied
+      expect(document.obj).toEqual({ prop: originalValue });
+      // The property value itself should also be shallow copied
+      expect(document.obj.prop).not.toBe(originalValue);
+      expect(document.obj.prop).toEqual(originalValue);
     });
 
     it('handles RFC 6901 escaped paths', () => {
