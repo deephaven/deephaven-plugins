@@ -153,6 +153,10 @@ export function isDashboardElementNode(
 export function normalizeDashboardChildren(
   children: React.ReactNode
 ): React.ReactNode {
+  if (children == null) {
+    return null;
+  }
+
   const needsWrapper = Children.count(children) > 1;
   const hasRows = Children.toArray(children).some(
     child => isValidElement(child) && child.type === Row

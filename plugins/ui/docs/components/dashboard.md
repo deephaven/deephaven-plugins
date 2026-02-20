@@ -19,9 +19,8 @@ my_dash = ui.dashboard(
 
 ## Rules
 
-1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise, the application cannot correctly determine the type of the component.
-2. Dashboards must have one and only one child, typically a row or column.
-3. Height and width of panels are summed to 100% within a row or column.
+1. Dashboards must have one and only one child, typically a row or column.
+2. Height and width of panels are summed to 100% within a row or column.
 
 ## Key Components
 
@@ -42,7 +41,7 @@ Note: Nesting rows within rows or columns within columns will sub-divide the row
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md), [`flex`](./flex.md), and [`grid`](./grid.md).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. For layouts within a panel, see [`tabs`](./tabs.md), [`flex`](./flex.md), [`grid`](./grid.md), and [nested dashboards](#nested-dashboards).
 
 ## Automatic Wrapping
 
@@ -232,6 +231,132 @@ dash_holy_grail = ui.dashboard(
     )
 )
 ```
+
+## Nested Dashboards
+
+Dashboards can be nested inside panels to create complex layouts with isolated drag-and-drop regions. Each nested dashboard creates its own independent layout that users can rearrange without affecting the parent dashboard.
+
+> [!NOTE]
+> Nested dashboard will not appear in your Panels list, or in your Shared Dashboards list on Enterprise. They are only accessible through the parent dashboard that contains them.
+> To have them appear in your Panels list or Shared Dashboards list, a dashboard must be assigned to a variable at the top level.
+
+### Basic nested dashboard
+
+```python
+from deephaven import ui
+
+dash_nested_basic = ui.dashboard(
+    ui.row(
+        ui.panel(
+            ui.dashboard(
+                ui.row(
+                    ui.panel("Nested A", title="A"),
+                    ui.panel("Nested B", title="B"),
+                )
+            ),
+            title="Nested Dashboard",
+        ),
+        ui.panel("Main Content", title="Main"),
+    )
+)
+```
+
+### Nested dashboard inside a component
+
+Unlike root-level dashboards, nested dashboards can be returned from `@ui.component` functions:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def nested_dashboard_component():
+    return ui.panel(
+        ui.dashboard(
+            ui.row(
+                ui.panel("A", title="A"),
+                ui.panel("B", title="B"),
+            )
+        ),
+        title="Nested Dashboard",
+    )
+
+
+dash_nested_component = ui.dashboard(
+    ui.row(
+        nested_dashboard_component(),
+        ui.panel("Main Content", title="Main"),
+    )
+)
+```
+
+### Deeply nested dashboards
+
+Dashboards can be nested arbitrarily deep, with each level creating its own isolated layout:
+
+```python
+from deephaven import ui
+
+dash_deeply_nested = ui.dashboard(
+    ui.row(
+        ui.panel(
+            ui.dashboard(
+                ui.column(
+                    ui.panel("Level 1 - A", title="L1-A"),
+                    ui.panel(
+                        ui.dashboard(
+                            ui.row(
+                                ui.panel("Level 2 - A", title="L2-A"),
+                                ui.panel("Level 2 - B", title="L2-B"),
+                            )
+                        ),
+                        title="Level 2 Dashboard",
+                    ),
+                )
+            ),
+            title="Level 1 Dashboard",
+        ),
+        ui.panel("Root Content", title="Root"),
+    )
+)
+```
+
+### Nested dashboard with state
+
+Nested dashboards can manage their own state within a `@ui.component`:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def stateful_nested_dashboard():
+    count, set_count = ui.use_state(0)
+
+    return ui.panel(
+        ui.dashboard(
+            ui.row(
+                ui.panel(
+                    ui.button(f"Count: {count}", on_press=lambda: set_count(count + 1)),
+                    title="Counter",
+                ),
+                ui.panel(f"Current count is {count}", title="Display"),
+            )
+        ),
+        title="Stateful Dashboard",
+    )
+
+
+dash_nested_state = ui.dashboard(
+    ui.row(
+        stateful_nested_dashboard(),
+        ui.panel("Main Content", title="Main"),
+    )
+)
+```
+
+> [!NOTE]
+> Panels within a nested dashboard can only be dragged within that nested dashboard. Cross-dashboard drag-and-drop is not supported.
 
 ## Stateful Example
 
