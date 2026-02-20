@@ -1,12 +1,4 @@
-import { CopyOperation } from '@deephaven/iris-grid/dist/IrisGridCopyHandler';
-import {
-  AddOperation,
-  MoveOperation,
-  Operation,
-  RemoveOperation,
-  ReplaceOperation,
-  TestOperation,
-} from 'fast-json-patch';
+import { Operation, applyOperation } from 'fast-json-patch';
 
 /**
  * Applies a JSON patch to a document. Performs a shallow copy on all objects and arrays along the path of the patch. Leaves other parts of the document unchanged.
@@ -16,8 +8,15 @@ import {
  * @returns The modified document after applying the JSON patch.
  */
 export function applyJsonPatch(document: object, patch: Operation[]): object {
-  // TODO implement
-  return document;
+  const shallowCopyDocument = { ...document };
+  patch.forEach(operation => {
+    shallowCopyPath(shallowCopyDocument, operation.path);
+    if (operation.op === 'move') {
+      shallowCopyPath(shallowCopyDocument, operation.from);
+    }
+    applyOperation(shallowCopyDocument, operation, false, true);
+  });
+  return shallowCopyDocument;
 }
 
 /**
@@ -30,48 +29,4 @@ function shallowCopyPath(document: object, path: string): void {
   // TODO implement
 }
 
-export function applyOperation(document: object, operation: Operation): void {
-  // TODO implement
-}
-
-export function applyAddOperation<T>(
-  document: object,
-  operation: AddOperation<T>
-): void {
-  // TODO implement
-}
-
-export function applyRemoveOperation(
-  document: object,
-  operation: RemoveOperation
-): void {
-  // TODO implement
-}
-
-export function applyReplaceOperation<T>(
-  document: object,
-  operation: ReplaceOperation<T>
-): void {
-  // TODO implement
-}
-
-export function applyCopyOperation(
-  document: object,
-  operation: CopyOperation
-): void {
-  // TODO implement
-}
-
-export function applyMoveOperation(
-  document: object,
-  operation: MoveOperation
-): void {
-  // TODO implement
-}
-
-export function applyTestOperation<T>(
-  document: object,
-  operation: TestOperation<T>
-): void {
-  // TODO implement
-}
+export default applyJsonPatch;
