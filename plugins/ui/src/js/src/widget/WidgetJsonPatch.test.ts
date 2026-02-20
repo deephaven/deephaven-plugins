@@ -1,5 +1,5 @@
 import { applyPatch, Operation } from 'fast-json-patch';
-import { applyJsonPatch } from './WidgetJsonPatch';
+import { applyJsonPatch, shallowCopyPath } from './WidgetJsonPatch';
 
 describe('WidgetJsonPatch', () => {
   describe('add operation', () => {
@@ -304,6 +304,85 @@ describe('WidgetJsonPatch', () => {
       // The unchanged nested object reference should be preserved
       expect(result.b).toBe(unchangedNested);
       expect(result.c).toBe(3);
+    });
+  });
+
+  describe('shallowCopyPath', () => {
+    it('shallow copies an object along the path', () => {
+      const originalNested = { x: 1, y: 2 };
+      const document = { a: originalNested };
+      shallowCopyPath(document, '/a');
+      // The nested object should be a different reference
+      expect(document.a).not.toBe(originalNested);
+      // But have the same contents
+      expect(document.a).toEqual(originalNested);
+    });
+
+    it('shallow copies an array along the path', () => {
+      const originalArray = [1, 2, 3];
+      const document = { items: originalArray };
+      shallowCopyPath(document, '/items');
+      // The array should be a different reference
+      expect(document.items).not.toBe(originalArray);
+      // But have the same contents
+      expect(document.items).toEqual(originalArray);
+    });
+
+    it('shallow copies nested objects along the path', () => {
+      const originalDeep = { z: 1 };
+      const originalMid = { deep: originalDeep };
+      const document = { mid: originalMid };
+      shallowCopyPath(document, '/mid/deep');
+      // Both should be shallow copied
+      expect(document.mid).not.toBe(originalMid);
+      expect(document.mid.deep).not.toBe(originalDeep);
+      // But contents are the same
+      expect(document.mid).toEqual(originalMid);
+      expect(document.mid.deep).toEqual(originalDeep);
+    });
+
+    it('handles empty path gracefully', () => {
+      const originalNested = { x: 1 };
+      const document = { a: originalNested };
+      shallowCopyPath(document, '');
+      // Root should not be re-assigned (empty path does nothing)
+      expect(document.a).toBe(originalNested);
+    });
+
+    it('handles root path gracefully', () => {
+      const originalNested = { x: 1 };
+      const document = { a: originalNested };
+      shallowCopyPath(document, '/');
+      // Root path should not copy root
+      expect(document.a).toBe(originalNested);
+    });
+
+    it('handles non-existent paths gracefully', () => {
+      const document = { a: { b: 1 } };
+      // Should not throw on non-existent path
+      expect(() => {
+        shallowCopyPath(document, '/x/y/z');
+      }).not.toThrow();
+    });
+
+    it('shallow copies array elements', () => {
+      const originalElement = { id: 1 };
+      const document = { items: [originalElement, { id: 2 }] };
+      shallowCopyPath(document, '/items/0');
+      // The array should be shallow copied
+      expect(document.items).toEqual([originalElement, { id: 2 }]);
+      // The element reference should be preserved (we copy the array, not elements)
+      expect(document.items[0]).toBe(originalElement);
+    });
+
+    it('handles RFC 6901 escaped paths', () => {
+      const originalValue = { x: 1 };
+      const document = { 'a/b': { 'c~d': originalValue } };
+      // Use escaped path: a/b -> a~1b, c~d -> c~0d
+      shallowCopyPath(document, '/a~1b/c~0d');
+      // Should shallow copy the nested object
+      expect(document['a/b']['c~d']).not.toBe(originalValue);
+      expect(document['a/b']['c~d']).toEqual(originalValue);
     });
   });
 });

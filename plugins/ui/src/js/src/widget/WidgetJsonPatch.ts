@@ -25,7 +25,7 @@ export function applyJsonPatch(document: object, patch: Operation[]): object {
  * @param document The document to perform the shallow copy on.
  * @param path The JSON pointer path to the property to copy.
  */
-function shallowCopyPath(document: object, path: string): void {
+export function shallowCopyPath(document: object, path: string): void {
   if (path === '' || path === '/') return;
 
   // Parse the pointer path - split by '/' and handle RFC 6901 escaping
