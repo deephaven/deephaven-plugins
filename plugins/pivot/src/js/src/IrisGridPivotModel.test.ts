@@ -1145,4 +1145,56 @@ describe('IrisGridPivotModel', () => {
       expect(typeof model.textForCell(0, 2)).toBe('string');
     });
   });
+
+  describe('expandAllColumns and collapseAllColumns', () => {
+    it('calls setRootColumnExpanded when group column exists', () => {
+      // 2 row sources = group column exists
+      const pivotTable = makePivotTable(['R', 'O'], ['C'], ['Count']);
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+
+      // Verify group column exists
+      expect(model.groupColumn).not.toBeNull();
+
+      model.expandAllColumns();
+      expect(pivotTable.setRootColumnExpanded).toHaveBeenCalledWith(true, true);
+
+      jest.clearAllMocks();
+
+      model.collapseAllColumns();
+      expect(pivotTable.setRootColumnExpanded).toHaveBeenCalledWith(
+        false,
+        true
+      );
+    });
+
+    it('calls setRootColumnExpanded when group column does not exist', () => {
+      // 1 row source = no group column
+      const pivotTable = makePivotTable(['R'], ['C'], ['Count']);
+      const model = new IrisGridPivotModel(
+        mockDh,
+        pivotTable,
+        formatter,
+        DEFAULT_CONFIG
+      );
+
+      // Verify group column does not exist
+      expect(model.groupColumn).toBeNull();
+
+      model.expandAllColumns();
+      expect(pivotTable.setRootColumnExpanded).toHaveBeenCalledWith(true, true);
+
+      jest.clearAllMocks();
+
+      model.collapseAllColumns();
+      expect(pivotTable.setRootColumnExpanded).toHaveBeenCalledWith(
+        false,
+        true
+      );
+    });
+  });
 });
