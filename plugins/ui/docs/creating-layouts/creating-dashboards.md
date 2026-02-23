@@ -172,7 +172,7 @@ nested_example = ui.dashboard(
 
 ### Nested dashboard component with state
 
-Nested dashboards shine when combined with `@ui.component` to create stateful, reusable dashboard sections:
+Nested dashboards are particularly effective when combined with `@ui.component` to create stateful, reusable dashboard sections
 
 ```python
 from deephaven import ui
