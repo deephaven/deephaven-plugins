@@ -92,6 +92,85 @@ class PivotFilterMouseHandler extends GridMouseHandler {
 
     return false;
   }
+
+  onMove(
+    gridPoint: GridPoint,
+    _grid: Grid,
+    _event: GridMouseEvent
+  ): EventHandlerResult {
+    const { model } = this.irisGrid.props;
+    const { isFilterBarShown, metrics, hoverAdvancedFilter } =
+      this.irisGrid.state;
+
+    if (!isFilterBarShown || !metrics) {
+      return false;
+    }
+
+    if (!isPivotGridMetrics(metrics)) {
+      return false;
+    }
+
+    const theme = this.irisGrid.getTheme() as IrisGridThemeType &
+      IrisGridPivotThemeType;
+
+    if (theme.columnHeaderHeight == null || theme.filterBarHeight == null) {
+      return false;
+    }
+
+    const { gridY } = metrics;
+    const { filterBarHeight } = theme;
+
+    // Check if we're in the column header area (above the regular filter bar)
+    const isInColumnHeaderArea = gridPoint.y < gridY - filterBarHeight;
+
+    if (!isInColumnHeaderArea) {
+      // Not in column header area - let regular handlers take over
+      // Don't clear hover here - let IrisGridFilterMouseHandler handle it
+      // to avoid fighting with CSS transitions
+      return false;
+    }
+
+    // We're in the column header area
+    const sourceIndex = getColumnSourceHeaderFromGridPoint(model, gridPoint);
+
+    if (sourceIndex != null) {
+      if (
+        isGridPointInColumnSourceFilterBox(model, gridPoint, metrics, theme)
+      ) {
+        // Set hover for columnBy source filter (negative index)
+        if (hoverAdvancedFilter !== sourceIndex) {
+          this.irisGrid.setState({ hoverAdvancedFilter: sourceIndex });
+        }
+        // Consume event to prevent IrisGridFilterMouseHandler from interfering
+        return true;
+      }
+    }
+
+    // In column header area but not in a specific filter box
+    // Keep current hover stable only if we're still over the same column source header
+    if (
+      hoverAdvancedFilter != null &&
+      hoverAdvancedFilter < 0 &&
+      sourceIndex === hoverAdvancedFilter
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  onLeave(
+    _gridPoint: GridPoint,
+    _grid: Grid,
+    _event: GridMouseEvent
+  ): EventHandlerResult {
+    const { hoverAdvancedFilter } = this.irisGrid.state;
+    // Clear hover if it was on a columnBy source filter (negative index)
+    if (hoverAdvancedFilter != null && hoverAdvancedFilter < 0) {
+      this.irisGrid.setState({ hoverAdvancedFilter: null });
+    }
+    return false;
+  }
 }
 
 export default PivotFilterMouseHandler;
