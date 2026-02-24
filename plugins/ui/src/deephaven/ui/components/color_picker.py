@@ -2,12 +2,12 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import CSSColor
 
 
 def color_picker(
-    *children: Any,
+    *children: NodeType,
     label: Any = None,
     size: str = "M",
     rounding: str = "default",

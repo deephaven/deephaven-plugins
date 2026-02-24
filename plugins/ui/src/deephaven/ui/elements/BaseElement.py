@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
-from .Element import Element
+from .Element import Element, NodeType
 from .._internal import dict_to_react_props, RenderContext
+from ..types import Key
 
 
 class BaseElement(Element):
@@ -22,8 +23,8 @@ class BaseElement(Element):
         self,
         name: str,
         /,
-        *children: Any,
-        key: str | None = None,
+        *children: NodeType,
+        key: Key | None = None,
         _nullable_props: list[str] = [],
         **props: Any,
     ):
@@ -47,8 +48,8 @@ class BaseElement(Element):
         return self._name
 
     @property
-    def key(self) -> str | None:
+    def key(self) -> Key | None:
         return self._key
 
-    def render(self, context: RenderContext) -> dict[str, Any]:
+    def render(self) -> dict[str, Any]:
         return self._props

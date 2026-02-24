@@ -11,11 +11,11 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def switch(
-    *children: Any,
+    *children: NodeType,
     is_emphasized: bool | None = None,
     default_selected: bool | None = None,
     is_selected: bool | None = None,

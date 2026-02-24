@@ -244,6 +244,7 @@ def combo_box(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
+    # TODO: These "children" can be Table or ItemTableSource, which aren't actually valid children from a React point of view. They should be passed in as elements.
     return component_element(
-        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props  # type: ignore
     )

@@ -182,4 +182,5 @@ def list_view(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("ListView", *children, **props)
+    # TODO: These "children" can be Table or ItemTableSource, which aren't actually valid children from a React point of view. They should be passed in as elements.
+    return component_element("ListView", *children, **props)  # type: ignore

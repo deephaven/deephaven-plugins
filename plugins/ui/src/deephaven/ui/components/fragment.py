@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
-def fragment(*children: Any, key: str | None = None) -> Element:
+def fragment(*children: NodeType, key: str | None = None) -> Element:
     """
     A React.Fragment: https://react.dev/reference/react/Fragment.
     Used to group elements together without a wrapper node.

@@ -21,13 +21,13 @@ from .types import (
 )
 
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 ActionButtonElement = Element
 
 
 def action_button(
-    *children: Any,
+    *children: NodeType,
     type: ButtonType = "button",
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
