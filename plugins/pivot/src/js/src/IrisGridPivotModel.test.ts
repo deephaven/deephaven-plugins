@@ -338,7 +338,7 @@ describe('IrisGridPivotModel', () => {
 
     model.setViewport(0, 10);
 
-    expect(pivotTable.addEventListener).toHaveBeenCalledTimes(1);
+    expect(pivotTable.addEventListener).toHaveBeenCalledTimes(3);
 
     // Simulate the update event with the data
     asMock(pivotTable.addEventListener).mock.calls[0][1](updateEvent);
