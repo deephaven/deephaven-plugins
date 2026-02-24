@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 // eslint-disable-next-line camelcase
 import { unstable_batchedUpdates } from 'react-dom';
-import { applyPatch, type Operation } from 'fast-json-patch';
+import { type Operation } from 'fast-json-patch';
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -55,6 +55,7 @@ import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
 import UriExportedObject from './UriExportedObject';
+import applyJsonPatch from './WidgetJsonPatch';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -367,10 +368,8 @@ function WidgetHandler({
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            setDocument(
-              oldDocument =>
-                applyPatch(oldDocument ?? {}, patch, undefined, false)
-                  .newDocument
+            setDocument(oldDocument =>
+              applyJsonPatch(oldDocument ?? {}, patch)
             );
             setIsLoading(false);
           });
