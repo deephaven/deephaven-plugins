@@ -44,6 +44,7 @@ import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
+  extractDatabarsFromFormatRules,
   FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
@@ -186,8 +187,6 @@ export function UITable({
   density,
   contextMenu = EMPTY_ARRAY as unknown as ResolvableUIContextItem[],
   contextHeaderMenu,
-  // TODO: #981 move databars to format and rewire for databar support
-  databars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
@@ -251,6 +250,11 @@ export function UITable({
       columnGroups,
     }),
     [frontColumns, backColumns, frozenColumns, hiddenColumns, columnGroups]
+  );
+
+  const databars = useMemo(
+    () => extractDatabarsFromFormatRules(format),
+    [format]
   );
 
   const colorMap = useMemo(() => {

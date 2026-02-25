@@ -41,7 +41,8 @@ export type RowDataMap = Record<ColumnName, RowDataValue>;
 export type ColorGradient = string[];
 
 export type DatabarConfig = {
-  column: ColumnName;
+  type: 'dataBar';
+  column?: ColumnName;
   value_column?: ColumnName;
   min?: number | ColumnName;
   max?: number | ColumnName;
@@ -100,7 +101,6 @@ export type UITableProps = StyleProps & {
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  databars?: DatabarConfig[];
   [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 
@@ -237,4 +237,32 @@ export function getSelectionDataMap(
     }
   }
   return dataMaps;
+}
+
+/**
+ * Extracts databar configurations from format rules.
+ * @param formatRules Array of formatting rules
+ * @returns Array of DatabarConfig objects extracted from format rules
+ */
+export function extractDatabarsFromFormatRules(
+  formatRules: FormattingRule[]
+): DatabarConfig[] {
+  const databars: DatabarConfig[] = [];
+
+  formatRules.forEach(rule => {
+    const { cols, mode } = rule;
+
+    if (mode?.type === 'dataBar' && cols != null) {
+      const columns: ColumnName[] = Array.isArray(cols) ? cols : [cols];
+
+      columns.forEach(column => {
+        databars.push({
+          ...mode,
+          column,
+        });
+      });
+    }
+  });
+
+  return databars;
 }

@@ -19,7 +19,7 @@ import {
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import { ensureArray } from '@deephaven/utils';
+import { assertNotNull, ensureArray } from '@deephaven/utils';
 import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
@@ -70,6 +70,7 @@ export async function makeUiTableModel(
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
   databars.forEach(config => {
+    assertNotNull(config.column);
     const { column, value_column: valueColumn = column, min, max } = config;
 
     try {
@@ -130,7 +131,6 @@ export async function makeUiTableModel(
   return new UITableModel({
     dh,
     model: baseModel,
-    databars,
     format,
     displayNameMap,
   });
@@ -168,20 +168,16 @@ class UITableModel extends IrisGridModel {
 
   private displayNameMap: Record<string, string>;
 
-  private databars: Map<ColumnName, DatabarConfig>;
-
   private format: FormattingRule[];
 
   constructor({
     dh,
     model,
-    databars,
     format,
     displayNameMap,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
-    databars: DatabarConfig[];
     format: FormattingRule[];
     displayNameMap: Record<string, string>;
   }) {
@@ -189,11 +185,6 @@ class UITableModel extends IrisGridModel {
 
     this.model = model;
     this.displayNameMap = displayNameMap;
-
-    this.databars = new Map<ColumnName, DatabarConfig>();
-    databars.forEach(databar => {
-      this.databars.set(databar.column, databar);
-    });
 
     this.format = format;
 
@@ -271,10 +262,13 @@ class UITableModel extends IrisGridModel {
     ) {
       return this.model.renderTypeForCell(column, row);
     }
-    const columnName = this.columns[column].name;
-    return this.databars.has(columnName)
-      ? 'dataBar'
-      : this.model.renderTypeForCell(column, row);
+
+    const mode = this.getFormatOptionForCell(column, row, 'mode');
+    if (mode?.type === 'dataBar') {
+      return 'dataBar';
+    }
+
+    return this.model.renderTypeForCell(column, row);
   }
 
   /**
@@ -326,14 +320,13 @@ class UITableModel extends IrisGridModel {
 
     const columnName = this.columns[columnIndex].name;
 
-    const config = this.databars.get(columnName);
+    const config = this.getFormatOptionForCell(columnIndex, rowIndex, 'mode');
     if (config == null) {
       throw new Error(`No databar config for column ${columnName}`);
     }
 
     const {
-      column,
-      value_column: valueColumnName = column,
+      value_column: valueColumnName = columnName,
       min = `${valueColumnName}__DATABAR_Min`,
       max = `${valueColumnName}__DATABAR_Max`,
       axis = 'proportional',
