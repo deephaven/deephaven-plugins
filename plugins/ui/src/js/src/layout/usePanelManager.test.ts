@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { usePanelManager } from './usePanelManager';
-import { ReadonlyWidgetData } from './WidgetTypes';
+import { ReadonlyWidgetData } from '../widget/WidgetTypes';
 
 // Mock nanoid to return predictable values
 jest.mock('nanoid', () => ({

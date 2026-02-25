@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { usePersistentState } from '@deephaven/plugin';
 import { ReactPanelContext } from './ReactPanelContext';
 import { ReactPanelManagerContext } from './ReactPanelManager';
@@ -7,10 +7,9 @@ import DashboardContent from './DashboardContent';
 import usePanelManager from './usePanelManager';
 import useWidgetStatus from './useWidgetStatus';
 import { WidgetData } from '../widget/WidgetTypes';
+import { ElementIdProps } from './LayoutUtils';
 
-interface NestedDashboardContentProps {
-  children: React.ReactNode;
-}
+type NestedDashboardContentProps = PropsWithChildren<ElementIdProps>;
 
 /**
  * Content rendered inside the nested dashboard's layout.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { type DashboardElementProps } from './LayoutUtils';
+import { ElementIdProps, type DashboardElementProps } from './LayoutUtils';
 import { usePanelId } from './ReactPanelContext';
 import NestedDashboard from './NestedDashboard';
 import DashboardContent from './DashboardContent';
@@ -10,12 +10,14 @@ import DashboardContent from './DashboardContent';
  * When top-level: Uses the existing layout manager's root (current behavior)
  * When nested: Delegates to NestedDashboard which creates its own GoldenLayout
  */
-function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
+function Dashboard({
+  children,
+  __dhId,
+}: DashboardElementProps & ElementIdProps): JSX.Element | null {
   const contextPanelId = usePanelId();
   const isNested = contextPanelId != null;
-
   if (isNested) {
-    return <NestedDashboard>{children}</NestedDashboard>;
+    return <NestedDashboard __dhId={__dhId}>{children}</NestedDashboard>;
   }
 
   return <DashboardContent>{children}</DashboardContent>;
