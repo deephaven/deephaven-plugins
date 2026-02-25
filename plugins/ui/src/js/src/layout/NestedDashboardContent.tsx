@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
-import { nanoid } from 'nanoid';
+import React from 'react';
+import { usePersistentState } from '@deephaven/plugin';
 import { ReactPanelContext } from './ReactPanelContext';
-import {
-  ReactPanelManager,
-  ReactPanelManagerContext,
-} from './ReactPanelManager';
+import { ReactPanelManagerContext } from './ReactPanelManager';
 import PortalPanelManager from './PortalPanelManager';
 import DashboardContent from './DashboardContent';
+import usePanelManager from './usePanelManager';
+import useWidgetStatus from './useWidgetStatus';
+import { WidgetData } from '../widget/WidgetTypes';
 
 interface NestedDashboardContentProps {
   children: React.ReactNode;
@@ -19,31 +19,15 @@ interface NestedDashboardContentProps {
 function NestedDashboardContent({
   children,
 }: NestedDashboardContentProps): JSX.Element {
-  const panelManager: ReactPanelManager = useMemo(() => {
-    // Track panel IDs that have been generated for rehydration purposes
-    const panelIdCounter = { current: 0 };
-    // Store data for each panel
-    const panelDataMap = new Map<string, unknown[]>();
-
-    return {
-      metadata: undefined,
-      onOpen: (panelId: string) => {
-        // Called when a panel is opened in this nested dashboard
-      },
-      onClose: (panelId: string) => {
-        // Called when a panel is closed in this nested dashboard
-        panelDataMap.delete(panelId);
-      },
-      onDataChange: (panelId: string, data: unknown[]) => {
-        panelDataMap.set(panelId, data);
-      },
-      getInitialData: (panelId: string) => panelDataMap.get(panelId) ?? [],
-      getPanelId: () => {
-        panelIdCounter.current += 1;
-        return `nested-panel-${nanoid()}`;
-      },
-    };
-  }, []);
+  const { descriptor: widget } = useWidgetStatus();
+  const [widgetData, setWidgetData] = usePersistentState<
+    WidgetData | undefined
+  >(undefined, { type: 'NestedDashboardWidgetData', version: 1 });
+  const panelManager = usePanelManager({
+    widget,
+    onDataChange: setWidgetData,
+    initialData: widgetData,
+  });
 
   return (
     <PortalPanelManager>
