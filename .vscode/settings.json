@@ -12,6 +12,7 @@
   "markdown.updateLinksOnFileMove.enabled": "prompt",
   "markdown.validate.referenceLinks.enabled": "error",
   "chat.tools.terminal.autoApprove": {
+    "npm run test:unit": true,
     "tox": true
   }
 }

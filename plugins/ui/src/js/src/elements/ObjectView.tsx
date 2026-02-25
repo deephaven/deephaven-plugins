@@ -2,12 +2,12 @@ import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { dh } from '@deephaven/jsapi-types';
+import { ElementIdProps } from '../layout/LayoutUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
-export type ObjectViewProps = {
+export type ObjectViewProps = ElementIdProps & {
   object: dh.WidgetExportedObject;
-  __dhId?: string;
 };
 
 function ObjectView(props: ObjectViewProps): JSX.Element {
