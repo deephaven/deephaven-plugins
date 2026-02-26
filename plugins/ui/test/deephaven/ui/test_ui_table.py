@@ -277,21 +277,20 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format_": {
-                    "cols": "X",
-                    "mode": {
-                        "type": "dataBar",
-                        "value_column": "Y",
-                        "min": 0,
-                        "max": 100,
-                        "axis": "middle",
-                        "direction": "LTR",
-                        "value_placement": "overlap",
-                        "color": "blue",
-                        "opacity": 0.7,
-                        "markers": [{"value": 50, "color": "red"}],
-                    },
-                },
+                "format_": TableFormat(
+                    cols="X",
+                    mode=TableDatabar(
+                        value_column="Y",
+                        min=0,
+                        max=100,
+                        axis="middle",
+                        direction="LTR",
+                        value_placement="overlap",
+                        color="blue",
+                        opacity=0.7,
+                        markers=[{"value": 50, "color": "red"}],
+                    ),
+                ),
             },
         )
 
@@ -315,14 +314,13 @@ class UITableTestCase(BaseTestCase):
             t,
             {
                 "format_": [
-                    {
-                        "cols": ["X", "Y"],
-                        "mode": {
-                            "type": "dataBar",
-                            "color": "positive",
-                            "markers": [{"value": 50, "color": "red"}],
-                        },
-                    },
+                    TableFormat(
+                        cols=["X", "Y"],
+                        mode=TableDatabar(
+                            color="positive",
+                            markers=[{"value": 50, "color": "red"}],
+                        ),
+                    ),
                 ],
             },
         )
@@ -343,14 +341,11 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "format_": {
-                    "cols": "X",
-                    "if_": "X > 50",
-                    "mode": {
-                        "type": "dataBar",
-                        "color": "positive",
-                    },
-                },
+                "format_": TableFormat(
+                    cols="X",
+                    if_="X > 50",
+                    mode=TableDatabar(color="positive"),
+                ),
             },
         )
 
@@ -371,9 +366,9 @@ class UITableTestCase(BaseTestCase):
             t,
             {
                 "format_": [
-                    {"cols": "X", "background_color": "accent-100"},
-                    {"cols": "Y", "mode": {"type": "dataBar", "color": "blue"}},
-                    {"cols": "X", "if_": "X > 50", "color": "positive"},
+                    TableFormat(cols="X", background_color="accent-100"),
+                    TableFormat(cols="Y", mode=TableDatabar(color="blue")),
+                    TableFormat(cols="X", if_="X > 50", color="positive"),
                 ],
             },
         )
