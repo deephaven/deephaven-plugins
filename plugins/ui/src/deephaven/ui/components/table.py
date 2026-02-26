@@ -17,7 +17,7 @@ from ..types import (
     ResolvableContextMenuItem,
     SelectionChangeCallback,
 )
-from .._internal import dict_to_react_props, convert_dataclasses_to_dicts, RenderContext
+from .._internal import dict_to_react_props, RenderContext
 
 logger = logging.getLogger(__name__)
 
@@ -327,6 +327,5 @@ class table(Element):
         return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:
-        converted_props = convert_dataclasses_to_dicts(self._props)
-        logger.debug("Returning props %s", converted_props)
-        return dict_to_react_props(converted_props)
+        logger.debug("Returning props %s", self._props)
+        return dict_to_react_props(self._props)

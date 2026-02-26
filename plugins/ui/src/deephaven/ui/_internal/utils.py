@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import is_dataclass, asdict
+
 from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
@@ -163,27 +163,6 @@ def dict_to_camel_case(
         The camelCase dict.
     """
     return convert_dict_keys(dict, to_camel_case)
-
-
-def convert_dataclasses_to_dicts(obj: Any) -> Any:
-    """
-    Convert dataclasses to dictionaries and remove None values.
-
-    Args:
-        obj: The object to convert. Can be a dataclass, dict, list, or primitive.
-
-    Returns:
-        The converted object with dataclasses replaced by dicts and None values removed.
-    """
-    if is_dataclass(obj) and not isinstance(obj, type):
-        obj = asdict(obj)
-    if isinstance(obj, dict):
-        return {
-            k: convert_dataclasses_to_dicts(v) for k, v in obj.items() if v is not None
-        }
-    elif isinstance(obj, list):
-        return [convert_dataclasses_to_dicts(item) for item in obj]
-    return obj
 
 
 def dict_to_react_props(
