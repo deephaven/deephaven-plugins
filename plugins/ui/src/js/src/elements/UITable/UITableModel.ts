@@ -19,15 +19,14 @@ import {
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import { assertNotNull, ensureArray } from '@deephaven/utils';
-import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
+import { ensureArray } from '@deephaven/utils';
+import { ColorGradient, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
 /**
  * Create a UITableModel.
  * @param dh The JS API object
  * @param baseTable The base table to create the UI table model from.
- * @param databars Databar configurations
  * @param layoutHints Layout hints for the table
  * @param format Format rules for the table
  * @param displayNameMap Column display name mappings
@@ -36,7 +35,6 @@ import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 export async function makeUiTableModel(
   dh: typeof DhType,
   baseTableProp: DhType.Table,
-  databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
@@ -69,35 +67,41 @@ export async function makeUiTableModel(
 
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
-  databars.forEach(config => {
-    assertNotNull(config.column);
-    const { column, value_column: valueColumn = column, min, max } = config;
-
-    try {
-      baseTable.findColumn(column);
-    } catch {
-      throw new Error(`Can't find databar column ${column}`);
+  format.forEach(rule => {
+    const { cols, mode } = rule;
+    if (mode?.type !== 'dataBar' || cols == null) {
+      return;
     }
+    const columns: ColumnName[] = ensureArray(cols);
+    columns.forEach(column => {
+      const { value_column: valueColumn = column, min, max } = mode;
 
-    try {
-      baseTable.findColumn(valueColumn);
-    } catch {
-      throw new Error(`Can't find databar value column ${valueColumn}`);
-    }
+      try {
+        baseTable.findColumn(column);
+      } catch {
+        throw new Error(`Can't find databar column ${column}`);
+      }
 
-    if (min == null && max == null) {
-      totalsOperationMap[valueColumn] = ['Min', 'Max'];
-      joinColumns.push(
-        `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
-        `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
-      );
-    } else if (min == null) {
-      totalsOperationMap[valueColumn] = ['Min'];
-      joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
-    } else if (max == null) {
-      totalsOperationMap[valueColumn] = ['Max'];
-      joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
-    }
+      try {
+        baseTable.findColumn(valueColumn);
+      } catch {
+        throw new Error(`Can't find databar value column ${valueColumn}`);
+      }
+
+      if (min == null && max == null) {
+        totalsOperationMap[valueColumn] = ['Min', 'Max'];
+        joinColumns.push(
+          `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
+          `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
+        );
+      } else if (min == null) {
+        totalsOperationMap[valueColumn] = ['Min'];
+        joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
+      } else if (max == null) {
+        totalsOperationMap[valueColumn] = ['Max'];
+        joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
+      }
+    });
   });
 
   let table = baseTable;

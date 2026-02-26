@@ -43,8 +43,6 @@ import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
-  DatabarConfig,
-  extractDatabarsFromFormatRules,
   FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
@@ -92,14 +90,12 @@ function useThrowError(): [
 
 function useUITableModel({
   dh,
-  databars,
   table,
   layoutHints,
   format,
   columnDisplayNames,
 }: {
   dh: typeof DhType | null;
-  databars: DatabarConfig[];
   table: DhType.Table | null;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
@@ -119,7 +115,6 @@ function useUITableModel({
         const newModel = await makeUiTableModel(
           dh,
           table,
-          databars,
           layoutHints,
           format,
           columnDisplayNames
@@ -143,7 +138,6 @@ function useUITableModel({
       isCancelled = true;
     };
   }, [
-    databars,
     dh,
     table,
     layoutHints,
@@ -252,16 +246,15 @@ export function UITable({
     [frontColumns, backColumns, frozenColumns, hiddenColumns, columnGroups]
   );
 
-  const databars = useMemo(
-    () => extractDatabarsFromFormatRules(format),
-    [format]
-  );
-
   const colorMap = useMemo(() => {
-    log.debug('Theme changed, updating databar color map', theme);
+    log.debug('Theme changed, updating color map', theme);
     const colorSet = new Set<string>();
-    databars?.forEach(databar => {
-      const { color, markers } = databar;
+    format.forEach(rule => {
+      const { mode } = rule;
+      if (mode?.type !== 'dataBar') {
+        return;
+      }
+      const { color, markers } = mode;
       if (color != null) {
         if (typeof color === 'string' || Array.isArray(color)) {
           [color].flat().forEach(c => colorSet.add(c));
@@ -297,11 +290,10 @@ export function UITable({
       newColorMap.set(key, value);
     });
     return newColorMap;
-  }, [theme, databars]);
+  }, [theme, format]);
 
   const model = useUITableModel({
     dh,
-    databars,
     table,
     layoutHints,
     format,
