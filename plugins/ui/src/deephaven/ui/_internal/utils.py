@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
@@ -183,11 +184,23 @@ def dict_to_react_props(
     )
 
 
+def _remove_nulls(obj: Any) -> Any:
+    """
+    Recursively remove None values from nested dicts and lists.
+    """
+    if isinstance(obj, dict):
+        return {k: _remove_nulls(v) for k, v in obj.items() if v is not None}
+    if isinstance(obj, list):
+        return [_remove_nulls(item) for item in obj]
+    return obj
+
+
 def remove_empty_keys(
     dict: dict[str, Any], _nullable_props: list[str] = []
 ) -> dict[str, Any]:
     """
     Remove keys from a dict that have a value of None, or Undefined if in _nullable_props.
+    Recursively removes None values from nested dicts and lists within retained values.
 
     Args:
         dict: The dict to remove keys from.
@@ -200,12 +213,12 @@ def remove_empty_keys(
     for k, v in dict.items():
         if k in _nullable_props:
             if v is not Undefined:
-                cleaned[k] = v
+                cleaned[k] = _remove_nulls(v)
         else:
             if v is Undefined:
                 raise ValueError("UndefinedType found in a non-nullable prop.")
             elif v is not None:
-                cleaned[k] = v
+                cleaned[k] = _remove_nulls(v)
 
     return cleaned
 
@@ -835,15 +848,15 @@ def convert_date_for_labeled_value(
     Returns:
         Nanoseconds since epoch as an int or a local date as a str, and timezone identifier as a str if input is a ZonedDateTime.
     """
-    if isinstance(date, DTypeInstant.j_type):
+    if isinstance(date, DTypeInstant.j_type):  # type: ignore
         return _convert_instant_to_nanos(date)
 
-    if isinstance(date, DTypeZonedDateTime.j_type):
+    if isinstance(date, DTypeZonedDateTime.j_type):  # type: ignore
         tz = date.getZone()  # type: ignore
         instant = date.toInstant()  # type: ignore
         return (_convert_instant_to_nanos(instant), str(tz) if tz else None)
 
-    if isinstance(date, DTypeLocalDate.j_type):
+    if isinstance(date, DTypeLocalDate.j_type):  # type: ignore
         return str(date)
 
 

@@ -15,6 +15,13 @@ test.describe('UI table', () => {
     't_single_agg',
     't_bottom_agg',
     't_top_agg',
+    't_databar_basic',
+    't_databar_multi_cols',
+    't_databar_full_options',
+    't_databar_conditional',
+    't_databar_priority',
+    't_databar_mixed',
+    't_databar_gradient',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
