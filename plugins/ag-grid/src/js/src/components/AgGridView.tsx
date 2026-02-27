@@ -32,7 +32,7 @@ export type AgGridViewProps = {
   /** Settings controlling the formatting of the data */
   settings?: Settings;
 
-  /** Other props to pass through to the `AgGridReact` component */
+  /** Other props to pass through to the `AgGridReact` component. Can override existing props. */
   agGridProps?: AgGridReactProps;
 };
 
@@ -165,8 +165,6 @@ export function AgGridView({
 
   return (
     <AgGridReact
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...agGridProps}
       onGridReady={handleGridReady}
       onFirstDataRendered={handleFirstDataRendered}
       onGridSizeChanged={handleGridSizeChanged}
@@ -178,6 +176,8 @@ export function AgGridView({
       // With a regular table, the row IDs are just the row indices, so we don't need to specify getRowId
       getRowId={isTable(table) ? undefined : getRowId}
       sideBar={sideBar}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...agGridProps}
     />
   );
 }

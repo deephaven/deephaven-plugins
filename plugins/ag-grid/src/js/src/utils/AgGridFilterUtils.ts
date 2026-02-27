@@ -1,6 +1,7 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   AdvancedFilterModel,
+  ColumnAdvancedFilterModel,
   DateFilterModel,
   FilterModel,
   ICombinedSimpleModel,
@@ -39,7 +40,6 @@ export class AgGridFilterUtils {
     return b.every(f => filters.has(f.toString()));
   }
 
-  // Not handling AdvancedFilterModel yet
   static parseFilterModel(
     dh: typeof DhType,
     table: DhType.Table | DhType.TreeTable,
@@ -47,6 +47,11 @@ export class AgGridFilterUtils {
   ): DhType.FilterCondition[] {
     if (filterModel == null) {
       return [];
+    }
+
+    // Check if it's an AdvancedFilterModel
+    if (this.isAdvancedFilterModel(filterModel)) {
+      return [this.parseAdvancedFilterModel(dh, table, filterModel)];
     }
 
     return Object.entries(filterModel).map(([colId, model]) => {
@@ -81,6 +86,111 @@ export class AgGridFilterUtils {
       }
       throw new Error(`Filter model ${model} is not supported`);
     });
+  }
+
+  static isAdvancedFilterModel(
+    model: FilterModel | AdvancedFilterModel
+  ): model is AdvancedFilterModel {
+    return (
+      typeof model === 'object' &&
+      model !== null &&
+      'filterType' in model &&
+      model.filterType === 'join'
+    );
+  }
+
+  static parseAdvancedFilterModel(
+    dh: typeof DhType,
+    table: DhType.Table | DhType.TreeTable,
+    model: AdvancedFilterModel
+  ): DhType.FilterCondition {
+    // Handle ColumnAdvancedFilterModel (single column condition)
+    if (model.filterType !== 'join') {
+      const columnModel = model as ColumnAdvancedFilterModel;
+      if (!('colId' in columnModel) || !columnModel.colId) {
+        throw new Error('Advanced filter condition must have colId');
+      }
+      const column = table.findColumn(columnModel.colId);
+      return this.parseAdvancedColumnFilter(dh, column, columnModel);
+    }
+
+    // Handle JoinAdvancedFilterModel (multiple conditions joined together)
+    if (model.conditions.length === 0) {
+      throw new Error('Advanced filter must have conditions');
+    }
+
+    const conditions = model.conditions.map(condition =>
+      this.parseAdvancedFilterModel(dh, table, condition)
+    );
+
+    // Combine conditions based on operator
+    return conditions.reduce((prev, curr, index) => {
+      if (index === 0) return curr;
+
+      if (model.type === 'OR') {
+        return prev.or(curr);
+      }
+      if (model.type === 'AND') {
+        return prev.and(curr);
+      }
+      throw new Error(`Unknown operator ${model.type} in advanced filter`);
+    });
+  }
+
+  private static parseAdvancedColumnFilter(
+    dh: typeof DhType,
+    column: DhType.Column,
+    condition: ColumnAdvancedFilterModel
+  ): DhType.FilterCondition {
+    // Map AdvancedFilterModel column condition to a simple filter model
+    switch (condition.filterType) {
+      case 'text': {
+        const textModel: TextFilterModel = {
+          filterType: 'text',
+          type: condition.type,
+          filter: condition.filter,
+        };
+        return this.parseTextFilter(dh, column, textModel);
+      }
+      case 'number': {
+        const numberModel: NumberFilterModel = {
+          filterType: 'number',
+          type: condition.type,
+          filter: condition.filter,
+        };
+        return this.parseNumberFilter(dh, column, numberModel);
+      }
+      case 'date':
+      case 'dateString': {
+        const dateModel: DateFilterModel = {
+          filterType: 'date',
+          type: condition.type,
+          dateFrom: condition.filter ?? null,
+          dateTo: null,
+        };
+        return this.parseDateFilter(dh, column, dateModel);
+      }
+      case 'object': {
+        // Object filters use text filter
+        const objModel: TextFilterModel = {
+          filterType: 'text',
+          type: condition.type,
+          filter: condition.filter ?? '',
+        };
+        return this.parseTextFilter(dh, column, objModel);
+      }
+      case 'boolean': {
+        // Handle boolean filters directly
+        if (condition.type === 'true') {
+          return column.filter().isTrue();
+        }
+        return column.filter().isFalse();
+      }
+      default:
+        throw new Error(
+          `Unsupported filter type in advanced filter: ${condition.filterType}`
+        );
+    }
   }
 
   static isCombinedSimpleModel<M extends ISimpleFilterModel>(
@@ -120,7 +230,7 @@ export class AgGridFilterUtils {
   ): model is SupportedSimpleFilterModel {
     return (
       model.filterType != null &&
-      ['text', 'number', 'date'].includes(model.filterType)
+      ['text', 'number', 'date', 'set'].includes(model.filterType)
     );
   }
 
