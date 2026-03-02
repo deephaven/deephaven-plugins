@@ -1,6 +1,7 @@
 import unittest
 
 from ..BaseTest import BaseTestCase
+import pandas.testing as tm
 
 
 class AttachedPreprocessorTestCase(BaseTestCase):
@@ -56,11 +57,11 @@ class AttachedPreprocessorTestCase(BaseTestCase):
                 "colors": ["salmon", "lemonchiffon", "blue"],
             }
         )
-        expected_df["names"] = expected_df["names"].astype("string[python]")
+        expected_df["names"] = expected_df["names"].astype("string")
         expected_df["values"] = expected_df["values"].astype("Int32")
-        expected_df["colors"] = expected_df["colors"].astype("string[python]")
+        expected_df["colors"] = expected_df["colors"].astype("string")
 
-        self.assertTrue(expected_df.equals(new_df))
+        tm.assert_frame_equal(expected_df, new_df)
 
 
 if __name__ == "__main__":
