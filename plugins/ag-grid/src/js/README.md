@@ -102,9 +102,26 @@ function DeephavenAgGridComponent({
 
 ## Details
 
-The `DeephavenViewportDatasource` class is designed to work with AG Grid's viewport row model. It fetches data from a Deephaven table and provides it to the grid as needed. The datasource handles the logic for fetching rows based on the current viewport, which is defined by the first and last row indices.
+The `DeephavenViewportDatasource` class is designed to work with AG Grid's [Viewport Row Model](https://www.ag-grid.com/react-data-grid/viewport/). It fetches data from a Deephaven table and provides it to the grid as needed. The datasource handles the logic for fetching rows based on the current viewport, which is defined by the first and last row indices.
 
-The [`DeephavenViewportDatasource` listens to the grid's events](./src/datasources/DeephavenViewportDatasource.ts#115) to determine when to update the filters, sorts, aggregations, and groupings in the Deephaven table. Functions in the [utils](./src/utils/) map the Grid's state to operations that can be applied to the Deephaven Table object, which then applies the operation on the server side.
+### Why Viewport Row Model?
+
+We use the Viewport Row Model for efficiency, to only fetch and subscribe to the viewport that's currently visible. This model is ideal for Deephaven's use case because:
+
+- **Efficient viewport-only subscriptions**: With the Viewport Row Model, we can subscribe to only the rows that are currently visible in the grid. This is crucial for Deephaven, as we often work with large datasets that are actively ticking and updating.
+- **Avoids unnecessary fetching**: AG Grid's Server-Side Row Model fetches rows outside of the viewport unnecessarily (for Deephaven's purposes) and does not allow Deephaven to subscribe only to the visible viewport for updates. This would waste bandwidth and resources for data that isn't being displayed.
+- **Optimized for real-time data**: Since Deephaven tables can have millions of rows with frequent updates, the Viewport Row Model ensures we only process and stream the data that matters to the user at any given moment.
+
+### GridApi Integration
+
+The `DeephavenViewportDatasource` requires the AG Grid `GridApi` to be passed in via the `setGridApi` method. This is necessary because we need to listen to events from the grid that are not provided through the `IViewportDatasource` interface, such as:
+
+- Adding row aggregations (`columnRowGroupChanged`, `columnValueChanged`)
+- Applying filters (`filterChanged`)
+- Changing sorts (`sortChanged`)
+- Expanding/collapsing row groups (`columnGroupOpened`)
+
+Once the `GridApi` is set, the datasource calls `updateGridState` to apply any operations that the user has already configured in the AG Grid UI to the underlying Deephaven table using the JS API. The [`DeephavenViewportDatasource` listens to the grid's events](./src/datasources/DeephavenViewportDatasource.ts#115) and synchronizes them with the Deephaven table. Functions in the [utils](./src/utils/) map the Grid's state to operations that can be applied to the Deephaven Table object, which then applies the operation on the server side.
 
 - [AgGridFilterUtils](./src/utils/AgGridFilterUtils.ts): Utility functions for mapping AG Grid filter models to Deephaven table operations.
 - [AgGridSortUtils](./src/utils/AgGridSortUtils.ts): Utility functions for mapping AG Grid sort models to Deephaven table operations.

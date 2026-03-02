@@ -32,8 +32,6 @@ if ! which cog >/dev/null; then
     exit 99
 fi
 
-# todo: enforce git remote named origin 
-
 all_plugins="$(cd "$ROOT_DIR/plugins" ; find . -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
 
 function usage() {
@@ -42,6 +40,7 @@ function usage() {
     log_info ""
     log_info "--help | -h $tab-> Prints this help message"
     log_info "--debug | -d $tab-> Turn on xtrace debugging"
+    log_info "--remote | -r $tab-> Specify the git remote to push to (default: origin)"
     log_info "<plugin name> $tab-> Runs the version bump + release for a given plugin"
     log_info "Valid <plugin name> choices are:
 $all_plugins"
@@ -59,12 +58,21 @@ fi
 
 # Collect arguments
 package=
+remote="origin"
 while (( $# > 0 )); do
     case "$1" in
         --debug | -d)
             set -o xtrace ;;
         --help | -h)
             usage ; exit 0 ;;
+        --remote | -r)
+            shift
+            if (( $# == 0 )); then
+                log_error "--remote requires a value"
+                exit 96
+            fi
+            remote="$1"
+            ;;
         *)
             if [ -n "$package" ]; then
                 {
@@ -105,6 +113,16 @@ if ! grep -q "plugins/$package" "$ROOT_DIR/cog.toml"; then
     exit 91
 fi
 
+# Validate remote exists
+if ! git remote get-url "$remote" >/dev/null 2>&1; then
+    {
+    log_error "Git remote '$remote' does not exist"
+    log_error "Available remotes:"
+    git remote -v
+    } 2>/dev/null
+    exit 90
+fi
+
 if [ -n "$(git status --short)" ]; then
     {
         log_error "Detected uncommitted files via git status:"
@@ -116,8 +134,8 @@ if [ -n "$(git status --short)" ]; then
 fi
 
 # Perform release
-{ log_info "Releasing package '$package'" ; } 2>/dev/null
+{ log_info "Releasing package '$package' using remote '$remote'" ; } 2>/dev/null
 (
 cd "$ROOT_DIR"
-cog bump --package "$package" --auto
+RELEASE_REMOTE="$remote" cog bump --package "$package" --auto
 )

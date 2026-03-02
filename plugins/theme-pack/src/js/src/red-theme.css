@@ -1,0 +1,293 @@
+/* Red Theme - Dark theme with red as dominant color */
+/* Auto-generated from VS Code Red theme */
+
+:root {
+  /* Gray palette */
+  --dh-color-gray-50: #300000;
+  --dh-color-gray-75: #300;
+  --dh-color-gray-100: #390000;
+  --dh-color-gray-200: #580000;
+  --dh-color-gray-300: #700000;
+  --dh-color-gray-400: #700;
+  --dh-color-gray-500: #800;
+  --dh-color-gray-600: #aa4f44;
+  --dh-color-gray-700: #c7877d;
+  --dh-color-gray-800: #e1bfb9;
+  --dh-color-gray-900: #f8f8f8;
+
+  /* Red palette */
+  --dh-color-red-100: #3a0000;
+  --dh-color-red-200: #4f0000;
+  --dh-color-red-300: #600;
+  --dh-color-red-400: #860000;
+  --dh-color-red-500: #ad0000;
+  --dh-color-red-600: #cf000f;
+  --dh-color-red-700: #f12727;
+  --dh-color-red-800: #ff5349;
+  --dh-color-red-900: #ff8b7e;
+  --dh-color-red-1000: #ffaca0;
+  --dh-color-red-1100: #ffcac1;
+  --dh-color-red-1200: #ffe1db;
+  --dh-color-red-1300: #fff1ed;
+  --dh-color-red-1400: #fff1ed;
+
+  /* Orange palette */
+  --dh-color-orange-100: #2d0a00;
+  --dh-color-orange-200: #3e1300;
+  --dh-color-orange-300: #501d00;
+  --dh-color-orange-400: #6a2c00;
+  --dh-color-orange-500: #8a3d00;
+  --dh-color-orange-600: #a75200;
+  --dh-color-orange-700: #c46800;
+  --dh-color-orange-800: #df812e;
+  --dh-color-orange-900: #fb9a4b;
+  --dh-color-orange-1000: #ffb069;
+  --dh-color-orange-1100: #ffcc9e;
+  --dh-color-orange-1200: #ffe2c5;
+  --dh-color-orange-1300: #fff3e0;
+  --dh-color-orange-1400: #fff3e0;
+
+  /* Yellow palette */
+  --dh-color-yellow-100: #2b1800;
+  --dh-color-yellow-200: #3b2300;
+  --dh-color-yellow-300: #4a2f00;
+  --dh-color-yellow-400: #624000;
+  --dh-color-yellow-500: #7d5500;
+  --dh-color-yellow-600: #9a6a00;
+  --dh-color-yellow-700: #b58100;
+  --dh-color-yellow-800: #cf9a1e;
+  --dh-color-yellow-900: #eab442;
+  --dh-color-yellow-1000: #fec758;
+  --dh-color-yellow-1100: #ffdd84;
+  --dh-color-yellow-1200: #fff1bd;
+  --dh-color-yellow-1300: #fff5ca;
+  --dh-color-yellow-1400: #fff6d9;
+
+  /* Chartreuse palette */
+  --dh-color-chartreuse-100: #202300;
+  --dh-color-chartreuse-200: #2c3000;
+  --dh-color-chartreuse-300: #393e00;
+  --dh-color-chartreuse-400: #4b5100;
+  --dh-color-chartreuse-500: #616900;
+  --dh-color-chartreuse-600: #788100;
+  --dh-color-chartreuse-700: #909a00;
+  --dh-color-chartreuse-800: #a8b317;
+  --dh-color-chartreuse-900: #c1cd40;
+  --dh-color-chartreuse-1000: #d4e157;
+  --dh-color-chartreuse-1100: #e7f485;
+  --dh-color-chartreuse-1200: #f7ffa8;
+  --dh-color-chartreuse-1300: #f7ffc1;
+  --dh-color-chartreuse-1400: #f7fdd8;
+
+  /* Celery palette */
+  --dh-color-celery-100: #111300;
+  --dh-color-celery-200: #1c1e00;
+  --dh-color-celery-300: #282b00;
+  --dh-color-celery-400: #3a3e00;
+  --dh-color-celery-500: #4f5400;
+  --dh-color-celery-600: #666c00;
+  --dh-color-celery-700: #7d8400;
+  --dh-color-celery-800: #959d00;
+  --dh-color-celery-900: #adb70c;
+  --dh-color-celery-1000: #c0ca33;
+  --dh-color-celery-1100: #d3dd69;
+  --dh-color-celery-1200: #e3ec90;
+  --dh-color-celery-1300: #f0f7b7;
+  --dh-color-celery-1400: #f8fdd7;
+
+  /* Green palette */
+  --dh-color-green-100: #072c0b;
+  --dh-color-green-200: #0c3a11;
+  --dh-color-green-300: #114917;
+  --dh-color-green-400: #1d5f23;
+  --dh-color-green-500: #2d7833;
+  --dh-color-green-600: #429147;
+  --dh-color-green-700: #57ab5b;
+  --dh-color-green-800: #70c573;
+  --dh-color-green-900: #8adf8c;
+  --dh-color-green-1000: #9df39f;
+  --dh-color-green-1100: #bbffbc;
+  --dh-color-green-1200: #daffda;
+  --dh-color-green-1300: #dcffdc;
+  --dh-color-green-1400: #e8ffe7;
+
+  /* Seafoam palette */
+  --dh-color-seafoam-100: #01201e;
+  --dh-color-seafoam-200: #022e2b;
+  --dh-color-seafoam-300: #053c38;
+  --dh-color-seafoam-400: #13504b;
+  --dh-color-seafoam-500: #236762;
+  --dh-color-seafoam-600: #387f7a;
+  --dh-color-seafoam-700: #4d9892;
+  --dh-color-seafoam-800: #67b1ab;
+  --dh-color-seafoam-900: #80cbc4;
+  --dh-color-seafoam-1000: #97ded7;
+  --dh-color-seafoam-1100: #b1f0ea;
+  --dh-color-seafoam-1200: #cbfef9;
+  --dh-color-seafoam-1300: #ddfffd;
+  --dh-color-seafoam-1400: #e8fefb;
+
+  /* Cyan palette */
+  --dh-color-cyan-100: #002229;
+  --dh-color-cyan-200: #002f38;
+  --dh-color-cyan-300: #003d47;
+  --dh-color-cyan-400: #00525d;
+  --dh-color-cyan-500: #006a78;
+  --dh-color-cyan-600: #008393;
+  --dh-color-cyan-700: #009dad;
+  --dh-color-cyan-800: #29b6c7;
+  --dh-color-cyan-900: #4dd0e1;
+  --dh-color-cyan-1000: #6ce3f3;
+  --dh-color-cyan-1100: #8ff5ff;
+  --dh-color-cyan-1200: #b3ffff;
+  --dh-color-cyan-1300: #cff;
+  --dh-color-cyan-1400: #dfffff;
+
+  /* Blue palette */
+  --dh-color-blue-100: #00122a;
+  --dh-color-blue-200: #001e3c;
+  --dh-color-blue-300: #002a4f;
+  --dh-color-blue-400: #003d69;
+  --dh-color-blue-500: #005387;
+  --dh-color-blue-600: #176ba4;
+  --dh-color-blue-700: #2f83c1;
+  --dh-color-blue-800: #4a9cdb;
+  --dh-color-blue-900: #64b5f6;
+  --dh-color-blue-1000: #7cc8ff;
+  --dh-color-blue-1100: #a0dbff;
+  --dh-color-blue-1200: #c0eaff;
+  --dh-color-blue-1300: #daf5ff;
+  --dh-color-blue-1400: #e7fbff;
+
+  /* Indigo palette */
+  --dh-color-indigo-100: #060720;
+  --dh-color-indigo-200: #0e1131;
+  --dh-color-indigo-300: #181c43;
+  --dh-color-indigo-400: #272d5c;
+  --dh-color-indigo-500: #394179;
+  --dh-color-indigo-600: #4d5795;
+  --dh-color-indigo-700: #626eb1;
+  --dh-color-indigo-800: #7986cb;
+  --dh-color-indigo-900: #919fe6;
+  --dh-color-indigo-1000: #a4b2f7;
+  --dh-color-indigo-1100: #b8c6ff;
+  --dh-color-indigo-1200: #cbd7ff;
+  --dh-color-indigo-1300: #dce5ff;
+  --dh-color-indigo-1400: #ebf0ff;
+
+  /* Purple palette */
+  --dh-color-purple-100: #251c33;
+  --dh-color-purple-200: #322644;
+  --dh-color-purple-300: #3f3256;
+  --dh-color-purple-400: #53436e;
+  --dh-color-purple-500: #6a578a;
+  --dh-color-purple-600: #826da5;
+  --dh-color-purple-700: #9a85c1;
+  --dh-color-purple-800: #b39ddb;
+  --dh-color-purple-900: #ccb6f6;
+  --dh-color-purple-1000: #dfcaff;
+  --dh-color-purple-1100: #f0e2ff;
+  --dh-color-purple-1200: #fcf4ff;
+  --dh-color-purple-1300: #fcf4ff;
+  --dh-color-purple-1400: #fbf5ff;
+
+  /* Fuchsia palette */
+  --dh-color-fuchsia-100: #280030;
+  --dh-color-fuchsia-200: #390044;
+  --dh-color-fuchsia-300: #4b0058;
+  --dh-color-fuchsia-400: #607;
+  --dh-color-fuchsia-500: #86009b;
+  --dh-color-fuchsia-600: #a700c0;
+  --dh-color-fuchsia-700: #c514df;
+  --dh-color-fuchsia-800: #e040fb;
+  --dh-color-fuchsia-900: #f56dff;
+  --dh-color-fuchsia-1000: #fb96ff;
+  --dh-color-fuchsia-1100: #ffb9ff;
+  --dh-color-fuchsia-1200: #ffd4ff;
+  --dh-color-fuchsia-1300: #ffe9ff;
+  --dh-color-fuchsia-1400: #ffefff;
+
+  /* Magenta palette */
+  --dh-color-magenta-100: #400016;
+  --dh-color-magenta-200: #550020;
+  --dh-color-magenta-300: #6b002b;
+  --dh-color-magenta-400: #89003b;
+  --dh-color-magenta-500: #ab064e;
+  --dh-color-magenta-600: #cb2864;
+  --dh-color-magenta-700: #ec407a;
+  --dh-color-magenta-800: #ff5d92;
+  --dh-color-magenta-900: #ff93b0;
+  --dh-color-magenta-1000: #ffb4c7;
+  --dh-color-magenta-1100: #ffd3de;
+  --dh-color-magenta-1200: #ffebf1;
+  --dh-color-magenta-1300: #fff0f5;
+  --dh-color-magenta-1400: #fff0f5;
+
+  /* Accent colors - using red for the Red theme */
+  --dh-color-accent-100: var(--dh-color-red-100);
+  --dh-color-accent-200: var(--dh-color-red-200);
+  --dh-color-accent-300: var(--dh-color-red-300);
+  --dh-color-accent-400: var(--dh-color-red-400);
+  --dh-color-accent-500: var(--dh-color-red-500);
+  --dh-color-accent-600: var(--dh-color-red-600);
+  --dh-color-accent-700: var(--dh-color-red-700);
+  --dh-color-accent-800: var(--dh-color-red-800);
+  --dh-color-accent-900: var(--dh-color-red-900);
+  --dh-color-accent-1000: var(--dh-color-red-1000);
+  --dh-color-accent-1100: var(--dh-color-red-1100);
+  --dh-color-accent-1200: var(--dh-color-red-1200);
+  --dh-color-accent-1300: var(--dh-color-red-1300);
+  --dh-color-accent-1400: var(--dh-color-red-1400);
+
+  /* Accent semantic - adjusted to match theme's button colors */
+  --dh-color-accent: var(--dh-color-red-500);
+  --dh-color-accent-bg: var(--dh-color-red-500);
+  --dh-color-accent-hover-bg: var(--dh-color-red-600);
+  --dh-color-accent-down-bg: var(--dh-color-red-400);
+  --dh-color-accent-key-focus-bg: var(--dh-color-red-600);
+  --dh-color-accent-contrast: var(--dh-color-gray-900);
+
+  --dh-color-visual-positive: var(--dh-color-green-1100);
+  --dh-color-visual-negative: var(--dh-color-red-700);
+
+  /* Editor syntax highlighting - matching VS Code Red theme token colors */
+  /* Keywords (from, import, def): muted rose #98676A - using gray-600 */
+  --dh-color-editor-keyword: var(--dh-color-red-900);
+  --dh-color-editor-storage: var(--dh-color-red-900);
+
+  /* Strings: olive green #889B4A - using celery-900 */
+  --dh-color-editor-string: var(--dh-color-gray-700);
+  --dh-color-editor-string-delim: var(--dh-color-gray-900);
+
+  /* Numbers: orange #F79A32 - using orange-900 */
+  --dh-color-editor-number: var(--dh-color-gray-600);
+
+  /* Functions: teal #8AB1B0 - using seafoam-900 */
+  --dh-color-editor-identifier-js: var(--dh-color-seafoam-900);
+  --dh-color-editor-predefined: var(--dh-color-seafoam-900);
+
+  /* Classes/namespaces: orange-red #F06431 - using orange-800 */
+  --dh-color-editor-identifier-namespace: var(--dh-color-orange-800);
+
+  /* Variables: magenta #DC3958 - using magenta-700 */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+
+  /* Comments: pinkish/salmon - using gray-700 */
+  --dh-color-editor-comment: var(--dh-color-gray-800);
+
+  /* Operators/delimiters: foreground */
+  --dh-color-editor-operator: var(--dh-color-gray-900);
+  --dh-color-editor-delimiter: var(--dh-color-gray-900);
+
+  /* Bracket colors */
+  --dh-color-editor-bracket-fg1: var(--dh-color-yellow-1200);
+  --dh-color-editor-bracket-fg2: var(--dh-color-magenta-700);
+  --dh-color-editor-bracket-fg3: var(--dh-color-seafoam-900);
+  --dh-color-editor-bracket-fg4: var(--dh-color-orange-900);
+  --dh-color-editor-bracket-fg5: var(--dh-color-green-1000);
+  --dh-color-editor-bracket-fg6: var(--dh-color-cyan-900);
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-700);
+
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-50);
+}

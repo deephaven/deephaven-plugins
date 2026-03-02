@@ -1,12 +1,35 @@
 import { DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
+import PivotColumnHeaderGroup, {
+  isPivotColumnHeaderGroup,
+} from './PivotColumnHeaderGroup';
+import type IrisGridPivotModel from './IrisGridPivotModel';
 
 export function isCorePlusDh(
   dh: typeof DhType | typeof CorePlusDhType
 ): dh is typeof CorePlusDhType {
   return 'coreplus' in dh;
+}
+
+/**
+ * Get all key column groups from the model
+ * @param model The pivot model
+ * @returns Array of PivotColumnHeaderGroup objects that are key column groups
+ */
+export function getKeyColumnGroups(
+  model: IrisGridPivotModel
+): PivotColumnHeaderGroup[] {
+  // Instead of iterating the entire map, iterate over the parent groups of the column 0
+  const keyColumnGroups: PivotColumnHeaderGroup[] = [];
+  // Iterate depth from 0 to max depth and get the header groups for column 0
+  for (let depth = 0; depth <= model.columnHeaderMaxDepth; depth += 1) {
+    const group = model.getColumnHeaderGroup(0, depth);
+    if (isPivotColumnHeaderGroup(group) && group.isKeyColumnGroup) {
+      keyColumnGroups.push(group);
+    }
+  }
+  return keyColumnGroups;
 }
 
 export const GRAND_TOTALS_GROUP_NAME = 'Grand Total';
@@ -21,6 +44,7 @@ export type PivotDisplayColumn = Omit<DisplayColumn, 'sort' | 'filter'> &
     description?: string;
     depth: number;
     isExpanded: boolean;
+    isFilterable: boolean;
     hasChildren: boolean;
   };
 
@@ -51,6 +75,7 @@ export function makeColumn({
   type,
   index,
   description,
+  isFilterable = false,
   isSortable = false,
   depth = ROOT_DEPTH,
   hasChildren = false,
@@ -68,6 +93,7 @@ export function makeColumn({
   type: string;
   index: number;
   description?: string;
+  isFilterable?: boolean;
   isSortable?: boolean;
   depth?: number;
   hasChildren?: boolean;
@@ -81,6 +107,7 @@ export function makeColumn({
     displayName,
     type,
     isPartitionColumn: false,
+    isFilterable,
     isSortable,
     isProxy,
     description,
@@ -246,10 +273,13 @@ export function makeColumnFromSource(
   index: number
 ): PivotDisplayColumn {
   const { name, type, isSortable, description } = source;
+  // All rowBy/columnBy sources are filterable
+  const isFilterable = true;
   return makeColumn({
     name,
     type,
     index,
+    isFilterable,
     isSortable,
     description,
     filter: source.filter.bind(source),

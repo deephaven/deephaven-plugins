@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.18.3 - 2026-01-15
+#### Bug Fixes
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>DH-21259: Fix maps and add docs (#1279) - (99656a9) - Joe
+
+- - -
+
 ## plotly-express-v0.18.2 - 2025-11-18
 #### Bug Fixes
 - DH-20908: Handle table disconnects in Plotly Express (#1267) - (37e8a11) - bmingles

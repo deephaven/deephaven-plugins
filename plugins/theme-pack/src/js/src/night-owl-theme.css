@@ -1,0 +1,341 @@
+/* Night Owl Theme for Deephaven */
+/* Generated from Night Owl VS Code theme */
+/* Source: https://github.com/sdras/night-owl-vscode-theme */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Background (#011627) at gray-100, Foreground (#d6deeb) at gray-900 */
+  --dh-color-gray-50: #000d1d;
+  --dh-color-gray-75: #012;
+  --dh-color-gray-100: #011627;
+  --dh-color-gray-200: #132738;
+  --dh-color-gray-300: #26384a;
+  --dh-color-gray-400: #445466;
+  --dh-color-gray-500: #637283;
+  --dh-color-gray-600: #8491a1;
+  --dh-color-gray-700: #a7b1c0;
+  --dh-color-gray-800: #c3ccda;
+  --dh-color-gray-900: #d6deeb;
+
+  /* ============ RED PALETTE ============ */
+  /* Night Owl Red - errors, warnings anchored at 600 */
+  --dh-color-red-100: #5b1a19;
+  --dh-color-red-200: #72201f;
+  --dh-color-red-300: #892525;
+  --dh-color-red-400: #a73231;
+  --dh-color-red-500: #cb4240;
+  --dh-color-red-600: #ef5350;
+  --dh-color-red-700: #ff706a;
+  --dh-color-red-800: #ffa098;
+  --dh-color-red-900: #ffc9c2;
+  --dh-color-red-1000: #ffe5e1;
+  --dh-color-red-1100: #fff1ee;
+  --dh-color-red-1200: #fff1ee;
+  --dh-color-red-1300: #fff1ee;
+  --dh-color-red-1400: #fff1ee;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* Night Owl Orange - numbers, constants anchored at 900 */
+  --dh-color-orange-100: #280200;
+  --dh-color-orange-200: #3a0700;
+  --dh-color-orange-300: #4d0f00;
+  --dh-color-orange-400: #671e04;
+  --dh-color-orange-500: #853014;
+  --dh-color-orange-600: #a24528;
+  --dh-color-orange-700: #c05b3c;
+  --dh-color-orange-800: #db7354;
+  --dh-color-orange-900: #f78c6c;
+  --dh-color-orange-1000: #ffa182;
+  --dh-color-orange-1100: #ffbea7;
+  --dh-color-orange-1200: #ffd6c5;
+  --dh-color-orange-1300: #ffe8dd;
+  --dh-color-orange-1400: #fff2e9;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* Night Owl Yellow - classes, type names anchored at 1000 */
+  --dh-color-yellow-100: #2f1c01;
+  --dh-color-yellow-200: #3f2603;
+  --dh-color-yellow-300: #4f3205;
+  --dh-color-yellow-400: #664310;
+  --dh-color-yellow-500: #81581e;
+  --dh-color-yellow-600: #9b6e33;
+  --dh-color-yellow-700: #b68647;
+  --dh-color-yellow-800: #d09e5f;
+  --dh-color-yellow-900: #ebb878;
+  --dh-color-yellow-1000: #ffcb8b;
+  --dh-color-yellow-1100: #ffe1ac;
+  --dh-color-yellow-1200: #fff4d6;
+  --dh-color-yellow-1300: #fff4d6;
+  --dh-color-yellow-1400: #fff6e3;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Night Owl Chartreuse - variables, attributes anchored at 1000 */
+  --dh-color-chartreuse-100: #1a2500;
+  --dh-color-chartreuse-200: #253200;
+  --dh-color-chartreuse-300: #304000;
+  --dh-color-chartreuse-400: #415400;
+  --dh-color-chartreuse-500: #556c00;
+  --dh-color-chartreuse-600: #6b8415;
+  --dh-color-chartreuse-700: #819d2d;
+  --dh-color-chartreuse-800: #99b64a;
+  --dh-color-chartreuse-900: #b2d064;
+  --dh-color-chartreuse-1000: #c5e478;
+  --dh-color-chartreuse-1100: #dbf69c;
+  --dh-color-chartreuse-1200: #ecffba;
+  --dh-color-chartreuse-1300: #f0ffcd;
+  --dh-color-chartreuse-1400: #f3fedf;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived - between chartreuse and green anchored at 1000 */
+  --dh-color-celery-100: #0d1c00;
+  --dh-color-celery-200: #162900;
+  --dh-color-celery-300: #203700;
+  --dh-color-celery-400: #2f4b00;
+  --dh-color-celery-500: #416300;
+  --dh-color-celery-600: #557b00;
+  --dh-color-celery-700: #6b9413;
+  --dh-color-celery-800: #82ae37;
+  --dh-color-celery-900: #9ac753;
+  --dh-color-celery-1000: #addb67;
+  --dh-color-celery-1100: #c4ed8c;
+  --dh-color-celery-1200: #d9fbac;
+  --dh-color-celery-1300: #eaffcb;
+  --dh-color-celery-1400: #f0ffde;
+
+  /* ============ GREEN PALETTE ============ */
+  /* Night Owl Green - added, success anchored at 900 */
+  --dh-color-green-100: #0f2000;
+  --dh-color-green-200: #182d00;
+  --dh-color-green-300: #213b00;
+  --dh-color-green-400: #304f00;
+  --dh-color-green-500: #426700;
+  --dh-color-green-600: #568019;
+  --dh-color-green-700: #6c9930;
+  --dh-color-green-800: #84b24b;
+  --dh-color-green-900: #9ccc65;
+  --dh-color-green-1000: #b0df7d;
+  --dh-color-green-1100: #c7f19a;
+  --dh-color-green-1200: #dcffb8;
+  --dh-color-green-1300: #e9ffd0;
+  --dh-color-green-1400: #efffe1;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Night Owl Seafoam - terminal green anchored at 900 */
+  --dh-color-seafoam-100: #020;
+  --dh-color-seafoam-200: #003004;
+  --dh-color-seafoam-300: #003f0a;
+  --dh-color-seafoam-400: #005415;
+  --dh-color-seafoam-500: #006e22;
+  --dh-color-seafoam-600: #008930;
+  --dh-color-seafoam-700: #00a53e;
+  --dh-color-seafoam-800: #00c055;
+  --dh-color-seafoam-900: #22da6e;
+  --dh-color-seafoam-1000: #52ed85;
+  --dh-color-seafoam-1100: #7cfea1;
+  --dh-color-seafoam-1200: #b0ffc4;
+  --dh-color-seafoam-1300: #d8ffe1;
+  --dh-color-seafoam-1400: #dcffe4;
+
+  /* ============ CYAN PALETTE ============ */
+  /* Night Owl Cyan - operators, tags anchored at 900 */
+  --dh-color-cyan-100: #012b25;
+  --dh-color-cyan-200: #013931;
+  --dh-color-cyan-300: #01483f;
+  --dh-color-cyan-400: #0c5d52;
+  --dh-color-cyan-500: #1d7568;
+  --dh-color-cyan-600: #348e80;
+  --dh-color-cyan-700: #4aa898;
+  --dh-color-cyan-800: #65c1b1;
+  --dh-color-cyan-900: #7fdbca;
+  --dh-color-cyan-1000: #97eedd;
+  --dh-color-cyan-1100: #b3fff1;
+  --dh-color-cyan-1200: #cdfffa;
+  --dh-color-cyan-1300: #d8fffa;
+  --dh-color-cyan-1400: #e5fff9;
+
+  /* ============ BLUE PALETTE ============ */
+  /* Night Owl Blue - constants, functions anchored at 900 */
+  --dh-color-blue-100: #030d2c;
+  --dh-color-blue-200: #081840;
+  --dh-color-blue-300: #102354;
+  --dh-color-blue-400: #1c356f;
+  --dh-color-blue-500: #2c4a8e;
+  --dh-color-blue-600: #3f61ab;
+  --dh-color-blue-700: #5378c9;
+  --dh-color-blue-800: #6a91e4;
+  --dh-color-blue-900: #82aaff;
+  --dh-color-blue-1000: #98beff;
+  --dh-color-blue-1100: #b6d2ff;
+  --dh-color-blue-1200: #cee3ff;
+  --dh-color-blue-1300: #e2f0ff;
+  --dh-color-blue-1400: #eef9ff;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Night Owl Indigo - ruler, between blue and purple anchored at 700 */
+  --dh-color-indigo-100: #081532;
+  --dh-color-indigo-200: #102046;
+  --dh-color-indigo-300: #182c5a;
+  --dh-color-indigo-400: #253e74;
+  --dh-color-indigo-500: #365393;
+  --dh-color-indigo-600: #4a6ab0;
+  --dh-color-indigo-700: #5e82ce;
+  --dh-color-indigo-800: #759be9;
+  --dh-color-indigo-900: #8db4ff;
+  --dh-color-indigo-1000: #a6c8ff;
+  --dh-color-indigo-1100: #c4dcff;
+  --dh-color-indigo-1200: #ddedff;
+  --dh-color-indigo-1300: #eef9ff;
+  --dh-color-indigo-1400: #eef9ff;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* Night Owl Purple - keywords, storage anchored at 900 */
+  --dh-color-purple-100: #190525;
+  --dh-color-purple-200: #270c36;
+  --dh-color-purple-300: #361548;
+  --dh-color-purple-400: #4a2461;
+  --dh-color-purple-500: #63377e;
+  --dh-color-purple-600: #7b4c99;
+  --dh-color-purple-700: #9561b5;
+  --dh-color-purple-800: #ad79cf;
+  --dh-color-purple-900: #c792ea;
+  --dh-color-purple-1000: #d9a6fb;
+  --dh-color-purple-1100: #eabdff;
+  --dh-color-purple-1200: #f5d3ff;
+  --dh-color-purple-1300: #fce5ff;
+  --dh-color-purple-1400: #fff1ff;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* Night Owl Fuchsia/Pink - booleans, null anchored at 900 */
+  --dh-color-fuchsia-100: #180001;
+  --dh-color-fuchsia-200: #2b0004;
+  --dh-color-fuchsia-300: #3f000a;
+  --dh-color-fuchsia-400: #5d0015;
+  --dh-color-fuchsia-500: #810023;
+  --dh-color-fuchsia-600: #a50033;
+  --dh-color-fuchsia-700: #c51646;
+  --dh-color-fuchsia-800: #e23b5d;
+  --dh-color-fuchsia-900: #ff5874;
+  --dh-color-fuchsia-1000: #ff788b;
+  --dh-color-fuchsia-1100: #ff9ca7;
+  --dh-color-fuchsia-1200: #ffb7bd;
+  --dh-color-fuchsia-1300: #ffcbcf;
+  --dh-color-fuchsia-1400: #ffd9dc;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* Derived - shifted from purple anchored at 900 */
+  --dh-color-magenta-100: #1f031d;
+  --dh-color-magenta-200: #2f082c;
+  --dh-color-magenta-300: #3f103c;
+  --dh-color-magenta-400: #561f52;
+  --dh-color-magenta-500: #72306c;
+  --dh-color-magenta-600: #8c4585;
+  --dh-color-magenta-700: #a75aa0;
+  --dh-color-magenta-800: #c172b9;
+  --dh-color-magenta-900: #dc8bd3;
+  --dh-color-magenta-1000: #eea0e5;
+  --dh-color-magenta-1100: #feb7f5;
+  --dh-color-magenta-1200: #fcf;
+  --dh-color-magenta-1300: #ffe0ff;
+  --dh-color-magenta-1400: #ffefff;
+
+  /* ============ SEMANTIC - ACCENT (Purple) ============ */
+  --dh-color-accent-100: var(--dh-color-purple-100);
+  --dh-color-accent-200: var(--dh-color-purple-200);
+  --dh-color-accent-300: var(--dh-color-purple-300);
+  --dh-color-accent-400: var(--dh-color-purple-400);
+  --dh-color-accent-500: var(--dh-color-purple-500);
+  --dh-color-accent-600: var(--dh-color-purple-600);
+  --dh-color-accent-700: var(--dh-color-purple-700);
+  --dh-color-accent-800: var(--dh-color-purple-800);
+  --dh-color-accent-900: var(--dh-color-purple-900);
+  --dh-color-accent-1000: var(--dh-color-purple-1000);
+  --dh-color-accent-1100: var(--dh-color-purple-1100);
+  --dh-color-accent-1200: var(--dh-color-purple-1200);
+  --dh-color-accent-1300: var(--dh-color-purple-1300);
+  --dh-color-accent-1400: var(--dh-color-purple-1400);
+
+  /* ============ SEMANTIC - POSITIVE (Green) ============ */
+  --dh-color-visual-positive: var(--dh-color-green-900);
+
+  /* ============ SEMANTIC - NEGATIVE (Fuchsia/Pink) ============ */
+  --dh-color-negative: var(--dh-color-fuchsia-900);
+  --dh-color-negative-bg: var(--dh-color-negative);
+  --dh-color-negative-hover-bg: var(--dh-color-fuchsia-800);
+  --dh-color-negative-down-bg: var(--dh-color-fuchsia-700);
+  --dh-color-negative-key-focus-bg: var(--dh-color-fuchsia-800);
+  --dh-color-visual-negative: var(--dh-color-fuchsia-900);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using Night Owl background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-200);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
+
+  /* Chart colorway using Night Owl palette colors */
+  --dh-color-chart-colorway: var(--dh-color-blue-900) var(--dh-color-cyan-900)
+    var(--dh-color-green-900) var(--dh-color-orange-900)
+    var(--dh-color-purple-900) var(--dh-color-yellow-1000)
+    var(--dh-color-red-600) var(--dh-color-fuchsia-900)
+    var(--dh-color-chartreuse-1000) var(--dh-color-indigo-700);
+
+  /* ============ EDITOR SEMANTIC - NIGHT OWL SYNTAX ============ */
+  /* Based on Night Owl VS Code theme syntax colors */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-100);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-200);
+  --dh-color-editor-selection-bg: var(--dh-color-gray-300);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
+
+  /* Code syntax highlighting per Night Owl */
+  --dh-color-editor-comment: var(
+    --dh-color-gray-500
+  ); /* Comments - muted gray-blue */
+  --dh-color-editor-keyword: var(
+    --dh-color-purple-900
+  ); /* Keywords - Purple #C792EA */
+  --dh-color-editor-storage: var(
+    --dh-color-purple-900
+  ); /* Storage types - Purple */
+  --dh-color-editor-number: var(
+    --dh-color-orange-900
+  ); /* Numbers - Orange #F78C6C */
+  --dh-color-editor-string: var(
+    --dh-color-yellow-1000
+  ); /* Strings - Yellow #ECC48D */
+  --dh-color-editor-string-delim: var(
+    --dh-color-chartreuse-1000
+  ); /* String delimiters */
+  --dh-color-editor-identifier: var(
+    --dh-color-gray-900
+  ); /* Default identifiers */
+  --dh-color-editor-identifier-js: var(
+    --dh-color-blue-900
+  ); /* Functions - Blue #82AAFF */
+  --dh-color-editor-identifier-namespace: var(
+    --dh-color-yellow-1000
+  ); /* Classes - Yellow #FFCB8B */
+  --dh-color-editor-predefined: var(
+    --dh-color-cyan-900
+  ); /* Support functions - Cyan #7FDBCA */
+  --dh-color-editor-operator: var(--dh-color-cyan-900); /* Operators - Cyan */
+  --dh-color-editor-delimiter: var(
+    --dh-color-gray-900
+  ); /* Delimiters - Foreground */
+  --dh-color-editor-error-fg: var(
+    --dh-color-red-600
+  ); /* Errors - Red #ef5350 */
+
+  /* Bracket colors - Night Owl style */
+  --dh-color-editor-bracket-fg1: var(--dh-color-yellow-1000);
+  --dh-color-editor-bracket-fg2: var(--dh-color-purple-900);
+  --dh-color-editor-bracket-fg3: var(--dh-color-blue-900);
+  --dh-color-editor-bracket-fg4: var(--dh-color-cyan-900);
+  --dh-color-editor-bracket-fg5: var(--dh-color-orange-900);
+  --dh-color-editor-bracket-fg6: var(--dh-color-chartreuse-1000);
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-600);
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-400);
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-800);
+}
