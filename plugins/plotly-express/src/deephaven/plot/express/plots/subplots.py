@@ -444,6 +444,7 @@ def atomic_make_subplots(
     row_heights = list(reversed(row_heights))
 
     top_margin = 0.0
+
     if title and subplot_titles:
         # there is a title and any subplot titles, so leave more space at the top
         # for the title
@@ -473,7 +474,7 @@ def atomic_make_subplots(
 
     # If there are subplot annotations and no overall title provided, remove the default title as it is
     # likely not desired
-    updated_title = False if subplot_annotations and not title else title
+    updated_title = "" if subplot_annotations and not title else title
 
     return atomic_layer(
         *[fig for fig_row in grid for fig in fig_row],
@@ -586,6 +587,7 @@ def make_subplots(
         is desired in that space.
       title:
         The overall title for the combined subplot figure.
+        If an empty string, no overall title is shown.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is not
         returned, the plotly figure passed will be assumed to be the return value.
