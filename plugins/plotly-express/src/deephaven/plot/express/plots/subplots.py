@@ -247,8 +247,9 @@ def map_user_index_to_grid_position(idx: int, rows: int, cols: int) -> tuple[int
     """Map user's natural index to reversed grid position
 
     Since the grid is reversed internally (to match plotly's bottom-to-top
-    coordinate system), we need to convert user's natural row-major index
-    (top-to-bottom, left-to-right) to the reversed grid position.
+    coordinate system where bottom-left is [0][0]), we need to convert user's
+    natural row-major index, (top-to-bottom, left-to-right, where top-left is [0][0])
+    to the reversed grid position.
 
     Args:
       idx: User's index in natural row-major order (0 = top-left)
@@ -272,7 +273,6 @@ def create_subplot_annotations(
     titles: list[str],
     col_starts: list[float],
     col_ends: list[float],
-    row_starts: list[float],
     row_ends: list[float],
     rows: int,
     cols: int,
@@ -281,10 +281,15 @@ def create_subplot_annotations(
 
     Args:
       titles: List of titles for each subplot
-      col_starts: List of column start positions
-      col_ends: List of column end positions
-      row_starts: List of row start positions
-      row_ends: List of row end positions
+      col_starts:
+        List of column start positions in user's natural order
+        (top-to-bottom, left-to-right, where top-left is [0][0])
+      col_ends:
+        List of column end positions in user's natural order
+        (top-to-bottom, left-to-right, where top-left is [0][0])
+      row_ends:
+        List of row end positions in user's natural order
+        (top-to-bottom, left-to-right, where top-left is [0][0])
       rows: Number of rows
       cols: Number of columns
 
@@ -334,14 +339,14 @@ def get_subplot_titles(
     """Get the list of subplot titles based on parameters
 
     Args:
-      grid: The grid of figures (already reversed)
+      grid: The grid of figures (already reversed in plotly's bottom-to-top order, bottom left is [0][0])
       subplot_titles: Explicit list of titles provided by user or
       True to extract from figures
       rows: Number of rows
       cols: Number of columns
 
     Returns:
-      List of titles in user's natural order (top-to-bottom, left-to-right)
+      List of titles in user's natural order (top-to-bottom, left-to-right, where top-left is [0][0])
 
     """
     if subplot_titles is True:
@@ -466,7 +471,6 @@ def atomic_make_subplots(
             final_subplot_titles,
             col_starts,
             col_ends,
-            row_starts,
             row_ends,
             rows,
             cols,
@@ -579,7 +583,7 @@ def make_subplots(
       subplot_titles:
         True by default, which automatically extracts and uses titles from the input figures
         as subplot titles.
-        If False, one of the subplot titles ends up as the chart title.
+        If False or an empty list/tuple, one of the subplot titles ends up as the chart title.
         See the title parameter to override this behavior.
         If a list or tuple is provided, these are the titles for each subplot.
         Titles are filled left to right, top to bottom.

@@ -714,6 +714,144 @@ class MakeSubplotsTestCase(BaseTestCase):
         self.assertEqual(annotations[0]["text"], "Plot 1")
         self.assertEqual(annotations[1]["text"], "Plot 2")
 
+    def test_make_subplots_override_figure_titles_with_subplot_titles(self):
+        """Test that explicit subplot_titles override figure titles"""
+        import src.deephaven.plot.express as dx
+
+        chart1 = dx.scatter(self.source, x="X", y="Y", title="Original Title 1")
+        chart2 = dx.scatter(self.source, x="X", y="Y", title="Original Title 2")
+        charts = dx.make_subplots(
+            chart1,
+            chart2,
+            rows=2,
+            subplot_titles=["Override 1", "Override 2"],
+        ).to_dict(self.exporter)
+
+        # Check that the override titles are used, not the original figure titles
+        layout = charts["plotly"]["layout"]
+        self.assertIn("annotations", layout)
+        annotations = layout["annotations"]
+        self.assertEqual(len(annotations), 2)
+        self.assertEqual(annotations[0]["text"], "Override 1")
+        self.assertEqual(annotations[1]["text"], "Override 2")
+
+    def test_make_subplots_with_subplot_titles_false(self):
+        """Test that subplot_titles=False shows no subplot titles"""
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y")
+        charts = dx.make_subplots(chart, chart, rows=2, subplot_titles=False).to_dict(
+            self.exporter
+        )
+
+        # Check that no annotations were added
+        layout = charts["plotly"]["layout"]
+        # Should not have annotations or should be empty
+        annotations = layout.get("annotations", [])
+        self.assertEqual(len(annotations), 0)
+
+    def test_make_subplots_figures_with_titles_and_subplot_titles_false(self):
+        """Test that figures with titles don't show subplot titles when subplot_titles=False"""
+        import src.deephaven.plot.express as dx
+
+        chart1 = dx.scatter(self.source, x="X", y="Y", title="First Chart")
+        chart2 = dx.scatter(self.source, x="X", y="Y", title="Second Chart")
+        charts = dx.make_subplots(chart1, chart2, rows=2, subplot_titles=False).to_dict(
+            self.exporter
+        )
+
+        # Check that no annotations were added even though figures have titles
+        layout = charts["plotly"]["layout"]
+        annotations = layout.get("annotations", [])
+        self.assertEqual(len(annotations), 0)
+
+    def test_make_subplots_with_empty_list_subplot_titles(self):
+        """Test that subplot_titles=[] behaves like False (no titles)"""
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y", title="First Chart")
+        charts = dx.make_subplots(chart, chart, rows=2, subplot_titles=[]).to_dict(
+            self.exporter
+        )
+
+        # Check that no annotations were added
+        layout = charts["plotly"]["layout"]
+        annotations = layout.get("annotations", [])
+        self.assertEqual(len(annotations), 0)
+
+    def test_make_subplots_with_too_few_subplot_titles(self):
+        """Test that too few subplot_titles leaves remaining subplots without titles"""
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y")
+        charts = dx.make_subplots(
+            chart, chart, chart, rows=1, cols=3, subplot_titles=["First"]
+        ).to_dict(self.exporter)
+
+        # Check that only 1 annotation was created
+        layout = charts["plotly"]["layout"]
+        self.assertIn("annotations", layout)
+        annotations = layout["annotations"]
+        self.assertEqual(len(annotations), 1)
+        self.assertEqual(annotations[0]["text"], "First")
+
+    def test_make_subplots_mixed_figures_with_and_without_titles(self):
+        """Test extraction when some figures have titles and some don't"""
+        import src.deephaven.plot.express as dx
+
+        chart1 = dx.scatter(self.source, x="X", y="Y", title="Has Title")
+        chart2 = dx.scatter(self.source, x="X", y="Y")  # No title
+        chart3 = dx.scatter(self.source, x="X", y="Y", title="Also Has Title")
+        charts = dx.make_subplots(chart1, chart2, chart3, rows=1, cols=3).to_dict(
+            self.exporter
+        )
+
+        # Check that annotations were added, with empty string for chart without title
+        layout = charts["plotly"]["layout"]
+        self.assertIn("annotations", layout)
+        annotations = layout["annotations"]
+
+        # Should have 2 annotations (empty titles are skipped)
+        self.assertEqual(len(annotations), 2)
+        self.assertEqual(annotations[0]["text"], "Has Title")
+        self.assertEqual(annotations[1]["text"], "Also Has Title")
+
+    def test_make_subplots_overall_title_with_subplot_titles_false(self):
+        """Test that overall title works even when subplot_titles=False"""
+        import src.deephaven.plot.express as dx
+
+        chart1 = dx.scatter(self.source, x="X", y="Y", title="Chart 1")
+        chart2 = dx.scatter(self.source, x="X", y="Y", title="Chart 2")
+        charts = dx.make_subplots(
+            chart1, chart2, rows=2, subplot_titles=False, title="Overall Title"
+        ).to_dict(self.exporter)
+
+        # Check that overall title exists but no subplot titles
+        layout = charts["plotly"]["layout"]
+        self.assertIn("title", layout)
+        self.assertEqual(layout["title"]["text"], "Overall Title")
+
+        # No subplot annotations
+        annotations = layout.get("annotations", [])
+        self.assertEqual(len(annotations), 0)
+
+    def test_make_subplots_override_with_empty_string(self):
+        """Test that explicit empty string in subplot_titles overrides figure title"""
+        import src.deephaven.plot.express as dx
+
+        chart1 = dx.scatter(self.source, x="X", y="Y", title="Original 1")
+        chart2 = dx.scatter(self.source, x="X", y="Y", title="Original 2")
+        charts = dx.make_subplots(
+            chart1, chart2, rows=2, subplot_titles=["", "Override 2"]
+        ).to_dict(self.exporter)
+
+        # Check that only the non-empty override title appears
+        layout = charts["plotly"]["layout"]
+        self.assertIn("annotations", layout)
+        annotations = layout["annotations"]
+        self.assertEqual(len(annotations), 1)
+        self.assertEqual(annotations[0]["text"], "Override 2")
+
 
 if __name__ == "__main__":
     unittest.main()

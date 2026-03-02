@@ -151,5 +151,4 @@ keep_subplot_titles_fig = dx.make_subplots(
     dx.scatter(express_source, x="Values", y="Values2", title="Subplot 1"),
     dx.scatter(express_source, x="Values", y="Values2", title="Subplot 2"),
     cols=2,
-    subplot_titles=True,
 )
