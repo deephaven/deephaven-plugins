@@ -18,10 +18,7 @@ function NestedDashboard({
   const [layoutInitialized, setLayoutInitialized] = useState(false);
 
   return (
-    <div
-      className="dh-nested-dashboard"
-      style={{ width: '100%', height: '100%' }}
-    >
+    <div className="dh-nested-dashboard">
       {/* DHCDashboard creates GoldenLayout and provides LayoutManagerContext */}
       <DHCDashboard onLayoutInitialized={() => setLayoutInitialized(true)}>
         {plugins}

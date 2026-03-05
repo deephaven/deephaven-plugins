@@ -125,7 +125,7 @@ export function usePanelManager({
         log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
-        onDataChange({ ...widgetData, panelIds: panelIds.current });
+        onDataChange({ ...widgetData, panelIds: [...panelIds.current] });
       }
     },
     [isPanelsDirty, widget.id, onClose, onDataChange, widgetData]

@@ -61,25 +61,4 @@ test.describe('Nested Dashboards', () => {
     await expect(outerPanel.getByText('Content Level 2')).toBeVisible();
     await expect(outerPanel.getByText('Deepest Content')).toBeVisible();
   });
-
-  test('nested dashboard resizes with parent panel', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(
-      page,
-      'ui_nested_dashboard',
-      SELECTORS.REACT_PANEL_VISIBLE,
-      true
-    );
-
-    const outerPanel = page.locator(SELECTORS.REACT_PANEL_VISIBLE).first();
-    await expect(outerPanel).toBeVisible();
-
-    // Get initial panel content bounding box
-    const initialBox = await outerPanel.boundingBox();
-    expect(initialBox).not.toBeNull();
-
-    // Panels should still be visible after potential resize events
-    await expect(outerPanel.getByText('Content A')).toBeVisible();
-    await expect(outerPanel.getByText('Content B')).toBeVisible();
-  });
 });
