@@ -186,7 +186,7 @@ def dict_to_react_props(
 
 def _remove_nulls(obj: Any) -> Any:
     """
-    Recursively remove None values from nested dicts and lists.
+    Recursively remove None valued keys from nested dicts.
     """
     if isinstance(obj, dict):
         return {k: _remove_nulls(v) for k, v in obj.items() if v is not None}
