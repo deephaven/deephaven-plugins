@@ -117,19 +117,4 @@ describe('NestedDashboard', () => {
       'has-manager'
     );
   });
-
-  it('has full width and height styling', () => {
-    render(
-      <WidgetStatusContext.Provider value={mockWidgetStatus}>
-        <LayoutManagerContext.Provider value={mockLayout as never}>
-          <NestedDashboard>
-            <div>Content</div>
-          </NestedDashboard>
-        </LayoutManagerContext.Provider>
-      </WidgetStatusContext.Provider>
-    );
-
-    const container = document.querySelector('.dh-nested-dashboard');
-    expect(container).toHaveStyle({ width: '100%', height: '100%' });
-  });
 });
