@@ -511,6 +511,14 @@ class UITableModel extends IrisGridModel {
     );
   }
 
+  formatColorForCell(column: ModelIndex, row: ModelIndex): string | null {
+    const color = this.getFormatOptionForCell(column, row, 'color');
+    if (color != null) {
+      return this.colorMap.get(color) ?? color;
+    }
+    return null;
+  }
+
   override colorForCell(
     column: ModelIndex,
     row: ModelIndex,
