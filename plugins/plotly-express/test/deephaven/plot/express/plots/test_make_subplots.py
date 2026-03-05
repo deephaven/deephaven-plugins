@@ -806,7 +806,7 @@ class MakeSubplotsTestCase(BaseTestCase):
             self.exporter
         )
 
-        # Check that annotations were added, with empty string for chart without title
+        # Check that annotations were added
         layout = charts["plotly"]["layout"]
         self.assertIn("annotations", layout)
         annotations = layout["annotations"]
