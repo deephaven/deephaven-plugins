@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.32.3 - 2026-03-05
+#### Bug Fixes
+- DH-21449: Fix flickering from cloning all objects in apply patch (#1309) - (e72ee74) - dgodinez-dh
+
+- - -
+
 ## ui-v0.32.2 - 2026-02-19
 #### Bug Fixes
 - DH-21670: Memory leak when using use_row_data hooks (#1305) - (274feda) - mofojed
