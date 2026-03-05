@@ -103,3 +103,15 @@ test('Candlestick chart loads', async ({ page }) => {
   await openPanel(page, 'candlestick_fig', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
+
+test('Titles fig loads', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'titles_fig', '.js-plotly-plot');
+    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Subplots fig loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'keep_subplot_titles_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
