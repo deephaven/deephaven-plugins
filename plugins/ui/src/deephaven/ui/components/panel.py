@@ -13,12 +13,12 @@ from .types import (
     Overflow,
     CSSProperties,
 )
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import Color
 
 
 def panel(
-    *children: Any,
+    *children: NodeType,
     title: str | None = None,
     direction: Direction | None = "column",
     wrap: Wrap | None = None,

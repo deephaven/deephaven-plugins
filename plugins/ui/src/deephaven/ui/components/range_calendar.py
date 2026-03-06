@@ -23,7 +23,7 @@ from ..types import (
     UndefinedType,
 )
 from .basic import component_element
-from .make_component import make_component
+from .component import component
 
 RangeCalendarElement = Element
 
@@ -78,7 +78,7 @@ def _convert_range_calendar_props(
     return props
 
 
-@make_component
+@component
 def range_calendar(
     value: DateRange | None | UndefinedType = Undefined,
     default_value: DateRange | None | UndefinedType = Undefined,

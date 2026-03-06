@@ -3,13 +3,13 @@ from typing import Any
 
 from .basic import component_element
 
-from ..elements import Element
+from ..elements import Element, NodeType
 
 from ..types import Key
 
 
 def tab(
-    *children: Any,
+    *children: NodeType,
     title: Any | None = None,
     key: Key | None = None,
     icon: Element | None = None,
