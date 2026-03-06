@@ -7,4 +7,5 @@ from .data_generators import (
     election,
     wind,
     gapminder,
+    fish_market,
 )
