@@ -43,7 +43,6 @@ import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
-  DatabarConfig,
   FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
@@ -91,14 +90,12 @@ function useThrowError(): [
 
 function useUITableModel({
   dh,
-  databars,
   table,
   layoutHints,
   format,
   columnDisplayNames,
 }: {
   dh: typeof DhType | null;
-  databars: DatabarConfig[];
   table: DhType.Table | null;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
@@ -118,7 +115,6 @@ function useUITableModel({
         const newModel = await makeUiTableModel(
           dh,
           table,
-          databars,
           layoutHints,
           format,
           columnDisplayNames
@@ -142,7 +138,6 @@ function useUITableModel({
       isCancelled = true;
     };
   }, [
-    databars,
     dh,
     table,
     layoutHints,
@@ -186,8 +181,6 @@ export function UITable({
   density,
   contextMenu = EMPTY_ARRAY as unknown as ResolvableUIContextItem[],
   contextHeaderMenu,
-  // TODO: #981 move databars to format and rewire for databar support
-  databars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
@@ -254,10 +247,14 @@ export function UITable({
   );
 
   const colorMap = useMemo(() => {
-    log.debug('Theme changed, updating databar color map', theme);
+    log.debug('Theme changed, updating color map', theme);
     const colorSet = new Set<string>();
-    databars?.forEach(databar => {
-      const { color, markers } = databar;
+    format.forEach(rule => {
+      const { mode } = rule;
+      if (mode?.type !== 'dataBar') {
+        return;
+      }
+      const { color, markers } = mode;
       if (color != null) {
         if (typeof color === 'string' || Array.isArray(color)) {
           [color].flat().forEach(c => colorSet.add(c));
@@ -293,11 +290,10 @@ export function UITable({
       newColorMap.set(key, value);
     });
     return newColorMap;
-  }, [theme, databars]);
+  }, [theme, format]);
 
   const model = useUITableModel({
     dh,
-    databars,
     table,
     layoutHints,
     format,

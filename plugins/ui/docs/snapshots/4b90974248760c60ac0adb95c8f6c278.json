@@ -1,1 +1,0 @@
-{"file":"components/table.md","objects":{"t":{"type":"deephaven.ui.Element","data":{"document":{"props":{"table":{"__dhObid":0},"showQuickFilters":false,"showGroupingColumn":true,"showSearch":false,"reverse":false,"databars":[{"column":"Sym","value_column":"Price","color":"info"}]},"__dhElemName":"deephaven.ui.elements.UITable"},"state":"{}"}}}}
