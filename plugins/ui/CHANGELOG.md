@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.31.4 - 2026-03-09
+#### Bug Fixes
+- DH-21449: Fix flickering from cloning all objects in apply patch… (#1313) - (eda29ae) - mofojed
+
+- - -
+
 ## ui-v0.31.3 - 2025-10-17
 #### Other
 - Build version bump, republish
