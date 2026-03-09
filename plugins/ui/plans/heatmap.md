@@ -1,24 +1,18 @@
 # DH-21376 ui.TableFormat Heatmaps
 
-Heatmaps are currently provided through inline string expressions in format_columns(). This is inconsistent with other formatting features that are handled through ui.TableFormat objects passed to the format_ parameter. Databars recently introduced a separate ui.TableFormat.mode parameter that allows structured, extensible formatting by specifying a mode object (see TableDatabar) for each column or set of columns.
-
-The new heatmap API lets you color table cells based on their values, with support for:
-
-- Lives in `ui.TableFormat` alongside databars
-- Supports auto min/max, diverging scales, multi-stop gradients, and theme colors
-- Interpolates colors client-side in oklab color space
+Heatmaps are currently provided through inline string expressions in format_columns(). This is inconsistent with other formatting features that are handled through ui.TableFormat objects passed to the format_ parameter. Databars recently introduced a separate ui.TableFormat.mode parameter that allows specifying a mode object (see TableDatabar) for each column or set of columns.
 
 ## Design decisions
 
 ### 1. Heatmap as a color value, not a mode
 
-Unlike databars which change how a cell renders, heatmaps just produce colors. So rather than putting heatmaps in `mode` alongside databars, `TableHeatmap` is a valid value for the `color` and `background_color` fields on `TableFormat`. This makes the placement self-evident from which property the heatmap is assigned to, eliminates any priority conflict between static colors and heatmaps on the same field, and allows composing heatmaps with databars naturally (e.g., heatmap background + databar overlay on the same column).
+Unlike databars which change how a cell renders, heatmaps just produce colors. So rather than putting heatmaps in `mode` alongside databars, `TableHeatmap` is a valid value for the `color` and `background_color` fields on `TableFormat`. This makes the placement self-evident from which property the heatmap is assigned to and allows composing heatmaps with databars naturally (e.g., heatmap background + databar overlay on the same column).
 
 The client distinguishes static colors from heatmaps by type: if the value is a string, it's a static color; if it's an object with `type: 'heatmap'`, it's a heatmap config.
 
 ### 2. CellRenderType
 
-Heatmaps don't need a custom render type like databars. They override the existing cell color methods. Conditional formatting (`if_`) targeting independent cells works alongside heatmaps, one applies to a given cell at a time.
+Heatmaps don't need a custom render type like databars.
 
 ### 3. Auto-contrast text color
 
@@ -33,11 +27,9 @@ Named color scales are specified as a string passed to the `colors` parameter. T
 - `"sequential"` — Accent color ramp: `["accent-200", "accent-500", "accent-700", "accent-900", "accent-1000", "accent-1100", "accent-1200", "accent-1300", "accent-1400"]`
 - `"diverging"` — Negative through neutral to positive: `["negative", "gray-50", "positive"]`
 
-**Scientific scales** use 9 fixed hex stops sampled from the canonical 256-value scales (oklab interpolation between stops keeps gradients smooth):
+**Scientific scales**:
 
 - `"viridis"`, `"plasma"`, `"inferno"`, `"magma"`, `"cividis"`
-
-Resolution happens on the TS side. Python passes the string as-is; TS looks it up from a `NAMED_SCALES` record. Theme-native entries contain DH color token names (resolved through the existing `colorMap`). Scientific entries contain hex strings.
 
 ```python
 ui.TableHeatmap(colors="viridis")
@@ -45,9 +37,7 @@ ui.TableHeatmap(colors="sequential")
 ui.TableHeatmap(colors="diverging")
 ```
 
-When `colors` is a string and no `mid` is set, the scale is used as-is. When `mid` is set, the scale is still used as-is (the symmetric normalization handles the diverging behavior). This means a user could write `colors="viridis", mid=0` — the viridis gradient would be centered on zero.
-
-Validation: when `colors` is a string, the TS side checks it against known scale names and logs a console warning if unrecognized (falling back to the default palette).
+When `colors` is a string and no `mid` is set, the scale is used as-is. When `mid` is set, the scale is still used as-is (the symmetric normalization handles the diverging behavior). This means a user could write `colors="viridis", mid=0` and the viridis gradient would be centered on zero.
 
 ### 5. Diverging Scales
 
