@@ -1,6 +1,7 @@
 import unittest
 
 from ..BaseTest import BaseTestCase
+import pandas.testing as tm
 
 
 class HierarchicalPreprocessorTestCase(BaseTestCase):
@@ -62,18 +63,18 @@ class HierarchicalPreprocessorTestCase(BaseTestCase):
                 "Names": ["A", "B", "C", "J", "K", "L"],
             }
         )
-        expected_df["Ids"] = expected_df["Ids"].astype("string[python]")
-        expected_df["Parents"] = expected_df["Parents"].astype("string[python]")
+        expected_df["Ids"] = expected_df["Ids"].astype("string")
+        expected_df["Parents"] = expected_df["Parents"].astype("string")
         expected_df["values"] = expected_df["values"].astype("Int64")
         expected_df["colors"] = expected_df["colors"].astype("Float64")
-        expected_df["Names"] = expected_df["Names"].astype("string[python]")
+        expected_df["Names"] = expected_df["Names"].astype("string")
         expected_df["ColorMask"] = expected_df["ColorMask"].astype("boolean")
         expected_df["ChildCount"] = expected_df["ChildCount"].astype("Int64")
 
         new_df = new_df.reindex(sorted(new_df.columns), axis=1)
         expected_df = expected_df.reindex(sorted(expected_df.columns), axis=1)
 
-        self.assertTrue(expected_df.equals(new_df))
+        tm.assert_frame_equal(expected_df, new_df)
 
     def test_hierarchical_preprocessor_color_mask(self):
         from deephaven.plot.express.preprocess.HierarchicalPreprocessor import (
@@ -118,18 +119,18 @@ class HierarchicalPreprocessorTestCase(BaseTestCase):
                 "Names": ["A", "B", "C", "J", "K", "L"],
             }
         )
-        expected_df["Ids"] = expected_df["Ids"].astype("string[python]")
+        expected_df["Ids"] = expected_df["Ids"].astype("string")
         expected_df["values"] = expected_df["values"].astype("Int64")
         expected_df["colors"] = expected_df["colors"].astype("Int32")
-        expected_df["Names"] = expected_df["Names"].astype("string[python]")
-        expected_df["Parents"] = expected_df["Parents"].astype("string[python]")
+        expected_df["Names"] = expected_df["Names"].astype("string")
+        expected_df["Parents"] = expected_df["Parents"].astype("string")
         expected_df["ColorMask"] = expected_df["ColorMask"].astype("boolean")
         expected_df["ChildCount"] = expected_df["ChildCount"].astype("Int64")
 
         new_df = new_df.reindex(sorted(new_df.columns), axis=1)
         expected_df = expected_df.reindex(sorted(expected_df.columns), axis=1)
 
-        self.assertTrue(expected_df.equals(new_df))
+        tm.assert_frame_equal(expected_df, new_df)
 
 
 if __name__ == "__main__":
