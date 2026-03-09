@@ -1,6 +1,6 @@
 # DH-21376 ui.TableFormat Heatmaps
 
-Heatmaps are currently provided through inline string expressions in format*columns(). This is inconsistent with other formatting features that are handled through ui.TableFormat objects passed to the format* parameter. Databars recently introduced a separate ui.TableFormat.mode parameter that allows structured, extensible formatting by specifying a mode object (see TableDatabar) for each column or set of columns.
+Heatmaps are currently provided through inline string expressions in format_columns(). This is inconsistent with other formatting features that are handled through ui.TableFormat objects passed to the format_ parameter. Databars recently introduced a separate ui.TableFormat.mode parameter that allows structured, extensible formatting by specifying a mode object (see TableDatabar) for each column or set of columns.
 
 The new heatmap API lets you color table cells based on their values, with support for:
 
@@ -51,7 +51,7 @@ Validation: when `colors` is a string, the TS side checks it against known scale
 
 ### 5. Diverging Scales
 
-Heatmap should accept a `mid` parameter, similar to Plotly's `color_continuous_midpoint`. `mid` should be a data value (not normalized) that always maps to position 0.5 in the color scale. If `mid` is set, the effective range should become symmetric around it:
+Heatmap should accept a `mid` parameter. `mid` should be a data value (not normalized) that always maps to position 0.5 in the color scale. If `mid` is set, the effective range should become symmetric around it:
 
 ```
 effective_min = mid - max(mid - data_min, data_max - mid)
@@ -111,11 +111,11 @@ class TableHeatmap:
 
     args:
         min: Minimum value for the heatmap range.
-            Defaults to the column minimum (auto-computed via TotalsTable + naturalJoin).
+            Defaults to the column minimum.
             If a column name is provided, the min is read per-row from that column.
             If a number is provided, it is used as a constant.
         max: Maximum value for the heatmap range.
-            Defaults to the column maximum (auto-computed via TotalsTable + naturalJoin).
+            Defaults to the column maximum.
             If a column name is provided, the max is read per-row from that column.
             If a number is provided, it is used as a constant.
         mid: Midpoint data value for diverging color scales.
@@ -143,7 +143,7 @@ class TableHeatmap:
     colors: str | list[Color] | list[tuple[float, Color]] | None = None
 ```
 
-Note: Unlike `TableDatabar`, there is no (legacy) `column` field. The target column comes from `TableFormat.cols`. The heatmap target (text vs background) is determined by which `TableFormat` field (`color` or `background_color`) the heatmap is assigned to.
+The heatmap target (text vs background) is determined by which `TableFormat` field (`color` or `background_color`) the heatmap is assigned to.
 
 ### Python: Updated `TableFormat`
 
@@ -171,10 +171,6 @@ export type HeatmapConfig = {
   colors?: string | string[] | ColorStop[]; // string = named scale; string[] = color list; at least 2 when array
 };
 ```
-
-Note: No `column` field. The column is set from `FormattingRule.cols`. Whether the heatmap targets text or background is determined by which field (`color` or `background_color`) contains the `HeatmapConfig`.
-
-`DatabarConfig` is unchanged (already has `type: 'databar'`).
 
 ```typescript
 export type FormattingRule = {
@@ -395,7 +391,7 @@ ui.table(
 - [ ] Python unit tests for serialization (various parameter combinations, including string scale names)
 - [ ] Python unit tests for validation (too few colors, heatmap without cols etc)
 - [ ] TypeScript unit tests for heatmap extraction from `color`/`background_color` fields
-- [ ] TypeScript unit tests for named scale resolution (known names, unknown names, theme-native vs scientific)
+- [ ] TypeScript unit tests for named scale resolution (known names, unknown names, theme-native)
 - [ ] TypeScript unit tests for color interpolation
 - [ ] TypeScript unit tests for normalization (sequential, diverging, edge cases)
 - [ ] TypeScript unit tests for default color selection
