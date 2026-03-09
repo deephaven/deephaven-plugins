@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.33.0 - 2026-03-09
+#### Features
+- (**ui**) DH-19818: add nested dashboard support (#1302) - (b8fd9ed) - *mofojed*
+
+- - -
+
 ## ui-v0.32.3 - 2026-03-05
 #### Bug Fixes
 - DH-21449: Fix flickering from cloning all objects in apply patch (#1309) - (e72ee74) - dgodinez-dh
