@@ -41,7 +41,8 @@ export type RowDataMap = Record<ColumnName, RowDataValue>;
 export type ColorGradient = string[];
 
 export type DatabarConfig = {
-  column: ColumnName;
+  type: 'dataBar';
+  column?: ColumnName;
   value_column?: ColumnName;
   min?: number | ColumnName;
   max?: number | ColumnName;
@@ -100,7 +101,6 @@ export type UITableProps = StyleProps & {
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  databars?: DatabarConfig[];
   [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 
