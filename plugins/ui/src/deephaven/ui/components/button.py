@@ -22,11 +22,11 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def button(
-    *children: Any,
+    *children: NodeType,
     variant: ButtonVariant | None = "accent",
     style: ButtonStyle | None = "fill",
     static_color: StaticColor | None = None,
