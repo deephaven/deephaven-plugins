@@ -102,11 +102,11 @@ class TableHeatmap:
     args:
         min: Minimum value for the heatmap range.
             Defaults to the column minimum.
-            If a column name is provided, the min is read per-row from that column.
+            If a column name is provided, the min is calculated from that column.
             If a number is provided, it is used as a constant.
         max: Maximum value for the heatmap range.
             Defaults to the column maximum.
-            If a column name is provided, the max is read per-row from that column.
+            If a column name is provided, the max is calculated from that column.
             If a number is provided, it is used as a constant.
         mid: Midpoint data value for diverging color scales.
             When set, the effective range is forced to be symmetric around this
