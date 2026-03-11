@@ -17,7 +17,7 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
-import { useWidget } from '@deephaven/jsapi-bootstrap';
+import { UriVariableDescriptor, useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { usePluginsElementMap } from '@deephaven/plugin';
@@ -44,7 +44,6 @@ import DocumentHandler from './DocumentHandler';
 import {
   transformNode,
   getComponentForElement,
-  WIDGET_ELEMENT,
   wrapCallable,
   DASHBOARD_ELEMENT,
 } from './WidgetUtils';
@@ -52,7 +51,6 @@ import WidgetStatusContext, {
   WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
@@ -61,7 +59,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
-  widgetDescriptor: WidgetDescriptor;
+  widgetDescriptor: WidgetDescriptor | UriVariableDescriptor;
 
   /** Widget ID maintained by the DashboardPlugin */
   id: string;
@@ -74,6 +72,9 @@ export interface WidgetHandlerProps {
 
   /** Triggered when the data in the widget changes. Only the changed data is provided. */
   onDataChange?: (data: WidgetDataUpdate) => void;
+
+  /** What to render when the document is empty and in a loading state */
+  renderEmptyDocument?: () => JSX.Element | JSX.Element[] | null;
 }
 
 function WidgetHandler({
@@ -82,11 +83,10 @@ function WidgetHandler({
   widgetDescriptor,
   initialData: initialDataProp,
   id,
+  renderEmptyDocument: renderEmptyDocumentProp,
 }: WidgetHandlerProps): JSX.Element | null {
-  const layoutManager = useLayoutManager();
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
   const [isLoading, setIsLoading] = useState(true);
-  const [prevWidget, setPrevWidget] = useState<dh.Widget | null>(widget);
   const [prevWidgetDescriptor, setPrevWidgetDescriptor] =
     useState(widgetDescriptor);
   // Cannot use usePrevious to change setIsLoading
@@ -95,16 +95,6 @@ function WidgetHandler({
   if (widgetDescriptor !== prevWidgetDescriptor) {
     setPrevWidgetDescriptor(widgetDescriptor);
     setIsLoading(true);
-  }
-
-  if (widget !== prevWidget) {
-    setPrevWidget(widget);
-    if (widget != null && widget.type === DASHBOARD_ELEMENT) {
-      log.info(
-        'Dashboard widget has changed, removing previous elements from layout'
-      );
-      layoutManager.root.contentItems.forEach(item => item.remove());
-    }
   }
 
   if (widgetError != null && isLoading) {
@@ -187,19 +177,9 @@ function WidgetHandler({
      * Renders an empty document. This is used when the widget is loading or has an error.
      */
     () => {
-      // Document hasn't been initialized yet. Display a loading spinner if applicable.
-      if (widgetDescriptor.type === WIDGET_ELEMENT) {
-        // Rehydration. Mount ReactPanels for each panelId in the initial data
-        // so loading spinners or widget errors are shown
-        if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
-          // Do not add a key here
-          // When the real document mounts, it doesn't use keys and will cause a remount
-          // which triggers the DocumentHandler to think the panels were closed and messes up the layout
-          // eslint-disable-next-line react/jsx-key
-          return initialData.panelIds.map(() => <ReactPanel />);
-        }
-        // Default to a single panel so we can immediately show a loading spinner
-        return <ReactPanel />;
+      const result = renderEmptyDocumentProp?.();
+      if (result != null) {
+        return result;
       }
       if (error != null) {
         // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
@@ -209,7 +189,7 @@ function WidgetHandler({
       // Dashboards should not have a default document. It breaks its render flow
       return null;
     },
-    [error, initialData, widgetDescriptor]
+    [error, renderEmptyDocumentProp]
   );
 
   const [uriObjectMap] = useState<Map<string, UriExportedObject>>(new Map());
