@@ -395,13 +395,14 @@ After completing the above, you should be able to run the release script in the 
 
 ### Cutting a New Release
 
-In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
-This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` by default.
+Releases should be done weekly on Wednesday, unless there is an urgent need. Check which plugins have changes since the last release, by running the `tools/check_changes.sh` script. In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.
 
-You can specify a different remote using the `--remote` (or `-r`) flag:
+This must be done on the `main` branch and will publish to the remote named `origin` by default. You can specify a different remote using the `--remote` (or `-r`) flag:
+
 ```bash
 tools/release.sh --remote upstream <pluginName>
 ```
+
 This is useful when your `origin` points to a fork and you want to release to the upstream repository.
 
 `tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
@@ -413,6 +414,8 @@ During development, it is expected that all commit message will adhere to [conve
 See `cog.toml` to understand the full details of the release process.
 
 After you have successfully run `tools/release.sh` once, you should be able to directly invoke `cog bump --auto --package <pluginName>`, or omit the `--package` to release all plugins which have updated files.
+
+If you need to make a release that is just a patch version bump instead of automatically determining the version bump from commit messages, you can use `cog bump --patch --package <pluginName>`.
 
 ### Updating Versions in Source Code
 
