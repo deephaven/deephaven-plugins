@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
+import { UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { ReactPanelManager } from './ReactPanelManager';
@@ -16,7 +17,7 @@ const EMPTY_OBJECT = Object.freeze({});
 
 export interface UsePanelManagerProps {
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
-  widget: WidgetDescriptor;
+  widget: WidgetDescriptor | UriVariableDescriptor;
 
   /**
    * Data state to use when loading the widget.
@@ -59,6 +60,14 @@ export function usePanelManager({
   // Flag to signal the panel counts have changed in the last render
   // We may need to check if we need to close this widget if all panels are closed
   const [isPanelsDirty, setPanelsDirty] = useState(false);
+
+  const id = useMemo(
+    () =>
+      typeof widget === 'string'
+        ? widget
+        : widget.id ?? widget.name ?? widget.type,
+    [widget]
+  );
 
   const handleOpen = useCallback(
     (panelId: string) => {
@@ -115,20 +124,15 @@ export function usePanelManager({
 
       // Check if all the panels in this widget are closed
       // We do it outside of the `handleClose` function in case a new panel opens up in the same render cycle
-      log.debug2(
-        'Widget',
-        widget.id,
-        'open panel count',
-        panelIds.current.length
-      );
+      log.debug2('Widget', id, 'open panel count', panelIds.current.length);
       if (panelIds.current.length === 0) {
-        log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
+        log.debug('Widget', id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
         onDataChange({ ...widgetData, panelIds: [...panelIds.current] });
       }
     },
-    [isPanelsDirty, widget.id, onClose, onDataChange, widgetData]
+    [isPanelsDirty, id, onClose, onDataChange, widgetData]
   );
 
   const getPanelId = useCallback(() => {
