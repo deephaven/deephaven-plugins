@@ -1,6 +1,7 @@
 import React from 'react';
+import { usePanelId as useLayoutPanelId } from '@deephaven/dashboard';
 import { ElementIdProps, type DashboardElementProps } from './LayoutUtils';
-import { usePanelId } from './ReactPanelContext';
+import { usePanelId as useReactPanelId } from './ReactPanelContext';
 import NestedDashboard from './NestedDashboard';
 import DashboardContent from './DashboardContent';
 
@@ -12,12 +13,14 @@ import DashboardContent from './DashboardContent';
  */
 function Dashboard({
   children,
-  __dhId,
+  ...otherProps
 }: DashboardElementProps & ElementIdProps): JSX.Element | null {
-  const contextPanelId = usePanelId();
-  const isNested = contextPanelId != null;
+  const contextPanelId = useLayoutPanelId();
+  const reactPanelId = useReactPanelId();
+  const isNested = contextPanelId != null || reactPanelId != null;
   if (isNested) {
-    return <NestedDashboard __dhId={__dhId}>{children}</NestedDashboard>;
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <NestedDashboard {...otherProps}>{children}</NestedDashboard>;
   }
 
   return <DashboardContent>{children}</DashboardContent>;

@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { nanoid } from 'nanoid';
 import {
   DashboardPluginComponentProps,
   LayoutManagerContext,
@@ -7,18 +6,14 @@ import {
   PanelEvent,
   useListener,
   useDashboardPluginData,
-  emitCreateDashboard,
   WidgetDescriptor,
-  PanelOpenEventDetail,
   DEFAULT_DASHBOARD_ID,
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
-import { dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
-import styles from './styles.scss?inline';
 import {
   ReadonlyWidgetData,
   WidgetDataUpdate,
@@ -27,11 +22,6 @@ import {
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
-import {
-  getPreservedData,
-  DASHBOARD_ELEMENT,
-  WIDGET_ELEMENT,
-} from './widget/WidgetUtils';
 import { usePanelId } from './layout/ReactPanelContext';
 
 const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
@@ -63,6 +53,13 @@ interface WidgetWrapper {
   data?: ReadonlyWidgetData;
 }
 
+/**
+ * Handle legacy behaviour of an open widget being saved with the dashboard.
+ *
+ * Now UIWidgetPlugin is responsible for opening widgets in the dashboard.
+ * @param props Dashboard plugin props
+ * @returns Dashboard plugin content, which is responsible for handling legacy behaviour of an open widget being saved with the dashboard
+ */
 function InnerDashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
@@ -77,66 +74,6 @@ function InnerDashboardPlugin(
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<WidgetId, WidgetWrapper>
   >(new Map());
-
-  const handleWidgetOpen = useCallback(
-    ({ widgetId, widget }: { widgetId: string; widget: WidgetDescriptor }) => {
-      log.debug('Opening widget with ID', widgetId, widget);
-      setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map(prevWidgetMap);
-        const oldWidget = newWidgetMap.get(widgetId);
-        newWidgetMap.set(widgetId, {
-          id: widgetId,
-          widget,
-          data: getPreservedData(oldWidget?.data),
-        });
-        return newWidgetMap;
-      });
-    },
-    []
-  );
-
-  const handleDashboardOpen = useCallback(
-    ({
-      widget,
-      dashboardId,
-    }: {
-      widget: WidgetDescriptor;
-      dashboardId: string;
-    }) => {
-      const { name: title } = widget;
-      log.debug('Emitting create dashboard event for', dashboardId, widget);
-      emitCreateDashboard(layout.eventHub, {
-        pluginId: PLUGIN_NAME,
-        title: title ?? 'Untitled',
-        data: { openWidgets: { [dashboardId]: { descriptor: widget } } },
-      });
-    },
-    [layout.eventHub]
-  );
-
-  const handlePanelOpen = useCallback(
-    ({
-      panelId: widgetId = nanoid(),
-      widget,
-    }: PanelOpenEventDetail<dh.Widget>) => {
-      const { type } = widget;
-
-      switch (type) {
-        case WIDGET_ELEMENT: {
-          handleWidgetOpen({ widgetId, widget });
-          break;
-        }
-        case DASHBOARD_ELEMENT: {
-          handleDashboardOpen({ widget, dashboardId: widgetId });
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    },
-    [handleDashboardOpen, handleWidgetOpen]
-  );
 
   useEffect(
     function loadInitialPluginData() {
@@ -203,8 +140,6 @@ function InnerDashboardPlugin(
     });
   }, []);
 
-  // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
-  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const sendPluginDataUpdate = useCallback(
@@ -282,12 +217,18 @@ function InnerDashboardPlugin(
 
   return (
     <LayoutManagerContext.Provider value={layout}>
-      <style>{styles}</style>
       <PortalPanelManager>{widgetHandlers}</PortalPanelManager>
     </LayoutManagerContext.Provider>
   );
 }
 
+/**
+ * Dashboard plugin that registers the PortalPanel type for deephaven.ui
+ *
+ * It's also responsible for handling legacy behaviour, for old dashboards that may have opened a deephaven.ui widget previously.
+ * @param props Dashboard plugin props
+ * @returns Dashboard plugin
+ */
 export function DashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
