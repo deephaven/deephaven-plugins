@@ -43,9 +43,9 @@ jobs:
         run: |
           PACKAGE="${{ github.event.inputs.package }}"
           if [ -n "$PACKAGE" ]; then
-            npm publish --workspace="$PACKAGE"
+            npm publish --workspace="$PACKAGE" --tag ui-v0.31
           else
-            ./node_modules/.bin/lerna publish from-package --yes
+            ./node_modules/.bin/lerna publish from-package --dist-tag ui-v0.31 --yes
           fi
       - name: Publish canary packages
         if: ${{ github.event.inputs.preid }}
