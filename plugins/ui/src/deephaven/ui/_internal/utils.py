@@ -184,23 +184,11 @@ def dict_to_react_props(
     )
 
 
-def _remove_nested_nones(obj: Any) -> Any:
-    """
-    Recursively remove None valued keys from nested dicts.
-    """
-    if isinstance(obj, dict):
-        return {k: _remove_nested_nones(v) for k, v in obj.items() if v is not None}
-    if isinstance(obj, list):
-        return [_remove_nested_nones(item) for item in obj]
-    return obj
-
-
 def remove_empty_keys(
     dict: dict[str, Any], _nullable_props: list[str] = []
 ) -> dict[str, Any]:
     """
     Remove keys from a dict that have a value of None, or Undefined if in _nullable_props.
-    Recursively removes None values from nested dicts and lists within retained values.
 
     Args:
         dict: The dict to remove keys from.
@@ -213,12 +201,12 @@ def remove_empty_keys(
     for k, v in dict.items():
         if k in _nullable_props:
             if v is not Undefined:
-                cleaned[k] = _remove_nested_nones(v)
+                cleaned[k] = v
         else:
             if v is Undefined:
                 raise ValueError("UndefinedType found in a non-nullable prop.")
             elif v is not None:
-                cleaned[k] = _remove_nested_nones(v)
+                cleaned[k] = v
 
     return cleaned
 
