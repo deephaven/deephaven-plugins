@@ -32,6 +32,7 @@ import {
   DASHBOARD_ELEMENT,
   WIDGET_ELEMENT,
 } from './widget/WidgetUtils';
+import { usePanelId } from './layout/ReactPanelContext';
 
 const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
 
@@ -62,7 +63,7 @@ interface WidgetWrapper {
   data?: ReadonlyWidgetData;
 }
 
-export function DashboardPlugin(
+function InnerDashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
   const { id, layout } = props;
@@ -202,15 +203,6 @@ export function DashboardPlugin(
     });
   }, []);
 
-  useDashboardPanel({
-    dashboardProps: props,
-    componentName: PortalPanel.displayName,
-    component: PortalPanel,
-
-    // We don't want these panels to be triggered by a widget opening, we want to control how it is opened later
-    supportedTypes: [],
-  });
-
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
@@ -294,6 +286,31 @@ export function DashboardPlugin(
       <PortalPanelManager>{widgetHandlers}</PortalPanelManager>
     </LayoutManagerContext.Provider>
   );
+}
+
+export function DashboardPlugin(
+  props: DashboardPluginComponentProps
+): JSX.Element | null {
+  useDashboardPanel({
+    dashboardProps: props,
+    componentName: PortalPanel.displayName,
+    component: PortalPanel,
+
+    // We don't want these panels to be triggered by a widget opening, we want to control how it is opened later
+    supportedTypes: [],
+  });
+
+  const contextPanelId = usePanelId();
+  const isNested = contextPanelId != null;
+  if (isNested) {
+    // We don't want the InnerDashboardPlugin to render in nested dashboards, as we don't want to fetch the dashboard data/handle panel opens in that scenario
+    // It's all already handled by rendering the children.
+    // We just need to register the PortalPanel component in that Dashboard.
+    return null;
+  }
+
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <InnerDashboardPlugin {...props} />;
 }
 
 export default DashboardPlugin;

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, TypedDict
 import warnings
 
 from plotly import express as px
@@ -9,6 +9,18 @@ from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
 from ..types import PartitionableTableLike, TableLike
+
+
+class MapCenter(TypedDict):
+    """Center coordinates for map plots.
+
+    Attributes:
+        lat: Latitude coordinate
+        lon: Longitude coordinate
+    """
+
+    lat: float
+    lon: float
 
 
 def scatter_geo(
@@ -47,7 +59,7 @@ def scatter_geo(
     opacity: float | None = None,
     projection: str | None = None,
     scope: str | None = None,
-    center: dict[str, float] | None = None,
+    center: MapCenter | None = None,
     fitbounds: bool | str = False,
     basemap_visible: bool | None = None,
     title: str | None = None,
@@ -239,7 +251,7 @@ def scatter_map(
     color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     zoom: float | None = 0,
-    center: dict[str, float] | None = None,
+    center: MapCenter | None = None,
     map_style: str | None = None,
     title: str | None = None,
     template: str | None = None,
@@ -367,7 +379,7 @@ def line_geo(
     markers: bool = False,
     projection: str | None = None,
     scope: str | None = None,
-    center: dict[str, float] | None = None,
+    center: MapCenter | None = None,
     fitbounds: bool | str = False,
     basemap_visible: bool | None = None,
     title: str | None = None,
@@ -519,7 +531,7 @@ def line_map(
     width_map: dict[str | tuple[str], str] | None = None,
     zoom: float | None = 0,
     map_style: str | None = None,
-    center: dict[str, float] | None = None,
+    center: MapCenter | None = None,
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
@@ -636,7 +648,7 @@ def density_map(
     radius: int = 30,
     opacity: float | None = None,
     zoom: float | None = 0,
-    center: dict[str, float] | None = None,
+    center: MapCenter | None = None,
     map_style: str | None = None,
     title: str | None = None,
     template: str | None = None,
