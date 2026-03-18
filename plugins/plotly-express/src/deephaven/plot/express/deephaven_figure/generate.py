@@ -671,9 +671,11 @@ def handle_custom_args(
                 y_axis_generators.append(key_val_generator("range", val))
 
             elif arg == "xaxis_titles":
+                last_x_axis = max(1, last_x_axis)
                 x_axis_generators.append(title_generator(val))
 
             elif arg == "yaxis_titles":
+                last_y_axis = max(1, last_y_axis)
                 y_axis_generators.append(title_generator(val))
 
             elif arg == "bargap" or arg == "rangemode":
