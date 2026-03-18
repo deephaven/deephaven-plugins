@@ -131,6 +131,21 @@ class TableDatabar:
     markers: list[dict[str, Any]] | None = None
 
 
+def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
+    """Validate format rules for the table.
+
+    Args:
+        format_: A formatting rule or list of formatting rules to validate.
+
+    Raises:
+        ValueError: If a format rule has a mode but no cols.
+    """
+    format_list = format_ if isinstance(format_, list) else [format_]
+    for f in format_list:
+        if f.mode is not None and f.cols is None:
+            raise ValueError("TableFormat with mode requires cols to be specified.")
+
+
 class table(Element):
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -304,13 +319,7 @@ class table(Element):
             )
 
         if format_ is not None:
-            format_list = format_ if isinstance(format_, list) else [format_]
-            for f in format_list:
-                if f.mode is not None:
-                    if f.cols is None:
-                        raise ValueError(
-                            "TableFormat with mode requires cols to be specified. "
-                        )
+            _validate_table_format(format_)
 
         props = locals()
         props["table"] = resolve(table) if isinstance(table, str) else table
