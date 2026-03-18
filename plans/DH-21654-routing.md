@@ -297,20 +297,9 @@ def link(
 
 ### Arguments
 
-| Argument    | Type                      | Default    | Description                   |
-| ----------- | ------------------------- | ---------- | ----------------------------- |
-| `*children` | `Any`                     | (required) | Link content                  |
-| `to`        | `str \| NavigationTarget` | `None`     | Target location               |
-| ...         | ...                       | ...        | Standard layout/styling props |
-
-### `NavigationTarget` Fields
-
-| Field           | Type                  | Required | Description                         |
-| --------------- | --------------------- | -------- | ----------------------------------- |
-| `pathname`      | `str`                 | One of   | The path to navigate to (`"/path"`) |
-| `search_params` | `str \| SearchParams` | One of   | Query string or `SearchParams` dict |
-| `fragment`      | `str`                 | One of   | URL fragment (leading `#` optional) |
-| `full`          | `bool`                | No       | If `True`, navigate to full path    |
+| Argument | Type                      | Default | Description     |
+| -------- | ------------------------- | ------- | --------------- |
+| `to`     | `str \| NavigationTarget` | `None`  | Target location |
 
 ### Notes
 
