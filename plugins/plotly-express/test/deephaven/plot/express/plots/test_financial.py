@@ -108,6 +108,130 @@ class FinancialTestCase(BaseTestCase):
             expected_is_user_set_color=False,
         )
 
+    def test_ohlc_axis_titles(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.ohlc(
+            self.source,
+            x="X",
+            open="Open",
+            high="High",
+            low="Low",
+            close="Close",
+            xaxis_titles=["Time"],
+            yaxis_titles=["Price"],
+        ).to_dict(self.exporter)
+
+        expected_data = [
+            {
+                "close": PLOTLY_NULL_INT,
+                "high": PLOTLY_NULL_INT,
+                "low": PLOTLY_NULL_INT,
+                "open": PLOTLY_NULL_INT,
+                "type": "ohlc",
+                "x": PLOTLY_NULL_INT,
+            }
+        ]
+
+        expected_layout = {
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "Time"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 1.0],
+                "side": "left",
+                "title": {"text": "Price"},
+            },
+        }
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "Close": ["/plotly/data/0/close"],
+                    "High": ["/plotly/data/0/high"],
+                    "Low": ["/plotly/data/0/low"],
+                    "Open": ["/plotly/data/0/open"],
+                    "X": ["/plotly/data/0/x"],
+                },
+                "table": 0,
+            }
+        ]
+
+        self.assert_chart_equals(
+            chart,
+            expected_data=expected_data,
+            expected_layout=expected_layout,
+            expected_mappings=expected_mappings,
+            expected_is_user_set_template=False,
+            expected_is_user_set_color=False,
+        )
+
+    def test_candlestick_axis_titles(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.candlestick(
+            self.source,
+            x="X",
+            open="Open",
+            high="High",
+            low="Low",
+            close="Close",
+            xaxis_titles=["Time"],
+            yaxis_titles=["Price"],
+        ).to_dict(self.exporter)
+
+        expected_data = [
+            {
+                "close": PLOTLY_NULL_INT,
+                "high": PLOTLY_NULL_INT,
+                "low": PLOTLY_NULL_INT,
+                "open": PLOTLY_NULL_INT,
+                "type": "candlestick",
+                "x": PLOTLY_NULL_INT,
+            }
+        ]
+
+        expected_layout = {
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "Time"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 1.0],
+                "side": "left",
+                "title": {"text": "Price"},
+            },
+        }
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "Close": ["/plotly/data/0/close"],
+                    "High": ["/plotly/data/0/high"],
+                    "Low": ["/plotly/data/0/low"],
+                    "Open": ["/plotly/data/0/open"],
+                    "X": ["/plotly/data/0/x"],
+                },
+                "table": 0,
+            }
+        ]
+
+        self.assert_chart_equals(
+            chart,
+            expected_data=expected_data,
+            expected_layout=expected_layout,
+            expected_mappings=expected_mappings,
+            expected_is_user_set_template=False,
+            expected_is_user_set_color=False,
+        )
+
     def test_ohlc_calendar(self):
         import src.deephaven.plot.express as dx
 
