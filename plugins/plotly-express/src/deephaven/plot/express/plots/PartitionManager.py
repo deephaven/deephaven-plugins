@@ -647,9 +647,9 @@ class PartitionManager:
             The partition dictionary mapping column to value
         """
         # the table is guaranteed to be a partitioned table here
-        key_columns = cast(PartitionedTable, self.partitioned_table).key_columns
-        # sort the columns so the order is consistent
-        key_columns.sort()
+        key_columns: list[str] = sorted(
+            cast(PartitionedTable, self.partitioned_table).key_columns
+        )
 
         for table in self.constituents:
 
