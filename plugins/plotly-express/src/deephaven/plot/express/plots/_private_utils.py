@@ -325,7 +325,7 @@ def get_filter_columns(
         # if the table is already partitioned and filter_by is True,
         # use the key columns as the filter
         # this is a replacement for one_click_partitioned_table
-        filter_by = table.key_columns
+        filter_by = list(table.key_columns)
     elif filter_by is None or isinstance(filter_by, bool):
         filter_by = []
     elif isinstance(filter_by, str):
