@@ -61,25 +61,15 @@ def my_component():
 
 Returns search parameters as a dictionary.
 
-## Types
-
-```python
-SearchParamValue = str | list[str]
-SearchParams = Dict[str, SearchParamValue]
-```
-
-A `SearchParamValue` is a single string for parameters that appear once, or a list of strings for parameters that appear multiple times (e.g. `?tag=python&tag=java` → `{"tag": ["python", "java"]}`).
-
 ### API
 
 ```python
-def use_search_params() -> SearchParams:
+def use_search_params() -> dict[str, list[str]]:
     """
     Get the URL search parameters.
 
     Returns:
-        A dictionary mapping parameter names to their value (str) or values
-        (list[str]) if the parameter appears multiple times.
+        A dictionary mapping parameter names to lists of values.
     """
 ```
 
@@ -93,11 +83,9 @@ None.
 @ui.component
 def search_page():
     params = ui.use_search_params()
-    query = params.get("q", "")
-    page = params.get("page", "1")
-    # Multi-value: ?tag=python&tag=java → {"tag": ["python", "java"]}
+    query = params.get("q", [""])
+    page = params.get("page", ["1"])
     tags = params.get("tag", [])
-    tags = [tags] if isinstance(tags, str) else tags
     return ui.text(f"Searching: {query}, page {page}, tags {tags}")
 ```
 
