@@ -112,6 +112,7 @@ CUSTOM_LIST_ARGS.update(AXIS_SEQUENCE_ARGS)
 # pandas data frame separately
 CUSTOM_ARGS = {
     "bargap",
+    "is_marginal",
     "marginal",
     "marginal_x",
     "marginal_y",
@@ -938,8 +939,10 @@ def add_axis_titles(
     new_xaxis_titles = None
     new_yaxis_titles = None
 
-    if hist_agg_label:
+    if hist_agg_label and not custom_call_args.get("is_marginal"):
         # hist labels are already set up in the mapping
+        # skip for marginals since their axes are hidden and the title
+        # would otherwise trigger base axis generator side effects
         new_xaxis_titles = [hover_mapping[0].get("x", None)]
         new_yaxis_titles = [hover_mapping[0].get("y", None)]
 
