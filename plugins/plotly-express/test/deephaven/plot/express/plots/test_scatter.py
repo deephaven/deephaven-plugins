@@ -725,6 +725,7 @@ class ScatterTestCase(BaseTestCase):
                 "showgrid": False,
                 "showline": False,
                 "showticklabels": False,
+                "side": "bottom",
                 "ticks": "",
             },
             "yaxis3": {
@@ -734,6 +735,7 @@ class ScatterTestCase(BaseTestCase):
                 "showgrid": False,
                 "showline": False,
                 "showticklabels": False,
+                "side": "left",
                 "ticks": "",
             },
         }
