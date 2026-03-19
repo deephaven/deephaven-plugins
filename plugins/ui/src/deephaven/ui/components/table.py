@@ -313,6 +313,9 @@ class table(Element):
         right: DimensionValue | None = None,
         z_index: int | None = None,
     ) -> None:
+        # Keep this as the first line to prevent local vars from being captured as props
+        props = locals()
+
         if on_selection_change is not None and always_fetch_columns is None:
             raise ValueError(
                 "ui.table on_selection_change requires always_fetch_columns to be set"
@@ -321,7 +324,6 @@ class table(Element):
         if format_ is not None:
             _validate_table_format(format_)
 
-        props = locals()
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]
         self._props = props
