@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.19.0 - 2026-03-16
+#### Features
+- <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>DH-20808: Add subplot_titles and title parameters to make_subplots (#1283) - (a9a28ab) - Joe
+#### Bug Fixes
+- Correct version for deephaven-core (#1312) - (d4ca2a1) - Joe
+- DH-21383: Convert map center to TypedDict (#1285) - (9f279ae) - Joe
+- Specify Sphinx version constraint in requirements and fix tests (#1300) - (c29fbfc) - Joe
+
+- - -
+
 ## plotly-express-v0.18.3 - 2026-01-15
 #### Bug Fixes
 - <span style="background-color: #d73a49; color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 0.85em;">BREAKING</span>DH-21259: Fix maps and add docs (#1279) - (99656a9) - Joe
