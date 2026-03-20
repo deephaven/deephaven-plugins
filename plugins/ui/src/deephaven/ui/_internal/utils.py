@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,

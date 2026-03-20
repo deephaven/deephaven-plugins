@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import asdict as dataclass_asdict, is_dataclass
+from dataclasses import fields, is_dataclass
 import logging
 from typing import Any, Union
 
@@ -32,8 +32,9 @@ def _render_child_item(item: Any, parent_context: RenderContext, index_key: str)
 
     # If the item is an instance of a dataclass
     if is_dataclass(item) and not isinstance(item, type):
+        shallow = {f.name: getattr(item, f.name) for f in fields(item)}
         return _render_dict(
-            remove_empty_keys(dataclass_asdict(item)),
+            remove_empty_keys(shallow),
             parent_context.get_child_context(index_key),
         )
 
