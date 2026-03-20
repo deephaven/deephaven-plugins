@@ -584,3 +584,55 @@ No frontend changes needed — the existing Spectrum `Link` component renders th
 ## Documentation
 
 1. Update API docs for new hooks and functions
+
+## Future Routing Work
+
+Future routing work could build on the foundation laid out in this plan. Some possible directions include:
+
+### `use_params` with a Pattern Argument
+
+A simple way to get route params without a full router is to build a hook with a `pattern` argument, similar to `useParams` found in similar libraries but requiring the user to provide the pattern each time.
+
+```python
+@ui.component
+def user_post_view():
+    path, _ = ui.use_path()
+    # A simple pattern matcher that extracts params from the path
+    params = match_path("/users/:userId/posts/:postId", path)
+    # params == {"userId": "123", "postId": "456"} or None
+
+    if params is None:
+        return ui.text("Not found")
+
+    return ui.text(f"User {params['userId']}, Post {params['postId']}")
+```
+
+This approach does not scale and will not work for complex routing scenarios, but is a minimal way to get route params working without building a full router. This could be used as a workaround for a user, but would not be an official API.
+
+### Router with Context
+
+Context or some other form of state management can provide route params to child components. Full consideration for context management is outside the scope of this plan, but would enable a router component or hook to provide params to nested components.
+
+There are many options for router structure, but for illustration assume a simple `ui.router` component that provides route matching and param extraction:
+
+```python
+@ui.component
+def user_post_view():
+    params, set_params = ui.use_params()
+    # params == {"userId": "123", "postId": "456"}
+
+    user_id = params["userId"]
+    post_id = params["postId"]
+    return ui.text(f"User {user_id}, Post {post_id}")
+
+
+@ui.component
+def app():
+    return ui.router(
+        ui.route("/users/:userId/posts/:postId", element=user_post_view()),
+        ui.route("/users/:userId", element=...),
+        ui.route("/", element=...),
+    )
+```
+
+This approach is cohesive with the rest of the plan but requires substantial additional work.
