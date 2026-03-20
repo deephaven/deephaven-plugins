@@ -557,6 +557,7 @@ def shared_marginal(
     """
     if not is_marginal:
         return process_args(args, groups, px_func=func)
+    args["is_marginal"] = True
     return create_deephaven_figure(args, groups, px_func=func)[0]
 
 
