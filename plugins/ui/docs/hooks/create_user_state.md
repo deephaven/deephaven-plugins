@@ -6,7 +6,9 @@ Call `create_user_state` at module level (outside of any component) to create a 
 
 When all of a user's components using a shared store unmount, that user's state resets to the initial value.
 
-## Example
+## Examples
+
+### Basic example
 
 ```python
 from deephaven import ui
@@ -46,7 +48,7 @@ On **Deephaven Enterprise**, `create_user_state` uses `deephaven_enterprise.auth
 
 On **Deephaven Community** (where `deephaven_enterprise` is not installed), all callers share a single anonymous state — effectively behaving the same as `create_global_state`. This allows you to write code that works in both environments without modification.
 
-## User preferences example
+### User preferences example
 
 A common use case is per-user UI preferences:
 
@@ -97,7 +99,7 @@ picker = ui_page_size_picker()
 table_view = ui_paged_table()
 ```
 
-## Per-user selection tracking
+### Per-user selection tracking
 
 ```python
 from deephaven import ui
@@ -141,6 +143,75 @@ def ui_selection_summary():
 item_list = ui_item_list()
 summary = ui_selection_summary()
 ```
+
+### Custom hooks
+
+You can wrap the hook returned by `create_user_state` to build a custom hook with prepackaged behavior:
+
+```python
+from deephaven import ui
+
+_use_messages = ui.create_user_state([])
+
+
+def use_messages():
+    """A custom hook that adds convenience methods on top of user-scoped state."""
+    messages, set_messages = _use_messages()
+
+    def add(text):
+        set_messages(lambda prev: prev + [text])
+
+    def clear():
+        set_messages([])
+
+    return messages, add, clear
+
+
+@ui.component
+def ui_message_input():
+    text, set_text = ui.use_state("")
+    _, add, _ = use_messages()
+
+    def handle_add(_e):
+        if text.strip():
+            add(text.strip())
+            set_text("")
+
+    return ui.flex(
+        ui.text_field(label="Message", value=text, on_change=set_text),
+        ui.action_button("Send", on_press=handle_add),
+        direction="row",
+        gap="size-100",
+        align_items="end",
+    )
+
+
+@ui.component
+def ui_message_list():
+    messages, _, clear = use_messages()
+    return ui.flex(
+        ui.list_view(
+            *[ui.item(m) for m in messages],
+            aria_label="Messages",
+            selection_mode=None,
+        )
+        if messages
+        else ui.text("No messages yet"),
+        ui.action_button(
+            f"Clear ({len(messages)})",
+            on_press=lambda _e: clear(),
+            is_disabled=len(messages) == 0,
+        ),
+        direction="column",
+        gap="size-100",
+    )
+
+
+message_input = ui_message_input()
+message_list = ui_message_list()
+```
+
+Components call `use_messages()` and get back `add` and `clear` functions instead of a raw setter. Each user's messages are independent — on Enterprise, User A and User B see different lists.
 
 ## Cleanup behavior
 

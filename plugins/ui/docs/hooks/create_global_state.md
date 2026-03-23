@@ -6,7 +6,9 @@ Call `create_global_state` at module level (outside of any component) to create 
 
 When all components using a shared store unmount, the state resets to the initial value.
 
-## Example
+## Examples
+
+### Basic example
 
 ```python
 from deephaven import ui
@@ -43,7 +45,7 @@ In this example, clicking the button in `ui_counter_controls` will update the co
 3. **Keep state serializable**: As with `use_state`, use simple serializable values (numbers, strings, lists, dicts) when possible for best compatibility.
 4. **Prefer `create_user_state` for user-specific data**: If the state should be independent per user (e.g., user preferences or user-specific selections), use [`create_user_state`](create_user_state.md) instead.
 
-## Using updater functions
+### Using updater functions
 
 Like `use_state`, the setter function supports updater functions for state that depends on the previous value:
 
@@ -73,7 +75,7 @@ buttons = ui_increment_buttons()
 
 When an updater function is passed, it is resolved once using the current store value and the resolved value is broadcast to all subscribers. This ensures all components see the same value regardless of timing.
 
-## Shared filter example
+### Shared filter example
 
 A common use case is sharing filter criteria across multiple views:
 
@@ -108,7 +110,7 @@ slider = ui_filter_slider()
 filtered = ui_filtered_table()
 ```
 
-## Color theme toggler example
+### Color theme toggler example
 
 ```python
 from deephaven import ui
@@ -142,6 +144,73 @@ def ui_themed_card():
 toggle = ui_theme_toggle()
 card = ui_themed_card()
 ```
+
+### Custom hooks
+
+You can wrap the hook returned by `create_global_state` to build a custom hook with prepackaged behavior:
+
+```python
+from deephaven import ui
+
+_use_items = ui.create_global_state([])
+
+
+def use_items():
+    """A custom hook that adds convenience methods on top of shared state."""
+    items, set_items = _use_items()
+
+    def add(item):
+        set_items(lambda prev: prev + [item])
+
+    def clear():
+        set_items([])
+
+    return items, add, clear
+
+
+@ui.component
+def ui_item_input():
+    text, set_text = ui.use_state("")
+    items, add, _ = use_items()
+
+    def handle_add(_e):
+        if text.strip():
+            add(text.strip())
+            set_text("")
+
+    return ui.flex(
+        ui.text_field(label="Add item", value=text, on_change=set_text),
+        ui.action_button(f"Add ({len(items)})", on_press=handle_add),
+        direction="row",
+        gap="size-100",
+        align_items="end",
+    )
+
+
+@ui.component
+def ui_item_list():
+    items, _, clear = use_items()
+    return ui.flex(
+        ui.list_view(
+            *[ui.item(t) for t in items],
+            aria_label="Items",
+            selection_mode=None,
+        )
+        if items
+        else ui.text("No items yet"),
+        ui.action_button(
+            "Clear", on_press=lambda _e: clear(), is_disabled=len(items) == 0
+        ),
+        direction="column",
+        gap="size-100",
+    )
+
+
+item_input = ui_item_input()
+item_list = ui_item_list()
+```
+
+Components call `use_items()` and get back `add` and `clear` functions instead of a raw setter. The button label in the input panel shows the count, which updates when items are cleared from the list panel.
 
 ## Cleanup behavior
 
