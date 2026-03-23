@@ -222,20 +222,8 @@ If at least one subscriber remains active, the state is preserved.
 
 `create_global_state` is thread-safe. Multiple components can safely read and update the shared state concurrently. State updates are serialized internally using a lock.
 
-## API reference
+## API Reference
 
-```python skip-test
-use_hook = ui.create_global_state(initial_value)
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.create_global_state
 ```
-
-###### Parameters
-
-| Parameter       | Type | Description                                                 |
-| --------------- | ---- | ----------------------------------------------------------- |
-| `initial_value` | `T`  | The initial value for the shared state. Defaults to `None`. |
-
-###### Returns
-
-| Type                                                                | Description                                                                                                 |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `Callable[[], tuple[T, Callable[[T \| UpdaterFunction[T]], None]]]` | A hook function. When called inside a component, returns a `(value, set_value)` tuple matching `use_state`. |
