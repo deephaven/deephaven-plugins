@@ -221,20 +221,8 @@ When all components for a given user unmount, that user's state resets to the in
 
 `create_user_state` is thread-safe. Multiple users' components can safely read and update their state concurrently.
 
-## API reference
+## API Reference
 
-```python skip-test
-use_hook = ui.create_user_state(initial_value)
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.create_user_state
 ```
-
-###### Parameters
-
-| Parameter       | Type | Description                                                             |
-| --------------- | ---- | ----------------------------------------------------------------------- |
-| `initial_value` | `T`  | The initial value for the user-scoped shared state. Defaults to `None`. |
-
-###### Returns
-
-| Type                                                                | Description                                                                                                                                                    |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Callable[[], tuple[T, Callable[[T \| UpdaterFunction[T]], None]]]` | A hook function. When called inside a component, returns a `(value, set_value)` tuple matching `use_state`. The state is scoped to the current effective user. |
