@@ -134,9 +134,8 @@ def ui_themed_card():
     bg = "#1a1a2e" if theme == "dark" else "#ffffff"
     fg = "#ffffff" if theme == "dark" else "#000000"
     return ui.view(
-        ui.text(f"Current theme: {theme}"),
+        ui.text(f"Current theme: {theme}", color=fg),
         background_color=bg,
-        color=fg,
         padding="size-200",
     )
 
