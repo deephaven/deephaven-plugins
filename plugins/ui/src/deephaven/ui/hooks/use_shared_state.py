@@ -104,25 +104,6 @@ def create_global_state(
         A hook function that returns a `(value, set_value)` tuple, matching the
         `use_state` interface. The value and setter are shared across all components
         that call this hook.
-
-    Example::
-
-        from deephaven import ui
-
-        use_shared_counter = ui.create_global_state(0)
-
-        @ui.component
-        def ui_counter_display():
-            count, set_count = use_shared_counter()
-            return ui.text(f"Count: {count}")
-
-        @ui.component
-        def ui_counter_controls():
-            count, set_count = use_shared_counter()
-            return ui.button(f"Increment ({count})", on_press=lambda: set_count(count + 1))
-
-        display = ui_counter_display()
-        controls = ui_counter_controls()
     """
     store = _SharedStore(initial_value)
     return store.use
@@ -148,25 +129,6 @@ def create_user_state(
         A hook function that returns a `(value, set_value)` tuple, matching the
         `use_state` interface. The value and setter are shared across all components
         for the same effective user.
-
-    Example::
-
-        from deephaven import ui
-
-        use_user_name = ui.create_user_state("")
-
-        @ui.component
-        def ui_name_input():
-            name, set_name = use_user_name()
-            return ui.text_field(label="Your name", value=name, on_change=set_name)
-
-        @ui.component
-        def ui_greeting():
-            name, set_name = use_user_name()
-            return ui.text(f"Hello, {name or 'stranger'}!")
-
-        name_input = ui_name_input()
-        greeting = ui_greeting()
     """
     stores: Dict[str, _SharedStore[T]] = {}
     stores_lock = threading.Lock()

@@ -1,6 +1,6 @@
 # create_user_state
 
-`create_user_state` is a factory function that creates a shared state hook scoped to the current effective user. Like [`create_global_state`](create_global_state.md), the state is shared across all components that call the returned hook — but each user gets their own independent state. When User A updates a value, only User A's components re-render; User B's components remain unaffected.
+`create_user_state` creates a shared state hook scoped to the current effective user. Like [`create_global_state`](create_global_state.md), the state is shared across all components that call the returned hook — but each user gets their own independent state. When User A updates a value, only User A's components re-render; User B's components remain unaffected.
 
 Call `create_user_state` at module level (outside of any component) to create a store. Then call the returned hook inside `@ui.component` functions to subscribe.
 

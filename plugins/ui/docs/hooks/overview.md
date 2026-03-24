@@ -67,8 +67,8 @@ _Data_ hooks let you use data from within a Deephaven table in your component.
 
 _Shared state_ hooks let you create state that is shared across multiple components. Unlike `use_state`, which is local to a single component, shared state updates propagate to all components using the same store.
 
-- [`create_global_state`](create_global_state.md) creates a shared state hook that is global across all components and all users.
 - [`create_user_state`](create_user_state.md) creates a shared state hook scoped to the current effective user.
+- [`create_global_state`](create_global_state.md) creates a shared state hook that is global across all components and all users.
 
 ## Create custom hooks
 
