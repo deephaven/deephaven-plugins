@@ -23,9 +23,10 @@ class _SharedStore(Generic[T]):
     When all subscribers disconnect (unmount), the store resets to its initial value.
     """
 
-    def __init__(self, initial_value: T):
-        self._initial_value = initial_value
-        self._value = initial_value
+    def __init__(self, initial_value: T | Callable[[], T]):
+        resolved = initial_value() if callable(initial_value) else initial_value
+        self._initial_value = resolved
+        self._value = resolved
         self._subscribers: set[Callable[[T], None]] = set()
         self._lock = threading.Lock()
 
@@ -88,7 +89,7 @@ class _SharedStore(Generic[T]):
 
 
 def create_global_state(
-    initial_value: T = None,
+    initial_value: T | Callable[[], T] = None,
 ) -> Callable[[], tuple[T, Callable[[T | UpdaterFunction[T]], None]]]:
     """
     Create a shared state hook that is global across all components and all users.
@@ -98,7 +99,9 @@ def create_global_state(
     When all components using the store unmount, the state resets to `initial_value`.
 
     Args:
-        initial_value: The initial value for the shared state.
+        initial_value: The initial value for the shared state, or a callable that
+            returns the initial value. If a callable is provided, it will be invoked
+            once when the store is created.
 
     Returns:
         A hook function that returns a `(value, set_value)` tuple, matching the
@@ -110,7 +113,7 @@ def create_global_state(
 
 
 def create_user_state(
-    initial_value: T = None,
+    initial_value: T | Callable[[], T] = None,
 ) -> Callable[[], tuple[T, Callable[[T | UpdaterFunction[T]], None]]]:
     """
     Create a shared state hook that is scoped to the current effective user.
@@ -123,7 +126,9 @@ def create_user_state(
     anonymous store, behaving the same as `create_global_state`.
 
     Args:
-        initial_value: The initial value for the shared state.
+        initial_value: The initial value for the shared state, or a callable that
+            returns the initial value. If a callable is provided, it will be invoked
+            once per user when their store is created.
 
     Returns:
         A hook function that returns a `(value, set_value)` tuple, matching the
