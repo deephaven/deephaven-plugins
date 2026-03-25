@@ -402,11 +402,23 @@ class UITableModel extends IrisGridModel {
       negativeColor = this.colorMap.get(negativeColor) ?? negativeColor;
     }
 
+    const formatColor = this.getFormatOptionForCell(
+      columnIndex,
+      rowIndex,
+      'color'
+    );
+    const textColor =
+      formatColor != null
+        ? this.colorMap.get(formatColor) ?? formatColor
+        : undefined;
+
     return {
       columnMin: minRowValue,
       columnMax: maxRowValue,
       axis,
       color: value >= 0 ? positiveColor : negativeColor,
+      // @ts-expect-error TODO: bump web version
+      textColor,
       valuePlacement,
       opacity,
       markers,
@@ -509,14 +521,6 @@ class UITableModel extends IrisGridModel {
       format,
       this.getFormatOptionForCell(column, row, 'value') ?? format?.formatString
     );
-  }
-
-  formatColorForCell(column: ModelIndex, row: ModelIndex): string | null {
-    const color = this.getFormatOptionForCell(column, row, 'color');
-    if (color != null) {
-      return this.colorMap.get(color) ?? color;
-    }
-    return null;
   }
 
   override colorForCell(
