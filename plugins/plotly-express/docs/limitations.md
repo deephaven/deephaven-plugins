@@ -24,7 +24,7 @@ See more on flags [here](https://www.chromium.org/developers/how-tos/run-chromiu
 
 ## Plot By Performance
 
-When using the `by` parameter, the undqrlying table is partitioned by the specified columns(s). Each unique value (or combination) becomes a separate series in the plot, and each series maintains its own table subscription.
+When using the `by` parameter, the underlying table is partitioned by the specified column(s). Each unique value (or combination) becomes a separate series in the plot, and each series maintains its own table subscription.
 
 For a small number of unique groups, this is fine. But as a general rule of thumb, if a column has hundreds of unique values, the chart will create that many series and subscriptions, which can cause performance degradation.
 
