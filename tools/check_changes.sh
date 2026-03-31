@@ -66,7 +66,9 @@ done
 
 # If no plugins specified, check all
 if [ ${#plugins_to_check[@]} -eq 0 ]; then
-    mapfile -t plugins_to_check <<< "$all_plugins"
+    while IFS= read -r line; do
+        plugins_to_check+=("$line")
+    done <<< "$all_plugins"
 fi
 
 cd "$ROOT_DIR"
