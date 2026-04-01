@@ -38,10 +38,10 @@ This plan details the implementation of single page application routing features
 A type alias for query parameter dictionaries used throughout the routing API.
 
 ```python
-QueryParams = dict[str, str | list[str]]
+QueryParams = dict[str, list[str]]
 ```
 
-Keys are parameter names. Values are either a single `str` (for single-value params) or a `list[str]` (for multi-value params). When serialised to a URL, list values repeat the key — `{"tag": ["python", "java"]}` becomes `?tag=python&tag=java`.
+Keys are parameter names. Values are always `list[str]` whether there is one parameter or multiple. When serialised to a URL, list values repeat the key — `{"tag": ["python", "java"]}` becomes `?tag=python&tag=java`.
 
 Used by `use_navigate`, `use_set_query_param`, `ui.link` (`NavigationTarget`), and any other API that accepts query parameters.
 
@@ -218,13 +218,13 @@ def tag_filter():
 
     # Use use_set_query_param to get setters
     set_page = ui.use_set_query_param("page")
-    set_tags = ui.use_set_query_param("tag", [])
+    set_tags = ui.use_set_query_param("tag")
 
     def next_page():
         set_page(str(int(page or "0") + 1))
 
     def clear_page():
-        set_page()  # No value → sets to default (None), removing ?page from URL
+        set_page()  # No value → removes ?page from URL
 
     def add_tag():
         set_tags([*tags, "rust"])
@@ -241,28 +241,13 @@ def tag_filter():
 
 ## 4. `use_set_query_param` Hook
 
-Returns a setter function for a single query parameter. If no value is passed to the setter, it resets the parameter to its `default` value.
+Returns a setter function for a single query parameter. Calling the setter with no value, `None`, or `[]` removes the parameter from the URL.
 
 ### API
 
 ```python
-@overload
-def use_set_query_param(
-    key: str, default: None = None, replace: bool = True
-) -> Callable[..., None]:
-    ...
-
-
-@overload
-def use_set_query_param(
-    key: str, default: list[str], replace: bool = True
-) -> Callable[..., None]:
-    ...
-
-
 def use_set_query_param(
     key: str,
-    default: None | list[str] = None,
     replace: bool = True,
 ) -> Callable[..., None]:
     """
@@ -272,39 +257,33 @@ def use_set_query_param(
 
     Args:
         key: The query parameter name to set.
-        default: The value to use when the setter is called with no value argument.
-            Also determines the type of value the setter accepts.
-            Defaults to None (which removes the parameter when called with no value).
         replace: If True, replaces the current history entry instead of pushing a new one. Set to False to push a new history entry on each change.
 
     Returns:
         A setter function with signature:
-            set_value(value=<default>) -> None
+            set_value(value: None | str | list[str] = None) -> None
 
-        - value: The value to set. Optional — if omitted, sets the parameter
-          to `default` (e.g. None removes the key, [] clears the list).
-          When default is None: accepts str | None.
-          When default is list[str]: accepts list[str].
+        - value: The value to set. If omitted, None, or [],
+          the key is removed.
     """
 ```
 
 ### Arguments
 
-| Argument  | Type                | Default | Description                                                                              |
-| --------- | ------------------- | ------- | ---------------------------------------------------------------------------------------- |
-| `key`     | `str`               | —       | The query parameter name                                                                 |
-| `default` | `None \| list[str]` | `None`  | Value used when setter is called with no value argument                                  |
-| `replace` | `bool`              | `True`  | Whether to replace the current history entry or push a new one when the setter is called |
+| Argument  | Type   | Default | Description                                                                              |
+| --------- | ------ | ------- | ---------------------------------------------------------------------------------------- |
+| `key`     | `str`  | —       | The query parameter name                                                                 |
+| `replace` | `bool` | `True`  | Whether to replace the current history entry or push a new one when the setter is called |
 
 ### Setter Arguments
 
-| Argument | Type                         | Default   | Description                                                            |
-| -------- | ---------------------------- | --------- | ---------------------------------------------------------------------- |
-| `value`  | `str \| None` or `list[str]` | `default` | The value to set. Type depends on `default`. Omit to set to `default`. |
+| Argument | Type                       | Default | Description                                                      |
+| -------- | -------------------------- | ------- | ---------------------------------------------------------------- |
+| `value`  | `None \| str \| list[str]` | `None`  | The value to set. `None` or `[]` removes the key. Omit to clear. |
 
 ### Notes
 
-- Calling the setter with no arguments sets the parameter to its `default` — `None` removes the key from the URL, `[]` clears all values for the key.
+- Calling the setter with no arguments, `None`, or `[]` removes the key from the URL.
 
 ### Example
 
@@ -315,13 +294,13 @@ def tag_filter():
     tags = ui.use_query_param("tag", [])
 
     set_page = ui.use_set_query_param("page")
-    set_tags = ui.use_set_query_param("tag", [])
+    set_tags = ui.use_set_query_param("tag")
 
     def next_page():
         set_page(str(int(page or "0") + 1))
 
     def clear_page():
-        set_page()  # No value → sets to default (None), removing ?page from URL
+        set_page()  # No value → removes ?page from URL
 
     def add_tag():
         set_tags([*tags, "rust"])  # Appends "rust" to existing tags
@@ -330,7 +309,7 @@ def tag_filter():
         set_tags(["python", "java"])  # Overwrites all tags
 
     def clear_tags():
-        set_tags()  # No value → sets to default ([]), clearing all tags
+        set_tags()  # No value → clears all tags
 
     return ui.flex(
         ui.text(f"Page {page}, tags {tags}"),
@@ -372,8 +351,8 @@ def use_navigate() -> Callable[..., None]:
 | Argument       | Type                         | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | -------------- | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `path`         | `str \| None`                | `None`  | Target path. May include inline query params and fragment (e.g. `"/dashboard?tab=1#section"`). Leading `/` optional; preserves current path if omitted. Explicit `query_params` or `fragment` args override any inline values parsed from `path`.                                                                                                                                                                                                                                                                                    |
-| `query_params` | `str \| QueryParams \| None` | `None`  | Query string or `QueryParams` dict; preserves if omitted, removes if empty (`""` or `{}`); list values repeat the key                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `fragment`     | `str \| None`                | `None`  | URL fragment (leading `#` optional); preserves if omitted, removes if empty (`""`)                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `query_params` | `str \| QueryParams \| None` | `None`  | Query string or `QueryParams` dict; preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""` or `{}`); list values repeat the key                                                                                                                                                                                                                                                                                                                                          |
+| `fragment`     | `str \| None`                | `None`  | URL fragment (leading `#` optional); preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""`)                                                                                                                                                                                                                                                                                                                                                                             |
 | `absolute`     | `bool`                       | `False` | Use absolute path navigation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `replace`      | `bool \| None`               | `None`  | Whether to replace the current history entry or push a new one. If `None` (default), automatically determined: uses **replace** when the target is within the current dashboard context, uses **push** when navigating outside it. Generally, `absolute=False` navigates within the dashboard (replace), and `absolute=True` navigates outside (push), but if `absolute=True` targets a path still within the current dashboard, it will still default to replace. Explicitly pass `True` to force replace or `False` to force push. |
 
@@ -397,15 +376,15 @@ def login_form():
     navigate = ui.use_navigate()
 
     def handle_login():
-        # Navigate within dashboard — defaults to replace (no new history entry)
+        # Navigate to /dashboard with query_params; fragment is cleared since path is provided
         navigate("/dashboard", query_params={"welcome": "true"})
 
     def go_to_other_dashboard():
-        # Navigate outside dashboard — defaults to push (new history entry)
+        # Navigate outside dashboard — defaults to push (new history entry); query_params and fragment are cleared since path is provided
         navigate("/other/dashboard/path", absolute=True)
 
     def force_push():
-        # Force a push even within the dashboard
+        # Force a push even within the dashboard; query_params and fragment are cleared since path is provided
         navigate("/settings", replace=False)
 
     def scroll_to_section():
@@ -519,15 +498,16 @@ def link(
             `path`, `query_params`, `fragment`, `absolute`, and `replace`.
             `query_params` and `fragment` override any inline values in `path` within NavigationTarget.
             Can't be used with `href`, which always triggers a full page reload.
+            Throws a ValueError if both `to` and `href` are provided.
         ... other props ...
     """
 ```
 
 ### Arguments
 
-| Argument | Type                      | Default | Description     |
-| -------- | ------------------------- | ------- | --------------- |
-| `to`     | `str \| NavigationTarget` | `None`  | Target location |
+| Argument | Type                      | Default | Description                                      |
+| -------- | ------------------------- | ------- | ------------------------------------------------ |
+| `to`     | `str \| NavigationTarget` | `None`  | Target location. Mutually exclusive with `href`. |
 
 ### Notes
 
@@ -1041,7 +1021,7 @@ In `WidgetHandler.tsx`, augment the state object passed to `sendSetState` on ini
 
 ### Frontend (TypeScript)
 
-In `WidgetHandler.tsx`, augment the state object passed to `sendSetState` on initialization to include `__queryParams`, built by iterating `new URLSearchParams(window.location.search)` and grouping values by key: keys that appear once become a `string`, keys that appear multiple times become a `string[]`.
+In `WidgetHandler.tsx`, augment the state object passed to `sendSetState` on initialization to include `__queryParams`, built by iterating `new URLSearchParams(window.location.search)` and grouping values by key: all values become `string[]`, even for keys that appear only once.
 
 ---
 
@@ -1068,10 +1048,10 @@ No frontend changes — reads from the same `__queryParams` state as `use_query_
 ### Backend (Python)
 
 1. Create `hooks/use_set_query_param.py`.
-2. Accept `key` and `default` arguments matching `use_query_param`.
+2. Accept `key` and `replace` arguments.
 3. Return a setter callable that:
-   - Takes an optional `value` argument (defaults to `default` if not provided).
-   - When called, reads the current full query params via `get_context().get_query_params()`, replaces the value for `key` (or removes `key` if `value` is `None`), and calls `use_navigate()`'s navigate function with the updated `query_params` dict.
+   - Takes an optional `value: None | str | list[str]` argument (defaults to `None` if not provided).
+   - When called, reads the current full query params via `get_context().get_query_params()`, replaces the value for `key` (or removes `key` if `value` is `None` or `[]`), and calls `use_navigate()`'s navigate function with the updated `query_params` dict.
 4. Export from `hooks/__init__.py`.
 
 ### Frontend (TypeScript)
@@ -1085,12 +1065,12 @@ No frontend changes — uses the same `navigate.event` mechanism.
 ### Backend (Python)
 
 1. Create `hooks/use_navigate.py`.
-2. Define private normalisation helpers:
-   - `_normalise_path`: prepends `/` if missing; returns `None` for `None` (preserve); raises `ValueError` for empty string. If the path contains inline query params or fragment, extracts them (using `urlsplit`) before normalising — these are then used as fallback values, overridden by any explicitly provided `query_params` or `fragment` args.
-   - `_normalise_query_params`: returns `None` for `None` (preserve); returns `{}` for `""` or `{}` (clear); otherwise parses query string or `QueryParams` dict into a serialisable form where list values repeat the key.
-   - `_normalise_fragment`: returns `None` for `None` (preserve); returns `""` for `""` (clear); otherwise strips leading `#`.
+2. Define private normalization helpers:
+   - `_normalize_path`: prepends `/` if missing; returns `None` for `None` (preserve); raises `ValueError` for empty string. If the path contains inline query params or fragment, extracts them (using `urlsplit`) before normalising — these are then used as fallback values, overridden by any explicitly provided `query_params` or `fragment` args.
+   - `_normalize_query_params`: returns `None` for `None` (preserve); returns `{}` for `""` or `{}` (clear); otherwise parses query string or `QueryParams` dict into a serialisable form where list values repeat the key.
+   - `_normalize_fragment`: returns `None` for `None` (preserve); returns `""` for `""` (clear); otherwise strips leading `#`.
 3. Implement `use_navigate()` as a hook that returns a `navigate` callable:
-   - `navigate` validates at least one arg is not `None`, normalises the args (merging inline values from `path` with explicit `query_params`/`fragment`), then calls `use_send_event()` to emit a `"navigate.event"` payload with the normalised fields.
+   - `navigate` validates at least one arg is not `None`, normalizes the args (merging inline values from `path` with explicit `query_params`/`fragment`), then calls `use_send_event()` to emit a `"navigate.event"` payload with the normalized fields.
    - `navigate` accepts a `replace` argument (`bool | None`, default `None`). When `None`, the frontend determines replace vs push: replace if the target is within the current dashboard context, push if outside. The `replace` value is included in the event payload so the frontend can honor an explicit override.
 4. Export from `hooks/__init__.py`.
 
