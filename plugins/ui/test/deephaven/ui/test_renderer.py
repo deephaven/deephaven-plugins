@@ -129,7 +129,7 @@ class RendererTestCase(BaseTestCase):
         assert count_btn.props != None
         self.assertEqual(count_btn.props["children"], "Count is 1")
 
-        # Only the counter with deps effect and no deps effects should have been called
+        # Only the counter effects should run - parent doesn't re-render since only counter's state changed
         self.assertEqual(
             called_funcs,
             [
@@ -137,8 +137,6 @@ class RendererTestCase(BaseTestCase):
                 "counter_with_deps_cleanup",
                 "counter_no_deps_effect",
                 "counter_with_deps_effect",
-                "parent_no_deps_cleanup",
-                "parent_no_deps_effect",
             ],
         )
         called_funcs.clear()
@@ -215,12 +213,12 @@ class RendererTestCase(BaseTestCase):
         rc = RenderContext(Mock(), Mock())
 
         self.assertEqual(
-            _render_child_item({"key": "value"}, rc, "key"),
+            _render_child_item({"key": "value"}, rc, "key", True),
             {"key": "value"},
         )
 
         self.assertEqual(
-            _render_child_item([0, 1, 2], rc, "key"),
+            _render_child_item([0, 1, 2], rc, "key", True),
             [0, 1, 2],
         )
 
@@ -234,7 +232,7 @@ class RendererTestCase(BaseTestCase):
             b: Element
 
         nested_dataclass = _render_child_item(
-            [MyDataclass("test", my_comp())], rc, "key"
+            [MyDataclass("test", my_comp())], rc, "key", True
         )[0]
 
         self.assertEqual(

@@ -5,10 +5,10 @@ Provides a set of functions for creating raw HTML elements.
 
 The components provided in deephaven.ui should be preferred over this module.
 """
-from ..elements import BaseElement
+from ..elements import BaseElement, NodeType
 
 
-def html_element(tag: str, *children: Any, **attributes: Any) -> BaseElement:
+def html_element(tag: str, *children: NodeType, **attributes: Any) -> BaseElement:
     """
     Create a new HTML element. Render just returns the children that are passed in.
 
@@ -23,7 +23,7 @@ def html_element(tag: str, *children: Any, **attributes: Any) -> BaseElement:
     return BaseElement(f"deephaven.ui.html.{tag}", *children, **attributes)
 
 
-def div(*children: Any, **attributes: Any) -> BaseElement:
+def div(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "div" element with the specified children and attributes.
 
@@ -37,7 +37,7 @@ def div(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("div", *children, **attributes)
 
 
-def span(*children: Any, **attributes: Any) -> BaseElement:
+def span(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "span" element with the specified children and attributes.
 
@@ -51,7 +51,7 @@ def span(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("span", *children, **attributes)
 
 
-def h1(*children: Any, **attributes: Any) -> BaseElement:
+def h1(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h1" element with the specified children and attributes.
 
@@ -65,7 +65,7 @@ def h1(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h1", *children, **attributes)
 
 
-def h2(*children: Any, **attributes: Any) -> BaseElement:
+def h2(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h2" element with the specified children and attributes.
 
@@ -79,7 +79,7 @@ def h2(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h2", *children, **attributes)
 
 
-def h3(*children: Any, **attributes: Any) -> BaseElement:
+def h3(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h3" element with the specified children and attributes.
 
@@ -93,7 +93,7 @@ def h3(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h3", *children, **attributes)
 
 
-def h4(*children: Any, **attributes: Any) -> BaseElement:
+def h4(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h4" element with the specified children and attributes.
 
@@ -107,7 +107,7 @@ def h4(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h4", *children, **attributes)
 
 
-def h5(*children: Any, **attributes: Any) -> BaseElement:
+def h5(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h5" element with the specified children and attributes.
 
@@ -121,7 +121,7 @@ def h5(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h5", *children, **attributes)
 
 
-def h6(*children: Any, **attributes: Any) -> BaseElement:
+def h6(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "h6" element with the specified children and attributes.
 
@@ -135,7 +135,7 @@ def h6(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("h6", *children, **attributes)
 
 
-def p(*children: Any, **attributes: Any) -> BaseElement:
+def p(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "p" element with the specified children and attributes.
 
@@ -149,7 +149,7 @@ def p(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("p", *children, **attributes)
 
 
-def a(*children: Any, **attributes: Any) -> BaseElement:
+def a(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "a" element with the specified children and attributes.
 
@@ -163,7 +163,7 @@ def a(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("a", *children, **attributes)
 
 
-def ul(*children: Any, **attributes: Any) -> BaseElement:
+def ul(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "ul" element with the specified children and attributes.
 
@@ -177,7 +177,7 @@ def ul(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("ul", *children, **attributes)
 
 
-def ol(*children: Any, **attributes: Any) -> BaseElement:
+def ol(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "ol" element with the specified children and attributes.
 
@@ -191,7 +191,7 @@ def ol(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("ol", *children, **attributes)
 
 
-def li(*children: Any, **attributes: Any) -> BaseElement:
+def li(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "li" element with the specified children and attributes.
 
@@ -205,7 +205,7 @@ def li(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("li", *children, **attributes)
 
 
-def table(*children: Any, **attributes: Any) -> BaseElement:
+def table(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "table" element with the specified children and attributes.
 
@@ -219,7 +219,7 @@ def table(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("table", *children, **attributes)
 
 
-def thead(*children: Any, **attributes: Any) -> BaseElement:
+def thead(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "thead" element with the specified children and attributes.
 
@@ -233,7 +233,7 @@ def thead(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("thead", *children, **attributes)
 
 
-def tbody(*children: Any, **attributes: Any) -> BaseElement:
+def tbody(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "tbody" element with the specified children and attributes.
 
@@ -247,7 +247,7 @@ def tbody(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("tbody", *children, **attributes)
 
 
-def tr(*children: Any, **attributes: Any) -> BaseElement:
+def tr(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "tr" element with the specified children and attributes.
 
@@ -261,7 +261,7 @@ def tr(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("tr", *children, **attributes)
 
 
-def th(*children: Any, **attributes: Any) -> BaseElement:
+def th(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "th" element with the specified children and attributes.
 
@@ -275,7 +275,7 @@ def th(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("th", *children, **attributes)
 
 
-def td(*children: Any, **attributes: Any) -> BaseElement:
+def td(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "td" element with the specified children and attributes.
 
@@ -289,7 +289,7 @@ def td(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("td", *children, **attributes)
 
 
-def b(*children: Any, **attributes: Any) -> BaseElement:
+def b(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "b" element with the specified children and attributes.
 
@@ -303,7 +303,7 @@ def b(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("b", *children, **attributes)
 
 
-def i(*children: Any, **attributes: Any) -> BaseElement:
+def i(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "i" element with the specified children and attributes.
 
@@ -317,7 +317,7 @@ def i(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("i", *children, **attributes)
 
 
-def br(*children: Any, **attributes: Any) -> BaseElement:
+def br(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "br" element with the specified children and attributes.
 
@@ -331,7 +331,7 @@ def br(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("br", *children, **attributes)
 
 
-def hr(*children: Any, **attributes: Any) -> BaseElement:
+def hr(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "hr" element with the specified children and attributes.
 
@@ -345,7 +345,7 @@ def hr(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("hr", *children, **attributes)
 
 
-def pre(*children: Any, **attributes: Any) -> BaseElement:
+def pre(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "pre" element with the specified children and attributes.
 
@@ -359,7 +359,7 @@ def pre(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("pre", *children, **attributes)
 
 
-def code(*children: Any, **attributes: Any) -> BaseElement:
+def code(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "code" element with the specified children and attributes.
 
@@ -373,7 +373,7 @@ def code(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("code", *children, **attributes)
 
 
-def img(*children: Any, **attributes: Any) -> BaseElement:
+def img(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "img" element with the specified children and attributes.
 
@@ -387,7 +387,7 @@ def img(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("img", *children, **attributes)
 
 
-def button(*children: Any, **attributes: Any) -> BaseElement:
+def button(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "button" element with the specified children and attributes.
 
@@ -401,7 +401,7 @@ def button(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("button", *children, **attributes)
 
 
-def input(*children: Any, **attributes: Any) -> BaseElement:
+def input(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "input" element with the specified children and attributes.
 
@@ -415,7 +415,7 @@ def input(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("input", *children, **attributes)
 
 
-def form(*children: Any, **attributes: Any) -> BaseElement:
+def form(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "form" element with the specified children and attributes.
 
@@ -429,7 +429,7 @@ def form(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("form", *children, **attributes)
 
 
-def label(*children: Any, **attributes: Any) -> BaseElement:
+def label(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "label" element with the specified children and attributes.
 
@@ -443,7 +443,7 @@ def label(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("label", *children, **attributes)
 
 
-def select(*children: Any, **attributes: Any) -> BaseElement:
+def select(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "select" element with the specified children and attributes.
 
@@ -457,7 +457,7 @@ def select(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("select", *children, **attributes)
 
 
-def option(*children: Any, **attributes: Any) -> BaseElement:
+def option(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "option" element with the specified children and attributes.
 
@@ -471,7 +471,7 @@ def option(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("option", *children, **attributes)
 
 
-def textarea(*children: Any, **attributes: Any) -> BaseElement:
+def textarea(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "textarea" element with the specified children and attributes.
 
@@ -485,7 +485,7 @@ def textarea(*children: Any, **attributes: Any) -> BaseElement:
     return html_element("textarea", *children, **attributes)
 
 
-def style(*children: Any, **attributes: Any) -> BaseElement:
+def style(*children: NodeType, **attributes: Any) -> BaseElement:
     """
     Creates an HTML "style" element with the specified children and attributes.
 
