@@ -48,57 +48,6 @@ On **Deephaven Enterprise**, `create_user_state` uses `deephaven_enterprise.auth
 
 On **Deephaven Community** (where `deephaven_enterprise` is not installed), all callers share a single anonymous state — effectively behaving the same as `create_global_state`. This allows you to write code that works in both environments without modification.
 
-### User preferences example
-
-A common use case is per-user UI preferences:
-
-```python
-from deephaven import ui, empty_table
-
-use_page_size = ui.create_user_state(25)
-
-t = empty_table(1000).update(["x = i", "y = Math.sin(i / 10.0) * 100"])
-
-
-@ui.component
-def ui_page_size_picker():
-    page_size, set_page_size = use_page_size()
-    return ui.picker(
-        "10",
-        "25",
-        "50",
-        "100",
-        label="Rows per page",
-        selected_key=str(page_size),
-        on_selection_change=lambda key: set_page_size(int(key)),
-    )
-
-
-@ui.component
-def ui_paged_table():
-    page_size, _ = use_page_size()
-    page, set_page = ui.use_state(0)
-    paged = ui.use_memo(
-        lambda: t.head(page_size * (page + 1)).tail(page_size),
-        [page_size, page],
-    )
-    return ui.flex(
-        paged,
-        ui.flex(
-            ui.button("Prev", on_press=lambda: set_page(lambda p: max(0, p - 1))),
-            ui.text(f"Page {page + 1}"),
-            ui.button("Next", on_press=lambda: set_page(lambda p: p + 1)),
-            direction="row",
-            gap="size-100",
-        ),
-        direction="column",
-    )
-
-
-picker = ui_page_size_picker()
-table_view = ui_paged_table()
-```
-
 ### Per-user selection tracking
 
 ```python
@@ -111,24 +60,15 @@ use_selected_items = ui.create_user_state([])
 def ui_item_list():
     selected, set_selected = use_selected_items()
 
-    items = ["Alpha", "Beta", "Gamma", "Delta"]
-
-    def toggle_item(item):
-        if item in selected:
-            set_selected([i for i in selected if i != item])
-        else:
-            set_selected(selected + [item])
-
-    return ui.flex(
-        *[
-            ui.checkbox(
-                item,
-                is_selected=item in selected,
-                on_change=lambda _, i=item: toggle_item(i),
-            )
-            for item in items
-        ],
-        direction="column",
+    return ui.list_view(
+        ui.item("Alpha"),
+        ui.item("Beta"),
+        ui.item("Gamma"),
+        ui.item("Delta"),
+        aria_label="Items",
+        selection_mode="MULTIPLE",
+        selected_keys=selected,
+        on_change=lambda keys: set_selected(list(keys)),
     )
 
 
