@@ -16,7 +16,7 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import { UriVariableDescriptor, useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
@@ -45,7 +45,6 @@ import {
   transformNode,
   getComponentForElement,
   wrapCallable,
-  DASHBOARD_ELEMENT,
 } from './WidgetUtils';
 import WidgetStatusContext, {
   WidgetStatus,
