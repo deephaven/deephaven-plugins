@@ -402,11 +402,30 @@ class UITableModel extends IrisGridModel {
       negativeColor = this.colorMap.get(negativeColor) ?? negativeColor;
     }
 
+    const barColor = value >= 0 ? positiveColor : negativeColor;
+    const hasGradient = Array.isArray(barColor) && barColor.length > 1;
+    const formatTextColor = this.getFormatOptionForCell(
+      columnIndex,
+      rowIndex,
+      'color'
+    );
+
+    let textColor: string;
+    if (formatTextColor != null) {
+      textColor = this.colorMap.get(formatTextColor) ?? formatTextColor;
+    } else if (hasGradient) {
+      textColor = value >= 0 ? barColor[barColor.length - 1] : barColor[0];
+    } else {
+      textColor = Array.isArray(barColor) ? barColor[0] : barColor;
+    }
+
     return {
       columnMin: minRowValue,
       columnMax: maxRowValue,
       axis,
-      color: value >= 0 ? positiveColor : negativeColor,
+      color: barColor,
+      // @ts-expect-error TODO: bump web version
+      textColor,
       valuePlacement,
       opacity,
       markers,
