@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   ContextActions,
   ContextActionUtils,
@@ -7,6 +6,7 @@ import {
 } from '@deephaven/components';
 import {
   GridMouseHandler,
+  type GridMouseEvent,
   type GridPoint,
   type EventHandlerResult,
   type Grid,
@@ -41,7 +41,7 @@ class PivotContextMenuHandler extends GridMouseHandler {
   onContextMenu(
     gridPoint: GridPoint,
     grid: Grid,
-    event: React.MouseEvent
+    event: GridMouseEvent
   ): EventHandlerResult {
     const { irisGrid } = this;
     const { model } = irisGrid.props;

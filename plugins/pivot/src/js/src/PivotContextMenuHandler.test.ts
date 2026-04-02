@@ -5,7 +5,7 @@ import {
 } from '@deephaven/components';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { TestUtils } from '@deephaven/test-utils';
-import { Grid, GridPoint } from '@deephaven/grid';
+import { Grid, type GridMouseEvent, GridPoint } from '@deephaven/grid';
 import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import PivotContextMenuHandler from './PivotContextMenuHandler';
 import type IrisGridPivotModel from './IrisGridPivotModel';
@@ -131,7 +131,7 @@ describe('PivotContextMenuHandler', () => {
   describe('onContextMenu', () => {
     it('should trigger context menu on column source header', () => {
       const gridPoint = makeColumnSourceGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>({
+      const mouseEvent = createMockProxy<GridMouseEvent>({
         clientX: 100,
         clientY: 200,
       });
@@ -155,7 +155,7 @@ describe('PivotContextMenuHandler', () => {
         row: null,
         columnHeaderDepth: 0,
       };
-      const mouseEvent = createMockProxy<React.MouseEvent>();
+      const mouseEvent = createMockProxy<GridMouseEvent>();
 
       const result = handler.onContextMenu(gridPoint, mockGrid, mouseEvent);
 
@@ -165,7 +165,7 @@ describe('PivotContextMenuHandler', () => {
 
     it('should not trigger context menu on cell (row is not null)', () => {
       const gridPoint = makeCellGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>();
+      const mouseEvent = createMockProxy<GridMouseEvent>();
 
       const result = handler.onContextMenu(gridPoint, mockGrid, mouseEvent);
 
@@ -178,7 +178,7 @@ describe('PivotContextMenuHandler', () => {
         makeNonKeyColumnGroup()
       );
       const gridPoint = makeColumnSourceGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>();
+      const mouseEvent = createMockProxy<GridMouseEvent>();
 
       const result = handler.onContextMenu(gridPoint, mockGrid, mouseEvent);
 
@@ -188,7 +188,7 @@ describe('PivotContextMenuHandler', () => {
 
     it('should suppress context menu when column is null at depth > 0', () => {
       const gridPoint = makeColumnSourceGridPoint(2, null);
-      const mouseEvent = createMockProxy<React.MouseEvent>();
+      const mouseEvent = createMockProxy<GridMouseEvent>();
 
       const result = handler.onContextMenu(gridPoint, mockGrid, mouseEvent);
 
@@ -200,7 +200,7 @@ describe('PivotContextMenuHandler', () => {
   describe('sort actions', () => {
     function getActions(): ContextAction[] {
       const gridPoint = makeColumnSourceGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>({
+      const mouseEvent = createMockProxy<GridMouseEvent>({
         clientX: 100,
         clientY: 200,
       });
@@ -522,7 +522,7 @@ describe('PivotContextMenuHandler', () => {
   describe('filter actions', () => {
     function getActions(): ContextAction[] {
       const gridPoint = makeColumnSourceGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>({
+      const mouseEvent = createMockProxy<GridMouseEvent>({
         clientX: 100,
         clientY: 200,
       });
@@ -621,7 +621,7 @@ describe('PivotContextMenuHandler', () => {
   describe('copy actions', () => {
     it('should include Copy Column Name action', () => {
       const gridPoint = makeColumnSourceGridPoint();
-      const mouseEvent = createMockProxy<React.MouseEvent>({
+      const mouseEvent = createMockProxy<GridMouseEvent>({
         clientX: 100,
         clientY: 200,
       });
