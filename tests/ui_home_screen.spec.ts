@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage, SELECTORS, waitForLoad } from './utils';
+import { openPanel, gotoPage, SELECTORS } from './utils';
 
 test.describe('Homescreen', () => {
   test('homescreen dashboard list visible', async ({ page }) => {
