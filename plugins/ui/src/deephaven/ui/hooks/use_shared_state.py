@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Callable, Dict, Generic, TypeVar
+from typing import Any, Callable, Dict, Generic, TypeVar, cast
 
 from .use_state import use_state
 from .use_effect import use_effect
 from .use_ref import use_ref
 from .._internal import UpdaterFunction
+from .._internal.utils import value_or_call
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +25,8 @@ class _SharedStore(Generic[T]):
     """
 
     def __init__(self, initial_value: T | Callable[[], T]):
-        resolved = initial_value() if callable(initial_value) else initial_value
-        self._initial_value = resolved
-        self._value = resolved
+        self._initial_value_or_callable = initial_value
+        self._value: T | None = value_or_call(initial_value).value
         self._subscribers: set[Callable[[T], None]] = set()
         self._lock = threading.Lock()
 
@@ -37,7 +37,14 @@ class _SharedStore(Generic[T]):
         Returns:
             A tuple of (current_value, set_value) matching the `use_state` interface.
         """
-        value, set_value = use_state(self._value)
+        # Resolve the current value; if None (reset after last unmount),
+        # re-initialize from the original initial_value.
+        with self._lock:
+            if self._value is None and len(self._subscribers) == 0:
+                self._value = value_or_call(self._initial_value_or_callable).value
+            init = cast(T, self._value)
+
+        value, set_value = use_state(init)
 
         # Keep a ref to the latest set_value so the stable subscriber always
         # calls the current setter without the subscriber identity changing.
@@ -64,7 +71,7 @@ class _SharedStore(Generic[T]):
                 with self._lock:
                     self._subscribers.discard(subscriber)
                     if len(self._subscribers) == 0:
-                        self._value = self._initial_value
+                        self._value = None
 
             return cleanup
 
@@ -75,7 +82,7 @@ class _SharedStore(Generic[T]):
             # Resolve updater functions once to get the concrete value
             if callable(new_value):
                 with self._lock:
-                    new_value = new_value(self._value)
+                    new_value = new_value(cast(T, self._value))
 
             with self._lock:
                 self._value = new_value
