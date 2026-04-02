@@ -42,8 +42,7 @@ In this example, clicking the button in `ui_counter_controls` will update the co
 
 1. **Create stores at module level**: Call `create_global_state` at module level, not inside a component. The returned hook is then used inside components.
 2. **Naming convention**: Name the returned hook starting with `use_`, e.g. `use_shared_counter = ui.create_global_state(0)`. This makes it clear that it follows hook rules.
-3. **Keep state serializable**: As with `use_state`, use simple serializable values (numbers, strings, lists, dicts) when possible for best compatibility.
-4. **Prefer `create_user_state` for user-specific data**: If the state should be independent per user (e.g., user preferences or user-specific selections), use [`create_user_state`](create_user_state.md) instead.
+3. **Prefer `create_user_state` for user-specific data**: If the state should be independent per user (e.g., user preferences or user-specific selections), use [`create_user_state`](create_user_state.md) instead.
 
 ### Using updater functions
 
@@ -108,40 +107,6 @@ def ui_filtered_table():
 
 slider = ui_filter_slider()
 filtered = ui_filtered_table()
-```
-
-### Color theme toggler example
-
-```python
-from deephaven import ui
-
-use_theme = ui.create_global_state("light")
-
-
-@ui.component
-def ui_theme_toggle():
-    theme, set_theme = use_theme()
-    return ui.switch(
-        "Dark mode",
-        is_selected=theme == "dark",
-        on_change=lambda is_dark: set_theme("dark" if is_dark else "light"),
-    )
-
-
-@ui.component
-def ui_themed_card():
-    theme, _ = use_theme()
-    bg = "#1a1a2e" if theme == "dark" else "#ffffff"
-    fg = "#ffffff" if theme == "dark" else "#000000"
-    return ui.view(
-        ui.text(f"Current theme: {theme}", color=fg),
-        background_color=bg,
-        padding="size-200",
-    )
-
-
-toggle = ui_theme_toggle()
-card = ui_themed_card()
 ```
 
 ### Custom hooks
@@ -213,7 +178,7 @@ Components call `use_items()` and get back `add` and `clear` functions instead o
 
 ## Cleanup behavior
 
-When all components that subscribe to a shared store unmount (e.g., all panels using the hook are closed), the store automatically resets to the initial value. This prevents stale state from persisting across sessions.
+When all components that subscribe to a shared store unmount (e.g., all panels using the hook are closed), the store is released. This prevents memory leaks from unused state. When a new component later subscribes to the same store, it will be recreated with the initial value.
 
 If at least one subscriber remains active, the state is preserved.
 
