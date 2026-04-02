@@ -45,7 +45,10 @@ function DashboardWidgetHandler({
 
   const renderEmptyDocument = useCallback(() => {
     // Document hasn't been initialized yet. Display a loading spinner if applicable.
-    if (widgetDescriptor.type === WIDGET_ELEMENT) {
+    if (
+      typeof widgetDescriptor === 'object' &&
+      widgetDescriptor.type === WIDGET_ELEMENT
+    ) {
       // Rehydration. Mount ReactPanels for each panelId in the initial data
       // so loading spinners or widget errors are shown
       if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
