@@ -63,7 +63,7 @@ class CreateGlobalStateTestCase(BaseTestCase):
         result_b["unmount"]()
 
     def test_initial_value_callable_reset(self):
-        """Test that after all subscribers unmount, re-subscribing uses the already-resolved initial value."""
+        """Test that after all subscribers unmount, re-subscribing re-calls the initializer."""
         from deephaven.ui.hooks import create_global_state
 
         call_count = 0
@@ -89,11 +89,11 @@ class CreateGlobalStateTestCase(BaseTestCase):
         # Unmount all subscribers
         result["unmount"]()
 
-        # Re-subscribe - should get the resolved initial value (100), not re-call initializer
+        # Re-subscribe - should get the initial value (100) and re-call the initializer
         result2 = render_hook(_hook)
         value2, _ = result2["result"]
         self.assertEqual(value2, 100)
-        self.assertEqual(call_count, 1)  # Still only called once
+        self.assertEqual(call_count, 2)  # Called again after reset
 
         result2["unmount"]()
 

@@ -10,17 +10,15 @@ from typing import (
     Optional,
     Tuple,
     TypeVar,
-    Union,
     Generator,
-    Generic,
     cast,
 )
 from functools import partial
 from deephaven import DHError
 from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
-from dataclasses import dataclass
 from .NoContextException import NoContextException
+from .utils import ValueWithLiveness, value_or_call as _value_or_call
 
 logger = logging.getLogger(__name__)
 
@@ -72,14 +70,6 @@ A function that performs an effect.
 """
 
 
-@dataclass
-class ValueWithLiveness(Generic[T]):
-    """A value with an associated liveness scope, if any."""
-
-    value: T
-    liveness_scope: Union[LivenessScope, None]
-
-
 ContextState = Dict[StateKey, ValueWithLiveness[Any]]
 """
 The state for a context.
@@ -89,27 +79,6 @@ ExportedRenderState = Dict[str, Any]
 """
 The serializable state of a RenderContext. Used to serialize the state for the client.
 """
-
-
-def _value_or_call(
-    value: T | None | Callable[[], T | None]
-) -> ValueWithLiveness[T | None]:
-    """
-    Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
-    creates while obtaining that value.
-
-    Args:
-        value: a value, or callable that will produce a value
-
-    Returns:
-        The resulting value, plus a liveness scope, if any.
-    """
-    if callable(value):
-        scope = LivenessScope()
-        with scope.open():
-            value = value()
-        return ValueWithLiveness(value=value, liveness_scope=scope)
-    return ValueWithLiveness(value=value, liveness_scope=None)
 
 
 def _should_retain_value(value: ValueWithLiveness[Any]) -> bool:
