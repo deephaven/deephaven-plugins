@@ -22,6 +22,9 @@ test.describe('UI table', () => {
     't_databar_priority',
     't_databar_mixed',
     't_databar_gradient',
+    't_databar_text_color',
+    't_databar_gradient_text_color',
+    't_databar_pos_neg_text_color',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');

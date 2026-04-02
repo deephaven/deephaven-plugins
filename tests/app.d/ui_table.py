@@ -298,3 +298,30 @@ t_databar_gradient = ui.table(
         ),
     ],
 )
+
+t_databar_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size", color="red", mode=ui.TableDatabar(color="purple-800")
+        ),
+    ],
+)
+
+t_databar_gradient_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size",
+            color="orange",
+            mode=ui.TableDatabar(color=["negative", "positive"]),
+        ),
+    ],
+)
+
+t_databar_pos_neg_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Random", color="info", mode=ui.TableDatabar()),
+    ],
+)
