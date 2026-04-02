@@ -1,5 +1,6 @@
 import React from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
+import { UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import ReactPanel from '../layout/ReactPanel';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import Dashboard from '../layout/Dashboard';
@@ -12,11 +13,13 @@ import Dashboard from '../layout/Dashboard';
  *
  * @param children Root children of the document.
  * @param widget Descriptor of the widget used to create this document. Used for titling panels if necessary.
+ * @param isNested Whether this document is nested inside a panel.
  * @returns The children, wrapped in a panel if necessary.
  */
 export function getRootChildren(
   children: React.ReactNode,
-  widget: WidgetDescriptor
+  widget: WidgetDescriptor | UriVariableDescriptor,
+  isNested = false
 ): React.ReactNode {
   if (children == null) {
     return null;
@@ -45,13 +48,9 @@ export function getRootChildren(
     throw new MixedPanelsError('Cannot mix Panel and Dashboard elements');
   }
 
-  if (nonLayoutCount === childrenArray.length) {
-    // Just wrap it in a panel
-    return (
-      <ReactPanel title={widget.name ?? widget.id ?? widget.type}>
-        {children}
-      </ReactPanel>
-    );
+  if (panelCount > 0 && isNested) {
+    // Wrap it in a dashboard so it can be rendered properly
+    return <Dashboard>{children}</Dashboard>;
   }
 
   // It's already got layout defined, just return it
