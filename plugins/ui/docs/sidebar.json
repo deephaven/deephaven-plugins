@@ -424,6 +424,14 @@
                 "path": "hooks/overview.md"
               },
               {
+                "label": "create_global_state",
+                "path": "hooks/create_global_state.md"
+              },
+              {
+                "label": "create_user_state",
+                "path": "hooks/create_user_state.md"
+              },
+              {
                 "label": "use_boolean",
                 "path": "hooks/use_boolean.md"
               },
