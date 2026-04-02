@@ -1,13 +1,9 @@
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
-import { WidgetDescriptor } from '@deephaven/dashboard';
 import UIComponent from './UIComponent';
 import PortalPanel from './layout/PortalPanel';
 
-type UIWidgetProps = WidgetComponentProps<dh.Widget> & {
-  // TODO: We shouldn't need this, should be added to the WidgetComponentProps type
-  metadata?: WidgetDescriptor;
-};
+type UIWidgetProps = WidgetComponentProps<dh.Widget>;
 
 export function UIWidget(props: UIWidgetProps): JSX.Element | null {
   const { metadata: widgetDescriptor } = props;

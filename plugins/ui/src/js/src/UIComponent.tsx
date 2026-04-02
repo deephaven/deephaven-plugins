@@ -5,15 +5,11 @@ import {
   usePersistentState,
   type WidgetComponentProps,
 } from '@deephaven/plugin';
-import { WidgetDescriptor } from '@deephaven/dashboard';
 import { nanoid } from 'nanoid';
 import { WidgetData, WidgetDataUpdate } from './widget/WidgetTypes';
 import WidgetHandler from './widget/WidgetHandler';
 
 type UIComponentProps = WidgetComponentProps<dh.Widget> & {
-  // TODO: We shouldn't need this, should be added to the WidgetComponentProps type
-  metadata?: WidgetDescriptor;
-
   // Might be loading a URI resolved widget...
   uri?: UriVariableDescriptor;
 };
