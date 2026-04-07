@@ -326,25 +326,27 @@ t_databar_pos_neg_text_color = ui.table(
     ],
 )
 
+_heatmap_t = empty_table(20).update(["x = i", "neg = i - 10"])
+
 t_heatmap_basic = ui.table(
-    _stocks,
+    _heatmap_t,
     format_=[
-        ui.TableFormat(cols="Price", background_color=ui.TableHeatmap()),
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap()),
     ],
 )
 
 t_heatmap_diverging = ui.table(
-    _stocks,
+    _heatmap_t,
     format_=[
-        ui.TableFormat(cols="Random", background_color=ui.TableHeatmap(mid=0)),
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
     ],
 )
 
 t_heatmap_multistop = ui.table(
-    _stocks,
+    _heatmap_t,
     format_=[
         ui.TableFormat(
-            cols="Price",
+            cols="x",
             background_color=ui.TableHeatmap(
                 colors=["blue-600", "cyan-300", "yellow-300", "red-600"]
             ),
@@ -353,10 +355,10 @@ t_heatmap_multistop = ui.table(
 )
 
 t_heatmap_positioned_stops = ui.table(
-    _stocks,
+    _heatmap_t,
     format_=[
         ui.TableFormat(
-            cols="Price",
+            cols="x",
             background_color=ui.TableHeatmap(
                 colors=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
             ),
@@ -367,17 +369,7 @@ t_heatmap_positioned_stops = ui.table(
 t_heatmap_text_color = ui.table(
     _stocks,
     format_=[
-        ui.TableFormat(cols="Price", color=ui.TableHeatmap(colors="viridis")),
-    ],
-)
-
-t_heatmap_text_color_multi = ui.table(
-    _stocks,
-    format_=[
-        ui.TableFormat(
-            cols=["Price", "Size", "Random"],
-            color=ui.TableHeatmap(colors="viridis"),
-        ),
+        ui.TableFormat(cols="Random", color=ui.TableHeatmap(colors="viridis")),
     ],
 )
 

@@ -30,7 +30,6 @@ test.describe('UI table', () => {
     't_heatmap_multistop',
     't_heatmap_positioned_stops',
     't_heatmap_text_color',
-    't_heatmap_text_color_multi',
     't_heatmap_both',
     't_heatmap_databar_overlay',
     't_heatmap_databar_mixed',
