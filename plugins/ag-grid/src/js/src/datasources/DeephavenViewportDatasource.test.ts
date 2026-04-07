@@ -39,7 +39,7 @@ function createMockTable(initialSize = 100) {
     size: initialSize,
     columns: [],
     addEventListener: jest.fn((event: string, handler: () => void) => {
-      if (!listeners[event]) listeners[event] = [];
+      if (listeners[event] == null) listeners[event] = [];
       listeners[event].push(handler);
     }),
     removeEventListener: jest.fn(),
@@ -63,7 +63,7 @@ function createMockGridApi() {
 
   return {
     addEventListener: jest.fn((event: string, handler: () => void) => {
-      if (!listeners[event]) listeners[event] = [];
+      if (listeners[event] == null) listeners[event] = [];
       listeners[event].push(handler);
     }),
     removeEventListener: jest.fn(),
