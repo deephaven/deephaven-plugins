@@ -1,66 +1,19 @@
-import { useCallback, useEffect } from 'react';
-import { nanoid } from 'nanoid';
-import {
-  DashboardPluginComponentProps,
-  LayoutUtils,
-  PanelEvent,
-  useListener,
-} from '@deephaven/dashboard';
-import type { dh } from '@deephaven/jsapi-types';
+import { useEffect } from 'react';
+import { DashboardPluginComponentProps } from '@deephaven/dashboard';
 import PlotlyExpressChartPanel from './PlotlyExpressChartPanel.js';
-import type { PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
 export function DashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
-  const { id, layout, registerComponent } = props;
+  const { registerComponent } = props;
 
-  const handlePanelOpen = useCallback(
-    async ({
-      dragEvent,
-      fetch,
-      metadata = {},
-      panelId = nanoid(),
-      widget,
-    }: {
-      dragEvent?: MouseEvent;
-      fetch: () => Promise<PlotlyChartWidget>;
-      metadata?: Record<string, unknown>;
-      panelId?: string;
-      widget: dh.ide.VariableDescriptor;
-    }) => {
-      const { type, name } = widget;
-      if (type !== 'deephaven.plot.express.DeephavenFigure') {
-        return;
-      }
-
-      const config = {
-        type: 'react-component' as const,
-        component: 'PlotlyPanel',
-        props: {
-          localDashboardId: id,
-          id: panelId,
-          metadata: {
-            ...metadata,
-            ...widget,
-            figure: name,
-          },
-          fetch,
-        },
-        title: name ?? undefined,
-        id: panelId,
-      };
-
-      const { root } = layout;
-      LayoutUtils.openComponent({ root, config, dragEvent });
-    },
-    [id, layout]
-  );
-
+  // Register the PlotlyPanel for legacy panels created before the WidgetPlugin was being used.
   useEffect(
     function registerComponentsAndReturnCleanup() {
       const cleanups = [
-        registerComponent('PlotlyPanel', PlotlyExpressChartPanel),
+        // The fetch does get passed through. This is for legacy purpose on Enterprise, not bothering to fix the types.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        registerComponent('PlotlyPanel', PlotlyExpressChartPanel as any),
       ];
       return () => {
         cleanups.forEach(cleanup => cleanup());
@@ -68,8 +21,6 @@ export function DashboardPlugin(
     },
     [registerComponent]
   );
-
-  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
 
   return null;
 }
