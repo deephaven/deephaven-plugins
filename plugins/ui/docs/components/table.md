@@ -399,7 +399,7 @@ t = ui.table(
 
 #### Color Scales
 
-The `colors` prop defines the heatmap's color scale. You can use a named color scale string or provide custom colors.
+The `gradient` prop defines the heatmap's color scale. You can use a named color scale string or provide custom colors.
 
 Available named scales:
 
@@ -417,7 +417,7 @@ t = ui.table(
     dx.data.stocks(),
     format_=[
         ui.TableFormat(
-            cols="Price", background_color=ui.TableHeatmap(colors="viridis")
+            cols="Price", background_color=ui.TableHeatmap(gradient="viridis")
         ),
     ],
 )
@@ -425,7 +425,7 @@ t = ui.table(
 
 #### Custom Colors
 
-The `colors` prop also accepts a list of colors for a custom gradient. Colors are evenly spaced across the range by default. For explicit positioning, use a list of `(position, color)` tuples where position is a value between 0 and 1.
+The `gradient` prop also accepts a list of colors for a custom gradient. Colors are evenly spaced across the range by default. For explicit positioning, use a list of `(position, color)` tuples where position is a value between 0 and 1.
 
 ```python
 from deephaven import ui
@@ -437,7 +437,7 @@ t = ui.table(
         ui.TableFormat(
             cols="Price",
             background_color=ui.TableHeatmap(
-                colors=["blue-600", "cyan-300", "yellow-300", "red-600"]
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
             ),
         ),
     ],
@@ -456,7 +456,7 @@ t = ui.table(
         ui.TableFormat(
             cols="Price",
             background_color=ui.TableHeatmap(
-                colors=[(0, "green-600"), (0.8, "white"), (1, "red-600")]
+                gradient=[(0, "green-600"), (0.8, "white"), (1, "red-600")]
             ),
         ),
     ],
@@ -465,7 +465,7 @@ t = ui.table(
 
 #### Diverging Scales
 
-The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `colors` are provided, the scale defaults to `"diverging"`.
+The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the scale defaults to `"diverging"`.
 
 ```python
 from deephaven import ui
@@ -508,7 +508,7 @@ import deephaven.plot.express as dx
 t = ui.table(
     dx.data.stocks(),
     format_=[
-        ui.TableFormat(cols="Price", color=ui.TableHeatmap(colors="viridis")),
+        ui.TableFormat(cols="Price", color=ui.TableHeatmap(gradient="viridis")),
     ],
 )
 ```

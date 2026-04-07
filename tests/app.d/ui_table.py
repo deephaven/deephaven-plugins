@@ -348,7 +348,7 @@ t_heatmap_multistop = ui.table(
         ui.TableFormat(
             cols="x",
             background_color=ui.TableHeatmap(
-                colors=["blue-600", "cyan-300", "yellow-300", "red-600"]
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
             ),
         ),
     ],
@@ -360,7 +360,7 @@ t_heatmap_positioned_stops = ui.table(
         ui.TableFormat(
             cols="x",
             background_color=ui.TableHeatmap(
-                colors=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
             ),
         ),
     ],
@@ -369,7 +369,7 @@ t_heatmap_positioned_stops = ui.table(
 t_heatmap_text_color = ui.table(
     _stocks,
     format_=[
-        ui.TableFormat(cols="Random", color=ui.TableHeatmap(colors="viridis")),
+        ui.TableFormat(cols="Random", color=ui.TableHeatmap(gradient="viridis")),
     ],
 )
 
@@ -378,8 +378,8 @@ t_heatmap_both = ui.table(
     format_=[
         ui.TableFormat(
             cols="Price",
-            color=ui.TableHeatmap(colors=["white", "black"]),
-            background_color=ui.TableHeatmap(colors="inferno"),
+            color=ui.TableHeatmap(gradient=["white", "black"]),
+            background_color=ui.TableHeatmap(gradient="inferno"),
         ),
     ],
 )
@@ -389,7 +389,7 @@ t_heatmap_databar_overlay = ui.table(
     format_=[
         ui.TableFormat(
             cols="Price",
-            background_color=ui.TableHeatmap(colors="magma"),
+            background_color=ui.TableHeatmap(gradient="magma"),
             mode=ui.TableDatabar(color="white"),
         ),
     ],
@@ -399,7 +399,7 @@ t_heatmap_databar_mixed = ui.table(
     _stocks,
     format_=[
         ui.TableFormat(
-            cols="Price", background_color=ui.TableHeatmap(colors="cividis")
+            cols="Price", background_color=ui.TableHeatmap(gradient="cividis")
         ),
         ui.TableFormat(
             cols="Random",

@@ -96,7 +96,7 @@ class TableHeatmap:
         max: Maximum value for the heatmap range. Defaults to the column maximum.
         mid: Midpoint data value for diverging color scales.
             Defaults to None (sequential scale, no midpoint).
-        colors: Color scale for the gradient. Accepts:
+        gradient: Color scale for the gradient. Accepts:
             A string for a predefined scale
             A list of colors
             A list of (position, color) tuples for explicit stops
@@ -109,7 +109,7 @@ class TableHeatmap:
     min: ColumnName | float | None = None
     max: ColumnName | float | None = None
     mid: float | None = None
-    colors: str | list[Color] | list[tuple[float, Color]] | None = None
+    gradient: str | list[Color] | list[tuple[float, Color]] | None = None
 
 
 @dataclass
@@ -166,7 +166,7 @@ def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
     Raises:
         ValueError: If a format rule has a mode but no cols.
         ValueError: If a format rule has a heatmap but no cols.
-        ValueError: If a heatmap colors list has fewer than 2 colors.
+        ValueError: If a heatmap gradient has fewer than 2 colors.
     """
     format_list = format_ if isinstance(format_, list) else [format_]
     for f in format_list:
@@ -179,10 +179,8 @@ def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
                 raise ValueError(
                     "TableFormat with TableHeatmap requires cols to be specified."
                 )
-            if isinstance(f.color.colors, list) and len(f.color.colors) < 2:
-                raise ValueError(
-                    "TableHeatmap colors list must have at least 2 colors."
-                )
+            if isinstance(f.color.gradient, list) and len(f.color.gradient) < 2:
+                raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
         if isinstance(f.background_color, TableHeatmap):
             if f.cols is None:
@@ -190,12 +188,10 @@ def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
                     "TableFormat with TableHeatmap requires cols to be specified."
                 )
             if (
-                isinstance(f.background_color.colors, list)
-                and len(f.background_color.colors) < 2
+                isinstance(f.background_color.gradient, list)
+                and len(f.background_color.gradient) < 2
             ):
-                raise ValueError(
-                    "TableHeatmap colors list must have at least 2 colors."
-                )
+                raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
 
 class table(Element):

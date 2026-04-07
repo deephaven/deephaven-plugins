@@ -64,7 +64,7 @@ export type HeatmapConfig = {
   min?: number | ColumnName;
   max?: number | ColumnName;
   mid?: number;
-  colors?: string | string[] | ColorStop[];
+  gradient?: string | string[] | ColorStop[];
 };
 
 export type FormattingRule = {

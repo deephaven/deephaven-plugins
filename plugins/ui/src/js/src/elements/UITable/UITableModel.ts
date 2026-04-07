@@ -722,7 +722,7 @@ class UITableModel extends IrisGridModel {
       min: configMin,
       max: configMax,
       mid: configMid,
-      colors: configColors,
+      gradient: configGradient,
     } = config;
 
     // When min/max is a number, use it directly.
@@ -747,21 +747,21 @@ class UITableModel extends IrisGridModel {
             'maximum'
           );
 
-    const colors =
-      configColors ?? (configMid != null ? 'diverging' : 'sequential');
+    const gradient =
+      configGradient ?? (configMid != null ? 'diverging' : 'sequential');
     let hexColors: string[];
     let positions: number[] | undefined;
 
-    if (typeof colors === 'string') {
-      hexColors = resolveNamedScale(colors).colors.map(
+    if (typeof gradient === 'string') {
+      hexColors = resolveNamedScale(gradient).colors.map(
         c => this.colorMap.get(c) ?? c
       );
-    } else if (colors.length > 0 && Array.isArray(colors[0])) {
-      const tuples = colors as [number, string][];
+    } else if (gradient.length > 0 && Array.isArray(gradient[0])) {
+      const tuples = gradient as [number, string][];
       hexColors = tuples.map(([, c]) => this.colorMap.get(c) ?? c);
       positions = tuples.map(([p]) => p);
     } else {
-      hexColors = (colors as string[]).map(c => this.colorMap.get(c) ?? c);
+      hexColors = (gradient as string[]).map(c => this.colorMap.get(c) ?? c);
     }
 
     return interpolateColor(

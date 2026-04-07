@@ -281,9 +281,9 @@ export function UITable({
           typeof config !== 'string' &&
           config.type === 'heatmap'
         ) {
-          const { colors } = config;
-          if (Array.isArray(colors)) {
-            colors.forEach(c => {
+          const { gradient } = config;
+          if (Array.isArray(gradient)) {
+            gradient.forEach(c => {
               colorSet.add(typeof c === 'string' ? c : c[1]);
             });
           }
