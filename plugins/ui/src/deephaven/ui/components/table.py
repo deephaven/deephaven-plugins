@@ -79,11 +79,37 @@ class TableFormat:
 
     cols: ColumnName | list[ColumnName] | None = None
     if_: str | None = None
-    color: Color | None = None
-    background_color: Color | None = None
+    color: Color | TableHeatmap | None = None
+    background_color: Color | TableHeatmap | None = None
     alignment: Literal["left", "center", "right"] | None = None
     value: str | None = None
     mode: TableDatabar | None = None
+
+
+@dataclass
+class TableHeatmap:
+    """
+    A heatmap configuration for a table.
+
+    Args:
+        min: Minimum value for the heatmap range. Defaults to the column minimum.
+        max: Maximum value for the heatmap range. Defaults to the column maximum.
+        mid: Midpoint data value for diverging color scales.
+            Defaults to None (sequential scale, no midpoint).
+        colors: Color scale for the gradient. Accepts:
+            A string for a predefined scale
+            A list of colors
+            A list of (position, color) tuples for explicit stops
+            Defaults to a sequential gradient (or diverging if mid is set).
+    Returns:
+        The TableHeatmap configuration.
+    """
+
+    type: str = field(default="heatmap", init=False)
+    min: ColumnName | float | None = None
+    max: ColumnName | float | None = None
+    mid: float | None = None
+    colors: str | list[Color] | list[tuple[float, Color]] | None = None
 
 
 @dataclass
@@ -139,11 +165,37 @@ def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
 
     Raises:
         ValueError: If a format rule has a mode but no cols.
+        ValueError: If a format rule has a heatmap but no cols.
+        ValueError: If a heatmap colors list has fewer than 2 colors.
     """
     format_list = format_ if isinstance(format_, list) else [format_]
     for f in format_list:
         if f.mode is not None and f.cols is None:
             raise ValueError("TableFormat with mode requires cols to be specified.")
+
+        # TODO: evaluate if we even need these guards, we could just have single value clamp to both
+        if isinstance(f.color, TableHeatmap):
+            if f.cols is None:
+                raise ValueError(
+                    "TableFormat with TableHeatmap requires cols to be specified."
+                )
+            if isinstance(f.color.colors, list) and len(f.color.colors) < 2:
+                raise ValueError(
+                    "TableHeatmap colors list must have at least 2 colors."
+                )
+
+        if isinstance(f.background_color, TableHeatmap):
+            if f.cols is None:
+                raise ValueError(
+                    "TableFormat with TableHeatmap requires cols to be specified."
+                )
+            if (
+                isinstance(f.background_color.colors, list)
+                and len(f.background_color.colors) < 2
+            ):
+                raise ValueError(
+                    "TableHeatmap colors list must have at least 2 colors."
+                )
 
 
 class table(Element):

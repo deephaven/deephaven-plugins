@@ -25,6 +25,8 @@ class JsTableProxy implements dh.Table {
   static HIDDEN_COLUMN_SUFFIXES = [
     '__DATABAR_Min',
     '__DATABAR_Max',
+    '__HEATMAP_Min',
+    '__HEATMAP_Max',
     '__FORMAT',
   ];
 

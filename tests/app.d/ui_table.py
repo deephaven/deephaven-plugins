@@ -325,3 +325,93 @@ t_databar_pos_neg_text_color = ui.table(
         ui.TableFormat(cols="Random", color="info", mode=ui.TableDatabar()),
     ],
 )
+
+t_heatmap_basic = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Price", background_color=ui.TableHeatmap()),
+    ],
+)
+
+t_heatmap_diverging = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Random", background_color=ui.TableHeatmap(mid=0)),
+    ],
+)
+
+t_heatmap_multistop = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            background_color=ui.TableHeatmap(
+                colors=["blue-600", "cyan-300", "yellow-300", "red-600"]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_positioned_stops = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            background_color=ui.TableHeatmap(
+                colors=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Price", color=ui.TableHeatmap(colors="viridis")),
+    ],
+)
+
+t_heatmap_text_color_multi = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols=["Price", "Size", "Random"],
+            color=ui.TableHeatmap(colors="viridis"),
+        ),
+    ],
+)
+
+t_heatmap_both = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            color=ui.TableHeatmap(colors=["white", "black"]),
+            background_color=ui.TableHeatmap(colors="inferno"),
+        ),
+    ],
+)
+
+t_heatmap_databar_overlay = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            background_color=ui.TableHeatmap(colors="magma"),
+            mode=ui.TableDatabar(color="white"),
+        ),
+    ],
+)
+
+t_heatmap_databar_mixed = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price", background_color=ui.TableHeatmap(colors="cividis")
+        ),
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(color="info", axis="middle"),
+        ),
+    ],
+)

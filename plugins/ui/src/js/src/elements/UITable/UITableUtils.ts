@@ -57,11 +57,21 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
+export type ColorStop = [number, string];
+
+export type HeatmapConfig = {
+  type: 'heatmap';
+  min?: number | ColumnName;
+  max?: number | ColumnName;
+  mid?: number;
+  colors?: string | string[] | ColorStop[];
+};
+
 export type FormattingRule = {
   cols?: ColumnName | ColumnName[];
   if_?: string;
-  color?: string;
-  background_color?: string;
+  color?: string | HeatmapConfig;
+  background_color?: string | HeatmapConfig;
   alignment?: 'left' | 'center' | 'right';
   value?: string;
   mode?: DatabarConfig;
