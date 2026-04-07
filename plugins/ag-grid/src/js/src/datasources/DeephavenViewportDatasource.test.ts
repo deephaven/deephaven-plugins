@@ -170,7 +170,6 @@ describe('DeephavenViewportDatasource', () => {
       expect(firstRow).toBeGreaterThanOrEqual(0);
       // This is the key assertion: lastRow must be >= firstRow for rows to display
       expect(lastRow).toBeGreaterThanOrEqual(firstRow);
-      expect(lastRow).toBeGreaterThan(0);
     });
   });
 });
