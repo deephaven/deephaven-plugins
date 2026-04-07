@@ -173,7 +173,6 @@ def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
         if f.mode is not None and f.cols is None:
             raise ValueError("TableFormat with mode requires cols to be specified.")
 
-        # TODO: evaluate if we even need these guards, we could just have single value clamp to both
         if isinstance(f.color, TableHeatmap):
             if f.cols is None:
                 raise ValueError(
