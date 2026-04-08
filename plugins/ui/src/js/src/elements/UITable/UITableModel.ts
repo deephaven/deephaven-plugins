@@ -25,6 +25,12 @@ import type {
   FormattingRule,
   HeatmapConfig,
 } from './UITableUtils';
+import {
+  DATABAR_MIN_SUFFIX,
+  DATABAR_MAX_SUFFIX,
+  HEATMAP_MIN_SUFFIX,
+  HEATMAP_MAX_SUFFIX,
+} from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 import { resolveNamedScale } from './ColorScales';
 import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
@@ -100,14 +106,14 @@ export async function makeUiTableModel(
 
       if (min == null) {
         pendingJoins.push({
-          lhs: `${valueColumn}__DATABAR_Min`,
+          lhs: `${valueColumn}${DATABAR_MIN_SUFFIX}`,
           source: valueColumn,
           agg: 'Min',
         });
       }
       if (max == null) {
         pendingJoins.push({
-          lhs: `${valueColumn}__DATABAR_Max`,
+          lhs: `${valueColumn}${DATABAR_MAX_SUFFIX}`,
           source: valueColumn,
           agg: 'Max',
         });
@@ -173,14 +179,14 @@ export async function makeUiTableModel(
 
         if (minSource != null) {
           pendingJoins.push({
-            lhs: `${column}__HEATMAP_Min`,
+            lhs: `${column}${HEATMAP_MIN_SUFFIX}`,
             source: minSource,
             agg: 'Min',
           });
         }
         if (maxSource != null) {
           pendingJoins.push({
-            lhs: `${column}__HEATMAP_Max`,
+            lhs: `${column}${HEATMAP_MAX_SUFFIX}`,
             source: maxSource,
             agg: 'Max',
           });
@@ -494,8 +500,8 @@ class UITableModel extends IrisGridModel {
 
     const {
       value_column: valueColumnName = columnName,
-      min = `${valueColumnName}__DATABAR_Min`,
-      max = `${valueColumnName}__DATABAR_Max`,
+      min = `${valueColumnName}${DATABAR_MIN_SUFFIX}`,
+      max = `${valueColumnName}${DATABAR_MAX_SUFFIX}`,
       axis = 'proportional',
       color: userColor,
       value_placement: valuePlacement = 'beside',
@@ -726,15 +732,14 @@ class UITableModel extends IrisGridModel {
     } = config;
 
     // When min/max is a number, use it directly.
-    // When null or a string column name, the aggregation block has already
-    // computed the global value into the hidden __HEATMAP_Min/__HEATMAP_Max
-    // columns via TotalsTable + naturalJoin.
+    // When null or a string column name, the aggregation block has already computed
+    // the global value into the hidden __HEATMAP_Min/__HEATMAP_Max columns
     const minValue =
       typeof configMin === 'number'
         ? configMin
         : this.getHeatmapValueFromRow(
             rowData,
-            `${columnName}__HEATMAP_Min`,
+            `${columnName}${HEATMAP_MIN_SUFFIX}`,
             'minimum'
           );
 
@@ -743,7 +748,7 @@ class UITableModel extends IrisGridModel {
         ? configMax
         : this.getHeatmapValueFromRow(
             rowData,
-            `${columnName}__HEATMAP_Max`,
+            `${columnName}${HEATMAP_MAX_SUFFIX}`,
             'maximum'
           );
 

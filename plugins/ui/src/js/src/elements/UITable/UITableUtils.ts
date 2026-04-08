@@ -59,6 +59,11 @@ export type DatabarConfig = {
 
 export type ColorStop = [number, string];
 
+export const DATABAR_MIN_SUFFIX = '__DATABAR_Min';
+export const DATABAR_MAX_SUFFIX = '__DATABAR_Max';
+export const HEATMAP_MIN_SUFFIX = '__HEATMAP_Min';
+export const HEATMAP_MAX_SUFFIX = '__HEATMAP_Max';
+
 export type HeatmapConfig = {
   type: 'heatmap';
   min?: number | ColumnName;
