@@ -205,6 +205,10 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     log.debug('Filter changed', event);
     this.queueOperation(async () => {
       this.applyFilter(this.gridApi.getFilterModel());
+      // Reset the cached viewport so refreshViewport() recalculates it.
+      // Without this, a stale viewport (e.g. {0, -1} from a zero-row filter)
+      // would be reused after clearing the filter, leaving the grid empty.
+      this.currentViewport = undefined;
       this.refreshViewport();
     });
   }
