@@ -386,7 +386,7 @@ class UITableModel extends IrisGridModel {
     column: ModelIndex,
     row: ModelIndex,
     value: string | HeatmapConfig
-  ): string {
+  ): string | undefined {
     if (typeof value !== 'string') {
       return this.resolveHeatmapColor(column, row, value);
     }
@@ -396,28 +396,29 @@ class UITableModel extends IrisGridModel {
   /**
    * Helper to read a numeric value from a row.
    * This will unwrap the value if it's a numeric wrapper.
-   * If the value is null, it will default to 0 as this indicates the value has not been fetched.
+   * Returns undefined when the value hasn't been fetched yet.
    * @param row The UIRow to get the value from
    * @param columnName The column name associated with the value
-   * @returns Numeric value for the column
+   * @returns Numeric value for the column, or undefined if not yet fetched
    */
   private getNumericValueFromRow(
     row: UIRow | null,
     columnName: ColumnName
-  ): number {
+  ): number | undefined {
     if (row == null) {
-      return 0;
+      return undefined;
     }
     const valueColumnIndex = this.getColumnIndexByName(columnName);
     const rowDataKey = valueColumnIndex ?? columnName;
-    const value = (row.data.get(rowDataKey)?.value ?? 0) as NumericValue;
+    const value = row.data.get(rowDataKey)?.value as NumericValue | undefined;
+    if (value == null) return undefined;
     return typeof value === 'number' ? value : value.asNumber();
   }
 
   /**
    * Gets the value as a number for a databar column.
    * Validates that the column exists and is a numeric type.
-   * If the value is null, it will default to 0 as this indicates the value has not been fetched.
+   * Defaults to 0 when the value hasn't been fetched yet.
    * @param row The UIRow to get the value from
    * @param columnName The column name associated with the value
    * @param valueType The type of value to get. This is used for error messages. E.g. 'minimum' or 'maximum'
@@ -443,7 +444,7 @@ class UITableModel extends IrisGridModel {
         );
       }
 
-      return this.getNumericValueFromRow(row, columnName);
+      return this.getNumericValueFromRow(row, columnName) ?? 0;
     }
     return 0;
   }
@@ -451,17 +452,17 @@ class UITableModel extends IrisGridModel {
   /**
    * Gets the value as a number for a heatmap column.
    * Validates that the column exists and is a numeric type.
-   * If the value is null, it will default to 0 as this indicates the value has not been fetched.
+   * Returns undefined when the row hasn't been fetched yet.
    * @param row The UIRow to get the value from
    * @param columnName The column name associated with the value
    * @param valueType The type of value to get. This is used for error messages. E.g. 'minimum' or 'maximum'
-   * @returns Numeric value for the heatmap column
+   * @returns Numeric value for the heatmap column, or undefined if not yet fetched
    */
   getHeatmapValueFromRow(
     row: UIRow | null,
     columnName: ColumnName,
     valueType: string
-  ): number {
+  ): number | undefined {
     if (row != null && isIrisGridTableModelTemplate(this.model)) {
       let column;
 
@@ -479,7 +480,7 @@ class UITableModel extends IrisGridModel {
 
       return this.getNumericValueFromRow(row, columnName);
     }
-    return 0;
+    return undefined;
   }
 
   override dataBarOptionsForCell(
@@ -580,12 +581,13 @@ class UITableModel extends IrisGridModel {
     );
 
     let textColor: string;
-    if (formatTextColor != null) {
-      textColor = this.resolveFormatColor(
-        columnIndex,
-        rowIndex,
-        formatTextColor
-      );
+    const resolvedTextColor =
+      formatTextColor != null
+        ? this.resolveFormatColor(columnIndex, rowIndex, formatTextColor)
+        : undefined;
+
+    if (resolvedTextColor != null) {
+      textColor = resolvedTextColor;
     } else if (hasGradient) {
       textColor = value >= 0 ? barColor[barColor.length - 1] : barColor[0];
     } else {
@@ -705,17 +707,18 @@ class UITableModel extends IrisGridModel {
 
   /**
    * Resolve a heatmap config to an interpolated color for a given cell.
+   * Returns undefined when row data hasn't been fetched yet.
    *
    * @param column The model column index
    * @param row The model row index
    * @param config The HeatmapConfig object
-   * @returns Hex color string
+   * @returns Hex color string, or undefined if row data is not yet available
    */
   resolveHeatmapColor(
     column: ModelIndex,
     row: ModelIndex,
     config: HeatmapConfig
-  ): string {
+  ): string | undefined {
     if (!isIrisGridTableModelTemplate(this.model)) {
       throw new Error('Cannot use heatmaps on this table type');
     }
@@ -752,6 +755,10 @@ class UITableModel extends IrisGridModel {
             'maximum'
           );
 
+    if (cellValue == null || minValue == null || maxValue == null) {
+      return undefined;
+    }
+
     const gradient =
       configGradient ?? (configMid != null ? 'diverging' : 'sequential');
     let hexColors: string[];
@@ -785,7 +792,8 @@ class UITableModel extends IrisGridModel {
 
     // If a color is explicitly set, use it
     if (color != null) {
-      return this.resolveFormatColor(column, row, color);
+      const resolved = this.resolveFormatColor(column, row, color);
+      if (resolved != null) return resolved;
     }
 
     // If there is a background color, use white or black depending on the background color
@@ -797,8 +805,10 @@ class UITableModel extends IrisGridModel {
 
     if (backgroundColor != null) {
       const resolvedBg = this.resolveFormatColor(column, row, backgroundColor);
-      const isDarkBackground = GridRenderer.getCachedColorIsDark(resolvedBg);
-      return isDarkBackground ? theme.white : theme.black;
+      if (resolvedBg != null) {
+        const isDarkBackground = GridRenderer.getCachedColorIsDark(resolvedBg);
+        return isDarkBackground ? theme.white : theme.black;
+      }
     }
 
     return this.model.colorForCell(column, row, theme);
@@ -834,7 +844,8 @@ class UITableModel extends IrisGridModel {
       'background_color'
     );
     if (backgroundColor != null) {
-      return this.resolveFormatColor(column, row, backgroundColor);
+      const resolved = this.resolveFormatColor(column, row, backgroundColor);
+      if (resolved != null) return resolved;
     }
     return this.model.backgroundColorForCell(column, row, theme);
   }
