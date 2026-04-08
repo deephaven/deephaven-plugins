@@ -1,3 +1,4 @@
+// TODO: GridColorUtils should be exported from @deephaven/grid (temporary workaround for now)
 import GridColorUtils from '@deephaven/grid/dist/GridColorUtils';
 
 /**
