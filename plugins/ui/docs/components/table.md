@@ -388,12 +388,11 @@ Table heatmaps color cells based on their numeric values, making it easy to iden
 To add a heatmap, set the `background_color` of a `ui.TableFormat` to `ui.TableHeatmap()`. The `cols` prop specifies which column(s) should display the heatmap.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
-    format_=[ui.TableFormat(cols="Price", background_color=ui.TableHeatmap())],
+    empty_table(20).update(["x = i", "neg = i - 10"]),
+    format_=[ui.TableFormat(cols="x", background_color=ui.TableHeatmap())],
 )
 ```
 
@@ -410,15 +409,12 @@ Available named scales:
 All named scales have a reversed variant by appending `_r` (e.g., `"viridis_r"`, `"sequential_r"`).
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("x = i"),
     format_=[
-        ui.TableFormat(
-            cols="Price", background_color=ui.TableHeatmap(gradient="viridis")
-        ),
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(gradient="viridis")),
     ],
 )
 ```
@@ -428,14 +424,13 @@ t = ui.table(
 The `gradient` prop also accepts a list of colors for a custom gradient. Colors are evenly spaced across the range by default. For explicit positioning, use a list of `(position, color)` tuples where position is a value between 0 and 1.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("x = i"),
     format_=[
         ui.TableFormat(
-            cols="Price",
+            cols="x",
             background_color=ui.TableHeatmap(
                 gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
             ),
@@ -444,19 +439,18 @@ t = ui.table(
 )
 ```
 
-The following example uses positioned stops to create a gradient that transitions quickly from green to red near the top of the range.
+The following example uses positioned stops to create a gradient that transitions quickly from green to white near the bottom of the range, then gradually from white to red across the rest.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("x = i"),
     format_=[
         ui.TableFormat(
-            cols="Price",
+            cols="x",
             background_color=ui.TableHeatmap(
-                gradient=[(0, "green-600"), (0.8, "white"), (1, "red-600")]
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
             ),
         ),
     ],
@@ -468,31 +462,29 @@ t = ui.table(
 The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the scale defaults to `"diverging"`.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("neg = i - 10"),
     format_=[
-        ui.TableFormat(cols="Random", background_color=ui.TableHeatmap(mid=0)),
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
     ],
 )
 ```
 
 #### Scale Range
 
-The `min` and `max` props control the range of the heatmap. These can be set to fixed numeric values or a column name to use that column's global minimum or maximum.
+The `min` and `max` props control the range of the heatmap. These can be set to fixed numeric values or a column name to use that column's global minimum or maximum. Values outside the range are clamped to the nearest endpoint color.
 
 By default these props will use the min and max of the values in the column.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("x = i"),
     format_=[
-        ui.TableFormat(cols="Size", background_color=ui.TableHeatmap(min=0, max=1000)),
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(min=5, max=15)),
     ],
 )
 ```
@@ -502,13 +494,12 @@ t = ui.table(
 Heatmaps can also be applied to text color by setting the `color` prop to `ui.TableHeatmap()` instead of `background_color`.
 
 ```python
-from deephaven import ui
-import deephaven.plot.express as dx
+from deephaven import ui, empty_table
 
 t = ui.table(
-    dx.data.stocks(),
+    empty_table(20).update("x = i"),
     format_=[
-        ui.TableFormat(cols="Price", color=ui.TableHeatmap(gradient="viridis")),
+        ui.TableFormat(cols="x", color=ui.TableHeatmap(gradient="viridis")),
     ],
 )
 ```
