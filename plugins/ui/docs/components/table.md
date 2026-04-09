@@ -383,7 +383,7 @@ t = ui.table(
 
 ### Formatting heatmaps
 
-Table heatmaps color cells based on their numeric values, making it easy to identify high and low values at a glance. Heatmaps apply a color gradient across the range of values in a column.
+Table heatmaps color cells based on their numeric values, making it easy to identify high and low values at a glance.
 
 To add a heatmap, set the `background_color` of a `ui.TableFormat` to `ui.TableHeatmap()`. The `cols` prop specifies which column(s) should display the heatmap.
 
@@ -398,7 +398,7 @@ t = ui.table(
 
 #### Color Scales
 
-The `gradient` prop defines the heatmap's color scale. You can use a named color scale string or provide custom colors.
+The `gradient` prop defines the heatmap's color scale. You can use a named color scale or provide custom colors.
 
 Available named scales:
 
@@ -406,7 +406,7 @@ Available named scales:
 - `"diverging"`: a theme-aware diverging gradient
 - `"viridis"`, `"plasma"`, `"inferno"`, `"magma"`, `"cividis"`: scientific color scales
 
-All named scales have a reversed variant by appending `_r` (e.g., `"viridis_r"`, `"sequential_r"`).
+All named scales have a reversed variant with the suffix `_r` (e.g., `"viridis_r"`, `"sequential_r"`).
 
 ```python
 from deephaven import ui, empty_table
@@ -459,7 +459,7 @@ t = ui.table(
 
 #### Diverging Scales
 
-The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the scale defaults to `"diverging"`.
+The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the `"diverging"` color scale is applied by default.
 
 ```python
 from deephaven import ui, empty_table
