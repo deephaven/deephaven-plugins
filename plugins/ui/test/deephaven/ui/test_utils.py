@@ -6,6 +6,7 @@ from .BaseTest import BaseTestCase
 from deephaven.ui._internal.utils import (
     convert_dict_keys,
     create_props,
+    dict_shallow_equal,
     dict_to_camel_case,
     dict_to_react_props,
     get_component_name,
@@ -470,6 +471,52 @@ class UtilsTest(BaseTestCase):
                 return iter([1, 2, 3])
 
         self.assertFalse(is_iterable(CustomIterable()))
+
+    def test_dict_shallow_equal(self):
+        # Two empty dicts are equal
+        self.assertTrue(dict_shallow_equal({}, {}))
+
+        # Same keys with identical values (same object) should be equal
+        obj1 = {"nested": "value"}
+        obj2 = [1, 2, 3]
+        dict1 = {"a": obj1, "b": obj2}
+        dict2 = {"a": obj1, "b": obj2}
+        self.assertTrue(dict_shallow_equal(dict1, dict2))
+
+        # Same keys with equal but not identical values should NOT be equal
+        dict3 = {"a": {"nested": "value"}, "b": [1, 2, 3]}
+        dict4 = {"a": {"nested": "value"}, "b": [1, 2, 3]}
+        self.assertFalse(dict_shallow_equal(dict3, dict4))
+
+        # Different keys should not be equal
+        self.assertFalse(dict_shallow_equal({"a": 1}, {"b": 1}))
+        self.assertFalse(dict_shallow_equal({"a": 1}, {"a": 1, "b": 2}))
+        self.assertFalse(dict_shallow_equal({"a": 1, "b": 2}, {"a": 1}))
+
+        # Primitives: small ints and interned strings have the same identity
+        self.assertTrue(
+            dict_shallow_equal({"a": 1, "b": "hello"}, {"a": 1, "b": "hello"})
+        )
+        self.assertTrue(dict_shallow_equal({"x": None}, {"x": None}))
+        self.assertTrue(
+            dict_shallow_equal({"x": True, "y": False}, {"x": True, "y": False})
+        )
+
+        # Different primitive values
+        self.assertFalse(dict_shallow_equal({"a": 1}, {"a": 2}))
+        self.assertFalse(dict_shallow_equal({"a": "foo"}, {"a": "bar"}))
+
+        # Test with callables - same function object
+        def my_func():
+            pass
+
+        self.assertTrue(dict_shallow_equal({"func": my_func}, {"func": my_func}))
+
+        # Different function objects (even with same behavior) should NOT be equal
+        def my_func2():
+            pass
+
+        self.assertFalse(dict_shallow_equal({"func": my_func}, {"func": my_func2}))
 
 
 if __name__ == "__main__":

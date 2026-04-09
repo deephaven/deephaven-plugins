@@ -17,7 +17,7 @@ class UITableTestCase(BaseTestCase):
         on_change = Mock()
         on_queue = Mock()
         context = RenderContext(on_change, on_queue)
-        result = ui_table.render(context)
+        result = ui_table.render()
 
         self.assertDictEqual(result, result | expected_props)
 

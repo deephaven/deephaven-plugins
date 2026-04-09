@@ -13,12 +13,12 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import LinkVariant
 
 
 def link(
-    *children: Any,
+    *children: NodeType,
     variant: LinkVariant | None = "primary",
     is_quiet: bool | None = None,
     auto_focus: bool | None = None,
