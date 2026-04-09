@@ -248,7 +248,6 @@ Returns a setter function for a single query parameter. Calling the setter with 
 ```python
 def use_set_query_param(
     key: str,
-    replace: bool = True,
 ) -> Callable[..., None]:
     """
     Get a setter function for a single URL query parameter.
@@ -257,29 +256,27 @@ def use_set_query_param(
 
     Args:
         key: The query parameter name to set.
-        replace: If True, replaces the current history entry instead of pushing a new one. Set to False to push a new history entry on each change.
 
     Returns:
         A setter function with signature:
-            set_value(value: None | str | list[str] = None) -> None
+            set_value(value: None | str | list[str] = None, replace: bool = True) -> None
 
         - value: The value to set. If omitted, None, or [],
           the key is removed.
+        - replace: If True (default), replaces the current history entry.
+          Set to False to push a new history entry.
     """
 ```
 
 ### Arguments
 
-| Argument  | Type   | Default | Description                                                                              |
-| --------- | ------ | ------- | ---------------------------------------------------------------------------------------- |
-| `key`     | `str`  | —       | The query parameter name                                                                 |
-| `replace` | `bool` | `True`  | Whether to replace the current history entry or push a new one when the setter is called |
+| Argument | Type  | Default | Description              |
+| -------- | ----- | ------- | ------------------------ |
+| `key`    | `str` | —       | The query parameter name |
 
 ### Setter Arguments
 
-| Argument | Type                       | Default | Description                                                      |
-| -------- | -------------------------- | ------- | ---------------------------------------------------------------- |
-| `value`  | `None \| str \| list[str]` | `None`  | The value to set. `None` or `[]` removes the key. Omit to clear. |
+| `replace` | `bool` | `True` | Whether to replace the current history entry or push a new one when the setter is called |
 
 ### Notes
 
@@ -311,9 +308,14 @@ def tag_filter():
     def clear_tags():
         set_tags()  # No value → clears all tags
 
+    def push_next_page():
+        # Pass replace=False to push a new history entry (allows back button to undo)
+        set_page(str(int(page or "0") + 1), replace=False)
+
     return ui.flex(
         ui.text(f"Page {page}, tags {tags}"),
         ui.button("Next page", on_press=next_page),
+        ui.button("Next page (push)", on_press=push_next_page),
         ui.button("Clear page", on_press=clear_page),
         ui.button("Add rust tag", on_press=add_tag),
         ui.button("Replace tags", on_press=replace_tags),
@@ -1048,9 +1050,9 @@ No frontend changes — reads from the same `__queryParams` state as `use_query_
 ### Backend (Python)
 
 1. Create `hooks/use_set_query_param.py`.
-2. Accept `key` and `replace` arguments.
+2. Accept only `key` as a hook argument.
 3. Return a setter callable that:
-   - Takes an optional `value: None | str | list[str]` argument (defaults to `None` if not provided).
+   - Takes an optional `value: None | str | list[str]` argument (defaults to `None` if not provided) and an optional `replace: bool` argument (defaults to `True`).
    - When called, reads the current full query params via `get_context().get_query_params()`, replaces the value for `key` (or removes `key` if `value` is `None` or `[]`), and calls `use_navigate()`'s navigate function with the updated `query_params` dict.
 4. Export from `hooks/__init__.py`.
 
