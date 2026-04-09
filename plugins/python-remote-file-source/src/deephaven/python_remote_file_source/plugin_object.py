@@ -52,8 +52,10 @@ class PluginObject:
             if self._is_module_in_top_level_names(mod_name, top_level_module_fullnames):
                 del sys.modules[mod_name]
                 evicted.append(mod_name)
-        
-        logger.debug(f"Evicted {len(evicted)} modules: {evicted} --------------------------------------------------------------------------------------")
+
+        logger.debug(
+            f"Evicted {len(evicted)} modules: {evicted} --------------------------------------------------------------------------------------"
+        )
 
     def get_top_level_module_fullnames(self) -> set[str]:
         """
@@ -78,7 +80,11 @@ class PluginObject:
             connection_id is not None
             and connection_id != self._execution_context_connection_id
         ):
-            logger.debug("Connection ID is not the active execution context: %s != %s", connection_id, self._execution_context_connection_id)
+            logger.debug(
+                "Connection ID is not the active execution context: %s != %s",
+                connection_id,
+                self._execution_context_connection_id,
+            )
             return False
 
         return self._is_module_in_top_level_names(
@@ -107,11 +113,11 @@ class PluginObject:
             f"old={self._top_level_module_fullnames}, "
             f"new={top_level_module_fullnames}"
         )
-        
+
         # Convert dict to set
         if isinstance(top_level_module_fullnames, dict):
             top_level_module_fullnames = set(top_level_module_fullnames.keys())
-        
+
         # Evict cached modules
         # 1. Any matching the old configuration to ensure remote sources from
         #    previous execution contexts are cleared out.
