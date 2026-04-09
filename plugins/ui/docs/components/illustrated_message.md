@@ -78,7 +78,6 @@ def illustrated_message_placeholder_example():
             ui.icon("vsFilter"),
             ui.heading("Filter required"),
             ui.content("Enter a filter to display filtered table"),
-            width="100%",
         )
         if filter == ""
         else _stocks.where(f"Sym=`{filter.upper()}`"),
