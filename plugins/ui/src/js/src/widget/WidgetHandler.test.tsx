@@ -516,8 +516,8 @@ describe('navigate event handling', () => {
       value: new URL('http://localhost/app/widget/local/dashboard'),
       writable: true,
     });
-    jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
-    jest.spyOn(window.history, 'pushState').mockImplementation(() => {});
+    jest.spyOn(window.history, 'replaceState').mockImplementation(jest.fn());
+    jest.spyOn(window.history, 'pushState').mockImplementation(jest.fn());
   });
 
   afterEach(() => {

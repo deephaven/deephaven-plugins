@@ -194,7 +194,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
         send_event_mock.assert_called_once()
         name, payload = send_event_mock.call_args[0]
         self.assertEqual(name, "navigate.event")
-        self.assertEqual(payload["queryParams"], "page=2")
+        self.assertEqual(payload["queryParams"], "?page=2")
         self.assertNotIn("path", payload)
         self.assertNotIn("fragment", payload)
         self.assertTrue(payload["replace"])
@@ -209,7 +209,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
 
         send_event_mock.assert_called_once()
         _, payload = send_event_mock.call_args[0]
-        self.assertEqual(payload["queryParams"], "tag=python&tag=java")
+        self.assertEqual(payload["queryParams"], "?tag=python&tag=java")
 
     def test_setter_removes_with_none(self):
         from deephaven.ui.hooks.use_set_query_param import use_set_query_param
@@ -222,7 +222,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
             setter(None)
 
         _, payload = send_event_mock.call_args[0]
-        self.assertEqual(payload["queryParams"], "sort=asc")
+        self.assertEqual(payload["queryParams"], "?sort=asc")
 
     def test_setter_removes_with_empty_list(self):
         from deephaven.ui.hooks.use_set_query_param import use_set_query_param
@@ -259,7 +259,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
         _, payload = send_event_mock.call_args[0]
         self.assertEqual(
             payload["queryParams"],
-            "page=5&sort=asc&filter=active",
+            "?page=5&sort=asc&filter=active",
         )
 
     def test_setter_replace_false(self):
@@ -284,7 +284,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
         _, payload = send_event_mock.call_args[0]
         self.assertEqual(
             payload["queryParams"],
-            "existing=val&new_key=new_val",
+            "?existing=val&new_key=new_val",
         )
 
     def test_setter_removes_with_empty_string(self):
