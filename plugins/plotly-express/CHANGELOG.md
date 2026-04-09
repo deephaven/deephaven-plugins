@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.19.2 - 2026-04-09
+#### Bug Fixes
+- DH-22224: Add multi-plugin support for Deephaven express (#1330) - (bf283e9) - mofojed
+#### Documentation
+- DH-21774: Plot by performance warning (#1325) - (cc79762) - Germain
+
+- - -
+
 ## plotly-express-v0.19.1 - 2026-03-26
 #### Bug Fixes
 - DH-21423: xaxis_titles and yaxis_titles now apply to OHLC  (#1318) - (2fb5826) - Germain
