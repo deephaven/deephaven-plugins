@@ -1,4 +1,5 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
 import { Operation } from 'fast-json-patch';
