@@ -325,3 +325,85 @@ t_databar_pos_neg_text_color = ui.table(
         ui.TableFormat(cols="Random", color="info", mode=ui.TableDatabar()),
     ],
 )
+
+_heatmap_t = empty_table(20).update(["x = i", "neg = i - 10"])
+
+t_heatmap_basic = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap()),
+    ],
+)
+
+t_heatmap_diverging = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
+    ],
+)
+
+t_heatmap_multistop = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_positioned_stops = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Random", color=ui.TableHeatmap(gradient="viridis")),
+    ],
+)
+
+t_heatmap_both = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            color=ui.TableHeatmap(gradient=["white", "black"]),
+            background_color=ui.TableHeatmap(gradient="inferno"),
+        ),
+    ],
+)
+
+t_heatmap_databar_overlay = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            background_color=ui.TableHeatmap(gradient="magma"),
+            mode=ui.TableDatabar(color="white"),
+        ),
+    ],
+)
+
+t_heatmap_databar_mixed = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price", background_color=ui.TableHeatmap(gradient="cividis")
+        ),
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(color="info", axis="middle"),
+        ),
+    ],
+)

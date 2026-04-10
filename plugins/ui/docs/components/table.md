@@ -381,6 +381,129 @@ t = ui.table(
 )
 ```
 
+### Formatting heatmaps
+
+Table heatmaps color cells based on their numeric values, making it easy to identify high and low values at a glance.
+
+To add a heatmap, set the `background_color` of a `ui.TableFormat` to `ui.TableHeatmap()`. The `cols` prop specifies which column(s) should display the heatmap.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update(["x = i", "neg = i - 10"]),
+    format_=[ui.TableFormat(cols="x", background_color=ui.TableHeatmap())],
+)
+```
+
+#### Color Scales
+
+The `gradient` prop defines the heatmap's color scale. You can use a named color scale or provide custom colors.
+
+Available named scales:
+
+- `"sequential"` (default): a theme-aware sequential gradient
+- `"diverging"`: a theme-aware diverging gradient
+- `"viridis"`, `"plasma"`, `"inferno"`, `"magma"`, `"cividis"`: scientific color scales
+
+All named scales have a reversed variant with the suffix `_r` (e.g., `"viridis_r"`, `"sequential_r"`).
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(gradient="viridis")),
+    ],
+)
+```
+
+#### Custom Colors
+
+The `gradient` prop also accepts a list of colors for a custom gradient. Colors are evenly spaced across the range by default. For explicit positioning, use a list of `(position, color)` tuples where position is a value between 0 and 1.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
+            ),
+        ),
+    ],
+)
+```
+
+The following example uses positioned stops to create a gradient that transitions quickly from green to white near the bottom of the range, then gradually from white to red across the rest.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+            ),
+        ),
+    ],
+)
+```
+
+#### Diverging Scales
+
+The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the `"diverging"` color scale is applied by default.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("neg = i - 10"),
+    format_=[
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
+    ],
+)
+```
+
+#### Scale Range
+
+The `min` and `max` props control the range of the heatmap. These can be set to fixed numeric values or a column name to use that column's global minimum or maximum. Values outside the range are clamped to the nearest endpoint color.
+
+By default these props will use the min and max of the values in the column.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(min=5, max=15)),
+    ],
+)
+```
+
+#### Text Color
+
+Heatmaps can also be applied to text color by setting the `color` prop to `ui.TableHeatmap()` instead of `background_color`.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", color=ui.TableHeatmap(gradient="viridis")),
+    ],
+)
+```
+
 ## Aggregations
 
 You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
@@ -712,4 +835,10 @@ t = ui.table(dx.data.stocks(), reverse=True)
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.TableDatabar
+```
+
+### TableHeatmap
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableHeatmap
 ```

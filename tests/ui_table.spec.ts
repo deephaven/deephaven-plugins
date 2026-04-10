@@ -25,6 +25,14 @@ test.describe('UI table', () => {
     't_databar_text_color',
     't_databar_gradient_text_color',
     't_databar_pos_neg_text_color',
+    't_heatmap_basic',
+    't_heatmap_diverging',
+    't_heatmap_multistop',
+    't_heatmap_positioned_stops',
+    't_heatmap_text_color',
+    't_heatmap_both',
+    't_heatmap_databar_overlay',
+    't_heatmap_databar_mixed',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');

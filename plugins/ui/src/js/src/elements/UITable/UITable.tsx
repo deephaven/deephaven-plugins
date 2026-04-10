@@ -249,29 +249,44 @@ export function UITable({
   const colorMap = useMemo(() => {
     log.debug('Theme changed, updating color map', theme);
     const colorSet = new Set<string>();
+
     format.forEach(rule => {
       const { mode } = rule;
-      if (mode?.type !== 'dataBar') {
-        return;
-      }
-      const { color, markers } = mode;
-      if (color != null) {
-        if (typeof color === 'string' || Array.isArray(color)) {
-          [color].flat().forEach(c => colorSet.add(c));
-        } else {
-          if (color.positive != null) {
-            [color.positive].flat().forEach(c => colorSet.add(c));
-          }
+      if (mode?.type === 'dataBar') {
+        const { color, markers } = mode;
+        if (color != null) {
+          if (typeof color === 'string' || Array.isArray(color)) {
+            [color].flat().forEach(c => colorSet.add(c));
+          } else {
+            if (color.positive != null) {
+              [color.positive].flat().forEach(c => colorSet.add(c));
+            }
 
-          if (color.negative != null) {
-            [color.negative].flat().forEach(c => colorSet.add(c));
+            if (color.negative != null) {
+              [color.negative].flat().forEach(c => colorSet.add(c));
+            }
           }
         }
+
+        markers?.forEach(marker => {
+          if (marker.color != null) {
+            colorSet.add(marker.color);
+          }
+        });
       }
 
-      markers?.forEach(marker => {
-        if (marker.color != null) {
-          colorSet.add(marker.color);
+      [rule.color, rule.background_color].forEach(config => {
+        if (
+          config != null &&
+          typeof config !== 'string' &&
+          config.type === 'heatmap'
+        ) {
+          const { gradient } = config;
+          if (Array.isArray(gradient)) {
+            gradient.forEach(c => {
+              colorSet.add(typeof c === 'string' ? c : c[1]);
+            });
+          }
         }
       });
     });

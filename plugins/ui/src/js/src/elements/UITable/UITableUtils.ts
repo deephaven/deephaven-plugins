@@ -57,11 +57,26 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
+export type ColorStop = [number, string];
+
+export const DATABAR_MIN_SUFFIX = '__DATABAR_Min';
+export const DATABAR_MAX_SUFFIX = '__DATABAR_Max';
+export const HEATMAP_MIN_SUFFIX = '__HEATMAP_Min';
+export const HEATMAP_MAX_SUFFIX = '__HEATMAP_Max';
+
+export type HeatmapConfig = {
+  type: 'heatmap';
+  min?: number | ColumnName;
+  max?: number | ColumnName;
+  mid?: number;
+  gradient?: string | string[] | ColorStop[];
+};
+
 export type FormattingRule = {
   cols?: ColumnName | ColumnName[];
   if_?: string;
-  color?: string;
-  background_color?: string;
+  color?: string | HeatmapConfig;
+  background_color?: string | HeatmapConfig;
   alignment?: 'left' | 'center' | 'right';
   value?: string;
   mode?: DatabarConfig;
