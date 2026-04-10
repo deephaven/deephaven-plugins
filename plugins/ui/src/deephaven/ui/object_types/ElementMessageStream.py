@@ -10,11 +10,12 @@ import threading
 import traceback
 from enum import Enum
 from queue import Queue
-from typing import Any, Callable
+from typing import Any, Callable, TypedDict
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import liveness_scope
+from ..types import QueryParams
 from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
@@ -31,6 +32,12 @@ from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
+
+_UrlState = TypedDict("_UrlState", {"__queryParams": QueryParams})
+"""
+The URL state sent from the client, containing query parameter names mapped to
+their list of string values.
+"""
 
 
 class _RenderState(Enum):
@@ -382,6 +389,7 @@ class ElementMessageStream(MessageStream):
     def _make_dispatcher(self) -> Dispatcher:
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
+        dispatcher["setUrlState"] = self._set_url_state
         dispatcher["callCallable"] = self._call_callable
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
@@ -395,6 +403,20 @@ class ElementMessageStream(MessageStream):
         """
         logger.debug("Setting state: %s", state)
         self._context.import_state(state)
+        self._mark_dirty()
+
+    def _set_url_state(self, url_state: _UrlState) -> None:
+        """
+        Update only the URL state (query params). Called by the client after a
+        client-side navigation so that the component re-renders with updated URL
+        params.
+
+        Args:
+            url_state: Dict with key ``__queryParams`` mapping param names to
+                lists of string values.
+        """
+        logger.debug("Setting URL state: %s", url_state)
+        self._context.update_url_state(url_state.get("__queryParams", {}))
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:

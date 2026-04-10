@@ -452,6 +452,14 @@
                 "path": "hooks/use_memo.md"
               },
               {
+                "label": "use_query_param",
+                "path": "hooks/use_query_param.md"
+              },
+              {
+                "label": "use_query_params",
+                "path": "hooks/use_query_params.md"
+              },
+              {
                 "label": "use_ref",
                 "path": "hooks/use_ref.md"
               },
@@ -466,6 +474,10 @@
               {
                 "label": "use_row_list",
                 "path": "hooks/use_row_list.md"
+              },
+              {
+                "label": "use_set_query_param",
+                "path": "hooks/use_set_query_param.md"
               },
               {
                 "label": "use_state",

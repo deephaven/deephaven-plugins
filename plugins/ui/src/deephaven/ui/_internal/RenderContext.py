@@ -21,6 +21,7 @@ from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
+from ..types import QueryParams
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +222,20 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
+    _root: Optional["RenderContext"]
+    """
+    The root context for this render context tree.  ``None`` when this context is the root.
+    Child contexts point to the root so that URL state (which is only stored on the root)
+    is accessible from any descendant.
+    """
+
+    _query_params: QueryParams
+    """
+    The URL query parameters, populated from the frontend via __queryParams in the state dict.
+    Only meaningful on the root context. Read via ``get_query_params()`` by descendants.
+    Keys are parameter names, values are lists of string values.
+    """
+
     def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
         """
         Create a new render context.
@@ -242,6 +257,8 @@ class RenderContext:
         self._collected_contexts = []
         self._top_level_scope = None
         self._is_mounted = True
+        self._root = None
+        self._query_params = {}
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -378,6 +395,30 @@ class RenderContext:
                 "RenderContext method called when RenderContext is unmounted"
             )
 
+    def get_query_params(self) -> QueryParams:
+        """
+        Get the URL query parameters received from the frontend.
+
+        Delegates to the root context so that child contexts always see the
+        current URL state even though it is only stored on the root.
+
+        Returns:
+            A dictionary mapping parameter names to lists of values.
+        """
+        root = self._root if self._root is not None else self
+        return root._query_params
+
+    def update_url_state(self, query_params: QueryParams) -> None:
+        """
+        Update the URL query parameters.
+
+        Should only be called on the root context.
+
+        Args:
+            query_params: New query parameter mapping to store.
+        """
+        self._query_params = query_params
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -449,6 +490,8 @@ class RenderContext:
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
             child_context = RenderContext(self._on_change, self._on_queue_render)
+            # Point child to the root so URL state is accessible from any descendant.
+            child_context._root = self._root if self._root is not None else self
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
@@ -551,6 +594,13 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
+
+        # Extract URL state fields (prefixed with __) before processing component state.
+        # Only update when the key is explicitly present so recursive calls for child
+        # contexts (which never carry __queryParams) don't accidentally clear URL state.
+        if "__queryParams" in state:
+            self._query_params = state.pop("__queryParams")
+
         if "state" in state:
             for key, value in state["state"].items():
                 # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.

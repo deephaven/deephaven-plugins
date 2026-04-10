@@ -1,0 +1,50 @@
+# use_query_param
+
+`use_query_param` is a hook that returns the value of a single URL query parameter. The return type depends on the `default` argument. If `default` is not provided, the return type is `str | None`, where `None` indicates that the parameter is not present in the URL. If `default` is a list of strings, the return type is `list[str]`, where an empty list indicates that the parameter is not present.
+
+> [!WARNING]
+> Deephaven internally uses query parameters to manage state. It's strongly recommended to namespace your application's parameters with a prefix such as `app-` to avoid conflicts (e.g., `?app-sym=DOG`).
+
+## Example
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+# Table containing stock data with "Sym" and "Side" columns
+_stocks = dx.data.stocks()
+
+
+@ui.component
+def filter_app():
+    # Get the "app-sym" parameter as a string
+    sym = ui.use_query_param("app-sym")
+    # Get the "app-side" parameter as a list of strings
+    sides = ui.use_query_param("app-side", [])
+
+    # Filter the stocks table based on the query parameters
+    filtered = _stocks
+    if sym:
+        filtered = filtered.where(f"Sym = `{sym}`")
+    if sides:
+        filtered = filtered.where("Side in sides")
+    return filtered
+
+
+app = filter_app()
+```
+
+Navigating to a URL with a query string such as `?app-sym=DOG&app-side=buy&app-side=sell` will display the table pre-filtered to only show rows where `Sym` is `DOG` and `Side` is either `buy` or `sell`.
+
+## Recommendations
+
+1. **Single parameter access**: Use `use_query_param` when you only need to read a single parameter.
+2. **Multiple parameter access**: If you need access to multiple parameters at once, consider using `use_query_params` instead.
+3. **Validate parameters before use**: Parameters can be manipulated by the user and may not be in the format you expect.
+4. **Use with `use_set_query_param`**: Pair `use_query_param` with `use_set_query_param` to read and write the same parameter concisely.
+
+## API reference
+
+```{eval-rst}
+.. autofunction:: deephaven.ui.use_query_param
+```
