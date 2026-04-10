@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## pivot-v0.3.3 - 2026-04-10
+#### Bug Fixes
+- DH-21744: Fix Advanced Filters in Pivots (#1308) - (64fb83a) - vbabich
+
+- - -
+
 ## pivot-v0.3.2 - 2026-03-03
 #### Bug Fixes
 - DH-21746: Fix ExpandAll/CollapseAll CCE (#1310) - (aa87e2d) - vbabich
