@@ -22,11 +22,11 @@
     "@deephaven/jsapi-types": "^0.40.0"
   },
   "devDependencies": {
-    "@types/react": "^17.0.2",
-    "react": "^17.0.2"
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0"
   },
   "peerDependencies": {
-    "react": "^17.0.2"
+    "react": "^17.0.2 || ^18.0.0 || ^19.0.0"
   },
   "publishConfig": {
     "access": "public"

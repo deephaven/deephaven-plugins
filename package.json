@@ -111,7 +111,9 @@
   "overrides": {
     "@deephaven/eslint-config": {
       "eslint-import-resolver-typescript": "3.5.0"
-    }
+    },
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0"
   },
   "prettier": "@deephaven/prettier-config"
 }
