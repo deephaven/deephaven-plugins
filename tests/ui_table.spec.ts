@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { openPanel, gotoPage, clickGridRow } from './utils';
 
-const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
+const REACT_PANEL_VISIBLE =
+  '.dh-panel.widget-loader-deephaven\\.ui\\.Element:visible';
 
 test.describe('UI table', () => {
   [
