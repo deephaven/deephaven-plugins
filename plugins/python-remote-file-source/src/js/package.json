@@ -19,16 +19,16 @@
   },
   "devDependencies": {
     "@deephaven/tsconfig": "^0.72.0",
-    "@types/react": "^18.0.0",
+    "@types/react": "^17.0.2",
     "@vitejs/plugin-react-swc": "^3.0.0",
-    "@types/react-dom": "^18.0.0",
-    "react": "^18.0.0",
+    "@types/react-dom": "^17.0.2",
+    "react": "^17.0.2",
     "typescript": "^5.9.3",
     "vite": "^5.4.6"
   },
   "peerDependencies": {
-    "react": "^17.0.2 || ^18.0.0 || ^19.0.0",
-    "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "dependencies": {
     "@deephaven/components": "^0.85.0",
