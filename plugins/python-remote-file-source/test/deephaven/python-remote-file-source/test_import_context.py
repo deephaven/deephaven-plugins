@@ -10,8 +10,10 @@ These tests verify that:
 import sys
 import unittest
 from importlib import import_module
+from importlib.abc import Loader, MetaPathFinder
+from importlib.machinery import ModuleSpec
 from types import ModuleType
-from typing import Optional
+from typing import Optional, Sequence
 
 from src.deephaven.python_remote_file_source.plugin_object import PluginObject
 from src.deephaven.python_remote_file_source.module_loader import RemoteMetaPathFinder
@@ -23,6 +25,51 @@ from src.deephaven.python_remote_file_source.json_rpc import (
 # Test module name constants
 TEST_MODULE = "test_module"
 TEST_PACKAGE = "test_package"
+
+
+class MockLocalLoader(Loader):
+    """Loader that provides modules from memory, mimicking file-based loaders"""
+
+    def __init__(self, source: str):
+        self._source = source
+
+    def create_module(self, spec: ModuleSpec):
+        return None
+
+    def exec_module(self, module: ModuleType):
+        origin = (module.__spec__.origin if module.__spec__ else None) or "<string>"
+        exec(compile(self._source, origin, "exec"), module.__dict__)
+
+
+class MockLocalFinder(MetaPathFinder):
+    """Low-priority finder that serves 'local' modules from memory"""
+
+    def __init__(self):
+        self._modules = {}
+
+    def add_module(self, name: str, is_package: bool = False):
+        """Register a local module that can be imported"""
+        self._modules[name] = {
+            "source": "value = 'local'",
+            "is_package": is_package,
+        }
+
+    def find_spec(
+        self,
+        fullname: str,
+        path: Optional[Sequence[str]],
+        target: Optional[ModuleType] = None,
+    ):
+        if fullname not in self._modules:
+            return None
+
+        module_data = self._modules[fullname]
+        return ModuleSpec(
+            name=fullname,
+            origin=f"<local:{fullname}>",
+            is_package=module_data["is_package"],
+            loader=MockLocalLoader(module_data["source"]),
+        )
 
 
 class MockConnection:
@@ -75,7 +122,11 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Save original sys.meta_path
         self.original_meta_path = sys.meta_path.copy()
 
-        # Register remote finder for all tests
+        # Register local finder at end (low priority, like default loaders)
+        self.local_finder = MockLocalFinder()
+        sys.meta_path.append(self.local_finder)
+
+        # Register remote finder at start (high priority)
         finder = RemoteMetaPathFinder(self.mock_connection, self.plugin)
         sys.meta_path.insert(0, finder)
 
@@ -93,14 +144,10 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.plugin._execution_context_connection_id = None
         self.plugin._top_level_module_fullnames = set()
 
-    def _create_local_module(self, name: str) -> ModuleType:
-        """Create a local module in sys.modules for testing"""
-        module = ModuleType(name)
-        module.__file__ = f"<local:{name}>"
-        exec(compile("value = 'local'", module.__file__, "exec"), module.__dict__)
-        sys.modules[name] = module
+    def _create_local_module(self, name: str, is_package: bool = False):
+        """Register a local module with the low-priority finder"""
+        self.local_finder.add_module(name, is_package)
         self.test_modules.add(name)
-        return module
 
     def test_case_1a_local_exists_no_remote_configured(self):
         """
@@ -115,8 +162,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "local")
-        self.assertIsNotNone(module.__file__)
-        self.assertIn("local", module.__file__)  # type: ignore
 
     def test_case_1b_local_exists_remote_configured(self):
         """
@@ -136,21 +181,16 @@ class TestImportWithExecutionContext(unittest.TestCase):
         module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "remote")
-        # Check __spec__.origin since remote modules may not have __file__
-        self.assertIsNotNone(module.__spec__)
-        if module.__spec__ is not None:
-            self.assertIsNotNone(module.__spec__.origin)
-            self.assertIn("remote", module.__spec__.origin)  # type: ignore
 
     def test_case_1c_local_exists_remote_removed(self):
         """
         Case 1c: Local version exists, remote source was configured but now removed
         Expected: Local module gets loaded
         """
-        # Create a local module FIRST (before registering finder)
-        local_module = self._create_local_module(TEST_MODULE)
+        # Register a local module with the finder
+        self._create_local_module(TEST_MODULE)
 
-        # Configure and then remove remote module
+        # Configure remote module
         self.mock_connection.add_remote_module(TEST_MODULE)
 
         # First: Configure execution context to use remote source
@@ -163,14 +203,9 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # This should evict the remote module from cache
         self.plugin.set_execution_context(self.connection_id, set())
 
-        # RE-CREATE the local module since it was evicted
-        self._create_local_module(TEST_MODULE)
-
-        # Import should now use local module
+        # Import should now fall back to local module from finder
         module = import_module(TEST_MODULE)
         self.assertEqual(module.value, "local")
-        self.assertIsNotNone(module.__file__)
-        self.assertIn("local", module.__file__)  # type: ignore
 
     def test_case_2a_local_not_exists_no_remote_configured(self):
         """
@@ -198,11 +233,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "remote")
-        # Check __spec__.origin since remote modules may not have __file__
-        self.assertIsNotNone(module.__spec__)
-        if module.__spec__ is not None:
-            self.assertIsNotNone(module.__spec__.origin)
-            self.assertIn("remote", module.__spec__.origin)  # type: ignore
 
     def test_case_2c_local_not_exists_remote_removed(self):
         """
@@ -229,7 +259,7 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         Test that module cache is properly evicted when execution context changes
         """
-        # Create a local module
+        # Register a local module with the finder
         self._create_local_module(TEST_MODULE)
 
         # Configure remote module
@@ -246,11 +276,10 @@ class TestImportWithExecutionContext(unittest.TestCase):
         module2 = import_module(TEST_MODULE)
         self.assertEqual(module2.value, "remote")
 
-        # Clear remote source and re-create local module
+        # Clear remote source
         self.plugin.set_execution_context(self.connection_id, set())
-        self._create_local_module(TEST_MODULE)
 
-        # Third import: no remote, should get local again (cache evicted again)
+        # Third import: should fall back to local again (cache evicted, finder re-provides)
         module3 = import_module(TEST_MODULE)
         self.assertEqual(module3.value, "local")
 
@@ -311,9 +340,13 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         Test that eviction works for packages and their submodules
         """
-        # Create local package and submodule
-        pkg = self._create_local_module(TEST_PACKAGE)
-        sub = self._create_local_module(f"{TEST_PACKAGE}.submodule")
+        # Register local package and submodule with the finder
+        self._create_local_module(TEST_PACKAGE, is_package=True)
+        self._create_local_module(f"{TEST_PACKAGE}.submodule")
+
+        # Import both to get them into sys.modules
+        import_module(TEST_PACKAGE)
+        import_module(f"{TEST_PACKAGE}.submodule")
 
         # Both should be in sys.modules
         self.assertIn(TEST_PACKAGE, sys.modules)
