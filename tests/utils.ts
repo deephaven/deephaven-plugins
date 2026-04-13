@@ -2,8 +2,9 @@ import test, { Locator, Page, expect } from '@playwright/test';
 import os from 'node:os';
 
 export const SELECTORS = {
-  REACT_PANEL: '.dh-react-panel',
-  REACT_PANEL_VISIBLE: '.dh-react-panel:visible',
+  REACT_PANEL: '.dh-panel.widget-loader-deephaven\\.ui\\.Element',
+  REACT_PANEL_VISIBLE:
+    '.dh-panel.widget-loader-deephaven\\.ui\\.Element:visible',
   REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
 };
 
