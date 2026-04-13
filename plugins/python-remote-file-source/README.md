@@ -128,7 +128,6 @@ npm install
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade -r requirements.txt
-pip install click watchdog deephaven-server
 ```
 
 2. Build the python-remote-file-source plugin
@@ -147,7 +146,6 @@ Exactly how this is done will depend on how you are running Deephaven.
 If using the venv created above, the plugin and server can be created with the following commands:
 
 ```sh
-pip install deephaven-server
 pip install plugins/python-remote-file-source/dist/deephaven_plugin_python_remote_file_source-*.whl
 deephaven server
 ```
