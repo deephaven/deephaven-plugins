@@ -93,13 +93,10 @@
 
 .dh-panel {
   .dh-nested-dashboard {
+    padding: var(--spectrum-global-dimension-size-100);
     .dashboard-container {
       border: 1px solid var(--dh-color-bg);
     }
-  }
-  &.widget-loader-deephaven\.ui\.Element,
-  &.widget-loader-deephaven\.ui\.Dashboard {
-    padding: var(--spectrum-global-dimension-size-100);
   }
 }
 
