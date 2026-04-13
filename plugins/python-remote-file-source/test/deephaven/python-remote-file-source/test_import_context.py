@@ -20,6 +20,9 @@ from src.deephaven.python_remote_file_source.json_rpc import (
     JsonRpcResponse,
 )
 
+# Test module name constants
+TEST_MODULE = "test_module"
+
 
 class MockConnection:
     """Mock connection for testing"""
@@ -104,11 +107,11 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Expected: Local module gets loaded
         """
         # Create a local module
-        self._create_local_module("test_module_1a")
+        self._create_local_module(TEST_MODULE)
 
         # Don't call set_execution_context, so no remote modules are configured
         # Import should use local module
-        module = import_module("test_module_1a")
+        module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "local")
         self.assertIsNotNone(module.__file__)
@@ -120,16 +123,16 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Expected: Remote module gets loaded (overrides local)
         """
         # Create a local module
-        self._create_local_module("test_module_1b")
+        self._create_local_module(TEST_MODULE)
 
         # Configure remote module
-        self.mock_connection.add_remote_module("test_module_1b")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # Configure execution context to use remote source
-        self.plugin.set_execution_context(self.connection_id, {"test_module_1b"})
+        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
 
         # Import should use remote module
-        module = import_module("test_module_1b")
+        module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "remote")
         # Check __spec__.origin since remote modules may not have __file__
@@ -144,15 +147,15 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Expected: Local module gets loaded
         """
         # Create a local module FIRST (before registering finder)
-        local_module = self._create_local_module("test_module_1c")
+        local_module = self._create_local_module(TEST_MODULE)
 
         # Configure and then remove remote module
-        self.mock_connection.add_remote_module("test_module_1c")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # First: Configure execution context to use remote source
         # This should evict the local module from cache
-        self.plugin.set_execution_context(self.connection_id, {"test_module_1c"})
-        module = import_module("test_module_1c")
+        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
+        module = import_module(TEST_MODULE)
         self.assertEqual(module.value, "remote")
 
         # Second: Remove remote configuration (clear execution context)
@@ -160,10 +163,10 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.plugin.set_execution_context(self.connection_id, set())
 
         # RE-CREATE the local module since it was evicted
-        self._create_local_module("test_module_1c")
+        self._create_local_module(TEST_MODULE)
 
         # Import should now use local module
-        module = import_module("test_module_1c")
+        module = import_module(TEST_MODULE)
         self.assertEqual(module.value, "local")
         self.assertIsNotNone(module.__file__)
         self.assertIn("local", module.__file__)  # type: ignore
@@ -184,14 +187,14 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Expected: Remote module gets loaded
         """
         # Configure remote module (no local version)
-        self.mock_connection.add_remote_module("test_module_2b")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # Configure execution context to use remote source
-        self.plugin.set_execution_context(self.connection_id, {"test_module_2b"})
+        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
 
         # Import should use remote module
-        self.test_modules.add("test_module_2b")  # Track for cleanup
-        module = import_module("test_module_2b")
+        self.test_modules.add(TEST_MODULE)  # Track for cleanup
+        module = import_module(TEST_MODULE)
 
         self.assertEqual(module.value, "remote")
         # Check __spec__.origin since remote modules may not have __file__
@@ -206,12 +209,12 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Expected: ImportError
         """
         # Configure remote module (no local version)
-        self.mock_connection.add_remote_module("test_module_2c")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # First: Configure execution context to use remote source
-        self.plugin.set_execution_context(self.connection_id, {"test_module_2c"})
-        self.test_modules.add("test_module_2c")  # Track for cleanup
-        module = import_module("test_module_2c")
+        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
+        self.test_modules.add(TEST_MODULE)  # Track for cleanup
+        module = import_module(TEST_MODULE)
         self.assertEqual(module.value, "remote")
 
         # Second: Remove remote configuration
@@ -219,7 +222,7 @@ class TestImportWithExecutionContext(unittest.TestCase):
 
         # Import should now fail
         with self.assertRaises(ModuleNotFoundError):
-            import_module("test_module_2c")
+            import_module(TEST_MODULE)
 
     def test_cache_eviction_on_context_change(self):
         """
