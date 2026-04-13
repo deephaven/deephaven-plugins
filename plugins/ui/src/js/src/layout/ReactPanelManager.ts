@@ -1,4 +1,5 @@
 import { PanelProps } from '@deephaven/dashboard';
+import { UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import { useContextOrThrow } from '@deephaven/react-hooks';
 import { createContext, useCallback, useMemo } from 'react';
 
@@ -11,7 +12,7 @@ export interface ReactPanelManager {
    * Updating the metadata will cause the panel to be re-opened, or replaced if it is closed.
    * Can also be used for rehydration.
    */
-  metadata: PanelProps['metadata'];
+  metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
   /** Triggered when a panel is opened */
   onOpen: (panelId: string) => void;
@@ -46,7 +47,7 @@ export interface ReactPanelControl {
    * Updating the metadata will cause the panel to be re-opened, or replaced if it is closed.
    * Can also be used for rehydration.
    */
-  metadata: PanelProps['metadata'];
+  metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
   /** Must be called when the panel is opened */
   onOpen: () => void;

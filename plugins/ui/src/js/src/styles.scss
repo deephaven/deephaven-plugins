@@ -91,6 +91,15 @@
   }
 }
 
+.dh-panel {
+  .dh-nested-dashboard {
+    padding: var(--spectrum-global-dimension-size-100);
+    .dashboard-container {
+      border: 1px solid var(--dh-color-bg);
+    }
+  }
+}
+
 .ui-text-wrap-balance {
   text-wrap: balance;
 }

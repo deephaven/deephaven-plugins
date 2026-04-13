@@ -72,10 +72,12 @@ it('should throw an error if the document mixes panel and non-panel elements', (
   );
 });
 
-it('should combine multiple single elements into one panel', () => {
+it('should render multiple single elements directly without wrapping in a panel', () => {
   const children = makeDocument([makeElement('foo'), makeElement('bar')]);
   render(makeDocumentHandler({ children }));
-  expect(mockReactPanel).toHaveBeenCalledTimes(1);
+  // When not nested (no PanelIdContext), non-layout children are rendered directly
+  // without being wrapped in a ReactPanel (WidgetPlugin handles the panel)
+  expect(mockReactPanel).toHaveBeenCalledTimes(0);
 });
 
 it('should render multiple panels', () => {
