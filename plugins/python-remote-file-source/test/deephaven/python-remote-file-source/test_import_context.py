@@ -22,6 +22,7 @@ from src.deephaven.python_remote_file_source.json_rpc import (
 
 # Test module name constants
 TEST_MODULE = "test_module"
+TEST_PACKAGE = "test_package"
 
 
 class MockConnection:
@@ -229,28 +230,28 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Test that module cache is properly evicted when execution context changes
         """
         # Create a local module
-        self._create_local_module("test_cache_module")
+        self._create_local_module(TEST_MODULE)
 
         # Configure remote module
-        self.mock_connection.add_remote_module("test_cache_module")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # First import: no remote configured, should get local
-        module1 = import_module("test_cache_module")
+        module1 = import_module(TEST_MODULE)
         self.assertEqual(module1.value, "local")
 
         # Configure remote source
-        self.plugin.set_execution_context(self.connection_id, {"test_cache_module"})
+        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
 
         # Second import: remote configured, should get remote (cache should be evicted)
-        module2 = import_module("test_cache_module")
+        module2 = import_module(TEST_MODULE)
         self.assertEqual(module2.value, "remote")
 
         # Clear remote source and re-create local module
         self.plugin.set_execution_context(self.connection_id, set())
-        self._create_local_module("test_cache_module")
+        self._create_local_module(TEST_MODULE)
 
         # Third import: no remote, should get local again (cache evicted again)
-        module3 = import_module("test_cache_module")
+        module3 = import_module(TEST_MODULE)
         self.assertEqual(module3.value, "local")
 
     def test_submodule_import_with_remote_source(self):
@@ -258,18 +259,18 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Test that submodule imports work correctly with remote sources
         """
         # Configure remote package and submodule
-        self.mock_connection.add_remote_module("test_package", is_package=True)
-        self.mock_connection.add_remote_module("test_package.submodule")
+        self.mock_connection.add_remote_module(TEST_PACKAGE, is_package=True)
+        self.mock_connection.add_remote_module(f"{TEST_PACKAGE}.submodule")
 
         # Configure execution context for the package
-        self.plugin.set_execution_context(self.connection_id, {"test_package"})
+        self.plugin.set_execution_context(self.connection_id, {TEST_PACKAGE})
 
         # Import package and submodule
-        self.test_modules.add("test_package")
-        package = import_module("test_package")
+        self.test_modules.add(TEST_PACKAGE)
+        package = import_module(TEST_PACKAGE)
         self.assertEqual(package.value, "remote")
 
-        submodule = import_module("test_package.submodule")
+        submodule = import_module(f"{TEST_PACKAGE}.submodule")
         self.assertEqual(submodule.value, "remote")
 
     def test_connection_id_mismatch(self):
@@ -277,18 +278,16 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Test that modules aren't loaded when connection ID doesn't match
         """
         # Configure remote module
-        self.mock_connection.add_remote_module("test_connection_module")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # Configure execution context with different connection ID
         different_connection_id = "different-connection"
-        self.plugin.set_execution_context(
-            different_connection_id, {"test_connection_module"}
-        )
+        self.plugin.set_execution_context(different_connection_id, {TEST_MODULE})
 
         # Import should fail because connection IDs don't match
         # The finder returns None, so standard import mechanism should fail
         with self.assertRaises(ModuleNotFoundError):
-            import_module("test_connection_module")
+            import_module(TEST_MODULE)
 
     def test_dict_to_set_conversion(self):
         """
@@ -296,16 +295,16 @@ class TestImportWithExecutionContext(unittest.TestCase):
         (converted to set of keys)
         """
         # Configure remote module
-        self.mock_connection.add_remote_module("test_dict_module")
+        self.mock_connection.add_remote_module(TEST_MODULE)
 
         # Pass a dict instead of a set (values should be ignored)
         self.plugin.set_execution_context(
-            self.connection_id, {"test_dict_module": "ignored_value"}
+            self.connection_id, {TEST_MODULE: "ignored_value"}
         )
 
         # Import should work
-        self.test_modules.add("test_dict_module")
-        module = import_module("test_dict_module")
+        self.test_modules.add(TEST_MODULE)
+        module = import_module(TEST_MODULE)
         self.assertEqual(module.value, "remote")
 
     def test_evict_multiple_related_modules(self):
@@ -313,24 +312,27 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Test that eviction works for packages and their submodules
         """
         # Create local package and submodule
-        pkg = self._create_local_module("test_pkg")
-        sub = self._create_local_module("test_pkg.submodule")
+        pkg = self._create_local_module(TEST_PACKAGE)
+        sub = self._create_local_module(f"{TEST_PACKAGE}.submodule")
 
         # Both should be in sys.modules
-        self.assertIn("test_pkg", sys.modules)
-        self.assertIn("test_pkg.submodule", sys.modules)
+        self.assertIn(TEST_PACKAGE, sys.modules)
+        self.assertIn(f"{TEST_PACKAGE}.submodule", sys.modules)
 
         # Configure remote versions
-        self.mock_connection.add_remote_module("test_pkg", is_package=True)
-        self.mock_connection.add_remote_module("test_pkg.submodule")
+        self.mock_connection.add_remote_module(TEST_PACKAGE, is_package=True)
+        self.mock_connection.add_remote_module(f"{TEST_PACKAGE}.submodule")
 
         # Set execution context - this should evict both modules
-        self.plugin.set_execution_context(self.connection_id, {"test_pkg"})
+        self.plugin.set_execution_context(self.connection_id, {TEST_PACKAGE})
 
         # Both should have been evicted from sys.modules
-        self.assertFalse("test_pkg" in sys.modules, "test_pkg should be evicted")
         self.assertFalse(
-            "test_pkg.submodule" in sys.modules, "test_pkg.submodule should be evicted"
+            TEST_PACKAGE in sys.modules, f"{TEST_PACKAGE} should be evicted"
+        )
+        self.assertFalse(
+            f"{TEST_PACKAGE}.submodule" in sys.modules,
+            f"{TEST_PACKAGE}.submodule should be evicted",
         )
 
 
