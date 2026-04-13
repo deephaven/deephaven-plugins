@@ -71,6 +71,10 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Save original sys.meta_path
         self.original_meta_path = sys.meta_path.copy()
 
+        # Register remote finder for all tests
+        finder = RemoteMetaPathFinder(self.mock_connection, self.plugin)
+        sys.meta_path.insert(0, finder)
+
     def tearDown(self):
         """Clean up after each test"""
         # Remove test modules from sys.modules
@@ -94,12 +98,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.test_modules.add(name)
         return module
 
-    def _register_remote_finder(self):
-        """Register RemoteMetaPathFinder at the beginning of sys.meta_path"""
-        finder = RemoteMetaPathFinder(self.mock_connection, self.plugin)
-        sys.meta_path.insert(0, finder)
-        return finder
-
     def test_case_1a_local_exists_no_remote_configured(self):
         """
         Case 1a: Local version exists, no remote source configured
@@ -107,9 +105,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         # Create a local module
         self._create_local_module("test_module_1a")
-
-        # Register the remote finder (but don't configure any remote modules)
-        self._register_remote_finder()
 
         # Don't call set_execution_context, so no remote modules are configured
         # Import should use local module
@@ -129,9 +124,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
 
         # Configure remote module
         self.mock_connection.add_remote_module("test_module_1b")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # Configure execution context to use remote source
         self.plugin.set_execution_context(self.connection_id, {"test_module_1b"})
@@ -157,9 +149,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Configure and then remove remote module
         self.mock_connection.add_remote_module("test_module_1c")
 
-        # Register the remote finder
-        self._register_remote_finder()
-
         # First: Configure execution context to use remote source
         # This should evict the local module from cache
         self.plugin.set_execution_context(self.connection_id, {"test_module_1c"})
@@ -184,9 +173,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Case 2a: Local version doesn't exist, no remote source configured
         Expected: ImportError
         """
-        # Register the remote finder
-        self._register_remote_finder()
-
         # Don't configure any remote modules
         # Import should fail
         with self.assertRaises(ModuleNotFoundError):
@@ -199,9 +185,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         # Configure remote module (no local version)
         self.mock_connection.add_remote_module("test_module_2b")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # Configure execution context to use remote source
         self.plugin.set_execution_context(self.connection_id, {"test_module_2b"})
@@ -225,9 +208,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Configure remote module (no local version)
         self.mock_connection.add_remote_module("test_module_2c")
 
-        # Register the remote finder
-        self._register_remote_finder()
-
         # First: Configure execution context to use remote source
         self.plugin.set_execution_context(self.connection_id, {"test_module_2c"})
         self.test_modules.add("test_module_2c")  # Track for cleanup
@@ -250,9 +230,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
 
         # Configure remote module
         self.mock_connection.add_remote_module("test_cache_module")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # First import: no remote configured, should get local
         module1 = import_module("test_cache_module")
@@ -281,9 +258,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.mock_connection.add_remote_module("test_package", is_package=True)
         self.mock_connection.add_remote_module("test_package.submodule")
 
-        # Register the remote finder
-        self._register_remote_finder()
-
         # Configure execution context for the package
         self.plugin.set_execution_context(self.connection_id, {"test_package"})
 
@@ -301,9 +275,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         # Configure remote module
         self.mock_connection.add_remote_module("test_connection_module")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # Configure execution context with different connection ID
         different_connection_id = "different-connection"
@@ -323,9 +294,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         """
         # Configure remote module
         self.mock_connection.add_remote_module("test_dict_module")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # Pass a dict instead of a set (values should be ignored)
         self.plugin.set_execution_context(
@@ -352,9 +320,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Configure remote versions
         self.mock_connection.add_remote_module("test_pkg", is_package=True)
         self.mock_connection.add_remote_module("test_pkg.submodule")
-
-        # Register the remote finder
-        self._register_remote_finder()
 
         # Set execution context - this should evict both modules
         self.plugin.set_execution_context(self.connection_id, {"test_pkg"})
