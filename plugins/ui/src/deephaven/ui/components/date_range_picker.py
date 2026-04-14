@@ -31,7 +31,7 @@ from .._internal.utils import (
 )
 from ..types import Date, Granularity, DateRange, Undefined, UndefinedType
 from .basic import component_element
-from .make_component import make_component
+from .component import component
 from deephaven.time import dh_now
 
 DatePickerElement = Element
@@ -78,7 +78,7 @@ def _convert_date_range_picker_props(
     return props
 
 
-@make_component
+@component
 def date_range_picker(
     placeholder_value: Date | None = None,
     value: DateRange | None | UndefinedType = Undefined,

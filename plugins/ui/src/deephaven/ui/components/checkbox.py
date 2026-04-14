@@ -14,11 +14,11 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def checkbox(
-    *children: Any,
+    *children: NodeType,
     is_emphasized: bool | None = None,
     is_indeterminate: bool | None = None,
     default_selected: bool | None = None,
