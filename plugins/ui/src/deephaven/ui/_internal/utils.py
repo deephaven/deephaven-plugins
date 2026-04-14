@@ -1,5 +1,17 @@
 from __future__ import annotations
-from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Set,
+    Tuple,
+    cast,
+    Sequence,
+    TypeVar,
+    Union,
+)
 from deephaven.dtypes import (
     Instant as DTypeInstant,
     ZonedDateTime as DTypeZonedDateTime,
@@ -7,7 +19,9 @@ from deephaven.dtypes import (
 )
 from inspect import signature
 import sys
+from dataclasses import dataclass
 from functools import partial
+from deephaven.liveness_scope import LivenessScope
 from deephaven.time import (
     to_j_instant,
     to_j_zdt,
@@ -30,6 +44,36 @@ from ..types import (
 )
 
 T = TypeVar("T")
+
+
+@dataclass
+class ValueWithLiveness(Generic[T]):
+    """A value with an associated liveness scope, if any."""
+
+    value: T
+    liveness_scope: Union[LivenessScope, None]
+
+
+def value_or_call(
+    value: T | None | Callable[[], T | None]
+) -> ValueWithLiveness[T | None]:
+    """
+    Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
+    creates while obtaining that value.
+
+    Args:
+        value: a value, or callable that will produce a value
+
+    Returns:
+        The resulting value, plus a liveness scope, if any.
+    """
+    if callable(value):
+        scope = LivenessScope()
+        with scope.open():
+            value = value()
+        return ValueWithLiveness(value=value, liveness_scope=scope)
+    return ValueWithLiveness(value=value, liveness_scope=None)
+
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"

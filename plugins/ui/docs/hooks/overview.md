@@ -63,6 +63,13 @@ _Data_ hooks let you use data from within a Deephaven table in your component.
 - [`use_cell_data`](use_cell_data.md) lets you use the data of one cell.
 - [`use_table_listener`](use_table_listener.md) lets you listen to a table for updates.
 
+### Shared state hooks
+
+_Shared state_ hooks let you create state that is shared across multiple components. Unlike `use_state`, which is local to a single component, shared state updates propagate to all components using the same store.
+
+- [`create_user_state`](create_user_state.md) creates a shared state hook scoped to the current effective user.
+- [`create_global_state`](create_global_state.md) creates a shared state hook that is global across all components and all users.
+
 ## Create custom hooks
 
 You can create your own hooks to reuse stateful logic between components. A custom hook is a function whose name starts with `use` and that may call other hooks. For example, let's say you want to create a custom hook that checks whether a table cell is odd. You can create a custom hook called `use_is_cell_odd`:
