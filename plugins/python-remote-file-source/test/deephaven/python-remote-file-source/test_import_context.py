@@ -116,6 +116,11 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.connection_id = "test-connection-1"
         self.mock_connection = MockConnection(self.connection_id)
 
+        # Pre-register all remote modules (they won't be used until set_execution_context is called)
+        self.mock_connection.add_remote_module(TEST_MODULE)
+        self.mock_connection.add_remote_module(TEST_PACKAGE, is_package=True)
+        self.mock_connection.add_remote_module(f"{TEST_PACKAGE}.submodule")
+
         # Keep track of modules we create for cleanup
         self.test_modules = set()
 
@@ -149,169 +154,78 @@ class TestImportWithExecutionContext(unittest.TestCase):
         self.local_finder.add_module(name, is_package)
         self.test_modules.add(name)
 
-    def test_case_1a_local_exists_no_remote_configured(self):
+    def _assert_import_is_local(self, module_name: str):
+        """Import a module and assert it came from the local finder"""
+        # Track for cleanup in tearDown since import_module will cache it in sys.modules
+        self.test_modules.add(module_name)
+
+        module = import_module(module_name)
+        self.assertEqual(
+            module.value, "local", f"Expected {module_name} to be local, got remote"
+        )
+
+    def _assert_import_is_remote(self, module_name: str):
+        """Import a module and assert it came from the remote source"""
+        # Track for cleanup in tearDown since import_module will cache it in sys.modules
+        self.test_modules.add(module_name)
+
+        module = import_module(module_name)
+        self.assertEqual(
+            module.value, "remote", f"Expected {module_name} to be remote, got local"
+        )
+
+    def test_case_1_local_exists_remote_lifecycle(self):
         """
-        Case 1a: Local version exists, no remote source configured
-        Expected: Local module gets loaded
+        Test import behavior when a local module exists through the full remote lifecycle.
+        Verifies: Local → remote override → local again
         """
-        # Create a local module
+        # Start with local module available
         self._create_local_module(TEST_MODULE)
+        self._assert_import_is_local(TEST_MODULE)
 
-        # Don't call set_execution_context, so no remote modules are configured
-        # Import should use local module
-        module = import_module(TEST_MODULE)
-
-        self.assertEqual(module.value, "local")
-
-    def test_case_1b_local_exists_remote_configured(self):
-        """
-        Case 1b: Local version exists, remote source configured
-        Expected: Remote module gets loaded (overrides local)
-        """
-        # Create a local module
-        self._create_local_module(TEST_MODULE)
-
-        # Configure remote module
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
-        # Configure execution context to use remote source
+        # Configure remote source (should evict local from cache)
         self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
+        self._assert_import_is_remote(TEST_MODULE)
 
-        # Import should use remote module
-        module = import_module(TEST_MODULE)
-
-        self.assertEqual(module.value, "remote")
-
-    def test_case_1c_local_exists_remote_removed(self):
-        """
-        Case 1c: Local version exists, remote source was configured but now removed
-        Expected: Local module gets loaded
-        """
-        # Register a local module with the finder
-        self._create_local_module(TEST_MODULE)
-
-        # Configure remote module
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
-        # First: Configure execution context to use remote source
-        # This should evict the local module from cache
-        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
-        module = import_module(TEST_MODULE)
-        self.assertEqual(module.value, "remote")
-
-        # Second: Remove remote configuration (clear execution context)
-        # This should evict the remote module from cache
+        # Remove remote configuration (should evict from cache and fall back to local)
         self.plugin.set_execution_context(self.connection_id, set())
+        self._assert_import_is_local(TEST_MODULE)
 
-        # Import should now fall back to local module from finder
-        module = import_module(TEST_MODULE)
-        self.assertEqual(module.value, "local")
-
-    def test_case_2a_local_not_exists_no_remote_configured(self):
+    def test_case_2_local_not_exists_remote_lifecycle(self):
         """
-        Case 2a: Local version doesn't exist, no remote source configured
-        Expected: ImportError
+        Test import behavior when no local module exists through the full remote lifecycle.
+        Verifies: Fail → succeed with remote → fail when remote removed
         """
-        # Don't configure any remote modules
-        # Import should fail
-        with self.assertRaises(ModuleNotFoundError):
-            import_module("nonexistent_module_2a")
-
-    def test_case_2b_local_not_exists_remote_configured(self):
-        """
-        Case 2b: Local version doesn't exist, remote source configured
-        Expected: Remote module gets loaded
-        """
-        # Configure remote module (no local version)
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
-        # Configure execution context to use remote source
-        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
-
-        # Import should use remote module
-        self.test_modules.add(TEST_MODULE)  # Track for cleanup
-        module = import_module(TEST_MODULE)
-
-        self.assertEqual(module.value, "remote")
-
-    def test_case_2c_local_not_exists_remote_removed(self):
-        """
-        Case 2c: Local version doesn't exist, remote source was configured but now removed
-        Expected: ImportError
-        """
-        # Configure remote module (no local version)
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
-        # First: Configure execution context to use remote source
-        self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
-        self.test_modules.add(TEST_MODULE)  # Track for cleanup
-        module = import_module(TEST_MODULE)
-        self.assertEqual(module.value, "remote")
-
-        # Second: Remove remote configuration
-        self.plugin.set_execution_context(self.connection_id, set())
-
-        # Import should now fail
+        # Import without local or remote - should fail
         with self.assertRaises(ModuleNotFoundError):
             import_module(TEST_MODULE)
 
-    def test_cache_eviction_on_context_change(self):
-        """
-        Test that module cache is properly evicted when execution context changes
-        """
-        # Register a local module with the finder
-        self._create_local_module(TEST_MODULE)
-
-        # Configure remote module
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
-        # First import: no remote configured, should get local
-        module1 = import_module(TEST_MODULE)
-        self.assertEqual(module1.value, "local")
-
         # Configure remote source
         self.plugin.set_execution_context(self.connection_id, {TEST_MODULE})
+        self._assert_import_is_remote(TEST_MODULE)
 
-        # Second import: remote configured, should get remote (cache should be evicted)
-        module2 = import_module(TEST_MODULE)
-        self.assertEqual(module2.value, "remote")
-
-        # Clear remote source
+        # Remove remote configuration - should fail again since no local module exists
         self.plugin.set_execution_context(self.connection_id, set())
-
-        # Third import: should fall back to local again (cache evicted, finder re-provides)
-        module3 = import_module(TEST_MODULE)
-        self.assertEqual(module3.value, "local")
+        with self.assertRaises(ModuleNotFoundError):
+            import_module(TEST_MODULE)
 
     def test_submodule_import_with_remote_source(self):
         """
         Test that submodule imports work correctly with remote sources
         """
-        # Configure remote package and submodule
-        self.mock_connection.add_remote_module(TEST_PACKAGE, is_package=True)
-        self.mock_connection.add_remote_module(f"{TEST_PACKAGE}.submodule")
-
         # Configure execution context for the package
         self.plugin.set_execution_context(self.connection_id, {TEST_PACKAGE})
 
         # Import package and submodule
-        self.test_modules.add(TEST_PACKAGE)
-        package = import_module(TEST_PACKAGE)
-        self.assertEqual(package.value, "remote")
-
-        submodule = import_module(f"{TEST_PACKAGE}.submodule")
-        self.assertEqual(submodule.value, "remote")
+        self._assert_import_is_remote(TEST_PACKAGE)
+        self._assert_import_is_remote(f"{TEST_PACKAGE}.submodule")
 
     def test_connection_id_mismatch(self):
         """
         Test that modules aren't loaded when connection ID doesn't match
         """
-        # Configure remote module
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
         # Configure execution context with different connection ID
-        different_connection_id = "different-connection"
-        self.plugin.set_execution_context(different_connection_id, {TEST_MODULE})
+        self.plugin.set_execution_context("different-connection", {TEST_MODULE})
 
         # Import should fail because connection IDs don't match
         # The finder returns None, so standard import mechanism should fail
@@ -323,18 +237,13 @@ class TestImportWithExecutionContext(unittest.TestCase):
         Test that set_execution_context properly handles dict input
         (converted to set of keys)
         """
-        # Configure remote module
-        self.mock_connection.add_remote_module(TEST_MODULE)
-
         # Pass a dict instead of a set (values should be ignored)
         self.plugin.set_execution_context(
             self.connection_id, {TEST_MODULE: "ignored_value"}
         )
 
         # Import should work
-        self.test_modules.add(TEST_MODULE)
-        module = import_module(TEST_MODULE)
-        self.assertEqual(module.value, "remote")
+        self._assert_import_is_remote(TEST_MODULE)
 
     def test_evict_multiple_related_modules(self):
         """
@@ -351,10 +260,6 @@ class TestImportWithExecutionContext(unittest.TestCase):
         # Both should be in sys.modules
         self.assertIn(TEST_PACKAGE, sys.modules)
         self.assertIn(f"{TEST_PACKAGE}.submodule", sys.modules)
-
-        # Configure remote versions
-        self.mock_connection.add_remote_module(TEST_PACKAGE, is_package=True)
-        self.mock_connection.add_remote_module(f"{TEST_PACKAGE}.submodule")
 
         # Set execution context - this should evict both modules
         self.plugin.set_execution_context(self.connection_id, {TEST_PACKAGE})
