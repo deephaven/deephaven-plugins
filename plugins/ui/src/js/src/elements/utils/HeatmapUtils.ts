@@ -1,5 +1,4 @@
-// TODO: GridColorUtils should be exported from @deephaven/grid (temporary workaround for now)
-import GridColorUtils from '@deephaven/grid/dist/GridColorUtils';
+import { GridColorUtils } from '@deephaven/grid';
 
 /**
  * Interpolate a color from a gradient at a given normalized position.
