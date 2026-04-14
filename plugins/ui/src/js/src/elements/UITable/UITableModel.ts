@@ -599,7 +599,6 @@ class UITableModel extends IrisGridModel {
       columnMax: maxRowValue,
       axis,
       color: barColor,
-      // @ts-expect-error TODO: bump web version
       textColor,
       valuePlacement,
       opacity,
