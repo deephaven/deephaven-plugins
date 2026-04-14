@@ -1,77 +1,165 @@
-from operator import itemgetter
 from ..BaseTest import BaseTestCase
 from .render_utils import render_hook
+from deephaven.ui.renderer.Renderer import Renderer
+from deephaven.ui._internal.RenderContext import RenderContext
+from deephaven import ui
+
+run_on_change = lambda x: x()
 
 
 class UseContextTestCase(BaseTestCase):
     def test_default_value(self):
         """use_context returns the default value when no provider is active."""
-        from deephaven.ui.hooks import use_context
         from deephaven.ui.elements import create_context
 
         ctx = create_context("default_val")
 
         def _test():
-            return use_context(ctx)
+            return ui.use_context(ctx)
 
         render_result = render_hook(_test)
-        result = render_result["result"]
-        self.assertEqual(result, "default_val")
+        self.assertEqual(render_result["result"], "default_val")
+
+    def test_default_none(self):
+        """create_context(None) gives a context whose default is None."""
+        ctx = ui.create_context(None)
+
+        def _test():
+            return ui.use_context(ctx)
+
+        render_result = render_hook(_test)
+        self.assertIsNone(render_result["result"])
+
+    def test_provider_supplies_value_to_child(self):
+        """A ContextProviderElement makes the provided value visible to use_context in a child component."""
+        ctx = ui.create_context("default")
+
+        @ui.component
+        def consumer():
+            value = ui.use_context(ctx)
+            return ui.text(value)
+
+        @ui.component
+        def app():
+            return ctx("provided", consumer())
+
+        rc = RenderContext(run_on_change, run_on_change)
+        result = Renderer(rc).render(app())
+
+        # The text child should have received "provided", not "default"
+        # app -> provider -> consumer -> text
+        provider_node = result.props["children"]
+        consumer_node = provider_node.props["children"]
+        text_node = consumer_node.props["children"]
+        self.assertEqual(text_node.props["children"], ["provided"])
+
+    def test_provider_does_not_leak_outside_subtree(self):
+        """The provided value is not visible to siblings rendered after the provider."""
+        ctx = ui.create_context("default")
+
+        @ui.component
+        def consumer():
+            value = ui.use_context(ctx)
+            return ui.text(value)
+
+        @ui.component
+        def app():
+            return [
+                ctx("provided", consumer()),
+                consumer(),  # sibling — should see "default"
+            ]
+
+        rc = RenderContext(run_on_change, run_on_change)
+        result = Renderer(rc).render(app())
+
+        children = result.props["children"]
+        # children[0]: provider -> consumer -> text
+        inside_text = children[0].props["children"].props["children"]
+        # children[1]: consumer -> text
+        outside_text = children[1].props["children"]
+        self.assertEqual(inside_text.props["children"], ["provided"])
+        self.assertEqual(outside_text.props["children"], ["default"])
+
+    def test_nested_providers_inner_wins(self):
+        """The innermost provider's value is what use_context sees."""
+        ctx = ui.create_context("default")
+
+        @ui.component
+        def consumer():
+            value = ui.use_context(ctx)
+            return ui.text(value)
+
+        @ui.component
+        def inner():
+            return ctx("inner", consumer())
+
+        @ui.component
+        def app():
+            return ctx("outer", inner())
+
+        rc = RenderContext(run_on_change, run_on_change)
+        result = Renderer(rc).render(app())
+
+        # app -> outer provider -> inner() -> inner provider -> consumer() -> text
+        outer_provider = result.props["children"]
+        inner_node = outer_provider.props["children"]
+        inner_provider = inner_node.props["children"]
+        consumer_node = inner_provider.props["children"]
+        text_node = consumer_node.props["children"]
+        self.assertEqual(text_node.props["children"], ["inner"])
 
     def test_multiple_contexts_independent(self):
-        """Different Context objects don't interfere with each other."""
-        from deephaven.ui.hooks import use_context
-        from deephaven.ui.elements import create_context
+        """Two independent contexts don't interfere with each other."""
+        ctx_a = ui.create_context("a_default")
+        ctx_b = ui.create_context("b_default")
 
-        ctx_a = create_context("default_a")
-        ctx_b = create_context("default_b")
+        @ui.component
+        def consumer():
+            a = ui.use_context(ctx_a)
+            b = ui.use_context(ctx_b)
+            value = f"{a},{b}"
+            return ui.text(value)
 
-        def _test():
-            # Only ctx_a is provided via default — ctx_b should also return its default
-            return use_context(ctx_a), use_context(ctx_b)
+        @ui.component
+        def app():
+            return ctx_a("a_provided", ctx_b("b_provided", consumer()))
 
-        render_result = render_hook(_test)
-        a_val, b_val = render_result["result"]
-        self.assertEqual(a_val, "default_a")
-        self.assertEqual(b_val, "default_b")
+        rc = RenderContext(run_on_change, run_on_change)
+        result = Renderer(rc).render(app())
 
-    def test_element_provider_returns_element(self):
-        """Calling context(value, child) returns a ContextProviderElement."""
-        from deephaven.ui.elements import create_context, ContextProviderElement
+        # app -> provider_a -> provider_b -> consumer -> text
+        provider_a = result.props["children"]
+        provider_b = provider_a.props["children"]
+        consumer_node = provider_b.props["children"]
+        text_node = consumer_node.props["children"]
+        self.assertEqual(text_node.props["children"], ["a_provided,b_provided"])
 
-        ctx = create_context("default")
-        provider = ctx(99, "child_placeholder")
-        self.assertIsInstance(provider, ContextProviderElement)
+    def test_outer_context_restored_after_inner_provider(self):
+        """After an inner provider's subtree, the outer provided value is restored."""
+        ctx = ui.create_context("default")
 
-    def test_shared_stacks_no_per_instance_local(self):
-        """Context stacks are stored in the shared _local_data, not per-Context threading.local."""
-        from deephaven.ui.elements import create_context
+        @ui.component
+        def consumer(label: str):
+            value = ui.use_context(ctx)
+            return ui.text(f"{label}:{value}")
 
-        ctx = create_context("default")
-        self.assertFalse(
-            hasattr(ctx, "_local"),
-            "Context should not have a per-instance threading.local",
-        )
+        @ui.component
+        def app():
+            return ctx(
+                "outer",
+                ctx("inner", consumer("in")),
+                consumer("after"),  # should see "outer" again
+            )
 
-    def test_rerender_preserves_context_isolation(self):
-        """Context values don't leak across rerenders — default is restored after each render."""
-        from deephaven.ui.hooks import use_context, use_state
-        from deephaven.ui.elements import create_context
+        rc = RenderContext(run_on_change, run_on_change)
+        result = Renderer(rc).render(app())
 
-        ctx = create_context(0)
-
-        def _test():
-            count, set_count = use_state(0)
-            # Outside any provider, should be default
-            val = use_context(ctx)
-            return val, set_count
-
-        render_result = render_hook(_test)
-        val, set_count = render_result["result"]
-        self.assertEqual(val, 0)
-
-        set_count(5)
-        render_result["rerender"]()
-        val, set_count = render_result["result"]
-        # Still default — no provider was active
-        self.assertEqual(val, 0)
+        # app -> outer provider -> [inner provider, after consumer]
+        outer_provider = result.props["children"]
+        children = outer_provider.props["children"]
+        # children[0]: inner provider -> consumer -> text
+        inner_text = children[0].props["children"].props["children"]
+        # children[1]: consumer -> text
+        after_text = children[1].props["children"]
+        self.assertEqual(inner_text.props["children"], ["in:inner"])
+        self.assertEqual(after_text.props["children"], ["after:outer"])
