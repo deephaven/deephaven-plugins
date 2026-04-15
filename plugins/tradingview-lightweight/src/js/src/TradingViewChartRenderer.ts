@@ -112,6 +112,14 @@ const DEFAULT_WATERMARK_ALPHA = 0.2;
  * The Python side sends a flat object; we convert it to the v5
  * `createTextWatermark` plugin format (which uses a `lines` array).
  */
+interface WatermarkLineOptions {
+  text: string;
+  color?: string;
+  fontSize?: number;
+  fontStyle?: string;
+  lineHeight?: number;
+}
+
 interface LegacyWatermarkOptions {
   text?: string;
   color?: string;
@@ -119,8 +127,10 @@ interface LegacyWatermarkOptions {
   fontSize?: number;
   fontFamily?: string;
   fontStyle?: string;
+  lineHeight?: number;
   horzAlign?: string;
   vertAlign?: string;
+  lines?: WatermarkLineOptions[];
 }
 
 /**
@@ -250,11 +260,27 @@ const PRIMARY_COLOR_KEY: Partial<Record<TvlSeriesConfig['type'], string>> = {
 /**
  * Convert a hex color (#RRGGBB) to an rgba string with the given alpha.
  */
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+function hexToRgba(color: string, alpha: number): string {
+  // Handle #RGB shorthand
+  let hex = color;
+  if (hex.startsWith('#') && hex.length === 4) {
+    hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+  if (hex.startsWith('#') && hex.length >= 7) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  // Handle rgb(r, g, b) / rgba(r, g, b, a) — replace alpha
+  const match = color.match(
+    /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)/
+  );
+  if (match) {
+    return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${alpha})`;
+  }
+  // Unrecognized format — return as-is rather than producing NaN
+  return color;
 }
 
 /**
@@ -280,7 +306,20 @@ class TradingViewChartRenderer {
 
   private textColor: string;
 
+  private colorway: string[] = [];
+
+  private ohlcColors: { upColor: string; downColor: string } | undefined;
+
+  private gridColor = '';
+
   private container: HTMLElement;
+
+  /**
+   * Hidden companion series that establishes the time grid for downsampled
+   * body regions. Uses `visible: false` so it draws nothing but its time
+   * points create bar slots in the shared time scale.
+   */
+  private whitespaceSeries: ISeriesApi<SeriesType> | null = null;
 
   constructor(
     container: HTMLElement,
@@ -291,16 +330,21 @@ class TradingViewChartRenderer {
     this.chartType = chartType;
 
     // Extract watermark and resolve localization before passing to createChart
-    const { watermark: wmRaw, ...rawOpts } = options as Record<
-      string,
-      unknown
-    >;
+    const { watermark: wmRaw, ...rawOpts } = options as Record<string, unknown>;
     const chartOpts = resolveLocalization(rawOpts);
 
     const resolvedTextColor =
       ((chartOpts.layout as Record<string, unknown>)?.textColor as string) ??
       '#D1D4DC';
     this.textColor = resolvedTextColor;
+
+    this.gridColor =
+      ((
+        (chartOpts.grid as Record<string, unknown>)?.vertLines as Record<
+          string,
+          unknown
+        >
+      )?.color as string) ?? '';
 
     const commonOpts = {
       ...chartOpts,
@@ -316,6 +360,11 @@ class TradingViewChartRenderer {
       },
       timeScale: {
         timeVisible: true,
+        // Allow extreme compression so fitContent can show all data points.
+        // The default minBarSpacing (0.5px) limits the chart to ~width*2 bars,
+        // which is too few for downsampled tables (runChartDownsample output
+        // can be much larger than the requested pixel count).
+        minBarSpacing: 0.01,
         tickMarkFormatter: defaultTickMarkFormatter,
         ...(chartOpts.timeScale as Record<string, unknown>),
       },
@@ -358,7 +407,10 @@ class TradingViewChartRenderer {
    * produces a large, centered, theme-aware watermark.
    */
   private applyWatermark(wm: LegacyWatermarkOptions): void {
-    if (wm.visible === false || !wm.text) {
+    const hasText =
+      (wm.text != null && wm.text !== '') ||
+      (wm.lines != null && wm.lines.length > 0);
+    if (wm.visible === false || !hasText) {
       if (this.watermarkPlugin) {
         this.watermarkPlugin.detach();
         this.watermarkPlugin = null;
@@ -366,21 +418,33 @@ class TradingViewChartRenderer {
       return;
     }
 
+    // Build lines array — either from explicit multi-line or legacy single-line
+    const lines =
+      wm.lines != null
+        ? wm.lines.map(line => ({
+            text: line.text,
+            color: line.color ?? deriveWatermarkColor(this.textColor),
+            fontSize: line.fontSize ?? DEFAULT_WATERMARK_FONT_SIZE,
+            fontStyle: line.fontStyle,
+            lineHeight: line.lineHeight,
+          }))
+        : [
+            {
+              text: wm.text!,
+              color: wm.color ?? deriveWatermarkColor(this.textColor),
+              fontSize: wm.fontSize ?? DEFAULT_WATERMARK_FONT_SIZE,
+              fontStyle: wm.fontStyle,
+              lineHeight: wm.lineHeight,
+            },
+          ];
+
     const wmOptions: DeepPartial<TextWatermarkOptions> = {
       visible: wm.visible ?? true,
       horzAlign:
         (wm.horzAlign as TextWatermarkOptions['horzAlign']) ?? 'center',
       vertAlign:
         (wm.vertAlign as TextWatermarkOptions['vertAlign']) ?? 'center',
-      lines: [
-        {
-          text: wm.text,
-          color: wm.color ?? deriveWatermarkColor(this.textColor),
-          fontSize: wm.fontSize ?? DEFAULT_WATERMARK_FONT_SIZE,
-          fontFamily: wm.fontFamily,
-          fontStyle: wm.fontStyle,
-        },
-      ],
+      lines,
     };
 
     if (this.watermarkPlugin) {
@@ -406,12 +470,24 @@ class TradingViewChartRenderer {
     colorway: string[] = [],
     ohlcColors?: { upColor: string; downColor: string }
   ): void {
+    // Store theme colors for marker resolution
+    this.colorway = colorway;
+    this.ohlcColors = ohlcColors;
+
     // Remove existing series
+    // Detach marker plugins before removing series
+    this.markersMap.forEach(plugin => {
+      try {
+        plugin.detach();
+      } catch {
+        // Plugin may already be detached if series was removed
+      }
+    });
+    this.markersMap.clear();
     this.seriesMap.forEach(series => {
       this.chart.removeSeries(series);
     });
     this.seriesMap.clear();
-    this.markersMap.clear();
     this.dynamicPriceLines.clear();
 
     // Create new series
@@ -452,17 +528,41 @@ class TradingViewChartRenderer {
             }
           }
 
-          // Derive fill colors for the "above baseline" region
+          // Derive fill colors for baseline regions
           if (config.type === 'Baseline') {
+            // Above baseline: from colorway
             if (options.topFillColor1 == null) {
               options.topFillColor1 = hexToRgba(color, 0.3);
             }
             if (options.topFillColor2 == null) {
               options.topFillColor2 = hexToRgba(color, 0);
             }
+            // Below baseline: from OHLC decrease color
+            if (ohlcColors) {
+              if (options.bottomLineColor == null) {
+                options.bottomLineColor = ohlcColors.downColor;
+              }
+              if (options.bottomFillColor1 == null) {
+                options.bottomFillColor1 = hexToRgba(
+                  ohlcColors.downColor,
+                  0.05
+                );
+              }
+              if (options.bottomFillColor2 == null) {
+                options.bottomFillColor2 = hexToRgba(
+                  ohlcColors.downColor,
+                  0.28
+                );
+              }
+            }
           }
         }
         colorIndex += 1;
+      }
+
+      // Theme the baseline reference line (percentage/indexed modes)
+      if (options.baseLineColor == null && this.gridColor) {
+        options.baseLineColor = this.gridColor;
       }
 
       const series = this.createSeries({
@@ -494,7 +594,7 @@ class TradingViewChartRenderer {
               title: pl.title,
             });
 
-            if (pl.column) {
+            if (pl.column != null && pl.column !== '') {
               dynamicEntries.push({ priceLine, column: pl.column });
             }
           });
@@ -552,6 +652,26 @@ class TradingViewChartRenderer {
   /**
    * Set markers on a specific series.
    */
+  /**
+   * Resolve a theme-aware default color for a marker.
+   * - Up-arrow markers (belowBar + arrowUp) → OHLC increase color
+   * - Down-arrow markers (aboveBar + arrowDown) → OHLC decrease color
+   * - All others → first colorway color, then text color as final fallback
+   */
+  private resolveMarkerColor(m: TvlMarkerData): string {
+    if (m.color != null && m.color !== '') return m.color;
+    if (this.ohlcColors != null) {
+      if (m.position === 'belowBar' && m.shape === 'arrowUp') {
+        return this.ohlcColors.upColor;
+      }
+      if (m.position === 'aboveBar' && m.shape === 'arrowDown') {
+        return this.ohlcColors.downColor;
+      }
+    }
+    if (this.colorway.length > 0) return this.colorway[0];
+    return this.textColor;
+  }
+
   setSeriesMarkers(seriesId: string, markers: TvlMarkerData[]): void {
     const series = this.seriesMap.get(seriesId);
     if (!series) return;
@@ -560,10 +680,11 @@ class TradingViewChartRenderer {
       time: m.time as Time,
       position: m.position,
       shape: m.shape,
-      color: m.color || this.textColor,
+      color: this.resolveMarkerColor(m),
       text: m.text,
       size: m.size,
-    }));
+      ...(m.price != null ? { price: m.price } : {}),
+    })) as SeriesMarker<Time>[];
 
     // Use createSeriesMarkers API for v5
     let markerPlugin = this.markersMap.get(seriesId);
@@ -601,17 +722,23 @@ class TradingViewChartRenderer {
    * Apply new chart-level options (e.g., on theme change).
    */
   applyOptions(options: DeepPartial<ChartOptions>): void {
-    const { watermark: wmRaw, ...rawOpts } = options as Record<
-      string,
-      unknown
-    >;
+    const { watermark: wmRaw, ...rawOpts } = options as Record<string, unknown>;
     const chartOpts = resolveLocalization(rawOpts);
 
-    // Update cached textColor so watermark derivation uses the new value
+    // Update cached theme colors so derived defaults use the new values
     const newTextColor = (chartOpts.layout as Record<string, unknown>)
       ?.textColor as string | undefined;
-    if (newTextColor) {
+    if (newTextColor != null && newTextColor !== '') {
       this.textColor = newTextColor;
+    }
+    const newGridColor = (
+      (chartOpts.grid as Record<string, unknown>)?.vertLines as Record<
+        string,
+        unknown
+      >
+    )?.color as string | undefined;
+    if (newGridColor != null && newGridColor !== '') {
+      this.gridColor = newGridColor;
     }
 
     this.chart.applyOptions(chartOpts as DeepPartial<ChartOptions>);
@@ -667,6 +794,64 @@ class TradingViewChartRenderer {
     return this.chart;
   }
 
+  // ---- Downsampling v2: whitespace companion series & time scale wrappers ----
+
+  /**
+   * Set data on the hidden whitespace companion series (creates it lazily).
+   * The whitespace series provides the time grid for the body region so
+   * lightweight-charts spaces body bars proportionally in time.
+   */
+  setWhitespaceData(data: Array<{ time: number }>): void {
+    if (this.whitespaceSeries == null) {
+      // Must be visible:true so fitContent() includes its bars when
+      // computing the full data extent. Use transparent color + lineWidth 0
+      // so nothing is actually drawn. priceScaleId '' avoids creating a
+      // price scale for it.
+      this.whitespaceSeries = this.chart.addSeries(LineSeries, {
+        color: 'transparent',
+        lineWidth: 1 as const,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        crosshairMarkerVisible: false,
+        priceScaleId: '',
+      });
+    }
+    this.whitespaceSeries.setData(
+      data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
+    );
+  }
+
+  /** Clear the whitespace series (used on reset-to-full). */
+  clearWhitespaceData(): void {
+    if (this.whitespaceSeries != null) {
+      this.whitespaceSeries.setData([]);
+    }
+  }
+
+  /** Plot-area width in pixels (excludes price scale). */
+  getTimeScaleWidth(): number {
+    return this.chart.timeScale().width();
+  }
+
+  /** Subscribe to visible logical range changes (zoom/pan detection). */
+  subscribeVisibleLogicalRangeChange(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handler: (range: any) => void
+  ): () => void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ts = this.chart.timeScale() as any;
+    ts.subscribeVisibleLogicalRangeChange(handler);
+    return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
+  }
+
+  /** Subscribe to chart size changes (resize detection). */
+  subscribeSizeChange(handler: () => void): () => void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ts = this.chart.timeScale() as any;
+    ts.subscribeSizeChange(handler);
+    return () => ts.unsubscribeSizeChange(handler);
+  }
+
   /**
    * Dispose of the chart and clean up resources.
    */
@@ -674,6 +859,9 @@ class TradingViewChartRenderer {
     this.seriesMap.clear();
     this.markersMap.clear();
     this.dynamicPriceLines.clear();
+    if (this.whitespaceSeries) {
+      this.whitespaceSeries = null;
+    }
     if (this.watermarkPlugin) {
       this.watermarkPlugin.detach();
       this.watermarkPlugin = null;

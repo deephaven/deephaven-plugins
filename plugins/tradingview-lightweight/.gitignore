@@ -6,6 +6,10 @@ dist/
 .idea
 .DS_store
 __pycache__/
-.server-venv/
+.server-venv*/
 .app.d/
+.dev-vite.log
+dev-server.env.*
+# dev-server.sh creates this as a symlink to src/js/dist; not a real source file.
+src/deephaven/plot/tradingview_lightweight/_js
 notes/tmp/

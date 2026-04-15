@@ -35,8 +35,7 @@ export function transformTableData(
   const timeColumn = columnData.get(columns.time);
   if (!timeColumn) return [];
 
-  const isNumericScale =
-    chartType === 'yieldCurve' || chartType === 'options';
+  const isNumericScale = chartType === 'yieldCurve' || chartType === 'options';
   const { length } = timeColumn;
   const result: unknown[] = [];
   const effectiveStart = Math.max(0, startIndex);
@@ -45,14 +44,26 @@ export function transformTableData(
     // Time values are already converted by the model's translator:
     // - Standard charts: TZ-adjusted epoch seconds (number)
     // - Numeric scales: raw x-axis values (number)
-    const timeVal =
-      typeof timeColumn[i] === 'number'
-        ? Math.floor(timeColumn[i] as number)
-        : 0;
+    const rawTime = timeColumn[i];
 
-    // Skip points with invalid time (0 for unparseable values)
-    // For numeric scales, 0 is a valid x-axis value, so only skip for standard charts
-    if (!isNumericScale && timeVal === 0 && i > 0) {
+    // Skip non-finite times (null/undefined/string/NaN/Infinity). A point
+    // with NaN time was previously kept and confused lightweight-charts;
+    // a point with an unparseable time was previously kept at i=0 with
+    // time=0, which made the chart draw a line from epoch (1970) to the
+    // first real point — visible as a near-vertical "spike" entering the
+    // chart from the left edge when zoomed to recent data.
+    if (typeof rawTime !== 'number' || !Number.isFinite(rawTime)) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+    const timeVal = Math.floor(rawTime);
+
+    // For standard (time-based) charts, time=0 is essentially always a
+    // sentinel for missing data — Instant columns don't represent epoch.
+    // Skip at every index (including i=0) to avoid the same left-edge
+    // spike as above. Numeric scales (yieldCurve, options) treat 0 as a
+    // valid x-axis value and don't apply this filter.
+    if (!isNumericScale && timeVal === 0) {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -90,10 +101,7 @@ export function transformTableData(
  * @param timeZone The IANA timezone string from user settings (e.g. "America/New_York").
  *   Falls back to the browser's local timezone if not provided.
  */
-export function convertTime(
-  value: unknown,
-  timeZone?: string
-): number {
+export function convertTime(value: unknown, timeZone?: string): number {
   let utcSeconds: number;
   if (typeof value === 'number') {
     if (value > 1e15) {
@@ -118,6 +126,37 @@ export function convertTime(
   // specific instant (handles DST correctly).
   const offsetSeconds = getTimezoneOffsetSeconds(utcSeconds * 1000, timeZone);
   return utcSeconds + offsetSeconds;
+}
+
+/**
+ * Reverse the TZ shift applied by convertTime. Given a TZ-shifted epoch
+ * seconds value (as stored in the chart's data and returned by
+ * getVisibleRange), return the real UTC epoch seconds.
+ *
+ * convertTime does: realUTC + offset → tzShifted
+ * unconvertTime does: tzShifted - offset → realUTC
+ *
+ * Uses the shifted value as an approximation for the offset lookup, which
+ * is correct except at DST boundaries (where the error is ≤1 hour).
+ */
+export function unconvertTime(
+  tzShiftedSeconds: number,
+  timeZone?: string
+): number {
+  if (
+    timeZone == null ||
+    timeZone === '' ||
+    timeZone === 'UTC' ||
+    timeZone === 'Etc/UTC'
+  ) {
+    return tzShiftedSeconds;
+  }
+  // Use the shifted value as an approximation to compute the offset
+  const offsetSeconds = getTimezoneOffsetSeconds(
+    tzShiftedSeconds * 1000,
+    timeZone
+  );
+  return tzShiftedSeconds - offsetSeconds;
 }
 
 /**
@@ -237,9 +276,15 @@ const POSITION_MAP: Record<string, TvlMarkerData['position']> = {
   above_bar: 'aboveBar',
   below_bar: 'belowBar',
   in_bar: 'inBar',
+  at_price_top: 'atPriceTop',
+  at_price_bottom: 'atPriceBottom',
+  at_price_middle: 'atPriceMiddle',
   aboveBar: 'aboveBar',
   belowBar: 'belowBar',
   inBar: 'inBar',
+  atPriceTop: 'atPriceTop',
+  atPriceBottom: 'atPriceBottom',
+  atPriceMiddle: 'atPriceMiddle',
 };
 
 /**
@@ -289,16 +334,13 @@ export function buildMarkersFromTableData(
   const timeCol = columnData.get(timeColName);
   if (!timeCol) return [];
 
-  const isNumericScale =
-    chartType === 'yieldCurve' || chartType === 'options';
+  const isNumericScale = chartType === 'yieldCurve' || chartType === 'options';
   const markers: TvlMarkerData[] = [];
 
   for (let i = 0; i < timeCol.length; i += 1) {
     // Time values are already converted by the model's translator
     const timeVal =
-      typeof timeCol[i] === 'number'
-        ? Math.floor(timeCol[i] as number)
-        : 0;
+      typeof timeCol[i] === 'number' ? Math.floor(timeCol[i] as number) : 0;
 
     // Skip invalid times
     if (!isNumericScale && timeVal === 0 && i > 0) {
@@ -319,15 +361,12 @@ export function buildMarkersFromTableData(
       i
     ) as string;
     const color = (resolveMarkerField(markerSpec, 'color', columnData, i) ??
-      defaultColor ?? '#2196F3') as string;
+      defaultColor) as string | undefined;
     const text = (resolveMarkerField(markerSpec, 'text', columnData, i) ??
       '') as string;
-    const size = resolveMarkerField(
-      markerSpec,
-      'size',
-      columnData,
-      i
-    ) as number | undefined;
+    const size = resolveMarkerField(markerSpec, 'size', columnData, i) as
+      | number
+      | undefined;
 
     const position = POSITION_MAP[rawPosition] ?? 'aboveBar';
     const shape = SHAPE_MAP[rawShape] ?? 'circle';
@@ -336,7 +375,7 @@ export function buildMarkersFromTableData(
       time: timeVal,
       position,
       shape,
-      color,
+      ...(color != null ? { color } : {}),
       text,
       ...(size != null ? { size: Number(size) } : {}),
     });
@@ -345,4 +384,118 @@ export function buildMarkersFromTableData(
   // lightweight-charts requires markers sorted by time ascending
   markers.sort((a, b) => (a.time as number) - (b.time as number));
   return markers;
+}
+
+// ---- Downsampling v2 utilities ----
+
+/**
+ * Classify transformed data points into head / body / tail based on zoom range.
+ * - head: points with time < zoomRange[0]
+ * - tail: points with time > zoomRange[1]
+ * - body: everything else
+ *
+ * When zoomRange is null (full-range downsample), all points are body.
+ */
+export function classifyDownsampledRows(
+  data: Record<string, unknown>[],
+  zoomRange: [number, number] | null
+): {
+  head: Record<string, unknown>[];
+  body: Record<string, unknown>[];
+  tail: Record<string, unknown>[];
+} {
+  if (zoomRange == null) {
+    return { head: [], body: data, tail: [] };
+  }
+  const [from, to] = zoomRange;
+  const head: Record<string, unknown>[] = [];
+  const body: Record<string, unknown>[] = [];
+  const tail: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < data.length; i += 1) {
+    const t = data[i].time as number;
+    if (t < from) head.push(data[i]);
+    else if (t > to) tail.push(data[i]);
+    else body.push(data[i]);
+  }
+  return { head, body, tail };
+}
+
+/**
+ * Generate a whitespace time-grid spanning [start, end] at uniform intervals.
+ *
+ * The companion whitespace series establishes bar slots at uniform time
+ * intervals so lightweight-charts (which uses fixed bar spacing) renders
+ * data with proportional time scaling. The grid should span the FULL data
+ * extent (head first → tail last) so that head/tail bars sit at their
+ * real time positions with proper whitespace gaps to the body.
+ *
+ * Returns objects with only a `time` field (WhitespaceData).
+ */
+export function generateWhitespaceGrid(
+  start: number,
+  end: number,
+  pointCount: number
+): Array<{ time: number }> {
+  if (pointCount <= 0 || end <= start) return [];
+
+  const step = (end - start) / pointCount;
+
+  const points: Array<{ time: number }> = [];
+  let lastTime = -Infinity;
+  for (let t = start; t <= end; t += step) {
+    const floored = Math.floor(t);
+    // Ensure strictly ascending unique integer times
+    if (floored > lastTime) {
+      points.push({ time: floored });
+      lastTime = floored;
+    }
+  }
+  return points;
+}
+
+/**
+ * Insert whitespace gap markers at head→body and body→tail transitions.
+ *
+ * A gap marker is `{ time: midpoint }` with no value — WhitespaceData that
+ * causes lightweight-charts to break the line/area fill at that point,
+ * preventing the visual "spike" between regions of different fidelity.
+ *
+ * Returns [...head, gap?, ...body, gap?, ...tail] in time order.
+ */
+export function buildDataWithGaps(
+  head: Record<string, unknown>[],
+  body: Record<string, unknown>[],
+  tail: Record<string, unknown>[]
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+
+  result.push(...head);
+
+  // Gap between head and body
+  if (head.length > 0 && body.length > 0) {
+    const lastHead = head[head.length - 1].time as number;
+    const firstBody = body[0].time as number;
+    const gap = Math.floor((lastHead + firstBody) / 2);
+    // Only insert if the gap time is strictly between the two endpoints
+    if (gap > lastHead && gap < firstBody) {
+      result.push({ time: gap });
+    }
+  }
+
+  result.push(...body);
+
+  // Gap between body and tail
+  if (body.length > 0 && tail.length > 0) {
+    const lastBody = body[body.length - 1].time as number;
+    const firstTail = tail[0].time as number;
+    const gap = Math.floor((lastBody + firstTail) / 2);
+    if (gap > lastBody && gap < firstTail) {
+      result.push({ time: gap });
+    }
+  }
+
+  result.push(...tail);
+
+  return result;
 }

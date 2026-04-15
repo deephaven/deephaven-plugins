@@ -18,6 +18,7 @@ from .chart import (
     histogram,
     yield_curve,
     options_chart,
+    custom_numeric,
 )
 from .series import (
     SeriesSpec,
@@ -35,20 +36,38 @@ from .markers import (
     marker,
     price_line,
     markers_from_table,
+    up_down_markers,
 )
 from .options import (
     ChartType,
+    ColorSpace,
+    ColorType,
     PriceFormat,
     PriceFormatter,
+    TickmarksPriceFormatter,
+    PercentageFormatter,
+    TickmarksPercentageFormatter,
+    PrecomputeConflationPriority,
     LineStyle,
     LineType,
+    LineWidth,
     CrosshairMode,
+    HorzAlign,
     PriceScaleMode,
     MarkerShape,
     MarkerPosition,
+    LastPriceAnimationMode,
+    MarkerSign,
+    MismatchDirection,
+    PriceLineSource,
+    TickMarkType,
+    TrackingModeExitMode,
+    VertAlign,
+    WatermarkLine,
 )
+from ._types import BusinessDay, business_day
+from .utils import is_business_day, is_utc_timestamp
 from .communication.connection import TvlChartConnection
-
 
 NAME = "deephaven.plot.tradingview_lightweight.TvlChart"
 
@@ -87,6 +106,7 @@ __all__ = [
     "histogram",
     "yield_curve",
     "options_chart",
+    "custom_numeric",
     # Series creation
     "SeriesSpec",
     "candlestick_series",
@@ -102,14 +122,36 @@ __all__ = [
     "marker",
     "price_line",
     "markers_from_table",
+    "up_down_markers",
     # Types
+    "BusinessDay",
+    "business_day",
     "ChartType",
+    "ColorSpace",
+    "ColorType",
     "PriceFormat",
     "PriceFormatter",
+    "TickmarksPriceFormatter",
+    "PercentageFormatter",
+    "TickmarksPercentageFormatter",
+    "PrecomputeConflationPriority",
     "LineStyle",
     "LineType",
+    "LineWidth",
     "CrosshairMode",
+    "HorzAlign",
     "PriceScaleMode",
     "MarkerShape",
     "MarkerPosition",
+    "LastPriceAnimationMode",
+    "MarkerSign",
+    "MismatchDirection",
+    "PriceLineSource",
+    "TickMarkType",
+    "TrackingModeExitMode",
+    "VertAlign",
+    "WatermarkLine",
+    # Utility functions
+    "is_business_day",
+    "is_utc_timestamp",
 ]

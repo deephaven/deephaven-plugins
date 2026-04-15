@@ -23,7 +23,11 @@ class TvlChartListener:
         self, payload: bytes, references: list[Any]
     ) -> tuple[bytes, list[Any]]:
         """Process an incoming message from the client."""
-        message = json.loads(payload.decode("utf-8"))
+        try:
+            message = json.loads(payload.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return b"", []
+
         msg_type = message.get("type", "")
 
         if msg_type == "RETRIEVE":

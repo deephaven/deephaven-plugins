@@ -302,16 +302,42 @@ describe('transformTableData', () => {
       expect(result).toEqual([{ time: 1704067200, value: 42 }]);
     });
 
-    it('should return 0 for non-numeric time values', () => {
+    it('should skip rows with non-numeric time values', () => {
       const columnData = new Map<string, unknown[]>([
-        ['Timestamp', ['not-a-number']],
-        ['Val', [42]],
+        ['Timestamp', ['not-a-number', 1704067200, null]],
+        ['Val', [42, 43, 44]],
+      ]);
+
+      // Non-numeric times (string, null) are skipped at every index, not
+      // just i > 0. Otherwise an unparseable first row produces a phantom
+      // point at epoch (1970) that the chart draws as a near-vertical line
+      // entering from the left edge.
+      const result = transformTableData(config, columnData);
+      expect(result).toEqual([{ time: 1704067200, value: 43 }]);
+    });
+
+    it('should skip rows with NaN or Infinity time values', () => {
+      const columnData = new Map<string, unknown[]>([
+        ['Timestamp', [Number.NaN, 1704067200, Number.POSITIVE_INFINITY]],
+        ['Val', [10, 20, 30]],
       ]);
 
       const result = transformTableData(config, columnData);
-      // First row (i=0) is included even with time=0
-      expect(result).toHaveLength(1);
-      expect((result[0] as Record<string, unknown>).time).toBe(0);
+      expect(result).toEqual([{ time: 1704067200, value: 20 }]);
+    });
+
+    it('should skip time=0 for standard charts at any index', () => {
+      // time=0 means epoch 1970 — not a real Instant value, drop it.
+      const columnData = new Map<string, unknown[]>([
+        ['Timestamp', [0, 1704067200, 1704067260]],
+        ['Val', [10, 20, 30]],
+      ]);
+
+      const result = transformTableData(config, columnData);
+      expect(result).toEqual([
+        { time: 1704067200, value: 20 },
+        { time: 1704067260, value: 30 },
+      ]);
     });
   });
 });
@@ -453,9 +479,7 @@ describe('getAllColumnsForTable', () => {
           tableId: 0,
           columns: { time: 'T', value: 'Price' },
         },
-        priceLines: [
-          { column: 'Price', color: 'blue', title: 'Last' },
-        ],
+        priceLines: [{ column: 'Price', color: 'blue', title: 'Last' }],
       },
     ];
 
@@ -688,22 +712,18 @@ describe('buildMarkersFromTableData', () => {
     const result = buildMarkersFromTableData(baseSpec, columnData);
 
     expect(result).toHaveLength(2);
-    expect((result[0].time as number)).toBeLessThan(result[1].time as number);
+    expect(result[0].time as number).toBeLessThan(result[1].time as number);
   });
 
   it('should return empty array when time column is missing', () => {
-    const columnData = new Map<string, unknown[]>([
-      ['Other', [1, 2, 3]],
-    ]);
+    const columnData = new Map<string, unknown[]>([['Other', [1, 2, 3]]]);
 
     const result = buildMarkersFromTableData(baseSpec, columnData);
     expect(result).toEqual([]);
   });
 
   it('should pass through numeric time for yieldCurve chart type', () => {
-    const columnData = new Map<string, unknown[]>([
-      ['Time', [12, 24, 60]],
-    ]);
+    const columnData = new Map<string, unknown[]>([['Time', [12, 24, 60]]]);
 
     const result = buildMarkersFromTableData(
       baseSpec,
@@ -721,7 +741,12 @@ describe('buildMarkersFromTableData', () => {
     const spec: TvlMarkerSpec = {
       tableId: 1,
       columns: { time: 'Time', size: 'Sz' },
-      defaults: { text: 'X', color: '#000', position: 'aboveBar', shape: 'circle' },
+      defaults: {
+        text: 'X',
+        color: '#000',
+        position: 'aboveBar',
+        shape: 'circle',
+      },
     };
 
     const columnData = new Map<string, unknown[]>([

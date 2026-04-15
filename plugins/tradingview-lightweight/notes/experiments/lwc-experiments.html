@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lightweight Charts Experiments for Downsampling v2</title>
+  <style>
+    body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; margin: 20px; }
+    .experiment { margin: 20px 0; border: 1px solid #444; padding: 10px; }
+    .experiment h3 { margin-top: 0; color: #4ec9b0; }
+    .chart-container { width: 800px; height: 300px; margin: 10px 0; }
+    .result { padding: 8px; margin: 5px 0; border-left: 3px solid #666; }
+    .pass { border-left-color: #4ec9b0; }
+    .fail { border-left-color: #f44; }
+    .log { white-space: pre; font-size: 12px; color: #aaa; }
+  </style>
+</head>
+<body>
+  <h1>Lightweight Charts — Downsampling v2 Experiments</h1>
+  <div id="results"></div>
+
+  <script type="module">
+    // Use the bundled LWC from our plugin's node_modules
+    // For standalone testing, use CDN:
+    import {
+      createChart,
+      LineSeries,
+      AreaSeries,
+    } from 'https://unpkg.com/lightweight-charts@5.0.5/dist/lightweight-charts.standalone.production.mjs';
+
+    const results = document.getElementById('results');
+
+    function addResult(name, passed, details) {
+      const div = document.createElement('div');
+      div.className = `result ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `<strong>${passed ? 'PASS' : 'FAIL'}: ${name}</strong><div class="log">${details}</div>`;
+      results.appendChild(div);
+    }
+
+    function makeChart(parentId) {
+      const container = document.createElement('div');
+      container.className = 'chart-container';
+      document.getElementById(parentId || 'results').appendChild(container);
+      return createChart(container, {
+        width: 800,
+        height: 300,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+        timeScale: { timeVisible: true },
+      });
+    }
+
+    // =========================================================================
+    // EXPERIMENT 1: Does a hidden series establish the time grid?
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 1: Hidden series establishes time grid</h3>';
+      results.appendChild(div);
+
+      // Chart A: Only data series (2 points)
+      const chartA = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        c.style.display = 'inline-block';
+        c.style.width = '380px';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 380, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const dataA = chartA.addSeries(LineSeries);
+      dataA.setData([
+        { time: 1704067200, value: 10 },
+        { time: 1704326400, value: 50 },
+      ]);
+      chartA.timeScale().fitContent();
+
+      // Chart B: Hidden whitespace series (5 points) + same data series (2 points)
+      const chartB = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        c.style.display = 'inline-block';
+        c.style.width = '380px';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 380, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const wsB = chartB.addSeries(LineSeries, { visible: false });
+      wsB.setData([
+        { time: 1704067200 },
+        { time: 1704132000 },
+        { time: 1704196800 },
+        { time: 1704261600 },
+        { time: 1704326400 },
+      ]);
+      const dataB = chartB.addSeries(LineSeries);
+      dataB.setData([
+        { time: 1704067200, value: 10 },
+        { time: 1704326400, value: 50 },
+      ]);
+      chartB.timeScale().fitContent();
+
+      // Compare logical ranges
+      setTimeout(() => {
+        const rangeA = chartA.timeScale().getVisibleLogicalRange();
+        const rangeB = chartB.timeScale().getVisibleLogicalRange();
+        const barsA = rangeA ? rangeA.to - rangeA.from : 0;
+        const barsB = rangeB ? rangeB.to - rangeB.from : 0;
+
+        const passed = barsB > barsA;
+        addResult(
+          'Hidden series establishes time grid',
+          passed,
+          `Chart A (data only): ${barsA.toFixed(1)} bars, range=${JSON.stringify(rangeA)}\n` +
+          `Chart B (hidden ws + data): ${barsB.toFixed(1)} bars, range=${JSON.stringify(rangeB)}\n` +
+          `Expected: Chart B has more bar slots than Chart A`
+        );
+      }, 200);
+    }
+
+    // =========================================================================
+    // EXPERIMENT 2: Whitespace breaks lines in Line and Area series
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 2: Whitespace breaks lines (visual check)</h3>';
+      results.appendChild(div);
+
+      // Line series with whitespace gap
+      const chartLine = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        c.style.width = '380px';
+        c.style.display = 'inline-block';
+        div.appendChild(c);
+        const label = document.createElement('div');
+        label.textContent = 'LineSeries — should have gap between t=3 and t=6';
+        label.style.fontSize = '11px';
+        div.appendChild(label);
+        return c;
+      })(), {
+        width: 380, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const lineSeries = chartLine.addSeries(LineSeries);
+      lineSeries.setData([
+        { time: 1704067200, value: 100 },
+        { time: 1704153600, value: 110 },
+        { time: 1704240000, value: 105 },
+        { time: 1704326400 },              // whitespace
+        { time: 1704412800 },              // whitespace
+        { time: 1704499200, value: 500 },
+        { time: 1704585600, value: 510 },
+        { time: 1704672000, value: 490 },
+      ]);
+      chartLine.timeScale().fitContent();
+
+      // Area series with whitespace gap
+      const chartArea = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        c.style.width = '380px';
+        c.style.display = 'inline-block';
+        div.appendChild(c);
+        const label = document.createElement('div');
+        label.textContent = 'AreaSeries — should have gap between t=3 and t=6';
+        label.style.fontSize = '11px';
+        div.appendChild(label);
+        return c;
+      })(), {
+        width: 380, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const areaSeries = chartArea.addSeries(AreaSeries);
+      areaSeries.setData([
+        { time: 1704067200, value: 100 },
+        { time: 1704153600, value: 110 },
+        { time: 1704240000, value: 105 },
+        { time: 1704326400 },              // whitespace
+        { time: 1704412800 },              // whitespace
+        { time: 1704499200, value: 500 },
+        { time: 1704585600, value: 510 },
+        { time: 1704672000, value: 490 },
+      ]);
+      chartArea.timeScale().fitContent();
+
+      addResult(
+        'Whitespace breaks lines',
+        null,  // visual check
+        'VISUAL CHECK REQUIRED:\n' +
+        '- Left chart (Line): Should show two disconnected line segments\n' +
+        '  with a visible gap between values 105 and 500\n' +
+        '- Right chart (Area): Should show two disconnected filled areas\n' +
+        '  with a visible gap between values 105 and 500\n' +
+        '- If lines connect through the gap: FAIL'
+      );
+    }
+
+    // =========================================================================
+    // EXPERIMENT 3: Same-time points across series don't conflict
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 3: Same-time collision between series</h3>';
+      results.appendChild(div);
+
+      const chart3 = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 800, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+
+      let error3 = null;
+      try {
+        const ws3 = chart3.addSeries(LineSeries, { visible: false });
+        ws3.setData([
+          { time: 1704067200 },
+          { time: 1704153600 },
+          { time: 1704240000 },
+          { time: 1704326400 },
+          { time: 1704412800 },
+        ]);
+        const data3 = chart3.addSeries(LineSeries);
+        data3.setData([
+          { time: 1704067200, value: 100 },  // same time as ws point
+          { time: 1704240000, value: 200 },  // same time as ws point
+          { time: 1704412800, value: 150 },  // same time as ws point
+        ]);
+        chart3.timeScale().fitContent();
+      } catch (e) {
+        error3 = e;
+      }
+
+      setTimeout(() => {
+        const range3 = chart3.timeScale().getVisibleLogicalRange();
+        const bars3 = range3 ? range3.to - range3.from : 0;
+        const passed = error3 === null && bars3 >= 4;
+        addResult(
+          'Same-time collision',
+          passed,
+          error3
+            ? `Error thrown: ${error3.message}`
+            : `No error. Logical range: ${JSON.stringify(range3)}, bars: ${bars3.toFixed(1)}\n` +
+              `Expected: 5 bar slots (from whitespace series), data renders at 3 of them`
+        );
+      }, 200);
+    }
+
+    // =========================================================================
+    // EXPERIMENT 4: getVisibleRange returns our time values unchanged
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 4: getVisibleRange returns input time values</h3>';
+      results.appendChild(div);
+
+      const chart4 = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 800, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const data4 = chart4.addSeries(LineSeries);
+      const inputFrom = 1704067200;
+      const inputTo = 1704672000;
+      data4.setData([
+        { time: inputFrom, value: 10 },
+        { time: 1704153600, value: 20 },
+        { time: 1704240000, value: 30 },
+        { time: 1704326400, value: 25 },
+        { time: 1704412800, value: 35 },
+        { time: 1704499200, value: 40 },
+        { time: 1704585600, value: 45 },
+        { time: inputTo, value: 50 },
+      ]);
+      chart4.timeScale().fitContent();
+
+      setTimeout(() => {
+        const range4 = chart4.timeScale().getVisibleRange();
+        const fromMatch = range4 && Math.abs(range4.from - inputFrom) < 86400;
+        const toMatch = range4 && Math.abs(range4.to - inputTo) < 86400;
+        const passed = fromMatch && toMatch;
+        addResult(
+          'getVisibleRange returns input time values',
+          passed,
+          `Input: from=${inputFrom}, to=${inputTo}\n` +
+          `Output: from=${range4?.from}, to=${range4?.to}\n` +
+          `Difference: from=${range4 ? range4.from - inputFrom : 'null'}s, to=${range4 ? range4.to - inputTo : 'null'}s\n` +
+          `(Small differences expected due to fitContent padding)`
+        );
+      }, 200);
+    }
+
+    // =========================================================================
+    // EXPERIMENT 5: Logical range bar count — stable for pan, changes for zoom
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 5: Logical range bar count stability</h3>';
+      results.appendChild(div);
+
+      const chart5 = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 800, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const data5 = chart5.addSeries(LineSeries);
+      // 100 data points
+      const points5 = [];
+      for (let i = 0; i < 100; i++) {
+        points5.push({ time: 1704067200 + i * 86400, value: Math.sin(i * 0.1) * 50 + 100 });
+      }
+      data5.setData(points5);
+      chart5.timeScale().fitContent();
+
+      const barCounts5 = [];
+      chart5.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        if (range) {
+          barCounts5.push({ from: range.from, to: range.to, bars: range.to - range.from });
+        }
+      });
+
+      // Simulate pan via setVisibleLogicalRange
+      setTimeout(() => {
+        chart5.timeScale().setVisibleLogicalRange({ from: 10, to: 60 }); // 50 bars
+      }, 300);
+      setTimeout(() => {
+        chart5.timeScale().setVisibleLogicalRange({ from: 20, to: 70 }); // 50 bars (pan)
+      }, 500);
+      setTimeout(() => {
+        chart5.timeScale().setVisibleLogicalRange({ from: 30, to: 80 }); // 50 bars (pan)
+      }, 700);
+      setTimeout(() => {
+        chart5.timeScale().setVisibleLogicalRange({ from: 30, to: 60 }); // 30 bars (zoom in)
+      }, 900);
+      setTimeout(() => {
+        chart5.timeScale().setVisibleLogicalRange({ from: 10, to: 90 }); // 80 bars (zoom out)
+      }, 1100);
+
+      setTimeout(() => {
+        const log = barCounts5.map((e, i) => `  ${i}: from=${e.from.toFixed(1)} to=${e.to.toFixed(1)} bars=${e.bars.toFixed(1)}`).join('\n');
+        // First 3 should have ~50 bars, 4th ~30, 5th ~80
+        const panStable = barCounts5.length >= 3 &&
+          Math.abs(barCounts5[0].bars - barCounts5[1].bars) < 1 &&
+          Math.abs(barCounts5[1].bars - barCounts5[2].bars) < 1;
+        const zoomChanges = barCounts5.length >= 5 &&
+          Math.abs(barCounts5[3].bars - barCounts5[2].bars) > 5;
+        const passed = panStable && zoomChanges;
+        addResult(
+          'Logical range bar count stability',
+          passed,
+          `Events received: ${barCounts5.length}\n${log}\n` +
+          `Pan stable (events 0-2 same bars): ${panStable}\n` +
+          `Zoom detected (event 3 different): ${zoomChanges}`
+        );
+      }, 1500);
+    }
+
+    // =========================================================================
+    // EXPERIMENT 6: Sequential setData on two series — flicker?
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 6: Sequential setData flicker test</h3>';
+      results.appendChild(div);
+
+      const chart6 = createChart((() => {
+        const c = document.createElement('div');
+        c.className = 'chart-container';
+        div.appendChild(c);
+        return c;
+      })(), {
+        width: 800, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+
+      const ws6 = chart6.addSeries(LineSeries, { visible: false });
+      const data6 = chart6.addSeries(LineSeries);
+
+      // Initial data
+      ws6.setData([{ time: 1704067200 }, { time: 1704153600 }, { time: 1704240000 }]);
+      data6.setData([
+        { time: 1704067200, value: 100 },
+        { time: 1704240000, value: 200 },
+      ]);
+      chart6.timeScale().fitContent();
+
+      // After 500ms, replace both series data and restore range
+      setTimeout(() => {
+        const saved = chart6.timeScale().getVisibleRange();
+
+        ws6.setData([
+          { time: 1704067200 }, { time: 1704110400 }, { time: 1704153600 },
+          { time: 1704196800 }, { time: 1704240000 },
+        ]);
+        data6.setData([
+          { time: 1704067200, value: 150 },
+          { time: 1704153600, value: 180 },
+          { time: 1704240000, value: 160 },
+        ]);
+
+        if (saved) {
+          chart6.timeScale().setVisibleRange(saved);
+        }
+
+        const rangeAfter = chart6.timeScale().getVisibleRange();
+        addResult(
+          'Sequential setData + restore',
+          true,
+          'VISUAL CHECK: Chart should show 3 data points with no flicker.\n' +
+          `Saved range: ${JSON.stringify(saved)}\n` +
+          `Restored range: ${JSON.stringify(rangeAfter)}\n` +
+          `(Flicker is a visual artifact — check by watching the chart update at t=500ms)`
+        );
+      }, 500);
+    }
+
+    // =========================================================================
+    // EXPERIMENT 7: timeScale.width() vs container width
+    // =========================================================================
+    {
+      const div = document.createElement('div');
+      div.className = 'experiment';
+      div.innerHTML = '<h3>Experiment 7: timeScale.width() vs container width</h3>';
+      results.appendChild(div);
+
+      const container7 = document.createElement('div');
+      container7.className = 'chart-container';
+      div.appendChild(container7);
+
+      const chart7 = createChart(container7, {
+        width: 800, height: 200,
+        layout: { background: { color: '#1e1e1e' }, textColor: '#d4d4d4' },
+      });
+      const data7 = chart7.addSeries(LineSeries);
+      data7.setData([
+        { time: 1704067200, value: 10 },
+        { time: 1704672000, value: 50 },
+      ]);
+
+      setTimeout(() => {
+        const tsWidth = chart7.timeScale().width();
+        const containerWidth = container7.clientWidth;
+
+        const passed = tsWidth > 0 && tsWidth < containerWidth;
+        addResult(
+          'timeScale.width() is plot area (excludes price scale)',
+          passed,
+          `timeScale.width(): ${tsWidth}px\n` +
+          `container.clientWidth: ${containerWidth}px\n` +
+          `Difference: ${containerWidth - tsWidth}px (should be ~price scale width, typically 50-80px)`
+        );
+      }, 200);
+    }
+
+  </script>
+</body>
+</html>

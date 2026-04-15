@@ -33,7 +33,5 @@ class TvlChartConnection(MessageStream):
 
     def on_close(self) -> None:
         """Close the connection and release resources."""
-        if self._listener is not None:
-            del self._listener
         self._listener = None
         self._client_connection = None

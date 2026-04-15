@@ -6,11 +6,21 @@ import type {
   TvlPartitionSpec,
   TvlSeriesConfig,
   DownsampleInfo,
+  DownsampledData,
   ModelEvent,
   ModelEventListener,
   NewFigureMessage,
 } from './TradingViewTypes';
-import { getAllColumnsForTable, convertTime } from './TradingViewUtils';
+import {
+  getAllColumnsForTable,
+  convertTime,
+  unconvertTime,
+  transformTableData,
+  deduplicateByTime,
+  classifyDownsampledRows,
+  generateWhitespaceGrid,
+  buildDataWithGaps,
+} from './TradingViewUtils';
 
 const log = Log.module('TradingViewChartModel');
 
@@ -36,68 +46,69 @@ class TradingViewChartModel {
 
   private tables: Map<number, DhType.Table> = new Map();
 
-  /** Active table subscriptions (from table.subscribe()) */
+  /** Active table subscriptions (from table.subscribe()) for all tables. */
   private tableSubscriptionMap: Map<number, DhType.TableSubscription> =
     new Map();
 
-  /** ChartData objects that handle delta updates efficiently */
+  /** ChartData objects that handle delta updates efficiently. */
   private chartDataMap: Map<number, DhType.plot.ChartData> = new Map();
 
-  /** Full column data arrays, updated incrementally via ChartData */
+  /** Full column data arrays, updated incrementally via ChartData. */
   private tableDataMap: Map<number, Record<string, unknown[]>> = new Map();
 
-  /** Cleanup functions for event listeners */
+  /** Cleanup functions for event listeners. */
   private subscriptionCleanupMap: Map<number, Set<() => void>> = new Map();
 
   private widgetListenerCleanup: (() => void) | null = null;
 
   private revision = 0;
 
-  /** Track whether initial data has loaded for fitContent */
+  /** Track whether initial data has loaded for fitContent. */
   private initialLoadComplete = false;
 
-  /** Next table ID for dynamically added partition tables */
+  /** Set to true when close() is called; prevents stale async callbacks. */
+  private closed = false;
+
+  /** Next table ID for dynamically added partition tables. */
   private nextTableId = 0;
 
-  /** Cleanup for PartitionedTable event listener */
+  /** Cleanup for PartitionedTable event listener. */
   private partitionCleanup: (() => void) | null = null;
 
-  /** PartitionedTable reference (for cleanup on close) */
+  /** PartitionedTable reference (for cleanup on close). */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private partitionedTable: any = null;
 
   /** Downsampling state per table: original table + params for re-sampling. */
   private downsampleMap: Map<number, DownsampleInfo> = new Map();
 
-  /** Current chart plot-area width in pixels. */
+  /** Current chart plot-area width in pixels (from timeScale.width()). */
   private chartWidth = 0;
 
-  /** Current visible x-axis range as [min, max] strings, or null. */
-  private visibleRange: [string, string] | null = null;
-
-  /** Timer for debouncing visible-range updates. */
-  private rangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * The zoom range used for the last successfully-loaded downsample, in
+   * TZ-shifted epoch seconds. null = full-range (no zoom).
+   */
+  private lastDownsampledRange: [number, number] | null = null;
 
   /**
-   * Table IDs that were just re-downsampled and need a full data replace
-   * on their next subscription update (not an incremental append).
+   * Time extent of the full source data in TZ-shifted epoch seconds.
+   * Captured from the first full-range downsample's output (first/last
+   * time values). Used to decide whether a zoom range is "nearly full"
+   * (≥80% coverage → use range=null for uniform fidelity instead of
+   * having low-fidelity head/tail at the edges).
    */
-  private pendingFullReplace: Set<number> = new Set();
+  private dataFullExtent: [number, number] | null = null;
 
-  /**
-   * The visible range used for the most recent successful downsample.
-   * Used to compare against incoming range changes — if the range matches
-   * what we already downsampled for, we skip re-downsampling.
-   * This replaces the old `isRedownsampling` flag with a deterministic
-   * comparison (the plotly-express `areSameAxisRange` pattern).
-   */
-  private lastDownsampledRange: [string, string] | null = null;
+  /** True while a downsample RPC is in flight. */
+  private isDownsampling = false;
 
-  /** True while updateDownsamples() is in flight. Prevents concurrent calls. */
-  private isUpdatingDownsamples = false;
-
-  /** True if a new downsample was requested while one was already in flight. */
-  private pendingDownsampleUpdate = false;
+  /** If a new downsample was requested during an in-flight call, store params. */
+  private pendingDownsampleParams: {
+    width: number;
+    range: [number, number] | null;
+    isReset: boolean;
+  } | null = null;
 
   /** IANA timezone string (e.g. "America/New_York") for time column conversion. */
   private timeZone = '';
@@ -163,6 +174,11 @@ class TradingViewChartModel {
     this.chartType = ct;
   }
 
+  /** Set the initial chart width before init so downsampling can use it. */
+  setChartWidth(width: number): void {
+    if (width > 0) this.chartWidth = width;
+  }
+
   /**
    * Collect the set of column names that serve as time/x-axis columns
    * for any series or marker spec on the given table.
@@ -215,8 +231,11 @@ class TradingViewChartModel {
     });
     await Promise.all(tablePromises);
 
-    // Set nextTableId to one past the highest existing ID
-    this.nextTableId = message.new_references.length;
+    // Set nextTableId past the highest used ref index to avoid collisions
+    this.nextTableId =
+      message.new_references.length > 0
+        ? Math.max(...message.new_references) + 1
+        : 0;
 
     // Downsample large tables if eligible, then subscribe
     await this.downsampleAndSubscribe();
@@ -245,10 +264,23 @@ class TradingViewChartModel {
    * create a series config, and push it to the figure.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async addPartitionKey(pt: any, key: unknown, spec: TvlPartitionSpec): Promise<void> {
+  private seenPartitionKeys = new Set<string>();
+
+  private async addPartitionKey(
+    pt: any,
+    key: unknown,
+    spec: TvlPartitionSpec
+  ): Promise<void> {
+    const keyStr = String(key);
+    if (this.seenPartitionKeys.has(keyStr)) {
+      return; // Duplicate key — already added
+    }
+    this.seenPartitionKeys.add(keyStr);
+
     const table = await pt.getTable(key);
     if (!table) {
       log.warn('getTable returned null for key:', key);
+      this.seenPartitionKeys.delete(keyStr);
       return;
     }
 
@@ -256,7 +288,6 @@ class TradingViewChartModel {
     this.nextTableId += 1;
     this.tables.set(newTableId, table as DhType.Table);
 
-    const keyStr = String(key);
     const newSeries: TvlSeriesConfig = {
       id: `by_${keyStr}`,
       type: spec.seriesType,
@@ -271,7 +302,12 @@ class TradingViewChartModel {
     // getAllColumnsForTable() can find the column names for this tableId.
     if (this.figureData) {
       this.figureData.series.push(newSeries);
-      log.debug('Added series for key:', keyStr, 'total:', this.figureData.series.length);
+      log.debug(
+        'Added series for key:',
+        keyStr,
+        'total:',
+        this.figureData.series.length
+      );
     }
 
     this.subscribeTable(newTableId, table as DhType.Table);
@@ -331,7 +367,11 @@ class TradingViewChartModel {
           }
         }
       );
-      log.debug('Partition watcher set up with', existingKeys?.size ?? 0, 'initial keys');
+      log.debug(
+        'Partition watcher set up with',
+        existingKeys?.size ?? 0,
+        'initial keys'
+      );
     } catch (err) {
       log.error('Failed to set up partition watcher', err);
       this.emit({
@@ -340,6 +380,8 @@ class TradingViewChartModel {
       });
     }
   }
+
+  // ---- Downsample eligibility ----
 
   /**
    * Check if a table should be downsampled based on its size and
@@ -397,24 +439,22 @@ class TradingViewChartModel {
     return { xCol, yCols: Array.from(yCols) };
   }
 
+  // ---- Downsample lifecycle ----
+
   /**
-   * Downsample eligible tables, then subscribe to all tables.
+   * Initial downsample + subscribe for all tables. Called once from init().
    */
   private async downsampleAndSubscribe(): Promise<void> {
     if (!this.figureData) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dh = this.dh as any;
-    const hasDownsampleApi =
-      dh.plot?.Downsample?.runChartDownsample != null;
+    const hasDownsampleApi = dh.plot?.Downsample?.runChartDownsample != null;
 
     const downsamplePromises: Promise<void>[] = [];
 
     this.tables.forEach((table, tableId) => {
-      if (
-        hasDownsampleApi &&
-        this.isDownsampleEligible(tableId, table)
-      ) {
+      if (hasDownsampleApi && this.isDownsampleEligible(tableId, table)) {
         const cols = this.getDownsampleColumns(tableId);
         if (cols) {
           const width = this.chartWidth || 800;
@@ -423,7 +463,7 @@ class TradingViewChartModel {
             xCol: cols.xCol,
             yCols: cols.yCols,
             width,
-            range: this.visibleRange,
+            range: null, // initial = full range
           };
           this.downsampleMap.set(tableId, info);
 
@@ -433,10 +473,9 @@ class TradingViewChartModel {
               cols.xCol,
               cols.yCols,
               width,
-              this.visibleRange?.map((val: string) =>
-                dh.DateWrapper.ofJsDate(new Date(val))
-              ) ?? null
+              null // full range
             ).then((downsampled: DhType.Table) => {
+              if (this.closed) return;
               log.info(
                 `Downsampled table ${tableId}: ${table.size} → ${downsampled.size} rows`
               );
@@ -448,11 +487,8 @@ class TradingViewChartModel {
     });
 
     if (downsamplePromises.length > 0) {
-      this.downsampleMap.forEach((_, tableId) => {
-        this.pendingFullReplace.add(tableId);
-      });
       await Promise.all(downsamplePromises);
-      this.lastDownsampledRange = this.visibleRange;
+      this.lastDownsampledRange = null; // full range
     }
 
     // Now subscribe to all tables (downsampled or original)
@@ -462,168 +498,163 @@ class TradingViewChartModel {
   }
 
   /**
-   * Called when the visible range or chart width changes.
-   * Re-downsamples all eligible tables with the new parameters.
+   * Request a re-downsample. Called from the React component on zoom, pan
+   * outside coverage, resize, or reset (dblclick).
    *
    * Only one call runs at a time. If a new request arrives while one is
-   * in flight, it is queued and runs after the current one completes
-   * (with the latest visibleRange / chartWidth at that time).
+   * in flight, it is queued and runs after the current one completes.
+   *
+   * @param width Chart plot-area width in pixels (target point count).
+   * @param range Zoom range in TZ-shifted epoch seconds, or null for full.
+   * @param isReset If true, emit isResetView so the chart fitContents.
    */
-  private async updateDownsamples(): Promise<void> {
+  async requestDownsample(
+    width: number,
+    range: [number, number] | null,
+    isReset: boolean
+  ): Promise<void> {
     if (this.downsampleMap.size === 0) return;
+    this.chartWidth = width;
 
-    // Prevent concurrent calls — queue for retry instead
-    if (this.isUpdatingDownsamples) {
-      this.pendingDownsampleUpdate = true;
+    // Queue if already in flight
+    if (this.isDownsampling) {
+      this.pendingDownsampleParams = { width, range, isReset };
       return;
     }
-    this.isUpdatingDownsamples = true;
+    this.isDownsampling = true;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dh = this.dh as any;
+    const targetWidth = width;
+
+    let targetRange = range;
+    if (targetRange != null && this.dataFullExtent != null) {
+      const [dataStart, dataEnd] = this.dataFullExtent;
+      const fullDuration = dataEnd - dataStart;
+      const zoomDuration = targetRange[1] - targetRange[0];
+
+      // If the zoom covers ≥80% of the data extent, use range=null
+      // for uniform fidelity (no sparse head/tail edges).
+      if (fullDuration > 0 && zoomDuration / fullDuration >= 0.8) {
+        log.debug(
+          `Zoom covers ${((zoomDuration / fullDuration) * 100).toFixed(0)}% of data — using full range`
+        );
+        targetRange = null;
+      }
+
+      // Snap range endpoints to the data extent when close. Without this,
+      // getVisibleRange() returns a range that ends slightly before the
+      // actual data edge (due to bar spacing / rightOffset), leaving a
+      // small gap that produces a sparse tail (or head). Snapping
+      // eliminates the gap so no low-fidelity points appear at edges the
+      // user perceives as "the end of the data."
+      if (targetRange != null) {
+        const snapThreshold = zoomDuration * 0.05; // 5% of zoom duration
+        const snapped: [number, number] = [...targetRange];
+        if (snapped[0] - dataStart < snapThreshold) {
+          snapped[0] = dataStart;
+        }
+        if (dataEnd - snapped[1] < snapThreshold) {
+          snapped[1] = dataEnd;
+        }
+        targetRange = snapped;
+      }
+    }
 
     const updates: Promise<void>[] = [];
 
     this.downsampleMap.forEach((oldInfo, tableId) => {
-      const newWidth = this.chartWidth || 800;
-      const newRange = this.visibleRange;
-
       // Skip if nothing changed
       if (
-        oldInfo.width === newWidth &&
-        oldInfo.range?.[0] === newRange?.[0] &&
-        oldInfo.range?.[1] === newRange?.[1]
+        !isReset &&
+        oldInfo.width === targetWidth &&
+        oldInfo.range?.[0] === targetRange?.[0] &&
+        oldInfo.range?.[1] === targetRange?.[1]
       ) {
         return;
       }
 
       const updatedInfo: DownsampleInfo = {
         ...oldInfo,
-        width: newWidth,
-        range: newRange,
+        width: targetWidth,
+        range: targetRange,
       };
       this.downsampleMap.set(tableId, updatedInfo);
+
+      // Convert TZ-shifted epoch seconds back to real UTC for the server.
+      // The chart stores and returns TZ-shifted values (convertTime adds
+      // the TZ offset so axis labels show local time). The server's
+      // runChartDownsample works in real UTC, so we must reverse the shift.
+      // Without this, the zoom range is off by the TZ offset — e.g., for
+      // UTC-4 the body is 4 hours too early, leaving a sparse tail at the
+      // data's actual end.
+      const apiRange =
+        targetRange?.map((sec: number) => {
+          const realUtcSec = unconvertTime(sec, this.timeZone);
+          return dh.DateWrapper.ofJsDate(new Date(realUtcSec * 1000));
+        }) ?? null;
 
       updates.push(
         dh.plot.Downsample.runChartDownsample(
           oldInfo.originalTable,
           oldInfo.xCol,
           oldInfo.yCols,
-          newWidth,
-          newRange?.map((val: string) =>
-            dh.DateWrapper.ofJsDate(new Date(val))
-          ) ?? null
+          targetWidth,
+          apiRange
         )
           .then((downsampled: DhType.Table) => {
+            if (this.closed) return;
             log.debug(
               `Re-downsampled table ${tableId}: ${downsampled.size} rows ` +
-                `(range: ${newRange ? newRange.join(' – ') : 'auto'})`
+                `(range: ${targetRange ? `${targetRange[0]}–${targetRange[1]}` : 'full'})`
             );
             // Tear down old subscription
             this.cleanupSubscriptions(tableId);
             this.chartDataMap.delete(tableId);
             this.tableDataMap.delete(tableId);
 
-            // Mark for full data replace on next update
-            this.pendingFullReplace.add(tableId);
-
-            // Replace with new downsampled table
+            // Replace with new downsampled table and subscribe
             this.tables.set(tableId, downsampled);
             this.subscribeTable(tableId, downsampled);
           })
           .catch((err: unknown) => {
             log.warn('Re-downsample failed for table', tableId, err);
-            // Original table was likely closed (disconnect/reconnect).
-            // Remove from downsampleMap so we stop retrying.
             this.downsampleMap.delete(tableId);
           })
       );
     });
 
-    if (updates.length > 0) {
-      await Promise.all(updates);
-      this.lastDownsampledRange = this.visibleRange;
+    try {
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        this.lastDownsampledRange = targetRange;
+      }
+    } finally {
+      this.isDownsampling = false;
+
+      // If a new request arrived while we were working, run it now
+      if (this.pendingDownsampleParams != null) {
+        const pending = this.pendingDownsampleParams;
+        this.pendingDownsampleParams = null;
+        this.requestDownsample(pending.width, pending.range, pending.isReset);
+      }
     }
-
-    this.isUpdatingDownsamples = false;
-
-    // If a new update was requested while we were working, run it now
-    // with the latest visibleRange / chartWidth.
-    if (this.pendingDownsampleUpdate) {
-      this.pendingDownsampleUpdate = false;
-      this.updateDownsamples();
-    }
   }
 
-  /**
-   * Set the chart plot-area width. Called from the React component on resize.
-   */
-  setChartWidth(width: number): void {
-    if (width === this.chartWidth || width <= 0) return;
-    this.chartWidth = width;
-    this.scheduleDownsampleUpdate();
+  /** Get the zoom range of the currently-loaded downsample. null = full. */
+  getLastDownsampledRange(): [number, number] | null {
+    return this.lastDownsampledRange;
   }
 
-  /**
-   * Set the visible time range. Called from the React component when the
-   * user finishes a zoom/pan gesture (not during the gesture).
-   * @param range [min, max] as ISO date strings, or null for full/auto range.
-   */
-  setVisibleRange(range: [string, string] | null): void {
-    // Compare against the range we last downsampled for. If it matches,
-    // the current data is already optimal — skip re-downsampling.
-    // This is the deterministic loop-breaker (same pattern as plotly-express
-    // areSameAxisRange).
-    if (
-      this.lastDownsampledRange?.[0] === range?.[0] &&
-      this.lastDownsampledRange?.[1] === range?.[1]
-    ) {
-      return;
-    }
-    this.visibleRange = range;
-    this.scheduleDownsampleUpdate();
+  /** Whether any table is currently downsampled. */
+  isDownsampled(): boolean {
+    return this.downsampleMap.size > 0;
   }
 
-  /**
-   * Debounce downsample updates to avoid hammering the server during
-   * smooth pan/drag operations.
-   */
-  private scheduleDownsampleUpdate(): void {
-    if (this.downsampleMap.size === 0) return;
-    if (this.rangeDebounceTimer != null) {
-      clearTimeout(this.rangeDebounceTimer);
-    }
-    this.rangeDebounceTimer = setTimeout(() => {
-      this.rangeDebounceTimer = null;
-      this.updateDownsamples();
-    }, 250);
-  }
+  // resetView() removed: lightweight-charts' native dblclick fitContent()
+  // now works correctly since head/tail data spans the full source range.
 
-  /**
-   * Returns debug info about downsampled tables. Useful for verification.
-   */
-  getDownsampleDebugInfo(): {
-    tableId: number;
-    originalSize: number;
-    currentSize: number;
-    isDownsampled: boolean;
-    width: number;
-    range: [string, string] | null;
-  }[] {
-    return Array.from(this.tables.entries()).map(([id, table]) => {
-      const dsInfo = this.downsampleMap.get(id);
-      return {
-        tableId: id,
-        originalSize: dsInfo
-          ? (dsInfo.originalTable as DhType.Table).size
-          : table.size,
-        currentSize: table.size,
-        isDownsampled: dsInfo != null,
-        width: dsInfo?.width ?? 0,
-        range: dsInfo?.range ?? null,
-      };
-    });
-  }
+  // ---- Subscription ----
 
   /**
    * Clean up subscriptions and event listeners for a specific table.
@@ -641,6 +672,12 @@ class TradingViewChartModel {
     }
   }
 
+  /**
+   * Subscribe to a table using subscribe() + ChartData (for all tables).
+   * Downsampled tables route to handleDownsampledUpdate which classifies
+   * rows into head/body/tail and generates whitespace. Non-downsampled
+   * tables route to handleTableUpdate for incremental delta processing.
+   */
   private subscribeTable(tableId: number, table: DhType.Table): void {
     if (!this.figureData) return;
     if (this.tableSubscriptionMap.has(tableId)) return;
@@ -651,30 +688,39 @@ class TradingViewChartModel {
     );
     if (columns.length === 0) return;
 
-    // Create ChartData for delta-aware updates
-    this.chartDataMap.set(tableId, new this.dh.plot.ChartData(table));
-    this.tableDataMap.set(tableId, {});
-
-    // Use table.subscribe() — streams all rows for selected columns
-    const subscription = table.subscribe(columns);
-    this.tableSubscriptionMap.set(tableId, subscription);
-
     if (!this.subscriptionCleanupMap.has(tableId)) {
       this.subscriptionCleanupMap.set(tableId, new Set());
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const cleanupSet = this.subscriptionCleanupMap.get(tableId)!;
 
-    // Listen on the SUBSCRIPTION for data updates (not the table)
+    // All tables use subscribe() + ChartData (matching plotly-express pattern)
+    this.chartDataMap.set(tableId, new this.dh.plot.ChartData(table));
+    this.tableDataMap.set(tableId, {});
+
+    const subscription = table.subscribe(columns);
+    this.tableSubscriptionMap.set(tableId, subscription);
+
+    const isDs = this.downsampleMap.has(tableId);
+
     cleanupSet.add(
+      // prettier-ignore
       subscription.addEventListener(
         this.dh.Table.EVENT_UPDATED,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((e: any) =>
-          this.handleTableUpdate(
-            e as DhType.Event<DhType.SubscriptionTableData>,
-            tableId
-          )) as unknown as Parameters<typeof subscription.addEventListener>[1]
+        ((e: any) => {
+          if (isDs) {
+            this.handleDownsampledUpdate(
+              e as DhType.Event<DhType.SubscriptionTableData>,
+              tableId
+            );
+          } else {
+            this.handleTableUpdate(
+              e as DhType.Event<DhType.SubscriptionTableData>,
+              tableId
+            );
+          }
+        }) as unknown as Parameters<typeof subscription.addEventListener>[1]
       )
     );
 
@@ -690,9 +736,11 @@ class TradingViewChartModel {
     );
   }
 
+  // ---- Data update handlers ----
+
   /**
-   * Handle a table subscription update using ChartData for delta processing.
-   * This follows the exact pattern from PlotlyExpressChartModel.handleFigureUpdated.
+   * Handle subscription update for a NON-downsampled table.
+   * Uses ChartData for delta processing; emits incremental info.
    */
   private handleTableUpdate(
     event: DhType.Event<DhType.SubscriptionTableData>,
@@ -711,11 +759,7 @@ class TradingViewChartModel {
     // Apply delta to ChartData
     chartData.update(updateEvent);
 
-    // Extract full column arrays from ChartData.
-    // Time columns use timeTranslator (produces TZ-adjusted epoch seconds).
-    // Value columns use valueTranslator (unwraps DH wrappers to plain numbers).
-    // Both are stable references so ChartData's per-(column, func) cache works —
-    // only delta rows are translated on subsequent updates.
+    // Extract full column arrays via translators (stable refs for caching)
     const timeCols = this.getTimeColumnsForTable(tableId);
     updateEvent.columns.forEach((column: DhType.Column) => {
       const translator = timeCols.has(column.name)
@@ -733,23 +777,11 @@ class TradingViewChartModel {
       this.initialLoadComplete = true;
     }
 
-    // After a re-downsample, the first update from the new table needs a
-    // full data replace (not incremental append) because the series data
-    // is entirely different from what was previously rendered.
-    const isFullReplace = this.pendingFullReplace.delete(tableId);
-
-    // Pass through delta info so the renderer can use series.update()
-    // for appends instead of series.setData() for the full dataset
     const addedCount = updateEvent.added != null ? updateEvent.added.size : 0;
-    let removedCount =
+    const removedCount =
       updateEvent.removed != null ? updateEvent.removed.size : 0;
     const modifiedCount =
       updateEvent.modified != null ? updateEvent.modified.size : 0;
-
-    // Force full replace path in the chart component
-    if (isFullReplace) {
-      removedCount = 1;
-    }
 
     this.emit({
       type: 'DATA_UPDATED',
@@ -758,9 +790,146 @@ class TradingViewChartModel {
       addedCount,
       removedCount,
       modifiedCount,
-      preserveVisibleRange: isFullReplace,
+      isResetView: false,
     });
   }
+
+  /**
+   * Handle subscription update for a DOWNSAMPLED table.
+   * Uses ChartData for delta processing, then classifies rows into
+   * head/body/tail, generates whitespace grid, and emits DownsampledData.
+   */
+  private handleDownsampledUpdate(
+    event: DhType.Event<DhType.SubscriptionTableData>,
+    tableId: number
+  ): void {
+    const chartData = this.chartDataMap.get(tableId);
+    const tableData = this.tableDataMap.get(tableId);
+
+    if (chartData == null || tableData == null) {
+      log.warn('No chartData/tableData for downsampled table', tableId);
+      return;
+    }
+
+    const { detail: updateEvent } = event;
+
+    // Apply delta to ChartData
+    chartData.update(updateEvent);
+
+    // Extract full column arrays via translators
+    const timeCols = this.getTimeColumnsForTable(tableId);
+    updateEvent.columns.forEach((column: DhType.Column) => {
+      const translator = timeCols.has(column.name)
+        ? this.timeTranslator
+        : this.valueTranslator;
+      tableData[column.name] = chartData.getColumn(
+        column.name,
+        translator,
+        updateEvent
+      );
+    });
+
+    const isFirstLoad = !this.initialLoadComplete;
+    if (isFirstLoad) {
+      this.initialLoadComplete = true;
+    }
+
+    // Capture the full data time extent from the initial full-range
+    // downsample. Used to decide when a zoom is "nearly full" (≥80%).
+    if (this.dataFullExtent == null && this.lastDownsampledRange == null) {
+      const timeCols2 = this.getTimeColumnsForTable(tableId);
+      const firstTimeCol = timeCols2.values().next().value;
+      if (firstTimeCol != null) {
+        const timeArr = tableData[firstTimeCol];
+        if (timeArr != null && timeArr.length > 1) {
+          const first = timeArr[0] as number;
+          const last = timeArr[timeArr.length - 1] as number;
+          if (Number.isFinite(first) && Number.isFinite(last) && last > first) {
+            this.dataFullExtent = [first, last];
+          }
+        }
+      }
+    }
+
+    // Build DownsampledData for the chart
+    const dsData = this.buildDownsampledData(tableId);
+
+    this.emit({
+      type: 'DATA_UPDATED',
+      tableId,
+      isInitialLoad: isFirstLoad,
+      addedCount: 0,
+      removedCount: 0,
+      modifiedCount: 0,
+      isResetView: false,
+      downsampledData: dsData,
+    });
+  }
+
+  /**
+   * Build the DownsampledData payload: classify rows into head/body/tail,
+   * generate whitespace grid, insert gap markers.
+   */
+  private buildDownsampledData(tableId: number): DownsampledData {
+    const figure = this.figureData;
+    const colData = this.getColumnData(tableId);
+    const ct = this.chartType;
+
+    // Transform all series for this table and merge into a single data array.
+    // For downsampled tables there's typically one series per table.
+    let allData: Record<string, unknown>[] = [];
+    if (figure && colData) {
+      figure.series.forEach(series => {
+        if (series.dataMapping.tableId !== tableId) return;
+        const data = transformTableData(series, colData, ct);
+        const deduped = deduplicateByTime(data as Record<string, unknown>[]);
+        allData = deduped;
+      });
+    }
+
+    // Classify into head / body / tail
+    const { head, body, tail } = classifyDownsampledRows(
+      allData,
+      this.lastDownsampledRange
+    );
+
+    // Generate whitespace time grid spanning the FULL data extent (head
+    // first point → tail last point). This ensures head/tail bars sit at
+    // their real time positions with proper whitespace gaps between them
+    // and the dense body region. Without this, the head/tail bars are
+    // only a few bar slots from the body edge — panning past the body
+    // immediately shows months-old data instead of empty space.
+    //
+    // The grid density matches the body region so body bars land on grid
+    // slots. For the full data span the grid is larger than body-only,
+    // but still manageable (e.g., 115 days at body density ≈ 8K points).
+    let whitespaceGrid: Array<{ time: number }> = [];
+    if (allData.length > 1 && this.lastDownsampledRange != null) {
+      const dataStart = allData[0].time as number;
+      const dataEnd = allData[allData.length - 1].time as number;
+      // Use body density: pointCount = chartWidth for the body duration,
+      // scaled to the full data duration.
+      const bodyDuration = this.lastDownsampledRange[1] - this.lastDownsampledRange[0];
+      const fullDuration = dataEnd - dataStart;
+      const bodyPointCount = this.chartWidth || 800;
+      const fullPointCount = bodyDuration > 0
+        ? Math.round(bodyPointCount * (fullDuration / bodyDuration))
+        : bodyPointCount;
+      // Cap at a reasonable maximum to prevent performance issues
+      const cappedPointCount = Math.min(fullPointCount, 50_000);
+      whitespaceGrid = generateWhitespaceGrid(
+        dataStart,
+        dataEnd,
+        cappedPointCount
+      );
+    }
+
+    const dataWithGaps = [...head, ...body, ...tail];
+
+    return { whitespaceGrid, dataWithGaps };
+  }
+
+  // ---- Widget & utility methods ----
 
   private listenToWidget(): () => void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -834,11 +1003,7 @@ class TradingViewChartModel {
   }
 
   close(): void {
-    // Cancel pending debounce
-    if (this.rangeDebounceTimer != null) {
-      clearTimeout(this.rangeDebounceTimer);
-      this.rangeDebounceTimer = null;
-    }
+    this.closed = true;
 
     // Clean up subscription event listeners
     this.subscriptionCleanupMap.forEach(cleanupSet => {

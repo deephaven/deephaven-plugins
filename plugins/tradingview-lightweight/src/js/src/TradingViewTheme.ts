@@ -13,6 +13,7 @@ export interface TvlChartTheme {
   gridColor: string;
   lineColor: string;
   zeroLineColor: string;
+  crosshairLabelBgColor: string;
   fontFamily: string;
   ohlcIncreasing: string;
   ohlcDecreasing: string;
@@ -33,6 +34,7 @@ const CSS_VAR_MAP: Record<
   gridColor: '--dh-color-chart-grid',
   lineColor: '--dh-color-chart-axis-line',
   zeroLineColor: '--dh-color-chart-axis-line-zero',
+  crosshairLabelBgColor: '--dh-color-gray-600',
   ohlcIncreasing: '--dh-color-chart-ohlc-increase',
   ohlcDecreasing: '--dh-color-chart-ohlc-decrease',
 };
@@ -105,12 +107,21 @@ export function chartThemeToOptions(
     rightPriceScale: {
       borderColor: theme.lineColor,
     },
+    leftPriceScale: {
+      borderColor: theme.lineColor,
+    },
     timeScale: {
       borderColor: theme.lineColor,
     },
     crosshair: {
-      vertLine: { color: theme.gridColor },
-      horzLine: { color: theme.gridColor },
+      vertLine: {
+        color: theme.gridColor,
+        labelBackgroundColor: theme.crosshairLabelBgColor,
+      },
+      horzLine: {
+        color: theme.gridColor,
+        labelBackgroundColor: theme.crosshairLabelBgColor,
+      },
     },
   };
 }

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DH Server-Side Experiments</title>
+  <style>
+    body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; margin: 20px; }
+    .result { padding: 8px; margin: 5px 0; border-left: 3px solid #666; }
+    .pass { border-left-color: #4ec9b0; }
+    .fail { border-left-color: #f44; }
+    .pending { border-left-color: #dcdcaa; }
+    .log { white-space: pre-wrap; font-size: 12px; color: #aaa; }
+    h3 { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+  <h1>DH Server-Side Experiments</h1>
+  <div id="status">Connecting to DH server...</div>
+  <div id="results"></div>
+
+  <script type="module">
+    // Import the DH JS API from the server
+    const dhUrl = 'http://localhost:10042';
+    const results = document.getElementById('results');
+    const status = document.getElementById('status');
+
+    function addResult(name, passed, details) {
+      const div = document.createElement('div');
+      const cls = passed === null ? 'pending' : (passed ? 'pass' : 'fail');
+      const label = passed === null ? 'RUNNING' : (passed ? 'PASS' : 'FAIL');
+      div.className = `result ${cls}`;
+      div.id = `result-${name.replace(/\s/g, '-')}`;
+      div.innerHTML = `<strong>${label}: ${name}</strong><div class="log">${details}</div>`;
+      results.appendChild(div);
+      return div;
+    }
+
+    function updateResult(div, passed, details) {
+      const cls = passed ? 'pass' : 'fail';
+      const label = passed ? 'PASS' : 'FAIL';
+      const name = div.querySelector('strong').textContent.replace(/^(RUNNING|PASS|FAIL): /, '');
+      div.className = `result ${cls}`;
+      div.innerHTML = `<strong>${label}: ${name}</strong><div class="log">${details}</div>`;
+    }
+
+    async function run() {
+      try {
+        // Load the DH JS API
+        status.textContent = 'Loading DH JS API...';
+        const { default: initApi } = await import(dhUrl + '/jsapi/dh-core.mjs');
+        const dh = await initApi();
+
+        status.textContent = 'Connecting...';
+        const client = new dh.CoreClient(dhUrl);
+        await client.login({ type: dh.CoreClient.LOGIN_TYPE_ANONYMOUS });
+
+        status.textContent = 'Getting session...';
+        const cn = await client.getAsIdeConnection();
+
+        status.textContent = 'Fetching table...';
+        const table = await cn.getObject({ name: 't', type: 'Table' });
+
+        status.textContent = `Connected. Table has ${table.size} rows, columns: ${table.columns.map(c => c.name).join(', ')}`;
+
+        // =============================================================
+        // EXPERIMENT 9: runChartDownsample produces head/tail rows
+        // =============================================================
+        const div9 = addResult('Exp 9: runChartDownsample head/tail', null, 'Running...');
+
+        try {
+          // Downsample for a narrow range in the middle of the data
+          // Data spans: 2020-01-01 to 2020-01-02T03:46:40 (100K seconds)
+          // Zoom to: 2020-01-01T06:00:00 to 2020-01-01T12:00:00 (6 hours in middle)
+          const zoomFrom = new Date('2020-01-01T06:00:00Z');
+          const zoomTo = new Date('2020-01-01T12:00:00Z');
+
+          const dsTable = await dh.plot.Downsample.runChartDownsample(
+            table,
+            'Timestamp',
+            ['Price'],
+            200,  // small pixel count for clarity
+            [dh.DateWrapper.ofJsDate(zoomFrom), dh.DateWrapper.ofJsDate(zoomTo)]
+          );
+
+          // Subscribe to get all rows
+          const cols = dsTable.columns;
+          const tsCols = cols.filter(c => c.name === 'Timestamp' || c.name === 'Price');
+
+          // Use setViewport to get a snapshot
+          dsTable.setViewport(0, dsTable.size + 100, tsCols);
+
+          await new Promise((resolve) => {
+            dsTable.addEventListener(dh.Table.EVENT_UPDATED, (e) => {
+              const rows = e.detail.rows;
+              const rowData = [];
+              for (let i = 0; i < rows.length; i++) {
+                const ts = rows[i].get(cols.find(c => c.name === 'Timestamp'));
+                const price = rows[i].get(cols.find(c => c.name === 'Price'));
+                const tsMs = ts && ts.asDate ? ts.asDate().getTime() : ts;
+                rowData.push({ time: new Date(tsMs).toISOString(), price: typeof price === 'object' && price.asNumber ? price.asNumber() : price });
+              }
+
+              const zoomFromMs = zoomFrom.getTime();
+              const zoomToMs = zoomTo.getTime();
+
+              const headRows = rowData.filter(r => new Date(r.time).getTime() < zoomFromMs);
+              const bodyRows = rowData.filter(r => {
+                const t = new Date(r.time).getTime();
+                return t >= zoomFromMs && t <= zoomToMs;
+              });
+              const tailRows = rowData.filter(r => new Date(r.time).getTime() > zoomToMs);
+
+              const details = [
+                `Table size: ${dsTable.size} rows`,
+                `Total rows received: ${rows.length}`,
+                `Zoom range: ${zoomFrom.toISOString()} to ${zoomTo.toISOString()}`,
+                ``,
+                `HEAD rows (before zoom): ${headRows.length}`,
+                headRows.length > 0 ? `  First: ${headRows[0].time} price=${headRows[0].price?.toFixed(2)}` : '',
+                headRows.length > 0 ? `  Last:  ${headRows[headRows.length-1].time} price=${headRows[headRows.length-1].price?.toFixed(2)}` : '',
+                ``,
+                `BODY rows (in zoom): ${bodyRows.length}`,
+                bodyRows.length > 0 ? `  First: ${bodyRows[0].time} price=${bodyRows[0].price?.toFixed(2)}` : '',
+                bodyRows.length > 0 ? `  Last:  ${bodyRows[bodyRows.length-1].time} price=${bodyRows[bodyRows.length-1].price?.toFixed(2)}` : '',
+                ``,
+                `TAIL rows (after zoom): ${tailRows.length}`,
+                tailRows.length > 0 ? `  First: ${tailRows[0].time} price=${tailRows[0].price?.toFixed(2)}` : '',
+                tailRows.length > 0 ? `  Last:  ${tailRows[tailRows.length-1].time} price=${tailRows[tailRows.length-1].price?.toFixed(2)}` : '',
+              ].filter(s => s !== '').join('\n');
+
+              const passed = headRows.length > 0 || tailRows.length > 0;
+              updateResult(div9, passed, details);
+
+              dsTable.close();
+              resolve();
+            });
+          });
+        } catch (e) {
+          updateResult(div9, false, `Error: ${e.message}\n${e.stack}`);
+        }
+
+        // =============================================================
+        // EXPERIMENT 10: subscribe() + ChartData vs setViewport()
+        // =============================================================
+        const div10 = addResult('Exp 10: subscribe+ChartData vs setViewport', null, 'Running...');
+
+        try {
+          // Full-range downsample (no head/tail)
+          const dsTable2 = await dh.plot.Downsample.runChartDownsample(
+            table, 'Timestamp', ['Price'], 100, null
+          );
+
+          const cols2 = dsTable2.columns;
+          const tsCols2 = cols2.filter(c => c.name === 'Timestamp' || c.name === 'Price');
+
+          // Method A: setViewport
+          const viewportData = await new Promise((resolve) => {
+            dsTable2.setViewport(0, dsTable2.size + 100, tsCols2);
+            dsTable2.addEventListener(dh.Table.EVENT_UPDATED, (e) => {
+              const rows = e.detail.rows;
+              const data = [];
+              for (let i = 0; i < rows.length; i++) {
+                const ts = rows[i].get(cols2.find(c => c.name === 'Timestamp'));
+                const price = rows[i].get(cols2.find(c => c.name === 'Price'));
+                data.push({
+                  time: ts && ts.asDate ? ts.asDate().getTime() : ts,
+                  price: typeof price === 'object' && price.asNumber ? price.asNumber() : price,
+                });
+              }
+              resolve(data);
+            });
+          });
+
+          // Method B: subscribe + ChartData
+          // Need a fresh table for subscribe (can't mix viewport and subscribe)
+          const dsTable3 = await dh.plot.Downsample.runChartDownsample(
+            table, 'Timestamp', ['Price'], 100, null
+          );
+          const cols3 = dsTable3.columns;
+          const tsCols3 = cols3.filter(c => c.name === 'Timestamp' || c.name === 'Price');
+
+          const subscribeData = await new Promise((resolve) => {
+            const chartData = new dh.plot.ChartData(dsTable3);
+            const sub = dsTable3.subscribe(tsCols3);
+            sub.addEventListener(dh.Table.EVENT_UPDATED, (e) => {
+              chartData.update(e.detail);
+              const tsArr = chartData.getColumn('Timestamp', v => {
+                if (v && typeof v === 'object' && v.asDate) return v.asDate().getTime();
+                return v;
+              }, e.detail);
+              const priceArr = chartData.getColumn('Price', v => {
+                if (v && typeof v === 'object' && v.asNumber) return v.asNumber();
+                return v;
+              }, e.detail);
+
+              const data = [];
+              for (let i = 0; i < tsArr.length; i++) {
+                data.push({ time: tsArr[i], price: priceArr[i] });
+              }
+              sub.close();
+              resolve(data);
+            });
+          });
+
+          // Compare
+          const sameLength = viewportData.length === subscribeData.length;
+          let sameValues = true;
+          const mismatches = [];
+          const checkLen = Math.min(viewportData.length, subscribeData.length);
+          for (let i = 0; i < checkLen; i++) {
+            if (viewportData[i].time !== subscribeData[i].time ||
+                Math.abs(viewportData[i].price - subscribeData[i].price) > 0.001) {
+              sameValues = false;
+              mismatches.push(`Row ${i}: viewport=(${viewportData[i].time}, ${viewportData[i].price}) vs subscribe=(${subscribeData[i].time}, ${subscribeData[i].price})`);
+              if (mismatches.length >= 5) break;
+            }
+          }
+
+          const passed = sameLength && sameValues;
+          updateResult(div10, passed, [
+            `Viewport rows: ${viewportData.length}`,
+            `Subscribe rows: ${subscribeData.length}`,
+            `Same length: ${sameLength}`,
+            `Values match: ${sameValues}`,
+            mismatches.length > 0 ? `Mismatches:\n  ${mismatches.join('\n  ')}` : '',
+            ``,
+            `First viewport row: time=${viewportData[0]?.time} price=${viewportData[0]?.price?.toFixed(4)}`,
+            `First subscribe row: time=${subscribeData[0]?.time} price=${subscribeData[0]?.price?.toFixed(4)}`,
+            `Last viewport row: time=${viewportData[viewportData.length-1]?.time} price=${viewportData[viewportData.length-1]?.price?.toFixed(4)}`,
+            `Last subscribe row: time=${subscribeData[subscribeData.length-1]?.time} price=${subscribeData[subscribeData.length-1]?.price?.toFixed(4)}`,
+          ].filter(s => s !== '').join('\n'));
+
+          dsTable2.close();
+          dsTable3.close();
+        } catch (e) {
+          updateResult(div10, false, `Error: ${e.message}\n${e.stack}`);
+        }
+
+        status.textContent = 'All experiments complete.';
+
+      } catch (e) {
+        status.textContent = `Connection failed: ${e.message}`;
+        console.error(e);
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>

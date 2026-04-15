@@ -16,15 +16,27 @@ except ImportError:
     Table = None  # type: ignore[assignment,misc]
 from .options import (
     ChartType,
+    ColorSpace,
     CrosshairMode,
+    HorzAlign,
     LineStyle,
     LineType,
+    LineWidth,
+    PrecomputeConflationPriority,
     PriceScaleMode,
     PriceFormatter,
+    TickmarksPriceFormatter,
+    PercentageFormatter,
+    TickmarksPercentageFormatter,
+    TrackingModeExitMode,
+    VertAlign,
+    WatermarkLine,
+    _watermark_line_to_dict,
     CHART_TYPE_MAP,
     CROSSHAIR_MODE_MAP,
     LINE_STYLE_MAP,
     PRICE_SCALE_MODE_MAP,
+    TRACKING_MODE_EXIT_MODE_MAP,
 )
 from . import series as series_module
 
@@ -47,11 +59,13 @@ class TvlChart:
         series_list: list[SeriesSpec],
         chart_options: dict,
         pane_stretch_factors: Optional[list[float]] = None,
+        pane_preserve_empty: Optional[list[bool]] = None,
         chart_type: str = "standard",
     ):
         self._series_list = series_list
         self._chart_options = chart_options
         self._pane_stretch_factors = pane_stretch_factors
+        self._pane_preserve_empty = pane_preserve_empty
         self._chart_type = chart_type
 
         # Partition metadata (set by line()/area() when by is used)
@@ -98,6 +112,10 @@ class TvlChart:
         return self._pane_stretch_factors
 
     @property
+    def pane_preserve_empty(self) -> Optional[list[bool]]:
+        return self._pane_preserve_empty
+
+    @property
     def chart_type(self) -> str:
         return self._chart_type
 
@@ -140,6 +158,8 @@ class TvlChart:
         }
         if self._pane_stretch_factors is not None:
             result["paneStretchFactors"] = self._pane_stretch_factors
+        if self._pane_preserve_empty is not None:
+            result["panePreserveEmpty"] = self._pane_preserve_empty
         # Partition spec for client-side `by` watching
         if self._partitioned_table is not None and self._series_factory is not None:
             # Map series factory to lightweight-charts type string
@@ -170,8 +190,13 @@ def chart(
     start_time_range: Optional[int] = None,
     # Layout
     background_color: Optional[str] = None,
+    background_top_color: Optional[str] = None,
+    background_bottom_color: Optional[str] = None,
     text_color: Optional[str] = None,
     font_size: Optional[int] = None,
+    # fontFamily is intentionally omitted — we do not allow font customization.
+    attribution_logo: Optional[bool] = None,
+    color_space: Optional[ColorSpace] = None,
     # Grid
     vert_lines_visible: Optional[bool] = None,
     vert_lines_color: Optional[str] = None,
@@ -181,14 +206,19 @@ def chart(
     horz_lines_style: Optional[LineStyle] = None,
     # Crosshair
     crosshair_mode: Optional[CrosshairMode] = None,
-    crosshair_vert_line_width: Optional[int] = None,
+    crosshair_vert_line_width: Optional[LineWidth] = None,
     crosshair_vert_line_color: Optional[str] = None,
     crosshair_vert_line_style: Optional[LineStyle] = None,
+    crosshair_vert_line_visible: Optional[bool] = None,
+    crosshair_vert_line_label_visible: Optional[bool] = None,
     crosshair_vert_line_label_background_color: Optional[str] = None,
-    crosshair_horz_line_width: Optional[int] = None,
+    crosshair_horz_line_width: Optional[LineWidth] = None,
     crosshair_horz_line_color: Optional[str] = None,
     crosshair_horz_line_style: Optional[LineStyle] = None,
+    crosshair_horz_line_visible: Optional[bool] = None,
+    crosshair_horz_line_label_visible: Optional[bool] = None,
     crosshair_horz_line_label_background_color: Optional[str] = None,
+    crosshair_do_not_snap_to_hidden_series: Optional[bool] = None,
     # Right price scale
     right_price_scale_visible: Optional[bool] = None,
     right_price_scale_border_visible: Optional[bool] = None,
@@ -202,6 +232,8 @@ def chart(
     right_price_scale_ticks_visible: Optional[bool] = None,
     right_price_scale_minimum_width: Optional[int] = None,
     right_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    right_price_scale_margin_top: Optional[float] = None,
+    right_price_scale_margin_bottom: Optional[float] = None,
     # Left price scale
     left_price_scale_visible: Optional[bool] = None,
     left_price_scale_border_visible: Optional[bool] = None,
@@ -215,12 +247,22 @@ def chart(
     left_price_scale_ticks_visible: Optional[bool] = None,
     left_price_scale_minimum_width: Optional[int] = None,
     left_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    left_price_scale_margin_top: Optional[float] = None,
+    left_price_scale_margin_bottom: Optional[float] = None,
     # Overlay price scale defaults
     overlay_price_scale_border_visible: Optional[bool] = None,
     overlay_price_scale_ticks_visible: Optional[bool] = None,
     overlay_price_scale_minimum_width: Optional[int] = None,
     overlay_price_scale_margin_top: Optional[float] = None,
     overlay_price_scale_margin_bottom: Optional[float] = None,
+    overlay_price_scale_auto_scale: Optional[bool] = None,
+    overlay_price_scale_mode: Optional[PriceScaleMode] = None,
+    overlay_price_scale_invert_scale: Optional[bool] = None,
+    overlay_price_scale_align_labels: Optional[bool] = None,
+    overlay_price_scale_border_color: Optional[str] = None,
+    overlay_price_scale_text_color: Optional[str] = None,
+    overlay_price_scale_entire_text_only: Optional[bool] = None,
+    overlay_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
     # Time scale
     time_visible: Optional[bool] = None,
     seconds_visible: Optional[bool] = None,
@@ -246,38 +288,116 @@ def chart(
     enable_conflation: Optional[bool] = None,
     conflation_threshold_factor: Optional[float] = None,
     precompute_conflation_on_init: Optional[bool] = None,
+    precompute_conflation_priority: Optional[PrecomputeConflationPriority] = None,
     time_scale_visible: Optional[bool] = None,
-    # Watermark
+    # Watermark — single-line shortcut (backwards-compatible)
     watermark_text: Optional[str] = None,
     watermark_color: Optional[str] = None,
     watermark_visible: Optional[bool] = None,
     watermark_font_size: Optional[int] = None,
-    watermark_horz_align: Optional[str] = None,
-    watermark_vert_align: Optional[str] = None,
+    # watermark_font_family is intentionally omitted — we do not allow font customization.
+    watermark_font_style: Optional[str] = None,
+    watermark_line_height: Optional[float] = None,
+    watermark_horz_align: Optional[HorzAlign] = None,
+    watermark_vert_align: Optional[VertAlign] = None,
+    # Watermark — multi-line (mutually exclusive with single-line shortcut)
+    watermark_lines: Optional[list[WatermarkLine]] = None,
+    # Watermark — image (independent; can coexist with text watermark)
+    watermark_image_url: Optional[str] = None,
+    watermark_image_max_width: Optional[int] = None,
+    watermark_image_max_height: Optional[int] = None,
+    watermark_image_padding: Optional[int] = None,
+    watermark_image_alpha: Optional[float] = None,
+    watermark_image_visible: Optional[bool] = None,
+    # Scroll / Scale / Kinetic scroll
+    handle_scroll: Optional[bool] = None,
+    handle_scroll_mouse_wheel: Optional[bool] = None,
+    handle_scroll_pressed_mouse_move: Optional[bool] = None,
+    handle_scroll_horz_touch_drag: Optional[bool] = None,
+    handle_scroll_vert_touch_drag: Optional[bool] = None,
+    handle_scale: Optional[bool] = None,
+    handle_scale_mouse_wheel: Optional[bool] = None,
+    handle_scale_pinch: Optional[bool] = None,
+    handle_scale_axis_pressed_mouse_move: Optional[bool] = None,
+    handle_scale_axis_double_click_reset: Optional[bool] = None,
+    kinetic_scroll_touch: Optional[bool] = None,
+    kinetic_scroll_mouse: Optional[bool] = None,
     # Localization
     price_formatter: Optional[PriceFormatter] = None,
+    locale: Optional[str] = None,
+    tickmarks_price_formatter: Optional[TickmarksPriceFormatter] = None,
+    percentage_formatter: Optional[PercentageFormatter] = None,
+    tickmarks_percentage_formatter: Optional[TickmarksPercentageFormatter] = None,
     # Panes
     pane_separator_color: Optional[str] = None,
     pane_separator_hover_color: Optional[str] = None,
     pane_enable_resize: Optional[bool] = None,
     pane_stretch_factors: Optional[list[float]] = None,
+    pane_preserve_empty: Optional[list[bool]] = None,
+    # Pane primitives (attachPrimitive / detachPrimitive) are not supported.
+    # They require callable JS objects with a draw() method that receives a
+    # canvas rendering context at browser render time. The Python plugin is a
+    # static configuration builder with no mechanism to express JS callables.
     # Sizing
     width: Optional[int] = None,
     height: Optional[int] = None,
+    # Behavior / interaction
+    auto_size: Optional[bool] = None,
+    tracking_mode_exit_mode: Optional[TrackingModeExitMode] = None,
+    add_default_pane: Optional[bool] = None,
 ) -> TvlChart:
     """Create a TradingView Lightweight chart with one or more series.
 
     Args:
         *series: One or more SeriesSpec objects created by series functions.
-        (all chart-level options as kwargs)
+        chart_type: Selects the horizontal scale backend. Allowed values:
+
+            - ``"standard"`` (default) -- time-based x-axis via ``createChart``.
+            - ``"yield_curve"`` -- monthly-duration numeric x-axis via
+              ``createYieldCurveChart``; only Line and Area series are valid.
+            - ``"options"`` -- numeric x-axis via ``createOptionsChart``; any
+              series type is valid.  Best used through ``options_chart()``.
+            - ``"custom_numeric"`` -- alias for ``"options"``; prefer this name
+              when the x-axis represents arbitrary numeric values (e.g.
+              strike prices, frequencies) rather than option strikes specifically.
+
+        background_color: Solid background color as a CSS color string (e.g.,
+            ``'#1a1a2e'``). Mutually exclusive with ``background_top_color`` /
+            ``background_bottom_color``.
+        background_top_color: Top color for a vertical gradient background. Must
+            be provided together with ``background_bottom_color``. Mutually
+            exclusive with ``background_color``.
+        background_bottom_color: Bottom color for a vertical gradient background.
+            Must be provided together with ``background_top_color``. Mutually
+            exclusive with ``background_color``.
+        attribution_logo: Whether to display the TradingView attribution logo.
+            Defaults to ``True`` (library default). Set ``False`` to hide it.
+        color_space: Canvas color space -- ``'srgb'`` (default) or
+            ``'display-p3'`` for wide-gamut displays. Must be set at chart
+            creation; cannot be changed later.
+        (all other chart-level options as kwargs)
 
     Returns:
         A TvlChart that can be displayed in Deephaven.
+
+    Note:
+        ``createChartEx`` with a custom ``horzScaleBehavior`` is not supported
+        from Python. The named chart types above cover all built-in horizontal
+        scale behaviors shipped with TVL v5.
     """
     # Resolve chart type
-    resolved_type = (
-        CHART_TYPE_MAP.get(chart_type, "standard") if chart_type else "standard"
-    )
+    if chart_type is None:
+        resolved_type = "standard"
+    elif chart_type in CHART_TYPE_MAP:
+        resolved_type = CHART_TYPE_MAP[chart_type]
+    else:
+        valid = ", ".join(f'"{k}"' for k in CHART_TYPE_MAP)
+        raise ValueError(
+            f"Unknown chart_type {chart_type!r}. "
+            f"Valid values are: {valid}. "
+            f"Note: createChartEx with a custom horzScaleBehavior is not supported "
+            f"from Python — use a JS plugin extension for fully custom horizontal scales."
+        )
 
     # Validate yield curve series constraints
     if resolved_type == "yieldCurve":
@@ -303,14 +423,44 @@ def chart(
             chart_options["yieldCurve"] = yc
 
     # Layout
+    # --- Background validation ---
+    # Note: colorParsers (array of CustomColorParser JS callables) is not
+    # implementable from Python — the plugin serializes static JSON config
+    # and cannot ship Python callables as JS functions.
+    _has_gradient = (
+        background_top_color is not None or background_bottom_color is not None
+    )
+    if background_color is not None and _has_gradient:
+        raise ValueError(
+            "Cannot set both background_color and gradient background parameters. "
+            "Use background_color for a solid background, or use "
+            "background_top_color and background_bottom_color together for a gradient."
+        )
+    if (background_top_color is None) != (background_bottom_color is None):
+        raise ValueError(
+            "Both background_top_color and background_bottom_color must be provided "
+            "together for a gradient background; only one was given."
+        )
+
+    # fontFamily is intentionally not user-configurable; we always use Fira.
     layout = _filter_none(
         {
             "textColor": text_color,
             "fontSize": font_size,
+            "fontFamily": "Fira, sans-serif",
+            "attributionLogo": attribution_logo,
+            "colorSpace": color_space,
         }
     )
     if background_color is not None:
         layout["background"] = {"type": "solid", "color": background_color}
+    elif background_top_color is not None:
+        # Both are set (validated above)
+        layout["background"] = {
+            "type": "gradient",
+            "topColor": background_top_color,
+            "bottomColor": background_bottom_color,
+        }
     panes_opts = _filter_none(
         {
             "separatorColor": pane_separator_color,
@@ -350,13 +500,21 @@ def chart(
     crosshair: dict = {}
     if crosshair_mode is not None:
         crosshair["mode"] = CROSSHAIR_MODE_MAP.get(crosshair_mode, 0)
+    if crosshair_do_not_snap_to_hidden_series is not None:
+        crosshair[
+            "doNotSnapToHiddenSeriesIndices"
+        ] = crosshair_do_not_snap_to_hidden_series
     vert_line = _filter_none(
         {
             "width": crosshair_vert_line_width,
             "color": crosshair_vert_line_color,
-            "style": LINE_STYLE_MAP.get(crosshair_vert_line_style)
-            if crosshair_vert_line_style
-            else None,
+            "style": (
+                LINE_STYLE_MAP.get(crosshair_vert_line_style)
+                if crosshair_vert_line_style
+                else None
+            ),
+            "visible": crosshair_vert_line_visible,
+            "labelVisible": crosshair_vert_line_label_visible,
             "labelBackgroundColor": crosshair_vert_line_label_background_color,
         }
     )
@@ -366,9 +524,13 @@ def chart(
         {
             "width": crosshair_horz_line_width,
             "color": crosshair_horz_line_color,
-            "style": LINE_STYLE_MAP.get(crosshair_horz_line_style)
-            if crosshair_horz_line_style
-            else None,
+            "style": (
+                LINE_STYLE_MAP.get(crosshair_horz_line_style)
+                if crosshair_horz_line_style
+                else None
+            ),
+            "visible": crosshair_horz_line_visible,
+            "labelVisible": crosshair_horz_line_label_visible,
             "labelBackgroundColor": crosshair_horz_line_label_background_color,
         }
     )
@@ -384,9 +546,11 @@ def chart(
             "borderVisible": right_price_scale_border_visible,
             "borderColor": right_price_scale_border_color,
             "autoScale": right_price_scale_auto_scale,
-            "mode": PRICE_SCALE_MODE_MAP.get(right_price_scale_mode)
-            if right_price_scale_mode
-            else None,
+            "mode": (
+                PRICE_SCALE_MODE_MAP.get(right_price_scale_mode)
+                if right_price_scale_mode
+                else None
+            ),
             "invertScale": right_price_scale_invert_scale,
             "alignLabels": right_price_scale_align_labels,
             "textColor": right_price_scale_text_color,
@@ -396,6 +560,14 @@ def chart(
             "ensureEdgeTickMarksVisible": right_price_scale_ensure_edge_tick_marks_visible,
         }
     )
+    rps_margins = _filter_none(
+        {
+            "top": right_price_scale_margin_top,
+            "bottom": right_price_scale_margin_bottom,
+        }
+    )
+    if rps_margins:
+        rps["scaleMargins"] = rps_margins
     if rps:
         chart_options["rightPriceScale"] = rps
 
@@ -406,9 +578,11 @@ def chart(
             "borderVisible": left_price_scale_border_visible,
             "borderColor": left_price_scale_border_color,
             "autoScale": left_price_scale_auto_scale,
-            "mode": PRICE_SCALE_MODE_MAP.get(left_price_scale_mode)
-            if left_price_scale_mode
-            else None,
+            "mode": (
+                PRICE_SCALE_MODE_MAP.get(left_price_scale_mode)
+                if left_price_scale_mode
+                else None
+            ),
             "invertScale": left_price_scale_invert_scale,
             "alignLabels": left_price_scale_align_labels,
             "textColor": left_price_scale_text_color,
@@ -418,15 +592,35 @@ def chart(
             "ensureEdgeTickMarksVisible": left_price_scale_ensure_edge_tick_marks_visible,
         }
     )
+    lps_margins = _filter_none(
+        {
+            "top": left_price_scale_margin_top,
+            "bottom": left_price_scale_margin_bottom,
+        }
+    )
+    if lps_margins:
+        lps["scaleMargins"] = lps_margins
     if lps:
         chart_options["leftPriceScale"] = lps
 
     # Overlay price scale defaults
     ops: dict = _filter_none(
         {
+            "autoScale": overlay_price_scale_auto_scale,
+            "mode": (
+                PRICE_SCALE_MODE_MAP.get(overlay_price_scale_mode)
+                if overlay_price_scale_mode
+                else None
+            ),
+            "invertScale": overlay_price_scale_invert_scale,
+            "alignLabels": overlay_price_scale_align_labels,
             "borderVisible": overlay_price_scale_border_visible,
+            "borderColor": overlay_price_scale_border_color,
+            "textColor": overlay_price_scale_text_color,
+            "entireTextOnly": overlay_price_scale_entire_text_only,
             "ticksVisible": overlay_price_scale_ticks_visible,
             "minimumWidth": overlay_price_scale_minimum_width,
+            "ensureEdgeTickMarksVisible": overlay_price_scale_ensure_edge_tick_marks_visible,
         }
     )
     ops_margins = _filter_none(
@@ -468,30 +662,147 @@ def chart(
             "enableConflation": enable_conflation,
             "conflationThresholdFactor": conflation_threshold_factor,
             "precomputeConflationOnInit": precompute_conflation_on_init,
+            "precomputeConflationPriority": precompute_conflation_priority,
         }
     )
     if ts:
         chart_options["timeScale"] = ts
 
-    # Watermark
-    wm = _filter_none(
-        {
-            "text": watermark_text,
-            "color": watermark_color,
-            "visible": watermark_visible
-            if watermark_visible is not None
-            else (True if watermark_text else None),
-            "fontSize": watermark_font_size,
-            "horzAlign": watermark_horz_align,
-            "vertAlign": watermark_vert_align,
+    # --- Watermark ---
+
+    # Validate mutual exclusion
+    if watermark_lines is not None and watermark_text is not None:
+        raise ValueError(
+            "Provide either 'watermark_text' (single-line shortcut) or "
+            "'watermark_lines' (multi-line), not both."
+        )
+
+    # Single-line styling params are not applicable with watermark_lines
+    if watermark_lines is not None and any(
+        p is not None
+        for p in (
+            watermark_color,
+            watermark_font_size,
+            watermark_font_style,
+            watermark_line_height,
+        )
+    ):
+        raise ValueError(
+            "Single-line watermark params (watermark_color, watermark_font_size, "
+            "watermark_font_style, watermark_line_height) cannot be combined with "
+            "'watermark_lines'. Set per-line styling on each WatermarkLine instead."
+        )
+
+    if watermark_lines is not None:
+        # Multi-line path: serialise each WatermarkLine to a dict
+        lines_payload = [_watermark_line_to_dict(ln) for ln in watermark_lines]
+        wm: dict = {
+            "lines": lines_payload,
         }
-    )
-    if wm:
+        if watermark_visible is not None:
+            wm["visible"] = watermark_visible
+        elif lines_payload:
+            wm["visible"] = True
+        if watermark_horz_align is not None:
+            wm["horzAlign"] = watermark_horz_align
+        if watermark_vert_align is not None:
+            wm["vertAlign"] = watermark_vert_align
         chart_options["watermark"] = wm
 
+    elif watermark_text is not None or watermark_visible is not None:
+        # Legacy single-line path (fully backwards-compatible)
+        wm = _filter_none(
+            {
+                "text": watermark_text,
+                "color": watermark_color,
+                "visible": (
+                    watermark_visible
+                    if watermark_visible is not None
+                    else (True if watermark_text else None)
+                ),
+                "fontSize": watermark_font_size,
+                "fontStyle": watermark_font_style,
+                "lineHeight": watermark_line_height,
+                "horzAlign": watermark_horz_align,
+                "vertAlign": watermark_vert_align,
+            }
+        )
+        if wm:
+            chart_options["watermark"] = wm
+
+    # Image watermark (orthogonal to text watermark)
+    if watermark_image_url is not None or watermark_image_visible is not None:
+        img_wm = _filter_none(
+            {
+                "url": watermark_image_url,
+                "maxWidth": watermark_image_max_width,
+                "maxHeight": watermark_image_max_height,
+                "padding": watermark_image_padding,
+                "alpha": watermark_image_alpha,
+                "visible": (
+                    watermark_image_visible
+                    if watermark_image_visible is not None
+                    else (True if watermark_image_url else None)
+                ),
+            }
+        )
+        if img_wm:
+            chart_options["imageWatermark"] = img_wm
+
+    # HandleScroll
+    if handle_scroll is not None:
+        chart_options["handleScroll"] = handle_scroll
+    else:
+        hs = _filter_none(
+            {
+                "mouseWheel": handle_scroll_mouse_wheel,
+                "pressedMouseMove": handle_scroll_pressed_mouse_move,
+                "horzTouchDrag": handle_scroll_horz_touch_drag,
+                "vertTouchDrag": handle_scroll_vert_touch_drag,
+            }
+        )
+        if hs:
+            chart_options["handleScroll"] = hs
+
+    # HandleScale
+    if handle_scale is not None:
+        chart_options["handleScale"] = handle_scale
+    else:
+        hsc = _filter_none(
+            {
+                "mouseWheel": handle_scale_mouse_wheel,
+                "pinch": handle_scale_pinch,
+                "axisPressedMouseMove": handle_scale_axis_pressed_mouse_move,
+                "axisDoubleClickReset": handle_scale_axis_double_click_reset,
+            }
+        )
+        if hsc:
+            chart_options["handleScale"] = hsc
+
+    # KineticScroll
+    ks = _filter_none(
+        {
+            "touch": kinetic_scroll_touch,
+            "mouse": kinetic_scroll_mouse,
+        }
+    )
+    if ks:
+        chart_options["kineticScroll"] = ks
+
     # Localization
+    loc: dict = {}
     if price_formatter is not None:
-        chart_options["localization"] = {"priceFormatterName": price_formatter}
+        loc["priceFormatterName"] = price_formatter
+    if locale is not None:
+        loc["locale"] = locale
+    if tickmarks_price_formatter is not None:
+        loc["tickmarksPriceFormatterName"] = tickmarks_price_formatter
+    if percentage_formatter is not None:
+        loc["percentageFormatterName"] = percentage_formatter
+    if tickmarks_percentage_formatter is not None:
+        loc["tickmarksPercentageFormatterName"] = tickmarks_percentage_formatter
+    if loc:
+        chart_options["localization"] = loc
 
     # Sizing
     if width is not None:
@@ -499,10 +810,21 @@ def chart(
     if height is not None:
         chart_options["height"] = height
 
+    # Behavior / interaction
+    if auto_size is not None:
+        chart_options["autoSize"] = auto_size
+    if tracking_mode_exit_mode is not None:
+        chart_options["trackingMode"] = {
+            "exitMode": TRACKING_MODE_EXIT_MODE_MAP[tracking_mode_exit_mode]
+        }
+    if add_default_pane is not None:
+        chart_options["addDefaultPane"] = add_default_pane
+
     return TvlChart(
         series_list=list(series),
         chart_options=chart_options,
         pane_stretch_factors=pane_stretch_factors,
+        pane_preserve_empty=pane_preserve_empty,
         chart_type=resolved_type,
     )
 
@@ -572,7 +894,7 @@ def line(
     time: str = "Timestamp",
     value: str = "Value",
     color: Optional[str] = None,
-    line_width: Optional[int] = None,
+    line_width: Optional[LineWidth] = None,
     line_style: Optional[LineStyle] = None,
     line_type: Optional[LineType] = None,
     title: Optional[str] = None,
@@ -615,9 +937,11 @@ def line(
         c._series_kwargs = dict(
             time=time,
             value=value,
+            color=color,
             line_width=line_width,
             line_style=line_style,
             line_type=line_type,
+            title=title,
         )
         c._extra_refs.append(partitioned)
         c._manage_tables()
@@ -646,7 +970,7 @@ def area(
     line_color: Optional[str] = None,
     top_color: Optional[str] = None,
     bottom_color: Optional[str] = None,
-    line_width: Optional[int] = None,
+    line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
@@ -685,7 +1009,11 @@ def area(
         c._series_kwargs = dict(
             time=time,
             value=value,
+            line_color=line_color,
+            top_color=top_color,
+            bottom_color=bottom_color,
             line_width=line_width,
+            title=title,
         )
         c._extra_refs.append(partitioned)
         c._manage_tables()
@@ -762,7 +1090,7 @@ def baseline(
     base_value: float = 0.0,
     top_line_color: Optional[str] = None,
     bottom_line_color: Optional[str] = None,
-    line_width: Optional[int] = None,
+    line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
@@ -853,7 +1181,7 @@ def yield_curve(
     series_type: str = "line",
     # Series styling
     color: Optional[str] = None,
-    line_width: Optional[int] = None,
+    line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     # Area-specific (only used when series_type="area")
     line_color: Optional[str] = None,
@@ -883,6 +1211,11 @@ def yield_curve(
         series_type: ``"line"`` (default) or ``"area"``.
     """
     st = series_type.lower()
+    _valid_yc = {"line", "area"}
+    if st not in _valid_yc:
+        raise ValueError(
+            f"yield_curve() series_type must be one of {sorted(_valid_yc)}, got {series_type!r}"
+        )
     if st == "area":
         s = series_module.area_series(
             table,
@@ -925,7 +1258,7 @@ def options_chart(
     series_type: str = "line",
     # Series styling
     color: Optional[str] = None,
-    line_width: Optional[int] = None,
+    line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     # Area-specific
     line_color: Optional[str] = None,
@@ -950,6 +1283,11 @@ def options_chart(
         series_type: ``"line"`` (default), ``"area"``, or ``"histogram"``.
     """
     st = series_type.lower()
+    _valid_oc = {"line", "area", "histogram"}
+    if st not in _valid_oc:
+        raise ValueError(
+            f"options_chart() series_type must be one of {sorted(_valid_oc)}, got {series_type!r}"
+        )
     if st == "area":
         s = series_module.area_series(
             table,
@@ -981,6 +1319,90 @@ def options_chart(
     return chart(
         s,
         chart_type="options",
+        background_color=background_color,
+        text_color=text_color,
+        crosshair_mode=crosshair_mode,
+        watermark_text=watermark_text,
+        width=width,
+        height=height,
+    )
+
+
+def custom_numeric(
+    table: Any,
+    x: str = "X",
+    value: str = "Value",
+    series_type: str = "line",
+    # Series styling
+    color: Optional[str] = None,
+    line_width: Optional[LineWidth] = None,
+    title: Optional[str] = None,
+    # Area-specific
+    line_color: Optional[str] = None,
+    top_color: Optional[str] = None,
+    bottom_color: Optional[str] = None,
+    # Common chart options
+    background_color: Optional[str] = None,
+    text_color: Optional[str] = None,
+    crosshair_mode: Optional[CrosshairMode] = None,
+    watermark_text: Optional[str] = None,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
+) -> TvlChart:
+    """Create a chart with a generic numeric x-axis.
+
+    Use this when the x-axis represents arbitrary numeric values (e.g. frequency,
+    distance, price levels) rather than timestamps.  Internally this uses the same
+    ``createOptionsChart`` renderer as :func:`options_chart`, which provides a
+    linearly-spaced numeric horizontal scale.
+
+    Args:
+        table: Deephaven table with the data.
+        x: Column name for the x-axis (numeric values).
+        value: Column name for the y-axis.
+        series_type: ``"line"`` (default), ``"area"``, or ``"histogram"``.
+
+    Note:
+        ``createChartEx`` with a fully custom ``horzScaleBehavior`` is not
+        supported from Python.  Write a JS plugin extension for that use case.
+    """
+    st = series_type.lower()
+    _valid_cn = {"line", "area", "histogram"}
+    if st not in _valid_cn:
+        raise ValueError(
+            f"custom_numeric() series_type must be one of {sorted(_valid_cn)}, got {series_type!r}"
+        )
+    if st == "area":
+        s = series_module.area_series(
+            table,
+            time=x,
+            value=value,
+            line_color=line_color or color,
+            top_color=top_color,
+            bottom_color=bottom_color,
+            line_width=line_width,
+            title=title,
+        )
+    elif st == "histogram":
+        s = series_module.histogram_series(
+            table,
+            time=x,
+            value=value,
+            color=color,
+            title=title,
+        )
+    else:
+        s = series_module.line_series(
+            table,
+            time=x,
+            value=value,
+            color=color,
+            line_width=line_width,
+            title=title,
+        )
+    return chart(
+        s,
+        chart_type="custom_numeric",
         background_color=background_color,
         text_color=text_color,
         crosshair_mode=crosshair_mode,

@@ -24,6 +24,7 @@ from deephaven.plot.tradingview_lightweight.markers import (
     marker,
     price_line,
     markers_from_table,
+    up_down_markers,
 )
 
 
@@ -35,9 +36,11 @@ class TestMarkerDataclass(unittest.TestCase):
         self.assertEqual(m.time, "2024-01-01")
         self.assertEqual(m.position, "aboveBar")
         self.assertEqual(m.shape, "circle")
-        self.assertEqual(m.color, "#2196F3")
+        self.assertIsNone(m.color)
         self.assertEqual(m.text, "")
         self.assertIsNone(m.size)
+        self.assertIsNone(m.id)
+        self.assertIsNone(m.price)
 
     def test_custom_values(self):
         m = Marker(
@@ -61,7 +64,7 @@ class TestMarkerDataclass(unittest.TestCase):
         self.assertEqual(d["time"], "2024-01-01")
         self.assertEqual(d["position"], "aboveBar")
         self.assertEqual(d["shape"], "circle")
-        self.assertEqual(d["color"], "#2196F3")
+        self.assertNotIn("color", d)
         self.assertEqual(d["text"], "")
         self.assertNotIn("size", d)
 
@@ -109,9 +112,11 @@ class TestMarkerFunction(unittest.TestCase):
         self.assertEqual(m.time, "2024-01-01")
         self.assertEqual(m.position, "aboveBar")
         self.assertEqual(m.shape, "circle")
-        self.assertEqual(m.color, "#2196F3")
+        self.assertIsNone(m.color)
         self.assertEqual(m.text, "")
         self.assertIsNone(m.size)
+        self.assertIsNone(m.id)
+        self.assertIsNone(m.price)
 
     def test_position_mapping(self):
         """Python-friendly position names should be converted to camelCase."""
@@ -180,6 +185,282 @@ class TestMarkerFunction(unittest.TestCase):
         """Unknown shape should fall back to 'circle'."""
         m = marker(time="t", shape="star")
         self.assertEqual(m.shape, "circle")
+
+
+class TestMarkerIdAndPrice(unittest.TestCase):
+    """Tests for the new 'id' and 'price' fields on Marker."""
+
+    def test_id_default_is_none(self):
+        m = Marker(time="2024-01-01")
+        self.assertIsNone(m.id)
+
+    def test_price_default_is_none(self):
+        m = Marker(time="2024-01-01")
+        self.assertIsNone(m.price)
+
+    def test_id_not_emitted_when_none(self):
+        m = Marker(time="2024-01-01")
+        d = m.to_dict()
+        self.assertNotIn("id", d)
+
+    def test_price_not_emitted_when_none(self):
+        m = Marker(time="2024-01-01")
+        d = m.to_dict()
+        self.assertNotIn("price", d)
+
+    def test_id_emitted_when_set(self):
+        m = Marker(time="2024-01-01", id="marker-42")
+        d = m.to_dict()
+        self.assertEqual(d["id"], "marker-42")
+
+    def test_price_emitted_when_set(self):
+        m = Marker(time="2024-01-01", position="atPriceTop", price=150.5)
+        d = m.to_dict()
+        self.assertEqual(d["price"], 150.5)
+
+    def test_factory_id_param(self):
+        m = marker(time="t", id="sig-001")
+        self.assertEqual(m.id, "sig-001")
+        self.assertEqual(m.to_dict()["id"], "sig-001")
+
+    def test_factory_price_param(self):
+        m = marker(time="t", position="at_price_top", price=200.0)
+        self.assertEqual(m.price, 200.0)
+        self.assertEqual(m.to_dict()["price"], 200.0)
+
+    def test_factory_id_and_price_together(self):
+        m = marker(
+            time="2024-06-01",
+            position="at_price_middle",
+            price=175.25,
+            id="signal-x",
+            color="orange",
+            text="Mid",
+        )
+        d = m.to_dict()
+        self.assertEqual(d["id"], "signal-x")
+        self.assertEqual(d["price"], 175.25)
+        self.assertEqual(d["position"], "atPriceMiddle")
+
+
+class TestPriceBasedPositions(unittest.TestCase):
+    """Tests for atPriceTop, atPriceBottom, atPriceMiddle positions."""
+
+    def test_at_price_top_mapping(self):
+        m = marker(time="t", position="at_price_top", price=100.0)
+        self.assertEqual(m.position, "atPriceTop")
+
+    def test_at_price_bottom_mapping(self):
+        m = marker(time="t", position="at_price_bottom", price=100.0)
+        self.assertEqual(m.position, "atPriceBottom")
+
+    def test_at_price_middle_mapping(self):
+        m = marker(time="t", position="at_price_middle", price=100.0)
+        self.assertEqual(m.position, "atPriceMiddle")
+
+    def test_at_price_top_in_position_map(self):
+        from deephaven.plot.tradingview_lightweight.options import MARKER_POSITION_MAP
+
+        self.assertEqual(MARKER_POSITION_MAP["at_price_top"], "atPriceTop")
+        self.assertEqual(MARKER_POSITION_MAP["at_price_bottom"], "atPriceBottom")
+        self.assertEqual(MARKER_POSITION_MAP["at_price_middle"], "atPriceMiddle")
+
+    def test_price_position_without_price_raises(self):
+        """Using a price-based position without price= must raise ValueError."""
+        with self.assertRaises(ValueError):
+            Marker(time="t", position="atPriceTop")
+
+    def test_price_position_without_price_raises_via_factory(self):
+        with self.assertRaises(ValueError):
+            marker(time="t", position="at_price_top")  # no price=
+
+    def test_bar_position_without_price_is_fine(self):
+        """Bar positions do not require price."""
+        m = marker(time="t", position="above_bar")
+        self.assertIsNone(m.price)
+
+    def test_price_serialized_for_price_position(self):
+        m = marker(time="2024-01-15", position="at_price_bottom", price=99.5)
+        d = m.to_dict()
+        self.assertEqual(d["position"], "atPriceBottom")
+        self.assertEqual(d["price"], 99.5)
+
+    def test_all_six_positions_map_correctly(self):
+        from deephaven.plot.tradingview_lightweight.options import MARKER_POSITION_MAP
+
+        expected = {
+            "above_bar": "aboveBar",
+            "below_bar": "belowBar",
+            "in_bar": "inBar",
+            "at_price_top": "atPriceTop",
+            "at_price_bottom": "atPriceBottom",
+            "at_price_middle": "atPriceMiddle",
+        }
+        self.assertEqual(MARKER_POSITION_MAP, expected)
+
+
+class TestUpDownMarkers(unittest.TestCase):
+    """Tests for the up_down_markers() convenience factory."""
+
+    def test_returns_list_of_markers(self):
+        result = up_down_markers(["2024-01-01"], ["2024-01-02"])
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(isinstance(m, Marker) for m in result))
+
+    def test_total_count(self):
+        result = up_down_markers(["t1", "t2", "t3"], ["t4"])
+        self.assertEqual(len(result), 4)
+
+    def test_up_marker_defaults(self):
+        result = up_down_markers(["t1"], [])
+        m = result[0]
+        self.assertEqual(m.position, "belowBar")
+        self.assertEqual(m.shape, "arrowUp")
+        self.assertIsNone(m.color)
+        self.assertEqual(m.text, "")
+        self.assertIsNone(m.size)
+
+    def test_down_marker_defaults(self):
+        result = up_down_markers([], ["t1"])
+        m = result[0]
+        self.assertEqual(m.position, "aboveBar")
+        self.assertEqual(m.shape, "arrowDown")
+        self.assertIsNone(m.color)
+        self.assertEqual(m.text, "")
+        self.assertIsNone(m.size)
+
+    def test_custom_colors(self):
+        result = up_down_markers(["t1"], ["t2"], up_color="blue", down_color="orange")
+        self.assertEqual(result[0].color, "blue")  # up marker
+        self.assertEqual(result[1].color, "orange")  # down marker
+
+    def test_custom_text(self):
+        result = up_down_markers(["t1"], ["t2"], up_text="Buy", down_text="Sell")
+        self.assertEqual(result[0].text, "Buy")
+        self.assertEqual(result[1].text, "Sell")
+
+    def test_custom_size(self):
+        result = up_down_markers(["t1"], ["t2"], up_size=3, down_size=2)
+        self.assertEqual(result[0].size, 3)
+        self.assertEqual(result[1].size, 2)
+
+    def test_empty_up_list(self):
+        result = up_down_markers([], ["t1", "t2"])
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all(m.shape == "arrowDown" for m in result))
+
+    def test_empty_down_list(self):
+        result = up_down_markers(["t1", "t2"], [])
+        self.assertEqual(len(result), 2)
+        self.assertTrue(all(m.shape == "arrowUp" for m in result))
+
+    def test_empty_both(self):
+        result = up_down_markers([], [])
+        self.assertEqual(result, [])
+
+    def test_time_values_preserved(self):
+        result = up_down_markers(["2024-01-01", 1704067200], ["2024-02-01"])
+        self.assertEqual(result[0].time, "2024-01-01")
+        self.assertEqual(result[1].time, 1704067200)
+        self.assertEqual(result[2].time, "2024-02-01")
+
+    def test_ordering_up_then_down(self):
+        """Up markers are first in the returned list."""
+        result = up_down_markers(["u1", "u2"], ["d1"])
+        self.assertEqual(result[0].shape, "arrowUp")
+        self.assertEqual(result[1].shape, "arrowUp")
+        self.assertEqual(result[2].shape, "arrowDown")
+
+    def test_serializes_correctly_in_series(self):
+        """Combined list can be attached to a series and serializes cleanly."""
+        from deephaven.plot.tradingview_lightweight.series import candlestick_series
+
+        table = MagicMock(name="table")
+        markers = up_down_markers(["2024-01-05"], ["2024-01-10"])
+        spec = candlestick_series(table, markers=markers)
+        d = spec.to_dict("s0", 0)
+        self.assertEqual(len(d["markers"]), 2)
+        self.assertEqual(d["markers"][0]["shape"], "arrowUp")
+        self.assertEqual(d["markers"][0]["position"], "belowBar")
+        self.assertEqual(d["markers"][1]["shape"], "arrowDown")
+        self.assertEqual(d["markers"][1]["position"], "aboveBar")
+
+
+class TestMarkerSpecPriceAndId(unittest.TestCase):
+    """Tests for price, price_column, and id_column on MarkerSpec."""
+
+    def test_price_default_is_none(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table)
+        self.assertIsNone(spec.price)
+
+    def test_price_column_default_is_none(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table)
+        self.assertIsNone(spec.price_column)
+
+    def test_id_column_default_is_none(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table)
+        self.assertIsNone(spec.id_column)
+
+    def test_static_price_in_defaults(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table, price=123.45)
+        d = spec.to_dict(table_id=0)
+        self.assertEqual(d["defaults"]["price"], 123.45)
+        self.assertNotIn("price", d["columns"])
+
+    def test_price_not_in_defaults_when_none(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table)
+        d = spec.to_dict(table_id=0)
+        self.assertNotIn("price", d["defaults"])
+
+    def test_price_column_in_columns(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table, price_column="BidPrice")
+        d = spec.to_dict(table_id=0)
+        self.assertEqual(d["columns"]["price"], "BidPrice")
+        self.assertNotIn("price", d["defaults"])
+
+    def test_id_column_in_columns(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table, id_column="MarkerId")
+        d = spec.to_dict(table_id=0)
+        self.assertEqual(d["columns"]["id"], "MarkerId")
+
+    def test_price_and_price_column_raises(self):
+        table = MagicMock(name="table")
+        with self.assertRaises(ValueError):
+            MarkerSpec(table=table, price=100.0, price_column="PriceCol")
+
+    def test_get_columns_includes_price_column(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table, time="T", price_column="Px")
+        cols = spec.get_columns()
+        self.assertIn("Px", cols)
+
+    def test_get_columns_includes_id_column(self):
+        table = MagicMock(name="table")
+        spec = MarkerSpec(table=table, time="T", id_column="Mid")
+        cols = spec.get_columns()
+        self.assertIn("Mid", cols)
+
+    def test_markers_from_table_price_param(self):
+        table = MagicMock(name="table")
+        spec = markers_from_table(table, price=99.0)
+        self.assertEqual(spec.price, 99.0)
+
+    def test_markers_from_table_price_column(self):
+        table = MagicMock(name="table")
+        spec = markers_from_table(table, price_column="AskPrice")
+        self.assertEqual(spec.price_column, "AskPrice")
+
+    def test_markers_from_table_id_column(self):
+        table = MagicMock(name="table")
+        spec = markers_from_table(table, id_column="EventId")
+        self.assertEqual(spec.id_column, "EventId")
 
 
 class TestPriceLineDataclass(unittest.TestCase):
@@ -261,6 +542,107 @@ class TestPriceLineDataclass(unittest.TestCase):
         self.assertNotIn("axisLabelVisible", d)
         self.assertNotIn("title", d)
 
+    def test_new_fields_default_to_none(self):
+        """New fields must default to None (not emitted in to_dict)."""
+        pl = PriceLine(price=100.0)
+        self.assertIsNone(pl.id)
+        self.assertIsNone(pl.line_visible)
+        self.assertIsNone(pl.axis_label_color)
+        self.assertIsNone(pl.axis_label_text_color)
+
+    def test_new_fields_absent_from_dict_when_none(self):
+        """to_dict() must not emit new keys when their values are None."""
+        pl = PriceLine(price=100.0)
+        d = pl.to_dict()
+        self.assertNotIn("id", d)
+        self.assertNotIn("lineVisible", d)
+        self.assertNotIn("axisLabelColor", d)
+        self.assertNotIn("axisLabelTextColor", d)
+
+    def test_id_field(self):
+        pl = PriceLine(price=100.0, id="support-1")
+        self.assertEqual(pl.id, "support-1")
+        d = pl.to_dict()
+        self.assertEqual(d["id"], "support-1")
+
+    def test_id_empty_string(self):
+        """Empty string id should be emitted (it is a valid non-None value)."""
+        pl = PriceLine(price=100.0, id="")
+        d = pl.to_dict()
+        self.assertIn("id", d)
+        self.assertEqual(d["id"], "")
+
+    def test_line_visible_true(self):
+        pl = PriceLine(price=100.0, line_visible=True)
+        d = pl.to_dict()
+        self.assertTrue(d["lineVisible"])
+
+    def test_line_visible_false(self):
+        pl = PriceLine(price=100.0, line_visible=False)
+        d = pl.to_dict()
+        self.assertFalse(d["lineVisible"])
+
+    def test_line_visible_hidden_with_label_shown(self):
+        """Typical use: hide line rule but keep axis label."""
+        pl = PriceLine(price=200.0, line_visible=False, axis_label_visible=True)
+        d = pl.to_dict()
+        self.assertFalse(d["lineVisible"])
+        self.assertTrue(d["axisLabelVisible"])
+
+    def test_axis_label_color(self):
+        pl = PriceLine(price=100.0, axis_label_color="#FF0000")
+        d = pl.to_dict()
+        self.assertEqual(d["axisLabelColor"], "#FF0000")
+
+    def test_axis_label_color_independent_of_line_color(self):
+        """axis_label_color and color are independent fields."""
+        pl = PriceLine(price=100.0, color="blue", axis_label_color="red")
+        d = pl.to_dict()
+        self.assertEqual(d["color"], "blue")
+        self.assertEqual(d["axisLabelColor"], "red")
+
+    def test_axis_label_text_color(self):
+        pl = PriceLine(price=100.0, axis_label_text_color="#FFFFFF")
+        d = pl.to_dict()
+        self.assertEqual(d["axisLabelTextColor"], "#FFFFFF")
+
+    def test_axis_label_colors_together(self):
+        """Both label color fields can be set independently."""
+        pl = PriceLine(
+            price=100.0,
+            axis_label_color="#333333",
+            axis_label_text_color="#EEEEEE",
+        )
+        d = pl.to_dict()
+        self.assertEqual(d["axisLabelColor"], "#333333")
+        self.assertEqual(d["axisLabelTextColor"], "#EEEEEE")
+
+    def test_to_dict_all_new_and_existing_fields(self):
+        """All 10 JS PriceLineOptions properties should serialize correctly."""
+        pl = PriceLine(
+            price=150.0,
+            id="target",
+            color="#0000FF",
+            line_width=2,
+            line_style="dashed",
+            line_visible=True,
+            axis_label_visible=True,
+            title="Target",
+            axis_label_color="#0000FF",
+            axis_label_text_color="#FFFFFF",
+        )
+        d = pl.to_dict()
+        self.assertEqual(d["id"], "target")
+        self.assertEqual(d["price"], 150.0)
+        self.assertEqual(d["color"], "#0000FF")
+        self.assertEqual(d["lineWidth"], 2)
+        self.assertEqual(d["lineStyle"], 2)  # dashed -> 2
+        self.assertTrue(d["lineVisible"])
+        self.assertTrue(d["axisLabelVisible"])
+        self.assertEqual(d["title"], "Target")
+        self.assertEqual(d["axisLabelColor"], "#0000FF")
+        self.assertEqual(d["axisLabelTextColor"], "#FFFFFF")
+
 
 class TestPriceLineFunction(unittest.TestCase):
     """Tests for the price_line() factory function."""
@@ -298,6 +680,57 @@ class TestPriceLineFunction(unittest.TestCase):
         self.assertEqual(d["color"], "purple")
         self.assertEqual(d["title"], "Entry")
 
+    def test_new_params_default_to_none(self):
+        pl = price_line(price=100.0)
+        self.assertIsNone(pl.id)
+        self.assertIsNone(pl.line_visible)
+        self.assertIsNone(pl.axis_label_color)
+        self.assertIsNone(pl.axis_label_text_color)
+
+    def test_new_params_pass_through(self):
+        pl = price_line(
+            price=100.0,
+            id="resistance",
+            line_visible=False,
+            axis_label_color="#FF0000",
+            axis_label_text_color="#FFFFFF",
+        )
+        self.assertEqual(pl.id, "resistance")
+        self.assertFalse(pl.line_visible)
+        self.assertEqual(pl.axis_label_color, "#FF0000")
+        self.assertEqual(pl.axis_label_text_color, "#FFFFFF")
+
+    def test_new_params_serialized(self):
+        pl = price_line(
+            price=100.0,
+            id="resistance",
+            line_visible=False,
+            axis_label_color="#FF0000",
+            axis_label_text_color="#FFFFFF",
+        )
+        d = pl.to_dict()
+        self.assertEqual(d["id"], "resistance")
+        self.assertFalse(d["lineVisible"])
+        self.assertEqual(d["axisLabelColor"], "#FF0000")
+        self.assertEqual(d["axisLabelTextColor"], "#FFFFFF")
+
+    def test_column_with_new_fields(self):
+        """Dynamic price line (column=) should work with all new fields."""
+        pl = price_line(
+            column="AvgClose",
+            id="avg-close",
+            line_visible=True,
+            axis_label_color="green",
+            axis_label_text_color="white",
+        )
+        d = pl.to_dict()
+        self.assertEqual(d["column"], "AvgClose")
+        self.assertEqual(d["id"], "avg-close")
+        self.assertTrue(d["lineVisible"])
+        self.assertEqual(d["axisLabelColor"], "green")
+        self.assertEqual(d["axisLabelTextColor"], "white")
+        self.assertNotIn("price", d)
+
 
 class TestMarkerSpec(unittest.TestCase):
     """Tests for the MarkerSpec dataclass."""
@@ -309,7 +742,7 @@ class TestMarkerSpec(unittest.TestCase):
         self.assertEqual(spec.time, "Timestamp")
         self.assertEqual(spec.position, "above_bar")
         self.assertEqual(spec.shape, "circle")
-        self.assertEqual(spec.color, "#2196F3")
+        self.assertIsNone(spec.color)
         self.assertEqual(spec.text, "")
         self.assertIsNone(spec.size)
 
@@ -343,7 +776,7 @@ class TestMarkersFromTable(unittest.TestCase):
         self.assertEqual(spec.time, "Timestamp")
         self.assertEqual(spec.position, "above_bar")
         self.assertEqual(spec.shape, "circle")
-        self.assertEqual(spec.color, "#2196F3")
+        self.assertIsNone(spec.color)
         self.assertEqual(spec.text, "")
         self.assertIsNone(spec.size)
 
@@ -480,6 +913,32 @@ class TestDynamicPriceLine(unittest.TestCase):
         self.assertEqual(result["priceLines"][1]["column"], "AvgPrice")
         self.assertNotIn("price", result["priceLines"][1])
 
+    def test_dynamic_price_line_all_fields_in_series(self):
+        from deephaven.plot.tradingview_lightweight.series import line_series
+
+        table = MagicMock(name="table")
+        pl = price_line(
+            column="Signal",
+            id="signal-line",
+            color="purple",
+            line_visible=False,
+            axis_label_color="purple",
+            axis_label_text_color="#FFF",
+            title="Signal",
+        )
+        spec = line_series(table, price_lines=[pl])
+        result = spec.to_dict("s0", 0)
+        pl_dict = result["priceLines"][0]
+
+        self.assertEqual(pl_dict["column"], "Signal")
+        self.assertEqual(pl_dict["id"], "signal-line")
+        self.assertEqual(pl_dict["color"], "purple")
+        self.assertFalse(pl_dict["lineVisible"])
+        self.assertEqual(pl_dict["axisLabelColor"], "purple")
+        self.assertEqual(pl_dict["axisLabelTextColor"], "#FFF")
+        self.assertEqual(pl_dict["title"], "Signal")
+        self.assertNotIn("price", pl_dict)
+
 
 class TestMarkerSpecToDict(unittest.TestCase):
     """Tests for the updated MarkerSpec with to_dict and get_columns."""
@@ -492,7 +951,7 @@ class TestMarkerSpecToDict(unittest.TestCase):
         self.assertEqual(d["columns"], {"time": "SignalTime"})
         self.assertEqual(d["defaults"]["position"], "aboveBar")
         self.assertEqual(d["defaults"]["shape"], "circle")
-        self.assertEqual(d["defaults"]["color"], "#2196F3")
+        self.assertNotIn("color", d["defaults"])
         self.assertEqual(d["defaults"]["text"], "Buy")
 
     def test_column_overrides(self):

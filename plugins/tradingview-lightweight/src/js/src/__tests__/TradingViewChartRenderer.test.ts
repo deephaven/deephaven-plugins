@@ -110,7 +110,11 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(lwc.BarSeries, {}, undefined);
+      expect(mockChart.addSeries).toHaveBeenCalledWith(
+        lwc.BarSeries,
+        {},
+        undefined
+      );
     });
 
     it('should create a Line series via addSeries', () => {
@@ -140,7 +144,11 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(lwc.AreaSeries, {}, undefined);
+      expect(mockChart.addSeries).toHaveBeenCalledWith(
+        lwc.AreaSeries,
+        {},
+        undefined
+      );
     });
 
     it('should create a Baseline series via addSeries', () => {
@@ -153,7 +161,11 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(lwc.BaselineSeries, {}, undefined);
+      expect(mockChart.addSeries).toHaveBeenCalledWith(
+        lwc.BaselineSeries,
+        {},
+        undefined
+      );
     });
 
     it('should create a Histogram series via addSeries', () => {
@@ -166,7 +178,11 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(lwc.HistogramSeries, {}, undefined);
+      expect(mockChart.addSeries).toHaveBeenCalledWith(
+        lwc.HistogramSeries,
+        {},
+        undefined
+      );
     });
 
     it('should handle unknown series type gracefully', () => {
@@ -1039,7 +1055,9 @@ describe('TradingViewChartRenderer', () => {
       expect(typeof createChartOptions.localization.priceFormatter).toBe(
         'function'
       );
-      expect(createChartOptions.localization.priceFormatterName).toBeUndefined();
+      expect(
+        createChartOptions.localization.priceFormatterName
+      ).toBeUndefined();
     });
 
     it('should resolve priceFormatterName via applyOptions', () => {
@@ -1120,11 +1138,7 @@ describe('TradingViewChartRenderer', () => {
           paneIndex: 1,
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.LineSeries,
-        {},
-        1
-      );
+      expect(mockChart.addSeries).toHaveBeenCalledWith(lwc.LineSeries, {}, 1);
     });
 
     it('should pass undefined paneIndex when not specified', () => {
@@ -1172,9 +1186,7 @@ describe('TradingViewChartRenderer', () => {
 
     it('should not throw when stretch factors exceed pane count', () => {
       const renderer = createRenderer();
-      expect(() =>
-        renderer.applyPaneStretchFactors([3, 1, 2])
-      ).not.toThrow();
+      expect(() => renderer.applyPaneStretchFactors([3, 1, 2])).not.toThrow();
     });
   });
 
@@ -1302,9 +1314,7 @@ describe('TradingViewChartRenderer', () => {
           type: 'Line',
           options: {},
           dataMapping: { tableId: 0, columns: { time: 'T', value: 'V' } },
-          priceLines: [
-            { column: 'AvgPrice', color: 'blue', title: 'Avg' },
-          ],
+          priceLines: [{ column: 'AvgPrice', color: 'blue', title: 'Avg' }],
         },
       ]);
 
@@ -1323,9 +1333,7 @@ describe('TradingViewChartRenderer', () => {
           type: 'Line',
           options: {},
           dataMapping: { tableId: 0, columns: { time: 'T', value: 'V' } },
-          priceLines: [
-            { column: 'AvgPrice', color: 'blue', title: 'Avg' },
-          ],
+          priceLines: [{ column: 'AvgPrice', color: 'blue', title: 'Avg' }],
         },
       ]);
 
