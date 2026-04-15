@@ -128,6 +128,36 @@ def _should_retain_value(value: ValueWithLiveness[Any]) -> bool:
 _local_data = threading.local()
 
 
+def _get_context_stacks() -> dict:
+    """
+    Get the thread-local dictionary mapping Context objects to their value stacks.
+
+    Returns:
+        A dict mapping Context instances to their list of pushed values.
+    """
+    try:
+        return _local_data.context_stacks
+    except AttributeError:
+        _local_data.context_stacks = {}
+        return _local_data.context_stacks
+
+
+def _get_context_stack(ctx: object) -> list:
+    """
+    Get or create the value stack for a specific Context on the current thread.
+
+    Args:
+        ctx: The Context instance whose stack to retrieve.
+
+    Returns:
+        The list used as the value stack for *ctx* on this thread.
+    """
+    stacks = _get_context_stacks()
+    if ctx not in stacks:
+        stacks[ctx] = []
+    return stacks[ctx]
+
+
 def get_context() -> RenderContext:
     """
     Gets the currently active context, or throws NoContextException if none is set.
@@ -216,6 +246,13 @@ class RenderContext:
     representing the new rendered state.
     """
 
+    _open_context_cleanups: List[Callable[[], None]]
+    """
+    Cleanup callbacks registered during the current open() call. Executed in reverse order
+    after the yield (after children have rendered) but before restoring the old context.
+    Used by ContextProviderElement to pop context values after child rendering.
+    """
+
     _is_mounted: bool
     """
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
@@ -240,6 +277,7 @@ class RenderContext:
         self._collected_effects = []
         self._collected_unmount_listeners = []
         self._collected_contexts = []
+        self._open_context_cleanups = []
         self._top_level_scope = None
         self._is_mounted = True
 
@@ -297,6 +335,11 @@ class RenderContext:
         try:
             with self._top_level_scope.open():
                 yield self
+
+                # Run open context cleanups in reverse order (e.g. pop context values)
+                for cleanup in reversed(self._open_context_cleanups):
+                    cleanup()
+                self._open_context_cleanups = []
 
                 # Release all child contexts that are no longer referenced
                 for context_key in old_contexts:
@@ -491,6 +534,20 @@ class RenderContext:
         """
         self._assert_active()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
+
+    def add_open_cleanup(self, callback: Callable[[], None]) -> None:
+        """
+        Register a cleanup callback to run after the current open() yield completes
+        (after children have rendered) but before restoring the previous context.
+        Cleanups are executed in reverse registration order.
+
+        This RenderContext must be open to call this method.
+
+        Args:
+            callback: The cleanup function to run.
+        """
+        self._assert_active()
+        self._open_context_cleanups.append(callback)
 
     def add_effect(self, cleanup: RenderCleanup, effect: RenderEffect) -> None:
         """
