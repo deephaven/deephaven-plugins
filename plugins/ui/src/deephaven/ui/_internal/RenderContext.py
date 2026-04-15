@@ -22,7 +22,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
 from ..types import QueryParams
-from ..object_types import RootRenderContextProtocol, StateUpdateCallable
+from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
 

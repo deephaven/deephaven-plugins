@@ -26,10 +26,11 @@ from .._internal import (
     RenderContext,
     ExportedRenderState,
     EventContext,
+    RootRenderContextProtocol,
+    StateUpdateCallable,
 )
 from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
-from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
 
