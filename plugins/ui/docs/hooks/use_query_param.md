@@ -17,24 +17,24 @@ _stocks = dx.data.stocks()
 
 @ui.component
 def filter_app():
-    # Get the "app-sym" parameter as a string
-    sym = ui.use_query_param("app-sym")
-    # Get the "app-side" parameter as a list of strings
-    sides = ui.use_query_param("app-side", [])
+    # Get the "app-side" parameter as a string
+    side = ui.use_query_param("app-side")
+    # Get the "app-sym" parameter as a list of strings
+    syms = ui.use_query_param("app-sym", [])
 
     # Filter the stocks table based on the query parameters
     filtered = _stocks
-    if sym:
-        filtered = filtered.where(f"Sym = `{sym}`")
-    if sides:
-        filtered = filtered.where("Side in sides")
+    if side:
+        filtered = filtered.where(f"Side = side")
+    if syms:
+        filtered = filtered.where("Sym in syms")
     return filtered
 
 
 app = filter_app()
 ```
 
-Navigating to a URL with a query string such as `?app-sym=DOG&app-side=buy&app-side=sell` will display the table pre-filtered to only show rows where `Sym` is `DOG` and `Side` is either `buy` or `sell`.
+Navigating to a URL with a query string such as `?app-sym=DOG&app-sym=CAT&app-side=buy` will display the table pre-filtered to only show rows where `Sym` is `DOG` or `CAT` and `Side` is `buy`.
 
 ## Recommendations
 

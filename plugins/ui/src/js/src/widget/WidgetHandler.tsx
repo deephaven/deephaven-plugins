@@ -54,7 +54,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import Navigate, { NAVIGATE_EVENT } from '../events/Navigate';
+import Navigate, { NAVIGATE_EVENT, QUERY_PARAM } from '../events/Navigate';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
@@ -164,7 +164,7 @@ function WidgetHandler({
       queryParams[key].push(value);
     });
     return {
-      __queryParams: queryParams,
+      [QUERY_PARAM]: queryParams,
     };
   }, []);
 

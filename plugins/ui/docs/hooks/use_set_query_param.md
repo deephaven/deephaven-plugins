@@ -49,12 +49,12 @@ def filter_app():
 app = filter_app()
 ```
 
-Navigating to a URL with a query string such as `?app-sym=DOG` will display the table pre-filtered to only show rows where `Sym` is `DOG`. Changing the picker selection will update the URL and the table accordingly. Pressing the "Clear" button will remove the `app-sym` parameter from the URL and show the unfiltered table.
+Navigating to a URL with a query string such as `?app-sym=DOG` will display the table pre-filtered to only show rows where `Sym` is `DOG`. Changing the picker selection will update the URL and the table accordingly. Pressing the **Clear** button removes the `app-sym` parameter from the URL and displays the unfiltered table.
 
 ## Recommendations
 
 1. **Use with `use_query_param`**: Pair `use_set_query_param` with `use_query_param` to read and write the same parameter concisely.
-2. **Undoing query param changes**: Pass `replace=False` to the setter when you want the user to be able to return to the previous URL.
+2. **Undoing `query_param` changes**: Pass `replace=False` to the setter when you want the user to be able to return to the previous URL.
 
 ## API reference
 

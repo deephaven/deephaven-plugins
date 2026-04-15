@@ -75,8 +75,8 @@ def use_set_query_param(
         # Build a new query params dict based on the current params
         new_params: QueryParams = dict(current_params)
 
-        if value is None or value == [] or value == "":
-            # Remove the key
+        if value is None or value == []:
+            # The value should be cleared
             new_params.pop(key, None)
         elif isinstance(value, str):
             new_params[key] = [value]

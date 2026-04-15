@@ -22,19 +22,14 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
 from ..types import QueryParams
+from ..object_types import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
-
-StateUpdateCallable = Callable[[], None]
-"""
-A callable that updates the state. Used to queue up state changes.
-"""
 
 OnChangeCallable = Callable[[StateUpdateCallable], None]
 """
 Callable that is called when there is a change in the context (setting the state).
 """
-
 
 StateKey = int
 """
@@ -182,9 +177,9 @@ class RenderContext:
     The child contexts for this context. 
     """
 
-    _on_change: OnChangeCallable
+    _root: RootRenderContextProtocol
     """
-    The on_change callback to call when the context changes.
+    The root render context protocol that provides access to shared context callbacks and variables. Passed down to all child contexts.
     """
 
     _top_level_scope: LivenessScope | None
@@ -222,43 +217,25 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
-    _root: Optional["RenderContext"]
-    """
-    The root context for this render context tree.  ``None`` when this context is the root.
-    Child contexts point to the root so that URL state (which is only stored on the root)
-    is accessible from any descendant.
-    """
-
-    _query_params: QueryParams
-    """
-    The URL query parameters, populated from the frontend via __queryParams in the state dict.
-    Only meaningful on the root context. Read via ``get_query_params()`` by descendants.
-    Keys are parameter names, values are lists of string values.
-    """
-
-    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
+    def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
 
         Args:
-            on_change: The callback to call when the state in the context has changes.
-            on_queue_render: The callback to call when work is being requested for the render loop.
+            root: The root protocol that provides access to shared context callbacks and variables.
         """
 
         self._hook_index = _READY_TO_OPEN
         self._hook_count = -1
         self._state = {}
         self._children_context = {}
-        self._on_change = on_change
-        self._on_queue_render = on_queue_render
+        self._root = root
         self._collected_scopes = set()
         self._collected_effects = []
         self._collected_unmount_listeners = []
         self._collected_contexts = []
         self._top_level_scope = None
         self._is_mounted = True
-        self._root = None
-        self._query_params = {}
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -398,26 +375,19 @@ class RenderContext:
     def get_query_params(self) -> QueryParams:
         """
         Get the URL query parameters received from the frontend.
-
-        Delegates to the root context so that child contexts always see the
-        current URL state even though it is only stored on the root.
-
         Returns:
             A dictionary mapping parameter names to lists of values.
         """
-        root = self._root if self._root is not None else self
-        return root._query_params
+        return self._root.get_query_params()
 
     def update_url_state(self, query_params: QueryParams) -> None:
         """
         Update the URL query parameters.
 
-        Should only be called on the root context.
-
         Args:
             query_params: New query parameter mapping to store.
         """
-        self._query_params = query_params
+        self._root.set_query_params(query_params)
 
     def has_state(self, key: StateKey) -> bool:
         """
@@ -481,7 +451,7 @@ class RenderContext:
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
-        self._on_change(update_state)
+        self._root.on_change(update_state)
 
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
@@ -489,9 +459,7 @@ class RenderContext:
         """
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            child_context = RenderContext(self._on_change, self._on_queue_render)
-            # Point child to the root so URL state is accessible from any descendant.
-            child_context._root = self._root if self._root is not None else self
+            child_context = RenderContext(self._root)
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
@@ -516,14 +484,14 @@ class RenderContext:
         self._hook_index += 1
         return self._hook_index
 
-    def queue_render(self, update: Callable[[], None]) -> None:
+    def queue_render(self, update: StateUpdateCallable) -> None:
         """
         Queue up a state update. Needed in multi-threading scenarios.
 
         Args:
             update: The update to queue up.
         """
-        self._on_queue_render(update)
+        self._root.on_queue_render(update)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
         """
@@ -599,7 +567,7 @@ class RenderContext:
         # Only update when the key is explicitly present so recursive calls for child
         # contexts (which never carry __queryParams) don't accidentally clear URL state.
         if "__queryParams" in state:
-            self._query_params = state.pop("__queryParams")
+            self._root.set_query_params(state.pop("__queryParams"))
 
         if "state" in state:
             for key, value in state["state"].items():

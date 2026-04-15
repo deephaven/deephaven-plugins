@@ -5,6 +5,7 @@ from .EventContext import (
 )
 from .RenderContext import (
     RenderContext,
+    RootRenderContextProtocol,
     StateKey,
     StateUpdateCallable,
     OnChangeCallable,

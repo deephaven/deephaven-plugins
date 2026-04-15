@@ -2,12 +2,16 @@ import Log from '@deephaven/log';
 
 const log = Log.module('Navigate');
 
+// Event types received from the server
 export const NAVIGATE_EVENT = 'navigate.event';
 
 export type NavigateParams = {
   queryParams?: string | null;
   replace?: boolean | null;
 };
+
+// Type sent to the server for current location
+export const QUERY_PARAM = '__queryParams';
 
 /**
  * Handle a navigate event by updating the browser URL query parameters

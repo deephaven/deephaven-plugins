@@ -15,21 +15,21 @@ from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import liveness_scope
-from ..types import QueryParams
 from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from ..renderer.NodeEncoder import CALLABLE_KEY
+from ..types import QueryParams
 from .._internal import (
     RenderContext,
-    StateUpdateCallable,
     ExportedRenderState,
     EventContext,
 )
 from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
+from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class _RenderState(Enum):
     """
 
 
-class ElementMessageStream(MessageStream):
+class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     _manager: JSONRPCResponseManager
     """
     Handle incoming requests from the client.
@@ -176,6 +176,12 @@ class ElementMessageStream(MessageStream):
     The last document sent to the client. Used to generate a patch for the next document
     """
 
+    _query_params: QueryParams
+    """
+    The URL query parameters, populated from the frontend.
+    Keys are parameter names, values are lists of string values.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -192,7 +198,8 @@ class ElementMessageStream(MessageStream):
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder()
         self._event_encoder = EventEncoder(self._serialize_callables)
-        self._context = RenderContext(self._queue_state_update, self._queue_callable)
+        self._query_params = {}
+        self._context = RenderContext(self)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
         self._update_queue = Queue()
@@ -281,7 +288,7 @@ class ElementMessageStream(MessageStream):
                 self._render_state = _RenderState.QUEUED
                 submit_task("concurrent", self._process_callable_queue)
 
-    def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
+    def on_change(self, state_update: StateUpdateCallable) -> None:
         """
         Queue a state update to be resolved on the next render.
 
@@ -296,7 +303,7 @@ class ElementMessageStream(MessageStream):
         self._update_queue.put(state_update)
         self._mark_dirty()
 
-    def _queue_callable(self, callable: Callable[[], None]) -> None:
+    def on_queue_render(self, callable: StateUpdateCallable) -> None:
         """
         Queue a callable to put on the render queue.
 
@@ -305,6 +312,12 @@ class ElementMessageStream(MessageStream):
         """
         self._callable_queue.put(callable)
         self._queue_render()
+
+    def get_query_params(self) -> QueryParams:
+        return self._query_params
+
+    def set_query_params(self, query_params: QueryParams) -> None:
+        self._query_params = query_params
 
     def start(self) -> None:
         """
@@ -345,7 +358,7 @@ class ElementMessageStream(MessageStream):
             self._connection.on_data(response_payload.encode(), [])
 
         # Queue up handling of all incoming messages from the client onto the render thread
-        self._queue_callable(handle_message)
+        self.on_queue_render(handle_message)
 
     def _get_next_message_id(self) -> int:
         """
@@ -416,7 +429,7 @@ class ElementMessageStream(MessageStream):
                 lists of string values.
         """
         logger.debug("Setting URL state: %s", url_state)
-        self._context.update_url_state(url_state.get("__queryParams", {}))
+        self.set_query_params(url_state.get("__queryParams", {}))
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:
