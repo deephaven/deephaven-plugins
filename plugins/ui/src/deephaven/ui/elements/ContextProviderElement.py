@@ -89,7 +89,7 @@ class Context(Generic[T]):
             return stack[-1]
         return self._default
 
-    def __call__(self, value: T, *children: Any) -> ContextProviderElement:
+    def __call__(self, *children: Any, value: T) -> ContextProviderElement:
         """
         Provide a context value to child elements.
         Wraps the children so that when rendered, they see the provided value.

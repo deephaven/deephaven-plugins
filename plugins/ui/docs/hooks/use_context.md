@@ -24,9 +24,9 @@ def price_label(amount: float):
 def euro_app():
     # Wrap the children in a provider that sets the currency to "EUR"
     return currency_ctx(
-        "EUR",
         price_label(9.99),  # displays "EUR 9.99"
         price_label(24.50),  # displays "EUR 24.50"
+        value="EUR",
     )
 
 
@@ -56,18 +56,18 @@ def price_label(label: str, amount: float):
 def euro_section():
     # Overrides the "GBP" value from the parent with "EUR"
     return currency_ctx(
-        "EUR",
         price_label("Coffee", 3.50),  # displays "EUR 3.50"
+        value="EUR",
     )
 
 
 @ui.component
 def override_app():
     return currency_ctx(
-        "GBP",
         price_label("Tea", 2.00),  # displays "GBP 2.00"
         euro_section(),  # displays "EUR 3.50"
         price_label("Biscuit", 1.25),  # displays "GBP 1.25"
+        value="GBP",
     )
 
 
@@ -95,11 +95,11 @@ def price_label(amount: float):
 @ui.component
 def multiple_app():
     return currency_ctx(
-        "JPY",
         decimal_places_ctx(
-            0,
             price_label(1001.5),  # currency="JPY", decimals=0, displays "JPY 1002"
+            value=0,
         ),
+        value="JPY",
     )
 
 

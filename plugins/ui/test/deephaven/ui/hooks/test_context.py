@@ -65,7 +65,7 @@ class UseContextTestCase(BaseTestCase):
         @ui.component
         def app():
             return [
-                ctx("provided", consumer()),
+                ctx(consumer(), value="provided"),
                 consumer(),  # sibling — should see "default"
             ]
 
@@ -91,11 +91,11 @@ class UseContextTestCase(BaseTestCase):
 
         @ui.component
         def inner():
-            return ctx("inner", consumer())
+            return ctx(consumer(), value="inner")
 
         @ui.component
         def app():
-            return ctx("outer", inner())
+            return ctx(inner(), value="outer")
 
         rc = RenderContext(run_on_change, run_on_change)
         result = Renderer(rc).render(app())
@@ -122,7 +122,7 @@ class UseContextTestCase(BaseTestCase):
 
         @ui.component
         def app():
-            return ctx_a("a_provided", ctx_b("b_provided", consumer()))
+            return ctx_a(ctx_b(consumer(), value="b_provided"), value="a_provided")
 
         rc = RenderContext(run_on_change, run_on_change)
         result = Renderer(rc).render(app())
@@ -147,7 +147,7 @@ class UseContextTestCase(BaseTestCase):
         def app():
             return ctx(
                 "outer",
-                ctx("inner", consumer("in")),
+                ctx(consumer("in"), value="inner"),  # should see "inner"
                 consumer("after"),  # should see "outer" again
             )
 
