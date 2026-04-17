@@ -1,6 +1,6 @@
 # use_set_query_param
 
-`use_set_query_param` is a hook that returns a setter function for a single URL query parameter. Calling the setter updates the URL and updates the query parameter value for all hooks that read it. By default (`replace=True`), the setter replaces the current browser history entry, so the user cannot navigate back to the previous URL using the browser's back button. Pass `replace=False` to push a new history entry instead, which lets the user undo the parameter change by pressing back. For more details on history, see
+`use_set_query_param` is a hook that returns a setter function for a single URL query parameter. Calling the setter updates the URL and updates the query parameter value for all hooks that read it. By default (`replace=True`), the setter replaces the current browser history entry, so the user cannot navigate back to the previous URL using the browser's back button. Pass `replace=False` to push a new history entry instead, which lets the user undo the parameter change by pressing back.
 
 > [!WARNING]
 > Deephaven internally uses query parameters to manage state. It's strongly recommended to namespace your application's parameters with a prefix such as `app-` to avoid conflicts (e.g., `?app-sym=DOG`).
@@ -9,6 +9,7 @@
 
 ```python
 from deephaven import ui
+import deephaven.plot.express as dx
 
 # Table containing stock data with "Sym" column
 _stocks = dx.data.stocks()

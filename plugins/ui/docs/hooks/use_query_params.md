@@ -9,9 +9,12 @@
 
 ```python
 from deephaven import ui
+import deephaven.plot.express as dx
 
 # Table containing stock data with "Sym" and "Side" columns
 _stocks = dx.data.stocks()
+
+VALID_SIDES = {"buy", "sell"}
 
 
 @ui.component
@@ -24,7 +27,7 @@ def filter_app():
     syms = params.get("app-sym", [])
 
     # Validate parameters before use as they can be manipulated by the user
-    validated_side = side if side in _VALID_SIDES else None
+    validated_side = side if side in VALID_SIDES else None
     validated_syms = [s for s in syms if s.isalpha() and s.isupper()]
 
     # Filter the stocks table based on the query parameters
