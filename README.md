@@ -227,7 +227,6 @@ Skip the venv setup if you already have one
 python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade -r requirements.txt
-pip install click watchdog
 ```
 
 The script can then be used to help set up your venv.
@@ -288,12 +287,7 @@ This example will build the docs for the `ui` plugin and re-generate the snapsho
 python tools/plugin_builder.py --docs --snapshots ui
 ```
 
-To run the server, pass the `--server` flag.  
-First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
-
-```shell
-pip install deephaven-server
-```
+To run the server, pass the `--server` flag.
 
 This example reinstalls the `plotly-express` plugin, then starts the server:
 
