@@ -9,7 +9,6 @@
 
 ```python
 from deephaven import ui
-import deephaven.plot.express as dx
 
 # Table containing stock data with "Sym" and "Side" columns
 _stocks = dx.data.stocks()
@@ -19,17 +18,21 @@ _stocks = dx.data.stocks()
 def filter_app():
     # Get all query parameters as a dictionary
     params = ui.use_query_params()
-    # Get the "app-sym" as a string
-    sym = params.get("app-sym", [""])[0]
-    # Get the "app-side" as a list of strings
-    sides = params.get("app-side", [])
+    # Get the "app-side" as a string
+    side = params.get("app-side", [""])[0]
+    # Get the "app-sym" as a list of strings
+    syms = params.get("app-sym", [])
+
+    # Validate parameters before use as they can be manipulated by the user
+    validated_side = side if side in _VALID_SIDES else None
+    validated_syms = [s for s in syms if s.isalpha() and s.isupper()]
 
     # Filter the stocks table based on the query parameters
     filtered = _stocks
-    if sym:
-        filtered = filtered.where(f"Sym = `{sym}`")
-    if sides:
-        filtered = filtered.where("Side in sides")
+    if validated_side:
+        filtered = filtered.where("Side = validated_side")
+    if validated_syms:
+        filtered = filtered.where("Sym in validated_syms")
     return filtered
 
 

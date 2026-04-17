@@ -1,6 +1,6 @@
 # use_set_query_param
 
-`use_set_query_param` is a hook that returns a setter function for a single URL query parameter. Calling the setter updates the URL and updates the query parameter value for all hooks that read it. Pass `replace=False` to the setter to push a new history entry instead of replacing the current one.
+`use_set_query_param` is a hook that returns a setter function for a single URL query parameter. Calling the setter updates the URL and updates the query parameter value for all hooks that read it. By default (`replace=True`), the setter replaces the current browser history entry, so the user cannot navigate back to the previous URL using the browser's back button. Pass `replace=False` to push a new history entry instead, which lets the user undo the parameter change by pressing back. For more details on history, see
 
 > [!WARNING]
 > Deephaven internally uses query parameters to manage state. It's strongly recommended to namespace your application's parameters with a prefix such as `app-` to avoid conflicts (e.g., `?app-sym=DOG`).
@@ -9,7 +9,6 @@
 
 ```python
 from deephaven import ui
-import deephaven.plot.express as dx
 
 # Table containing stock data with "Sym" column
 _stocks = dx.data.stocks()
@@ -30,10 +29,10 @@ def filter_app():
     )
 
     # Filter the stocks table based on the query parameter
-    filtered = _stocks.where(f"Sym = `{sym}`") if sym else _stocks
+    filtered = _stocks.where("Sym = sym") if sym else _stocks
 
     return ui.flex(
-        ui.flex(
+        ui.view(
             sym_picker,
             # Clear the parameter when the button is pressed.
             # Pass replace=False to allow the user to return to the previous URL after clearing.
@@ -53,7 +52,7 @@ Navigating to a URL with a query string such as `?app-sym=DOG` will display the 
 
 ## Recommendations
 
-1. **Use with `use_query_param`**: Pair `use_set_query_param` with `use_query_param` to read and write the same parameter concisely.
+1. **Use with `use_query_param`**: Pair `use_set_query_param` with [`use_query_param`](use_query_param.md) to read and write the same parameter concisely.
 2. **Undoing `query_param` changes**: Pass `replace=False` to the setter when you want the user to be able to return to the previous URL.
 
 ## API reference

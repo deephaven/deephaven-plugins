@@ -9,10 +9,13 @@
 
 ```python
 from deephaven import ui
-import deephaven.plot.express as dx
 
 # Table containing stock data with "Sym" and "Side" columns
 _stocks = dx.data.stocks()
+
+
+# Valid values for the "app-side" parameter
+_VALID_SIDES = {"buy", "sell"}
 
 
 @ui.component
@@ -22,12 +25,16 @@ def filter_app():
     # Get the "app-sym" parameter as a list of strings
     syms = ui.use_query_param("app-sym", [])
 
+    # Validate parameters before use as they can be manipulated by the user
+    validated_side = side if side in _VALID_SIDES else None
+    validated_syms = [s for s in syms if s.isalpha() and s.isupper()]
+
     # Filter the stocks table based on the query parameters
     filtered = _stocks
-    if side:
-        filtered = filtered.where(f"Side = side")
-    if syms:
-        filtered = filtered.where("Sym in syms")
+    if validated_side:
+        filtered = filtered.where("Side = validated_side")
+    if validated_syms:
+        filtered = filtered.where("Sym in validated_syms")
     return filtered
 
 
@@ -41,7 +48,7 @@ Navigating to a URL with a query string such as `?app-sym=DOG&app-sym=CAT&app-si
 1. **Single parameter access**: Use `use_query_param` when you only need to read a single parameter.
 2. **Multiple parameter access**: If you need access to multiple parameters at once, consider using `use_query_params` instead.
 3. **Validate parameters before use**: Parameters can be manipulated by the user and may not be in the format you expect.
-4. **Use with `use_set_query_param`**: Pair `use_query_param` with `use_set_query_param` to read and write the same parameter concisely.
+4. **Use with `use_set_query_param`**: Pair `use_query_param` with [`use_set_query_param`](use_set_query_param.md) to read and write the same parameter concisely.
 
 ## API reference
 
