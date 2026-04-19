@@ -224,7 +224,7 @@ function WidgetHandler({
      * @param doc The document to render
      * @returns The rendered document
      */
-    (doc: object | undefined) => {
+    (doc: object | undefined): React.ReactNode => {
       if (document === undefined || jsonClient == null) {
         return renderEmptyDocument();
       }
@@ -326,7 +326,7 @@ function WidgetHandler({
         'deadObjectMap',
         deadObjectMap
       );
-      return hydratedDocument;
+      return hydratedDocument as React.ReactNode;
     },
     [
       document,

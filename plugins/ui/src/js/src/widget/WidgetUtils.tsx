@@ -234,7 +234,7 @@ export function getComponentForElement(
   const newElement = wrapElementChildren({ ...element });
 
   if (isHTMLElementNode(newElement)) {
-    return HTMLElementView({ element: newElement });
+    return HTMLElementView({ element: newElement }) as JSX.Element | null;
   }
   if (isIconElementNode(newElement)) {
     return IconElementView({ element: newElement });
@@ -248,11 +248,14 @@ export function getComponentForElement(
         shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
         props?.children != null
       ) {
-        props.children = wrapTextChildren(props.children);
+        props.children = wrapTextChildren(props.children as React.ReactNode);
       }
       if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
         props.contextualHelp = (
-          <ContextualHelp heading={null} content={props.contextualHelp} />
+          <ContextualHelp
+            heading={null}
+            content={props.contextualHelp as React.ReactNode}
+          />
         );
       }
       return <Component {...props} />;

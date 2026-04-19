@@ -966,6 +966,16 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     );
   }
 
+  private _columnAlignmentMap: Map<string, CanvasTextAlign> = new Map();
+
+  get columnAlignmentMap(): ReadonlyMap<string, CanvasTextAlign> {
+    return this._columnAlignmentMap;
+  }
+
+  set columnAlignmentMap(columnAlignmentMap: Map<string, CanvasTextAlign>) {
+    this._columnAlignmentMap = columnAlignmentMap;
+  }
+
   displayString(
     value: unknown,
     columnType: string,

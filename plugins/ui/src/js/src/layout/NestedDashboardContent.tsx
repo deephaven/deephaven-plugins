@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren } from 'react';
-import { usePersistentState } from '@deephaven/plugin';
+import { usePersistentState } from '@deephaven/dashboard';
 import { ReactPanelContext } from './ReactPanelContext';
 import { ReactPanelManagerContext } from './ReactPanelManager';
 import PortalPanelManager from './PortalPanelManager';

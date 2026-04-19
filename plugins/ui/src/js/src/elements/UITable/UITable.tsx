@@ -34,7 +34,11 @@ import {
   useGridLinker,
   useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
-import { useLayoutManager, useListener } from '@deephaven/dashboard';
+import {
+  useLayoutManager,
+  useListener,
+  usePersistentState,
+} from '@deephaven/dashboard';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, type RootState } from '@deephaven/redux';
@@ -45,7 +49,6 @@ import {
 } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
-import { usePersistentState } from '@deephaven/plugin';
 import {
   type FormattingRule,
   getAggregationOperation,
