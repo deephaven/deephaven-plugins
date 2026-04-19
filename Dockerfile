@@ -2,7 +2,7 @@
 # Dockerfile for starting up a deephaven-server with these latest plugins built and installed
 # Expects to be run from the root of the deephaven-plugins repo
 # First lets build and install the JS plugins
-FROM node:20.13.1 AS base
+FROM node:24.10.0 AS base
 WORKDIR /work/
 
 # Update packages list and install python python
