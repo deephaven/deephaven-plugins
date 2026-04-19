@@ -1,10 +1,10 @@
 import React from 'react';
-import { WidgetDescriptor } from '@deephaven/dashboard';
+import { type WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { ReactPanelManagerContext } from '../layout/ReactPanelManager';
 import { usePanelManager } from '../layout/usePanelManager';
 import { getRootChildren } from './DocumentUtils';
-import { ReadonlyWidgetData, WidgetDataUpdate } from './WidgetTypes';
+import { type ReadonlyWidgetData, type WidgetDataUpdate } from './WidgetTypes';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 

@@ -1,6 +1,6 @@
 import { useFocusEventCallback } from './useFocusEventCallback';
 import { useKeyboardEventCallback } from './useKeyboardEventCallback';
-import { SerializedTextInputEventProps } from '../model/SerializedPropTypes';
+import { type SerializedTextInputEventProps } from '../model/SerializedPropTypes';
 import useDebouncedOnChange from './useDebouncedOnChange';
 
 // returns SpectrumTextAreaProps

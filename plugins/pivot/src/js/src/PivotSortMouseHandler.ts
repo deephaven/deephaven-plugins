@@ -1,12 +1,12 @@
 import { ContextActionUtils } from '@deephaven/components';
 import {
   GridMouseHandler,
-  GridPoint,
-  EventHandlerResult,
+  type GridPoint,
+  type EventHandlerResult,
   type GridMouseEvent,
   type Grid,
 } from '@deephaven/grid';
-import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
+import { type IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import { getColumnSourceHeaderFromGridPoint } from './PivotMouseHandlerUtils';

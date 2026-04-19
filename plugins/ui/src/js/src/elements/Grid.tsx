@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Grid as DHCGrid,
-  GridProps as DHCGridProps,
+  type GridProps as DHCGridProps,
 } from '@deephaven/components';
 
 import classNames from 'classnames';

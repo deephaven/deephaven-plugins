@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { LayoutUtils, useLayoutManager } from '@deephaven/dashboard';
 import {
-  PortalPanelMap,
+  type PortalPanelMap,
   PortalPanelManagerContext,
 } from './PortalPanelManagerContext';
 import {

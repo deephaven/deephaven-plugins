@@ -1,6 +1,6 @@
-import { ReactHTML } from 'react';
-import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
+import { type ReactHTML } from 'react';
+import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
+import { ELEMENT_KEY, type ElementNode, isElementNode } from './ElementUtils';
 
 /**
  * Describes an HTML element that can be rendered in the UI.

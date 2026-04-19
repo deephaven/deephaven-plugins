@@ -1,12 +1,12 @@
-import React, { Key, ReactElement, useMemo } from 'react';
+import React, { type Key, type ReactElement, useMemo } from 'react';
 import {
   Tabs as DHCTabs,
-  TabsProps,
+  type TabsProps,
   TabList,
   Item,
-  TabPanelsProps,
+  type TabPanelsProps,
   Text,
-  TabListProps,
+  type TabListProps,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { ensureArray } from '@deephaven/utils';

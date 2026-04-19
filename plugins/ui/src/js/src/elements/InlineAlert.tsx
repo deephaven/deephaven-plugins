@@ -1,8 +1,8 @@
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import {
   Content,
   InlineAlert as DHCInlineAlert,
-  InlineAlertProps as DHCInlineAlertProps,
+  type InlineAlertProps as DHCInlineAlertProps,
   Heading,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';

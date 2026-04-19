@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { DashboardPanelProps } from '@deephaven/dashboard';
+import { type DashboardPanelProps } from '@deephaven/dashboard';
 import { CorePanel } from '@deephaven/dashboard-core-plugins';
 import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
 import PortalPanelTooltip from './PortalPanelTooltip';

@@ -1,18 +1,24 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
+import {
+  type DateTimeColumnFormatter,
+  type Formatter,
+} from '@deephaven/jsapi-utils';
 import {
   ChartModel,
   ChartUtils,
-  FilterColumnMap,
-  FilterMap,
+  type FilterColumnMap,
+  type FilterMap,
 } from '@deephaven/chart';
 import Log from '@deephaven/log';
-import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import {
+  type ChartEvent,
+  type RenderOptions,
+} from '@deephaven/chart/dist/ChartModel';
 import memoize from 'memoizee';
 import {
-  DownsampleInfo,
-  PlotlyChartWidgetData,
+  type DownsampleInfo,
+  type PlotlyChartWidgetData,
   areSameAxisRange,
   downsample,
   getDataMappings,
@@ -29,7 +35,7 @@ import {
   replaceValueFormat,
   setDefaultValueFormat,
   getDataTypeMap,
-  FormatUpdate,
+  type FormatUpdate,
   IS_WEBGL_SUPPORTED,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';

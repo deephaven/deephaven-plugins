@@ -1,6 +1,6 @@
 import {
   TagGroup as DHCTagGroup,
-  TagGroupProps as DHCTagGroupProps,
+  type TagGroupProps as DHCTagGroupProps,
 } from '@deephaven/components';
 import { useConditionalCallback } from './hooks';
 

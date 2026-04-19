@@ -1,11 +1,11 @@
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
-import { ColDef, ColGroupDef } from 'ag-grid-community';
+import { type ColDef, type ColGroupDef } from 'ag-grid-community';
 import { assertNotNull } from '@deephaven/utils';
 import {
-  AgGridViewportRowData,
+  type AgGridViewportRowData,
   getCellStyleFunction,
-  SingleRowData,
+  type SingleRowData,
   TREE_NODE_KEY,
 } from './AgGridTableUtils';
 

@@ -1,4 +1,4 @@
-import { CellClassParams } from 'ag-grid-community';
+import { type CellClassParams } from 'ag-grid-community';
 import AgGridFormatter from './AgGridFormatter';
 import { AgGridCellColors } from './AgGridColors';
 

@@ -2,20 +2,20 @@ import React from 'react';
 import { render, within } from '@testing-library/react';
 import {
   LayoutUtils,
-  WidgetDescriptor,
+  type WidgetDescriptor,
   useListener,
 } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import ReactPanel from './ReactPanel';
 import {
-  ReactPanelManager,
+  type ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
-import { ReactPanelProps } from './LayoutUtils';
+import { type ReactPanelProps } from './LayoutUtils';
 import PortalPanelManagerContext, {
-  PortalPanelMap,
+  type PortalPanelMap,
 } from './PortalPanelManagerContext';
-import WidgetStatusContext, { WidgetStatus } from './WidgetStatusContext';
+import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 
 const mockPanelId = 'test-panel-id';
 const defaultDescriptor = { name: 'test-name', type: 'test-type' };

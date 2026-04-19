@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   ToggleButton as DHCToggleButton,
-  ToggleButtonProps as DHCToggleButtonProps,
+  type ToggleButtonProps as DHCToggleButtonProps,
 } from '@deephaven/components';
 import { useButtonProps } from './hooks/useButtonProps';
-import { SerializedButtonEventProps } from './model/SerializedPropTypes';
+import { type SerializedButtonEventProps } from './model/SerializedPropTypes';
 
 export function ToggleButton(
   props: SerializedButtonEventProps<DHCToggleButtonProps>

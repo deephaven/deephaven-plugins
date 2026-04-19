@@ -1,4 +1,4 @@
-import { DisplayColumn } from '@deephaven/iris-grid';
+import { type DisplayColumn } from '@deephaven/iris-grid';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { type dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import PivotColumnHeaderGroup, {

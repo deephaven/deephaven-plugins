@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   Calendar as DHCCalendar,
-  CalendarProps as DHCCalendarProps,
+  type CalendarProps as DHCCalendarProps,
 } from '@deephaven/components';
-import { DateValue } from '@internationalized/date';
+import { type DateValue } from '@internationalized/date';
 import {
-  SerializedCalendarProps,
+  type SerializedCalendarProps,
   useCalendarProps,
 } from './hooks/useCalendarProps';
 

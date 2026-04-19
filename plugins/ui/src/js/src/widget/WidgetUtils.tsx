@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
-import React, { ComponentType } from 'react';
+import React, { type ComponentType } from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // Importing `Item` and `Section` components directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
@@ -32,12 +32,12 @@ import {
   SubmenuTrigger,
   View,
 } from '@deephaven/components';
-import { ValueOf, EMPTY_MAP } from '@deephaven/utils';
+import { type ValueOf, EMPTY_MAP } from '@deephaven/utils';
 import Log from '@deephaven/log';
 import type { ElementMap } from '@deephaven/plugin';
-import { ReadonlyWidgetData } from './WidgetTypes';
+import { type ReadonlyWidgetData } from './WidgetTypes';
 import {
-  ElementNode,
+  type ElementNode,
   ELEMENT_KEY,
   isElementNode,
   wrapElementChildren,
@@ -51,7 +51,10 @@ import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/utils/HTMLElementUtils';
 import { isIconElementNode } from '../elements/utils/IconElementUtils';
 import IconElementView from '../elements/IconElementView';
-import { ELEMENT_NAME, ElementName } from '../elements/model/ElementConstants';
+import {
+  ELEMENT_NAME,
+  type ElementName,
+} from '../elements/model/ElementConstants';
 import ReactPanel from '../layout/ReactPanel';
 import Row from '../layout/Row';
 import Stack from '../layout/Stack';

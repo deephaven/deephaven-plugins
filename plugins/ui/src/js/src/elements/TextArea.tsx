@@ -1,9 +1,9 @@
 import {
   TextArea as DHCTextArea,
-  TextAreaProps as DHCTextAreaProps,
+  type TextAreaProps as DHCTextAreaProps,
 } from '@deephaven/components';
 import useTextInputProps from './hooks/useTextInputProps';
-import { SerializedTextInputEventProps } from './model';
+import { type SerializedTextInputEventProps } from './model';
 
 export function TextArea(
   props: SerializedTextInputEventProps<DHCTextAreaProps, string>

@@ -1,8 +1,8 @@
-import React, { CSSProperties, useEffect, useState } from 'react';
+import React, { type CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { WidgetComponentProps } from '@deephaven/plugin';
+import { type WidgetComponentProps } from '@deephaven/plugin';
 
 const log = Log.module('@deephaven/js-plugin-matplotlib.MatplotlibView');
 

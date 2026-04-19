@@ -16,7 +16,7 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { useLayoutManager, WidgetDescriptor } from '@deephaven/dashboard';
+import { useLayoutManager, type WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
@@ -32,10 +32,10 @@ import {
   isUriNode,
 } from '../elements/utils/ElementUtils';
 import {
-  ReadonlyWidgetData,
-  WidgetDataUpdate,
-  WidgetMessageEvent,
-  WidgetError,
+  type ReadonlyWidgetData,
+  type WidgetDataUpdate,
+  type WidgetMessageEvent,
+  type WidgetError,
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
@@ -49,7 +49,7 @@ import {
   DASHBOARD_ELEMENT,
 } from './WidgetUtils';
 import WidgetStatusContext, {
-  WidgetStatus,
+  type WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';

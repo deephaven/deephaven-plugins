@@ -8,14 +8,14 @@ import React, {
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
-  DehydratedQuickFilter,
+  type DehydratedQuickFilter,
   IrisGrid,
   type IrisGridType,
   type IrisGridContextMenuData,
-  IrisGridProps,
+  type IrisGridProps,
   IrisGridUtils,
   IrisGridCacheUtils,
-  IrisGridState,
+  type IrisGridState,
   type DehydratedIrisGridState,
   type DehydratedGridState,
 } from '@deephaven/iris-grid';
@@ -37,24 +37,29 @@ import {
 import { useLayoutManager, useListener } from '@deephaven/dashboard';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler, GridRange, GridState } from '@deephaven/grid';
+import { getSettings, type RootState } from '@deephaven/redux';
+import {
+  type GridMouseHandler,
+  type GridRange,
+  type GridState,
+} from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import { usePersistentState } from '@deephaven/plugin';
 import {
-  FormattingRule,
+  type FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
-  UITableProps,
+  type UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
-  ResolvableUIContextItem,
+  type ResolvableUIContextItem,
   wrapContextActions,
 } from './UITableContextMenuHandler';
-import UITableModel, { makeUiTableModel } from './UITableModel';
-import { UITableLayoutHints } from './JsTableProxy';
+import type UITableModel from './UITableModel';
+import { makeUiTableModel } from './UITableModel';
+import { type UITableLayoutHints } from './JsTableProxy';
 import { useExportedObject } from '../hooks';
 import WidgetErrorView from '../../widget/WidgetErrorView';
 

@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   LogicButton as DHCLogicButton,
-  LogicButtonProps as DHCLogicButtonProps,
+  type LogicButtonProps as DHCLogicButtonProps,
 } from '@deephaven/components';
 import { useButtonProps } from './hooks/useButtonProps';
-import { SerializedButtonEventProps } from './model/SerializedPropTypes';
+import { type SerializedButtonEventProps } from './model/SerializedPropTypes';
 
 export function LogicButton(
   props: SerializedButtonEventProps<DHCLogicButtonProps>

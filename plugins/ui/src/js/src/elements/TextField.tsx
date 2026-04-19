@@ -1,9 +1,9 @@
 import {
   TextField as DHCTextField,
-  TextFieldProps as DHCTextFieldProps,
+  type TextFieldProps as DHCTextFieldProps,
 } from '@deephaven/components';
 import useTextInputProps from './hooks/useTextInputProps';
-import { SerializedTextInputEventProps } from './model';
+import { type SerializedTextInputEventProps } from './model';
 
 export function TextField(
   props: SerializedTextInputEventProps<DHCTextFieldProps, string>

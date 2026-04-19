@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Flex as DHCFlex,
-  FlexProps as DHCFlexProps,
+  type FlexProps as DHCFlexProps,
 } from '@deephaven/components';
 
 import classNames from 'classnames';

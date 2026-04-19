@@ -1,13 +1,13 @@
 /* eslint class-methods-use-this: "off" */
 import {
   GridMouseHandler,
-  GridPoint,
-  EventHandlerResult,
+  type GridPoint,
+  type EventHandlerResult,
   type Grid,
   type GridMouseEvent,
 } from '@deephaven/grid';
 import {
-  IrisGridType as IrisGrid,
+  type IrisGridType as IrisGrid,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
 import { assertNotNull } from '@deephaven/utils';

@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import { CalendarDate, DateValue } from '@internationalized/date';
+import { type CalendarDate, type DateValue } from '@internationalized/date';
 import {
-  SerializedDateValueCallback,
-  DeserializedDateValueCallback,
+  type SerializedDateValueCallback,
+  type DeserializedDateValueCallback,
   useOnChangeDateCallback,
 } from './useDateComponentProps';
 import {

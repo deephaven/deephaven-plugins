@@ -5,7 +5,7 @@ import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import { ApiContext, useWidget } from '@deephaven/jsapi-bootstrap';
 import WidgetErrorView from '../widget/WidgetErrorView';
 import { getWidgetType } from './hooks';
-import { ElementIdProps } from '../layout/LayoutUtils';
+import { type ElementIdProps } from '../layout/LayoutUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/UriObjectView');
 

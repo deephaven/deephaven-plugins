@@ -1,5 +1,5 @@
 import React from 'react';
-import { ElementIdProps, type DashboardElementProps } from './LayoutUtils';
+import { type ElementIdProps, type DashboardElementProps } from './LayoutUtils';
 import { usePanelId } from './ReactPanelContext';
 import NestedDashboard from './NestedDashboard';
 import DashboardContent from './DashboardContent';

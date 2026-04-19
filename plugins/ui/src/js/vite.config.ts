@@ -31,7 +31,14 @@ export default defineConfig(({ mode }) => ({
       ],
     },
   },
-  define:
-    mode === 'production' ? { 'process.env.NODE_ENV': '"production"' } : {},
+  define: {
+    ...(mode === 'production'
+      ? { 'process.env.NODE_ENV': '"production"' }
+      : {}),
+    // mathjax-full/js/components/version.js uses eval('__dirname') as a
+    // fallback when PACKAGE_VERSION is not defined. Define it here so the
+    // Node-only branch is never reached in the browser bundle.
+    PACKAGE_VERSION: JSON.stringify('3.2.1'),
+  },
   plugins: [react()],
 }));

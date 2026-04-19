@@ -1,4 +1,4 @@
-import { applyPatch, Operation } from 'fast-json-patch';
+import { applyPatch, type Operation } from 'fast-json-patch';
 import { applyJsonPatch, shallowCopyPath } from './WidgetJsonPatch';
 
 describe('WidgetJsonPatch', () => {

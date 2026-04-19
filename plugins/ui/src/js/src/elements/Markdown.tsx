@@ -3,7 +3,7 @@ import { type CodeComponent } from 'react-markdown/lib/ast-to-react';
 import remarkMath from 'remark-math';
 import rehypeMathjax from 'rehype-mathjax';
 import ReactMarkdown from 'react-markdown';
-import { View, ViewProps } from '@deephaven/components';
+import { View, type ViewProps } from '@deephaven/components';
 import { Code } from '@deephaven/console';
 
 type MarkdownProps = Omit<ViewProps, 'children'> & {

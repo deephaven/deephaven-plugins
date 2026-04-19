@@ -1,21 +1,21 @@
 import {
-  GridThemeType,
-  DataBarOptions,
-  CellRenderType,
-  ModelIndex,
-  GridColor,
-  NullableGridColor,
+  type GridThemeType,
+  type DataBarOptions,
+  type CellRenderType,
+  type ModelIndex,
+  type GridColor,
+  type NullableGridColor,
   memoizeClear,
   GridRenderer,
 } from '@deephaven/grid';
 import {
-  ColumnName,
+  type ColumnName,
   IrisGridModel,
   IrisGridModelFactory,
-  IrisGridTableModel,
+  type IrisGridTableModel,
   type IrisGridThemeType,
   isIrisGridTableModelTemplate,
-  UIRow,
+  type UIRow,
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
@@ -31,7 +31,7 @@ import {
   HEATMAP_MIN_SUFFIX,
   HEATMAP_MAX_SUFFIX,
 } from './UITableUtils';
-import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
+import JsTableProxy, { type UITableLayoutHints } from './JsTableProxy';
 import { resolveNamedScale } from './ColorScales';
 import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
 

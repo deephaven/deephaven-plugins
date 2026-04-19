@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
-import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
+import {
+  ChartPanel,
+  type ChartPanelProps,
+} from '@deephaven/dashboard-core-plugins';
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetPanelProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
@@ -30,7 +33,6 @@ export function PlotlyExpressChartPanel(
       {...(rest as unknown as ChartPanelProps)}
       containerRef={setContainer}
       makeModel={makeModel}
-      // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/72099
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
     />

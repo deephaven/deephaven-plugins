@@ -1,4 +1,4 @@
-import { Operation, applyOperation } from 'fast-json-patch';
+import { type Operation, applyOperation } from 'fast-json-patch';
 
 /**
  * Applies a JSON patch to a document. Performs a shallow copy on all objects and arrays along the path of the patch. Leaves other parts of the document unchanged.

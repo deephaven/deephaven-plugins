@@ -53,7 +53,7 @@ import {
   PivotColumnHeaderGroup,
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import { IrisGridPivotThemeType } from './IrisGridPivotTheme';
+import { type IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
 

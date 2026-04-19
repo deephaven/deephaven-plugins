@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import type React from 'react';
+import { useCallback } from 'react';
 
 /**
  * A hook that takes a condition, a callback, and a dependencies array, then returns the callback if the condition is met, or undefined otherwise.

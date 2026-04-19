@@ -1,4 +1,4 @@
-import { WidgetDescriptor } from '@deephaven/dashboard';
+import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { createContext } from 'react';
 
 export type WidgetStatusLoading = {

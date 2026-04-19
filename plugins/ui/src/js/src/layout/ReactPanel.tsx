@@ -16,16 +16,16 @@ import {
 } from '@deephaven/dashboard';
 import {
   View,
-  ViewProps,
+  type ViewProps,
   Flex,
-  FlexProps,
+  type FlexProps,
   LoadingOverlay,
 } from '@deephaven/components';
 import Log from '@deephaven/log';
 import { PersistentStateProvider } from '@deephaven/plugin';
 import PortalPanel from './PortalPanel';
-import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
-import { ReactPanelProps } from './LayoutUtils';
+import { type ReactPanelControl, useReactPanel } from './ReactPanelManager';
+import { type ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';

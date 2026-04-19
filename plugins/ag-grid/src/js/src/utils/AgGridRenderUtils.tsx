@@ -1,6 +1,6 @@
-import { ColDef } from 'ag-grid-community';
-import { CustomCellRendererProps } from 'ag-grid-react';
-import { DeephavenViewportDatasource } from '../datasources';
+import { type ColDef } from 'ag-grid-community';
+import { type CustomCellRendererProps } from 'ag-grid-react';
+import { type DeephavenViewportDatasource } from '../datasources';
 import { TreeCellRenderer } from '../renderers';
 
 export function getAutoGroupColumnDef(

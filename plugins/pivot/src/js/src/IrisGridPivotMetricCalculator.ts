@@ -10,10 +10,10 @@ import {
   type ModelIndex,
   type VisibleIndex,
 } from '@deephaven/grid';
-import IrisGridPivotModel, { isIrisGridPivotModel } from './IrisGridPivotModel';
-import PivotColumnHeaderGroup, {
-  isPivotColumnHeaderGroup,
-} from './PivotColumnHeaderGroup';
+import type IrisGridPivotModel from './IrisGridPivotModel';
+import { isIrisGridPivotModel } from './IrisGridPivotModel';
+import type PivotColumnHeaderGroup from './PivotColumnHeaderGroup';
+import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 import {
   type IrisGridPivotMetricState,
   type IrisGridPivotRenderState,

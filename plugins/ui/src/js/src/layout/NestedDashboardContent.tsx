@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 import { usePersistentState } from '@deephaven/plugin';
 import { ReactPanelContext } from './ReactPanelContext';
 import { ReactPanelManagerContext } from './ReactPanelManager';
@@ -6,8 +6,8 @@ import PortalPanelManager from './PortalPanelManager';
 import DashboardContent from './DashboardContent';
 import usePanelManager from './usePanelManager';
 import useWidgetStatus from './useWidgetStatus';
-import { WidgetData } from '../widget/WidgetTypes';
-import { ElementIdProps } from './LayoutUtils';
+import { type WidgetData } from '../widget/WidgetTypes';
+import { type ElementIdProps } from './LayoutUtils';
 
 type NestedDashboardContentProps = PropsWithChildren<ElementIdProps>;
 

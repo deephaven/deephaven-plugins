@@ -6,14 +6,17 @@ import type {
 } from '@deephaven/golden-layout';
 import {
   ELEMENT_KEY,
-  ElementNode,
+  type ElementNode,
   isElementNode,
 } from '../elements/utils/ElementUtils';
 import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import { ElementName, ELEMENT_NAME } from '../elements/model/ElementConstants';
+import {
+  type ElementName,
+  ELEMENT_NAME,
+} from '../elements/model/ElementConstants';
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 

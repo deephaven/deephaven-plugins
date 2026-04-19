@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
-import { WidgetDescriptor } from '@deephaven/dashboard';
+import { type WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
-import { ReactPanelManager } from './ReactPanelManager';
+import { type ReactPanelManager } from './ReactPanelManager';
 import {
-  ReadonlyWidgetData,
-  WidgetData,
-  WidgetDataUpdate,
+  type ReadonlyWidgetData,
+  type WidgetData,
+  type WidgetDataUpdate,
 } from '../widget/WidgetTypes';
 
 const log = Log.module('@deephaven/js-plugin-ui/usePanelManager');

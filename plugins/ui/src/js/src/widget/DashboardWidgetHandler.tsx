@@ -3,8 +3,8 @@
  */
 import React, { useCallback } from 'react';
 import Log from '@deephaven/log';
-import { WidgetDataUpdate, WidgetId } from './WidgetTypes';
-import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
+import { type WidgetDataUpdate, type WidgetId } from './WidgetTypes';
+import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/DashboardWidgetHandler');
 
