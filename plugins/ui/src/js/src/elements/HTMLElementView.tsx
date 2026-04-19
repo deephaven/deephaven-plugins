@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React from 'react';
 import { type HTMLElementNode, getHTMLTag } from './utils/HTMLElementUtils';
 import { ELEMENT_KEY } from './utils/ElementUtils';
 
