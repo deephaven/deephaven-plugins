@@ -7,7 +7,7 @@
 
 ## Example
 
-```python
+```python order=app,_stocks
 from deephaven import ui
 import deephaven.plot.express as dx
 
