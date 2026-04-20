@@ -18,17 +18,39 @@ jest.mock('./LayoutUtils', () => ({
 }));
 
 // Mock usePersistentState which requires FiberProvider context
-// Mock useDashboardPlugins which requires PluginsContext
-jest.mock('@deephaven/plugin', () => {
-  const actual = jest.requireActual('@deephaven/plugin');
+// Mock Dashboard which requires Redux Provider
+jest.mock('@deephaven/dashboard', () => {
+  const actual = jest.requireActual('@deephaven/dashboard');
   const react = jest.requireActual('react');
   return {
     ...actual,
+    Dashboard: function MockDashboard({
+      children,
+      onLayoutInitialized,
+    }: {
+      children: React.ReactNode;
+      onLayoutInitialized?: () => void;
+    }) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      react.useEffect(() => {
+        onLayoutInitialized?.();
+      }, [onLayoutInitialized]);
+      return react.createElement('div', null, children);
+    },
+    useLayoutManager: jest.fn(),
     usePersistentState: (initialValue: unknown) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [state, setState] = react.useState(initialValue);
       return [state, setState];
     },
+  };
+});
+
+// Mock useDashboardPlugins which requires PluginsContext
+jest.mock('@deephaven/plugin', () => {
+  const actual = jest.requireActual('@deephaven/plugin');
+  return {
+    ...actual,
     usePlugins: () => new Map(),
     useDashboardPlugins: () => null,
   };
