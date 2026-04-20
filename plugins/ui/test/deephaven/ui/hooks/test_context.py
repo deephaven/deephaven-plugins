@@ -41,7 +41,7 @@ class UseContextTestCase(BaseTestCase):
 
         @ui.component
         def app():
-            return ctx("provided", consumer())
+            return ctx(consumer(), value="provided")
 
         rc = RenderContext(run_on_change, run_on_change)
         result = Renderer(rc).render(app())
@@ -146,9 +146,9 @@ class UseContextTestCase(BaseTestCase):
         @ui.component
         def app():
             return ctx(
-                "outer",
                 ctx(consumer("in"), value="inner"),  # should see "inner"
                 consumer("after"),  # should see "outer" again
+                value="outer",
             )
 
         rc = RenderContext(run_on_change, run_on_change)
