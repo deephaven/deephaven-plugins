@@ -1,8 +1,9 @@
 # use_context
 
-Instead of passing props down through every level of the component tree, you can utilize the `use_context` hook to share values. `use_context` is a hook that consumes the current value of a `Context`, which tracks the value the most recent provider supplies for that context.
+You can simplify passing props through your component tree by using the `use_context` hook to share values. This hook allows you to access the current value of a `Context`, which tracks the latest value provided by its closest provider.
 
-> [!TIP] > `use_context` and `Context` are based on React's Context API. See the [React docs](https://react.dev/learn/passing-data-deeply-with-context) for more in-depth explanations and examples.
+> [!TIP]
+> `use_context` and `Context` are based on React's Context API. See the [React docs](https://react.dev/learn/passing-data-deeply-with-context) for more in-depth explanations and examples.
 
 ## Example
 
