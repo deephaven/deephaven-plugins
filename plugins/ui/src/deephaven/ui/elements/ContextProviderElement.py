@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 from .Element import Element, PropsType
-from .._internal import RenderContext, _get_context_stack
+from .._internal import RenderContext, _get_context_stack, get_context
 
 T = TypeVar("T")
 
@@ -33,7 +33,7 @@ class ContextProviderElement(Element):
 
     def render(self, context: RenderContext) -> PropsType:
         self._context._push(self._value)
-        context.add_open_cleanup(lambda: self._context._pop())
+        get_context().add_open_cleanup(lambda: self._context._pop())
 
         if len(self._children) == 1:
             return {"children": self._children[0]}
