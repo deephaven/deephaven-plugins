@@ -71,6 +71,7 @@ export const ELEMENT_NAME = {
   menu: uiComponentName('Menu'),
   menuTrigger: uiComponentName('MenuTrigger'),
   meter: uiComponentName('Meter'),
+  multiSelect: uiComponentName('MultiSelect'),
   numberField: uiComponentName('NumberField'),
   picker: uiComponentName('Picker'),
   progressBar: uiComponentName('ProgressBar'),
