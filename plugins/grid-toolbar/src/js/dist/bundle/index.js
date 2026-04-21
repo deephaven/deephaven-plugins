@@ -207,6 +207,7 @@ function GridToolbarPanelMiddleware({
           children: view === "chart" ? "Grid" : "Chart"
         }
       ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "grid-toolbar-btn", children: "Pivot" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {

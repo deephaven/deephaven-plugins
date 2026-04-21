@@ -79,6 +79,9 @@ export function GridToolbarPanelMiddleware({
         >
           {view === 'chart' ? 'Grid' : 'Chart'}
         </button>
+        <button type="button" className="grid-toolbar-btn">
+          Pivot
+        </button>
         <button
           type="button"
           className="grid-toolbar-btn"
