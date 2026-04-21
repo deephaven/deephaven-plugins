@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, Literal
 
 from .types import (
     FocusEventCallable,
@@ -29,7 +29,7 @@ from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key, Undefined, UndefinedType
+from ..types import Key, Selection, Undefined, UndefinedType
 from .basic import component_element
 
 ComboBoxElement = BaseElement
@@ -44,9 +44,56 @@ SUPPORTED_SOURCE_ARGS = {
 
 _NULLABLE_PROPS = ["selected_key"]
 
+# Props that only apply to single-select ComboBox.
+_SINGLE_ONLY_PROPS = {
+    "selected_key",
+    "default_selected_key",
+}
+
+# Props that only apply to multi-select mode.
+_MULTI_ONLY_PROPS = {
+    "selected_keys",
+    "default_selected_keys",
+}
+
+# Props that raise a ValueError if explicitly set in the wrong mode.
+_SINGLE_ONLY_VALIDATED = {
+    "selected_key": Undefined,
+    "default_selected_key": None,
+}
+
+_MULTI_ONLY_VALIDATED = {
+    "selected_keys": None,
+    "default_selected_keys": None,
+}
+
+
+def _validate_selection_mode(props: dict[str, Any], mode: str) -> None:
+    """Validate and strip props that conflict with the given selection mode.
+
+    Raises ValueError for props that conflict with the active mode,
+    and removes props that only apply to the other mode.
+
+    Args:
+        props: The props to validate.
+        mode: The active selection mode.
+    """
+    if mode == "multiple":
+        validated, strip = _SINGLE_ONLY_VALIDATED, _SINGLE_ONLY_PROPS
+    else:
+        validated, strip = _MULTI_ONLY_VALIDATED, _MULTI_ONLY_PROPS
+
+    for prop, default in validated.items():
+        val = props.get(prop)
+        if val is not default:
+            raise ValueError(f"'{prop}' is not supported when selection_mode='{mode}'.")
+    for prop in strip:
+        props.pop(prop, None)
+
 
 def combo_box(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
+    selection_mode: Literal["single", "multiple"] = "single",
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
     align: Align | None = "end",
@@ -62,6 +109,8 @@ def combo_box(
     disabled_keys: list[Key] | None = None,
     selected_key: Key | None | UndefinedType = Undefined,
     default_selected_key: Key | None = None,
+    selected_keys: Selection | None = None,
+    default_selected_keys: Selection | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
@@ -131,7 +180,13 @@ def combo_box(
     key: str | None = None,
 ) -> ComboBoxElement:
     """
-    A combo box that can be used to search or select from a list. Children should be one of five types:
+    A combo box that can be used to search or select from a list.
+
+    When `selection_mode="single"` (default), behaves as a standard ComboBox with a single
+    selected value. When `selection_mode="multiple"`, displays selected items as tags inside the
+    input area and presents a filterable dropdown list for multi-selection.
+
+    Children should be one of five types:
 
     1. If children are of type `Item`, they are the dropdown options.
     2. If children are of type `SectionElement`, they are the dropdown sections.
@@ -148,6 +203,8 @@ def combo_box(
 
     Args:
         *children: The options to render within the combo box.
+        selection_mode: Whether the combo box allows single or multiple selection.
+            Defaults to `"single"`.
         menu_trigger: The interaction required to display the ComboBox menu.
         is_quiet: Whether the ComboBox should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
@@ -157,16 +214,26 @@ def combo_box(
         should_flip: Whether the menu should automatically flip direction when space is limited.
         menu_width: Width of the menu. By default, matches width of the combobox.
             Note that the minimum width of the dropdown is always equal to the combobox's width.
-        form_value: Whether the text or key of the selected item is submitted as part of an HTML form.
-            When allowsCustomValue is true, this option does not apply and the text is always submitted.
+        form_value: Whether the text or key of the selected item(s) is submitted as part of an HTML form.
+            In single-select mode, when `allows_custom_value` is true, this option does not apply and the
+            text is always submitted. In multi-select mode, controls whether comma-joined keys or labels
+            are submitted via the hidden form input.
         should_focus_wrap: Whether keyboard navigation is circular.
         input_value: The value of the search input (controlled).
         default_input_value: The default value of the search input (uncontrolled).
         allows_custom_value: Whether the ComboBox allows a non-item matching input value to be set.
+            In multi-select mode, pressing Enter when no item is focused adds the typed text as a custom tag.
+            If the typed text matches an existing item's label, that item's key is used instead.
         disabled_keys: The item keys that are disabled.
             These items cannot be selected, focused, or otherwise interacted with.
         selected_key: The currently selected key in the collection (controlled).
+            Only applies in single-select mode.
         default_selected_key: The initial selected key in the collection (uncontrolled).
+            Only applies in single-select mode.
+        selected_keys: The currently selected keys in the collection (controlled).
+            Only applies in multi-select mode.
+        default_selected_keys: The initial selected keys in the collection (uncontrolled).
+            Only applies in multi-select mode.
         is_disabled: Whether the input is disabled.
         is_read_only: Whether the input can be selected but not changed by the user.
         is_required: Whether user input is required on the input before form submission.
@@ -185,6 +252,8 @@ def combo_box(
         on_open_change: Method that is called when the open state of the menu changes.
             Returns the new open state and the action that caused the opening of the menu.
         on_selection_change: Handler that is called when the selection changes.
+            In single-select mode, receives the selected key.
+            In multi-select mode, receives the full selection (set of keys).
         on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
         on_input_change: Handler that is called when the ComboBox input value changes.
         on_focus: Handler that is called when the element receives focus.
@@ -237,13 +306,26 @@ def combo_box(
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
 
+    Raises:
+        ValueError: If `selected_key` or `default_selected_key` is set when
+            `selection_mode="multiple"`.
+        ValueError: If `selected_keys` or `default_selected_keys`
+            is set when `selection_mode="single"`.
+
     Returns:
         The rendered ComboBox.
     """
     children, props = create_props(locals())
 
+    is_multiple = props.pop("selection_mode", "single") == "multiple"
+
+    _validate_selection_mode(props, "multiple" if is_multiple else "single")
+
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
     return component_element(
-        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+        "MultiSelect" if is_multiple else "ComboBox",
+        *children,
+        _nullable_props=[] if is_multiple else _NULLABLE_PROPS,
+        **props,
     )

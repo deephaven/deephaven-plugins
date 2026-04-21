@@ -28,6 +28,7 @@ export * from './LogicButton';
 export * from './Markdown';
 export * from './Menu';
 export * from './Meter';
+export * from './MultiSelect';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';
