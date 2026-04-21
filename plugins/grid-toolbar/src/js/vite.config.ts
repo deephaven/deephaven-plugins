@@ -16,8 +16,10 @@ export default defineConfig(({ mode }) => ({
       external: [
         'react',
         'react-dom',
+        '@deephaven/chart',
         '@deephaven/components',
         '@deephaven/icons',
+        '@deephaven/jsapi-bootstrap',
         '@deephaven/log',
         '@deephaven/plugin',
       ],

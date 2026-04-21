@@ -47,8 +47,10 @@
     "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
+    "@deephaven/chart": "^0.106.0",
     "@deephaven/components": "^0.106.0",
     "@deephaven/icons": "^0.106.0",
+    "@deephaven/jsapi-bootstrap": "^0.106.0",
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4"
   },

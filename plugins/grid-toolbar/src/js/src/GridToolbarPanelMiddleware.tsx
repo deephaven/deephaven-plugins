@@ -1,4 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Chart, type ChartModel, ChartModelFactory } from '@deephaven/chart';
+import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 // TODO: Replace with import from '@deephaven/plugin' after deephaven/web-client-ui#2660 merges
 import type { WidgetMiddlewarePanelProps } from './middlewareTypes';
@@ -10,17 +12,59 @@ const CLEAR_ALL_FILTERS_EVENT = 'InputFilterEvent.CLEAR_ALL_FILTERS';
 
 export function GridToolbarPanelMiddleware({
   Component,
+  fetch,
   glEventHub,
   ...props
 }: WidgetMiddlewarePanelProps): JSX.Element {
-  const handleExport = useCallback(() => {
-    log.info('Export clicked');
-  }, []);
+  const dh = useApi();
+  const [view, setView] = useState<'grid' | 'chart'>('grid');
+  const [chartModel, setChartModel] = useState<ChartModel | null>(null);
+  const [isBuilding, setIsBuilding] = useState(false);
+
+  useEffect(
+    () => () => {
+      chartModel?.close();
+    },
+    [chartModel]
+  );
+
+  const handleChart = useCallback(async () => {
+    if (view === 'chart') {
+      setView('grid');
+      return;
+    }
+    setIsBuilding(true);
+    try {
+      // fetch is typed as () => Promise<unknown>; for grid widgets it returns dh.Table
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const table = (await fetch()) as any;
+      if (!table?.columns || table.columns.length < 2) {
+        log.warn('Table has fewer than 2 columns; cannot build chart');
+        return;
+      }
+      const settings = {
+        type: 'LINE' as const,
+        series: [table.columns[1].name as string],
+        xAxis: table.columns[0].name as string,
+      };
+      const model = await ChartModelFactory.makeModelFromSettings(
+        dh,
+        settings,
+        table
+      );
+      setChartModel(model);
+      setView('chart');
+    } catch (e) {
+      log.error('Failed to build chart model', e);
+    } finally {
+      setIsBuilding(false);
+    }
+  }, [dh, fetch, view]);
 
   const handleResetFilters = useCallback(() => {
-    log.info('[0] Reset Filters clicked', props, Component);
+    log.info('Reset Filters clicked');
     glEventHub.emit(CLEAR_ALL_FILTERS_EVENT);
-  }, [glEventHub, props, Component]);
+  }, [glEventHub]);
 
   return (
     <div className="grid-toolbar-middleware h-100 w-100">
@@ -28,9 +72,10 @@ export function GridToolbarPanelMiddleware({
         <button
           type="button"
           className="grid-toolbar-btn"
-          onClick={handleExport}
+          disabled={isBuilding}
+          onClick={handleChart}
         >
-          Export
+          {view === 'chart' ? 'Grid' : 'Chart'}
         </button>
         <button
           type="button"
@@ -41,8 +86,13 @@ export function GridToolbarPanelMiddleware({
         </button>
       </div>
       <div className="grid-toolbar-content h-100 w-100">
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <Component glEventHub={glEventHub} {...props} />
+        {view === 'chart' && chartModel != null ? (
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          <Chart model={chartModel as any} className="h-100 w-100" />
+        ) : (
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          <Component fetch={fetch} glEventHub={glEventHub} {...props} />
+        )}
       </div>
     </div>
   );
