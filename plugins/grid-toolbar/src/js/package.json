@@ -1,0 +1,61 @@
+{
+  "name": "@deephaven/js-plugin-grid-toolbar",
+  "version": "0.1.0",
+  "description": "Deephaven Grid Toolbar middleware plugin - adds a toolbar to table widgets",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "grid-toolbar",
+    "middleware"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/bundle/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/bundle/index.js",
+      "default": "./dist/bundle/index.js"
+    },
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
+  },
+  "types": "dist/index",
+  "bugs": {
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
+  },
+  "homepage": "https://github.com/deephaven/deephaven-plugins",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "run-s build:*",
+    "build:transpile": "tsc",
+    "build:bundle": "vite build"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^17.0.2 || ^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@deephaven/components": "^0.106.0",
+    "@deephaven/icons": "^0.106.0",
+    "@deephaven/log": "^0.106.2",
+    "@deephaven/plugin": "^0.106.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
+}
