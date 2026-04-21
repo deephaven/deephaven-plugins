@@ -307,10 +307,8 @@ def combo_box(
         key: A unique identifier used by React to render elements in a list.
 
     Raises:
-        ValueError: If `selected_key` or `default_selected_key` is set when
-            `selection_mode="multiple"`.
-        ValueError: If `selected_keys` or `default_selected_keys`
-            is set when `selection_mode="single"`.
+        ValueError: If `selected_key` or `default_selected_key` is set when `selection_mode="multiple"`.
+        ValueError: If `selected_keys` or `default_selected_keys` is set when `selection_mode="single"`.
 
     Returns:
         The rendered ComboBox.
