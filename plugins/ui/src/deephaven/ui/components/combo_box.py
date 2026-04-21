@@ -204,7 +204,8 @@ def combo_box(
     Args:
         *children: The options to render within the combo box.
         selection_mode: Whether the combo box allows single or multiple selection.
-            Defaults to `"single"`.
+            Defaults to `"single"`. When `"multiple"`, use `selected_keys`/`default_selected_keys`
+            instead of `selected_key`/`default_selected_key`.
         menu_trigger: The interaction required to display the ComboBox menu.
         is_quiet: Whether the ComboBox should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
@@ -305,10 +306,6 @@ def combo_box(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
-
-    Raises:
-        ValueError: If `selected_key` or `default_selected_key` is set when `selection_mode="multiple"`.
-        ValueError: If `selected_keys` or `default_selected_keys` is set when `selection_mode="single"`.
 
     Returns:
         The rendered ComboBox.
