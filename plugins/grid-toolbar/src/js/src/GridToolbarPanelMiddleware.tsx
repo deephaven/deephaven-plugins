@@ -48,8 +48,10 @@ export function GridToolbarPanelMiddleware({
         xAxis: table.columns[0].name as string,
       };
       const model = await ChartModelFactory.makeModelFromSettings(
-        dh,
-        settings,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        dh as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        settings as any,
         table
       );
       setChartModel(model);
@@ -87,8 +89,10 @@ export function GridToolbarPanelMiddleware({
       </div>
       <div className="grid-toolbar-content h-100 w-100">
         {view === 'chart' && chartModel != null ? (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          <Chart model={chartModel as any} className="h-100 w-100" />
+          <div className="h-100 w-100">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Chart model={chartModel as any} />
+          </div>
         ) : (
           // eslint-disable-next-line react/jsx-props-no-spreading
           <Component fetch={fetch} glEventHub={glEventHub} {...props} />
