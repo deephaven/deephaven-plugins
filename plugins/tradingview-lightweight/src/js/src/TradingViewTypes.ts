@@ -9,6 +9,21 @@ export interface NewFigureMessage {
   removed_references: number[];
 }
 
+/** Response from Python after a ZOOM or RESET message. */
+export interface DownsampleReadyMessage {
+  type: 'DOWNSAMPLE_READY';
+  tables: Record<
+    string,
+    {
+      refIndex: number;
+      tableSize: number;
+      viewport: [number, number];
+      fullRange: [number, number] | null;
+      isReset?: boolean;
+    }
+  >;
+}
+
 export type TvlChartType = 'standard' | 'yieldCurve' | 'options';
 
 export interface TvlPartitionSpec {
@@ -22,6 +37,13 @@ export interface TvlPartitionSpec {
   columns: Record<string, string>;
 }
 
+/** Per-table info about Python-side downsampling. */
+export interface TvlDownsampleTableInfo {
+  tableSize: number;
+  fullRange: [number, number] | null;
+  isDownsampled: boolean;
+}
+
 export interface TvlFigureData {
   chartType?: TvlChartType;
   chartOptions: Record<string, unknown>;
@@ -31,6 +53,8 @@ export interface TvlFigureData {
   deephaven: {
     mappings: TvlDataMapping[];
   };
+  /** Present when Python-side downsampling is active. Keyed by table ref ID. */
+  downsampleInfo?: Record<string, TvlDownsampleTableInfo>;
 }
 
 export interface TvlSeriesConfig {
@@ -103,46 +127,15 @@ export type ModelEvent =
       type: 'DATA_UPDATED';
       tableId: number;
       isInitialLoad: boolean;
-      /** Number of rows added (non-downsampled path only) */
+      /** Number of rows added */
       addedCount: number;
-      /** Number of rows removed (non-downsampled path only) */
+      /** Number of rows removed */
       removedCount: number;
-      /** Number of rows modified (non-downsampled path only) */
+      /** Number of rows modified */
       modifiedCount: number;
-      /** @deprecated No longer used — native fitContent handles reset. */
+      /** True when this update follows a RESET (double-click). */
       isResetView?: boolean;
-      /**
-       * For downsampled tables: pre-classified data with whitespace grid
-       * and gap markers. When present, the chart uses this instead of
-       * calling transformTableData itself.
-       */
-      downsampledData?: DownsampledData;
     }
   | { type: 'ERROR'; message: string };
 
 export type ModelEventListener = (event: ModelEvent) => void;
-
-/** Stored info about a downsampled table, used for re-sampling on zoom/pan. */
-export interface DownsampleInfo {
-  /** The original (full-size) table before downsampling. */
-  originalTable: unknown; // DhType.Table
-  /** The x-axis column name (must be Instant or long). */
-  xCol: string;
-  /** The y-axis column names to downsample. */
-  yCols: string[];
-  /** The chart plot-area width in pixels (= target number of output points). */
-  width: number;
-  /** Visible x-axis range as [from, to] in TZ-shifted epoch seconds, or null for full-range. */
-  range: [number, number] | null;
-}
-
-/** Pre-classified downsample result with whitespace grid and gap markers. */
-export interface DownsampledData {
-  /** Whitespace grid points for body region time axis (companion series). */
-  whitespaceGrid: Array<{ time: number }>;
-  /**
-   * Data series with whitespace gap markers inserted at head→body and
-   * body→tail transitions. Ready for series.setData().
-   */
-  dataWithGaps: Record<string, unknown>[];
-}

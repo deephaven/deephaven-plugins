@@ -314,13 +314,6 @@ class TradingViewChartRenderer {
 
   private container: HTMLElement;
 
-  /**
-   * Hidden companion series that establishes the time grid for downsampled
-   * body regions. Uses `visible: false` so it draws nothing but its time
-   * points create bar slots in the shared time scale.
-   */
-  private whitespaceSeries: ISeriesApi<SeriesType> | null = null;
-
   constructor(
     container: HTMLElement,
     options: DeepPartial<ChartOptions> = {},
@@ -794,40 +787,6 @@ class TradingViewChartRenderer {
     return this.chart;
   }
 
-  // ---- Downsampling v2: whitespace companion series & time scale wrappers ----
-
-  /**
-   * Set data on the hidden whitespace companion series (creates it lazily).
-   * The whitespace series provides the time grid for the body region so
-   * lightweight-charts spaces body bars proportionally in time.
-   */
-  setWhitespaceData(data: Array<{ time: number }>): void {
-    if (this.whitespaceSeries == null) {
-      // Must be visible:true so fitContent() includes its bars when
-      // computing the full data extent. Use transparent color + lineWidth 0
-      // so nothing is actually drawn. priceScaleId '' avoids creating a
-      // price scale for it.
-      this.whitespaceSeries = this.chart.addSeries(LineSeries, {
-        color: 'transparent',
-        lineWidth: 1 as const,
-        lastValueVisible: false,
-        priceLineVisible: false,
-        crosshairMarkerVisible: false,
-        priceScaleId: '',
-      });
-    }
-    this.whitespaceSeries.setData(
-      data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
-    );
-  }
-
-  /** Clear the whitespace series (used on reset-to-full). */
-  clearWhitespaceData(): void {
-    if (this.whitespaceSeries != null) {
-      this.whitespaceSeries.setData([]);
-    }
-  }
-
   /** Plot-area width in pixels (excludes price scale). */
   getTimeScaleWidth(): number {
     return this.chart.timeScale().width();
@@ -842,6 +801,12 @@ class TradingViewChartRenderer {
     const ts = this.chart.timeScale() as any;
     ts.subscribeVisibleLogicalRangeChange(handler);
     return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
+  }
+
+  /** Subscribe to chart double-click (reset detection). */
+  subscribeDblClick(handler: () => void): () => void {
+    this.chart.subscribeDblClick(handler);
+    return () => this.chart.unsubscribeDblClick(handler);
   }
 
   /** Subscribe to chart size changes (resize detection). */
@@ -859,9 +824,6 @@ class TradingViewChartRenderer {
     this.seriesMap.clear();
     this.markersMap.clear();
     this.dynamicPriceLines.clear();
-    if (this.whitespaceSeries) {
-      this.whitespaceSeries = null;
-    }
     if (this.watermarkPlugin) {
       this.watermarkPlugin.detach();
       this.watermarkPlugin = null;

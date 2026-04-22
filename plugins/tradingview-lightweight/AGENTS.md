@@ -1,5 +1,7 @@
 # Local Development & Testing
 
+tradingview-lightweight charts I call tvl for short.
+
 ## Quick Start
 
 ```bash
@@ -121,19 +123,20 @@ agent-browser wait 3000
 ### Screenshotting an individual chart
 
 After opening a chart panel, isolate the chart and screenshot:
+
 ```bash
 # Move mouse off chart to avoid hover tooltips
 agent-browser mouse move 0 0
 agent-browser wait 500
 
 # Screenshot the full page (chart will be visible in the panel area)
-agent-browser screenshot /tmp/tvl_chart.png
+agent-browser screenshot plugins/tradingview-lightweight/notes/tmp/tvl_chart.png
 
 # Or check for chart elements
 agent-browser eval "document.querySelectorAll('.dh-tvl-chart').length"
 ```
 
-View the screenshot with the `Read` tool on the image path.
+View the screenshot with the `Read` tool on the image path. Always screenshot into the local directory so the user can also verify if needed.
 
 ### Important Notes
 
