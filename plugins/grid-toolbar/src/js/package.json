@@ -38,6 +38,7 @@
     "build:bundle": "vite build"
   },
   "devDependencies": {
+    "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
     "@types/react": "^17.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
@@ -50,6 +51,8 @@
     "@deephaven/chart": "^0.106.0",
     "@deephaven/components": "^0.106.0",
     "@deephaven/icons": "^0.106.0",
+    "@deephaven/iris-grid": "^0.106.0",
+    "@deephaven/js-plugin-pivot": "*",
     "@deephaven/jsapi-bootstrap": "^0.106.0",
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4"

@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Chart, type ChartModel, ChartModelFactory } from '@deephaven/chart';
+import { IrisGrid } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
+import {
+  usePivotMouseHandlers,
+  usePivotRenderer,
+  usePivotTheme,
+} from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
 // TODO: Replace with import from '@deephaven/plugin' after deephaven/web-client-ui#2660 merges
 import type { WidgetMiddlewarePanelProps } from './middlewareTypes';
+import { usePivotToggle } from './usePivotToggle';
 
 const log = Log.module('@deephaven/js-plugin-grid-toolbar');
 
@@ -14,12 +21,30 @@ export function GridToolbarPanelMiddleware({
   Component,
   fetch,
   glEventHub,
+  metadata,
   ...props
 }: WidgetMiddlewarePanelProps): JSX.Element {
   const dh = useApi();
-  const [view, setView] = useState<'grid' | 'chart'>('grid');
+  const [view, setView] = useState<'grid' | 'chart' | 'pivot'>('grid');
   const [chartModel, setChartModel] = useState<ChartModel | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
+
+  const {
+    isAvailable: isPivotAvailable,
+    pivotModel,
+    isBuilding: isPivotBuilding,
+    handleToggle: handlePivot,
+  } = usePivotToggle(
+    dh,
+    fetch,
+    view === 'pivot',
+    setView as (v: 'grid' | 'pivot') => void,
+    metadata
+  );
+
+  const mouseHandlers = usePivotMouseHandlers();
+  const renderer = usePivotRenderer();
+  const pivotTheme = usePivotTheme();
 
   useEffect(
     () => () => {
@@ -38,7 +63,7 @@ export function GridToolbarPanelMiddleware({
       // fetch is typed as () => Promise<unknown>; for grid widgets it returns dh.Table
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const table = (await fetch()) as any;
-      if (!table?.columns || table.columns.length < 2) {
+      if (table?.columns == null || table.columns.length < 2) {
         log.warn('Table has fewer than 2 columns; cannot build chart');
         return;
       }
@@ -68,20 +93,29 @@ export function GridToolbarPanelMiddleware({
     glEventHub.emit(CLEAR_ALL_FILTERS_EVENT);
   }, [glEventHub]);
 
+  const anyBuilding = isBuilding || isPivotBuilding;
+
   return (
     <div className="grid-toolbar-middleware h-100 w-100">
       <div className="grid-toolbar">
         <button
           type="button"
           className="grid-toolbar-btn"
-          disabled={isBuilding}
+          disabled={anyBuilding}
           onClick={handleChart}
         >
           {view === 'chart' ? 'Grid' : 'Chart'}
         </button>
-        <button type="button" className="grid-toolbar-btn">
-          Pivot
-        </button>
+        {isPivotAvailable && (
+          <button
+            type="button"
+            className="grid-toolbar-btn"
+            disabled={anyBuilding}
+            onClick={handlePivot}
+          >
+            {view === 'pivot' ? 'Grid' : 'Pivot'}
+          </button>
+        )}
         <button
           type="button"
           className="grid-toolbar-btn"
@@ -91,14 +125,30 @@ export function GridToolbarPanelMiddleware({
         </button>
       </div>
       <div className="grid-toolbar-content h-100 w-100">
-        {view === 'chart' && chartModel != null ? (
+        {view === 'chart' && chartModel != null && (
           <div className="h-100 w-100">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <Chart model={chartModel as any} />
           </div>
-        ) : (
+        )}
+        {view === 'pivot' && pivotModel != null && (
+          <div className="h-100 w-100">
+            <IrisGrid
+              model={pivotModel}
+              mouseHandlers={mouseHandlers}
+              renderer={renderer}
+              theme={pivotTheme}
+            />
+          </div>
+        )}
+        {view !== 'chart' && view !== 'pivot' && (
           // eslint-disable-next-line react/jsx-props-no-spreading
-          <Component fetch={fetch} glEventHub={glEventHub} {...props} />
+          <Component
+            fetch={fetch}
+            glEventHub={glEventHub}
+            metadata={metadata}
+            {...props}
+          />
         )}
       </div>
     </div>

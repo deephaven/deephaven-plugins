@@ -4,7 +4,9 @@ const plugin = require("@deephaven/plugin");
 const require$$1 = require("react");
 const Log = require("@deephaven/log");
 const chart = require("@deephaven/chart");
+const irisGrid = require("@deephaven/iris-grid");
 const jsapiBootstrap = require("@deephaven/jsapi-bootstrap");
+const jsPluginPivot = require("@deephaven/js-plugin-pivot");
 var jsxRuntime = { exports: {} };
 var reactJsxRuntime_production_min = {};
 /*
@@ -106,16 +108,16 @@ reactJsxRuntime_production_min.jsxs = q;
   jsxRuntime.exports = reactJsxRuntime_production_min;
 }
 var jsxRuntimeExports = jsxRuntime.exports;
-const log$1 = Log.module("@deephaven/js-plugin-grid-toolbar");
+const log$2 = Log.module("@deephaven/js-plugin-grid-toolbar");
 function GridToolbarMiddleware({
   Component,
   ...props
 }) {
   const handleExport = require$$1.useCallback(() => {
-    log$1.info("Export clicked");
+    log$2.info("Export clicked");
   }, []);
   const handleResetFilters = require$$1.useCallback(() => {
-    log$1.info("[0] Reset Filters clicked", props, Component);
+    log$2.info("[0] Reset Filters clicked", props, Component);
   }, [props, Component]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-toolbar-middleware", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-toolbar", children: [
@@ -141,18 +143,154 @@ function GridToolbarMiddleware({
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid-toolbar-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, { ...props }) })
   ] });
 }
+const log$1 = Log.module("@deephaven/js-plugin-grid-toolbar/usePivotToggle");
+const NUMERIC_TYPES = /* @__PURE__ */ new Set([
+  "int",
+  "long",
+  "short",
+  "byte",
+  "double",
+  "float",
+  "java.lang.Integer",
+  "java.lang.Long",
+  "java.lang.Short",
+  "java.lang.Byte",
+  "java.lang.Double",
+  "java.lang.Float",
+  "java.math.BigDecimal",
+  "java.math.BigInteger"
+]);
+function usePivotToggle(dh, fetch, isPivotView, setView, metadata) {
+  const [pivotModel, setPivotModel] = require$$1.useState(null);
+  const [isBuilding, setIsBuilding] = require$$1.useState(false);
+  const pspDescriptor = require$$1.useMemo(() => {
+    if (!jsPluginPivot.isCorePlusDh(dh) || metadata == null) {
+      return { type: "PivotService", name: "__unavailable__" };
+    }
+    return {
+      ...metadata,
+      type: "PivotService",
+      name: "psp"
+    };
+  }, [dh, metadata]);
+  const pspFetch = jsapiBootstrap.useObjectFetch(pspDescriptor);
+  const isAvailable = jsPluginPivot.isCorePlusDh(dh) && pspFetch.status === "ready";
+  require$$1.useEffect(() => {
+    if (pspFetch.status === "error") {
+      log$1.debug("PivotService (psp) not available on this query");
+    }
+    if (pspFetch.status === "ready") {
+      log$1.info("PivotService (psp) is available on this query");
+    }
+  }, [pspFetch.status]);
+  const pivotModelRef = require$$1.useRef(null);
+  require$$1.useEffect(() => {
+    pivotModelRef.current = pivotModel;
+  }, [pivotModel]);
+  require$$1.useEffect(
+    () => () => {
+      var _a;
+      (_a = pivotModelRef.current) == null ? void 0 : _a.close();
+    },
+    []
+  );
+  const handleToggle = require$$1.useCallback(async () => {
+    if (isPivotView) {
+      pivotModel == null ? void 0 : pivotModel.close();
+      setPivotModel(null);
+      setView("grid");
+      return;
+    }
+    if (!jsPluginPivot.isCorePlusDh(dh)) {
+      log$1.error("CorePlus API not available; cannot create pivot");
+      return;
+    }
+    if (pspFetch.status !== "ready") {
+      log$1.error("PivotService (psp) not available");
+      return;
+    }
+    setIsBuilding(true);
+    try {
+      const [table, pspWidget] = await Promise.all([
+        fetch(),
+        pspFetch.fetch()
+      ]);
+      if ((table == null ? void 0 : table.columns) == null) {
+        log$1.warn("Fetched object has no columns; cannot build pivot");
+        return;
+      }
+      const numericColumns = [];
+      const nonNumericColumns = [];
+      table.columns.forEach((col) => {
+        if (NUMERIC_TYPES.has(col.type)) {
+          numericColumns.push(col.name);
+        } else {
+          nonNumericColumns.push(col.name);
+        }
+      });
+      if (nonNumericColumns.length === 0) {
+        log$1.warn("Table has no non-numeric columns for row/column keys");
+        return;
+      }
+      const rowKeys = nonNumericColumns.slice(0, 1);
+      const columnKeys = nonNumericColumns.length > 1 ? nonNumericColumns.slice(1, 2) : [];
+      const aggregations = numericColumns.length > 0 ? { Sum: numericColumns } : { Count: [nonNumericColumns[0]] };
+      const config = {
+        source: table,
+        rowKeys,
+        columnKeys,
+        aggregations
+      };
+      log$1.info("Creating pivot with config:", config);
+      const corePlusDh = dh;
+      const pivotService = await corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
+      log$1.info("PivotService obtained:", pivotService);
+      const pivotTable = await pivotService.createPivotTable(config);
+      log$1.info("PivotTable created:", pivotTable);
+      const model = new jsPluginPivot.IrisGridPivotModel(dh, pivotTable);
+      setPivotModel(model);
+      setView("pivot");
+    } catch (e) {
+      log$1.error("Failed to create pivot table", e);
+    } finally {
+      setIsBuilding(false);
+    }
+  }, [dh, fetch, isPivotView, pspFetch, pivotModel, setView]);
+  return {
+    isAvailable,
+    pivotModel,
+    isBuilding,
+    handleToggle
+  };
+}
 const log = Log.module("@deephaven/js-plugin-grid-toolbar");
 const CLEAR_ALL_FILTERS_EVENT = "InputFilterEvent.CLEAR_ALL_FILTERS";
 function GridToolbarPanelMiddleware({
   Component,
   fetch,
   glEventHub,
+  metadata,
   ...props
 }) {
   const dh = jsapiBootstrap.useApi();
   const [view, setView] = require$$1.useState("grid");
   const [chartModel, setChartModel] = require$$1.useState(null);
   const [isBuilding, setIsBuilding] = require$$1.useState(false);
+  const {
+    isAvailable: isPivotAvailable,
+    pivotModel,
+    isBuilding: isPivotBuilding,
+    handleToggle: handlePivot
+  } = usePivotToggle(
+    dh,
+    fetch,
+    view === "pivot",
+    setView,
+    metadata
+  );
+  const mouseHandlers = jsPluginPivot.usePivotMouseHandlers();
+  const renderer = jsPluginPivot.usePivotRenderer();
+  const pivotTheme = jsPluginPivot.usePivotTheme();
   require$$1.useEffect(
     () => () => {
       chartModel == null ? void 0 : chartModel.close();
@@ -167,7 +305,7 @@ function GridToolbarPanelMiddleware({
     setIsBuilding(true);
     try {
       const table = await fetch();
-      if (!(table == null ? void 0 : table.columns) || table.columns.length < 2) {
+      if ((table == null ? void 0 : table.columns) == null || table.columns.length < 2) {
         log.warn("Table has fewer than 2 columns; cannot build chart");
         return;
       }
@@ -195,6 +333,7 @@ function GridToolbarPanelMiddleware({
     log.info("Reset Filters clicked");
     glEventHub.emit(CLEAR_ALL_FILTERS_EVENT);
   }, [glEventHub]);
+  const anyBuilding = isBuilding || isPivotBuilding;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-toolbar-middleware h-100 w-100", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-toolbar", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -202,12 +341,21 @@ function GridToolbarPanelMiddleware({
         {
           type: "button",
           className: "grid-toolbar-btn",
-          disabled: isBuilding,
+          disabled: anyBuilding,
           onClick: handleChart,
           children: view === "chart" ? "Grid" : "Chart"
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "grid-toolbar-btn", children: "Pivot" }),
+      isPivotAvailable && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          type: "button",
+          className: "grid-toolbar-btn",
+          disabled: anyBuilding,
+          onClick: handlePivot,
+          children: view === "pivot" ? "Grid" : "Pivot"
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
@@ -218,10 +366,28 @@ function GridToolbarPanelMiddleware({
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid-toolbar-content h-100 w-100", children: view === "chart" && chartModel != null ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-100 w-100", children: /* @__PURE__ */ jsxRuntimeExports.jsx(chart.Chart, { model: chartModel }) }) : (
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Component, { fetch, glEventHub, ...props })
-    ) })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid-toolbar-content h-100 w-100", children: [
+      view === "chart" && chartModel != null && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-100 w-100", children: /* @__PURE__ */ jsxRuntimeExports.jsx(chart.Chart, { model: chartModel }) }),
+      view === "pivot" && pivotModel != null && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-100 w-100", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        irisGrid.IrisGrid,
+        {
+          model: pivotModel,
+          mouseHandlers,
+          renderer,
+          theme: pivotTheme
+        }
+      ) }),
+      view !== "chart" && view !== "pivot" && // eslint-disable-next-line react/jsx-props-no-spreading
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Component,
+        {
+          fetch,
+          glEventHub,
+          metadata,
+          ...props
+        }
+      )
+    ] })
   ] });
 }
 const GridToolbarPlugin = {
@@ -238,5 +404,7 @@ const GridToolbarPlugin = {
   isMiddleware: true
 };
 exports.GridToolbarMiddleware = GridToolbarMiddleware;
+exports.GridToolbarPanelMiddleware = GridToolbarPanelMiddleware;
 exports.GridToolbarPlugin = GridToolbarPlugin;
 exports.default = GridToolbarPlugin;
+exports.usePivotToggle = usePivotToggle;
