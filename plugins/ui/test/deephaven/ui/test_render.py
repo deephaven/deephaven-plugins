@@ -3,6 +3,7 @@ from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
 from typing import Dict, Any
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
+from .test_utils_root import TestRoot
 
 run_on_change: OnChangeCallable = lambda x: x()
 
@@ -13,7 +14,7 @@ def make_render_context(
 ) -> RenderContext:
     from deephaven.ui._internal.RenderContext import RenderContext
 
-    return RenderContext(on_change, on_queue)
+    return RenderContext(TestRoot(on_change, on_queue))
 
 
 class RenderTestCase(BaseTestCase):

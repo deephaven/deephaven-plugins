@@ -12,6 +12,7 @@ import {
   makeWidgetDescriptor,
   makeWidgetEventDocumentPatched,
   makeWidgetEventJsonRpcResponse,
+  makeWidgetEventMethodEvent,
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
@@ -99,7 +100,7 @@ it('updates the document when event is received', async () => {
       jsonrpc: '2.0',
       id: 1,
       method: 'setState',
-      params: [initialData.state],
+      params: [{ ...initialData.state, __queryParams: {} }],
     }),
     []
   );
@@ -186,7 +187,7 @@ it('updates the initial data only when widget has changed', async () => {
       jsonrpc: '2.0',
       id: 1,
       method: 'setState',
-      params: [data1.state],
+      params: [{ ...data1.state, __queryParams: {} }],
     }),
     []
   );
@@ -261,7 +262,7 @@ it('updates the initial data only when widget has changed', async () => {
       jsonrpc: '2.0',
       id: 1,
       method: 'setState',
-      params: [data2.state],
+      params: [{ ...data2.state, __queryParams: {} }],
     }),
     []
   );
@@ -322,7 +323,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
       jsonrpc: '2.0',
       id: 1,
       method: 'setState',
-      params: [data1.state],
+      params: [{ ...data1.state, __queryParams: {} }],
     }),
     []
   );
@@ -373,4 +374,336 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   expect(screen.getByText('Test error')).toBeVisible();
 
   unmount();
+});
+
+/**
+ * Helper to create a rendered widget with a listener ready to receive events.
+ * Returns the listener, sendMessage mock, and unmount function.
+ */
+async function setupWidgetWithListener() {
+  const widget = makeWidgetDescriptor();
+  const cleanup = jest.fn();
+  const mockAddEventListener = jest.fn(
+    (() => cleanup) as dh.Widget['addEventListener']
+  );
+  const mockSendMessage = jest.fn();
+  const initialData = { state: { test: 'value' } };
+  mockWidgetWrapper = {
+    widget: makeWidget({
+      addEventListener: mockAddEventListener,
+      getDataAsString: jest.fn(() => ''),
+      sendMessage: mockSendMessage,
+    }),
+    error: null,
+    api: jest.fn() as unknown as typeof dh,
+  };
+
+  const { unmount } = render(
+    makeWidgetHandler({ widgetDescriptor: widget, initialData })
+  );
+
+  const listener = mockAddEventListener.mock.calls[0][1];
+
+  // Respond to initial setState so the jsonClient is ready
+  await act(async () => {
+    listener(makeWidgetEventJsonRpcResponse(1));
+  });
+
+  // Clear mocks so we can assert on subsequent calls
+  mockSendMessage.mockClear();
+
+  return { listener, mockSendMessage, unmount };
+}
+
+describe('URL state in sendSetState', () => {
+  it('includes __queryParams from window.location.search', async () => {
+    // Set up URL with query params
+    const url = new URL('http://localhost/test?foo=bar&baz=qux');
+    Object.defineProperty(window, 'location', {
+      value: url,
+      writable: true,
+    });
+
+    const widget = makeWidgetDescriptor();
+    const mockSendMessage = jest.fn();
+    const initialData = { state: { key: 'val' } };
+    mockWidgetWrapper = {
+      widget: makeWidget({
+        addEventListener: jest.fn(() => jest.fn()),
+        getDataAsString: jest.fn(() => ''),
+        sendMessage: mockSendMessage,
+      }),
+      error: null,
+      api: jest.fn() as unknown as typeof dh,
+    };
+
+    const { unmount } = render(
+      makeWidgetHandler({ widgetDescriptor: widget, initialData })
+    );
+
+    expect(mockSendMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'setState',
+        params: [
+          {
+            key: 'val',
+            __queryParams: { foo: ['bar'], baz: ['qux'] },
+          },
+        ],
+      }),
+      []
+    );
+
+    unmount();
+
+    // Reset location
+    Object.defineProperty(window, 'location', {
+      value: new URL('http://localhost/'),
+      writable: true,
+    });
+  });
+
+  it('includes multi-value query params', async () => {
+    const url = new URL('http://localhost/test?tag=python&tag=java');
+    Object.defineProperty(window, 'location', {
+      value: url,
+      writable: true,
+    });
+
+    const widget = makeWidgetDescriptor();
+    const mockSendMessage = jest.fn();
+    mockWidgetWrapper = {
+      widget: makeWidget({
+        addEventListener: jest.fn(() => jest.fn()),
+        getDataAsString: jest.fn(() => ''),
+        sendMessage: mockSendMessage,
+      }),
+      error: null,
+      api: jest.fn() as unknown as typeof dh,
+    };
+
+    const { unmount } = render(
+      makeWidgetHandler({ widgetDescriptor: widget, initialData: undefined })
+    );
+
+    expect(mockSendMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'setState',
+        params: [{ __queryParams: { tag: ['python', 'java'] } }],
+      }),
+      []
+    );
+
+    unmount();
+
+    Object.defineProperty(window, 'location', {
+      value: new URL('http://localhost/'),
+      writable: true,
+    });
+  });
+});
+
+describe('navigate event handling', () => {
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      value: new URL('http://localhost/app/widget/local/dashboard'),
+      writable: true,
+    });
+    jest.spyOn(window.history, 'replaceState').mockImplementation(jest.fn());
+    jest.spyOn(window.history, 'pushState').mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+    });
+    jest.restoreAllMocks();
+  });
+
+  it('uses replaceState by default', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: 'page=1',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalled();
+    expect(window.history.pushState).not.toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it('uses pushState when replace=false', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: 'page=1',
+          replace: false,
+        })
+      );
+    });
+
+    expect(window.history.pushState).toHaveBeenCalled();
+    expect(window.history.replaceState).not.toHaveBeenCalled();
+
+    unmount();
+  });
+
+  it('navigates with query params as string', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: 'page=2&sort=name',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/app/widget/local/dashboard?page=2&sort=name'
+    );
+
+    unmount();
+  });
+
+  it('navigates with query params as string with ? prefix', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: '?foo=bar&baz=qux',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/app/widget/local/dashboard?foo=bar&baz=qux'
+    );
+
+    unmount();
+  });
+
+  it('clears query params when empty string', async () => {
+    Object.defineProperty(window, 'location', {
+      value: new URL('http://localhost/app?existing=param'),
+      writable: true,
+    });
+
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: '',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalledWith(null, '', '/app');
+
+    unmount();
+  });
+
+  it('re-sends state to backend after navigation', async () => {
+    const { listener, mockSendMessage, unmount } =
+      await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: 'page=2',
+        })
+      );
+    });
+
+    // setUrlState should have been called to sync URL state back to Python
+    expect(mockSendMessage).toHaveBeenCalled();
+    const calls = mockSendMessage.mock.calls.map((c: unknown[]) =>
+      JSON.parse(c[0] as string)
+    );
+    const urlStateCall = calls.find(
+      (c: { method: string }) => c.method === 'setUrlState'
+    );
+    expect(urlStateCall).toBeDefined();
+    expect(urlStateCall.params[0]).toHaveProperty('__queryParams');
+
+    unmount();
+  });
+
+  it('handles multi-value query params in object form', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent('navigate.event', {
+          queryParams: 'tag=python&tag=java',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/app/widget/local/dashboard?tag=python&tag=java'
+    );
+
+    unmount();
+  });
+});
+
+describe('popstate listener', () => {
+  it('re-sends state on popstate event', async () => {
+    const { mockSendMessage, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    // setUrlState should have been called
+    expect(mockSendMessage).toHaveBeenCalled();
+    const calls = mockSendMessage.mock.calls.map((c: unknown[]) =>
+      JSON.parse(c[0] as string)
+    );
+    const urlStateCall = calls.find(
+      (c: { method: string }) => c.method === 'setUrlState'
+    );
+    expect(urlStateCall).toBeDefined();
+    expect(urlStateCall.params[0]).toHaveProperty('__queryParams');
+
+    unmount();
+  });
+
+  it('cleans up popstate listener on unmount', async () => {
+    const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+
+    const { unmount } = await setupWidgetWithListener();
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'popstate',
+      expect.any(Function)
+    );
+
+    removeEventListenerSpy.mockRestore();
+  });
 });
