@@ -2,8 +2,19 @@
 
 `use_query_params` is a hook that returns all URL query parameters as a dictionary. Keys are parameter names and values are `list[str]`.
 
-> [!WARNING]
-> Deephaven internally uses query parameters to manage state. It's strongly recommended to namespace your application's parameters with a prefix such as `app-` to avoid conflicts (e.g., `?app-sym=DOG`).
+> [!NOTE]
+> Deephaven and all custom components share query parameters. Avoid using query parameters in shared components to prevent conflicts. Deephaven reserves the following parameters for internal use:
+>
+> - `envoyPrefix`
+> - `authProvider`
+> - `name`
+> - `psk`
+> - `theme`
+> - `preloadTransparentTheme`
+> - `isSamlRedirect`
+> - `algorithm`
+> - `encodedStr`
+> - Any parameter starting with `_` or `dh`
 
 ## Example
 
@@ -21,10 +32,10 @@ VALID_SIDES = {"buy", "sell"}
 def filter_app():
     # Get all query parameters as a dictionary
     params = ui.use_query_params()
-    # Get the "app-side" as a string
-    side = params.get("app-side", [""])[0]
-    # Get the "app-sym" as a list of strings
-    syms = params.get("app-sym", [])
+    # Get the "side" as a string
+    side = params.get("side", [""])[0]
+    # Get the "sym" as a list of strings
+    syms = params.get("sym", [])
 
     # Validate parameters before use as they can be manipulated by the user
     validated_side = side if side in VALID_SIDES else None
@@ -42,7 +53,7 @@ def filter_app():
 app = filter_app()
 ```
 
-Navigating to a URL with a query string such as `?app-sym=DOG&app-side=buy&app-side=sell` will display the table pre-filtered to only show rows where `Sym` is `DOG` and `Side` is either `buy` or `sell`.
+Navigating to a URL with a query string such as `?sym=DOG&sym=CAT&side=buy` will display the table pre-filtered to only show rows where `Sym` is `DOG` or `CAT` and `Side` is `buy`.
 
 ## Recommendations
 

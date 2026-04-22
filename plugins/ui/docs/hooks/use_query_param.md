@@ -2,8 +2,19 @@
 
 `use_query_param` is a hook that returns the value of a single URL query parameter. The return type depends on the `default` argument. If `default` is not provided, the return type is `str | None`, where `None` indicates that the parameter is not present in the URL. If `default` is a list of strings, the return type is `list[str]`, where an empty list indicates that the parameter is not present.
 
-> [!WARNING]
-> Deephaven internally uses query parameters to manage state. It's strongly recommended to namespace your application's parameters with a prefix such as `app-` to avoid conflicts (e.g., `?app-sym=DOG`).
+> [!NOTE]
+> Deephaven and all custom components share query parameters. Avoid using query parameters in shared components to prevent conflicts. Deephaven reserves the following parameters for internal use:
+>
+> - `envoyPrefix`
+> - `authProvider`
+> - `name`
+> - `psk`
+> - `theme`
+> - `preloadTransparentTheme`
+> - `isSamlRedirect`
+> - `algorithm`
+> - `encodedStr`
+> - Any parameter starting with `_` or `dh`
 
 ## Example
 
@@ -15,16 +26,16 @@ import deephaven.plot.express as dx
 _stocks = dx.data.stocks()
 
 
-# Valid values for the "app-side" parameter
+# Valid values for the "side" parameter
 VALID_SIDES = {"buy", "sell"}
 
 
 @ui.component
 def filter_app():
-    # Get the "app-side" parameter as a string
-    side = ui.use_query_param("app-side")
-    # Get the "app-sym" parameter as a list of strings
-    syms = ui.use_query_param("app-sym", [])
+    # Get the "side" parameter as a string
+    side = ui.use_query_param("side")
+    # Get the "sym" parameter as a list of strings
+    syms = ui.use_query_param("sym", [])
 
     # Validate parameters before use as they can be manipulated by the user
     validated_side = side if side in VALID_SIDES else None
@@ -42,7 +53,7 @@ def filter_app():
 app = filter_app()
 ```
 
-Navigating to a URL with a query string such as `?app-sym=DOG&app-sym=CAT&app-side=buy` will display the table pre-filtered to only show rows where `Sym` is `DOG` or `CAT` and `Side` is `buy`.
+Navigating to a URL with a query string such as `?sym=DOG&sym=CAT&side=buy` will display the table pre-filtered to only show rows where `Sym` is `DOG` or `CAT` and `Side` is `buy`.
 
 ## Recommendations
 

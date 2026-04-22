@@ -1,35 +1,11 @@
 from __future__ import annotations
 from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
-from typing import Callable, Dict, Any, List
+from typing import Dict, Any
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
+from .test_utils_root import TestRoot
 
 run_on_change: OnChangeCallable = lambda x: x()
-
-
-class _TestRoot:
-    """Minimal RootRenderContextProtocol implementation for tests."""
-
-    def __init__(
-        self,
-        on_change: OnChangeCallable = run_on_change,
-        on_queue_render: OnChangeCallable = run_on_change,
-    ):
-        self._on_change = on_change
-        self._on_queue_render = on_queue_render
-        self._query_params: Dict[str, List[str]] = {}
-
-    def on_change(self, update: Callable[[], None]) -> None:
-        self._on_change(update)
-
-    def on_queue_render(self, update: Callable[[], None]) -> None:
-        self._on_queue_render(update)
-
-    def get_query_params(self) -> Dict[str, List[str]]:
-        return self._query_params
-
-    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
-        self._query_params = query_params
 
 
 def make_render_context(
@@ -38,7 +14,7 @@ def make_render_context(
 ) -> RenderContext:
     from deephaven.ui._internal.RenderContext import RenderContext
 
-    return RenderContext(_TestRoot(on_change, on_queue))
+    return RenderContext(TestRoot(on_change, on_queue))
 
 
 class RenderTestCase(BaseTestCase):

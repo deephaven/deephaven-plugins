@@ -1,6 +1,8 @@
 from __future__ import annotations
 from queue import Queue
-from typing import Any, Callable, Dict, List, TypedDict, Union
+from typing import Any, Callable, TypedDict, Union
+
+from ..test_utils_root import TestRoot
 
 
 class RenderHookResult(TypedDict):
@@ -8,26 +10,6 @@ class RenderHookResult(TypedDict):
     result: Any
     rerender: Callable[..., Any]
     unmount: Callable[[], None]
-
-
-class _TestRoot:
-    """Minimal RootRenderContextProtocol implementation for tests."""
-
-    def __init__(self, queue: Queue[Any]):
-        self._queue = queue
-        self._query_params: Dict[str, List[str]] = {}
-
-    def on_change(self, update: Callable[[], None]) -> None:
-        self._queue.put(update)
-
-    def on_queue_render(self, update: Callable[[], None]) -> None:
-        self._queue.put(update)
-
-    def get_query_params(self) -> Dict[str, List[str]]:
-        return self._query_params
-
-    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
-        self._query_params = query_params
 
 
 def render_hook(
@@ -55,7 +37,7 @@ def render_hook(
     if queue is None:
         queue = Queue()
 
-    context = RenderContext(_TestRoot(queue))
+    context = RenderContext(TestRoot(queue.put, queue.put))
 
     def _rerender(*args: Any, **kwargs: Any) -> Any:
         while not queue.empty():
