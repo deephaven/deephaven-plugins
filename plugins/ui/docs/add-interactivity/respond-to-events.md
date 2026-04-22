@@ -76,8 +76,8 @@ In the second example, the `()` at the end of `handle_press()` fires the functio
 
 When you write code inline, the same pitfall presents itself in a different way:
 
-| Passing a function (correct)                 | Calling a function (incorrect)                            |
-| -------------------------------------------- | --------------------------------------------------------- |
+| Passing a function (correct)                 | Calling a function (incorrect)              |
+| -------------------------------------------- | ------------------------------------------- |
 | `ui.button(on_press=lambda: print("click"))` | `ui.button("Click me", on_press=print("click"))` |
 
 The first example uses lambda to create an anonymous function that is called every time the button is clicked.
