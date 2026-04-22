@@ -16,4 +16,6 @@ file_9=ui_grid.py
 file_10=ui_plotly.py
 file_11=ag_grid.py
 file_12=theme_demo.py
-file_13=ui_query_params.py
+file_13=ui_nested_dashboard.py
+file_14=ui_query_params.py
+

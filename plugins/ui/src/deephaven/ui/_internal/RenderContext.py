@@ -108,7 +108,7 @@ def _value_or_call(
     return ValueWithLiveness(value=value, liveness_scope=None)
 
 
-def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
+def _should_retain_value(value: ValueWithLiveness[Any]) -> bool:
     """
     Determine if the given value should be retained by the current context.
 

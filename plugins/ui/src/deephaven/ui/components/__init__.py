@@ -72,7 +72,7 @@ from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
-from .table import table, TableAgg, TableDatabar, TableFormat
+from .table import table, TableAgg, TableDatabar, TableFormat, TableHeatmap
 from .tabs import tabs
 from .tag_group import tag_group
 from .text import text
@@ -161,6 +161,7 @@ __all__ = [
     "TableAgg",
     "TableDatabar",
     "TableFormat",
+    "TableHeatmap",
     "tab_list",
     "tab_panels",
     "tabs",

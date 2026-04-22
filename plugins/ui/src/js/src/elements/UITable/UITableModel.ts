@@ -20,14 +20,25 @@ import {
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { ensureArray } from '@deephaven/utils';
-import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
+import type {
+  ColorGradient,
+  FormattingRule,
+  HeatmapConfig,
+} from './UITableUtils';
+import {
+  DATABAR_MIN_SUFFIX,
+  DATABAR_MAX_SUFFIX,
+  HEATMAP_MIN_SUFFIX,
+  HEATMAP_MAX_SUFFIX,
+} from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
+import { resolveNamedScale } from './ColorScales';
+import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
 
 /**
  * Create a UITableModel.
  * @param dh The JS API object
  * @param baseTable The base table to create the UI table model from.
- * @param databars Databar configurations
  * @param layoutHints Layout hints for the table
  * @param format Format rules for the table
  * @param displayNameMap Column display name mappings
@@ -36,7 +47,6 @@ import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 export async function makeUiTableModel(
   dh: typeof DhType,
   baseTableProp: DhType.Table,
-  databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
@@ -67,36 +77,138 @@ export async function makeUiTableModel(
     });
   }
 
-  const joinColumns: string[] = [];
+  const pendingJoins: Array<{
+    lhs: string;
+    source: string;
+    agg: 'Min' | 'Max';
+  }> = [];
+
+  format.forEach(rule => {
+    const { cols, mode } = rule;
+    if (mode?.type !== 'dataBar' || cols == null) {
+      return;
+    }
+    const columns: ColumnName[] = ensureArray(cols);
+    columns.forEach(column => {
+      const { value_column: valueColumn = column, min, max } = mode;
+
+      try {
+        baseTable.findColumn(column);
+      } catch {
+        throw new Error(`Can't find databar column ${column}`);
+      }
+
+      try {
+        baseTable.findColumn(valueColumn);
+      } catch {
+        throw new Error(`Can't find databar value column ${valueColumn}`);
+      }
+
+      if (min == null) {
+        pendingJoins.push({
+          lhs: `${valueColumn}${DATABAR_MIN_SUFFIX}`,
+          source: valueColumn,
+          agg: 'Min',
+        });
+      }
+      if (max == null) {
+        pendingJoins.push({
+          lhs: `${valueColumn}${DATABAR_MAX_SUFFIX}`,
+          source: valueColumn,
+          agg: 'Max',
+        });
+      }
+    });
+  });
+
+  format.forEach(rule => {
+    const { cols } = rule;
+    if (cols == null) {
+      return;
+    }
+
+    [rule.color, rule.background_color].forEach(config => {
+      if (
+        config == null ||
+        typeof config === 'string' ||
+        config.type !== 'heatmap'
+      ) {
+        return;
+      }
+      const { min, max } = config;
+      const columns: ColumnName[] = ensureArray(cols);
+      columns.forEach(column => {
+        try {
+          baseTable.findColumn(column);
+        } catch {
+          throw new Error(`Can't find heatmap column ${column}`);
+        }
+
+        if (typeof min === 'string') {
+          try {
+            baseTable.findColumn(min);
+          } catch {
+            throw new Error(
+              `Can't find heatmap min column ${min} for column ${column}`
+            );
+          }
+        }
+        if (typeof max === 'string') {
+          try {
+            baseTable.findColumn(max);
+          } catch {
+            throw new Error(
+              `Can't find heatmap max column ${max} for column ${column}`
+            );
+          }
+        }
+
+        let minSource: string | null = null;
+        if (min == null) {
+          minSource = column;
+        } else if (typeof min === 'string') {
+          minSource = min;
+        }
+
+        let maxSource: string | null = null;
+        if (max == null) {
+          maxSource = column;
+        } else if (typeof max === 'string') {
+          maxSource = max;
+        }
+
+        if (minSource != null) {
+          pendingJoins.push({
+            lhs: `${column}${HEATMAP_MIN_SUFFIX}`,
+            source: minSource,
+            agg: 'Min',
+          });
+        }
+        if (maxSource != null) {
+          pendingJoins.push({
+            lhs: `${column}${HEATMAP_MAX_SUFFIX}`,
+            source: maxSource,
+            agg: 'Max',
+          });
+        }
+      });
+    });
+  });
+
   const totalsOperationMap: Record<string, string[]> = {};
-  databars.forEach(config => {
-    const { column, value_column: valueColumn = column, min, max } = config;
-
-    try {
-      baseTable.findColumn(column);
-    } catch {
-      throw new Error(`Can't find databar column ${column}`);
+  pendingJoins.forEach(({ source, agg }) => {
+    const existing = totalsOperationMap[source];
+    if (existing == null) {
+      totalsOperationMap[source] = [agg];
+    } else if (!existing.includes(agg)) {
+      existing.push(agg);
     }
+  });
 
-    try {
-      baseTable.findColumn(valueColumn);
-    } catch {
-      throw new Error(`Can't find databar value column ${valueColumn}`);
-    }
-
-    if (min == null && max == null) {
-      totalsOperationMap[valueColumn] = ['Min', 'Max'];
-      joinColumns.push(
-        `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
-        `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
-      );
-    } else if (min == null) {
-      totalsOperationMap[valueColumn] = ['Min'];
-      joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
-    } else if (max == null) {
-      totalsOperationMap[valueColumn] = ['Max'];
-      joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
-    }
+  const joinColumns = pendingJoins.map(({ lhs, source, agg }) => {
+    const needsSuffix = (totalsOperationMap[source]?.length ?? 0) > 1;
+    const rhs = needsSuffix ? `${source}__${agg}` : source;
+    return `${lhs}=${rhs}`;
   });
 
   let table = baseTable;
@@ -130,7 +242,6 @@ export async function makeUiTableModel(
   return new UITableModel({
     dh,
     model: baseModel,
-    databars,
     format,
     displayNameMap,
   });
@@ -168,20 +279,16 @@ class UITableModel extends IrisGridModel {
 
   private displayNameMap: Record<string, string>;
 
-  private databars: Map<ColumnName, DatabarConfig>;
-
   private format: FormattingRule[];
 
   constructor({
     dh,
     model,
-    databars,
     format,
     displayNameMap,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
-    databars: DatabarConfig[];
     format: FormattingRule[];
     displayNameMap: Record<string, string>;
   }) {
@@ -189,11 +296,6 @@ class UITableModel extends IrisGridModel {
 
     this.model = model;
     this.displayNameMap = displayNameMap;
-
-    this.databars = new Map<ColumnName, DatabarConfig>();
-    databars.forEach(databar => {
-      this.databars.set(databar.column, databar);
-    });
 
     this.format = format;
 
@@ -271,16 +373,52 @@ class UITableModel extends IrisGridModel {
     ) {
       return this.model.renderTypeForCell(column, row);
     }
-    const columnName = this.columns[column].name;
-    return this.databars.has(columnName)
-      ? 'dataBar'
-      : this.model.renderTypeForCell(column, row);
+
+    const mode = this.getFormatOptionForCell(column, row, 'mode');
+    if (mode?.type === 'dataBar') {
+      return 'dataBar';
+    }
+
+    return this.model.renderTypeForCell(column, row);
+  }
+
+  private resolveFormatColor(
+    column: ModelIndex,
+    row: ModelIndex,
+    value: string | HeatmapConfig
+  ): string | undefined {
+    if (typeof value !== 'string') {
+      return this.resolveHeatmapColor(column, row, value);
+    }
+    return this.colorMap.get(value) ?? value;
+  }
+
+  /**
+   * Helper to read a numeric value from a row.
+   * This will unwrap the value if it's a numeric wrapper.
+   * Returns undefined when the value hasn't been fetched yet.
+   * @param row The UIRow to get the value from
+   * @param columnName The column name associated with the value
+   * @returns Numeric value for the column, or undefined if not yet fetched
+   */
+  private getNumericValueFromRow(
+    row: UIRow | null,
+    columnName: ColumnName
+  ): number | undefined {
+    if (row == null) {
+      return undefined;
+    }
+    const valueColumnIndex = this.getColumnIndexByName(columnName);
+    const rowDataKey = valueColumnIndex ?? columnName;
+    const value = row.data.get(rowDataKey)?.value as NumericValue | undefined;
+    if (value == null) return undefined;
+    return typeof value === 'number' ? value : value.asNumber();
   }
 
   /**
    * Gets the value as a number for a databar column.
-   * This will unwrap the value if it's a numeric wrapper.
-   * If the value is null, it will default to 0 as this indiates the value has not been fetched.
+   * Validates that the column exists and is a numeric type.
+   * Defaults to 0 when the value hasn't been fetched yet.
    * @param row The UIRow to get the value from
    * @param columnName The column name associated with the value
    * @param valueType The type of value to get. This is used for error messages. E.g. 'minimum' or 'maximum'
@@ -306,13 +444,43 @@ class UITableModel extends IrisGridModel {
         );
       }
 
-      const valueColumnIndex = this.getColumnIndexByName(columnName);
-      const rowDataKey = valueColumnIndex ?? columnName;
-
-      const value = (row.data.get(rowDataKey)?.value ?? 0) as NumericValue;
-      return typeof value === 'number' ? value : value.asNumber();
+      return this.getNumericValueFromRow(row, columnName) ?? 0;
     }
     return 0;
+  }
+
+  /**
+   * Gets the value as a number for a heatmap column.
+   * Validates that the column exists and is a numeric type.
+   * Returns undefined when the row hasn't been fetched yet.
+   * @param row The UIRow to get the value from
+   * @param columnName The column name associated with the value
+   * @param valueType The type of value to get. This is used for error messages. E.g. 'minimum' or 'maximum'
+   * @returns Numeric value for the heatmap column, or undefined if not yet fetched
+   */
+  getHeatmapValueFromRow(
+    row: UIRow | null,
+    columnName: ColumnName,
+    valueType: string
+  ): number | undefined {
+    if (row != null && isIrisGridTableModelTemplate(this.model)) {
+      let column;
+
+      try {
+        column = this.model.table.findColumn(columnName);
+      } catch {
+        throw new Error(`Can't find heatmap ${valueType} column ${columnName}`);
+      }
+
+      if (!TableUtils.isNumberType(column.type)) {
+        throw new Error(
+          `Can't use non-numeric column as heatmap ${valueType}: ${columnName} is of type ${column.type}`
+        );
+      }
+
+      return this.getNumericValueFromRow(row, columnName);
+    }
+    return undefined;
   }
 
   override dataBarOptionsForCell(
@@ -326,16 +494,15 @@ class UITableModel extends IrisGridModel {
 
     const columnName = this.columns[columnIndex].name;
 
-    const config = this.databars.get(columnName);
+    const config = this.getFormatOptionForCell(columnIndex, rowIndex, 'mode');
     if (config == null) {
       throw new Error(`No databar config for column ${columnName}`);
     }
 
     const {
-      column,
-      value_column: valueColumnName = column,
-      min = `${valueColumnName}__DATABAR_Min`,
-      max = `${valueColumnName}__DATABAR_Max`,
+      value_column: valueColumnName = columnName,
+      min = `${valueColumnName}${DATABAR_MIN_SUFFIX}`,
+      max = `${valueColumnName}${DATABAR_MAX_SUFFIX}`,
       axis = 'proportional',
       color: userColor,
       value_placement: valuePlacement = 'beside',
@@ -405,11 +572,34 @@ class UITableModel extends IrisGridModel {
       negativeColor = this.colorMap.get(negativeColor) ?? negativeColor;
     }
 
+    const barColor = value >= 0 ? positiveColor : negativeColor;
+    const hasGradient = Array.isArray(barColor) && barColor.length > 1;
+    const formatTextColor = this.getFormatOptionForCell(
+      columnIndex,
+      rowIndex,
+      'color'
+    );
+
+    let textColor: string;
+    const resolvedTextColor =
+      formatTextColor != null
+        ? this.resolveFormatColor(columnIndex, rowIndex, formatTextColor)
+        : undefined;
+
+    if (resolvedTextColor != null) {
+      textColor = resolvedTextColor;
+    } else if (hasGradient) {
+      textColor = value >= 0 ? barColor[barColor.length - 1] : barColor[0];
+    } else {
+      textColor = Array.isArray(barColor) ? barColor[0] : barColor;
+    }
+
     return {
       columnMin: minRowValue,
       columnMax: maxRowValue,
       axis,
-      color: value >= 0 ? positiveColor : negativeColor,
+      color: barColor,
+      textColor,
       valuePlacement,
       opacity,
       markers,
@@ -514,17 +704,95 @@ class UITableModel extends IrisGridModel {
     );
   }
 
+  /**
+   * Resolve a heatmap config to an interpolated color for a given cell.
+   * Returns undefined when row data hasn't been fetched yet.
+   *
+   * @param column The model column index
+   * @param row The model row index
+   * @param config The HeatmapConfig object
+   * @returns Hex color string, or undefined if row data is not yet available
+   */
+  resolveHeatmapColor(
+    column: ModelIndex,
+    row: ModelIndex,
+    config: HeatmapConfig
+  ): string | undefined {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      throw new Error('Cannot use heatmaps on this table type');
+    }
+
+    const columnName = this.columns[column].name;
+    const rowData = this.model.row(row);
+    const cellValue = this.getHeatmapValueFromRow(rowData, columnName, 'value');
+
+    const {
+      min: configMin,
+      max: configMax,
+      mid: configMid,
+      gradient: configGradient,
+    } = config;
+
+    // When min/max is a number, use it directly.
+    // When null or a string column name, the aggregation block has already computed
+    // the global value into the hidden __HEATMAP_Min/__HEATMAP_Max columns
+    const minValue =
+      typeof configMin === 'number'
+        ? configMin
+        : this.getHeatmapValueFromRow(
+            rowData,
+            `${columnName}${HEATMAP_MIN_SUFFIX}`,
+            'minimum'
+          );
+
+    const maxValue =
+      typeof configMax === 'number'
+        ? configMax
+        : this.getHeatmapValueFromRow(
+            rowData,
+            `${columnName}${HEATMAP_MAX_SUFFIX}`,
+            'maximum'
+          );
+
+    if (cellValue == null || minValue == null || maxValue == null) {
+      return undefined;
+    }
+
+    const gradient =
+      configGradient ?? (configMid != null ? 'diverging' : 'sequential');
+    let hexColors: string[];
+    let positions: number[] | undefined;
+
+    if (typeof gradient === 'string') {
+      hexColors = resolveNamedScale(gradient).colors.map(
+        c => this.colorMap.get(c) ?? c
+      );
+    } else if (gradient.length > 0 && Array.isArray(gradient[0])) {
+      const tuples = gradient as [number, string][];
+      hexColors = tuples.map(([, c]) => this.colorMap.get(c) ?? c);
+      positions = tuples.map(([p]) => p);
+    } else {
+      hexColors = (gradient as string[]).map(c => this.colorMap.get(c) ?? c);
+    }
+
+    return interpolateColor(
+      hexColors,
+      normalizeValue(cellValue, minValue, maxValue, configMid),
+      positions
+    );
+  }
+
   override colorForCell(
     column: ModelIndex,
     row: ModelIndex,
     theme: IrisGridThemeType
   ): GridColor {
     const color = this.getFormatOptionForCell(column, row, 'color');
-    const { colorMap } = this;
 
     // If a color is explicitly set, use it
     if (color != null) {
-      return colorMap.get(color) ?? color;
+      const resolved = this.resolveFormatColor(column, row, color);
+      if (resolved != null) return resolved;
     }
 
     // If there is a background color, use white or black depending on the background color
@@ -535,10 +803,11 @@ class UITableModel extends IrisGridModel {
     );
 
     if (backgroundColor != null) {
-      const isDarkBackground = GridRenderer.getCachedColorIsDark(
-        colorMap.get(backgroundColor) ?? backgroundColor
-      );
-      return isDarkBackground ? theme.white : theme.black;
+      const resolvedBg = this.resolveFormatColor(column, row, backgroundColor);
+      if (resolvedBg != null) {
+        const isDarkBackground = GridRenderer.getCachedColorIsDark(resolvedBg);
+        return isDarkBackground ? theme.white : theme.black;
+      }
     }
 
     return this.model.colorForCell(column, row, theme);
@@ -574,7 +843,8 @@ class UITableModel extends IrisGridModel {
       'background_color'
     );
     if (backgroundColor != null) {
-      return this.colorMap.get(backgroundColor) ?? backgroundColor;
+      const resolved = this.resolveFormatColor(column, row, backgroundColor);
+      if (resolved != null) return resolved;
     }
     return this.model.backgroundColorForCell(column, row, theme);
   }

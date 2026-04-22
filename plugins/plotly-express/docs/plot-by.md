@@ -4,6 +4,9 @@ To plot multiple series from a table into a single chart, use the `by` parameter
 
 Under the hood, the Deephaven query engine performs a `partition_by` table operation on the given grouping column to create each series. This efficient implementation means that plots with multiple groups can easily scale to tens of millions or billions of rows with ease.
 
+> [!WARNING]
+> Each unique value in the `by` column(s) creates a separate series and table subscription. A large number of unique values may degrade performance. See [Limitations](limitations.md#plot-by-performance) for more details.
+
 ## Examples
 
 ### Scatter plot by a categorical variable

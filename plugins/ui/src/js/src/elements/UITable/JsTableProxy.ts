@@ -1,4 +1,10 @@
 import type { dh } from '@deephaven/jsapi-types';
+import {
+  DATABAR_MIN_SUFFIX,
+  DATABAR_MAX_SUFFIX,
+  HEATMAP_MIN_SUFFIX,
+  HEATMAP_MAX_SUFFIX,
+} from './UITableUtils';
 
 export interface UITableLayoutHints {
   frontColumns?: string[];
@@ -23,8 +29,10 @@ interface JsTableProxy extends dh.Table {}
 // @ts-ignore
 class JsTableProxy implements dh.Table {
   static HIDDEN_COLUMN_SUFFIXES = [
-    '__DATABAR_Min',
-    '__DATABAR_Max',
+    DATABAR_MIN_SUFFIX,
+    DATABAR_MAX_SUFFIX,
+    HEATMAP_MIN_SUFFIX,
+    HEATMAP_MAX_SUFFIX,
     '__FORMAT',
   ];
 

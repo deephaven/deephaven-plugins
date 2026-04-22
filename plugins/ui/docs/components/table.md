@@ -194,19 +194,19 @@ t = ui.table(
 
 Table databars provide a visual representation of numeric data directly within table cells, making it easy to compare values at a glance. Databars appear as horizontal bars behind or alongside cell values.
 
-The `column` prop specifies which table column should display the databar. This is the only required property.
-
-> [!WARNING]
-> This API is likely to change in the near future to be part of `ui.TableFormat`.
+To add a databar, set the `mode` of a `ui.TableFormat` to `ui.TableDatabar()`. The `cols` prop specifies which column(s) should display the databar.
 
 ```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = ui.table(dx.data.stocks(), databars=[{"column": "Price"}])
+t = ui.table(
+    dx.data.stocks(),
+    format_=[ui.TableFormat(cols="Price", mode=ui.TableDatabar())],
+)
 ```
 
-##### Value Column
+#### Value Column
 
 The `value_column` prop allows you to use a different column's values for calculating the databar length while displaying the original column's values. This is useful for log-scaled visualizations or when displaying formatted text with calculated bar lengths.
 
@@ -216,11 +216,15 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[{"column": "Sym", "value_column": "Price", "color": "info"}],
+    format_=[
+        ui.TableFormat(
+            cols="Sym", mode=ui.TableDatabar(value_column="Price", color="info")
+        )
+    ],
 )
 ```
 
-##### Scale Configuration
+#### Scale Configuration
 
 The `min` and `max` props control the scaling of databars. These can be set to fixed values or reference other columns for dynamic scaling.
 
@@ -232,18 +236,23 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {"column": "Size", "min": 0, "max": 1000, "color": "positive"},
-        {"column": "Price", "min": 0, "max": "Dollars", "color": "positive"},
+    format_=[
+        ui.TableFormat(
+            cols="Size", mode=ui.TableDatabar(min=0, max=1000, color="positive")
+        ),
+        ui.TableFormat(
+            cols="Price", mode=ui.TableDatabar(min=0, max="Dollars", color="positive")
+        ),
     ],
 )
 ```
 
-##### Axis Configuration
+#### Axis Configuration
 
 The `axis` prop controls how the zero point is positioned within the databar.
 
 Options:
+
 - `"proportional"` (default): relative to the min and max of the values
 - `"middle"`: always centered, regardless of values in column
 - `"directional"`: left-most or right-most, dependent on `direction` prop. The sign of the value is ignored, and the databar will show the magnitude of the value (i.e., -7 and 7 are the same).
@@ -255,22 +264,21 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {
-            "column": "Size",
-        },
-        {"column": "Price", "axis": "middle"},
-        {"column": "Dollars", "axis": "directional"},
+    format_=[
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar()),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(axis="middle")),
+        ui.TableFormat(cols="Dollars", mode=ui.TableDatabar(axis="directional")),
     ],
 )
 ```
 
-##### Direction
+#### Direction
 
 The `direction` prop controls which direction the databar grows from its zero point.
 
 Options:
-- `"LTR"`: (left to right, default) 
+
+- `"LTR"`: (left to right, default)
 - `"RTL"`: (right to left)
 
 ```python
@@ -280,19 +288,20 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {"column": "Size", "direction": "LTR"},
-        {"column": "Price", "direction": "RTL"},
+    format_=[
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar(direction="LTR")),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(direction="RTL")),
     ],
 )
 ```
 
-##### Value Placement
+#### Value Placement
 
 The `value_placement` prop controls how cell values are displayed relative to the databar.
 
 Options:
-- `"beside"` (default): to the right of the databar 
+
+- `"beside"` (default): to the right of the databar
 - `"overlap"`: on top of the databar
 - `"hide"`: not displayed
 
@@ -302,17 +311,15 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {
-            "column": "Size",
-        },
-        {"column": "Price", "value_placement": "overlap"},
-        {"column": "Dollars", "value_placement": "hide"},
+    format_=[
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar()),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(value_placement="overlap")),
+        ui.TableFormat(cols="Dollars", mode=ui.TableDatabar(value_placement="hide")),
     ],
 )
 ```
 
-##### Color
+#### Color
 
 The `color` prop defines the databar's color scheme. Use single colors for uniform appearance or color arrays for gradients.
 
@@ -323,14 +330,16 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {"column": "Size", "color": "info"},
-        {"column": "Price", "color": ["negative", "positive"]},
+    format_=[
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar(color="info")),
+        ui.TableFormat(
+            cols="Price", mode=ui.TableDatabar(color=["negative", "positive"])
+        ),
     ],
 )
 ```
 
-##### Opacity
+#### Opacity
 
 The `opacity` prop controls the transparency of databars, accepting values from 0.0 (fully transparent) to 1.0 (fully opaque).
 
@@ -340,13 +349,13 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {"column": "Size", "color": "info", "opacity": 0.3},
+    format_=[
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar(color="info", opacity=0.3)),
     ],
 )
 ```
 
-##### Markers
+#### Markers
 
 The `markers` prop adds reference lines or thresholds to databars. Each marker requires a `value` (column name or constant) and `color`.
 
@@ -357,15 +366,140 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    databars=[
-        {
-            "column": "Price",
-            "color": "positive",
-            "markers": [
-                {"value": "SPet500", "color": "accent"},
-                {"value": 50, "color": "notice"},
-            ],
-        }
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            mode=ui.TableDatabar(
+                color="positive",
+                markers=[
+                    {"value": "SPet500", "color": "accent"},
+                    {"value": 50, "color": "notice"},
+                ],
+            ),
+        )
+    ],
+)
+```
+
+### Formatting heatmaps
+
+Table heatmaps color cells based on their numeric values, making it easy to identify high and low values at a glance.
+
+To add a heatmap, set the `background_color` of a `ui.TableFormat` to `ui.TableHeatmap()`. The `cols` prop specifies which column(s) should display the heatmap.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update(["x = i", "neg = i - 10"]),
+    format_=[ui.TableFormat(cols="x", background_color=ui.TableHeatmap())],
+)
+```
+
+#### Color Scales
+
+The `gradient` prop defines the heatmap's color scale. You can use a named color scale or provide custom colors.
+
+Available named scales:
+
+- `"sequential"` (default): a theme-aware sequential gradient
+- `"diverging"`: a theme-aware diverging gradient
+- `"viridis"`, `"plasma"`, `"inferno"`, `"magma"`, `"cividis"`: scientific color scales
+
+All named scales have a reversed variant with the suffix `_r` (e.g., `"viridis_r"`, `"sequential_r"`).
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(gradient="viridis")),
+    ],
+)
+```
+
+#### Custom Colors
+
+The `gradient` prop also accepts a list of colors for a custom gradient. Colors are evenly spaced across the range by default. For explicit positioning, use a list of `(position, color)` tuples where position is a value between 0 and 1.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
+            ),
+        ),
+    ],
+)
+```
+
+The following example uses positioned stops to create a gradient that transitions quickly from green to white near the bottom of the range, then gradually from white to red across the rest.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+            ),
+        ),
+    ],
+)
+```
+
+#### Diverging Scales
+
+The `mid` prop sets a midpoint for diverging color scales, creating a symmetric gradient around the midpoint value. This is useful for data with a meaningful center. When `mid` is set and no `gradient` is provided, the `"diverging"` color scale is applied by default.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("neg = i - 10"),
+    format_=[
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
+    ],
+)
+```
+
+#### Scale Range
+
+The `min` and `max` props control the range of the heatmap. These can be set to fixed numeric values or a column name to use that column's global minimum or maximum. Values outside the range are clamped to the nearest endpoint color.
+
+By default these props will use the min and max of the values in the column.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap(min=5, max=15)),
+    ],
+)
+```
+
+#### Text Color
+
+Heatmaps can also be applied to text color by setting the `color` prop to `ui.TableHeatmap()` instead of `background_color`.
+
+```python
+from deephaven import ui, empty_table
+
+t = ui.table(
+    empty_table(20).update("x = i"),
+    format_=[
+        ui.TableFormat(cols="x", color=ui.TableHeatmap(gradient="viridis")),
     ],
 )
 ```
@@ -695,4 +829,16 @@ t = ui.table(dx.data.stocks(), reverse=True)
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.TableFormat
+```
+
+### TableDatabar
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableDatabar
+```
+
+### TableHeatmap
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableHeatmap
 ```

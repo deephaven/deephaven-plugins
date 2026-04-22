@@ -41,7 +41,8 @@ export type RowDataMap = Record<ColumnName, RowDataValue>;
 export type ColorGradient = string[];
 
 export type DatabarConfig = {
-  column: ColumnName;
+  type: 'dataBar';
+  column?: ColumnName;
   value_column?: ColumnName;
   min?: number | ColumnName;
   max?: number | ColumnName;
@@ -56,11 +57,26 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
+export type ColorStop = [number, string];
+
+export const DATABAR_MIN_SUFFIX = '__DATABAR_Min';
+export const DATABAR_MAX_SUFFIX = '__DATABAR_Max';
+export const HEATMAP_MIN_SUFFIX = '__HEATMAP_Min';
+export const HEATMAP_MAX_SUFFIX = '__HEATMAP_Max';
+
+export type HeatmapConfig = {
+  type: 'heatmap';
+  min?: number | ColumnName;
+  max?: number | ColumnName;
+  mid?: number;
+  gradient?: string | string[] | ColorStop[];
+};
+
 export type FormattingRule = {
   cols?: ColumnName | ColumnName[];
   if_?: string;
-  color?: string;
-  background_color?: string;
+  color?: string | HeatmapConfig;
+  background_color?: string | HeatmapConfig;
   alignment?: 'left' | 'center' | 'right';
   value?: string;
   mode?: DatabarConfig;
@@ -100,7 +116,6 @@ export type UITableProps = StyleProps & {
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  databars?: DatabarConfig[];
   [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 

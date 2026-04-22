@@ -81,6 +81,48 @@ def toggle_table_component():
         lambda: _stocks.update("SymColor=Sym==`FISH` ? `positive` : `salmon`"),
         [],
     )
+
+    databar_formats = [
+        ui.TableFormat(cols="Random", mode=ui.TableDatabar(value_placement="hide")),
+        ui.TableFormat(
+            cols="SPet500",
+            mode=ui.TableDatabar(color="info", value_placement="overlap"),
+        ),
+        ui.TableFormat(
+            cols="Size",
+            mode=ui.TableDatabar(
+                max=1000, direction="RTL", color=["notice", "positive"]
+            ),
+        ),
+        ui.TableFormat(
+            cols="Sym",
+            mode=ui.TableDatabar(
+                value_column="Price", color=["magenta-200", "magenta-800"]
+            ),
+        ),
+    ]
+
+    style_formats = [
+        ui.TableFormat(value="0.00%"),
+        ui.TableFormat(cols="Timestamp", value="E, dd MMM yyyy HH:mm:ss z"),
+        ui.TableFormat(cols="Size", color="info", if_="Size < 10"),
+        ui.TableFormat(cols="Size", color="notice", if_="Size > 100"),
+        ui.TableFormat(cols=["Sym", "Exchange"], alignment="center"),
+        ui.TableFormat(
+            cols=["Sym", "Exchange"],
+            background_color="negative",
+            if_="Sym=`CAT`",
+        ),
+        ui.TableFormat(if_="Sym=`DOG`", color="oklab(0.6 -0.3 -0.25)"),
+        ui.TableFormat(cols="Sym", color="SymColor"),
+    ]
+
+    format_rules = []
+    if with_format:
+        format_rules.extend(style_formats)
+    if with_databars:
+        format_rules.extend(databar_formats)
+
     return [
         ui.flex(
             ui.button(
@@ -100,49 +142,9 @@ def toggle_table_component():
         ui.table(
             t,
             hidden_columns=["SymColor"],
-            format_=(
-                [
-                    ui.TableFormat(value="0.00%"),
-                    ui.TableFormat(cols="Timestamp", value="E, dd MMM yyyy HH:mm:ss z"),
-                    ui.TableFormat(cols="Size", color="info", if_="Size < 10"),
-                    ui.TableFormat(cols="Size", color="notice", if_="Size > 100"),
-                    ui.TableFormat(cols=["Sym", "Exchange"], alignment="center"),
-                    ui.TableFormat(
-                        cols=["Sym", "Exchange"],
-                        background_color="negative",
-                        if_="Sym=`CAT`",
-                    ),
-                    ui.TableFormat(if_="Sym=`DOG`", color="oklab(0.6 -0.3 -0.25)"),
-                    ui.TableFormat(cols="Sym", color="SymColor"),
-                ]
-                if with_format
-                else None
-            ),
+            format_=format_rules if format_rules else None,
             column_display_names=(
                 {item: item.lower() for item in t.column_names} if with_lower else None
-            ),
-            databars=(
-                [
-                    {"column": "Random", "value_placement": "hide"},
-                    {
-                        "column": "SPet500",
-                        "color": "info",
-                        "value_placement": "overlap",
-                    },
-                    {
-                        "column": "Size",
-                        "max": 1000,
-                        "direction": "RTL",
-                        "color": ["notice", "positive"],
-                    },
-                    {
-                        "column": "Sym",
-                        "value_column": "Price",
-                        "color": ["magenta-200", "magenta-800"],
-                    },
-                ]
-                if with_databars
-                else None
             ),
         ),
     ]
@@ -199,3 +201,209 @@ def t_selection_component():
 
 
 t_selection = t_selection_component()
+
+t_databar_basic = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="positive")),
+    ],
+)
+
+t_databar_multi_cols = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols=["Price", "Size"],
+            mode=ui.TableDatabar(color="info", value_placement="beside"),
+        ),
+    ],
+)
+
+t_databar_full_options = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(
+                min=-2,
+                max=2,
+                axis="middle",
+                direction="LTR",
+                value_placement="beside",
+                color={"positive": "positive", "negative": "negative"},
+                opacity=0.5,
+                markers=[{"value": 1, "color": "info"}],
+            ),
+        ),
+    ],
+)
+
+t_databar_conditional = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size",
+            if_="Size > 50",
+            mode=ui.TableDatabar(color="positive", max=1000),
+        ),
+    ],
+)
+
+t_databar_priority = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            mode=ui.TableDatabar(color="info"),
+        ),
+        ui.TableFormat(
+            cols="Price",
+            if_="Index > 10",
+            mode=ui.TableDatabar(color="positive"),
+        ),
+        ui.TableFormat(
+            cols="Price",
+            if_="Index < 5",
+            mode=ui.TableDatabar(color="negative"),
+        ),
+    ],
+)
+
+t_databar_mixed = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Sym", background_color="lemonchiffon"),
+        ui.TableFormat(cols="Price", mode=ui.TableDatabar(color="info")),
+        ui.TableFormat(cols="Size", if_="Size > 100", color="positive"),
+        ui.TableFormat(cols="Size", mode=ui.TableDatabar(color="salmon", opacity=0.5)),
+    ],
+)
+
+t_databar_gradient = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            mode=ui.TableDatabar(color=["blue-400", "purple-800"]),
+        ),
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(
+                color={
+                    "positive": ["green-400", "green-800"],
+                    "negative": ["red-400", "red-800"],
+                },
+                axis="middle",
+            ),
+        ),
+    ],
+)
+
+t_databar_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size", color="red", mode=ui.TableDatabar(color="purple-800")
+        ),
+    ],
+)
+
+t_databar_gradient_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Size",
+            color="orange",
+            mode=ui.TableDatabar(color=["negative", "positive"]),
+        ),
+    ],
+)
+
+t_databar_pos_neg_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Random", color="info", mode=ui.TableDatabar()),
+    ],
+)
+
+_heatmap_t = empty_table(20).update(["x = i", "neg = i - 10"])
+
+t_heatmap_basic = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(cols="x", background_color=ui.TableHeatmap()),
+    ],
+)
+
+t_heatmap_diverging = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(cols="neg", background_color=ui.TableHeatmap(mid=0)),
+    ],
+)
+
+t_heatmap_multistop = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=["blue-600", "cyan-300", "yellow-300", "red-600"]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_positioned_stops = ui.table(
+    _heatmap_t,
+    format_=[
+        ui.TableFormat(
+            cols="x",
+            background_color=ui.TableHeatmap(
+                gradient=[(0, "green-600"), (0.2, "white"), (1, "red-600")]
+            ),
+        ),
+    ],
+)
+
+t_heatmap_text_color = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(cols="Random", color=ui.TableHeatmap(gradient="viridis")),
+    ],
+)
+
+t_heatmap_both = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            color=ui.TableHeatmap(gradient=["white", "black"]),
+            background_color=ui.TableHeatmap(gradient="inferno"),
+        ),
+    ],
+)
+
+t_heatmap_databar_overlay = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price",
+            background_color=ui.TableHeatmap(gradient="magma"),
+            mode=ui.TableDatabar(color="white"),
+        ),
+    ],
+)
+
+t_heatmap_databar_mixed = ui.table(
+    _stocks,
+    format_=[
+        ui.TableFormat(
+            cols="Price", background_color=ui.TableHeatmap(gradient="cividis")
+        ),
+        ui.TableFormat(
+            cols="Random",
+            mode=ui.TableDatabar(color="info", axis="middle"),
+        ),
+    ],
+)

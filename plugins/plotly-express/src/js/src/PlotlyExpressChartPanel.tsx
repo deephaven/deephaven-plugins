@@ -27,7 +27,7 @@ export function PlotlyExpressChartPanel(
   return (
     <ChartPanel
       // eslint-disable-next-line react/jsx-props-no-spreading
-      {...(rest as ChartPanelProps)}
+      {...(rest as unknown as ChartPanelProps)}
       containerRef={setContainer}
       makeModel={makeModel}
       // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/72099

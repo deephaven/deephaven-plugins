@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Any, Optional
 import logging
 from deephaven.table import Table
@@ -64,6 +64,7 @@ class TableFormat:
 
     Args:
         cols: The columns to format. If None, the format will apply to the entire row.
+            Required when using mode=TableDatabar()
         if_: Deephaven expression to filter which rows should be formatted. Must resolve to a boolean.
         color: The font color.
         background_color: The cell background color.
@@ -78,11 +79,37 @@ class TableFormat:
 
     cols: ColumnName | list[ColumnName] | None = None
     if_: str | None = None
-    color: Color | None = None
-    background_color: Color | None = None
+    color: Color | TableHeatmap | None = None
+    background_color: Color | TableHeatmap | None = None
     alignment: Literal["left", "center", "right"] | None = None
     value: str | None = None
     mode: TableDatabar | None = None
+
+
+@dataclass
+class TableHeatmap:
+    """
+    A heatmap configuration for a table.
+
+    Args:
+        min: Minimum value for the heatmap range. Defaults to the column minimum.
+        max: Maximum value for the heatmap range. Defaults to the column maximum.
+        mid: Midpoint data value for diverging color scales.
+            Defaults to None (sequential scale, no midpoint).
+        gradient: Color scale for the gradient. Accepts:
+            A string for a predefined scale
+            A list of colors
+            A list of (position, color) tuples for explicit stops
+            Defaults to a sequential gradient (or diverging if mid is set).
+    Returns:
+        The TableHeatmap configuration.
+    """
+
+    type: str = field(default="heatmap", init=False)
+    min: ColumnName | float | None = None
+    max: ColumnName | float | None = None
+    mid: float | None = None
+    gradient: str | list[Color] | list[tuple[float, Color]] | None = None
 
 
 @dataclass
@@ -91,7 +118,6 @@ class TableDatabar:
     A databar configuration for a table.
 
     Args:
-        column: Name of the column to display as a databar.
         value_column: Name of the column to use as the value for the databar.
             If not provided, the databar will use the column value.
 
@@ -101,28 +127,70 @@ class TableDatabar:
         min: Minimum value for the databar. Defaults to the minimum value in the column.
 
             If a column name is provided, the minimum value will be the value in that column.
-            If a constant is providded, the minimum value will be that constant.
+            If a constant is provided, the minimum value will be that constant.
         max: Maximum value for the databar. Defaults to the maximum value in the column.
 
             If a column name is provided, the maximum value will be the value in that column.
-            If a constant is providded, the maximum value will be that constant.
+            If a constant is provided, the maximum value will be that constant.
         axis: Whether the databar 0 value should be proportional to the min and max values,
             in the middle of the cell, or on one side of the databar based on direction.
         direction: The direction of the databar.
         value_placement: Placement of the value relative to the databar.
-        color: The color of the databar.
+        color: The color of the databar. Can be a single color string,
+            a list of color strings for a gradient, or a dictionary with
+            "positive" and/or "negative" keys mapping to a color or gradient.
         opacity: The opacity of the databar.
+        markers: List of marker lines to display on the databar.
+    Returns:
+        The TableDatabar.
     """
 
-    column: ColumnName
+    type: str = field(default="dataBar", init=False)
     value_column: ColumnName | None = None
     min: ColumnName | float | None = None
     max: ColumnName | float | None = None
     axis: Literal["proportional", "middle", "directional"] | None = None
     direction: Literal["LTR", "RTL"] | None = None
     value_placement: Literal["beside", "overlap", "hide"] | None = None
-    color: Color | None = None
+    color: Color | list[Color] | dict[str, Color | list[Color]] | None = None
     opacity: float | None = None
+    markers: list[dict[str, Any]] | None = None
+
+
+def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
+    """Validate format rules for the table.
+
+    Args:
+        format_: A formatting rule or list of formatting rules to validate.
+
+    Raises:
+        ValueError: If a format rule has a mode but no cols.
+        ValueError: If a format rule has a heatmap but no cols.
+        ValueError: If a heatmap gradient has fewer than 2 colors.
+    """
+    format_list = format_ if isinstance(format_, list) else [format_]
+    for f in format_list:
+        if f.mode is not None and f.cols is None:
+            raise ValueError("TableFormat with mode requires cols to be specified.")
+
+        if isinstance(f.color, TableHeatmap):
+            if f.cols is None:
+                raise ValueError(
+                    "TableFormat with TableHeatmap requires cols to be specified."
+                )
+            if isinstance(f.color.gradient, list) and len(f.color.gradient) < 2:
+                raise ValueError("TableHeatmap gradient must have at least 2 colors.")
+
+        if isinstance(f.background_color, TableHeatmap):
+            if f.cols is None:
+                raise ValueError(
+                    "TableFormat with TableHeatmap requires cols to be specified."
+                )
+            if (
+                isinstance(f.background_color.gradient, list)
+                and len(f.background_color.gradient) < 2
+            ):
+                raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
 
 class table(Element):
@@ -177,7 +245,6 @@ class table(Element):
         context_header_menu: The context menu items to show when a column header is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the column header data and returns the context menu items or None.
-        databars: Databars are experimental and will be moved to column_formatting in the future.
         key: A unique identifier used by React to render elements in a list.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
@@ -256,7 +323,6 @@ class table(Element):
         context_header_menu: (
             ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
         ) = None,
-        databars: list[TableDatabar] | None = None,
         key: str | None = None,
         flex: LayoutFlex | None = None,
         flex_grow: float | None = None,
@@ -294,12 +360,17 @@ class table(Element):
         right: DimensionValue | None = None,
         z_index: int | None = None,
     ) -> None:
+        # Keep this as the first line to prevent local vars from being captured as props
+        props = locals()
+
         if on_selection_change is not None and always_fetch_columns is None:
             raise ValueError(
                 "ui.table on_selection_change requires always_fetch_columns to be set"
             )
 
-        props = locals()
+        if format_ is not None:
+            _validate_table_format(format_)
+
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]
         self._props = props
