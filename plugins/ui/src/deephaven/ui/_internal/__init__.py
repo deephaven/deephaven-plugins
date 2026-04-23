@@ -5,6 +5,7 @@ from .EventContext import (
 )
 from .RenderContext import (
     RenderContext,
+    RootRenderContextProtocol,
     StateKey,
     StateUpdateCallable,
     OnChangeCallable,
@@ -25,4 +26,8 @@ from .utils import (
     dict_to_react_props,
     remove_empty_keys,
     wrap_callable,
+)
+from .RootRenderContextProtocol import (
+    RootRenderContextProtocol,
+    StateUpdateCallable,
 )

@@ -1,8 +1,29 @@
 from __future__ import annotations
 
 from unittest.mock import Mock
-from typing import Any
+from typing import Any, Callable, Dict, List
 from .BaseTest import BaseTestCase
+
+
+class _TestRoot:
+    """Minimal RootRenderContextProtocol implementation for tests."""
+
+    def __init__(self, on_change_fn, on_queue_fn):
+        self._on_change = on_change_fn
+        self._on_queue_render_fn = on_queue_fn
+        self._query_params: Dict[str, List[str]] = {}
+
+    def on_change(self, update: Callable[[], None]) -> None:
+        self._on_change(update)
+
+    def on_queue_render(self, update: Callable[[], None]) -> None:
+        self._on_queue_render_fn(update)
+
+    def get_query_params(self) -> Dict[str, List[str]]:
+        return self._query_params
+
+    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
+        self._query_params = query_params
 
 
 class UITableTestCase(BaseTestCase):
@@ -16,7 +37,7 @@ class UITableTestCase(BaseTestCase):
 
         on_change = Mock()
         on_queue = Mock()
-        context = RenderContext(on_change, on_queue)
+        context = RenderContext(_TestRoot(on_change, on_queue))
         result = ui_table.render(context)
 
         self.assertDictEqual(result, result | expected_props)

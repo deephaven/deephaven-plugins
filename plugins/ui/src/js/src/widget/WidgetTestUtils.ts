@@ -2,7 +2,11 @@ import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
 import { Operation } from 'fast-json-patch';
-import { METHOD_DOCUMENT_PATCHED, WidgetMessageEvent } from './WidgetTypes';
+import {
+  METHOD_DOCUMENT_PATCHED,
+  METHOD_EVENT,
+  WidgetMessageEvent,
+} from './WidgetTypes';
 
 export function makeDocumentPatchedJsonRpc(patch: Operation[] = []): {
   jsonrpc: string;
@@ -77,4 +81,17 @@ export function makeWidget({
     exportedObjects,
     sendMessage,
   });
+}
+
+export function makeWidgetEventMethodEvent(
+  name: string,
+  payload: Record<string, unknown>
+): WidgetMessageEvent {
+  return makeWidgetEvent(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: METHOD_EVENT,
+      params: [name, JSON.stringify(payload)],
+    })
+  );
 }

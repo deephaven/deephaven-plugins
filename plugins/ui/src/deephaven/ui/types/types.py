@@ -605,6 +605,15 @@ class NumberRange(TypedDict):
 
 ToastVariant = Literal["positive", "negative", "neutral", "info"]
 
+QueryParams = Dict[str, List[str]]
+"""
+A type alias for query parameter dictionaries used throughout the routing API.
+
+Keys are parameter names. Values are always ``list[str]`` — even for keys
+that appear only once.  When serialised to a URL, list values repeat the
+key: ``{"tag": ["python", "java"]}`` becomes ``?tag=python&tag=java``.
+"""
+
 
 _DISABLE_NULLISH_CONSTRUCTORS = False
 
