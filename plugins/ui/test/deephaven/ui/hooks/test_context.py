@@ -4,7 +4,7 @@ from deephaven.ui.renderer.Renderer import Renderer
 from deephaven.ui._internal.RenderContext import RenderContext
 from deephaven import ui
 
-run_on_change = lambda x: x()
+from ..test_utils_root import TestRoot
 
 
 class UseContextTestCase(BaseTestCase):
@@ -43,7 +43,7 @@ class UseContextTestCase(BaseTestCase):
         def app():
             return ctx(consumer(), value="provided")
 
-        rc = RenderContext(run_on_change, run_on_change)
+        rc = RenderContext(TestRoot)
         result = Renderer(rc).render(app())
 
         # The text child should have received "provided", not "default"
@@ -69,7 +69,7 @@ class UseContextTestCase(BaseTestCase):
                 consumer(),  # sibling — should see "default"
             ]
 
-        rc = RenderContext(run_on_change, run_on_change)
+        rc = RenderContext(TestRoot)
         result = Renderer(rc).render(app())
 
         children = result.props["children"]
@@ -97,7 +97,7 @@ class UseContextTestCase(BaseTestCase):
         def app():
             return ctx(inner(), value="outer")
 
-        rc = RenderContext(run_on_change, run_on_change)
+        rc = RenderContext(TestRoot)
         result = Renderer(rc).render(app())
 
         # app -> outer provider -> inner() -> inner provider -> consumer() -> text
@@ -124,7 +124,7 @@ class UseContextTestCase(BaseTestCase):
         def app():
             return ctx_a(ctx_b(consumer(), value="b_provided"), value="a_provided")
 
-        rc = RenderContext(run_on_change, run_on_change)
+        rc = RenderContext(TestRoot)
         result = Renderer(rc).render(app())
 
         # app -> provider_a -> provider_b -> consumer -> text
@@ -151,7 +151,7 @@ class UseContextTestCase(BaseTestCase):
                 value="outer",
             )
 
-        rc = RenderContext(run_on_change, run_on_change)
+        rc = RenderContext(TestRoot)
         result = Renderer(rc).render(app())
 
         # app -> outer provider -> [inner provider, after consumer]
