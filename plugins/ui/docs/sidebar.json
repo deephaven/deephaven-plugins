@@ -440,6 +440,10 @@
                 "path": "hooks/use_column_data.md"
               },
               {
+                "label": "use_context",
+                "path": "hooks/use_context.md"
+              },
+              {
                 "label": "use_effect",
                 "path": "hooks/use_effect.md"
               },
