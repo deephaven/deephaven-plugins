@@ -111,13 +111,30 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combine a filter and a partition by
 
-Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
+Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. Filtering first is more like a traditional "one-click" component and may return results faster, whereas partitioning first is more like a parameterized query and may be more memory efficient.
 
-```python order=wtp,ptf,_stocks
+```python order=ftp,ptf,_stocks
 import deephaven.plot.express as dx
 import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
+
+
+@ui.component
+def filter_then_partition(table, by, initial_value):
+    """
+    Filter the table by the value entered by the user, then implicitly partition it by the second passed column
+    """
+    text, set_text = ui.use_state(initial_value)
+    filtered = ui.use_memo(
+        lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
+    )
+    # Implicitly partitions the table
+    plot = ui.use_memo(
+        lambda: dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
+        [filtered, by],
+    )
+    return [ui.text_field(value=text, on_change=set_text), plot]
 
 
 @ui.component
@@ -131,6 +148,7 @@ def partition_then_filter(table, by, initial_value):
         lambda: partitioned_table.filter(f"{by[0]} = `{text.upper()}`"),
         [text, partitioned_table],
     )
+    # No implicit partitioning because we're passing a partitioned table
     plot = ui.use_memo(
         lambda: dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
         [filtered, by],
@@ -141,25 +159,9 @@ def partition_then_filter(table, by, initial_value):
     ]
 
 
-@ui.component
-def where_then_partition(table, by, initial_value):
-    """
-    Filter the table by the value entered by the user, then re-partition it by the second passed column
-    """
-    text, set_text = ui.use_state(initial_value)
-    filtered = ui.use_memo(
-        lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
-    )
-    plot = ui.use_memo(
-        lambda: dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
-        [filtered, by],
-    )
-    return [ui.text_field(value=text, on_change=set_text), plot]
-
-
 # outputs the same thing, done two different ways depending on how you want the work done
+ftp = filter_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 ptf = partition_then_filter(_stocks, ["Sym", "Exchange"], "DOG")
-wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 ```
 
 ## Change a plot
