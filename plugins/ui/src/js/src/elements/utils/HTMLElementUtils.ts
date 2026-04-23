@@ -1,6 +1,10 @@
-import { ReactHTML } from 'react';
-import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
+import { type ReactHTML } from 'react';
+import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
+import {
+  ELEMENT_KEY,
+  type ElementNodeWithChildren,
+  isElementNode,
+} from './ElementUtils';
 
 /**
  * Describes an HTML element that can be rendered in the UI.
@@ -8,7 +12,7 @@ import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
  * For example, `deephaven.ui.html.div` would be rendered as `<div>`.
  * The props are passed directly to the HTML element as attributes.
  */
-export type HTMLElementNode = ElementNode<ElementPrefix['html']>;
+export type HTMLElementNode = ElementNodeWithChildren<ElementPrefix['html']>;
 
 export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
   return (

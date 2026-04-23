@@ -1,12 +1,12 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react';
-import { useWidget } from '@deephaven/jsapi-bootstrap';
-import { dh } from '@deephaven/jsapi-types';
+import { type useWidget } from '@deephaven/jsapi-bootstrap';
+import { type dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
-import { PluginModuleMap, PluginsContext } from '@deephaven/plugin';
-import { Operation } from 'fast-json-patch';
-import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
-import { DocumentHandlerProps } from './DocumentHandler';
+import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
+import { type Operation } from 'fast-json-patch';
+import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
+import { type DocumentHandlerProps } from './DocumentHandler';
 import {
   makeWidget,
   makeWidgetDescriptor,

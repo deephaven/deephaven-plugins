@@ -1,6 +1,6 @@
 import {
   Form as DHCForm,
-  FormProps as DHCFormProps,
+  type FormProps as DHCFormProps,
 } from '@deephaven/components';
 import { useFormEventCallback } from './hooks/useFormEventCallback';
 

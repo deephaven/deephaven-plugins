@@ -13,19 +13,20 @@ import {
   PanelIdContext,
   useLayoutManager,
   useListener,
+  type PersistentState,
+  PersistentStateProvider,
 } from '@deephaven/dashboard';
 import {
   View,
-  ViewProps,
+  type ViewProps,
   Flex,
-  FlexProps,
+  type FlexProps,
   LoadingOverlay,
 } from '@deephaven/components';
 import Log from '@deephaven/log';
-import { PersistentStateProvider } from '@deephaven/plugin';
 import PortalPanel from './PortalPanel';
-import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
-import { ReactPanelProps } from './LayoutUtils';
+import { type ReactPanelControl, useReactPanel } from './ReactPanelManager';
+import { type ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
@@ -102,7 +103,9 @@ function ReactPanel({
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle = title ?? metadata?.name ?? '';
-  const [initialData, setInitialData] = useState(getInitialData());
+  const [initialData, setInitialData] = useState<PersistentState[]>(
+    getInitialData() as PersistentState[]
+  );
   const onErrorReset = useCallback(() => {
     // Not EMPTY_ARRAY, because we always want to trigger a re-render
     // in case a panel is reloaded and errors again
@@ -145,7 +148,7 @@ function ReactPanel({
   );
 
   const handlePanelClosed = useCallback(
-    closedPanelId => {
+    (closedPanelId: string) => {
       if (closedPanelId === panelId && isPanelOpenRef.current) {
         log.debug('Panel closed', panelId);
         isPanelOpenRef.current = false;

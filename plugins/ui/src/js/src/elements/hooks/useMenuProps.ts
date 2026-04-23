@@ -1,4 +1,4 @@
-import { useCallback, Key } from 'react';
+import { useCallback, type Key } from 'react';
 
 export type Selection = 'all' | Set<Key>;
 

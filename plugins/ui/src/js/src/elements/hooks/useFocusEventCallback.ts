@@ -1,4 +1,4 @@
-import { FocusEvent } from 'react';
+import { type FocusEvent } from 'react';
 import { getTargetName } from '../utils';
 import useConditionalCallback from './useConditionalCallback';
 

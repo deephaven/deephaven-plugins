@@ -1,14 +1,14 @@
 /* eslint class-methods-use-this: "off" */
 import {
-  Grid,
-  GridMouseEvent,
+  type Grid,
+  type GridMouseEvent,
   GridMouseHandler,
-  GridPoint,
-  GridRangeIndex,
-  EventHandlerResult,
+  type GridPoint,
+  type GridRangeIndex,
+  type EventHandlerResult,
   GridUtils,
 } from '@deephaven/grid';
-import { IrisGridType } from '@deephaven/iris-grid';
+import { type IrisGridType } from '@deephaven/iris-grid';
 import { isPivotColumnHeaderGroup } from './PivotColumnHeaderGroup';
 
 /**

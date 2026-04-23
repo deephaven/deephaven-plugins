@@ -1,7 +1,7 @@
 import { usePressEventCallback } from './usePressEventCallback';
 import { useFocusEventCallback } from './useFocusEventCallback';
 import { useKeyboardEventCallback } from './useKeyboardEventCallback';
-import { SerializedButtonEventProps } from '../model/SerializedPropTypes';
+import { type SerializedButtonEventProps } from '../model/SerializedPropTypes';
 import { wrapTextChildren } from '../utils';
 
 // returns SpectrumButtonProps

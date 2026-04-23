@@ -53,7 +53,7 @@ import {
   PivotColumnHeaderGroup,
   isPivotColumnHeaderGroup,
 } from './PivotColumnHeaderGroup';
-import { IrisGridPivotThemeType } from './IrisGridPivotTheme';
+import { type IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
 
@@ -964,6 +964,16 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     this.dispatchEvent(
       new EventShimCustomEvent(IrisGridModel.EVENT.FORMATTER_UPDATED)
     );
+  }
+
+  private _columnAlignmentMap: Map<string, CanvasTextAlign> = new Map();
+
+  get columnAlignmentMap(): ReadonlyMap<string, CanvasTextAlign> {
+    return this._columnAlignmentMap;
+  }
+
+  set columnAlignmentMap(columnAlignmentMap: Map<string, CanvasTextAlign>) {
+    this._columnAlignmentMap = columnAlignmentMap;
   }
 
   displayString(

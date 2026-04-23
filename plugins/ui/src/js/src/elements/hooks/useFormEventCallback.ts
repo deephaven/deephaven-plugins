@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import useConditionalCallback from './useConditionalCallback';
 
 export type SerializedFormEvent = {

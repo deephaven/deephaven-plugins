@@ -1,6 +1,6 @@
 import {
   SearchField as DHCSearchField,
-  SearchFieldProps as DHCSearchFieldProps,
+  type SearchFieldProps as DHCSearchFieldProps,
 } from '@deephaven/components';
 import {
   useConditionalCallback,
@@ -8,7 +8,7 @@ import {
   useKeyboardEventCallback,
 } from './hooks';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
-import { SerializedTextInputEventProps } from './model';
+import { type SerializedTextInputEventProps } from './model';
 
 export function SearchField(
   props: SerializedTextInputEventProps<DHCSearchFieldProps, string> & {

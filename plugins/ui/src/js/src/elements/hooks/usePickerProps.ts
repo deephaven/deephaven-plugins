@@ -1,13 +1,14 @@
-import { ReactElement } from 'react';
-import ObjectView, { ObjectViewProps } from '../ObjectView';
+import { type ReactElement } from 'react';
+import { type ObjectViewProps } from '../ObjectView';
+import type ObjectView from '../ObjectView';
 import {
-  DeserializedFocusEventCallback,
-  SerializedFocusEventCallback,
+  type DeserializedFocusEventCallback,
+  type SerializedFocusEventCallback,
   useFocusEventCallback,
 } from './useFocusEventCallback';
 import {
-  DeserializedKeyboardEventCallback,
-  SerializedKeyboardEventCallback,
+  type DeserializedKeyboardEventCallback,
+  type SerializedKeyboardEventCallback,
   useKeyboardEventCallback,
 } from './useKeyboardEventCallback';
 

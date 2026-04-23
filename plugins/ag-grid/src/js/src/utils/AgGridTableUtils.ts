@@ -2,7 +2,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { ColDef, SideBarDef } from 'ag-grid-community';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
-import { AgGridTableType } from '../types';
+import { type AgGridTableType } from '../types';
 import AgGridFormatter from './AgGridFormatter';
 
 export type SingleRowData = { [columnKey: string]: unknown };

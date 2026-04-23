@@ -1,9 +1,9 @@
 import {
   RangeSlider as DHCRangeSlider,
-  RangeSliderProps as DHCRangeSliderProps,
+  type RangeSliderProps as DHCRangeSliderProps,
 } from '@deephaven/components';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
-import { SerializedInputElementProps } from './model';
+import { type SerializedInputElementProps } from './model';
 
 export type SerializedRangeSliderProps = SerializedInputElementProps<
   DHCRangeSliderProps,

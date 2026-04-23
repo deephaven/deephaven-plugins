@@ -1,4 +1,4 @@
-import { PanelProps } from '@deephaven/dashboard';
+import { type PanelProps } from '@deephaven/dashboard';
 import { useContextOrThrow } from '@deephaven/react-hooks';
 import { createContext, useCallback, useMemo } from 'react';
 

@@ -1,11 +1,11 @@
-import { WidgetDescriptor } from '@deephaven/dashboard';
+import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
-import { Operation } from 'fast-json-patch';
+import { type Operation } from 'fast-json-patch';
 import {
   METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
-  WidgetMessageEvent,
+  type WidgetMessageEvent,
 } from './WidgetTypes';
 
 export function makeDocumentPatchedJsonRpc(patch: Operation[] = []): {

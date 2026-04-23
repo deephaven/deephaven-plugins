@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { dh } from '@deephaven/jsapi-types';
-import { ElementIdProps } from '../layout/LayoutUtils';
+import { type ElementIdProps } from '../layout/LayoutUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 

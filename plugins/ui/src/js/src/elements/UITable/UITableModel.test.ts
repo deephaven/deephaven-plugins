@@ -1,5 +1,5 @@
 import {
-  IrisGridThemeType,
+  type IrisGridThemeType,
   type IrisGridTableModel,
 } from '@deephaven/iris-grid';
 import { GridRenderer } from '@deephaven/grid';

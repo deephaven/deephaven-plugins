@@ -1,5 +1,8 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { GridApi, IViewportDatasourceParams } from 'ag-grid-community';
+import {
+  type GridApi,
+  type IViewportDatasourceParams,
+} from 'ag-grid-community';
 import { DeephavenViewportDatasource } from './DeephavenViewportDatasource';
 
 // Mock the filter utils so we don't need a full Deephaven column/filter chain

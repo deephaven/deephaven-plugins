@@ -21,9 +21,6 @@ runs:
           matplotlib:
             - plugins/matplotlib/**
             - .github/workflows/test-*.yml
-          json:
-            - plugins/json/**
-            - .github/workflows/test-*.yml
           ui:
             - plugins/ui/**
             - .github/workflows/test-*.yml
@@ -36,9 +33,6 @@ runs:
             - .github/workflows/test-*.yml
           ag-grid:
             - plugins/ag-grid/**
-            - .github/workflows/test-*.yml
-          simple-pivot:
-            - plugins/simple-pivot/**
             - .github/workflows/test-*.yml
           theme-pack:
             - plugins/theme-pack/**

@@ -2,16 +2,16 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import {
-  ColumnGroupOpenedEvent,
-  ColumnRowGroupChangedEvent,
-  ColumnValueChangedEvent,
-  FilterChangedEvent,
-  FilterModel,
-  GridApi,
-  IViewportDatasource,
-  IViewportDatasourceParams,
-  SortChangedEvent,
-  SortModelItem,
+  type ColumnGroupOpenedEvent,
+  type ColumnRowGroupChangedEvent,
+  type ColumnValueChangedEvent,
+  type FilterChangedEvent,
+  type FilterModel,
+  type GridApi,
+  type IViewportDatasource,
+  type IViewportDatasourceParams,
+  type SortChangedEvent,
+  type SortModelItem,
 } from 'ag-grid-community';
 import Log from '@deephaven/log';
 import { assertNotNull, Pending } from '@deephaven/utils';

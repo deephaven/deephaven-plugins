@@ -1,9 +1,9 @@
 import React from 'react';
-import { WidgetDescriptor } from '@deephaven/dashboard';
+import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { render } from '@testing-library/react';
-import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
-import { ReactPanelProps } from '../layout/LayoutUtils';
+import DocumentHandler, { type DocumentHandlerProps } from './DocumentHandler';
+import { type ReactPanelProps } from '../layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
 import { ELEMENT_NAME } from '../elements/model/ElementConstants';

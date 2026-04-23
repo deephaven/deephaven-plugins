@@ -1,11 +1,11 @@
 import {
   Disclosure as DHCDisclosure,
-  DisclosureProps as DHCDisclosureProps,
+  type DisclosureProps as DHCDisclosureProps,
   DisclosureTitle as DHCDisclosureTitle,
   DisclosurePanel as DHCDisclosurePanel,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 export type SerializedDisclosureProps = Omit<DHCDisclosureProps, 'children'> & {
   title: ReactNode;

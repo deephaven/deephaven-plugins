@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { DashboardPluginComponentProps } from '@deephaven/dashboard';
+import { type DashboardPluginComponentProps } from '@deephaven/dashboard';
 import PlotlyExpressChartPanel from './PlotlyExpressChartPanel.js';
 
 export function DashboardPlugin(

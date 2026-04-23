@@ -1,11 +1,11 @@
-import { dh as DhType } from '@deephaven/jsapi-types';
+import { type dh as DhType } from '@deephaven/jsapi-types';
 import {
-  FilterModel,
-  TextFilterModel,
-  NumberFilterModel,
-  DateFilterModel,
-  ICombinedSimpleModel,
-  ISimpleFilterModel,
+  type FilterModel,
+  type TextFilterModel,
+  type NumberFilterModel,
+  type DateFilterModel,
+  type ICombinedSimpleModel,
+  type ISimpleFilterModel,
 } from 'ag-grid-community';
 import AgGridFilterUtils from './AgGridFilterUtils';
 

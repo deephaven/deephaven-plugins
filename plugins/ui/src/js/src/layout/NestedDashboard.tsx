@@ -1,8 +1,8 @@
-import React, { PropsWithChildren, useState } from 'react';
+import React, { type PropsWithChildren, useState } from 'react';
 import { Dashboard as DHCDashboard } from '@deephaven/dashboard';
 import { useDashboardPlugins } from '@deephaven/plugin';
 import NestedDashboardContent from './NestedDashboardContent';
-import { ElementIdProps } from './LayoutUtils';
+import { type ElementIdProps } from './LayoutUtils';
 
 type NestedDashboardProps = PropsWithChildren<ElementIdProps>;
 

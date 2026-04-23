@@ -5,8 +5,12 @@ import {
 } from '@deephaven/components';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { TestUtils } from '@deephaven/test-utils';
-import { Grid, type GridMouseEvent, GridPoint } from '@deephaven/grid';
-import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
+import {
+  type Grid,
+  type GridMouseEvent,
+  type GridPoint,
+} from '@deephaven/grid';
+import { type IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import PivotContextMenuHandler from './PivotContextMenuHandler';
 import type IrisGridPivotModel from './IrisGridPivotModel';
 import * as IrisGridPivotModelModule from './IrisGridPivotModel';

@@ -1,4 +1,4 @@
-import { AgGridReactProps } from 'ag-grid-react';
+import { type AgGridReactProps } from 'ag-grid-react';
 import {
   AllCommunityModule,
   ColumnsToolPanelModule,

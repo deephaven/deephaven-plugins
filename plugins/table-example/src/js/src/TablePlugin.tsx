@@ -13,12 +13,12 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@deephaven/components';
-import type { Column } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import type { TablePluginProps } from '@deephaven/plugin';
 
 type IrisGridContextMenuData = {
   value: string;
-  column: Column;
+  column: dh.Column;
   model: unknown;
 };
 

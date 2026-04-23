@@ -1,28 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { nanoid } from 'nanoid';
 import {
-  DashboardPluginComponentProps,
+  type DashboardPluginComponentProps,
   LayoutManagerContext,
   LayoutUtils,
   PanelEvent,
   useListener,
   useDashboardPluginData,
   emitCreateDashboard,
-  WidgetDescriptor,
-  PanelOpenEventDetail,
+  type WidgetDescriptor,
+  type PanelOpenEventDetail,
   DEFAULT_DASHBOARD_ID,
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
-import { dh } from '@deephaven/jsapi-types';
+import { type dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import styles from './styles.scss?inline';
 import {
-  ReadonlyWidgetData,
-  WidgetDataUpdate,
-  WidgetId,
+  type ReadonlyWidgetData,
+  type WidgetDataUpdate,
+  type WidgetId,
 } from './widget/WidgetTypes';
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';

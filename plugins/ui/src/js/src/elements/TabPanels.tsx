@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   TabPanels as DHCTabPanels,
-  TabPanelsProps as DHCTabPanelsProps,
+  type TabPanelsProps as DHCTabPanelsProps,
 } from '@deephaven/components';
 
 export function TabPanels(props: DHCTabPanelsProps<object>): JSX.Element {

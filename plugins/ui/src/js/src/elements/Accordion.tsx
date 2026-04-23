@@ -1,6 +1,6 @@
 import {
   Accordion as DHCAccordion,
-  AccordionProps as DHCAccordionProps,
+  type AccordionProps as DHCAccordionProps,
 } from '@deephaven/components';
 import { useConditionalCallback } from './hooks';
 

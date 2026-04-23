@@ -72,8 +72,6 @@ authors = [
 [packages]
 ag-grid = { path = "plugins/ag-grid", public_api=false }
 auth-keyclock = { path = "plugins/auth-keyclock", public_api=false }
-dashboard-object-viewer = { path = "plugins/dashboard-object-viewer", public_api=false }
-json = { path = "plugins/json", public_api=false }
 matplotlib = { path = "plugins/matplotlib", public_api=false }
 pivot = { path = "plugins/pivot", public_api=false }
 plotly = { path = "plugins/plotly", public_api=false }

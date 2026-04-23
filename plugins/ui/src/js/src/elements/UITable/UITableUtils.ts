@@ -5,10 +5,10 @@ import {
   type DehydratedSort,
   AggregationOperation,
   type IrisGridModel,
-  IrisGridType,
+  type IrisGridType,
 } from '@deephaven/iris-grid';
 import {
-  BoundedGridRange,
+  type BoundedGridRange,
   GridRange,
   isExpandableGridModel,
   type ModelIndex,
@@ -21,7 +21,7 @@ import {
 } from '../utils/ElementUtils';
 import { ELEMENT_NAME, type ElementName } from '../model/ElementConstants';
 import { type ResolvableUIContextItem } from './UITableContextMenuHandler';
-import UriExportedObject from '../../widget/UriExportedObject';
+import type UriExportedObject from '../../widget/UriExportedObject';
 
 export type CellData = {
   type: string;

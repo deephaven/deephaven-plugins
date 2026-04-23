@@ -1,6 +1,6 @@
-import { dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
+import { type dh as DhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { Formatter } from '@deephaven/jsapi-utils';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import { IrisGridModel } from '@deephaven/iris-grid';
 import IrisGridPivotModel from './IrisGridPivotModel';
 import {

@@ -1,4 +1,4 @@
-import { WidgetAction, isWidgetError } from './WidgetTypes';
+import { type WidgetAction, isWidgetError } from './WidgetTypes';
 
 /**
  * Get the name of an error type

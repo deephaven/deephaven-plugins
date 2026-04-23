@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { TimeValue, parseTimeValue } from '../utils/DateTimeUtils';
+import { type TimeValue, parseTimeValue } from '../utils/DateTimeUtils';
 
 /**
  * Use memo to get a TimeValue from a string.

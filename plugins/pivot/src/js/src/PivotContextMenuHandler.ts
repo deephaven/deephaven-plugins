@@ -13,7 +13,7 @@ import {
 } from '@deephaven/grid';
 import {
   IrisGridContextMenuHandler,
-  IrisGridType as IrisGrid,
+  type IrisGridType as IrisGrid,
   SHORTCUTS,
 } from '@deephaven/iris-grid';
 import {

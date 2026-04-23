@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { DateValue } from '@internationalized/date';
+import { type DateValue } from '@internationalized/date';
 import { parseDateValue } from '../utils/DateTimeUtils';
 
 /**

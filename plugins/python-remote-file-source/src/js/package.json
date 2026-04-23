@@ -18,26 +18,27 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@deephaven/tsconfig": "^0.72.0",
-    "@types/react": "^17.0.2",
+    "@deephaven/tsconfig": "^1.1.0",
+    "@types/react": "^18.0.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
-    "@types/react-dom": "^17.0.2",
-    "react": "^17.0.2",
+    "@types/react-dom": "^18.0.0",
+    "react": "^18.0.0",
     "typescript": "^5.9.3",
-    "vite": "^5.4.6"
+    "vite": "^5.4.6",
+    "react-dom": "^18.0.0"
   },
   "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@deephaven/components": "^0.85.0",
-    "@deephaven/dashboard": "^0.85.0",
-    "@deephaven/icons": "^0.85.0",
-    "@deephaven/jsapi-bootstrap": "^0.85.0",
-    "@deephaven/jsapi-types": "1.0.0-dev0.35.2",
-    "@deephaven/log": "^0.85.0",
-    "@deephaven/plugin": "^0.85.0",
+    "@deephaven/components": "^1.17.0",
+    "@deephaven/dashboard": "^1.17.1",
+    "@deephaven/icons": "^1.2.0",
+    "@deephaven/jsapi-bootstrap": "^1.17.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
+    "@deephaven/log": "^1.8.0",
+    "@deephaven/plugin": "^1.18.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "nanoid": "^5.1.5"
   },
