@@ -74,3 +74,19 @@ test('UI table on_selection_change', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(page.getByText('Selection: None')).toBeVisible();
 });
+
+test('UI table with rollup table', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_rollup', REACT_PANEL_VISIBLE);
+
+  const locator = page.locator(REACT_PANEL_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
+});
+
+test('UI table with tree table', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_tree', REACT_PANEL_VISIBLE);
+
+  const locator = page.locator(REACT_PANEL_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
+});

@@ -407,3 +407,23 @@ t_heatmap_databar_mixed = ui.table(
         ),
     ],
 )
+
+from deephaven import agg
+
+_rollup_source = empty_table(100).update(
+    ["Group = (int)(i % 5)", "Subgroup = (int)(i % 3)", "Value = (double)i"]
+)
+_rollup = _rollup_source.rollup(
+    aggs=agg.avg(cols="AvgValue=Value"), by=["Group", "Subgroup"]
+)
+t_rollup = ui.table(_rollup)
+
+_tree_source = empty_table(7).update(
+    [
+        "ID = i",
+        "Parent = i == 0 ? NULL_INT : (int)((i - 1) / 2)",
+        "Value = i * 10",
+    ]
+)
+_tree = _tree_source.tree(id_col="ID", parent_col="Parent")
+t_tree = ui.table(_tree)
