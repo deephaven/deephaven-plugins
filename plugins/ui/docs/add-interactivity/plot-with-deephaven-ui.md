@@ -111,7 +111,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combine a filter and a partition by
 
-Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either partitioning the table first and then filtering it, or just filtering the table. The choice of which to use depends on the size of the table and the number of unique values in the partition key. Partitioning first may be more memory efficient if you're filtering the same table multiple times with different values, whereas just filtering may return results faster for single queries.
+Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
 ```python order=wtp,ptf,_stocks
 import deephaven.plot.express as dx

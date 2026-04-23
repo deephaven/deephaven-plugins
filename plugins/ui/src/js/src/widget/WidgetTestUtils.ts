@@ -4,6 +4,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import { type Operation } from 'fast-json-patch';
 import {
   METHOD_DOCUMENT_PATCHED,
+  METHOD_EVENT,
   type WidgetMessageEvent,
 } from './WidgetTypes';
 
@@ -80,4 +81,17 @@ export function makeWidget({
     exportedObjects,
     sendMessage,
   });
+}
+
+export function makeWidgetEventMethodEvent(
+  name: string,
+  payload: Record<string, unknown>
+): WidgetMessageEvent {
+  return makeWidgetEvent(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: METHOD_EVENT,
+      params: [name, JSON.stringify(payload)],
+    })
+  );
 }

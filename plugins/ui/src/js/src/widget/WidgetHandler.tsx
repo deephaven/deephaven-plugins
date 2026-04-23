@@ -54,6 +54,7 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
+import Navigate, { NAVIGATE_EVENT, QUERY_PARAM } from '../events/Navigate';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
@@ -153,12 +154,27 @@ function WidgetHandler({
     [widget]
   );
 
+  const getUrlState = useCallback(() => {
+    const queryParams: Record<string, string[]> = {};
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.forEach((value, key) => {
+      if (queryParams[key] == null) {
+        queryParams[key] = [];
+      }
+      queryParams[key].push(value);
+    });
+    return {
+      [QUERY_PARAM]: queryParams,
+    };
+  }, []);
+
   const sendSetState = useCallback(
     (newState: Record<string, unknown> = {}) => {
       if (jsonClient == null) {
         return;
       }
-      jsonClient.request('setState', [newState]).then(
+      const stateWithUrl = { ...newState, ...getUrlState() };
+      jsonClient.request('setState', [stateWithUrl]).then(
         result => {
           log.debug('Set state result', result);
         },
@@ -168,8 +184,27 @@ function WidgetHandler({
         }
       );
     },
-    [jsonClient]
+    [jsonClient, getUrlState]
   );
+
+  /**
+   * Send URL state to the backend via the `setUrlState` RPC.
+   * Used after client-side navigation events.
+   */
+  const sendUrlState = useCallback(() => {
+    if (jsonClient == null) {
+      return;
+    }
+    jsonClient.request('setUrlState', [getUrlState()]).then(
+      result => {
+        log.debug('Set URL state result', result);
+      },
+      e => {
+        log.error('Error setting URL state: ', e);
+        setInternalError(e);
+      }
+    );
+  }, [jsonClient, getUrlState]);
 
   const callableFinalizationRegistry = useMemo(
     () =>
@@ -425,6 +460,11 @@ function WidgetHandler({
             case TOAST_EVENT:
               Toast(eventParams);
               break;
+            case NAVIGATE_EVENT:
+              Navigate(eventParams);
+              // Re-send URL state to backend after navigation
+              sendUrlState();
+              break;
             default:
               throw new Error(`Unknown event ${name}`);
           }
@@ -439,7 +479,31 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, sendSetState, callableFinalizationRegistry]
+    [
+      jsonClient,
+      onDataChange,
+      sendUrlState,
+      callableFinalizationRegistry,
+      sendSetState,
+    ]
+  );
+
+  /**
+   * Listen for popstate events so that when the user clicks the back button
+   * after a client-side navigation, we can update the URL state in the backend
+   * and re-render with the correct URL state.
+   */
+  useEffect(
+    function listenForPopstate() {
+      const handlePopstate = () => {
+        sendUrlState();
+      };
+      window.addEventListener('popstate', handlePopstate);
+      return () => {
+        window.removeEventListener('popstate', handlePopstate);
+      };
+    },
+    [sendUrlState]
   );
 
   /**

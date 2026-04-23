@@ -1,6 +1,6 @@
 from __future__ import annotations
 from unittest.mock import Mock
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, Dict, List, Union
 from dataclasses import dataclass
 from deephaven.ui import Element
 from deephaven.ui.renderer.Renderer import Renderer, _render_child_item
@@ -10,6 +10,27 @@ from deephaven import ui
 from .BaseTest import BaseTestCase
 
 run_on_change: OnChangeCallable = lambda x: x()
+
+
+class _TestRoot:
+    """Minimal RootRenderContextProtocol implementation for tests."""
+
+    def __init__(self, on_change_fn, on_queue_fn):
+        self._on_change = on_change_fn
+        self._on_queue_render_fn = on_queue_fn
+        self._query_params: Dict[str, List[str]] = {}
+
+    def on_change(self, update: Callable[[], None]) -> None:
+        self._on_change(update)
+
+    def on_queue_render(self, update: Callable[[], None]) -> None:
+        self._on_queue_render_fn(update)
+
+    def get_query_params(self) -> Dict[str, List[str]]:
+        return self._query_params
+
+    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
+        self._query_params = query_params
 
 
 class RendererTestCase(BaseTestCase):
@@ -85,7 +106,7 @@ class RendererTestCase(BaseTestCase):
                 ui_counter() if is_shown else None,
             ]
 
-        rc = RenderContext(on_change, on_queue)
+        rc = RenderContext(_TestRoot(on_change, on_queue))
 
         renderer = Renderer(rc)
 
@@ -212,7 +233,7 @@ class RendererTestCase(BaseTestCase):
         )
 
     def test_render_child_item(self):
-        rc = RenderContext(Mock(), Mock())
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
 
         self.assertEqual(
             _render_child_item({"key": "value"}, rc, "key"),

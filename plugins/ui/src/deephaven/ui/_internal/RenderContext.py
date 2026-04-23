@@ -21,19 +21,15 @@ from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
+from ..types import QueryParams
+from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
-
-StateUpdateCallable = Callable[[], None]
-"""
-A callable that updates the state. Used to queue up state changes.
-"""
 
 OnChangeCallable = Callable[[StateUpdateCallable], None]
 """
 Callable that is called when there is a change in the context (setting the state).
 """
-
 
 StateKey = int
 """
@@ -181,9 +177,9 @@ class RenderContext:
     The child contexts for this context. 
     """
 
-    _on_change: OnChangeCallable
+    _root: RootRenderContextProtocol
     """
-    The on_change callback to call when the context changes.
+    The root render context protocol that provides access to shared context callbacks and variables. Passed down to all child contexts.
     """
 
     _top_level_scope: LivenessScope | None
@@ -221,21 +217,19 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
-    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
+    def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
 
         Args:
-            on_change: The callback to call when the state in the context has changes.
-            on_queue_render: The callback to call when work is being requested for the render loop.
+            root: The root protocol that provides access to shared context callbacks and variables.
         """
 
         self._hook_index = _READY_TO_OPEN
         self._hook_count = -1
         self._state = {}
         self._children_context = {}
-        self._on_change = on_change
-        self._on_queue_render = on_queue_render
+        self._root = root
         self._collected_scopes = set()
         self._collected_effects = []
         self._collected_unmount_listeners = []
@@ -378,6 +372,23 @@ class RenderContext:
                 "RenderContext method called when RenderContext is unmounted"
             )
 
+    def get_query_params(self) -> QueryParams:
+        """
+        Get the URL query parameters received from the frontend.
+        Returns:
+            A dictionary mapping parameter names to lists of values.
+        """
+        return self._root.get_query_params()
+
+    def update_url_state(self, query_params: QueryParams) -> None:
+        """
+        Update the URL query parameters.
+
+        Args:
+            query_params: New query parameter mapping to store.
+        """
+        self._root.set_query_params(query_params)
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -440,7 +451,7 @@ class RenderContext:
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
-        self._on_change(update_state)
+        self._root.on_change(update_state)
 
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
@@ -448,7 +459,7 @@ class RenderContext:
         """
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            child_context = RenderContext(self._on_change, self._on_queue_render)
+            child_context = RenderContext(self._root)
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
@@ -473,14 +484,14 @@ class RenderContext:
         self._hook_index += 1
         return self._hook_index
 
-    def queue_render(self, update: Callable[[], None]) -> None:
+    def queue_render(self, update: StateUpdateCallable) -> None:
         """
         Queue up a state update. Needed in multi-threading scenarios.
 
         Args:
             update: The update to queue up.
         """
-        self._on_queue_render(update)
+        self._root.on_queue_render(update)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
         """
@@ -551,6 +562,13 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
+
+        # Extract URL state fields (prefixed with __) before processing component state.
+        # Only update when the key is explicitly present so recursive calls for child
+        # contexts (which never carry __queryParams) don't accidentally clear URL state.
+        if "__queryParams" in state:
+            self._root.set_query_params(state.pop("__queryParams"))
+
         if "state" in state:
             for key, value in state["state"].items():
                 # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.

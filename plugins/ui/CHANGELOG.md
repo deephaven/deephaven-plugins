@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.35.0 - 2026-04-22
+#### Features
+- DH-21654: Routing hooks (#1319) - (95de68d) - Joe
+- DH-21376: Add heatmap support to ui.TableFormat (#1329) - (18af2da) - Germain
+#### Bug Fixes
+- DH-21616: Databar overrides text color when using format prop (#1323) - (af9b1e1) - Germain
+#### Revert
+- "docs: DOC-1099: misc dh.ui doc improvements" (#1337) - (f73abf8) - Don
+#### Documentation
+- DOC-1099: misc dh.ui doc improvements (#1331) - (59f0eff) - elijahpetty
+
+- - -
+
 ## ui-v0.34.0 - 2026-03-26
 #### Features
 - DH-21375: Integrate databars with UI table format (#1289) - (da5892b) - Germain
