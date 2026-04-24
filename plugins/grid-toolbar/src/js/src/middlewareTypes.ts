@@ -3,13 +3,15 @@
  *
  * TODO: Delete this file after deephaven/web-client-ui#2660 is merged and
  * @deephaven/plugin is updated with WidgetMiddlewarePlugin types.
- * Replace imports with: import { type WidgetMiddlewarePlugin, type WidgetMiddlewareComponentProps } from '@deephaven/plugin';
+ * Replace imports with: import { type WidgetMiddlewarePlugin, type WidgetMiddlewareComponentProps, PluginType } from '@deephaven/plugin';
  */
-import type {
-  WidgetComponentProps,
-  WidgetPanelProps,
-  WidgetPlugin,
-} from '@deephaven/plugin';
+import type { WidgetComponentProps, WidgetPanelProps } from '@deephaven/plugin';
+
+/**
+ * Discriminator value for middleware plugins. Matches
+ * `PluginType.MIDDLEWARE_PLUGIN` in the upcoming @deephaven/plugin release.
+ */
+export const MIDDLEWARE_PLUGIN_TYPE = 'MiddlewarePlugin' as const;
 
 /**
  * Props passed to middleware components that wrap a base widget.
@@ -31,10 +33,16 @@ export interface WidgetMiddlewarePanelProps<T = unknown>
 
 /**
  * A middleware plugin that wraps and enhances another widget plugin.
+ *
+ * Note: does not `extend Plugin` because the published @deephaven/plugin's
+ * `Plugin.type` is a strict union that doesn't yet include the new
+ * `MIDDLEWARE_PLUGIN` discriminator. After web-client-ui#2660 merges this
+ * file is deleted and consumers import from @deephaven/plugin directly.
  */
-export interface WidgetMiddlewarePlugin<T = unknown>
-  extends Omit<WidgetPlugin<T>, 'component' | 'panelComponent'> {
-  isMiddleware: true;
+export interface WidgetMiddlewarePlugin<T = unknown> {
+  name: string;
+  type: typeof MIDDLEWARE_PLUGIN_TYPE;
+  supportedTypes: string | string[];
   component: React.ComponentType<WidgetMiddlewareComponentProps<T>>;
   panelComponent?: React.ComponentType<WidgetMiddlewarePanelProps<T>>;
 }
