@@ -19,6 +19,10 @@ class _TestRoot:
         self._on_change = on_change_fn
         self._on_queue_render_fn = on_queue_fn
         self._query_params: Dict[str, List[str]] = {}
+        self._path: str = "/"
+        self._absolute_path: str = "/"
+        self._fragment: str = ""
+        self._href: str = ""
 
     def on_change(self, update: Callable[[], None]) -> None:
         self._on_change(update)
@@ -31,6 +35,30 @@ class _TestRoot:
 
     def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
         self._query_params = query_params
+
+    def get_path(self) -> str:
+        return self._path
+
+    def set_path(self, path: str) -> None:
+        self._path = path
+
+    def get_absolute_path(self) -> str:
+        return self._absolute_path
+
+    def set_absolute_path(self, absolute_path: str) -> None:
+        self._absolute_path = absolute_path
+
+    def get_fragment(self) -> str:
+        return self._fragment
+
+    def set_fragment(self, fragment: str) -> None:
+        self._fragment = fragment
+
+    def get_href(self) -> str:
+        return self._href
+
+    def set_href(self, href: str) -> None:
+        self._href = href
 
 
 class RendererTestCase(BaseTestCase):

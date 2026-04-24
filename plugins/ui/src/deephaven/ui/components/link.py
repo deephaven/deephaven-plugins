@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable
+from urllib.parse import urlsplit
+
 from .types import (
     Target,
     FocusEventCallable,
@@ -14,7 +16,7 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import LinkVariant
+from ..types import LinkVariant, NavigationTarget
 
 
 def link(
@@ -23,6 +25,7 @@ def link(
     is_quiet: bool | None = None,
     auto_focus: bool | None = None,
     href: str | None = None,
+    to: str | NavigationTarget | None = None,
     target: Target | None = None,
     rel: str | None = None,
     ping: str | None = None,
@@ -90,7 +93,12 @@ def link(
         variant: The background color of the link.
         is_quiet: Whether the link should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
-        href: A URL to link to.
+        href: A URL to link to. Triggers a full page reload. Mutually exclusive with ``to``.
+        to: The target location for single-page application navigation.
+            Either a plain string (parsed for path, query params, and fragment;
+            always absolute=False), or a NavigationTarget dict with ``path``,
+            ``query_params``, ``fragment``, ``absolute``, and ``replace``.
+            Mutually exclusive with ``href``.
         target: The target window for the link.
         rel: The relationship between the linked resource and the current page.
         ping: A space-separated list of URLs to ping when the link is followed.
@@ -153,21 +161,106 @@ def link(
     Returns:
         The rendered link element.
 
+    Raises:
+        ValueError: If both ``to`` and ``href`` are provided.
     """
+    if to is not None and href is not None:
+        raise ValueError(
+            "to and href are mutually exclusive. Provide one or the other."
+        )
+
+    # When `to` is provided, compute a fallback href for accessibility and
+    # wrap on_press to emit a navigate event.
+    effective_href = href
+    effective_on_press = on_press
+
+    if to is not None:
+        from .._internal import get_event_context
+        from ..hooks.use_navigate import (
+            _normalize_path,
+            _normalize_query_params,
+            _normalize_fragment,
+            _parse_path_components,
+            _NAVIGATE_EVENT,
+        )
+
+        send_event = get_event_context().send_event
+
+        if isinstance(to, str):
+            # Simple string form — parse path, query, fragment
+            nav_path = to
+            nav_query_params = None
+            nav_fragment = None
+            nav_absolute = False
+            nav_replace = None
+        else:
+            # Dict (NavigationTarget) form
+            nav_path = to.get("path")
+            nav_query_params = to.get("query_params")
+            nav_fragment = to.get("fragment")
+            nav_absolute = to.get("absolute", False)
+            nav_replace = to.get("replace")
+
+        # Compute fallback href for the <a> element
+        if isinstance(nav_path, str):
+            effective_href = nav_path
+        elif nav_path is not None:
+            # WidgetPath/EnterpriseWidgetPath — no simple fallback href
+            effective_href = "#"
+
+        # Build the navigate payload
+        norm_path = _normalize_path(nav_path if isinstance(nav_path, str) else None)
+
+        inline_query = None
+        inline_fragment = None
+        if norm_path is not None:
+            norm_path, inline_query, inline_fragment = _parse_path_components(norm_path)
+
+        norm_query = _normalize_query_params(nav_query_params)
+        norm_frag = _normalize_fragment(nav_fragment)
+
+        if nav_path is not None:
+            if norm_query is None:
+                norm_query = inline_query if inline_query is not None else ""
+            if norm_frag is None:
+                norm_frag = inline_fragment if inline_fragment is not None else ""
+
+        # Capture the payload for the on_press handler
+        payload: dict = {}
+        if norm_path is not None:
+            payload["path"] = norm_path
+        if norm_query is not None:
+            payload["queryParams"] = f"?{norm_query}" if norm_query else ""
+        if norm_frag is not None:
+            payload["fragment"] = norm_frag
+        if nav_absolute is not None:
+            payload["absolute"] = nav_absolute
+        if nav_replace is not None:
+            payload["replace"] = nav_replace
+
+        original_on_press = on_press
+
+        def _navigate_on_press(*args: Any) -> None:
+            send_event(_NAVIGATE_EVENT, payload)
+            if original_on_press is not None:
+                original_on_press(*args)
+
+        effective_on_press = _navigate_on_press
+
     return component_element(
         "Link",
         *children,
         variant=variant,
         is_quiet=is_quiet,
         auto_focus=auto_focus,
-        href=href,
+        href=effective_href,
         target=target,
         rel=rel,
         ping=ping,
         download=download,
         href_lang=href_lang,
         referrer_policy=referrer_policy,
-        on_press=on_press,
+        on_press=effective_on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,
         on_press_up=on_press_up,

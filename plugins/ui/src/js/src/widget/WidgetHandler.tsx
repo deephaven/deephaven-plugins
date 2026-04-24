@@ -54,7 +54,15 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import Navigate, { NAVIGATE_EVENT, QUERY_PARAM } from '../events/Navigate';
+import Navigate, {
+  NAVIGATE_EVENT,
+  QUERY_PARAM,
+  PATH_PARAM,
+  ABSOLUTE_PATH_PARAM,
+  FRAGMENT_PARAM,
+  HREF_PARAM,
+  getLocalPath,
+} from '../events/Navigate';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
@@ -165,6 +173,10 @@ function WidgetHandler({
     });
     return {
       [QUERY_PARAM]: queryParams,
+      [PATH_PARAM]: getLocalPath(window.location.pathname),
+      [ABSOLUTE_PATH_PARAM]: window.location.pathname,
+      [FRAGMENT_PARAM]: window.location.hash.replace(/^#/, ''),
+      [HREF_PARAM]: window.location.href,
     };
   }, []);
 

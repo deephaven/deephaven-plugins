@@ -35,3 +35,35 @@ class RootRenderContextProtocol(Protocol):
     def set_query_params(self, query_params: QueryParams) -> None:
         """Update the URL query parameters."""
         ...
+
+    def get_path(self) -> str:
+        """Get the current relative URL path (after /local/)."""
+        ...
+
+    def set_path(self, path: str) -> None:
+        """Update the relative URL path."""
+        ...
+
+    def get_absolute_path(self) -> str:
+        """Get the full absolute URL path."""
+        ...
+
+    def set_absolute_path(self, absolute_path: str) -> None:
+        """Update the absolute URL path."""
+        ...
+
+    def get_fragment(self) -> str:
+        """Get the current URL fragment (without leading #)."""
+        ...
+
+    def set_fragment(self, fragment: str) -> None:
+        """Update the URL fragment."""
+        ...
+
+    def get_href(self) -> str:
+        """Get the full URL href."""
+        ...
+
+    def set_href(self, href: str) -> None:
+        """Update the full URL href."""
+        ...
