@@ -24,4 +24,6 @@ declare module '@deephaven/js-plugin-pivot' {
   export function usePivotRenderer(): any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export function usePivotTheme(): any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  export function usePivotMetricCalculatorFactory(): any;
 }

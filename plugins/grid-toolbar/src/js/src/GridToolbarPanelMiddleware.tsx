@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chart, type ChartModel, ChartModelFactory } from '@deephaven/chart';
+import { ActionGroup, Item, LoadingOverlay } from '@deephaven/components';
 import { IrisGrid } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import {
+  usePivotMetricCalculatorFactory,
   usePivotMouseHandlers,
   usePivotRenderer,
   usePivotTheme,
 } from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
+import { usePersistentState } from '@deephaven/plugin';
 // TODO: Replace with import from '@deephaven/plugin' after deephaven/web-client-ui#2660 merges
 import type { WidgetMiddlewarePanelProps } from './middlewareTypes';
 import { usePivotToggle } from './usePivotToggle';
@@ -16,8 +19,18 @@ import { PivotBuilderDialog } from './PivotBuilderDialog';
 
 const log = Log.module('@deephaven/js-plugin-grid-toolbar');
 
-// Matches InputFilterEvent.CLEAR_ALL_FILTERS from @deephaven/dashboard-core-plugins
-const CLEAR_ALL_FILTERS_EVENT = 'InputFilterEvent.CLEAR_ALL_FILTERS';
+interface GridToolbarState {
+  view: 'grid' | 'chart' | 'pivot';
+  pivotConfig: PivotConfig | null;
+}
+
+const PERSISTENT_STATE_CONFIG = {
+  type: 'GridToolbar',
+  version: 1,
+  deleteOnUnmount: false,
+};
+
+const DEFAULT_STATE: GridToolbarState = { view: 'grid', pivotConfig: null };
 
 export function GridToolbarPanelMiddleware({
   Component,
@@ -27,13 +40,28 @@ export function GridToolbarPanelMiddleware({
   ...props
 }: WidgetMiddlewarePanelProps): JSX.Element {
   const dh = useApi();
-  const [view, setView] = useState<'grid' | 'chart' | 'pivot'>('grid');
+  const [persistedState, setPersistedState] =
+    usePersistentState<GridToolbarState>(
+      DEFAULT_STATE,
+      PERSISTENT_STATE_CONFIG
+    );
+  const [view, setView] = useState<'grid' | 'chart' | 'pivot'>(
+    persistedState.view
+  );
   const [chartModel, setChartModel] = useState<ChartModel | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
+  const [isQueryReady, setIsQueryReady] = useState(false);
   const [showPivotBuilder, setShowPivotBuilder] = useState(false);
   const [pivotColumns, setPivotColumns] = useState<ColumnInfo[] | null>(null);
-  const [lastPivotConfig, setLastPivotConfig] = useState<PivotConfig | null>(
-    null
+  const lastPivotConfig = persistedState.pivotConfig;
+  const setLastPivotConfig = useCallback(
+    (config: PivotConfig | null) => {
+      setPersistedState((prev: GridToolbarState) => ({
+        ...prev,
+        pivotConfig: config,
+      }));
+    },
+    [setPersistedState]
   );
 
   const {
@@ -53,19 +81,34 @@ export function GridToolbarPanelMiddleware({
   const mouseHandlers = usePivotMouseHandlers();
   const renderer = usePivotRenderer();
   const pivotTheme = usePivotTheme();
+  const getPivotMetricCalculator = usePivotMetricCalculatorFactory();
 
-  useEffect(
-    () => () => {
-      chartModel?.close();
-    },
-    [chartModel]
-  );
+  // Probe the query on mount to determine if it's running
+  useEffect(() => {
+    let cancelled = false;
+    fetch()
+      .then(() => {
+        if (!cancelled) setIsQueryReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setIsQueryReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetch]);
 
-  const handleChart = useCallback(async () => {
-    if (view === 'chart') {
-      setView('grid');
-      return;
-    }
+  // Persist the current view mode whenever it changes
+  useEffect(() => {
+    setPersistedState((prev: GridToolbarState) =>
+      prev.view !== view ? { ...prev, view } : prev
+    );
+  }, [view, setPersistedState]);
+
+  // On mount, restore pivot view if persisted state has a pivot config
+  const hasRestoredRef = useRef(false);
+
+  const buildChart = useCallback(async () => {
     setIsBuilding(true);
     try {
       // fetch is typed as () => Promise<unknown>; for grid widgets it returns dh.Table
@@ -94,16 +137,58 @@ export function GridToolbarPanelMiddleware({
     } finally {
       setIsBuilding(false);
     }
-  }, [dh, fetch, view]);
+  }, [dh, fetch]);
 
-  const handleResetFilters = useCallback(() => {
-    log.info('Reset Filters clicked');
-    glEventHub.emit(CLEAR_ALL_FILTERS_EVENT);
-  }, [glEventHub]);
+  useEffect(() => {
+    if (hasRestoredRef.current) {
+      return;
+    }
+    if (persistedState.view === 'pivot') {
+      if (persistedState.pivotConfig == null || !isPivotAvailable) {
+        return;
+      }
+      hasRestoredRef.current = true;
+      buildPivot(persistedState.pivotConfig).catch(e => {
+        log.error('Failed to restore pivot from persisted state', e);
+      });
+    } else if (persistedState.view === 'chart') {
+      hasRestoredRef.current = true;
+      buildChart().catch(e => {
+        log.error('Failed to restore chart from persisted state', e);
+      });
+    } else {
+      hasRestoredRef.current = true;
+    }
+    // Only run on mount / when pivot becomes available
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPivotAvailable]);
+
+  useEffect(
+    () => () => {
+      chartModel?.close();
+    },
+    [chartModel]
+  );
+
+  const handleGrid = useCallback(() => {
+    setView('grid');
+  }, []);
+
+  const handleChart = useCallback(async () => {
+    if (view === 'chart') {
+      return;
+    }
+    await buildChart();
+  }, [view, buildChart]);
 
   const handlePivotClick = useCallback(async () => {
-    // Always open the builder dialog, even when already in pivot view,
-    // so the user can change settings on the existing pivot.
+    // If already in pivot view, open the dialog to change settings.
+    // If switching to pivot with existing config, reuse it directly.
+    // If no config yet (first time), open the dialog.
+    if (view !== 'pivot' && lastPivotConfig != null) {
+      await buildPivot(lastPivotConfig);
+      return;
+    }
     try {
       const columns = await fetchColumns();
       setPivotColumns(columns);
@@ -111,18 +196,51 @@ export function GridToolbarPanelMiddleware({
     } catch (e) {
       log.error('Failed to fetch columns for pivot builder', e);
     }
-  }, [fetchColumns]);
+  }, [view, lastPivotConfig, fetchColumns, buildPivot]);
+
+  const handleViewAction = useCallback(
+    (key: React.Key) => {
+      switch (key) {
+        case 'grid':
+          handleGrid();
+          break;
+        case 'chart':
+          handleChart();
+          break;
+        case 'pivot':
+          handlePivotClick();
+          break;
+        default:
+          break;
+      }
+    },
+    [handleGrid, handleChart, handlePivotClick]
+  );
+
+  const anyBuilding = isBuilding || isPivotBuilding;
+
+  const disabledKeys = useMemo(() => {
+    if (!isQueryReady) {
+      return ['grid', 'chart', 'pivot'];
+    }
+    const keys: string[] = [];
+    if (anyBuilding) {
+      keys.push('chart', 'pivot');
+    }
+    if (!isPivotAvailable) {
+      keys.push('pivot');
+    }
+    return keys;
+  }, [isQueryReady, anyBuilding, isPivotAvailable]);
 
   const handlePivotApply = useCallback(
     async (config: PivotConfig) => {
       setShowPivotBuilder(false);
       setPivotColumns(null);
       setLastPivotConfig(config);
-      // Close existing pivot model before building a new one
-      closePivot();
       await buildPivot(config);
     },
-    [buildPivot, closePivot]
+    [buildPivot, setLastPivotConfig]
   );
 
   const handlePivotCancel = useCallback(() => {
@@ -130,36 +248,25 @@ export function GridToolbarPanelMiddleware({
     setPivotColumns(null);
   }, []);
 
-  const anyBuilding = isBuilding || isPivotBuilding;
-
   return (
     <div className="grid-toolbar-middleware h-100 w-100">
-      <div className="grid-toolbar">
-        <button
-          type="button"
-          className="grid-toolbar-btn"
-          disabled={anyBuilding}
-          onClick={handleChart}
+      <div className="grid-toolbar" style={{ padding: 10 }}>
+        <ActionGroup
+          selectionMode="single"
+          selectedKeys={[view]}
+          disabledKeys={disabledKeys}
+          disallowEmptySelection
+          onAction={handleViewAction}
         >
-          {view === 'chart' ? 'Grid' : 'Chart'}
-        </button>
-        <button
-          type="button"
-          className="grid-toolbar-btn"
-          disabled={anyBuilding || !isPivotAvailable}
-          onClick={handlePivotClick}
-        >
-          Pivot
-        </button>
-        <button
-          type="button"
-          className="grid-toolbar-btn"
-          onClick={handleResetFilters}
-        >
-          Reset Filters
-        </button>
+          <Item key="grid">Grid</Item>
+          <Item key="chart">Chart</Item>
+          <Item key="pivot">Pivot</Item>
+        </ActionGroup>
       </div>
-      <div className="grid-toolbar-content h-100 w-100">
+      <div
+        className="grid-toolbar-content h-100 w-100"
+        style={{ position: 'relative' }}
+      >
         {view === 'chart' && chartModel != null && (
           <div className="h-100 w-100">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -173,6 +280,10 @@ export function GridToolbarPanelMiddleware({
               mouseHandlers={mouseHandlers}
               renderer={renderer}
               theme={pivotTheme}
+              // getMetricCalculator exists on IrisGrid at runtime but is not
+              // in the type declarations for the current @deephaven/iris-grid version
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, react/jsx-props-no-spreading
+              {...({ getMetricCalculator: getPivotMetricCalculator } as any)}
             />
           </div>
         )}
@@ -185,6 +296,7 @@ export function GridToolbarPanelMiddleware({
             {...props}
           />
         )}
+        <LoadingOverlay isLoading={anyBuilding} isLoaded />
       </div>
       {showPivotBuilder && pivotColumns != null && (
         <PivotBuilderDialog

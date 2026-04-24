@@ -66,11 +66,13 @@ export function usePivotToggle(
 ): PivotToggleResult {
   const [pivotModel, setPivotModel] = useState<IrisGridModel | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
+  // Whether we've probed the PivotService and confirmed it exists
+  const [isPivotServiceConfirmed, setIsPivotServiceConfirmed] = useState(false);
 
   // Build a descriptor for the PivotService variable on the same query.
-  // The convention is that PivotServicePlugin is exported as 'psp'.
-  // We copy querySerial from the table's metadata so the ObjectFetchManager
-  // routes to the same query/worker.
+  // The PivotService may be exported under any name (commonly 'psp'),
+  // so we use a well-known name for the initial subscription and then
+  // probe eagerly to confirm the service actually exists.
   const pspDescriptor = useMemo(() => {
     if (!isCorePlusDh(dh) || metadata == null) {
       return { type: 'PivotService', name: '__unavailable__' };
@@ -84,16 +86,37 @@ export function usePivotToggle(
 
   const pspFetch = useObjectFetch(pspDescriptor);
 
-  const isAvailable = isCorePlusDh(dh) && pspFetch.status === 'ready';
-
+  // Eagerly probe the PivotService when the fetch becomes ready.
+  // The ObjectFetchManager only checks if the query is running, not whether
+  // the specific variable exists. We do a real fetch to confirm availability.
   useEffect(() => {
-    if (pspFetch.status === 'error') {
-      log.debug('PivotService (psp) not available on this query');
+    if (pspFetch.status !== 'ready') {
+      setIsPivotServiceConfirmed(false);
+      return;
     }
-    if (pspFetch.status === 'ready') {
-      log.info('PivotService (psp) is available on this query');
-    }
-  }, [pspFetch.status]);
+    let cancelled = false;
+    pspFetch
+      .fetch()
+      .then(() => {
+        if (!cancelled) {
+          log.info('PivotService confirmed available on this query');
+          setIsPivotServiceConfirmed(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          log.debug(
+            'PivotService not found on this query (fetch probe failed)'
+          );
+          setIsPivotServiceConfirmed(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pspFetch]);
+
+  const isAvailable = isCorePlusDh(dh) && isPivotServiceConfirmed;
 
   // Track the current model ref for cleanup
   const pivotModelRef = useRef<IrisGridModel | null>(null);
@@ -172,6 +195,8 @@ export function usePivotToggle(
         // Create the IrisGridPivotModel
         const model = new IrisGridPivotModel(dh, pivotTable);
 
+        // Close the previous model before replacing it
+        pivotModelRef.current?.close();
         setPivotModel(model);
         setView('pivot');
       } catch (e) {
