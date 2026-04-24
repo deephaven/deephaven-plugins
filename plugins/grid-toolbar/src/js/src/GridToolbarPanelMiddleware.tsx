@@ -11,6 +11,8 @@ import Log from '@deephaven/log';
 // TODO: Replace with import from '@deephaven/plugin' after deephaven/web-client-ui#2660 merges
 import type { WidgetMiddlewarePanelProps } from './middlewareTypes';
 import { usePivotToggle } from './usePivotToggle';
+import type { ColumnInfo, PivotConfig } from './usePivotToggle';
+import { PivotBuilderDialog } from './PivotBuilderDialog';
 
 const log = Log.module('@deephaven/js-plugin-grid-toolbar');
 
@@ -28,16 +30,22 @@ export function GridToolbarPanelMiddleware({
   const [view, setView] = useState<'grid' | 'chart' | 'pivot'>('grid');
   const [chartModel, setChartModel] = useState<ChartModel | null>(null);
   const [isBuilding, setIsBuilding] = useState(false);
+  const [showPivotBuilder, setShowPivotBuilder] = useState(false);
+  const [pivotColumns, setPivotColumns] = useState<ColumnInfo[] | null>(null);
+  const [lastPivotConfig, setLastPivotConfig] = useState<PivotConfig | null>(
+    null
+  );
 
   const {
     isAvailable: isPivotAvailable,
     pivotModel,
     isBuilding: isPivotBuilding,
-    handleToggle: handlePivot,
+    fetchColumns,
+    buildPivot,
+    closePivot,
   } = usePivotToggle(
     dh,
     fetch,
-    view === 'pivot',
     setView as (v: 'grid' | 'pivot') => void,
     metadata
   );
@@ -93,6 +101,35 @@ export function GridToolbarPanelMiddleware({
     glEventHub.emit(CLEAR_ALL_FILTERS_EVENT);
   }, [glEventHub]);
 
+  const handlePivotClick = useCallback(async () => {
+    // Always open the builder dialog, even when already in pivot view,
+    // so the user can change settings on the existing pivot.
+    try {
+      const columns = await fetchColumns();
+      setPivotColumns(columns);
+      setShowPivotBuilder(true);
+    } catch (e) {
+      log.error('Failed to fetch columns for pivot builder', e);
+    }
+  }, [fetchColumns]);
+
+  const handlePivotApply = useCallback(
+    async (config: PivotConfig) => {
+      setShowPivotBuilder(false);
+      setPivotColumns(null);
+      setLastPivotConfig(config);
+      // Close existing pivot model before building a new one
+      closePivot();
+      await buildPivot(config);
+    },
+    [buildPivot, closePivot]
+  );
+
+  const handlePivotCancel = useCallback(() => {
+    setShowPivotBuilder(false);
+    setPivotColumns(null);
+  }, []);
+
   const anyBuilding = isBuilding || isPivotBuilding;
 
   return (
@@ -106,16 +143,14 @@ export function GridToolbarPanelMiddleware({
         >
           {view === 'chart' ? 'Grid' : 'Chart'}
         </button>
-        {isPivotAvailable && (
-          <button
-            type="button"
-            className="grid-toolbar-btn"
-            disabled={anyBuilding}
-            onClick={handlePivot}
-          >
-            {view === 'pivot' ? 'Grid' : 'Pivot'}
-          </button>
-        )}
+        <button
+          type="button"
+          className="grid-toolbar-btn"
+          disabled={anyBuilding || !isPivotAvailable}
+          onClick={handlePivotClick}
+        >
+          Pivot
+        </button>
         <button
           type="button"
           className="grid-toolbar-btn"
@@ -142,15 +177,23 @@ export function GridToolbarPanelMiddleware({
           </div>
         )}
         {view !== 'chart' && view !== 'pivot' && (
-          // eslint-disable-next-line react/jsx-props-no-spreading
           <Component
             fetch={fetch}
             glEventHub={glEventHub}
             metadata={metadata}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
           />
         )}
       </div>
+      {showPivotBuilder && pivotColumns != null && (
+        <PivotBuilderDialog
+          columns={pivotColumns}
+          initialConfig={lastPivotConfig}
+          onApply={handlePivotApply}
+          onCancel={handlePivotCancel}
+        />
+      )}
     </div>
   );
 }

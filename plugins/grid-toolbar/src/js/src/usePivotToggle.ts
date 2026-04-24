@@ -8,7 +8,7 @@ import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-grid-toolbar/usePivotToggle');
 
-const NUMERIC_TYPES = new Set([
+export const NUMERIC_TYPES = new Set([
   'int',
   'long',
   'short',
@@ -25,6 +25,20 @@ const NUMERIC_TYPES = new Set([
   'java.math.BigInteger',
 ]);
 
+/** Column metadata exposed to the pivot builder dialog */
+export interface ColumnInfo {
+  name: string;
+  type: string;
+  isNumeric: boolean;
+}
+
+/** User-configured pivot settings from the builder dialog */
+export interface PivotConfig {
+  rowKeys: string[];
+  columnKeys: string[];
+  aggregations: Record<string, string[]>;
+}
+
 export interface PivotToggleResult {
   /** Whether CorePlus pivot API is available */
   isAvailable: boolean;
@@ -32,8 +46,12 @@ export interface PivotToggleResult {
   pivotModel: IrisGridModel | null;
   /** Whether pivot creation is in progress */
   isBuilding: boolean;
-  /** Toggle between grid and pivot views */
-  handleToggle: () => void;
+  /** Fetch column metadata from the source table */
+  fetchColumns: () => Promise<ColumnInfo[]>;
+  /** Build a pivot table with the given config */
+  buildPivot: (config: PivotConfig) => Promise<void>;
+  /** Close the current pivot view and return to grid */
+  closePivot: () => void;
 }
 
 /**
@@ -43,7 +61,6 @@ export interface PivotToggleResult {
 export function usePivotToggle(
   dh: typeof DhType | typeof CorePlusDhType,
   fetch: () => Promise<unknown>,
-  isPivotView: boolean,
   setView: (view: 'grid' | 'pivot') => void,
   metadata?: DhType.ide.VariableDescriptor
 ): PivotToggleResult {
@@ -93,102 +110,92 @@ export function usePivotToggle(
     []
   );
 
-  const handleToggle = useCallback(async () => {
-    if (isPivotView) {
-      // Switch back to grid
-      pivotModel?.close();
-      setPivotModel(null);
-      setView('grid');
-      return;
+  const fetchColumns = useCallback(async (): Promise<ColumnInfo[]> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const table = (await fetch()) as any;
+    if (table?.columns == null) {
+      log.warn('Fetched object has no columns');
+      return [];
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return table.columns.map((col: any) => ({
+      name: col.name as string,
+      type: col.type as string,
+      isNumeric: NUMERIC_TYPES.has(col.type),
+    }));
+  }, [fetch]);
 
-    if (!isCorePlusDh(dh)) {
-      log.error('CorePlus API not available; cannot create pivot');
-      return;
-    }
-
-    if (pspFetch.status !== 'ready') {
-      log.error('PivotService (psp) not available');
-      return;
-    }
-
-    setIsBuilding(true);
-    try {
-      // Fetch the source table and the PivotService widget in parallel
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [table, pspWidget] = (await Promise.all([
-        fetch(),
-        pspFetch.fetch(),
-      ])) as [any, any];
-
-      if (table?.columns == null) {
-        log.warn('Fetched object has no columns; cannot build pivot');
+  const buildPivot = useCallback(
+    async (config: PivotConfig) => {
+      if (!isCorePlusDh(dh)) {
+        log.error('CorePlus API not available; cannot create pivot');
         return;
       }
 
-      // Auto-detect column categories
-      const numericColumns: string[] = [];
-      const nonNumericColumns: string[] = [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      table.columns.forEach((col: any) => {
-        if (NUMERIC_TYPES.has(col.type)) {
-          numericColumns.push(col.name);
-        } else {
-          nonNumericColumns.push(col.name);
+      if (pspFetch.status !== 'ready') {
+        log.error('PivotService (psp) not available');
+        return;
+      }
+
+      setIsBuilding(true);
+      try {
+        // Fetch the source table and the PivotService widget in parallel
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [table, pspWidget] = (await Promise.all([
+          fetch(),
+          pspFetch.fetch(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ])) as [any, any];
+
+        if (table?.columns == null) {
+          log.warn('Fetched object has no columns; cannot build pivot');
+          return;
         }
-      });
 
-      if (nonNumericColumns.length === 0) {
-        log.warn('Table has no non-numeric columns for row/column keys');
-        return;
+        const pivotConfig = {
+          source: table,
+          rowKeys: config.rowKeys,
+          columnKeys: config.columnKeys,
+          aggregations: config.aggregations,
+        };
+
+        log.info('Creating pivot with config:', pivotConfig);
+
+        // Get PivotService from the psp widget, then create PivotTable
+        const corePlusDh = dh as typeof CorePlusDhType;
+        const pivotService =
+          await corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
+        log.info('PivotService obtained:', pivotService);
+        const pivotTable = await pivotService.createPivotTable(pivotConfig);
+        log.info('PivotTable created:', pivotTable);
+
+        // Create the IrisGridPivotModel
+        const model = new IrisGridPivotModel(dh, pivotTable);
+
+        setPivotModel(model);
+        setView('pivot');
+      } catch (e) {
+        log.error('Failed to create pivot table', e);
+      } finally {
+        setIsBuilding(false);
       }
+    },
+    [dh, fetch, pspFetch, setView]
+  );
 
-      // Split non-numeric columns: first goes to rows, rest to columns
-      const rowKeys = nonNumericColumns.slice(0, 1);
-      const columnKeys =
-        nonNumericColumns.length > 1 ? nonNumericColumns.slice(1, 2) : [];
-
-      // Use all numeric columns as values with Sum aggregation
-      // If no numeric columns, use Count on the first non-numeric column
-      const aggregations: Record<string, string[]> =
-        numericColumns.length > 0
-          ? { Sum: numericColumns }
-          : { Count: [nonNumericColumns[0]] };
-
-      const config = {
-        source: table,
-        rowKeys,
-        columnKeys,
-        aggregations,
-      };
-
-      log.info('Creating pivot with config:', config);
-
-      // Get PivotService from the psp widget, then create PivotTable
-      const corePlusDh = dh as typeof CorePlusDhType;
-      const pivotService =
-        await corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
-      log.info('PivotService obtained:', pivotService);
-      const pivotTable = await pivotService.createPivotTable(config);
-      log.info('PivotTable created:', pivotTable);
-
-      // Create the IrisGridPivotModel
-      const model = new IrisGridPivotModel(dh, pivotTable);
-
-      setPivotModel(model);
-      setView('pivot');
-    } catch (e) {
-      log.error('Failed to create pivot table', e);
-    } finally {
-      setIsBuilding(false);
-    }
-  }, [dh, fetch, isPivotView, pspFetch, pivotModel, setView]);
+  const closePivot = useCallback(() => {
+    pivotModel?.close();
+    setPivotModel(null);
+    setView('grid');
+  }, [pivotModel, setView]);
 
   return {
     isAvailable,
     pivotModel,
     isBuilding,
-    handleToggle,
+    fetchColumns,
+    buildPivot,
+    closePivot,
   };
 }
 
