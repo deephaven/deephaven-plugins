@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/log',
         '@deephaven/components',
         '@deephaven/dashboard',
+        '@deephaven/dashboard-core-plugins',
         '@deephaven/icons',
         '@deephaven/plugin',
         '@deephaven/utils',

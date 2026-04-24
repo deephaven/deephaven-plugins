@@ -179,12 +179,13 @@ class TvlChartListener:
         if from_nanos >= to_nanos:
             return b"", []
 
+        width = int(msg.get("width", 0))
         exported_objects: list[Any] = []
         results: dict[str, Any] = {}
 
         for table_id, ds in self._downsample_states.items():
             try:
-                merged_table = ds.compute_hybrid(from_nanos, to_nanos)
+                merged_table = ds.compute_hybrid(from_nanos, to_nanos, width=width)
                 self._active_tables[table_id] = merged_table
                 ref_idx = len(exported_objects)
                 exported_objects.append(merged_table)
@@ -213,16 +214,18 @@ class TvlChartListener:
         return response, exported_objects
 
     def _handle_reset(self) -> tuple[bytes, list[Any]]:
-        """Handle a RESET message: return the cached background table."""
+        """Handle a RESET message: recompute background with fresh range.
+
+        Ticking tables may have grown since init, so we invalidate the
+        cached time range and recompute rather than returning the stale
+        background.
+        """
         exported_objects: list[Any] = []
         results: dict[str, Any] = {}
 
         for table_id, ds in self._downsample_states.items():
             try:
-                ds.release_foreground()
-                bg_table = ds.get_background_table()
-                if bg_table is None:
-                    bg_table = ds.compute_initial()
+                bg_table = ds.compute_reset()
                 self._active_tables[table_id] = bg_table
                 ref_idx = len(exported_objects)
                 exported_objects.append(bg_table)

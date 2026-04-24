@@ -136,6 +136,8 @@ export type ModelEvent =
       /** True when this update follows a RESET (double-click). */
       isResetView?: boolean;
     }
-  | { type: 'ERROR'; message: string };
+  | { type: 'ERROR'; message: string }
+  | { type: 'DOWNSAMPLE_PENDING'; pending: boolean }
+  | { type: 'DISCONNECTED'; connected: boolean };
 
 export type ModelEventListener = (event: ModelEvent) => void;

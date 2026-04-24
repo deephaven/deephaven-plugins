@@ -180,6 +180,120 @@ Comprehensive TradingView Lightweight Charts v5.1 API documentation is in `notes
 
 Use these when you need to look up available properties/methods, default values, or type signatures without fetching the web docs.
 
+## Architecture Overview
+
+### JS Component Hierarchy
+
+```
+TradingViewPlugin (plugin registration)
+├── component: TradingViewChart         — for inline/embedded use
+└── panelComponent: TradingViewChartPanel — for standalone panels
+    └── WidgetPanel (@deephaven/dashboard-core-plugins)
+        ├── Session disconnect/reconnect detection
+        ├── LoadingOverlay (spinner + error + disconnect)
+        └── TradingViewChart
+            ├── TradingViewChartModel  — data pipeline, table subscriptions
+            └── TradingViewChartRenderer — LWC chart instance, series management
+```
+
+### Key Files
+
+| File | Role |
+|------|------|
+| `src/js/src/TradingViewChartPanel.tsx` | WidgetPanel wrapper — session disconnect, loading overlay |
+| `src/js/src/TradingViewChart.tsx` | Main component — init, data updates, zoom/pan, downsample UX |
+| `src/js/src/TradingViewChartModel.ts` | Model — widget messages, table subscriptions, ZOOM/RESET |
+| `src/js/src/TradingViewChartRenderer.ts` | LWC wrapper — chart creation, series CRUD, markers, price lines |
+| `src/js/src/TradingViewChart.css` | Downsample scrim/status bar styles (inlined via `?inline` import) |
+| `src/deephaven/.../downsample.py` | Python-side downsample — v3 direct aggregation output |
+| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/ZOOM/RESET |
+
+### CSS Injection
+
+Plugin CSS files aren't loaded by the DH client. TVL uses Vite's `?inline` import to embed CSS as a string, injected via a `<style>` tag in the component. The `WidgetPanel`'s CSS (LoadingOverlay, scrim) comes from `@deephaven/dashboard-core-plugins` which is loaded by the IDE.
+
+Z-index note: `.dh-tvl-panel > .fill-parent-absolute { z-index: 50 }` ensures WidgetPanel's LoadingOverlay renders above the chart's `position: relative` container.
+
+### Downsample Architecture
+
+**Python-side** (v3 direct aggregation output):
+- `_downsample()` uses `agg_by` with `first`/`last`/`sorted_first`/`sorted_last` to capture all output columns directly from min/max rows per bin
+- No `ii`/`k`/`where_in` — works on ticking tables
+- Background (~1000 bins, full range) + Foreground (~4000 bins, zoom area) merged server-side
+- `compute_reset()` invalidates cached time range for ticking tables
+
+**JS-side** downsample UX:
+- Progressive scrim: 200ms delay → scrim sweeps down (150ms CSS transition), 500ms → status bar with indeterminate animation
+- Scrim stays until `DATA_UPDATED` (not `DOWNSAMPLE_PENDING(false)` which fires before data arrives)
+- `lockRangeOnNextUpdateRef` prevents tick updates from snapping viewport back after zoom
+- Snap-to-live: auto-scrolls when right edge is within 1% of latest data point
+- Double-click resets both time scale (`fitContent`) and price scales (`setAutoScale(true)`)
+
+### Disconnect Handling
+
+Uses `WidgetPanel` from `@deephaven/dashboard-core-plugins` for session-level disconnect detection. Panel wrapper passes `onSessionClose`/`onSessionOpen` callbacks that set error state → WidgetPanel's LoadingOverlay shows "Chart disconnected". Model also listens for `Widget.EVENT_CLOSE` and `Table.EVENT_DISCONNECT/RECONNECT`.
+
+### Test Fixtures
+
+`start-server.sh` copies fixtures from `tests/app.d/` into `.app.d/`. Override with `FIXTURES="filename.py"` env var. Default fixture is `tradingview_lightweight.py`. Additional test fixtures in `tests/app.d/`:
+- `tvl_downsample_test.py` — 10M static + 100M ticking tables
+- `disconnect_test.py` — grid + plotly + tvl for disconnect comparison
+- `downsample_compare.py` — 100K table for downsample size comparison
+
+## Downsample Benchmarking
+
+Use `dh exec` to benchmark downsample approaches headlessly. **Each approach must run in its own `dh exec` process** — the JVM warms up (JIT compilation, memory pools) across runs within a single process, biasing later approaches to look faster.
+
+### How to run
+
+1. Write each approach as a standalone `.py` file under `notes/`.
+2. Run with: `dh exec notes/bench_my_experiment.py 2>&1 | grep "^RESULT:"`
+3. Compare approaches by running each in a separate `dh exec` invocation, or use `notes/bench_isolated.sh` which automates this.
+
+### Writing a benchmark script
+
+```python
+"""Benchmark: <description>. Run with: dh exec notes/bench_<name>.py"""
+import time
+from deephaven import empty_table, agg, merge as dh_merge
+
+ROW_COUNT = 10_000_000
+NUM_BINS = 1000
+
+big = empty_table(ROW_COUNT).update(
+    [
+        "Timestamp = '2020-01-01T00:00:00Z' + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 10_000_000))",
+        "Price = 100 + Math.sin(ii * 0.0001) * 50",
+        "Volume = 1000 + Math.cos(ii * 0.0002) * 500",
+        "Spread = 0.5 + Math.sin(ii * 0.0003) * 0.3",
+    ]
+)
+
+tc = "Timestamp"
+value_cols = ["Price", "Volume", "Spread"]
+out_cols = [tc] + value_cols
+# ... get rmin, rmax, bw from head/tail ...
+
+times = []
+for i in range(5):
+    t0 = time.perf_counter()
+    # ... approach under test ...
+    _ = merged.size  # force materialization
+    times.append(time.perf_counter() - t0)
+
+print(
+    f"RESULT: avg={sum(times)/len(times):.3f}s  best={min(times):.3f}s  rows={merged.size}"
+)
+```
+
+### Key pitfalls
+
+- Always call `_.size` or similar to force materialization — DH operations are lazy.
+- Run 5+ iterations per script to capture warm-JVM timing within a single process.
+- Compare across scripts (separate processes) for fair cold-start comparisons.
+- The `agg_by` scan dominates cost (~89%). Post-agg steps (merge, sort on ~8K rows) are cheap.
+- `merge_sorted` throws `UnsupportedOperationException` on refreshing (ticking) tables.
+
 ## Running Unit Tests
 
 ```bash

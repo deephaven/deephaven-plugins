@@ -1,7 +1,8 @@
 """Minimal test fixture for Python-side downsampling."""
 
 from deephaven.column import double_col, datetime_col
-from deephaven import new_table, empty_table
+from deephaven import new_table, empty_table, time_table, merge
+from deephaven import updateby as uby
 from deephaven.time import to_j_instant
 from deephaven.plot import tradingview_lightweight as tvl
 
@@ -26,3 +27,27 @@ big_table = empty_table(10_000_000).update(
     ]
 )
 tvl_big = tvl.line(big_table, time="Timestamp", value="Price")
+
+# ---------- Ticking version (100M historical + 1 row/sec live) ----------
+#
+# Pattern from dx.data.stocks: merge a static Index column with a ticking
+# Index column, then derive everything from Index after the merge.
+_N = 100_000_000
+big_ticking_table = (
+    merge(
+        [
+            empty_table(_N).update("Index = ii"),
+            time_table("PT1S").update(f"Index = ii + {_N}").drop_columns("Timestamp"),
+        ]
+    )
+    .update(
+        [
+            "Timestamp = '2020-01-01T00:00:00Z' + (long)(Index * 1_000_000_000L)",
+            "Step = (Math.random() - 0.499) * 0.5",
+        ]
+    )
+    .update_by([uby.cum_sum(cols=["Walk = Step"])])
+    .update("Price = 100 + Walk")
+    .view(["Timestamp", "Price"])
+)
+tvl_big_ticking = tvl.line(big_ticking_table, time="Timestamp", value="Price")

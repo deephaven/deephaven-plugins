@@ -91,7 +91,7 @@ class TradingViewChartModel {
   private downsampledTableIds: Set<number> = new Set();
 
   /** True while waiting for a DOWNSAMPLE_READY response. */
-  private pendingDownsample = false;
+  pendingDownsample = false;
 
   /** If a new zoom was requested while waiting, store it here. */
   private pendingZoomParams: {
@@ -105,6 +105,16 @@ class TradingViewChartModel {
 
   /** Debug callback for overlay. */
   private debugFn: ((msg: string) => void) | null = null;
+
+  /**
+   * Set pendingDownsample and emit a DOWNSAMPLE_PENDING event
+   * so the view layer can show/hide the loading scrim.
+   */
+  private setPendingDownsample(pending: boolean): void {
+    if (this.pendingDownsample === pending) return;
+    this.pendingDownsample = pending;
+    this.emit({ type: 'DOWNSAMPLE_PENDING', pending });
+  }
 
   /**
    * Stable translator for value columns. ChartData caches per function
@@ -308,12 +318,12 @@ class TradingViewChartModel {
    * @param fromSeconds Visible range start in TZ-shifted epoch seconds
    * @param toSeconds Visible range end in TZ-shifted epoch seconds
    */
-  sendZoom(fromSeconds: number, toSeconds: number): void {
+  sendZoom(fromSeconds: number, toSeconds: number, width: number = 0): void {
     if (!this.pythonDownsampled) return;
 
     // Queue if already waiting
     if (this.pendingDownsample) {
-      this.pendingZoomParams = { from: fromSeconds, to: toSeconds, width: 0 };
+      this.pendingZoomParams = { from: fromSeconds, to: toSeconds, width };
       return;
     }
 
@@ -323,16 +333,17 @@ class TradingViewChartModel {
     const fromNanos = Math.round(fromUtcSec * 1e9);
     const toNanos = Math.round(toUtcSec * 1e9);
 
-    this.pendingDownsample = true;
+    this.setPendingDownsample(true);
     this.expectingReset = false;
 
     const msg = JSON.stringify({
       type: 'ZOOM',
       from: String(fromNanos),
       to: String(toNanos),
+      width,
     });
 
-    this.dbg(`sendZoom: ${fromNanos} → ${toNanos}`);
+    this.dbg(`sendZoom: ${fromNanos} → ${toNanos} w=${width}`);
     this.widget.sendMessage(msg, []);
   }
 
@@ -352,7 +363,7 @@ class TradingViewChartModel {
       // ZOOM response when it sees the RESET response.
     }
 
-    this.pendingDownsample = true;
+    this.setPendingDownsample(true);
     this.expectingReset = true;
 
     log.debug('Sending RESET');
@@ -431,18 +442,23 @@ class TradingViewChartModel {
         this.resetPendingForTable.add(tableId);
       }
 
+      // Update fullRange from server (ticking tables may have grown)
+      if (info.fullRange && this.figureData?.downsampleInfo?.[tableIdStr]) {
+        this.figureData.downsampleInfo[tableIdStr].fullRange = info.fullRange;
+      }
+
       // Hybrid merge: always subscribe to full table
       const vp: [number, number] = [0, Math.max(0, newTable.size - 1)];
       this.subscribeTable(tableId, newTable, vp);
     }
 
-    this.pendingDownsample = false;
+    this.setPendingDownsample(false);
 
     // If a new zoom was requested while we were waiting, send it now
     if (this.pendingZoomParams != null) {
       const p = this.pendingZoomParams;
       this.pendingZoomParams = null;
-      this.sendZoom(p.from, p.to);
+      this.sendZoom(p.from, p.to, p.width);
     }
   }
 
@@ -675,13 +691,24 @@ class TradingViewChartModel {
       );
     }
 
-    // Listen for table disconnect
+    // Listen for table disconnect / reconnect
     cleanupSet.add(
       table.addEventListener(
         this.dh.Table.EVENT_DISCONNECT,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (() => {
           log.warn('Table disconnected:', tableId);
+          this.emit({ type: 'DISCONNECTED', connected: false });
+        }) as unknown as Parameters<typeof table.addEventListener>[1]
+      )
+    );
+    cleanupSet.add(
+      table.addEventListener(
+        this.dh.Table.EVENT_RECONNECT,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (() => {
+          log.info('Table reconnected:', tableId);
+          this.emit({ type: 'DISCONNECTED', connected: true });
         }) as unknown as Parameters<typeof table.addEventListener>[1]
       )
     );
@@ -869,8 +896,16 @@ class TradingViewChartModel {
 
     this.widget.addEventListener(this.dh.Widget.EVENT_MESSAGE, handler);
 
+    // Detect widget close (server disconnect / variable removed)
+    const closeHandler = (() => {
+      log.warn('Widget closed');
+      this.emit({ type: 'DISCONNECTED', connected: false });
+    }) as unknown as Parameters<typeof this.widget.addEventListener>[1];
+    this.widget.addEventListener(this.dh.Widget.EVENT_CLOSE, closeHandler);
+
     return () => {
       this.widget.removeEventListener(this.dh.Widget.EVENT_MESSAGE, handler);
+      this.widget.removeEventListener(this.dh.Widget.EVENT_CLOSE, closeHandler);
     };
   }
 

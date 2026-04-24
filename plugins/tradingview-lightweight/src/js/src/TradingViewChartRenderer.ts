@@ -787,6 +787,17 @@ class TradingViewChartRenderer {
     return this.chart;
   }
 
+  /** Reset all price scales to auto-fit visible data. */
+  resetPriceScales(): void {
+    this.seriesMap.forEach(series => {
+      try {
+        series.priceScale().setAutoScale(true);
+      } catch {
+        // series may not be ready
+      }
+    });
+  }
+
   /** Plot-area width in pixels (excludes price scale). */
   getTimeScaleWidth(): number {
     return this.chart.timeScale().width();

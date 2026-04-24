@@ -1,0 +1,89 @@
+/* Ensure WidgetPanel's LoadingOverlay sits above the chart container */
+.dh-tvl-panel > .fill-parent-absolute {
+  z-index: 50;
+}
+
+/* ---- Pending downsample scrim ---- */
+
+.tvl-pending-scrim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--dh-color-grid-scrim, #000) 40%, transparent),
+    color-mix(in srgb, var(--dh-color-grid-scrim, #000) 40%, transparent) calc(100% - 25px),
+    transparent 100%
+  );
+  transition: height 150ms ease-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tvl-pending-scrim.show {
+  height: calc(100% + 25px);
+}
+
+/* ---- Pending status bar (bottom-left, matches iris-grid) ---- */
+
+.tvl-pending-status {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 30;
+  min-width: min(320px, 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease-in;
+}
+
+.tvl-pending-status.show {
+  opacity: 1;
+}
+
+.tvl-pending-status-bar {
+  position: relative;
+  padding: 5px;
+  background: var(--dh-color-content-bg, #2d2a2e);
+  color: var(--dh-color-gray-700, #888);
+  border-top: 1px solid var(--dh-color-gray-500, #555);
+  border-right: 1px solid var(--dh-color-gray-500, #555);
+  overflow: hidden;
+  word-wrap: break-word;
+  z-index: 2;
+  flex-grow: 1;
+  font-size: 12px;
+}
+
+.tvl-pending-status-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  z-index: -1;
+  background: var(--dh-color-accent-bg, #4c90f0);
+  transform-origin: 0% 50%;
+  opacity: 0;
+}
+
+.tvl-pending-status.show .tvl-pending-status-bar::after {
+  opacity: 1;
+  animation: 1.5s tvl-indeterminate infinite linear;
+}
+
+@keyframes tvl-indeterminate {
+  0% {
+    transform: translateX(-50%) scaleX(0.5);
+  }
+  50% {
+    transform: translateX(0) scaleX(0.5);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.2);
+  }
+}

@@ -1,9 +1,10 @@
 """Server-side downsampling for TradingView Lightweight Charts.
 
-Uses Deephaven table operations (update, agg_by, natural_join, where_in) to
-perform min/max bucketing.  The output is a subset of ORIGINAL rows -- not
-synthetic aggregated rows -- so all column types and values are preserved
-exactly.
+Mirrors the JSAPI RunChartDownsample approach: divide the time range into
+equal-width bins, keep the first/last/min/max rows per bin.  The aggregation
+output IS the result — ``sorted_first``/``sorted_last`` capture all output
+columns directly from the min/max source rows.  No ``ii``, ``k``, or
+``where_in`` — works on ticking tables with O(bins) memory.
 
 Architecture: hybrid background + foreground merge.
 - Background: ~BACKGROUND_POINTS rows covering the full time range (computed once)
@@ -14,7 +15,9 @@ Architecture: hybrid background + foreground merge.
 
 from __future__ import annotations
 
+import datetime
 import logging
+import math
 from typing import Any, Optional
 
 try:
@@ -31,7 +34,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-FOREGROUND_POINTS = 5000
+FOREGROUND_POINTS = 3000
 """High-fidelity points for the area of interest."""
 
 BACKGROUND_POINTS = 1000
@@ -41,11 +44,35 @@ BACKGROUND_POINTS = 1000
 TARGET_POINTS = BACKGROUND_POINTS
 
 
+def compute_adaptive_bins(width: int) -> int:
+    """Compute foreground bin count from chart pixel width.
+
+    Rounds up to the next 1000 so similar-width charts share the same
+    Deephaven table cache entries.  Clamped to [BACKGROUND_POINTS, FOREGROUND_POINTS].
+    """
+    if width <= 0:
+        return FOREGROUND_POINTS
+    rounded = math.ceil(width / 1000) * 1000
+    return min(FOREGROUND_POINTS, max(BACKGROUND_POINTS, rounded))
+
+
+def _nanos_to_instant_literal(nanos: int) -> str:
+    """Convert nanosecond epoch to ISO 8601 string for DH Instant comparison."""
+    secs, rem = divmod(nanos, 1_000_000_000)
+    dt = datetime.datetime.fromtimestamp(secs, tz=datetime.timezone.utc)
+    iso = dt.strftime("%Y-%m-%dT%H:%M:%S")
+    if rem > 0:
+        return f"{iso}.{rem:09d}Z"
+    return f"{iso}Z"
+
+
 class DownsampleState:
     """Manages downsampled table lifecycle for a single source table.
 
     Holds a reference to the original table, the background (low-fi full
     range) and foreground (high-fi area of interest) downsampled tables.
+
+    The source table is assumed to be sorted by the time column.
     """
 
     def __init__(
@@ -69,6 +96,8 @@ class DownsampleState:
         # Cached time range to avoid repeated intermediate table creation
         self._cached_time_range: Optional[tuple[int, int]] = None
 
+        self._time_col_is_instant: bool = self._detect_instant_type()
+
     def compute_initial(self) -> Any:
         """Compute the initial background downsample (full range).
 
@@ -86,12 +115,14 @@ class DownsampleState:
         self,
         from_nanos: int,
         to_nanos: int,
+        width: int = 0,
     ) -> Any:
         """Compute a hybrid merged table for a zoom/pan range.
 
         Merges background rows OUTSIDE [from_nanos, to_nanos] with a
         high-fidelity foreground covering [from_nanos, to_nanos].
-        Returns a single sorted table of ~6000 rows.
+        Returns a single table of ~6000 rows, already sorted (each
+        segment is pre-sorted and merged in time order).
         """
         assert dh_merge is not None, "deephaven.merge required"
 
@@ -107,23 +138,29 @@ class DownsampleState:
         self._fg_intermediates = None
 
         # Foreground: high-fidelity downsample of the zoom range
+        fg_bins = compute_adaptive_bins(width)
         fg_table, fg_ints = self._downsample(
-            num_bins=FOREGROUND_POINTS,
+            num_bins=fg_bins,
             from_nanos=from_nanos,
             to_nanos=to_nanos,
         )
 
-        # Background rows outside the foreground range
-        tc = self.time_col
-        bg_outside = self._background_table.where(
-            f"epochNanos({tc}) < {from_nanos} || epochNanos({tc}) > {to_nanos}"
-        )
+        # Split background into before/after foreground so the merge
+        # preserves sort order without an explicit sort.
+        bg_before = self._background_table.where(self._time_filter("<", from_nanos))
+        bg_after = self._background_table.where(self._time_filter(">", to_nanos))
 
-        # Merge and sort
-        merged = dh_merge([bg_outside, fg_table]).sort(tc)
+        # Each segment is individually sorted; concatenation is in order.
+        merged = dh_merge([bg_before, fg_table, bg_after])
 
         # Prevent GC of intermediates
-        self._fg_intermediates = [fg_table, fg_ints, bg_outside, merged]
+        self._fg_intermediates = [
+            fg_table,
+            fg_ints,
+            bg_before,
+            bg_after,
+            merged,
+        ]
         self.current_table = merged
         return merged
 
@@ -138,6 +175,19 @@ class DownsampleState:
         self._cached_time_range = self._get_time_range()
         return self._cached_time_range
 
+    def compute_reset(self) -> Any:
+        """Recompute the background for a RESET (double-click).
+
+        Invalidates the cached time range so ticking tables pick up
+        newly appended data, then recomputes the background from scratch.
+        """
+        self._cached_time_range = None
+        self._fg_intermediates = None
+        # Release old background before recomputing
+        self._background_table = None
+        self._background_intermediates = None
+        return self.compute_initial()
+
     def release_foreground(self) -> None:
         """Release foreground/merge intermediates, keep background."""
         self._fg_intermediates = None
@@ -150,17 +200,46 @@ class DownsampleState:
         self._background_intermediates = None
         self._fg_intermediates = None
 
+    def _detect_instant_type(self) -> bool:
+        """Check if the time column is a temporal type supporting direct comparison."""
+        try:
+            for col in self.source_table.columns:
+                if col.name == self.time_col:
+                    return col.data_type.j_name in (
+                        "java.time.Instant",
+                        "java.time.ZonedDateTime",
+                    )
+        except Exception:
+            return False
+        return False
+
+    def _time_filter(self, op: str, nanos: int) -> str:
+        """Build a filter expression comparing the time column against nanos.
+
+        For Instant/ZonedDateTime columns, uses a direct literal comparison
+        so the engine can leverage sorted-column optimizations.
+        For other types, falls back to epochNanos().
+        """
+        tc = self.time_col
+        if self._time_col_is_instant:
+            return f"{tc} {op} '{_nanos_to_instant_literal(nanos)}'"
+        return f"epochNanos({tc}) {op} {nanos}"
+
     def _downsample(
         self,
         num_bins: int,
         from_nanos: Optional[int] = None,
         to_nanos: Optional[int] = None,
     ) -> tuple[Any, list[Any]]:
-        """Core downsampling: min/max bucketing using DH table operations.
+        """Core downsampling: single-pass aggregation.
 
-        When from_nanos/to_nanos are provided, filters the source to that
-        range before bucketing (used for foreground).  Otherwise uses the
-        full source table (used for background).
+        Uses ``agg_by`` with ``first``/``last``/``sorted_first``/
+        ``sorted_last`` to capture first, last, min-value, and max-value
+        rows per bin.  The wide bin summary is unpivoted into individual
+        rows, merged, and sorted by time for LWC consumption.
+
+        No ``ii``, ``k``, or ``where_in`` — works on ticking tables with
+        O(bins) memory.
 
         Returns:
             (result_table, list_of_intermediate_tables_to_keep_alive)
@@ -169,87 +248,63 @@ class DownsampleState:
         assert dh_merge is not None, "deephaven.merge required"
 
         source = self.source_table
+        tc = self.time_col
+        out_cols = [self.time_col] + list(self.value_cols)
 
-        # Optional range filter for foreground
         if from_nanos is not None and to_nanos is not None:
-            tc = self.time_col
             source = source.where(
-                f"epochNanos({tc}) >= {from_nanos} "
-                f"&& epochNanos({tc}) <= {to_nanos}"
+                f"{self._time_filter('>=', from_nanos)} "
+                f"&& {self._time_filter('<=', to_nanos)}"
             )
             range_min = from_nanos
             range_max = to_nanos
         else:
             tr = self.get_time_range()
             if tr is None:
-                return source, []
+                return source.view(out_cols), []
             range_min, range_max = tr
 
         if source.size <= num_bins:
-            return source, []
+            return source.view(out_cols), []
 
         duration = range_max - range_min
         if duration <= 0:
-            return source, []
+            return source.view(out_cols), []
 
         bin_width = max(duration // num_bins, 1)
 
-        # Add bin column and row index
-        binned = source.update(
-            [
-                "__RowIdx = ii",
-                f"__TimeNanos = epochNanos({self.time_col})",
-                f"__Bin = (long)(__TimeNanos / {bin_width}L)",
-            ]
-        )
+        # Materialize __Bin so agg_by reads pre-computed longs.
+        agg_view = source.update([f"__Bin = (long)(epochNanos({tc}) / {bin_width}L)"])
 
-        # Aggregate per bin
         agg_list = [
-            agg.first("__FirstIdx=__RowIdx"),
-            agg.last("__LastIdx=__RowIdx"),
+            agg.first(cols=[f"__First_{c}={c}" for c in out_cols]),
+            agg.last(cols=[f"__Last_{c}={c}" for c in out_cols]),
         ]
         for v in self.value_cols:
-            agg_list.append(agg.min_(f"__Min_{v}={v}"))
-            agg_list.append(agg.max_(f"__Max_{v}={v}"))
+            agg_list.append(
+                agg.sorted_first(v, cols=[f"__Min_{v}_{c}={c}" for c in out_cols])
+            )
+            agg_list.append(
+                agg.sorted_last(v, cols=[f"__Max_{v}_{c}={c}" for c in out_cols])
+            )
 
-        bin_summary = binned.agg_by(agg_list, by=["__Bin"])
+        bin_summary = agg_view.agg_by(agg_list, by=["__Bin"])
 
-        # Collect keeper row indices (first/last per bin)
-        idx_table = dh_merge(
-            [
-                bin_summary.view(["__Idx=__FirstIdx"]),
-                bin_summary.view(["__Idx=__LastIdx"]),
-            ]
-        )
-
-        # Add min/max row indices for each value column
+        # Unpivot: rename each category's prefixed columns back to the
+        # original names, producing one view per category.
+        views = [
+            bin_summary.view([f"{c}=__First_{c}" for c in out_cols]),
+            bin_summary.view([f"{c}=__Last_{c}" for c in out_cols]),
+        ]
         for v in self.value_cols:
-            joined = binned.natural_join(
-                bin_summary.view(["__Bin", f"__Min_{v}", f"__Max_{v}"]),
-                on="__Bin",
-            )
-            min_rows = (
-                joined.where(f"{v} == __Min_{v}")
-                .agg_by([agg.first("__Idx=__RowIdx")], by=["__Bin"])
-                .view(["__Idx"])
-            )
-            max_rows = (
-                joined.where(f"{v} == __Max_{v}")
-                .agg_by([agg.first("__Idx=__RowIdx")], by=["__Bin"])
-                .view(["__Idx"])
-            )
-            idx_table = dh_merge([idx_table, min_rows, max_rows])
+            views.append(bin_summary.view([f"{c}=__Min_{v}_{c}" for c in out_cols]))
+            views.append(bin_summary.view([f"{c}=__Max_{v}_{c}" for c in out_cols]))
 
-        # Deduplicate and select original rows
-        unique_idx = idx_table.select_distinct(["__Idx"])
-        result = (
-            binned.where_in(unique_idx, "__RowIdx=__Idx")
-            .sort(self.time_col)
-            .drop_columns(["__RowIdx", "__TimeNanos", "__Bin"])
-        )
+        # merge concatenates by category; sort restores time order for LWC.
+        merged = dh_merge(views).sort(tc)
 
-        intermediates = [binned, bin_summary, idx_table, unique_idx]
-        return result, intermediates
+        intermediates = [agg_view, bin_summary] + views
+        return merged, intermediates
 
     def _get_time_range(self) -> Optional[tuple[int, int]]:
         """Get (min_nanos, max_nanos) for the time column."""
@@ -262,13 +317,16 @@ class DownsampleState:
             return None
 
     def _get_time_range_impl(self) -> Optional[tuple[int, int]]:
-        """Inner implementation of _get_time_range."""
-        assert agg is not None, "deephaven.agg required"
-        summary = self.source_table.update(
-            [f"__TimeNanos = epochNanos({self.time_col})"]
-        ).agg_by([agg.min_("__MinT=__TimeNanos"), agg.max_("__MaxT=__TimeNanos")])
-        min_val = summary.j_table.getColumnSource("__MinT").get(0)
-        max_val = summary.j_table.getColumnSource("__MaxT").get(0)
+        """Inner implementation — O(1) using head/tail on sorted source."""
+        tc = self.time_col
+        head_t = self.source_table.head(1).view([f"__T = epochNanos({tc})"])
+        tail_t = self.source_table.tail(1).view([f"__T = epochNanos({tc})"])
+        min_val = head_t.j_table.getColumnSource("__T").get(
+            head_t.j_table.getRowSet().firstRowKey()
+        )
+        max_val = tail_t.j_table.getColumnSource("__T").get(
+            tail_t.j_table.getRowSet().firstRowKey()
+        )
         if min_val is None or max_val is None:
             return None
         return (int(min_val), int(max_val))

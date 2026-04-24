@@ -38,6 +38,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
+    "@deephaven/dashboard-core-plugins": "^0.85.42",
     "@deephaven/jsapi-types": "^1.0.0-dev0.39.5",
     "@deephaven/test-utils": "0.105.0",
     "@types/react": "^17.0.2",

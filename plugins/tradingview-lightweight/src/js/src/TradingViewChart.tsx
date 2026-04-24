@@ -21,6 +21,9 @@ import type {
   TvlFigureData,
   ModelEvent,
 } from './TradingViewTypes';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore Vite ?inline import returns CSS as string
+import tvlStyles from './TradingViewChart.css?inline';
 
 const log = Log.module('TradingViewChart');
 
@@ -54,11 +57,19 @@ function deepMerge(
   return result;
 }
 
+/** Props for TradingViewChart when used inside a panel wrapper. */
+export interface TradingViewChartProps extends WidgetComponentProps<DhType.Widget> {
+  /** Called when loading state changes (for panel-level LoadingOverlay). */
+  onLoadingChange?: (loading: boolean) => void;
+  /** Called when an error occurs (for panel-level error display). */
+  onError?: (error: string | null) => void;
+}
+
 function TradingViewChart(
-  props: WidgetComponentProps<DhType.Widget>
+  props: TradingViewChartProps
 ): JSX.Element | null {
   const dh = useApi();
-  const { fetch } = props;
+  const { fetch, onLoadingChange, onError } = props;
   const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
   const chartTheme = useDHChartTheme();
   const chartThemeRef = useRef(chartTheme);
@@ -66,8 +77,38 @@ function TradingViewChart(
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<TradingViewChartRenderer | null>(null);
   const modelRef = useRef<TradingViewChartModel | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setErrorState] = useState<string | null>(null);
   const [debugInfo, setDebugInfoRaw] = useState<string>('loading...');
+  const [isLoading, setIsLoadingState] = useState(true);
+
+  // Wrap setters to propagate to panel callbacks
+  const setIsLoading = useCallback((loading: boolean) => {
+    setIsLoadingState(loading);
+    onLoadingChange?.(loading);
+  }, [onLoadingChange]);
+
+  const setError = useCallback((err: string | null) => {
+    setErrorState(err);
+    onError?.(err);
+  }, [onError]);
+  const [pendingDs, setPendingDs] = useState(false);
+  const [showScrim, setShowScrim] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+
+  // Progressive reveal: scrim after 200ms, status bar after 500ms
+  useEffect(() => {
+    if (!pendingDs) {
+      setShowScrim(false);
+      setShowStatus(false);
+      return undefined;
+    }
+    const scrimTimer = setTimeout(() => setShowScrim(true), 200);
+    const statusTimer = setTimeout(() => setShowStatus(true), 500);
+    return () => {
+      clearTimeout(scrimTimer);
+      clearTimeout(statusTimer);
+    };
+  }, [pendingDs]);
 
   const userOptionsRef = useRef<Record<string, unknown>>({});
   const chartTypeRef = useRef<TvlChartType>('standard');
@@ -82,6 +123,17 @@ function TradingViewChart(
 
   /** Last ZOOM request range — used by handleDataUpdate to lock viewport. */
   const lastZoomRangeRef = useRef<{ from: number; to: number } | null>(null);
+
+  /** True while the user is actively dragging (pointer down on chart). */
+  const draggingRef = useRef(false);
+
+  /**
+   * True when the next DATA_UPDATED should lock the visible range.
+   * Set when a downsample response is expected, cleared after the
+   * first data update applies the lock. Prevents tick updates from
+   * snapping the view back to the last zoom range.
+   */
+  const lockRangeOnNextUpdateRef = useRef(false);
 
   /** Cleanup for downsample subscriptions (set up inside init, cleaned in return). */
   const dsCleanupRef = useRef<(() => void) | null>(null);
@@ -392,14 +444,50 @@ function TradingViewChart(
 
       if (isResetView === true || isInitialLoad === true) {
         renderer.fitContent();
-      } else if (isPythonDs && lastZoomRangeRef.current) {
-        // Lock the visible range after data replacement to prevent
-        // visual jumping when bar density changes (hybrid merge).
+      } else if (
+        isPythonDs &&
+        lastZoomRangeRef.current &&
+        !draggingRef.current &&
+        lockRangeOnNextUpdateRef.current
+      ) {
+        // Lock the visible range ONCE after a downsample data swap to
+        // prevent jumping when bar density changes.  Don't lock on
+        // subsequent tick updates — that would snap the view back if
+        // the user panned after the zoom.
+        lockRangeOnNextUpdateRef.current = false;
         try {
           chart.timeScale().setVisibleRange({
             from: lastZoomRangeRef.current.from,
             to: lastZoomRangeRef.current.to,
           } as never);
+        } catch {
+          // chart may not be ready
+        }
+      } else if (addedCount > 0 && !isInitialLoad && !draggingRef.current) {
+        // Snap-to-live: if the right edge of the visible range is within
+        // 1% of the viewport width from the latest data, auto-scroll to
+        // follow the live data.  If the user has panned away, leave it.
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const vr = chart.timeScale().getVisibleRange() as any;
+          if (vr != null) {
+            const visFrom = vr.from as number;
+            const visTo = vr.to as number;
+            const visDur = visTo - visFrom;
+            // Find the latest data point across all series
+            const timeColName = figure.series[0]?.dataMapping.columns.time;
+            const timeArr = timeColName ? colData.get(timeColName) : undefined;
+            if (timeArr && timeArr.length > 0 && visDur > 0) {
+              const lastTime = timeArr[timeArr.length - 1] as number;
+              const gap = lastTime - visTo;
+              if (gap > 0 && gap < visDur * 0.01) {
+                chart.timeScale().setVisibleRange({
+                  from: visFrom + gap,
+                  to: lastTime,
+                } as never);
+              }
+            }
+          }
         } catch {
           // chart may not be ready
         }
@@ -415,99 +503,160 @@ function TradingViewChart(
       }
     }
 
-    async function init() {
-      try {
-        const widget = await fetch();
-        const exported = widget.exportedObjects;
-        const dataString = widget.getDataAsString();
+    /**
+     * Create or reconnect the model. Reuses the existing renderer.
+     * Called on initial load and again after a table reconnect event.
+     */
+    async function connectModel(
+      renderer: TradingViewChartRenderer
+    ): Promise<void> {
+      // Tear down previous model if reconnecting
+      if (modelRef.current) {
+        dsCleanupRef.current?.();
+        dsCleanupRef.current = null;
+        modelRef.current.close();
+        modelRef.current = null;
+      }
 
+      const widget = await fetch();
+      const exported = widget.exportedObjects;
+      const dataString = widget.getDataAsString();
+
+      if (cancelled) return;
+
+      const model = new TradingViewChartModel(dh, widget);
+      modelRef.current = model;
+
+      const message = JSON.parse(dataString);
+      const userOptions = message.figure?.chartOptions ?? {};
+      userOptionsRef.current = userOptions;
+      const ct = message.figure?.chartType ?? 'standard';
+      chartTypeRef.current = ct;
+
+      // Update renderer with actual options
+      if (Object.keys(userOptions).length > 0) {
+        const themeOptions = chartThemeToOptions(chartThemeRef.current);
+        const mergedOptions = deepMerge(
+          themeOptions as Record<string, unknown>,
+          userOptions
+        );
+        renderer.applyOptions(mergedOptions);
+      }
+
+      model.subscribe((event: ModelEvent) => {
         if (cancelled) return;
 
-        const model = new TradingViewChartModel(dh, widget);
-        modelRef.current = model;
-
-        if (containerRef.current) {
-          const themeOptions = chartThemeToOptions(chartTheme);
-          const message = JSON.parse(dataString);
-          const userOptions = message.figure?.chartOptions ?? {};
-          userOptionsRef.current = userOptions;
-          const ct = message.figure?.chartType ?? 'standard';
-          chartTypeRef.current = ct;
-
-          const mergedOptions = deepMerge(
-            themeOptions as Record<string, unknown>,
-            userOptions
-          );
-
-          const renderer = new TradingViewChartRenderer(
-            containerRef.current,
-            mergedOptions,
-            ct
-          );
-          rendererRef.current = renderer;
-
-          model.subscribe((event: ModelEvent) => {
-            if (cancelled) return;
-
-            switch (event.type) {
-              case 'FIGURE_UPDATED':
-                handleFigureUpdate(renderer, model, event.figure);
-                updateDebugState(
-                  gatherDebug('FIGURE_UPDATED', model, renderer),
-                  model,
-                  renderer
-                );
-                break;
-              case 'DATA_UPDATED':
-                handleDataUpdate(renderer, model, event);
-                updateDebugState(
-                  gatherDebug(
-                    `DATA tid=${event.tableId} init=${event.isInitialLoad} reset=${event.isResetView} add=${event.addedCount}`,
-                    model,
-                    renderer
-                  ),
-                  model,
-                  renderer
-                );
-                break;
-              case 'ERROR':
-                setError(event.message);
-                break;
-              default:
-                break;
-            }
-          });
-
-          // Configure model before init
-          model.setTimeZone(timeZone);
-          model.setChartType(ct);
-          model.setDebugFn(msg => {
+        switch (event.type) {
+          case 'FIGURE_UPDATED':
+            handleFigureUpdate(renderer, model, event.figure);
             updateDebugState(
-              prev => {
-                const lines = prev.split('\n');
-                lines.push(msg);
-                return lines.slice(-15).join('\n');
-              },
+              gatherDebug('FIGURE_UPDATED', model, renderer),
               model,
               renderer
             );
-          });
-
-          await model.init(exported, dataString);
-          updateDebugState(
-            gatherDebug('INIT', model, renderer),
-            model,
-            renderer
-          );
-
-          // Set up downsample event detection AFTER init completes
-          if (!cancelled && model.isPythonDownsampled()) {
-            setupDownsampleSubscriptions(renderer, model);
-          }
+            break;
+          case 'DATA_UPDATED':
+            if (event.isInitialLoad) setIsLoading(false);
+            // Clear scrim AFTER data renders, not when subscription is set up.
+            if (!event.isInitialLoad) setPendingDs(false);
+            handleDataUpdate(renderer, model, event);
+            updateDebugState(
+              gatherDebug(
+                `DATA tid=${event.tableId} init=${event.isInitialLoad} reset=${event.isResetView} add=${event.addedCount}`,
+                model,
+                renderer
+              ),
+              model,
+              renderer
+            );
+            break;
+          case 'DOWNSAMPLE_PENDING':
+            if (event.pending) {
+              setPendingDs(true);
+              lockRangeOnNextUpdateRef.current = true;
+            }
+            break;
+          case 'DISCONNECTED':
+            if (!event.connected) {
+              // Table disconnected — surface as error to WidgetPanel
+              setError('Chart disconnected');
+            } else {
+              // Table reconnected — re-fetch widget and rebuild model
+              log.info('Table reconnected, re-initializing model');
+              setError(null);
+              setIsLoading(true);
+              connectModel(renderer).catch(e => {
+                log.error('Reconnection failed', e);
+                setIsLoading(false);
+                setError(`Reconnection failed: ${String(e)}`);
+              });
+            }
+            break;
+          case 'ERROR':
+            setIsLoading(false);
+            setError(event.message);
+            break;
+          default:
+            break;
         }
+      });
+
+      // Configure model before init
+      model.setTimeZone(timeZone);
+      model.setChartType(ct);
+      model.setDebugFn(msg => {
+        updateDebugState(
+          prev => {
+            const lines = prev.split('\n');
+            lines.push(msg);
+            return lines.slice(-15).join('\n');
+          },
+          model,
+          renderer
+        );
+      });
+
+      await model.init(exported, dataString);
+      updateDebugState(
+        gatherDebug('INIT', model, renderer),
+        model,
+        renderer
+      );
+
+      // Set up downsample event detection AFTER init completes
+      if (!cancelled && model.isPythonDownsampled()) {
+        setupDownsampleSubscriptions(renderer, model);
+
+        // Restore zoom position after reconnect
+        if (lastZoomRangeRef.current) {
+          model.sendZoom(
+            lastZoomRangeRef.current.from,
+            lastZoomRangeRef.current.to
+          );
+        }
+      }
+    }
+
+    async function init() {
+      if (!containerRef.current) return;
+
+      // Create the chart shell immediately with theme defaults so the
+      // user sees background/grid/axes while waiting for data.
+      const themeOptions = chartThemeToOptions(chartThemeRef.current);
+      const ct = chartTypeRef.current;
+      const renderer = new TradingViewChartRenderer(
+        containerRef.current,
+        themeOptions as Record<string, unknown>,
+        ct
+      );
+      rendererRef.current = renderer;
+
+      try {
+        await connectModel(renderer);
       } catch (e) {
         if (!cancelled) {
           log.error('Failed to initialize TradingView chart', e);
+          setIsLoading(false);
           setError(String(e));
         }
       }
@@ -554,13 +703,12 @@ function TradingViewChart(
       }, 1000);
 
       // --- Pointer tracking: block requests until mouseup ---
-      let dragging = false;
       let pendingAction = false;
       const onDown = () => {
-        dragging = true;
+        draggingRef.current = true;
       };
       const onUp = () => {
-        dragging = false;
+        draggingRef.current = false;
         if (!pendingAction) return;
         pendingAction = false;
         if (suppressRef.current) {
@@ -632,7 +780,7 @@ function TradingViewChart(
             model,
             renderer
           );
-          model.sendZoom(from, to);
+          model.sendZoom(from, to, timeScale.width());
         }
 
         // Refresh state attribute for tests
@@ -647,7 +795,7 @@ function TradingViewChart(
       // Visible range change handler.
       const unsubRange = renderer.subscribeVisibleLogicalRangeChange(() => {
         if (!settled) return;
-        if (dragging) {
+        if (draggingRef.current) {
           pendingAction = true;
           return;
         }
@@ -670,6 +818,7 @@ function TradingViewChart(
         lastZoomFrom = null;
         lastZoomTo = null;
         lastZoomRangeRef.current = null;
+        renderer.resetPriceScales();
         updateDebugState(
           gatherDebug('DBLCLICK → RESET', model, renderer),
           model,
@@ -692,7 +841,7 @@ function TradingViewChart(
         const to = visRange?.to as number | undefined;
         if (from != null && to != null) {
           lastZoomRangeRef.current = { from, to };
-          model.sendZoom(from, to);
+          model.sendZoom(from, to, newWidth);
         }
       });
 
@@ -773,10 +922,17 @@ function TradingViewChart(
         flexBasis: 0,
       }}
     >
-      {error != null && (
-        <div style={{ padding: 16, color: 'red' }}>
-          Error loading chart: {error}
-        </div>
+      {/* eslint-disable-next-line react/no-danger */}
+      <style dangerouslySetInnerHTML={{ __html: tvlStyles }} />
+      {pendingDs && (
+        <>
+          <div className={`tvl-pending-scrim${showScrim ? ' show' : ''}`} />
+          <div className={`tvl-pending-status${showStatus ? ' show' : ''}`}>
+            <div className="tvl-pending-status-bar">
+              Downsampling data&hellip;
+            </div>
+          </div>
+        </>
       )}
       <div
         data-testid="tvl-debug"
