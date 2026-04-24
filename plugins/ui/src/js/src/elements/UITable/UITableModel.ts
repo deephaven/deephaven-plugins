@@ -46,12 +46,31 @@ import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
  */
 export async function makeUiTableModel(
   dh: typeof DhType,
-  baseTableProp: DhType.Table,
+  baseTableProp: DhType.Table | DhType.TreeTable,
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
-  const baseTable = await baseTableProp.copy();
+  // TreeTable (includes rollup tables) doesn't support copy(), naturalJoin, or
+  // getTotalsTable with the same semantics as Table. For tree tables we skip the
+  // format-driven column processing and use the table directly.
+  const isTreeTable = TableUtils.isTreeTable(baseTableProp);
+  if (isTreeTable) {
+    const uiTableProxy = new JsTableProxy({
+      table: baseTableProp as DhType.Table,
+      layoutHints,
+      onClose: () => undefined,
+    });
+    const baseModel = await IrisGridModelFactory.makeModel(dh, uiTableProxy);
+    return new UITableModel({
+      dh,
+      model: baseModel,
+      format,
+      displayNameMap,
+    });
+  }
+
+  const baseTable = await (baseTableProp as DhType.Table).copy();
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
     const { if_ } = rule;

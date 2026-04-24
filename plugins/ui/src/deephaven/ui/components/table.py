@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal, Any, Optional
 import logging
-from deephaven.table import Table
+from deephaven.table import Table, RollupTable, TreeTable
 from ..elements import Element, resolve
 from ..elements.UriElement import UriElement
 from .types import AlignSelf, DimensionValue, JustifySelf, LayoutFlex, Position
@@ -292,7 +292,7 @@ class table(Element):
 
     def __init__(
         self,
-        table: Table | UriElement | str,
+        table: Table | RollupTable | TreeTable | UriElement | str,
         *,
         format_: TableFormat | list[TableFormat] | None = None,
         on_row_press: RowPressCallback | None = None,

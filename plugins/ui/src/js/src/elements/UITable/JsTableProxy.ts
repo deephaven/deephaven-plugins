@@ -211,6 +211,10 @@ class JsTableProxy implements dh.Table {
       allColumns,
       updateIntervalMs
     );
+    // TreeTable.setViewport returns void; avoid wrapping undefined in a Proxy
+    if (viewportSubscription == null) {
+      return viewportSubscription as unknown as dh.TableViewportSubscription;
+    }
     return new Proxy(viewportSubscription, {
       get: (target, prop, receiver) => {
         // Need to proxy setViewport on the subscription in case it is changed
