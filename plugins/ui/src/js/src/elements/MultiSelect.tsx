@@ -18,7 +18,7 @@ export function MultiSelect(
   props: SerializedMultiSelectProps
 ): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
-  const { children, ...pickerProps } = useMultiSelectProps(props);
+  const { children, ...multiSelectProps } = useMultiSelectProps(props);
 
   const isObjectView =
     isElementOfType(children, ObjectView) ||
@@ -36,7 +36,7 @@ export function MultiSelect(
       return (
         <DHMultiSelect
           // eslint-disable-next-line react/jsx-props-no-spreading
-          {...pickerProps}
+          {...multiSelectProps}
           errorMessage={message}
           validationState="invalid"
         >
@@ -47,7 +47,7 @@ export function MultiSelect(
     if (isLoading || table == null || api == null) {
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHMultiSelect loadingState="loading" {...pickerProps}>
+        <DHMultiSelect loadingState="loading" {...multiSelectProps}>
           {[]}
         </DHMultiSelect>
       );
@@ -56,7 +56,7 @@ export function MultiSelect(
       <ApiContext.Provider value={api}>
         <DHMultiSelectJSApi
           // eslint-disable-next-line react/jsx-props-no-spreading
-          {...pickerProps}
+          {...multiSelectProps}
           table={table}
           settings={settings}
         />
@@ -64,8 +64,10 @@ export function MultiSelect(
     );
   }
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <DHMultiSelect {...pickerProps}>{children}</DHMultiSelect>;
+  return (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <DHMultiSelect {...multiSelectProps}>{children}</DHMultiSelect>
+  );
 }
 
 export default MultiSelect;
