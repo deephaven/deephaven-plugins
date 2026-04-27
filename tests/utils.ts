@@ -5,6 +5,8 @@ export const SELECTORS = {
   REACT_PANEL: '.dh-panel.widget-loader-deephaven\\.ui\\.Element',
   REACT_PANEL_VISIBLE:
     '.dh-panel.widget-loader-deephaven\\.ui\\.Element:visible',
+  DH_REACT_PANEL: '.dh-react-panel',
+  DH_REACT_PANEL_VISIBLE: '.dh-react-panel:visible',
   REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
 };
 
