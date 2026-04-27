@@ -43,7 +43,8 @@ export function getLocalPath(pathname: string): string {
 function getWidgetBasePath(pathname: string): string {
   const idx = pathname.indexOf(LOCAL_PREFIX);
   if (idx === -1) {
-    return pathname.endsWith('/') ? pathname : `${pathname}/`;
+    const base = pathname.endsWith('/') ? pathname : `${pathname}/`;
+    return `${base}local/`;
   }
   return pathname.substring(0, idx + LOCAL_PREFIX.length);
 }

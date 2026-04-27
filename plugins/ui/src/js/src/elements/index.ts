@@ -23,6 +23,7 @@ export * from './IllustratedMessage';
 export * from './Image';
 export * from './LabeledValue';
 export * from './InlineAlert';
+export * from './Link';
 export * from './ListView';
 export * from './LogicButton';
 export * from './Markdown';

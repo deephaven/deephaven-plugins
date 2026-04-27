@@ -201,13 +201,6 @@ def link(
             nav_absolute = to.get("absolute", False)
             nav_replace = to.get("replace")
 
-        # Compute fallback href for the <a> element
-        if isinstance(nav_path, str):
-            effective_href = nav_path
-        elif nav_path is not None:
-            # WidgetPath/EnterpriseWidgetPath — no simple fallback href
-            effective_href = "#"
-
         # Build the navigate payload
         norm_path = _normalize_path(nav_path if isinstance(nav_path, str) else None)
 
