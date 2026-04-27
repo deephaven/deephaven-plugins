@@ -4,6 +4,7 @@ import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import ReactPanel from '../layout/ReactPanel';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import Dashboard from '../layout/Dashboard';
+import DefaultPanelContent from './DefaultPanelContent';
 
 /**
  * Convert the children passed as the Document root to a valid root node, or throw if it's an invalid root configuration.
@@ -51,6 +52,14 @@ export function getRootChildren(
   if (panelCount > 0 && isNested) {
     // Wrap it in a dashboard so it can be rendered properly
     return <Dashboard>{children}</Dashboard>;
+  }
+
+  if (nonLayoutCount === childrenArray.length) {
+    // Bare (non-layout) children. The widget is hosted by an outer panel
+    // (e.g. the core WidgetPanel) which doesn't provide padding or react to
+    // the widget's loading/error state. Wrap with DefaultPanelContent to
+    // supply those behaviors.
+    return <DefaultPanelContent>{children}</DefaultPanelContent>;
   }
 
   // It's already got layout defined, just return it

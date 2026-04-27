@@ -89,6 +89,12 @@
       border: none;
     }
   }
+
+  // remove padding around single child nested dashboards in react panels
+  // (the .dh-nested-dashboard wrapper provides its own padding/border below)
+  &:has(> .dh-inner-react-panel > .dh-nested-dashboard:only-child) {
+    padding: 0 !important; // important required to override inline spectrum style
+  }
 }
 
 .dh-panel {
