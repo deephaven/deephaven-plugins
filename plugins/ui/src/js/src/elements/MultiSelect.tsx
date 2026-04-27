@@ -23,12 +23,7 @@ export function MultiSelect(
   const isObjectView =
     isElementOfType(children, ObjectView) ||
     isElementOfType(children, UriObjectView);
-  const {
-    widget: table,
-    api,
-    isLoading,
-    error,
-  } = useObjectViewObject<dh.Table>(children);
+  const { widget: table, api, error } = useObjectViewObject<dh.Table>(children);
 
   if (isObjectView) {
     if (error != null) {
@@ -44,7 +39,10 @@ export function MultiSelect(
         </DHMultiSelect>
       );
     }
-    if (isLoading || table == null || api == null) {
+    // Don't gate on `isLoading` as it flips true on server round-trips and
+    // would unmount/remount the spectrum MultiSelect, closing any open
+    // popover.
+    if (table == null || api == null) {
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <DHMultiSelect loadingState="loading" {...multiSelectProps}>
