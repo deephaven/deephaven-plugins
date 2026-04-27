@@ -221,7 +221,6 @@ def use_navigate() -> Callable[..., None]:
 - **Empty values clear the URL component**: Passing `query_params=""` or `query_params={}` removes all query parameters from the URL. Passing `fragment=""` removes the URL fragment.
 - **Multi-value params**: Pass a list as a dict value to repeat a key — `{"tag": ["python", "java"]}` serialises to `?tag=python&tag=java`.
 - **Replace vs push**: When `replace` is `None`, navigation within the current dashboard context uses `history.replaceState` (no new history entry), while navigation outside the dashboard uses `history.pushState` (new history entry). This prevents intra-dashboard navigation from polluting the browser history while still allowing the back button to return from cross-dashboard navigation.
-- **Compatibility with `use_set_query_param`**: The existing `use_set_query_param` hook sends `navigate.event` payloads that only include `queryParams` and `replace`. The updated `Navigate.ts` handler treats missing fields as "preserve current value", so `use_set_query_param` continues to work without modification.
 
 ### Example
 
@@ -503,7 +502,7 @@ def router(*routes: route) -> Element:
 
 When the router encounters an absolute path string during matching (e.g. a resolved `WidgetPath` or a hardcoded absolute path), it automatically normalises the embed/app prefix to match the current navigation context.
 
-- **Embed route structure**: `<base_url>/embed/widget/<pq_name>/<widget_name>[/local/…]`
+- **Embed route structure**: `<base_url>/embed/widget/<pq_name>/<widget_name>[/local/…]` or `<base_url>/embed/widget/serial/<pq_serial>/<widget_name>[/local/…]`
 - **App route structure**: `<base_url>/dashboard/<pq_serial>_<widget_name>[/local/…]`
 
 Conversion rules:
@@ -625,20 +624,20 @@ The `use_widget_path` hook (section 7) resolves a `WidgetPath` or `EnterpriseWid
 
 ### URL Routes
 
-| Enterprise Route Pattern                                                   | Description                                                              |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `<base_url>/embed/widget/<pq_name>/<widget_name>/<replicaSlot?>[/local/…]` | Existing embedded widget route using pq name (currently supported)       |
-| `<base_url>/embed/widget/serial/<pq_serial>/<replicaSlot?>[/local/…]`      | Existing embedded widget route using serial number (currently supported) |
-| `<base_url>/app/widget/<pq_serial>-<widget_name>[/local/…]`                | Existing in-app widget route using pq serial (currently supported)       |
-| `<base_url>/app/widget/<pq_name>/<widget_name>/<replicaSlot?>[/local/…]`   | Improved in-app widget navigation using pq name (**future work**)        |
+| Enterprise Route Pattern                                                   | Description                                                                |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `<base_url>/embed/widget/<pq_name>/<widget_name>/<replicaSlot?>[/local/…]` | Existing embedded widget route using pq name (currently supported)         |
+| `<base_url>/embed/widget/serial/<pq_serial>/<replicaSlot?>[/local/…]`      | Existing embedded widget route using serial number (currently supported)   |
+| `<base_url>/app/widget/<pq_serial>-<widget_name>[/local/…]`                | Existing in-app widget route using pq serial (currently supported)         |
+| `<base_url>/app/widget/<pq_name>/<widget_name>/<replicaSlot?>[/local/…]`   | Improved in-app widget navigation using pq name (**possible future work**) |
 
-| Non-enterprise Route Pattern                             | Description                                                    |
-| -------------------------------------------------------- | -------------------------------------------------------------- |
-| `<base_url>/iframe/widget/[/local/…]?name=<widget_name>` | Embedded widget route without pq name (new for non-enterprise) |
+| Non-enterprise Route Pattern                             | Description           |
+| -------------------------------------------------------- | --------------------- |
+| `<base_url>/iframe/widget/[/local/…]?name=<widget_name>` | Embedded widget route |
 
-> **TODO:** Future work to add a non-enterprise app route pattern as well, especially if reworking iframe to use path instead of search param.
+Future work for non-enterprise routes can be considered as well, but the current implementation focuses on the above patterns.
 
-All routes support an optional `/local/…` suffix for user-defined sub-routing within the widget. The `/local/` prefix separates platform routing from user routing — everything after `/local/` is the widget's own route space.
+All routes support an optional `/local/…` suffix for user-defined sub-routing within the widget. The `/local/` prefix separates platform routing from user routing. Everything after `/local/` is the widget's own route space. Users should not use `local` as a segment, as it is reserved for this purpose, but no other reserved segments are required.
 
 ### Resolution Behavior
 
@@ -648,7 +647,7 @@ When a `WidgetPath` or `EnterpriseWidgetPath` is used as a route `path`, the rou
 2. **Embed/app detection**: If `embed` is `None`, the router inspects the current URL to determine the context. If neither embed nor app patterns are found, defaults to embed.
 3. **Path construction**: Builds the full widget path from the base URL, route prefix (`/embed/widget/` or `/app/widget/`), query name (enterprise only), widget name, and optional local path. For `EnterpriseWidgetPath`, the embed and app routes have different URL structures:
    - **Embed**: `<base_url>/embed/widget/<pq_name>/<widget_name>[/local/…]` — uses the query name directly.
-   - **App**: `<base_url>/app/widget/<pq_serial>-<widget_name>[/local/…]` — requires a serial number. If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
+   - **App**: `<base_url>/app/widget/<pq_serial>_<widget_name>[/local/…]` — requires a serial number. If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
 4. **Embed ↔ app auto-conversion**: When matching, the router normalises embed/app prefixes to match the current navigation context (see [Automatic Embed ↔ App Path Conversion](#automatic-embed--app-path-conversion) in the router section).
 
 ### Notes
@@ -730,10 +729,6 @@ def use_widget_path(widget_path: WidgetPath | EnterpriseWidgetPath) -> str:
     """
     Resolve a WidgetPath or EnterpriseWidgetPath to an absolute URL path string.
 
-    Uses the current URL context (via use_url_components()) to extract the
-    base URL and detect the embed/app context, then delegates to the same
-    resolution logic used by ui.router.
-
     Args:
         widget_path: A WidgetPath or EnterpriseWidgetPath instance to resolve.
 
@@ -751,7 +746,6 @@ def use_widget_path(widget_path: WidgetPath | EnterpriseWidgetPath) -> str:
 ### Notes
 
 - Resolution uses the same `resolve_widget_path()` utility as the router, so the output is always consistent with what a `ui.route(path=widget_path)` would produce.
-- Embed ↔ app conversion is **not** applied by this hook — the path is returned as resolved from the `embed` field and the current URL context. The conversion only happens inside `ui.router` during matching.
 - Must be called inside a `@ui.component`.
 
 ### Example
@@ -965,12 +959,15 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 
 1. **Create `types/widget_path.py`** (or add to existing types module) with `WidgetPath` and `EnterpriseWidgetPath` frozen dataclasses as defined in the Types section.
 2. **Implement `resolve_widget_path(widget_path, current_url_path)`** as an internal utility used by the router during route compilation:
+
    - Extract the base URL from `current_url_path` by finding the portion before `/embed/widget/`, `/app/widget/`, or `/iframe/widget/`. If none is found, use `""` as the base URL.
    - If `embed` is `None`, inspect `current_url_path`: set `True` if it contains `/embed/widget/` or `/iframe/widget/`, else `False`. If neither is found, default to `True` (embed).
    - For `WidgetPath`: build the path as `{base_url}/iframe/widget/{widget}` (non-enterprise embed) or the appropriate app route.
    - For `EnterpriseWidgetPath`: build the path using the query name/serial and the embed/app context:
+
      - **Embed**: use the query name/serial as-is: `{base_url}/embed/widget/{query}/{widget}`.
      - **App**: requires a serial number. If `query` is an `int`, use it directly. If `query` is a `str` (name), look up the serial using `SessionManager`. `deephaven_enterprise` must be conditionally imported — raise a clear error if it is unavailable and an app route is requested:
+
        ```python
        try:
            from deephaven_enterprise.client.session_manager import SessionManager
@@ -979,10 +976,14 @@ No frontend changes needed — routing logic is entirely in the Python backend.
        except ImportError:
            _has_enterprise = False
        ```
+
        Then: `sm = SessionManager(); serial = sm.controller_client.get_serial_for_name(name=query)`
+
      - Construct: `{base_url}/app/widget/{serial}-{widget}`.
+
    - If `local_path` is provided, strip any leading `/` and append `/local/{local_path}`.
    - Include `replica_slot` in the embed path if provided (`{base_url}/embed/widget/{query}/{widget}/{replica_slot}`).
+
 3. **Implement embed ↔ app path conversion** as an internal utility `_normalize_widget_prefix(path, current_url_path)` used by the router:
    - Detects whether the current context is embed or app from `current_url_path`.
    - If the context is app and `path` is an embed route: parse `<pq_name>` and `<widget_name>` from the embed path, call `_get_serial_for_name(pq_name)` (conditionally importing `deephaven_enterprise`), then reconstruct as `<base_url>/app/widget/<serial>-<widget_name>[/local/…]`.
