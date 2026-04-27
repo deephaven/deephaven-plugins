@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from deephaven.plugin.utilities import is_enterprise_environment
+
 import re
 from dataclasses import dataclass
 from typing import TypedDict, Union
@@ -75,41 +77,25 @@ class NavigationTarget(TypedDict, total=False):
 
 # Patterns for detecting embed/app/iframe routes in a URL path.
 _EMBED_WIDGET_RE = re.compile(r"/embed/widget/")
-_APP_WIDGET_RE = re.compile(r"/app/widget/")
+_DASHBOARD_RE = re.compile(r"/dashboard/")
 _IFRAME_WIDGET_RE = re.compile(r"/iframe/widget/")
 
-# Patterns for extracting the base URL from a path.
-_WIDGET_ROUTE_RE = re.compile(r"^(.*?)(?:/embed/widget/|/app/widget/|/iframe/widget/)")
-
-
 try:
-    from deephaven_enterprise.client.session_manager import (
+    # Import SessionManager for enterprise widget path resolution.
+    from deephaven_enterprise.client.session_manager import (  # pyright: ignore[reportMissingImports]
         SessionManager,
     )
-
-    _has_enterprise = True
 except ImportError:
-    _has_enterprise = False
+    pass
 
 
 def _get_serial_for_name(name: str) -> int:
-    if not _has_enterprise:
+    if not is_enterprise_environment():
         raise RuntimeError(
-            "deephaven_enterprise is required for embed to app path conversion"
+            "deephaven_enterprise is required for embed to dashboard path conversion"
         )
-    sm = SessionManager()
+    sm = SessionManager()  # pyright: ignore[reportUnboundVariable]
     return sm.controller_client.get_serial_for_name(name=name)
-
-
-def _extract_base_url(current_url_path: str) -> str:
-    """
-    Extract the base URL from a URL path by finding the portion before
-    /embed/widget/, /app/widget/, or /iframe/widget/.
-
-    Returns an empty string if no known prefix is found.
-    """
-    m = _WIDGET_ROUTE_RE.match(current_url_path)
-    return m.group(1) if m else ""
 
 
 def _detect_embed(current_url_path: str) -> bool:
@@ -121,7 +107,7 @@ def _detect_embed(current_url_path: str) -> bool:
         current_url_path
     ):
         return True
-    if _APP_WIDGET_RE.search(current_url_path):
+    if _DASHBOARD_RE.search(current_url_path):
         return False
     return True
 
@@ -129,6 +115,7 @@ def _detect_embed(current_url_path: str) -> bool:
 def resolve_widget_path(
     widget_path: WidgetPath | EnterpriseWidgetPath,
     current_url_path: str,
+    base_url: str = "/",
 ) -> str:
     """
     Resolve a WidgetPath or EnterpriseWidgetPath to an absolute URL path string.
@@ -136,11 +123,15 @@ def resolve_widget_path(
     Args:
         widget_path: The widget path descriptor.
         current_url_path: The current absolute URL path from the browser.
+        base_url: The base URL from the frontend (import.meta.env.BASE_URL).
+                  Defaults to "/".
 
     Returns:
         The resolved absolute URL path string.
     """
-    base_url = _extract_base_url(current_url_path)
+    # Normalize base_url: ensure no trailing slash for clean concatenation
+    base = base_url.rstrip("/")
+
     embed = widget_path.embed
     if embed is None:
         embed = _detect_embed(current_url_path)
@@ -152,11 +143,9 @@ def resolve_widget_path(
 
     if isinstance(widget_path, WidgetPath):
         if embed:
-            # Non-enterprise embed route
-            path = f"{base_url}/iframe/widget/{widget_path.widget}{local_suffix}"
+            path = f"{base}/iframe/widget/{widget_path.widget}{local_suffix}"
         else:
-            # Non-enterprise app route (future work — use iframe for now)
-            path = f"{base_url}/iframe/widget/{widget_path.widget}{local_suffix}"
+            path = f"{base}{local_suffix}" if local_suffix else (base or "/")
         return path
 
     # EnterpriseWidgetPath
@@ -168,14 +157,14 @@ def resolve_widget_path(
             if widget_path.replica_slot is not None
             else ""
         )
-        path = f"{base_url}/embed/widget/{query_part}/{widget_path.widget}{replica}{local_suffix}"
+        path = f"{base}/embed/widget/{query_part}/{widget_path.widget}{replica}{local_suffix}"
     else:
-        # Enterprise app route: <base>/app/widget/<serial>-<widget>[/local/...]
+        # Enterprise app route: <base>/dashboard/<serial>_<widget>[/local/...]
         query = widget_path.query
         if isinstance(query, str):
             serial = _get_serial_for_name(query)
         else:
             serial = query
-        path = f"{base_url}/app/widget/{serial}-{widget_path.widget}{local_suffix}"
+        path = f"{base}/dashboard/{serial}_{widget_path.widget}{local_suffix}"
 
     return path

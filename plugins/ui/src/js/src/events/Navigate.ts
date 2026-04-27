@@ -19,6 +19,7 @@ export const PATH_PARAM = '__path';
 export const ABSOLUTE_PATH_PARAM = '__absolutePath';
 export const FRAGMENT_PARAM = '__fragment';
 export const HREF_PARAM = '__href';
+export const BASE_URL_PARAM = '__baseUrl';
 
 /** The local path prefix that separates platform routing from user routing. */
 const LOCAL_PREFIX = '/local/';

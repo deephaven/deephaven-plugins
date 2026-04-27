@@ -8,6 +8,7 @@ from ..elements import Element, create_context
 from ..hooks.use_path import use_path
 from ..hooks.use_url_components import use_url_components
 from ..types import WidgetPath, EnterpriseWidgetPath, resolve_widget_path
+from .._internal import get_context
 from .make_component import make_component as component
 from .route import _Route
 from .text import text
@@ -98,6 +99,7 @@ def _compile_routes(
     routes: list[_Route],
     parent_path: str,
     current_url_path: str,
+    base_url: str = "/",
 ) -> list[_CompiledRoute]:
     """
     Recursively compile route definitions into a flat list of _CompiledRoute objects.
@@ -106,6 +108,7 @@ def _compile_routes(
         routes: The list of _Route objects to compile.
         parent_path: The accumulated parent path prefix.
         current_url_path: The current absolute URL path (for WidgetPath resolution).
+        base_url: The base URL from the frontend.
 
     Returns:
         A flat list of compiled routes.
@@ -136,7 +139,7 @@ def _compile_routes(
         elif r.path is not None:
             # Resolve WidgetPath / EnterpriseWidgetPath
             if isinstance(r.path, (WidgetPath, EnterpriseWidgetPath)):
-                resolved_path = resolve_widget_path(r.path, current_url_path)
+                resolved_path = resolve_widget_path(r.path, current_url_path, base_url)
             else:
                 path_str = r.path
                 if not path_str.startswith("/"):
@@ -170,13 +173,15 @@ def _compile_routes(
             # Recurse into children
             if r.children:
                 compiled.extend(
-                    _compile_routes(r.children, resolved_path, current_url_path)
+                    _compile_routes(
+                        r.children, resolved_path, current_url_path, base_url
+                    )
                 )
         else:
             # No path and not index — just a grouping node, recurse children
             if r.children:
                 compiled.extend(
-                    _compile_routes(r.children, parent_path, current_url_path)
+                    _compile_routes(r.children, parent_path, current_url_path, base_url)
                 )
 
     return compiled
@@ -237,9 +242,10 @@ def _router_render(*routes: _Route) -> Element:
     path = use_path()
     url_components = use_url_components()
     current_url_path = url_components.path
+    base_url = get_context().get_base_url()
 
     # Compile all routes
-    compiled = _compile_routes(list(routes), "", current_url_path)
+    compiled = _compile_routes(list(routes), "", current_url_path, base_url)
 
     # Match
     matched, params = _match_route(compiled, path)

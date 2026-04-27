@@ -455,6 +455,14 @@ class RenderContext:
         """
         return self._root.get_href()
 
+    def get_base_url(self) -> str:
+        """
+        Get the base URL from the frontend (import.meta.env.BASE_URL).
+        Returns:
+            The base URL string.
+        """
+        return self._root.get_base_url()
+
     def update_url_state(self, query_params: QueryParams) -> None:
         """
         Update the URL query parameters.
@@ -665,6 +673,8 @@ class RenderContext:
             self._root.set_fragment(state.pop("__fragment"))
         if "__href" in state:
             self._root.set_href(state.pop("__href"))
+        if "__baseUrl" in state:
+            self._root.set_base_url(state.pop("__baseUrl"))
 
         if "state" in state:
             for key, value in state["state"].items():

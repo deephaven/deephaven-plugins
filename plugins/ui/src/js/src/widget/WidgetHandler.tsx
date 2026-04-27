@@ -59,6 +59,7 @@ import Navigate, {
   QUERY_PARAM,
   PATH_PARAM,
   ABSOLUTE_PATH_PARAM,
+  BASE_URL_PARAM,
   FRAGMENT_PARAM,
   HREF_PARAM,
   getLocalPath,
@@ -177,6 +178,7 @@ function WidgetHandler({
       [ABSOLUTE_PATH_PARAM]: window.location.pathname,
       [FRAGMENT_PARAM]: window.location.hash.replace(/^#/, ''),
       [HREF_PARAM]: window.location.href,
+      [BASE_URL_PARAM]: import.meta.env.BASE_URL,
     };
   }, []);
 

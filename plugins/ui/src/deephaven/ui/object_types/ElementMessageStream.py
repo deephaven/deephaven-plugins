@@ -42,6 +42,7 @@ _UrlState = TypedDict(
         "__absolutePath": str,
         "__fragment": str,
         "__href": str,
+        "__baseUrl": str,
     },
     total=False,
 )
@@ -213,6 +214,11 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     The full URL href, populated from the frontend.
     """
 
+    _base_url: str
+    """
+    The base URL from import.meta.env.BASE_URL on the frontend.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -234,6 +240,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._absolute_path = "/"
         self._fragment = ""
         self._href = ""
+        self._base_url = "/"
         self._context = RenderContext(self)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
@@ -378,6 +385,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     def set_href(self, href: str) -> None:
         self._href = href
 
+    def get_base_url(self) -> str:
+        return self._base_url
+
+    def set_base_url(self, base_url: str) -> None:
+        self._base_url = base_url
+
     def start(self) -> None:
         """
         Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
@@ -492,6 +505,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self.set_absolute_path(url_state.get("__absolutePath", "/"))
         self.set_fragment(url_state.get("__fragment", ""))
         self.set_href(url_state.get("__href", ""))
+        self.set_base_url(url_state.get("__baseUrl", "/"))
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:

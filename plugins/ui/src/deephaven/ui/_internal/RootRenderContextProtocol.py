@@ -67,3 +67,11 @@ class RootRenderContextProtocol(Protocol):
     def set_href(self, href: str) -> None:
         """Update the full URL href."""
         ...
+
+    def get_base_url(self) -> str:
+        """Get the base URL (from import.meta.env.BASE_URL on the frontend)."""
+        ...
+
+    def set_base_url(self, base_url: str) -> None:
+        """Update the base URL."""
+        ...
