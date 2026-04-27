@@ -214,13 +214,13 @@ function WidgetHandler({
      * Renders an empty document. This is used when the widget is loading or has an error.
      */
     () => {
-      const result = renderEmptyDocumentProp?.();
-      if (result != null) {
-        return result;
-      }
       if (error != null) {
         // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
         return <WidgetErrorView error={error} />;
+      }
+      const result = renderEmptyDocumentProp?.();
+      if (result != null) {
+        return result;
       }
 
       // Dashboards should not have a default document. It breaks its render flow
