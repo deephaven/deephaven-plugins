@@ -51,13 +51,45 @@ export async function makeUiTableModel(
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
-  // TreeTable (includes rollup tables) doesn't support copy(), naturalJoin, or
-  // getTotalsTable with the same semantics as Table. For tree tables we skip the
-  // format-driven column processing and use the table directly.
+  // TreeTable (includes rollup tables) supports copy() and applyCustomColumns
+  // for if_-based conditional formatting, but does NOT support naturalJoin() or
+  // getTotalsTable(), so databars/heatmaps with auto min/max are unsupported.
   const isTreeTable = TableUtils.isTreeTable(baseTableProp);
   if (isTreeTable) {
+    const baseTable = await (baseTableProp as DhType.Table).copy();
+
+    const treeCustomColumns: string[] = [];
+    format.forEach((rule, i) => {
+      const { if_ } = rule;
+      if (if_ != null) {
+        treeCustomColumns.push(`${getFormatCustomColumnName(i)}=${if_}`);
+      }
+    });
+
+    if (treeCustomColumns.length > 0) {
+      // TreeTable.applyCustomColumns is synchronous and does not fire
+      // TABLE_CUSTOMCOLUMNSCHANGED, so call it directly instead of via
+      // TableUtils.applyCustomColumns which would hang waiting for that event.
+      (baseTable as unknown as DhType.Table).applyCustomColumns(
+        treeCustomColumns
+      );
+      format.forEach((rule, i) => {
+        const { if_ } = rule;
+        if (if_ != null) {
+          const columnType = (baseTable as unknown as DhType.Table).findColumn(
+            getFormatCustomColumnName(i)
+          ).type;
+          if (!TableUtils.isBooleanType(columnType)) {
+            throw new Error(
+              `ui.TableFormat if_ must be a boolean column. "${if_}" is a ${columnType} column`
+            );
+          }
+        }
+      });
+    }
+
     const uiTableProxy = new JsTableProxy({
-      table: baseTableProp as DhType.Table,
+      table: baseTable as unknown as DhType.Table,
       layoutHints,
       onClose: () => undefined,
     });

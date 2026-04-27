@@ -418,6 +418,21 @@ _rollup = _rollup_source.rollup(
 )
 t_rollup = ui.table(_rollup)
 
+t_rollup_format = ui.table(
+    _rollup,
+    format_=[
+        ui.TableFormat(cols="AvgValue", background_color="accent-200"),
+    ],
+)
+
+t_rollup_format_if = ui.table(
+    _rollup,
+    format_=[
+        ui.TableFormat(cols="Group", background_color="salmon"),
+        ui.TableFormat(cols="Group", background_color="positive", if_="Group < 3"),
+    ],
+)
+
 _tree_source = empty_table(7).update(
     [
         "ID = i",
