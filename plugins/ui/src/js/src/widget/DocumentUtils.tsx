@@ -50,6 +50,21 @@ export function getRootChildren(
   }
 
   if (panelCount > 0 && isNested) {
+    if (panelCount === 1 && childrenArray.length === 1) {
+      // The widget consists of a single `ui.panel` and is hosted by an outer
+      // panel (e.g. the core `WidgetPanel` from the WidgetPlugin). Opening
+      // another GoldenLayout panel here would result in a panel-tab nested
+      // inside another panel-tab. Render the panel's children inline using
+      // the panel's layout/style props instead.
+      const panelElement = childrenArray[0] as React.ReactElement;
+      const { children: panelChildren, ...panelProps } = panelElement.props;
+      return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DefaultPanelContent {...panelProps}>
+          {panelChildren}
+        </DefaultPanelContent>
+      );
+    }
     // Wrap it in a dashboard so it can be rendered properly
     return <Dashboard>{children}</Dashboard>;
   }

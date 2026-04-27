@@ -97,7 +97,12 @@
   }
 }
 
-.dh-panel {
+// Only add padding/border around nested dashboards when they are nested
+// inside a `ui.panel` (which renders as `.dh-react-panel`). When the widget
+// is hosted directly by the core `WidgetPanel` (e.g. iframe widget mode),
+// it just has the generic `.dh-panel` class and we don't want the extra
+// padding around the outermost dashboard.
+.dh-react-panel {
   .dh-nested-dashboard {
     padding: var(--spectrum-global-dimension-size-100);
     .dashboard-container {
