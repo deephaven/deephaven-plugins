@@ -194,14 +194,14 @@ def link(
             nav_path = to
             nav_query_params = None
             nav_fragment = None
-            nav_absolute = False
+            nav_absolute = None
             nav_replace = None
         else:
             # Dict (NavigationTarget) form
             nav_path = to.get("path")
             nav_query_params = to.get("query_params")
             nav_fragment = to.get("fragment")
-            nav_absolute = to.get("absolute", False)
+            nav_absolute = to.get("absolute")
             nav_replace = to.get("replace")
 
         # Build the navigate payload
