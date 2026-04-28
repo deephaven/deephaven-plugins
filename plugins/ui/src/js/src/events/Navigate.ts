@@ -113,23 +113,30 @@ export function Navigate(params: NavigateParams): void {
     return;
   }
 
-  // Determine replace vs push
-  // When replace is null/undefined, auto-determine:
-  // - replace when navigating within the widget (absolute=false or within same widget base)
-  // - push when navigating outside
+  // Determine replace vs push vs full navigation
+  const currentBase = getWidgetBasePath(window.location.pathname);
+  const isExternalNavigation =
+    navAbsolute === true && !url.pathname.startsWith(currentBase);
+
   let shouldReplace: boolean;
   if (navReplace != null) {
     shouldReplace = navReplace;
-  } else if (!navAbsolute) {
+  } else if (navAbsolute !== true) {
     shouldReplace = true;
   } else {
-    // Absolute navigation — check if target is within the current widget base
-    const currentBase = getWidgetBasePath(window.location.pathname);
     shouldReplace = url.pathname.startsWith(currentBase);
   }
 
   const newUrl = url.pathname + url.search + url.hash;
-  if (shouldReplace) {
+  if (isExternalNavigation) {
+    // Navigating to a different widget/dashboard — full page navigation
+    // so the host app's router re-mounts the correct content.
+    if (shouldReplace) {
+      window.location.replace(newUrl);
+    } else {
+      window.location.assign(newUrl);
+    }
+  } else if (shouldReplace) {
     window.history.replaceState(null, '', newUrl);
   } else {
     window.history.pushState(null, '', newUrl);

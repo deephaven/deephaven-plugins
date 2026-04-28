@@ -175,7 +175,9 @@ def link(
     effective_on_press = on_press
 
     if to is not None:
-        from .._internal import get_event_context
+        from .._internal import get_event_context, get_context
+        from ..types import WidgetPath, EnterpriseWidgetPath
+        from ..types.widget_path import resolve_widget_path
         from ..hooks.use_navigate import (
             _normalize_path,
             _normalize_query_params,
@@ -202,6 +204,13 @@ def link(
             nav_replace = to.get("replace")
 
         # Build the navigate payload
+        # Resolve WidgetPath/EnterpriseWidgetPath to a string at render time
+        if isinstance(nav_path, (WidgetPath, EnterpriseWidgetPath)):
+            context = get_context()
+            nav_path = resolve_widget_path(nav_path, context.get_base_url())
+            if nav_absolute is None:
+                nav_absolute = True
+
         norm_path = _normalize_path(nav_path if isinstance(nav_path, str) else None)
 
         inline_query = None

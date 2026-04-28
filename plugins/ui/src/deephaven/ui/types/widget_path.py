@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from deephaven.plugin.utilities import is_enterprise_environment
 
-import re
 from dataclasses import dataclass
 from typing import TypedDict, Union
 
@@ -15,18 +14,17 @@ class WidgetPath:
     Resolves to a widget URL path at render time.
 
     When used as a route ``path``, the router resolves this into an absolute
-    URL path using the current URL context (base URL, embed/app detection).
+    URL path using the current URL context (base URL).
 
     Args:
         widget: The widget name.
-        embed: Whether to use the embed route or the app route.
-               If None (default), auto-detects from the current URL.
+        embed: Whether to use the embed route (True) or the app route (False).
         local: Optional sub-path appended after "/local/" for
                user-defined routing within the target widget.
     """
 
     widget: str
-    embed: bool | None = None
+    embed: bool = False
     local: str | None = None
 
 
@@ -36,14 +34,13 @@ class EnterpriseWidgetPath:
     Resolves to a widget URL path at render time for enterprise environments.
 
     When used as a route ``path``, the router resolves this into an absolute
-    URL path using the current URL context (base URL, embed/app detection).
+    URL path using the current URL context (base URL).
     Unlike WidgetPath, this requires an explicit query name or serial number.
 
     Args:
         widget: The widget name.
         query: The persistent query name (str) or serial number (int).
-        embed: Whether to use the embed route or the app route.
-               If None (default), auto-detects from the current URL.
+        embed: Whether to use the embed route (True) or the app/dashboard route (False).
         local: Optional sub-path appended after "/local/" for
                user-defined routing within the target widget.
         replica_slot: Optional replica slot number for the widget route.
@@ -51,7 +48,7 @@ class EnterpriseWidgetPath:
 
     widget: str
     query: str | int
-    embed: bool | None = None
+    embed: bool = False
     local: str | None = None
     replica_slot: int | None = None
 
@@ -75,11 +72,6 @@ class NavigationTarget(TypedDict, total=False):
     replace: bool
 
 
-# Patterns for detecting embed/app/iframe routes in a URL path.
-_EMBED_WIDGET_RE = re.compile(r"/embed/widget/")
-_DASHBOARD_RE = re.compile(r"/dashboard/")
-_IFRAME_WIDGET_RE = re.compile(r"/iframe/widget/")
-
 try:
     # Import SessionManager for enterprise widget path resolution.
     from deephaven_enterprise.client.session_manager import (  # pyright: ignore[reportMissingImports]
@@ -98,23 +90,8 @@ def _get_serial_for_name(name: str) -> int:
     return sm.controller_client.get_serial_for_name(name=name)
 
 
-def _detect_embed(current_url_path: str) -> bool:
-    """
-    Detect whether the current URL is an embed/iframe route (True) or
-    an app route (False). Defaults to True if neither pattern is found.
-    """
-    if _EMBED_WIDGET_RE.search(current_url_path) or _IFRAME_WIDGET_RE.search(
-        current_url_path
-    ):
-        return True
-    if _DASHBOARD_RE.search(current_url_path):
-        return False
-    return True
-
-
 def resolve_widget_path(
     widget_path: WidgetPath | EnterpriseWidgetPath,
-    current_url_path: str,
     base_url: str = "/",
 ) -> str:
     """
@@ -122,7 +99,6 @@ def resolve_widget_path(
 
     Args:
         widget_path: The widget path descriptor.
-        current_url_path: The current absolute URL path from the browser.
         base_url: The base URL from the frontend (import.meta.env.BASE_URL).
                   Defaults to "/".
 
@@ -133,8 +109,6 @@ def resolve_widget_path(
     base = base_url.rstrip("/")
 
     embed = widget_path.embed
-    if embed is None:
-        embed = _detect_embed(current_url_path)
 
     local_suffix = ""
     if widget_path.local is not None:
@@ -157,7 +131,7 @@ def resolve_widget_path(
             if widget_path.replica_slot is not None
             else ""
         )
-        path = f"{base}/embed/widget/{query_part}/{widget_path.widget}{replica}{local_suffix}"
+        path = f"{base}/iriside/embed/widget/{query_part}/{widget_path.widget}{replica}{local_suffix}"
     else:
         # Enterprise app route: <base>/dashboard/<serial>_<widget>[/local/...]
         query = widget_path.query
@@ -165,6 +139,6 @@ def resolve_widget_path(
             serial = _get_serial_for_name(query)
         else:
             serial = query
-        path = f"{base}/dashboard/{serial}_{widget_path.widget}{local_suffix}"
+        path = f"{base}/iriside/dashboard/{serial}-{widget_path.widget}{local_suffix}"
 
     return path
