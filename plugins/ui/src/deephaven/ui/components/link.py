@@ -176,6 +176,7 @@ def link(
 
     if to is not None:
         from .._internal import get_event_context, get_context
+        from ..hooks.use_url_components import use_url_components
         from ..types import WidgetPath, EnterpriseWidgetPath
         from ..types.widget_path import resolve_widget_path
         from ..hooks.use_navigate import (
@@ -206,8 +207,9 @@ def link(
         # Build the navigate payload
         # Resolve WidgetPath/EnterpriseWidgetPath to a string at render time
         if isinstance(nav_path, (WidgetPath, EnterpriseWidgetPath)):
+            url = use_url_components()
             context = get_context()
-            nav_path = resolve_widget_path(nav_path, context.get_base_url())
+            nav_path = resolve_widget_path(nav_path, url.path, context.get_base_url())
             if nav_absolute is None:
                 nav_absolute = True
 

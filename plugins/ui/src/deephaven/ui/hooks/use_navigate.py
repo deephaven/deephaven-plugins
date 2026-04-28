@@ -6,6 +6,7 @@ from urllib.parse import urlencode, urlsplit
 from ..types import QueryParams, RoutePath, WidgetPath, EnterpriseWidgetPath
 from ..types.widget_path import resolve_widget_path
 from .use_send_event import use_send_event
+from .use_url_components import use_url_components
 from .._internal import get_context
 
 _NAVIGATE_EVENT = "navigate.event"
@@ -118,6 +119,7 @@ def use_navigate() -> Callable[..., None]:
             ) -> None
     """
     send_event = use_send_event()
+    url = use_url_components()
     context = get_context()
 
     def navigate(
@@ -134,7 +136,7 @@ def use_navigate() -> Callable[..., None]:
 
         # Resolve WidgetPath/EnterpriseWidgetPath to an absolute string path
         if isinstance(path, (WidgetPath, EnterpriseWidgetPath)):
-            path = resolve_widget_path(path, context.get_base_url())
+            path = resolve_widget_path(path, url.path, context.get_base_url())
             if absolute is None:
                 absolute = True
 

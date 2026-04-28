@@ -42,20 +42,21 @@ class WidgetPath:
     Args:
         widget: The widget name.
         embed: Whether to use the embed route (True) or the app route (False).
+               If None (default), auto-detects from the current URL.
         local: Optional sub-path appended after "/local/" for
                user-defined routing within the target widget.
     """
 
     widget: str
-    embed: bool = False
+    embed: bool | None = None
     local: str | None = None
 ```
 
-| Field    | Type          | Default | Description                                                                                       |
-| -------- | ------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `widget` | `str`         | —       | The widget name                                                                                   |
-| `embed`  | `bool`        | `False` | Use embed route (`True`) or app route (`False`).                                                  |
-| `local`  | `str \| None` | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
+| Field    | Type           | Default | Description                                                                                       |
+| -------- | -------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `widget` | `str`          | —       | The widget name                                                                                   |
+| `embed`  | `bool \| None` | `None`  | Use embed route (`True`) or app route (`False`). `None` auto-detects.                             |
+| `local`  | `str \| None`  | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
 
 ### `EnterpriseWidgetPath`
 
@@ -72,28 +73,36 @@ class EnterpriseWidgetPath:
     Unlike WidgetPath, this requires an explicit query name or serial number.
 
     Args:
-        widget: The widget name.
         query: The persistent query name (str) or serial number (int).
+        widget: The widget name. Required unless ``dashboard`` is a string.
         embed: Whether to use the embed route (True) or the app/dashboard route (False).
+               If None (default), auto-detects from the current URL.
         local: Optional sub-path appended after "/local/" for
                user-defined routing within the target widget.
         replica_slot: Optional replica slot number for the widget route.
+        dashboard: Controls dashboard route variant. When True, the embed route
+               uses ``iriside/embed/dashboard/{serial}-{widget}`` instead of
+               the widget route. When a string, that string is substituted
+               directly as the dashboard name segment. When None (default),
+               the existing widget/dashboard logic based on ``embed`` is used.
     """
 
-    widget: str
     query: str | int
-    embed: bool = False
+    widget: str | None = None
+    embed: bool | None = None
     local: str | None = None
     replica_slot: int | None = None
+    dashboard: bool | str | None = None
 ```
 
-| Field          | Type          | Default | Description                                                                                       |
-| -------------- | ------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `widget`       | `str`         | —       | The widget name                                                                                   |
-| `query`        | `str \| int`  | —       | The persistent query name or serial number (required)                                             |
-| `embed`        | `bool`        | `False` | Use embed route (`True`) or app/dashboard route (`False`).                                        |
-| `local`        | `str \| None` | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
-| `replica_slot` | `int \| None` | `None`  | Optional replica slot number for the widget route.                                                |
+| Field          | Type                  | Default | Description                                                                                                                                                      |
+| -------------- | --------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `query`        | `str \| int`          | —       | The persistent query name or serial number (required)                                                                                                            |
+| `widget`       | `str \| None`         | `None`  | The widget name. Required unless `dashboard` is a string.                                                                                                        |
+| `embed`        | `bool \| None`        | `None`  | Use embed route (`True`) or app/dashboard route (`False`). `None` auto-detects.                                                                                  |
+| `local`        | `str \| None`         | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional.                                                                |
+| `replica_slot` | `int \| None`         | `None`  | Optional replica slot number for the widget route.                                                                                                               |
+| `dashboard`    | `bool \| str \| None` | `None`  | Dashboard route variant. `True`: embed uses `embed/dashboard/{serial}-{widget}`. `str`: used directly as dashboard name. `None`: default widget/dashboard logic. |
 
 ### `RoutePath`
 
@@ -606,9 +615,25 @@ All routes support an optional `/local/…` suffix for user-defined sub-routing 
 When a `WidgetPath` or `EnterpriseWidgetPath` is used as a route `path`, the router resolves it at render time:
 
 1. **Base URL**: The base URL is provided by the frontend via the URL state flow.
-2. **Path construction**: Builds the full widget path from the base URL, route prefix, query name (enterprise only), widget name, and optional local path. For `EnterpriseWidgetPath`, the embed and app routes have different URL structures:
-   - **Embed**: `<base_url>/iriside/embed/widget/<pq_name>/<widget_name>[/local/…]` — uses the query name directly.
-   - **App**: `<base_url>/iriside/dashboard/<pq_serial>-<widget_name>[/local/…]` — requires a serial number. If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
+2. **Embed auto-detection**: If `embed` is `None`, the resolver inspects the current URL path. URLs containing `/embed/` or `/iframe/` are detected as embed context; URLs containing `/dashboard/` (without an `/embed/` prefix) are detected as non-embed. If neither pattern is found, defaults to embed (`True`).
+3. **Path construction**: Builds the full widget path from the base URL, route prefix, query name (enterprise only), widget name, and optional local path. For `EnterpriseWidgetPath`, the route structure depends on `embed` and `dashboard`:
+
+   **Without `dashboard` (default):**
+
+   - **Embed**: `<base_url>/iriside/embed/widget/<pq_name>/<widget_name>[/<replica_slot>][/local/…]` — uses the query name directly.
+   - **Non-embed**: `<base_url>/iriside/dashboard/<pq_serial>-<widget_name>[/local/…]` — requires a serial number.
+
+   **With `dashboard=True`:**
+
+   - **Embed**: `<base_url>/iriside/embed/dashboard/<pq_serial>-<widget_name>[/local/…]`
+   - **Non-embed**: `<base_url>/iriside/dashboard/<pq_serial>-<widget_name>[/local/…]`
+
+   **With `dashboard=<string>`:**
+
+   - **Embed**: `<base_url>/iriside/embed/dashboard/<string>[/local/…]`
+   - **Non-embed**: `<base_url>/iriside/dashboard/<string>[/local/…]`
+
+   If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
 
 ### Notes
 
@@ -917,32 +942,45 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 ### Backend (Python)
 
 1. **Create `types/widget_path.py`** (or add to existing types module) with `WidgetPath` and `EnterpriseWidgetPath` frozen dataclasses as defined in the Types section.
-2. **Implement `resolve_widget_path(widget_path, base_url)`** as an internal utility used by the router during route compilation:
+2. **Implement `resolve_widget_path(widget_path, current_url_path, base_url)`** as an internal utility used by the router during route compilation:
 
    - The base URL is provided directly by the frontend via the URL state flow.
+   - **Embed auto-detection** (`_detect_embed`): If `embed` is `None`, inspect `current_url_path`. URLs containing `/embed/` or `/iframe/` → `True`. URLs containing `/dashboard/` (without an `/embed/` prefix) → `False`. Otherwise default to `True`.
    - For `WidgetPath`: build the path as `{base_url}/iframe/widget/{widget}` (embed) or `{base_url}` (non-embed, CE).
-   - For `EnterpriseWidgetPath`: build the path using the query name/serial and the embed flag:
+   - For `EnterpriseWidgetPath`, the route depends on `embed` and `dashboard`:
 
-     - **Embed**: use the query name/serial as-is: `{base_url}/iriside/embed/widget/{query}/{widget}`.
-     - **App**: requires a serial number. If `query` is an `int`, use it directly. If `query` is a `str` (name), look up the serial using `SessionManager`. `deephaven_enterprise` must be conditionally imported — raise a clear error if it is unavailable and an app route is requested:
+     **Without `dashboard` (default):**
 
-       ```python
-       try:
-           from deephaven_enterprise.client.session_manager import SessionManager
+     - **Embed**: `{base_url}/iriside/embed/widget/{query}/{widget}[/{replica_slot}]`.
+     - **Non-embed**: `{base_url}/iriside/dashboard/{serial}-{widget}`.
 
-           _has_enterprise = True
-       except ImportError:
-           _has_enterprise = False
-       ```
+     **With `dashboard=True`:**
 
-       Then: `sm = SessionManager(); serial = sm.controller_client.get_serial_for_name(name=query)`
+     - **Embed**: `{base_url}/iriside/embed/dashboard/{serial}-{widget}`.
+     - **Non-embed**: `{base_url}/iriside/dashboard/{serial}-{widget}`.
 
-     - Construct: `{base_url}/iriside/dashboard/{serial}-{widget}`.
+     **With `dashboard=<string>`:**
+
+     - **Embed**: `{base_url}/iriside/embed/dashboard/{dashboard_string}`.
+     - **Non-embed**: `{base_url}/iriside/dashboard/{dashboard_string}`.
+
+     Serial resolution: If `query` is an `int`, use it directly. If `query` is a `str` (name), look up the serial using `SessionManager`. `deephaven_enterprise` must be conditionally imported — raise a clear error if it is unavailable:
+
+     ```python
+     try:
+         from deephaven_enterprise.client.session_manager import SessionManager
+
+         _has_enterprise = True
+     except ImportError:
+         _has_enterprise = False
+     ```
+
+     Then: `sm = SessionManager(); serial = sm.controller_client.get_serial_for_name(name=query)`
 
    - If `local_path` is provided, strip any leading `/` and append `/local/{local_path}`.
-   - Include `replica_slot` in the embed path if provided (`{base_url}/iriside/embed/widget/{query}/{widget}/{replica_slot}`).
+   - Include `replica_slot` in the embed widget path if provided (`{base_url}/iriside/embed/widget/{query}/{widget}/{replica_slot}`).
 
-3. **Create `hooks/use_widget_path.py`** that calls `get_context().get_base_url()` to get the base URL, then delegates to `resolve_widget_path(widget_path, base_url)` and returns the resolved string.
+3. **Create `hooks/use_widget_path.py`** that calls `use_url_components()` to get the current URL path and `get_context().get_base_url()` for the base URL, then delegates to `resolve_widget_path(widget_path, url.path, base_url)` and returns the resolved string.
 4. **Export** `WidgetPath` and `EnterpriseWidgetPath` from `types/__init__.py` and from the top-level `deephaven.ui` namespace. Export `use_widget_path` from `hooks/__init__.py`.
 
 ### Frontend (TypeScript)
@@ -994,8 +1032,8 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 4. **`ui.route`** — validates `path`/`index` mutual exclusivity; collects children correctly; builds `_Route` dataclass properly.
 5. **`ui.router`** — route compilation produces correct resolved patterns; conflict detection raises `ValueError` for duplicate static paths; specificity-based matching (static > parameterized > wildcard); index route matching; nested route path inheritance; renders error for unmatched paths.
 6. **`use_params`** — returns extracted route parameters via context; returns empty dict when no router ancestor.
-7. **`WidgetPath` resolution** — resolves correctly with various base URL patterns; handles `local_path` appending; base URL extraction from various URL patterns.
-8. **`EnterpriseWidgetPath` resolution** — resolves correctly with explicit query name and serial number; includes `replica_slot` when provided; raises no error (query is required).
+7. **`WidgetPath` resolution** — resolves correctly with various base URL patterns; handles `local_path` appending; embed auto-detection from current URL path.
+8. **`EnterpriseWidgetPath` resolution** — resolves correctly with explicit query name and serial number; includes `replica_slot` when provided; `dashboard=True` uses `embed/dashboard/{serial}-{widget}` route; `dashboard=<string>` substitutes directly; `dashboard=None` falls back to widget/dashboard logic; embed auto-detection works.
 9. **`use_widget_path`** — resolves `WidgetPath` and `EnterpriseWidgetPath` to correct absolute URL paths; result matches what `ui.router` would resolve for the same descriptor; `local_path` is appended correctly.
 
 ### Unit Tests (TypeScript)
