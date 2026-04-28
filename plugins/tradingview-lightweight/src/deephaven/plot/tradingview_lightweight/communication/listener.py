@@ -4,17 +4,19 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from deephaven.plugin.object_type import MessageStream
 
 from ..chart import TvlChart
-from ..downsample import DownsampleState, TARGET_POINTS
 
 logger = logging.getLogger(__name__)
 
-# Series types eligible for Python-side downsampling
+# Series types eligible for JS-side downsampling via runChartDownsample
 DOWNSAMPLE_ELIGIBLE_TYPES = {"Line", "Area", "Baseline"}
+
+# Tables smaller than this are rendered directly without downsampling
+DOWNSAMPLE_THRESHOLD = 1000
 
 
 class TvlChartListener:
@@ -26,16 +28,14 @@ class TvlChartListener:
         self._revision = 0
         self._table_id_map: dict[int, int] = {}
 
-        # Downsample state per table reference ID
-        self._downsample_states: dict[int, DownsampleState] = {}
-
-        # Track which tables are currently exported (table_ref_id -> table)
-        self._active_tables: dict[int, Any] = {}
-
     def process_message(
         self, payload: bytes, references: list[Any]
     ) -> tuple[bytes, list[Any]]:
-        """Process an incoming message from the client."""
+        """Process an incoming message from the client.
+
+        Only RETRIEVE is handled — ZOOM/RESET are now managed entirely
+        in JS via dh.plot.Downsample.runChartDownsample.
+        """
         try:
             # payload may be Python bytes (from initial RETRIEVE in
             # create_client_connection) or a JVM byte array (from
@@ -53,10 +53,6 @@ class TvlChartListener:
 
         if msg_type == "RETRIEVE":
             return self._handle_retrieve()
-        if msg_type == "ZOOM":
-            return self._handle_zoom(message)
-        if msg_type == "RESET":
-            return self._handle_reset()
 
         # Unknown message type
         return b"", []
@@ -64,9 +60,9 @@ class TvlChartListener:
     def _handle_retrieve(self) -> tuple[bytes, list[Any]]:
         """Build and return the current figure state.
 
-        If any tables are large enough to downsample, creates
-        DownsampleState objects and sends the downsampled tables
-        instead of the originals.
+        Always sends the original tables. Includes lightweight
+        downsampleMeta so the JS side can decide whether to call
+        runChartDownsample for each table.
         """
         self._revision += 1
 
@@ -83,18 +79,21 @@ class TvlChartListener:
         self._table_id_map = {}
         exported_objects: list[Any] = []
         new_refs: list[int] = []
-        downsample_info: dict[str, Any] = {}
+        downsample_meta: dict[str, Any] = {}
 
         for i, table in enumerate(tables):
             self._table_id_map[id(table)] = i
             new_refs.append(i)
 
-            # Check eligibility for Python-side downsampling
+            # Always export the original table
+            exported_objects.append(table)
+
+            # Check eligibility for JS-side downsampling and send metadata
             series_for_table = table_series_map.get(id(table), [])
             eligible = (
                 chart_type == "standard"
                 and hasattr(table, "size")
-                and table.size > TARGET_POINTS
+                and table.size > DOWNSAMPLE_THRESHOLD
                 and len(series_for_table) > 0
                 and all(
                     s.series_type in DOWNSAMPLE_ELIGIBLE_TYPES for s in series_for_table
@@ -110,32 +109,12 @@ class TvlChartListener:
                             value_cols.add(col)
 
                 if time_col and value_cols:
-                    ds = DownsampleState(table, time_col, list(value_cols))
-                    try:
-                        ds_table = ds.compute_initial()
-                        self._downsample_states[i] = ds
-                        self._active_tables[i] = ds_table
-                        exported_objects.append(ds_table)
-
-                        time_range = ds.get_time_range()
-                        downsample_info[str(i)] = {
-                            "tableSize": ds_table.size,
-                            "fullRange": (list(time_range) if time_range else None),
-                            "isDownsampled": True,
-                        }
-                        continue
-                    except Exception:
-                        # Fall back to sending original table
-                        logger.warning(
-                            "Downsampling failed for table %d, sending original",
-                            i,
-                            exc_info=True,
-                        )
-                        ds.release()
-
-            # Not downsampled -- send original
-            self._active_tables[i] = table
-            exported_objects.append(table)
+                    downsample_meta[str(i)] = {
+                        "tableSize": table.size,
+                        "timeCol": time_col,
+                        "valueCols": list(value_cols),
+                        "seriesTypes": [s.series_type for s in series_for_table],
+                    }
 
         # Export PartitionedTable if the chart was built with `by`
         pt_ref_index = None
@@ -152,9 +131,9 @@ class TvlChartListener:
             figure_data["partitionSpec"]["refIndex"] = pt_ref_index
 
         # Add downsample metadata so the JS side knows which tables
-        # are downsampled and can send ZOOM/RESET messages
-        if downsample_info:
-            figure_data["downsampleInfo"] = downsample_info
+        # to call runChartDownsample on
+        if downsample_meta:
+            figure_data["downsampleMeta"] = downsample_meta
 
         message = json.dumps(
             {
@@ -168,95 +147,6 @@ class TvlChartListener:
 
         return message, exported_objects
 
-    def _handle_zoom(self, msg: dict) -> tuple[bytes, list[Any]]:
-        """Handle a ZOOM message: compute hybrid merge for the visible range."""
-        try:
-            from_nanos = int(msg.get("from", 0))
-            to_nanos = int(msg.get("to", 0))
-        except (ValueError, TypeError):
-            return b"", []
-
-        if from_nanos >= to_nanos:
-            return b"", []
-
-        width = int(msg.get("width", 0))
-        exported_objects: list[Any] = []
-        results: dict[str, Any] = {}
-
-        for table_id, ds in self._downsample_states.items():
-            try:
-                merged_table = ds.compute_hybrid(from_nanos, to_nanos, width=width)
-                self._active_tables[table_id] = merged_table
-                ref_idx = len(exported_objects)
-                exported_objects.append(merged_table)
-
-                time_range = ds.get_time_range()
-                results[str(table_id)] = {
-                    "refIndex": ref_idx,
-                    "tableSize": merged_table.size,
-                    "viewport": [0, max(0, merged_table.size - 1)],
-                    "fullRange": (list(time_range) if time_range else None),
-                }
-            except Exception:
-                logger.warning(
-                    "Zoom downsample failed for table %d",
-                    table_id,
-                    exc_info=True,
-                )
-
-        response = json.dumps(
-            {
-                "type": "DOWNSAMPLE_READY",
-                "tables": results,
-            }
-        ).encode("utf-8")
-
-        return response, exported_objects
-
-    def _handle_reset(self) -> tuple[bytes, list[Any]]:
-        """Handle a RESET message: recompute background with fresh range.
-
-        Ticking tables may have grown since init, so we invalidate the
-        cached time range and recompute rather than returning the stale
-        background.
-        """
-        exported_objects: list[Any] = []
-        results: dict[str, Any] = {}
-
-        for table_id, ds in self._downsample_states.items():
-            try:
-                bg_table = ds.compute_reset()
-                self._active_tables[table_id] = bg_table
-                ref_idx = len(exported_objects)
-                exported_objects.append(bg_table)
-
-                time_range = ds.get_time_range()
-                results[str(table_id)] = {
-                    "refIndex": ref_idx,
-                    "tableSize": bg_table.size,
-                    "viewport": [0, max(0, bg_table.size - 1)],
-                    "fullRange": (list(time_range) if time_range else None),
-                    "isReset": True,
-                }
-            except Exception:
-                logger.warning(
-                    "Reset downsample failed for table %d",
-                    table_id,
-                    exc_info=True,
-                )
-
-        response = json.dumps(
-            {
-                "type": "DOWNSAMPLE_READY",
-                "tables": results,
-            }
-        ).encode("utf-8")
-
-        return response, exported_objects
-
     def close(self) -> None:
-        """Release all downsample states."""
-        for ds in self._downsample_states.values():
-            ds.release()
-        self._downsample_states.clear()
-        self._active_tables.clear()
+        """Clean up resources."""
+        pass

@@ -637,3 +637,50 @@ tvl_big_line = tvl.line(
     time="Timestamp",
     value="Price",
 )
+
+# Small table that should NOT be downsampled (10 rows)
+small_table = new_table(
+    [
+        datetime_col(
+            "Timestamp",
+            [to_j_instant(f"2024-01-{i+2:02d}T10:00:00 ET") for i in range(10)],
+        ),
+        double_col("Value", [50.0 + i * 3 for i in range(10)]),
+    ]
+)
+tvl_small_line = tvl.line(small_table, time="Timestamp", value="Value")
+
+# Ticking table: 100K historical + 1 row/sec live
+from deephaven import updateby as uby
+
+_TICK_N = 100_000
+_ticking_table = (
+    merge(
+        [
+            empty_table(_TICK_N).update("Index = ii"),
+            time_table("PT1S")
+            .update(f"Index = ii + {_TICK_N}")
+            .drop_columns("Timestamp"),
+        ]
+    )
+    .update(
+        [
+            "Timestamp = '2024-01-01T00:00:00Z' + (long)(Index * 1_000_000_000L)",
+            "Step = (Math.random() - 0.499) * 0.5",
+        ]
+    )
+    .update_by([uby.cum_sum(cols=["Walk = Step"])])
+    .update("Price = 100 + Walk")
+    .view(["Timestamp", "Price"])
+)
+tvl_ticking_line = tvl.line(_ticking_table, time="Timestamp", value="Price")
+
+# Candlestick (non-eligible for downsample) at large size
+tvl_big_candlestick = tvl.candlestick(
+    big_table,
+    time="Timestamp",
+    open="Price",
+    high="Price",
+    low="Price",
+    close="Price",
+)

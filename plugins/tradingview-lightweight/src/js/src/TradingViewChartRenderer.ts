@@ -314,6 +314,12 @@ class TradingViewChartRenderer {
 
   private container: HTMLElement;
 
+  /** Hidden whitespace series for proportional time spacing when downsampled. */
+  private scaffoldSeries: ISeriesApi<SeriesType> | null = null;
+
+  /** Whether scaffold is currently enabled. */
+  private scaffoldEnabled = false;
+
   constructor(
     container: HTMLElement,
     options: DeepPartial<ChartOptions> = {},
@@ -461,13 +467,15 @@ class TradingViewChartRenderer {
   configureSeries(
     seriesConfigs: TvlSeriesConfig[],
     colorway: string[] = [],
-    ohlcColors?: { upColor: string; downColor: string }
+    ohlcColors?: { upColor: string; downColor: string },
+    enableScaffold = false
   ): void {
     // Store theme colors for marker resolution
     this.colorway = colorway;
     this.ohlcColors = ohlcColors;
+    this.scaffoldEnabled = enableScaffold;
 
-    // Remove existing series
+    // Remove existing series (including scaffold)
     // Detach marker plugins before removing series
     this.markersMap.forEach(plugin => {
       try {
@@ -477,11 +485,24 @@ class TradingViewChartRenderer {
       }
     });
     this.markersMap.clear();
+    if (this.scaffoldSeries) {
+      try {
+        this.chart.removeSeries(this.scaffoldSeries);
+      } catch {
+        // ignore
+      }
+      this.scaffoldSeries = null;
+    }
     this.seriesMap.forEach(series => {
       this.chart.removeSeries(series);
     });
     this.seriesMap.clear();
     this.dynamicPriceLines.clear();
+
+    // Create scaffold FIRST so it occupies base time positions
+    if (enableScaffold) {
+      this.createScaffold();
+    }
 
     // Create new series
     let colorIndex = 0;
@@ -828,6 +849,46 @@ class TradingViewChartRenderer {
     return () => ts.unsubscribeSizeChange(handler);
   }
 
+  /** Whether scaffold is currently active. */
+  isScaffoldEnabled(): boolean {
+    return this.scaffoldEnabled && this.scaffoldSeries != null;
+  }
+
+  /**
+   * Create the hidden scaffold LineSeries.
+   * Must be called before data series are created so it occupies
+   * base time positions for proportional spacing.
+   */
+  private createScaffold(): void {
+    this.scaffoldSeries = this.chart.addSeries(
+      LineSeries,
+      { visible: false, priceScaleId: '' } as SeriesPartialOptionsMap[SeriesType]
+    );
+  }
+
+  /**
+   * Set whitespace data on the scaffold series to establish proportional
+   * time spacing across the data range.
+   *
+   * @param minTime Minimum time in TZ-shifted epoch seconds
+   * @param maxTime Maximum time in TZ-shifted epoch seconds
+   * @param count Number of whitespace entries to generate
+   */
+  setScaffoldData(minTime: number, maxTime: number, count: number): void {
+    if (!this.scaffoldSeries) return;
+    if (minTime >= maxTime || count <= 0) return;
+
+    const cappedCount = Math.min(30000, count);
+    const step = (maxTime - minTime) / cappedCount;
+    const data: Array<{ time: number }> = [];
+    for (let i = 0; i <= cappedCount; i += 1) {
+      data.push({ time: minTime + step * i });
+    }
+    this.scaffoldSeries.setData(
+      data as Parameters<typeof this.scaffoldSeries.setData>[0]
+    );
+  }
+
   /**
    * Dispose of the chart and clean up resources.
    */
@@ -835,6 +896,7 @@ class TradingViewChartRenderer {
     this.seriesMap.clear();
     this.markersMap.clear();
     this.dynamicPriceLines.clear();
+    this.scaffoldSeries = null;
     if (this.watermarkPlugin) {
       this.watermarkPlugin.detach();
       this.watermarkPlugin = null;

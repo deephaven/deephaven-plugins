@@ -58,16 +58,15 @@ function deepMerge(
 }
 
 /** Props for TradingViewChart when used inside a panel wrapper. */
-export interface TradingViewChartProps extends WidgetComponentProps<DhType.Widget> {
+export interface TradingViewChartProps
+  extends WidgetComponentProps<DhType.Widget> {
   /** Called when loading state changes (for panel-level LoadingOverlay). */
   onLoadingChange?: (loading: boolean) => void;
   /** Called when an error occurs (for panel-level error display). */
   onError?: (error: string | null) => void;
 }
 
-function TradingViewChart(
-  props: TradingViewChartProps
-): JSX.Element | null {
+function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   const dh = useApi();
   const { fetch, onLoadingChange, onError } = props;
   const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
@@ -81,16 +80,21 @@ function TradingViewChart(
   const [debugInfo, setDebugInfoRaw] = useState<string>('loading...');
   const [isLoading, setIsLoadingState] = useState(true);
 
-  // Wrap setters to propagate to panel callbacks
-  const setIsLoading = useCallback((loading: boolean) => {
-    setIsLoadingState(loading);
-    onLoadingChange?.(loading);
-  }, [onLoadingChange]);
+  const setIsLoading = useCallback(
+    (loading: boolean) => {
+      setIsLoadingState(loading);
+      onLoadingChange?.(loading);
+    },
+    [onLoadingChange]
+  );
 
-  const setError = useCallback((err: string | null) => {
-    setErrorState(err);
-    onError?.(err);
-  }, [onError]);
+  const setError = useCallback(
+    (err: string | null) => {
+      setErrorState(err);
+      onError?.(err);
+    },
+    [onError]
+  );
   const [pendingDs, setPendingDs] = useState(false);
   const [showScrim, setShowScrim] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
@@ -113,44 +117,43 @@ function TradingViewChart(
   const userOptionsRef = useRef<Record<string, unknown>>({});
   const chartTypeRef = useRef<TvlChartType>('standard');
 
+  // ---- Downsample interaction state ----
+
   /**
-   * Suppress flag: set to true while we programmatically update chart data
-   * via setData/setVisibleRange so that zoom detection doesn't trigger a
-   * spurious re-downsample.
+   * True while we are programmatically calling setData / setVisibleRange.
+   * Range-change events during this window are ignored.
    */
   const suppressRef = useRef(false);
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /** Last ZOOM request range — used by handleDataUpdate to lock viewport. */
-  const lastZoomRangeRef = useRef<{ from: number; to: number } | null>(null);
+  /**
+   * The visible range to restore after new downsample data arrives.
+   * Set just before calling performDownsample (zoom/pan), read in
+   * handleDataUpdate. Null means "fitContent" (initial / reset).
+   */
+  const restoreRangeRef = useRef<{ from: number; to: number } | null>(null);
+
+  /**
+   * The downsample range we last requested [from, to] in TZ-shifted seconds.
+   * Null means full range. Used to compute scaffold density ratio.
+   */
+  const lastDsRangeRef = useRef<[number, number] | null>(null);
 
   /** True while the user is actively dragging (pointer down on chart). */
   const draggingRef = useRef(false);
 
-  /**
-   * True when the next DATA_UPDATED should lock the visible range.
-   * Set when a downsample response is expected, cleared after the
-   * first data update applies the lock. Prevents tick updates from
-   * snapping the view back to the last zoom range.
-   */
-  const lockRangeOnNextUpdateRef = useRef(false);
-
-  /** Cleanup for downsample subscriptions (set up inside init, cleaned in return). */
+  /** Cleanup for downsample subscriptions. */
   const dsCleanupRef = useRef<(() => void) | null>(null);
 
-  /**
-   * Build structured debug state as JSON for the data-tvl-state attribute.
-   * Always set on the container so Playwright tests can read it.
-   */
+  // ---- Debug helpers ----
+
   function buildStateJson(
     model: TradingViewChartModel | null,
     renderer: TradingViewChartRenderer | null
   ): string {
     if (!model) return '{}';
-    const fullRange = model.getFullTimeRange();
     let tableSize = 0;
     let colDataRows = 0;
-    let viewport: [number, number] | null = null;
     model.getDownsampledTableIds().forEach(tid => {
       const t = model.getTable(tid);
       if (t) tableSize = t.size;
@@ -159,7 +162,6 @@ function TradingViewChart(
         const first = cd.keys().next().value;
         if (first != null) colDataRows = cd.get(first)?.length ?? 0;
       }
-      if (t) viewport = [0, Math.max(0, t.size - 1)];
     });
     let visRange: [number, number] | null = null;
     if (renderer) {
@@ -172,20 +174,14 @@ function TradingViewChart(
       }
     }
     return JSON.stringify({
-      pythonDs: model.isPythonDownsampled(),
-      fullRange,
+      jsDs: model.isDownsampled(),
       tableSize,
       colDataRows,
       pendingDs: (model as any).pendingDownsample as boolean,
-      viewport,
       visRange,
     });
   }
 
-  /**
-   * Update debug info text AND the structured data-tvl-state attribute.
-   * Wraps setDebugInfoRaw so all call sites get both updates.
-   */
   function updateDebugState(
     text: string | ((prev: string) => string),
     model: TradingViewChartModel | null,
@@ -200,7 +196,6 @@ function TradingViewChart(
     }
   }
 
-  /** Gather debug state from model + renderer + chart into a string. */
   function gatherDebug(
     label: string,
     model: TradingViewChartModel | null,
@@ -211,43 +206,12 @@ function TradingViewChart(
       lines.push('model: null');
       return lines.join('\n');
     }
-    lines.push(`pythonDs: ${model.isPythonDownsampled()}`);
-    const fullRange = model.getFullTimeRange();
-    if (fullRange) {
-      lines.push(
-        `fullRange: ${new Date(fullRange[0] * 1000)
-          .toISOString()
-          .slice(0, 10)}` +
-          ` → ${new Date(fullRange[1] * 1000).toISOString().slice(0, 10)}`
-      );
-    } else {
-      lines.push('fullRange: null');
-    }
-    const dsIds = model.getDownsampledTableIds();
-    dsIds.forEach(tid => {
+    lines.push(`jsDs: ${model.isDownsampled()}`);
+    model.getDownsampledTableIds().forEach(tid => {
       const t = model.getTable(tid);
       lines.push(`table[${tid}]: size=${t?.size ?? '?'}`);
-      const colData = model.getColumnData(tid);
-      if (colData) {
-        const firstCol = colData.keys().next().value;
-        if (firstCol != null) {
-          const arr = colData.get(firstCol);
-          lines.push(`  colData[${firstCol}]: ${arr?.length ?? 0} rows`);
-        }
-      }
     });
     lines.push(`pendingDs: ${(model as any).pendingDownsample}`);
-    // Viewport ranges
-    const vpMap = (model as any).viewportRangeMap as Map<
-      number,
-      [number, number]
-    >;
-    if (vpMap != null) {
-      vpMap.forEach((vp, tid) => {
-        lines.push(`viewport[${tid}]: [${vp[0]}, ${vp[1]}]`);
-      });
-    }
-    // Visible range from chart
     if (renderer) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,6 +233,105 @@ function TradingViewChart(
     return lines.join('\n');
   }
 
+  // ---- Scaffold ----
+
+  /**
+   * Update the scaffold with the correct density.
+   *
+   * runChartDownsample with a range returns:
+   *   ~5 sparse HEAD rows | dense BODY rows | ~5 sparse TAIL rows
+   *
+   * The scaffold must cover the FULL extent (head-to-tail) at a density
+   * that matches the BODY region. This ensures the sparse head/tail
+   * points get placed at correct time-proportional positions.
+   *
+   * Density calculation:
+   *   bodyDensity ≈ width * 2 points per bodyDuration
+   *   scaffoldCount = bodyDensity * totalDuration
+   *                 = width * 2 * (totalDuration / bodyDuration)
+   *   capped at 30K
+   *
+   * For full range (no head/tail), just use width * 2.
+   */
+  function updateScaffold(
+    renderer: TradingViewChartRenderer,
+    model: TradingViewChartModel
+  ): void {
+    if (!renderer.isScaffoldEnabled()) return;
+
+    const figure = model.getFigureData();
+    if (!figure) return;
+
+    // Find time extent across all data (includes head + body + tail)
+    let dataMin = Infinity;
+    let dataMax = -Infinity;
+    figure.series.forEach(series => {
+      const colData = model.getColumnData(series.dataMapping.tableId);
+      if (!colData) return;
+      const timeCol = colData.get(series.dataMapping.columns.time);
+      if (!timeCol || timeCol.length === 0) return;
+      const first = timeCol[0] as number;
+      const last = timeCol[timeCol.length - 1] as number;
+      if (first < dataMin) dataMin = first;
+      if (last > dataMax) dataMax = last;
+    });
+
+    if (dataMin >= dataMax) return;
+
+    const totalDuration = dataMax - dataMin;
+    const width = renderer.getTimeScaleWidth();
+    const dsRange = lastDsRangeRef.current;
+
+    let count: number;
+    if (dsRange != null) {
+      // Zoomed: scale density so body region gets ~width*2 points,
+      // and the full extent (including head/tail) is proportionally dense
+      const bodyDuration = Math.max(1, dsRange[1] - dsRange[0]);
+      const ratio = totalDuration / bodyDuration;
+      count = Math.min(30000, Math.max(1000, Math.ceil(width * 2 * ratio)));
+    } else {
+      // Full range: no head/tail, just need body density
+      count = Math.min(30000, Math.max(1000, width * 2));
+    }
+
+    renderer.setScaffoldData(dataMin, dataMax, count);
+  }
+
+  // ---- Series data helpers ----
+
+  function renderAllSeriesData(
+    renderer: TradingViewChartRenderer,
+    model: TradingViewChartModel,
+    figure: TvlFigureData
+  ): void {
+    const ct = renderer.getChartType();
+    figure.series.forEach(series => {
+      const colData = model.getColumnData(series.dataMapping.tableId);
+      if (colData) {
+        const data = transformTableData(series, colData, ct);
+        const deduped = deduplicateByTime(data as Record<string, unknown>[]);
+        renderer.setSeriesData(series.id, deduped as never[]);
+        if (series.markerSpec) {
+          const markerColData = model.getColumnData(
+            series.markerSpec.tableId
+          );
+          if (markerColData) {
+            const tableMarkers = buildMarkersFromTableData(
+              series.markerSpec,
+              markerColData,
+              ct,
+              renderer.getTextColor()
+            );
+            renderer.setSeriesMarkers(series.id, tableMarkers);
+          }
+        } else if (series.markers) {
+          renderer.setSeriesMarkers(series.id, series.markers);
+        }
+        renderer.updateDynamicPriceLines(series.id, colData);
+      }
+    });
+  }
+
   const replayAllData = useCallback(
     (renderer: TradingViewChartRenderer, model: TradingViewChartModel) => {
       const figure = model.getFigureData();
@@ -277,38 +340,16 @@ function TradingViewChart(
       renderer.configureSeries(
         figure.series,
         getColorway(chartTheme),
-        getOhlcColors(chartTheme)
+        getOhlcColors(chartTheme),
+        model.isDownsampled()
       );
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
-
-      const ct = renderer.getChartType();
-      figure.series.forEach(series => {
-        const colData = model.getColumnData(series.dataMapping.tableId);
-        if (colData) {
-          const data = transformTableData(series, colData, ct);
-          const deduped = deduplicateByTime(data as Record<string, unknown>[]);
-          renderer.setSeriesData(series.id, deduped as never[]);
-          if (series.markerSpec) {
-            const markerColData = model.getColumnData(
-              series.markerSpec.tableId
-            );
-            if (markerColData) {
-              const tableMarkers = buildMarkersFromTableData(
-                series.markerSpec,
-                markerColData,
-                ct,
-                renderer.getTextColor()
-              );
-              renderer.setSeriesMarkers(series.id, tableMarkers);
-            }
-          } else if (series.markers) {
-            renderer.setSeriesMarkers(series.id, series.markers);
-          }
-          renderer.updateDynamicPriceLines(series.id, colData);
-        }
-      });
+      renderAllSeriesData(renderer, model, figure);
+      if (model.isDownsampled()) {
+        updateScaffold(renderer, model);
+      }
       renderer.fitContent();
     },
     [chartTheme]
@@ -326,44 +367,27 @@ function TradingViewChart(
       renderer.configureSeries(
         figure.series,
         getColorway(chartThemeRef.current),
-        getOhlcColors(chartThemeRef.current)
+        getOhlcColors(chartThemeRef.current),
+        model.isDownsampled()
       );
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
-
-      const ct = renderer.getChartType();
-      figure.series.forEach(series => {
-        const colData = model.getColumnData(series.dataMapping.tableId);
-        if (colData) {
-          const data = transformTableData(series, colData, ct);
-          const deduped = deduplicateByTime(data as Record<string, unknown>[]);
-          renderer.setSeriesData(series.id, deduped as never[]);
-          if (series.markerSpec) {
-            const markerColData = model.getColumnData(
-              series.markerSpec.tableId
-            );
-            if (markerColData) {
-              const tableMarkers = buildMarkersFromTableData(
-                series.markerSpec,
-                markerColData,
-                ct,
-                renderer.getTextColor()
-              );
-              renderer.setSeriesMarkers(series.id, tableMarkers);
-            }
-          } else if (series.markers) {
-            renderer.setSeriesMarkers(series.id, series.markers);
-          }
-          renderer.updateDynamicPriceLines(series.id, colData);
-        }
-      });
+      renderAllSeriesData(renderer, model, figure);
       renderer.fitContent();
     }
 
     /**
      * Handle DATA_UPDATED from the model.
-     * Unified path for both downsampled and non-downsampled tables.
+     *
+     * For downsampled tables after a zoom/pan/reset:
+     * 1. Suppress range-change events
+     * 2. Update scaffold (correct density for head/body/tail)
+     * 3. setData for all affected series
+     * 4. Restore the saved visible range (zoom/pan) or fitContent (reset/init)
+     * 5. Un-suppress after a delay
+     *
+     * For non-downsampled or ticking updates: normal incremental path.
      */
     function handleDataUpdate(
       renderer: TradingViewChartRenderer,
@@ -374,6 +398,7 @@ function TradingViewChart(
         tableId,
         isInitialLoad,
         isResetView,
+        isDownsampleSwap,
         addedCount,
         removedCount,
         modifiedCount,
@@ -385,14 +410,15 @@ function TradingViewChart(
       if (!colData) return;
 
       const ct = renderer.getChartType();
-
-      const isPythonDs = model.isPythonDownsampled();
       const chart = renderer.getChart();
 
-      if (isPythonDs && !isInitialLoad) {
+      // isDownsampleSwap = first data from a fresh runChartDownsample call.
+      // Only suppress range events for actual data swaps, NOT for ticks.
+      if (isDownsampleSwap) {
         suppressRef.current = true;
       }
 
+      // --- Update series data ---
       figure.series.forEach(series => {
         if (series.dataMapping.tableId !== tableId) return;
 
@@ -401,23 +427,24 @@ function TradingViewChart(
           removedCount === 0 &&
           !isInitialLoad &&
           modifiedCount === 0;
-        const timeColName = series.dataMapping.columns.time;
-        const timeCol = colData.get(timeColName);
-        const totalRows = timeCol?.length ?? 0;
-        const transformStart = isAppendOnly
-          ? Math.max(0, totalRows - addedCount)
-          : 0;
 
-        const data = transformTableData(series, colData, ct, transformStart);
-
-        if (isPythonDs || removedCount > 0 || isInitialLoad) {
+        // Data swap or initial load: full setData (data shape changed).
+        // Ticks on downsampled tables: incremental (just appending new rows).
+        if (isDownsampleSwap || removedCount > 0 || isInitialLoad) {
+          const data = transformTableData(series, colData, ct);
           const deduped = deduplicateByTime(data as Record<string, unknown>[]);
           renderer.setSeriesData(series.id, deduped as never[]);
         } else if (isAppendOnly) {
+          const timeColName = series.dataMapping.columns.time;
+          const timeCol = colData.get(timeColName);
+          const totalRows = timeCol?.length ?? 0;
+          const start = Math.max(0, totalRows - addedCount);
+          const data = transformTableData(series, colData, ct, start);
           for (let i = 0; i < data.length; i += 1) {
             renderer.updateSeriesPoint(series.id, data[i]);
           }
         } else if (modifiedCount > 0) {
+          const data = transformTableData(series, colData, ct);
           const deduped = deduplicateByTime(data as Record<string, unknown>[]);
           renderer.setSeriesData(series.id, deduped as never[]);
         }
@@ -442,31 +469,28 @@ function TradingViewChart(
         renderer.setSeriesMarkers(series.id, tableMarkers);
       });
 
+      // --- Update scaffold on data swap ---
+      if (isDownsampleSwap) {
+        updateScaffold(renderer, model);
+      }
+
+      // --- Viewport control ---
       if (isResetView === true || isInitialLoad === true) {
+        // Reset or initial load: show everything, clear any saved range
+        restoreRangeRef.current = null;
         renderer.fitContent();
-      } else if (
-        isPythonDs &&
-        lastZoomRangeRef.current &&
-        !draggingRef.current &&
-        lockRangeOnNextUpdateRef.current
-      ) {
-        // Lock the visible range ONCE after a downsample data swap to
-        // prevent jumping when bar density changes.  Don't lock on
-        // subsequent tick updates — that would snap the view back if
-        // the user panned after the zoom.
-        lockRangeOnNextUpdateRef.current = false;
+      } else if (isDownsampleSwap && restoreRangeRef.current) {
+        // Zoom/pan data swap: restore the exact visible range the user had
         try {
           chart.timeScale().setVisibleRange({
-            from: lastZoomRangeRef.current.from,
-            to: lastZoomRangeRef.current.to,
+            from: restoreRangeRef.current.from,
+            to: restoreRangeRef.current.to,
           } as never);
         } catch {
           // chart may not be ready
         }
       } else if (addedCount > 0 && !isInitialLoad && !draggingRef.current) {
-        // Snap-to-live: if the right edge of the visible range is within
-        // 1% of the viewport width from the latest data, auto-scroll to
-        // follow the live data.  If the user has panned away, leave it.
+        // Ticking: snap-to-live if right edge is near latest data
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const vr = chart.timeScale().getVisibleRange() as any;
@@ -474,7 +498,6 @@ function TradingViewChart(
             const visFrom = vr.from as number;
             const visTo = vr.to as number;
             const visDur = visTo - visFrom;
-            // Find the latest data point across all series
             const timeColName = figure.series[0]?.dataMapping.columns.time;
             const timeArr = timeColName ? colData.get(timeColName) : undefined;
             if (timeArr && timeArr.length > 0 && visDur > 0) {
@@ -493,9 +516,8 @@ function TradingViewChart(
         }
       }
 
-      if (isPythonDs && !isInitialLoad) {
-        // Keep suppress active long enough for async LWC range-change
-        // events + debounce (150ms) to settle before re-enabling.
+      // --- Un-suppress after delay (only for data swaps) ---
+      if (isDownsampleSwap) {
         if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current);
         suppressTimerRef.current = setTimeout(() => {
           suppressRef.current = false;
@@ -505,12 +527,10 @@ function TradingViewChart(
 
     /**
      * Create or reconnect the model. Reuses the existing renderer.
-     * Called on initial load and again after a table reconnect event.
      */
     async function connectModel(
       renderer: TradingViewChartRenderer
     ): Promise<void> {
-      // Tear down previous model if reconnecting
       if (modelRef.current) {
         dsCleanupRef.current?.();
         dsCleanupRef.current = null;
@@ -521,7 +541,6 @@ function TradingViewChart(
       const widget = await fetch();
       const exported = widget.exportedObjects;
       const dataString = widget.getDataAsString();
-
       if (cancelled) return;
 
       const model = new TradingViewChartModel(dh, widget);
@@ -533,7 +552,6 @@ function TradingViewChart(
       const ct = message.figure?.chartType ?? 'standard';
       chartTypeRef.current = ct;
 
-      // Update renderer with actual options
       if (Object.keys(userOptions).length > 0) {
         const themeOptions = chartThemeToOptions(chartThemeRef.current);
         const mergedOptions = deepMerge(
@@ -557,7 +575,6 @@ function TradingViewChart(
             break;
           case 'DATA_UPDATED':
             if (event.isInitialLoad) setIsLoading(false);
-            // Clear scrim AFTER data renders, not when subscription is set up.
             if (!event.isInitialLoad) setPendingDs(false);
             handleDataUpdate(renderer, model, event);
             updateDebugState(
@@ -573,15 +590,12 @@ function TradingViewChart(
           case 'DOWNSAMPLE_PENDING':
             if (event.pending) {
               setPendingDs(true);
-              lockRangeOnNextUpdateRef.current = true;
             }
             break;
           case 'DISCONNECTED':
             if (!event.connected) {
-              // Table disconnected — surface as error to WidgetPanel
               setError('Chart disconnected');
             } else {
-              // Table reconnected — re-fetch widget and rebuild model
               log.info('Table reconnected, re-initializing model');
               setError(null);
               setIsLoading(true);
@@ -601,7 +615,6 @@ function TradingViewChart(
         }
       });
 
-      // Configure model before init
       model.setTimeZone(timeZone);
       model.setChartType(ct);
       model.setDebugFn(msg => {
@@ -616,6 +629,10 @@ function TradingViewChart(
         );
       });
 
+      // Initial downsample is full range (null) — no sparse ends
+      lastDsRangeRef.current = null;
+      restoreRangeRef.current = null;
+
       await model.init(exported, dataString);
       updateDebugState(
         gatherDebug('INIT', model, renderer),
@@ -623,25 +640,14 @@ function TradingViewChart(
         renderer
       );
 
-      // Set up downsample event detection AFTER init completes
-      if (!cancelled && model.isPythonDownsampled()) {
+      if (!cancelled && model.isDownsampled()) {
         setupDownsampleSubscriptions(renderer, model);
-
-        // Restore zoom position after reconnect
-        if (lastZoomRangeRef.current) {
-          model.sendZoom(
-            lastZoomRangeRef.current.from,
-            lastZoomRangeRef.current.to
-          );
-        }
       }
     }
 
     async function init() {
       if (!containerRef.current) return;
 
-      // Create the chart shell immediately with theme defaults so the
-      // user sees background/grid/axes while waiting for data.
       const themeOptions = chartThemeToOptions(chartThemeRef.current);
       const ct = chartTypeRef.current;
       const renderer = new TradingViewChartRenderer(
@@ -662,14 +668,10 @@ function TradingViewChart(
       }
     }
 
-    /**
-     * Wire up zoom/pan detection for Python-side downsampling.
-     *
-     * Hybrid architecture: the merged table always covers the full
-     * time range (low-fi background + high-fi foreground).  All
-     * interactions (zoom, pan, resize) send ZOOM with the visible
-     * time range.  No viewport sliding, no logicalToTime conversion.
-     */
+    // ================================================================
+    // Zoom / Pan / Reset detection — rewritten from scratch
+    // ================================================================
+
     function setupDownsampleSubscriptions(
       renderer: TradingViewChartRenderer,
       model: TradingViewChartModel
@@ -682,44 +684,40 @@ function TradingViewChart(
       let debounceTimer: ReturnType<typeof setTimeout> | null = null;
       let settled = false;
 
-      // Track the last zoom request to detect meaningful changes
-      let lastZoomFrom: number | null = null;
-      let lastZoomTo: number | null = null;
+      // Baseline: the range we last sent a downsample request for.
+      // Used to detect whether the user has zoomed/panned enough to
+      // warrant a new downsample. Starts null — captured after settle.
+      let baselineFrom: number | null = null;
+      let baselineTo: number | null = null;
 
-      // After init, the chart settles (fitContent, resize). Ignore
-      // events for 1s to let it stabilize, then capture baseline.
+      // Let the chart settle for 1s after init (fitContent, resize, etc.)
+      // before we start listening to range changes.
       setTimeout(() => {
         settled = true;
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const vr = timeScale.getVisibleRange() as any;
           if (vr != null) {
-            lastZoomFrom = vr.from as number;
-            lastZoomTo = vr.to as number;
+            baselineFrom = vr.from as number;
+            baselineTo = vr.to as number;
           }
         } catch {
           // chart may not be ready
         }
       }, 1000);
 
-      // --- Pointer tracking: block requests until mouseup ---
-      let pendingAction = false;
+      // --- Pointer tracking ---
+      // During a drag (pan), range changes fire continuously.
+      // We defer processing until pointerup to avoid firing many
+      // downsample requests mid-drag.
+      let needsProcessAfterDrag = false;
       const onDown = () => {
         draggingRef.current = true;
       };
       const onUp = () => {
         draggingRef.current = false;
-        if (!pendingAction) return;
-        pendingAction = false;
-        if (suppressRef.current) {
-          const check = setInterval(() => {
-            if (!suppressRef.current) {
-              clearInterval(check);
-              processRangeChange();
-            }
-          }, 50);
-          setTimeout(() => clearInterval(check), 3000);
-        } else {
+        if (needsProcessAfterDrag) {
+          needsProcessAfterDrag = false;
           processRangeChange();
         }
       };
@@ -727,8 +725,9 @@ function TradingViewChart(
       window.addEventListener('pointerup', onUp, true);
 
       /**
-       * Core logic: read the visible TIME range and send ZOOM if it
-       * has changed enough (zoom level or center shift).
+       * Core logic: compare current visible range against baseline.
+       * If zoomed (>10% duration change) or panned (>20% center shift),
+       * request a new downsample with the visible range + 50% buffer.
        */
       function processRangeChange(): void {
         if (suppressRef.current) return;
@@ -741,46 +740,46 @@ function TradingViewChart(
         const visDur = visTo - visFrom;
         if (visDur < 1) return;
 
-        // Initialize baseline on first event
-        if (lastZoomFrom == null || lastZoomTo == null) {
-          lastZoomFrom = visFrom;
-          lastZoomTo = visTo;
+        // Capture baseline on first event
+        if (baselineFrom == null || baselineTo == null) {
+          baselineFrom = visFrom;
+          baselineTo = visTo;
           return;
         }
 
-        const lastDur = lastZoomTo - lastZoomFrom;
+        const baseDur = baselineTo - baselineFrom;
         const durChange =
-          lastDur > 0
-            ? Math.abs(visDur - lastDur) / Math.max(visDur, lastDur)
+          baseDur > 0
+            ? Math.abs(visDur - baseDur) / Math.max(visDur, baseDur)
             : 1;
         const centerShift =
           visDur > 0
             ? Math.abs(
-                (visFrom + visTo) / 2 - (lastZoomFrom + lastZoomTo) / 2
+                (visFrom + visTo) / 2 - (baselineFrom + baselineTo) / 2
               ) / visDur
             : 0;
 
-        // Re-downsample if zoom level changed (>10%) or panned (>20%)
         if (durChange > 0.1 || centerShift > 0.2) {
-          lastZoomFrom = visFrom;
-          lastZoomTo = visTo;
+          // Update baseline to current visible range
+          baselineFrom = visFrom;
+          baselineTo = visTo;
 
-          const fullRange = model.getFullTimeRange();
-          if (!fullRange) return;
-
+          // Add 50% buffer so the user can pan a bit before needing
+          // another downsample
           const buf = visDur * 0.5;
-          const from = Math.max(fullRange[0], visFrom - buf);
-          const to = Math.min(fullRange[1], visTo + buf);
+          const dsFrom = visFrom - buf;
+          const dsTo = visTo + buf;
 
-          // Save the visible range for setVisibleRange after data arrives
-          lastZoomRangeRef.current = { from: visFrom, to: visTo };
+          // Save visible range to restore after data swap
+          restoreRangeRef.current = { from: visFrom, to: visTo };
+          lastDsRangeRef.current = [dsFrom, dsTo];
 
           updateDebugState(
-            gatherDebug('ZOOM', model, renderer),
+            gatherDebug('ZOOM/PAN', model, renderer),
             model,
             renderer
           );
-          model.sendZoom(from, to, timeScale.width());
+          model.performDownsample([dsFrom, dsTo], timeScale.width());
         }
 
         // Refresh state attribute for tests
@@ -792,43 +791,45 @@ function TradingViewChart(
         }
       }
 
-      // Visible range change handler.
+      // Subscribe to visible range changes (fires on zoom, pan, fitContent).
       const unsubRange = renderer.subscribeVisibleLogicalRangeChange(() => {
-        if (!settled) return;
+        if (!settled || suppressRef.current) return;
         if (draggingRef.current) {
-          pendingAction = true;
+          needsProcessAfterDrag = true;
           return;
         }
-        if (suppressRef.current) return;
+        // Debounce for wheel zoom (fires many events quickly)
         if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(processRangeChange, 150);
+        debounceTimer = setTimeout(processRangeChange, 200);
       });
 
-      // Disable LWC's native axis double-click reset so we handle it ourselves.
-      // Fix edges so panning can't scroll past the data extent.
+      // Disable LWC's native axis double-click reset (we handle it).
+      // Fix edges so panning can't scroll past data extent.
       chart.applyOptions({
         handleScale: { axisDoubleClickReset: { time: false, price: false } },
         timeScale: { fixLeftEdge: true, fixRightEdge: true },
       } as never);
 
-      // Double-click reset: listen on the CONTAINER so both chart body
-      // and time axis double-clicks trigger a full reset.
+      // --- Double-click reset ---
+      // Full range downsample (null range) + fitContent + reset price scales.
       const onDblClick = () => {
         if (!settled) return;
-        lastZoomFrom = null;
-        lastZoomTo = null;
-        lastZoomRangeRef.current = null;
+        baselineFrom = null;
+        baselineTo = null;
+        restoreRangeRef.current = null; // fitContent, not restore
+        lastDsRangeRef.current = null; // full range
         renderer.resetPriceScales();
         updateDebugState(
           gatherDebug('DBLCLICK → RESET', model, renderer),
           model,
           renderer
         );
-        model.sendReset();
+        model.performDownsample(null, timeScale.width());
       };
       container.addEventListener('dblclick', onDblClick);
 
-      // Size change: re-zoom at new width
+      // --- Resize ---
+      // Re-downsample at new width with current range.
       let lastWidth = timeScale.width();
       const unsubSize = renderer.subscribeSizeChange(() => {
         if (!settled || suppressRef.current) return;
@@ -840,8 +841,10 @@ function TradingViewChart(
         const from = visRange?.from as number | undefined;
         const to = visRange?.to as number | undefined;
         if (from != null && to != null) {
-          lastZoomRangeRef.current = { from, to };
-          model.sendZoom(from, to, newWidth);
+          restoreRangeRef.current = { from, to };
+          const buf = (to - from) * 0.5;
+          lastDsRangeRef.current = [from - buf, to + buf];
+          model.performDownsample([from - buf, to + buf], newWidth);
         }
       });
 
@@ -896,7 +899,7 @@ function TradingViewChart(
         const { width, height } = entry.contentRect;
         if (width === 0 || height === 0) return;
         rendererRef.current?.resize(width, height);
-        if (modelRef.current?.isPythonDownsampled() !== true) {
+        if (modelRef.current?.isDownsampled() !== true) {
           rendererRef.current?.fitContent();
         }
       });

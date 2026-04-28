@@ -9,21 +9,6 @@ export interface NewFigureMessage {
   removed_references: number[];
 }
 
-/** Response from Python after a ZOOM or RESET message. */
-export interface DownsampleReadyMessage {
-  type: 'DOWNSAMPLE_READY';
-  tables: Record<
-    string,
-    {
-      refIndex: number;
-      tableSize: number;
-      viewport: [number, number];
-      fullRange: [number, number] | null;
-      isReset?: boolean;
-    }
-  >;
-}
-
 export type TvlChartType = 'standard' | 'yieldCurve' | 'options';
 
 export interface TvlPartitionSpec {
@@ -37,11 +22,12 @@ export interface TvlPartitionSpec {
   columns: Record<string, string>;
 }
 
-/** Per-table info about Python-side downsampling. */
-export interface TvlDownsampleTableInfo {
+/** Per-table metadata for JS-side downsampling via runChartDownsample. */
+export interface TvlDownsampleMeta {
   tableSize: number;
-  fullRange: [number, number] | null;
-  isDownsampled: boolean;
+  timeCol: string;
+  valueCols: string[];
+  seriesTypes: string[];
 }
 
 export interface TvlFigureData {
@@ -53,8 +39,8 @@ export interface TvlFigureData {
   deephaven: {
     mappings: TvlDataMapping[];
   };
-  /** Present when Python-side downsampling is active. Keyed by table ref ID. */
-  downsampleInfo?: Record<string, TvlDownsampleTableInfo>;
+  /** Present when tables are eligible for JS-side downsampling. Keyed by table ref ID. */
+  downsampleMeta?: Record<string, TvlDownsampleMeta>;
 }
 
 export interface TvlSeriesConfig {
@@ -135,6 +121,8 @@ export type ModelEvent =
       modifiedCount: number;
       /** True when this update follows a RESET (double-click). */
       isResetView?: boolean;
+      /** True when this is the first data from a fresh downsample (not a tick). */
+      isDownsampleSwap?: boolean;
     }
   | { type: 'ERROR'; message: string }
   | { type: 'DOWNSAMPLE_PENDING'; pending: boolean }
