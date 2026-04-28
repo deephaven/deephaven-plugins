@@ -51,11 +51,11 @@ class WidgetPath:
     local: str | None = None
 ```
 
-| Field    | Type           | Default | Description                                                                                       |
-| -------- | -------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `widget` | `str`          | —       | The widget name                                                                                   |
-| `embed`  | `bool`         | `False` | Use embed route (`True`) or app route (`False`).                                                  |
-| `local`  | `str \| None`  | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
+| Field    | Type          | Default | Description                                                                                       |
+| -------- | ------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `widget` | `str`         | —       | The widget name                                                                                   |
+| `embed`  | `bool`        | `False` | Use embed route (`True`) or app route (`False`).                                                  |
+| `local`  | `str \| None` | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
 
 ### `EnterpriseWidgetPath`
 
@@ -87,13 +87,13 @@ class EnterpriseWidgetPath:
     replica_slot: int | None = None
 ```
 
-| Field          | Type           | Default | Description                                                                                       |
-| -------------- | -------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `widget`       | `str`          | —       | The widget name                                                                                   |
-| `query`        | `str \| int`   | —       | The persistent query name or serial number (required)                                             |
-| `embed`        | `bool`         | `False` | Use embed route (`True`) or app/dashboard route (`False`).                                        |
-| `local`        | `str \| None`  | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
-| `replica_slot` | `int \| None`  | `None`  | Optional replica slot number for the widget route.                                                |
+| Field          | Type          | Default | Description                                                                                       |
+| -------------- | ------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `widget`       | `str`         | —       | The widget name                                                                                   |
+| `query`        | `str \| int`  | —       | The persistent query name or serial number (required)                                             |
+| `embed`        | `bool`        | `False` | Use embed route (`True`) or app/dashboard route (`False`).                                        |
+| `local`        | `str \| None` | `None`  | User-defined sub-path, query params, and fragment appended after `/local/`. Leading `/` optional. |
+| `replica_slot` | `int \| None` | `None`  | Optional replica slot number for the widget route.                                                |
 
 ### `RoutePath`
 
@@ -894,10 +894,10 @@ All routing logic is pure Python. No frontend changes needed. The router reads U
    - Wildcard routes (`*`) have the lowest priority among siblings.
    - Optional segments are matched greedily (present match preferred over absent).
    - Index routes match only the exact parent path.
-7. **Param extraction**: on match, extract `{var_name}` values from the URL segments into a `dict[str, str]`.
-8. **Rendering**: wrap the matched element using the existing `Context` callable: `_route_params_context(matched_element(), value=params)`. This pushes the params onto the context stack so `use_params()` can read them.
-9. **Not found**: if no route matches, render an error element indicating the path was not found.
-10. **Export** `router` from `components/__init__.py`.
+6. **Param extraction**: on match, extract `{var_name}` values from the URL segments into a `dict[str, str]`.
+7. **Rendering**: wrap the matched element using the existing `Context` callable: `_route_params_context(matched_element(), value=params)`. This pushes the params onto the context stack so `use_params()` can read them.
+8. **Not found**: if no route matches, render an error element indicating the path was not found.
+9. **Export** `router` from `components/__init__.py`.
 
 #### `use_params`
 
@@ -942,8 +942,8 @@ No frontend changes needed — routing logic is entirely in the Python backend.
    - If `local_path` is provided, strip any leading `/` and append `/local/{local_path}`.
    - Include `replica_slot` in the embed path if provided (`{base_url}/iriside/embed/widget/{query}/{widget}/{replica_slot}`).
 
-4. **Create `hooks/use_widget_path.py`** that calls `get_context().get_base_url()` to get the base URL, then delegates to `resolve_widget_path(widget_path, base_url)` and returns the resolved string.
-5. **Export** `WidgetPath` and `EnterpriseWidgetPath` from `types/__init__.py` and from the top-level `deephaven.ui` namespace. Export `use_widget_path` from `hooks/__init__.py`.
+3. **Create `hooks/use_widget_path.py`** that calls `get_context().get_base_url()` to get the base URL, then delegates to `resolve_widget_path(widget_path, base_url)` and returns the resolved string.
+4. **Export** `WidgetPath` and `EnterpriseWidgetPath` from `types/__init__.py` and from the top-level `deephaven.ui` namespace. Export `use_widget_path` from `hooks/__init__.py`.
 
 ### Frontend (TypeScript)
 
@@ -959,16 +959,16 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 
 ### New Files
 
-| File                          | Description                                                              |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `hooks/use_path.py`           | Path hook                                                                |
-| `hooks/use_navigate.py`       | Navigate hook                                                            |
-| `hooks/use_url_components.py` | URL components hook                                                      |
-| `hooks/use_params.py`         | Route params hook (via context)                                          |
-| `hooks/use_widget_path.py`    | Resolves `WidgetPath`/`EnterpriseWidgetPath` to a string                 |
-| `types/widget_path.py`        | `WidgetPath` and `EnterpriseWidgetPath` frozen dataclasses               |
-| `components/route.py`         | `_Route` dataclass, `RoutePath` type alias, and `route()` factory        |
-| `components/router.py`        | `router` component with widget path resolution                          |
+| File                          | Description                                                       |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `hooks/use_path.py`           | Path hook                                                         |
+| `hooks/use_navigate.py`       | Navigate hook                                                     |
+| `hooks/use_url_components.py` | URL components hook                                               |
+| `hooks/use_params.py`         | Route params hook (via context)                                   |
+| `hooks/use_widget_path.py`    | Resolves `WidgetPath`/`EnterpriseWidgetPath` to a string          |
+| `types/widget_path.py`        | `WidgetPath` and `EnterpriseWidgetPath` frozen dataclasses        |
+| `components/route.py`         | `_Route` dataclass, `RoutePath` type alias, and `route()` factory |
+| `components/router.py`        | `router` component with widget path resolution                    |
 
 ### Modified Files
 
