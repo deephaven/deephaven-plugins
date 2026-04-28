@@ -503,7 +503,7 @@ def router(*routes: route) -> Element:
 When the router encounters an absolute path string during matching (e.g. a resolved `WidgetPath` or a hardcoded absolute path), it automatically normalises the embed/app prefix to match the current navigation context.
 
 - **Embed route structure**: `<base_url>/embed/widget/<pq_name>/<widget_name>[/local/…]` or `<base_url>/embed/widget/serial/<pq_serial>/<widget_name>[/local/…]`
-- **App route structure**: `<base_url>/dashboard/<pq_serial>_<widget_name>[/local/…]`
+- **App route structure**: `<base_url>/dashboard/<pq_serial>-<widget_name>[/local/…]`
 
 Conversion rules:
 
@@ -532,7 +532,7 @@ def _get_serial_for_name(name: str) -> int:
 
 The conversion only applies to absolute paths that contain recognisable widget route prefixes. Relative paths and plain string segments are unaffected.
 
-> **Note:** A better app route (`/app/widget/…`) is planned as future work on the frontend for enterprise. It can also be considered for non-enterprise. Until then, the enterprise route is `dashboard/<pq_serial>_<widget_name>`.
+> **Note:** A better app route (`/app/widget/…`) is planned as future work on the frontend for enterprise. It can also be considered for non-enterprise. Until then, the enterprise route is `dashboard/<pq_serial>-<widget_name>`.
 
 ---
 
@@ -647,7 +647,7 @@ When a `WidgetPath` or `EnterpriseWidgetPath` is used as a route `path`, the rou
 2. **Embed/app detection**: If `embed` is `None`, the router inspects the current URL to determine the context. If neither embed nor app patterns are found, defaults to embed.
 3. **Path construction**: Builds the full widget path from the base URL, route prefix (`/embed/widget/` or `/app/widget/`), query name (enterprise only), widget name, and optional local path. For `EnterpriseWidgetPath`, the embed and app routes have different URL structures:
    - **Embed**: `<base_url>/embed/widget/<pq_name>/<widget_name>[/local/…]` — uses the query name directly.
-   - **App**: `<base_url>/app/widget/<pq_serial>_<widget_name>[/local/…]` — requires a serial number. If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
+   - **App**: `<base_url>/app/widget/<pq_serial-<widget_name>[/local/…]` — requires a serial number. If `query` is a string name, the serial is resolved at render time using `SessionManager` (conditionally imported from `deephaven_enterprise`). If `query` is already an `int`, it is used directly.
 4. **Embed ↔ app auto-conversion**: When matching, the router normalises embed/app prefixes to match the current navigation context (see [Automatic Embed ↔ App Path Conversion](#automatic-embed--app-path-conversion) in the router section).
 
 ### Notes
