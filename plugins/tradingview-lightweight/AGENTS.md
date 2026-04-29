@@ -2,6 +2,8 @@
 
 tradingview-lightweight charts I call tvl for short.
 
+Always write and save any planning documents to the `notes/` directory, never the .claude directory.
+
 ## Quick Start
 
 ```bash
@@ -23,6 +25,7 @@ bash dev-server.sh     # Ctrl-C to stop (shuts down Vite + DH cleanly)
 ```
 
 It replaces the wheel-rebuild loop with:
+
 - A one-time wheel install (per fresh venv) for entry-point registration
 - `site-packages/deephaven/plot/tradingview_lightweight/` symlinked to the source tree so Python edits are live (editable install doesn't work — see note below)
 - `_js/dist` symlinked to `src/js/dist` so Vite output goes live
@@ -33,18 +36,19 @@ Why not `pip install -e .`? `deephaven-server` ships `deephaven/plot/__init__.py
 
 Per-host config: drop a `dev-server.env.$(hostname -s)` next to `dev-server.sh` to override `PY_UV` / `PY` / `VENV` (gitignored). Each host gets its own `.server-venv-<hostname>/` so a shared working tree can hold multiple venvs side by side.
 
-| Change | Action |
-|---|---|
-| `src/js/src/**` (JS/TS) | Vite rebuilds; **hard-refresh browser** (Ctrl+Shift+R) |
+| Change                                                                      | Action                                                                       |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `src/js/src/**` (JS/TS)                                                     | Vite rebuilds; **hard-refresh browser** (Ctrl+Shift+R)                       |
 | `src/deephaven/.../chart.py`, `series.py`, `markers.py`, `options.py`, etc. | Call `tvl_reload()` in the console, then re-run your construction expression |
-| `tests/app.d/tradingview_lightweight.py` | DH app mode reloads automatically (fixture is symlinked, not copied) |
-| `_register.py`, new chart type, entry-point changes | Restart `dev-server.sh` — registration is frozen at server startup |
+| `tests/app.d/tradingview_lightweight.py`                                    | DH app mode reloads automatically (fixture is symlinked, not copied)         |
+| `_register.py`, new chart type, entry-point changes                         | Restart `dev-server.sh` — registration is frozen at server startup           |
 
-Not hot-reloadable: the `TvlChartType` registration itself and the `JsPlugin` manifest path. Only *construction* code inside the tvl package picks up `importlib.reload`.
+Not hot-reloadable: the `TvlChartType` registration itself and the `JsPlugin` manifest path. Only _construction_ code inside the tvl package picks up `importlib.reload`.
 
 `dev-server.sh` removes both dev-only symlinks on exit (the site-packages plugin dir, and `_js/dist`) so a subsequent `start-server.sh` wheel build/uninstall runs cleanly without following the symlink into the source tree.
 
 The ticking/by tests require `deephaven-plugin-ui`:
+
 ```bash
 # One-time: install deephaven-plugin-ui into the server venv
 .server-venv/bin/pip install deephaven-plugin-ui
@@ -82,10 +86,11 @@ agent-browser wait 5000            # wait for panel to open and data to load
 # 3. Move mouse away and screenshot
 agent-browser mouse move 0 0
 agent-browser wait 500
-agent-browser screenshot /tmp/tvl_test.png
+agent-browser screenshot plugins/tradingview-lightweight/notes/tmp/tvl_test.png
 ```
 
 Multi-statement commands work the same way:
+
 ```bash
 agent-browser keyboard type "from deephaven.plot import tradingview_lightweight as tvl"
 agent-browser press Escape && agent-browser wait 100 && agent-browser press Enter
@@ -97,6 +102,7 @@ agent-browser wait 5000
 ```
 
 To verify a panel opened, check the Golden Layout tabs:
+
 ```bash
 agent-browser eval "JSON.stringify(Array.from(document.querySelectorAll('.lm_tab')).map(e => e.textContent).filter(t => t.length > 0))"
 # Should include your variable name, e.g. ["Console","Log","Command History","File Explorer","my_chart"]
@@ -150,6 +156,7 @@ View the screenshot with the `Read` tool on the image path. Always screenshot in
 ## How It Works
 
 `start-server.sh`:
+
 1. Creates `.server-venv/` with `deephaven-server` + `deephaven-plugin-utilities` (skipped if exists)
 2. Builds JS via `npm run build` in `src/js/`
 3. Builds a Python wheel and installs it into `.server-venv/`
@@ -165,18 +172,18 @@ Comprehensive TradingView Lightweight Charts v5.1 API documentation is in `notes
 
 **Index:** `notes/api-reference/INDEX.md` — links to all sub-pages with quick lookup tables.
 
-| File | What's Covered |
-|------|---------------|
-| `enumerations.md` | All 11 enums (LineStyle, CrosshairMode, PriceScaleMode, TickMarkType, etc.) |
-| `chart-api.md` | `IChartApi` (26 methods), `ChartOptionsBase`, layout, grid, crosshair, watermark, scroll/scale options |
-| `series-api.md` | `ISeriesApi` (5 props, 20 methods) — setData/update, price lines, primitives |
-| `series-types.md` | Data interfaces per series type + all style options with defaults |
-| `time-scale-api.md` | `ITimeScaleApi` (22 methods), `TimeScaleOptions` (25+ props), Time/BusinessDay/UTCTimestamp |
-| `price-scale-api.md` | `IPriceScaleApi`, `PriceScaleOptions`, `PriceLineOptions`, `IPriceLine` |
-| `markers-events.md` | SeriesMarker, MouseEventParams, marker shapes/positions, touch events |
-| `functions-variables.md` | createChart, createYieldCurveChart, watermark/marker factories, series definition variables |
-| `panes-api.md` | `IPaneApi` (15 methods), stretch factors, pane primitives |
-| `utility-types.md` | DeepPartial, Coordinate, Logical, LineWidth, PriceFormat, Background |
+| File                     | What's Covered                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `enumerations.md`        | All 11 enums (LineStyle, CrosshairMode, PriceScaleMode, TickMarkType, etc.)                            |
+| `chart-api.md`           | `IChartApi` (26 methods), `ChartOptionsBase`, layout, grid, crosshair, watermark, scroll/scale options |
+| `series-api.md`          | `ISeriesApi` (5 props, 20 methods) — setData/update, price lines, primitives                           |
+| `series-types.md`        | Data interfaces per series type + all style options with defaults                                      |
+| `time-scale-api.md`      | `ITimeScaleApi` (22 methods), `TimeScaleOptions` (25+ props), Time/BusinessDay/UTCTimestamp            |
+| `price-scale-api.md`     | `IPriceScaleApi`, `PriceScaleOptions`, `PriceLineOptions`, `IPriceLine`                                |
+| `markers-events.md`      | SeriesMarker, MouseEventParams, marker shapes/positions, touch events                                  |
+| `functions-variables.md` | createChart, createYieldCurveChart, watermark/marker factories, series definition variables            |
+| `panes-api.md`           | `IPaneApi` (15 methods), stretch factors, pane primitives                                              |
+| `utility-types.md`       | DeepPartial, Coordinate, Logical, LineWidth, PriceFormat, Background                                   |
 
 Use these when you need to look up available properties/methods, default values, or type signatures without fetching the web docs.
 
@@ -198,15 +205,15 @@ TradingViewPlugin (plugin registration)
 
 ### Key Files
 
-| File | Role |
-|------|------|
-| `src/js/src/TradingViewChartPanel.tsx` | WidgetPanel wrapper — session disconnect, loading overlay |
-| `src/js/src/TradingViewChart.tsx` | Main component — init, data updates, zoom/pan, downsample UX |
-| `src/js/src/TradingViewChartModel.ts` | Model — widget messages, table subscriptions, ZOOM/RESET |
-| `src/js/src/TradingViewChartRenderer.ts` | LWC wrapper — chart creation, series CRUD, markers, price lines |
-| `src/js/src/TradingViewChart.css` | Downsample scrim/status bar styles (inlined via `?inline` import) |
-| `src/deephaven/.../downsample.py` | Python-side downsample — v3 direct aggregation output |
-| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/ZOOM/RESET |
+| File                                          | Role                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| `src/js/src/TradingViewChartPanel.tsx`        | WidgetPanel wrapper — session disconnect, loading overlay         |
+| `src/js/src/TradingViewChart.tsx`             | Main component — init, data updates, zoom/pan, downsample UX      |
+| `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, ZOOM/RESET          |
+| `src/js/src/TradingViewChartRenderer.ts`      | LWC wrapper — chart creation, series CRUD, markers, price lines   |
+| `src/js/src/TradingViewChart.css`             | Downsample scrim/status bar styles (inlined via `?inline` import) |
+| `src/deephaven/.../downsample.py`             | Python-side downsample — v3 direct aggregation output             |
+| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/ZOOM/RESET                             |
 
 ### CSS Injection
 
@@ -217,12 +224,14 @@ Z-index note: `.dh-tvl-panel > .fill-parent-absolute { z-index: 50 }` ensures Wi
 ### Downsample Architecture
 
 **Python-side** (v3 direct aggregation output):
+
 - `_downsample()` uses `agg_by` with `first`/`last`/`sorted_first`/`sorted_last` to capture all output columns directly from min/max rows per bin
 - No `ii`/`k`/`where_in` — works on ticking tables
 - Background (~1000 bins, full range) + Foreground (~4000 bins, zoom area) merged server-side
 - `compute_reset()` invalidates cached time range for ticking tables
 
 **JS-side** downsample UX:
+
 - Progressive scrim: 200ms delay → scrim sweeps down (150ms CSS transition), 500ms → status bar with indeterminate animation
 - Scrim stays until `DATA_UPDATED` (not `DOWNSAMPLE_PENDING(false)` which fires before data arrives)
 - `lockRangeOnNextUpdateRef` prevents tick updates from snapping viewport back after zoom
@@ -236,6 +245,7 @@ Uses `WidgetPanel` from `@deephaven/dashboard-core-plugins` for session-level di
 ### Test Fixtures
 
 `start-server.sh` copies fixtures from `tests/app.d/` into `.app.d/`. Override with `FIXTURES="filename.py"` env var. Default fixture is `tradingview_lightweight.py`. Additional test fixtures in `tests/app.d/`:
+
 - `tvl_downsample_test.py` — 10M static + 100M ticking tables
 - `disconnect_test.py` — grid + plotly + tvl for disconnect comparison
 - `downsample_compare.py` — 100K table for downsample size comparison
