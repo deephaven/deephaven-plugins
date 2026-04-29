@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 import {
   View,
   type ViewProps,
@@ -93,11 +94,10 @@ function DefaultPanelContent({
       paddingY={paddingY}
       overflow={overflow}
       UNSAFE_style={UNSAFE_style}
-      UNSAFE_className={
-        UNSAFE_className == null
-          ? 'dh-default-panel-content'
-          : `${UNSAFE_className} dh-default-panel-content`
-      }
+      UNSAFE_className={classNames(
+        'dh-default-panel-content',
+        UNSAFE_className
+      )}
     >
       <Flex
         UNSAFE_className="dh-inner-react-panel"
