@@ -9,15 +9,25 @@ import {
 
 test('UI loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', SELECTORS.REACT_PANEL_VISIBLE);
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(
+    page,
+    'ui_component',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toHaveScreenshot();
 });
 
 test('UI updates when interacting with it', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_component',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   (
     await panelLocator.getByRole('button', {
@@ -34,7 +44,9 @@ test('UI updates when interacting with it', async ({ page }) => {
   ).toBeVisible();
   await panelLocator.getByRole('textbox', { name: 'Greeting' }).fill('goodbye');
   await expect(panelLocator.getByText('You typed goodbye')).toBeVisible();
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toHaveScreenshot();
 });
 
 test('UI state resets when re-opening', async ({ page }) => {
@@ -47,7 +59,7 @@ test('UI state resets when re-opening', async ({ page }) => {
   await pasteInMonaco(consoleInput, command);
   await page.keyboard.press('Enter');
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   (
     await panelLocator.getByRole('button', {
       name: 'You pressed me 0 times',
@@ -77,15 +89,17 @@ test('UI state resets when re-opening', async ({ page }) => {
 
 test('boom component shows an error in a panel', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom', SELECTORS.REACT_PANEL_VISIBLE);
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toBeVisible();
+  await openPanel(page, 'ui_boom', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toBeVisible();
   await expect(
     page
-      .locator(SELECTORS.REACT_PANEL_VISIBLE)
+      .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       .getByText('Exception', { exact: true })
   ).toBeVisible();
   await expect(
-    page.locator(SELECTORS.REACT_PANEL_VISIBLE).getByText('BOOM!')
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE).getByText('BOOM!')
   ).toBeVisible();
 });
 
@@ -93,9 +107,13 @@ test('boom counter component shows error overlay after clicking the button twice
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom_counter', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_boom_counter',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   let btn = await panelLocator.getByRole('button', { name: 'Count is 0' });
   await expect(btn).toBeVisible();
@@ -113,7 +131,7 @@ test('boom counter component shows error overlay after clicking the button twice
 
 test('Using keys for lists works', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_cells', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'ui_cells', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // setup cells
   await page.getByRole('button', { name: 'Add cell' }).click();
@@ -132,34 +150,26 @@ test('Using keys for lists works', async ({ page }) => {
 
 test('UI all components render 1', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all1', SELECTORS.DH_REACT_PANEL_VISIBLE);
-  await expect(
-    page.locator(SELECTORS.DH_REACT_PANEL_VISIBLE)
-  ).toHaveScreenshot();
+  await openPanel(page, 'ui_render_all1', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI all components render 2', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all2', SELECTORS.DH_REACT_PANEL_VISIBLE);
-  await expect(
-    page.locator(SELECTORS.DH_REACT_PANEL_VISIBLE)
-  ).toHaveScreenshot();
+  await openPanel(page, 'ui_render_all2', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI all components render 3', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all3', SELECTORS.DH_REACT_PANEL_VISIBLE);
-  await expect(
-    page.locator(SELECTORS.DH_REACT_PANEL_VISIBLE)
-  ).toHaveScreenshot();
+  await openPanel(page, 'ui_render_all3', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI markdown renders code correctly', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'markdown_code', SELECTORS.DH_REACT_PANEL_VISIBLE);
-  await expect(
-    page.locator(SELECTORS.DH_REACT_PANEL_VISIBLE)
-  ).toHaveScreenshot();
+  await openPanel(page, 'markdown_code', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 // Tests flex components render as expected
@@ -193,18 +203,20 @@ test.describe('UI flex components', () => {
   ].forEach(i => {
     test(i.name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, i.name, SELECTORS.REACT_PANEL_VISIBLE);
+      await openPanel(page, i.name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
       // need to wait for plots to be loaded before taking screenshot
       // easiest way to check that is if the traces are present
       if (i.traces > 0) {
         await expect(
-          await page.locator(SELECTORS.REACT_PANEL_VISIBLE).locator('.trace')
+          await page
+            .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+            .locator('.trace')
         ).toHaveCount(i.traces);
       }
 
       await expect(
-        page.locator(SELECTORS.REACT_PANEL_VISIBLE)
+        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       ).toHaveScreenshot();
     });
   });
@@ -241,18 +253,20 @@ test.describe('UI grid components', () => {
   ].forEach(i => {
     test(i.name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, i.name, SELECTORS.REACT_PANEL_VISIBLE);
+      await openPanel(page, i.name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
       // need to wait for plots to be loaded before taking screenshot
       // easiest way to check that is if the traces are present
       if (i.traces > 0) {
         await expect(
-          await page.locator(SELECTORS.REACT_PANEL_VISIBLE).locator('.trace')
+          await page
+            .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+            .locator('.trace')
         ).toHaveCount(i.traces);
       }
 
       await expect(
-        page.locator(SELECTORS.REACT_PANEL_VISIBLE)
+        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       ).toHaveScreenshot();
     });
   });

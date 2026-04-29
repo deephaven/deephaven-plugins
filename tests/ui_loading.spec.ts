@@ -8,10 +8,10 @@ test('slow multi-panel shows 1 loader immediately and multiple after loading', a
   await openPanel(
     page,
     'ui_slow_multi_panel',
-    SELECTORS.REACT_PANEL_VISIBLE,
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
     false
   );
-  const locator = page.locator(SELECTORS.DH_REACT_PANEL);
+  const locator = page.locator(SELECTORS.REACT_PANEL);
   // 1 loader should show up
   await expect(locator.locator('.loading-spinner')).toHaveCount(1);
   // Then disappear and show 3 panels
@@ -24,8 +24,12 @@ test('slow multi-panel shows 1 loader immediately and multiple after loading', a
 
 test('slow multi-panel shows loaders on element Reload', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_multi_panel', SELECTORS.REACT_PANEL_VISIBLE);
-  const locator = page.locator(SELECTORS.DH_REACT_PANEL);
+  await openPanel(
+    page,
+    'ui_slow_multi_panel',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+  const locator = page.locator(SELECTORS.REACT_PANEL);
   await expect(locator).toHaveCount(3);
   await locator.getByText('Go BOOM!').click();
   await expect(locator.getByText('ValueError', { exact: true })).toHaveCount(3);
@@ -42,9 +46,13 @@ test('slow multi-panel shows loaders on element Reload', async ({ page }) => {
 
 test('slow multi-panel shows loaders on page reload', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_multi_panel', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_slow_multi_panel',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
   await page.reload();
-  const locator = page.locator(SELECTORS.DH_REACT_PANEL);
+  const locator = page.locator(SELECTORS.REACT_PANEL);
   // Loader should show up
   await expect(locator.locator('.loading-spinner')).toHaveCount(3);
   // Then disappear and show error again

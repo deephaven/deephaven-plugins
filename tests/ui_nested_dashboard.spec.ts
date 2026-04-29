@@ -7,12 +7,14 @@ test.describe('Nested Dashboards', () => {
     await openPanel(
       page,
       'ui_nested_dashboard',
-      SELECTORS.REACT_PANEL_VISIBLE,
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
       true
     );
 
     // Get the outer panel (first match) for screenshots
-    const outerPanel = page.locator(SELECTORS.REACT_PANEL_VISIBLE).first();
+    const outerPanel = page
+      .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+      .first();
     await expect(outerPanel).toBeVisible();
 
     // The nested dashboard should contain interior panels with content
@@ -27,11 +29,13 @@ test.describe('Nested Dashboards', () => {
     await openPanel(
       page,
       'ui_nested_dashboard_interactive',
-      SELECTORS.REACT_PANEL_VISIBLE,
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
       true
     );
 
-    const outerPanel = page.locator(SELECTORS.REACT_PANEL_VISIBLE).first();
+    const outerPanel = page
+      .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+      .first();
 
     // Interact with a button inside the nested dashboard
     const button = outerPanel.getByRole('button', {
@@ -49,11 +53,13 @@ test.describe('Nested Dashboards', () => {
     await openPanel(
       page,
       'ui_deeply_nested_dashboard',
-      SELECTORS.REACT_PANEL_VISIBLE,
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
       true
     );
 
-    const outerPanel = page.locator(SELECTORS.REACT_PANEL_VISIBLE).first();
+    const outerPanel = page
+      .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+      .first();
     await expect(outerPanel).toBeVisible();
 
     // Should see content from multiple levels of nesting

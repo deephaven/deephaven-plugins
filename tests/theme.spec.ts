@@ -61,12 +61,9 @@ test.describe('Theme switching', () => {
         `/iframe/widget/?name=theme_demo&theme=@deephaven/js-plugin-theme-pack_${encodedTheme}`
       );
 
-      await expect(page.locator(SELECTORS.DH_REACT_PANEL_VISIBLE)).toHaveCount(
-        4,
-        {
-          timeout: 30000,
-        }
-      );
+      await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveCount(4, {
+        timeout: 30000,
+      });
       await waitForLoad(page);
       await fillThemeName(page, themeName);
       await takeScreenshot(page, themeName);
