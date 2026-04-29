@@ -116,7 +116,7 @@ class PluginObject:
 
         # Convert dict to set
         if isinstance(top_level_module_fullnames, dict):
-            top_level_module_fullnames = set(top_level_module_fullnames.keys())
+            top_level_module_fullnames = set(top_level_module_fullnames)
 
         # Evict cached modules
         # 1. Any matching the old configuration to ensure remote sources from
