@@ -7,6 +7,7 @@ import { type ReactPanelProps } from '../layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
 import { ELEMENT_NAME } from '../elements/model/ElementConstants';
+import WidgetStatusContext from '../layout/WidgetStatusContext';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>
@@ -35,15 +36,22 @@ function makeDocument(children: React.ReactNode = []): React.ReactNode {
   });
 }
 
+const mockWidgetStatus = {
+  status: 'ready' as const,
+  descriptor: TestUtils.createMockProxy<WidgetDescriptor>({}),
+};
+
 function makeDocumentHandler({
   children = makeDocument(),
   widget = TestUtils.createMockProxy<WidgetDescriptor>({}),
   onClose = jest.fn(),
 }: Partial<DocumentHandlerProps> = {}) {
   return (
-    <DocumentHandler widget={widget} onClose={onClose}>
-      {children}
-    </DocumentHandler>
+    <WidgetStatusContext.Provider value={mockWidgetStatus}>
+      <DocumentHandler widget={widget} onClose={onClose}>
+        {children}
+      </DocumentHandler>
+    </WidgetStatusContext.Provider>
   );
 }
 
