@@ -341,7 +341,7 @@ def run_configure(
         run_main_command("pre-commit install")
         run_main_command("npm install")
     if configure == "full":
-        # currently deephaven-server is installed as part of the sphinx_ext requirements
+        # Install additional dependencies for building documentation
         run_main_command("pip install -r sphinx_ext/sphinx-requirements.txt")
 
 
