@@ -95,8 +95,8 @@ function DefaultPanelContent({
       UNSAFE_style={UNSAFE_style}
       UNSAFE_className={
         UNSAFE_className == null
-          ? 'dh-react-panel dh-default-panel-content'
-          : `${UNSAFE_className} dh-react-panel dh-default-panel-content`
+          ? 'dh-default-panel-content'
+          : `${UNSAFE_className} dh-default-panel-content`
       }
     >
       <Flex
