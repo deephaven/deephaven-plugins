@@ -157,21 +157,33 @@ class TableDatabar:
     markers: list[dict[str, Any]] | None = None
 
 
-def _validate_table_format(format_: list[TableFormat] | TableFormat) -> None:
+def _validate_table_format(
+    format_: list[TableFormat] | TableFormat,
+    table: Table | RollupTable | TreeTable | UriElement | str,
+) -> None:
     """Validate format rules for the table.
 
     Args:
         format_: A formatting rule or list of formatting rules to validate.
+        table: The table the format rules will be applied to. Used to validate
+            that rules are compatible with the table type.
 
     Raises:
         ValueError: If a format rule has a mode but no cols.
         ValueError: If a format rule has a heatmap but no cols.
         ValueError: If a heatmap gradient has fewer than 2 colors.
+        ValueError: If a format rule uses if_ on a rollup or tree table.
     """
     format_list = format_ if isinstance(format_, list) else [format_]
+    is_hierarchical = isinstance(table, (RollupTable, TreeTable))
     for f in format_list:
         if f.mode is not None and f.cols is None:
             raise ValueError("TableFormat with mode requires cols to be specified.")
+
+        if is_hierarchical and f.if_ is not None:
+            raise ValueError(
+                "TableFormat if_ is not supported on rollup or tree tables."
+            )
 
         if isinstance(f.color, TableHeatmap):
             if f.cols is None:
@@ -369,7 +381,7 @@ class table(Element):
             )
 
         if format_ is not None:
-            _validate_table_format(format_)
+            _validate_table_format(format_, table)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]

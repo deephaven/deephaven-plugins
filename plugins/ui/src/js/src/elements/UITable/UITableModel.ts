@@ -51,41 +51,25 @@ export async function makeUiTableModel(
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
-  // TreeTable (includes rollup tables) supports copy() and applyCustomColumns
-  // for if_-based conditional formatting, but does NOT support naturalJoin() or
-  // getTotalsTable(), so databars/heatmaps with auto min/max are unsupported.
+  // TreeTable (includes rollup tables) supports copy() but does NOT support
+  // naturalJoin() or getTotalsTable(), so databars/heatmaps with auto min/max
+  // are unsupported. Conditional formatting via `if_` is also unsupported:
+  // applyCustomColumns on a rollup adds the column to the source rather than
+  // the aggregated output, so the column is not present on the rollup itself.
+  // The Python side validates and rejects these cases up front; this is
+  // defense-in-depth.
   const isTreeTable = TableUtils.isTreeTable(baseTableProp);
   if (isTreeTable) {
-    const baseTable = await (baseTableProp as DhType.Table).copy();
+    const baseTable = await (baseTableProp as unknown as DhType.Table).copy();
 
-    const treeCustomColumns: string[] = [];
-    format.forEach((rule, i) => {
+    const hasIfRule = format.some(rule => {
       const { if_ } = rule;
-      if (if_ != null) {
-        treeCustomColumns.push(`${getFormatCustomColumnName(i)}=${if_}`);
-      }
+      return if_ != null;
     });
-
-    if (treeCustomColumns.length > 0) {
-      // TreeTable.applyCustomColumns is synchronous and does not fire
-      // TABLE_CUSTOMCOLUMNSCHANGED, so call it directly instead of via
-      // TableUtils.applyCustomColumns which would hang waiting for that event.
-      (baseTable as unknown as DhType.Table).applyCustomColumns(
-        treeCustomColumns
+    if (hasIfRule) {
+      throw new Error(
+        'ui.TableFormat if_ is not supported on tree or rollup tables.'
       );
-      format.forEach((rule, i) => {
-        const { if_ } = rule;
-        if (if_ != null) {
-          const columnType = (baseTable as unknown as DhType.Table).findColumn(
-            getFormatCustomColumnName(i)
-          ).type;
-          if (!TableUtils.isBooleanType(columnType)) {
-            throw new Error(
-              `ui.TableFormat if_ must be a boolean column. "${if_}" is a ${columnType} column`
-            );
-          }
-        }
-      });
     }
 
     const uiTableProxy = new JsTableProxy({

@@ -34,7 +34,6 @@ test.describe('UI table', () => {
     't_heatmap_databar_overlay',
     't_heatmap_databar_mixed',
     't_rollup_format',
-    't_rollup_format_if',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
