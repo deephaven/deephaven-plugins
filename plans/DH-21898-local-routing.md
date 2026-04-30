@@ -1,8 +1,8 @@
-# DH-21898: Local Routing Implementation Plan
+# DH-21898: Within Widget Routing Implementation Plan
 
 ## Overview
 
-This plan covers local routing features for deephaven.ui: path-based navigation within a widget's `/local/` route space, declarative routing, and route parameter extraction.
+This plan covers a subset of routing features for deephaven.ui: path-based navigation within a widget's `/-/` route space, declarative routing, and route parameter extraction.
 
 # Part 1: Specification
 
@@ -64,15 +64,15 @@ def use_path(absolute: bool = False) -> str:
 
 ### Path Resolution
 
-The path is derived from the `/local/` segment in the URL. Widgets are served at routes like `<base_url>/embed/widget/<pq_name>/<widget_name>/local/…` — the `/local/` prefix separates platform routing from user routing. `use_path()` returns only the portion **after** `/local/`, which is the widget's own route space. `/local/` should not be used anywhere else in the URL to avoid conflicts.
+The path is derived from the `/-/` segment in the URL. Widgets are served at routes like `<base_url>/embed/widget/<pq_name>/<widget_name>/-/…` — the `/-/` prefix separates platform routing from widget routing. `use_path()` returns only the portion **after** `/-/`, which is the widget's own route space. The `/-/` segment should not be used anywhere else in the URL to avoid conflicts.
 
-- URL `/iriside/embed/widget/q/w/local/dashboard/settings` → `use_path()` returns `"/dashboard/settings"`
-- URL `/iriside/embed/widget/q/w/local/` or `/iriside/embed/widget/q/w` → `use_path()` returns `"/"`
-- URL `/iriside/embed/widget/q/w/local/page` → `use_path()` returns `"/page"`
+- URL `/iriside/embed/widget/q/w/-/dashboard/settings` → `use_path()` returns `"/dashboard/settings"`
+- URL `/iriside/embed/widget/q/w/-/` or `/iriside/embed/widget/q/w` → `use_path()` returns `"/"`
+- URL `/iriside/embed/widget/q/w/-/page` → `use_path()` returns `"/page"`
 
-When `absolute=True`, the full browser path is returned (e.g. `"/iriside/embed/widget/q/w/local/dashboard/settings"`).
+When `absolute=True`, the full browser path is returned (e.g. `"/iriside/embed/widget/q/w/-/dashboard/settings"`).
 
-If the widget is not loaded via a route containing `/local/`, the relative path falls back to `"/"`.
+If the widget is not loaded via a route containing `/-/`, the relative path falls back to `"/"`.
 
 ### Example
 
@@ -95,14 +95,14 @@ def my_component():
 
 ## 2. `use_navigate` Hook
 
-Returns a function to trigger client-side navigation within the widget's local route space.
+Returns a function to trigger client-side navigation within the widget's route space.
 
 ### API
 
 ```python
 def use_navigate() -> Callable[..., None]:
     """
-    Get a function to navigate to a new local URL.
+    Get a function to navigate to a new URL.
 
     Returns:
         A navigate function with signature:
@@ -117,12 +117,12 @@ def use_navigate() -> Callable[..., None]:
 
 ### `navigate` Function Arguments
 
-| Argument       | Type                         | Default | Description                                                                                                                                                                                                                                             |
-| -------------- | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path`         | `str \| None`                | `None`  | Target local path. May include inline query params and fragment (e.g. `"/dashboard?tab=1#section"`). Leading `/` optional; preserves current path if omitted. Explicit `query_params` or `fragment` args override any inline values parsed from `path`. |
-| `query_params` | `str \| QueryParams \| None` | `None`  | Query string or `QueryParams` dict; preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""` or `{}`); list values repeat the key.                                                            |
-| `fragment`     | `str \| None`                | `None`  | URL fragment (leading `#` optional); preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""`).                                                                                               |
-| `replace`      | `bool \| None`               | `None`  | Whether to replace the current history entry or push a new one. If `None` (default), uses `history.replaceState` (no new history entry) since local navigation stays within the widget.                                                                 |
+| Argument       | Type                         | Default | Description                                                                                                                                                                                                                                       |
+| -------------- | ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`         | `str \| None`                | `None`  | Target path. May include inline query params and fragment (e.g. `"/dashboard?tab=1#section"`). Leading `/` optional; preserves current path if omitted. Explicit `query_params` or `fragment` args override any inline values parsed from `path`. |
+| `query_params` | `str \| QueryParams \| None` | `None`  | Query string or `QueryParams` dict; preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""` or `{}`); list values repeat the key.                                                      |
+| `fragment`     | `str \| None`                | `None`  | URL fragment (leading `#` optional); preserves if omitted and `path` is not provided; cleared if `path` is provided and omitted. Removes if empty (`""`).                                                                                         |
+| `replace`      | `bool \| None`               | `None`  | Whether to replace the current history entry or push a new one. If `None` (default), uses `history.replaceState` (no new history entry) since currently navigation stays within the widget.                                                       |
 
 **Future extension**: For future cross-widget routing, `use_navigate` could accept an `absolute` option to indicate that the provided path is absolute rather than relative to the widget's base path. `absolute` navigation that doesn't target the current widget would push to history.
 
@@ -135,6 +135,8 @@ Before implementing absolute cross-widget routing, several prerequisites should 
 3. **History integration**: Cross-widget navigation currently requires a page reload when trying to change widgets, such as switching to another dashboard. We need a way to tie into the existing history tracking so that navigating between widgets can be done as a client-side transition.
 4. **Robust embed/non-embed transitions**: Switching between embedded and non-embedded contexts (and between widgets in general) currently has reliability issues when built with the current approach. Constant logouts and spurious errors like "dashboard has been deleted" when it hasn't hampered usability. These edge cases need to be resolved before cross-widget routing can be dependable.
 
+Tickets for this future work are DH-22498, DH-22499, and DH-22500.
+
 ### Notes
 
 - At least one of `path`, `query_params`, or `fragment` must be provided to `navigate`; passing none raises a `ValueError`. The values not provided are preserved with the exception of `query_params` and `fragment` when `path` is provided (they are cleared if not provided).
@@ -144,7 +146,7 @@ Before implementing absolute cross-widget routing, several prerequisites should 
 - Leading `#` in `fragment` is optional.
 - **Empty values clear the URL component**: Passing `query_params=""` or `query_params={}` removes all query parameters from the URL. Passing `fragment=""` removes the URL fragment.
 - **Multi-value params**: Pass a list as a dict value to repeat a key — `{"tag": ["python", "java"]}` serialises to `?tag=python&tag=java`.
-- **Replace vs push**: When `replace` is `None`, navigation defaults to `history.replaceState` (no new history entry) since all local navigation stays within the widget. Explicitly pass `False` to force a push (new history entry).
+- **Replace vs push**: When `replace` is `None`, navigation defaults to `history.replaceState` (no new history entry) since all current navigation stays within the widget. Explicitly pass `False` to force a push (new history entry).
 
 ### Example
 
@@ -240,7 +242,7 @@ def my_component():
 
 ## 4. `ui.link` Component
 
-Renders a clickable element that navigates on interaction. The new `to` prop accepts either a string (parsed for path, search, and fragment) or a `NavigationTarget` dict for explicit control. Used for SPA navigation within the widget's local route space.
+Renders a clickable element that navigates on interaction. The new `to` prop accepts either a string (parsed for path, search, and fragment) or a `NavigationTarget` dict for explicit control. Used for SPA navigation within the widget's route space.
 
 ### API
 
@@ -397,7 +399,7 @@ def router(*routes: route) -> Element:
 
 #### Matching Behavior
 
-1. The router uses `use_path()` to get the current local path.
+1. The router uses `use_path()` to get the current path.
 2. All routes are compiled into a list of resolved path patterns (inheriting parent paths).
 3. At initialization, the router validates that no sibling routes produce conflicting resolved paths. Conflicting paths raise a `ValueError`.
 4. The router matches the **most specific** path first:
@@ -531,7 +533,7 @@ This extends the existing cycle from Part 1 (which only sends `__queryParams`) t
 ### Frontend (TypeScript)
 
 1. **Extend `getUrlState()`** in `WidgetHandler.tsx` to include `__path`, `__fragment`, and `__href` alongside the existing `__queryParams`:
-   - `__path`: The local path extracted from `window.location.pathname` by finding the portion after `/local/`. Falls back to `"/"` if `/local/` is not in the path.
+   - `__path`: The widget's path extracted from `window.location.pathname` by finding the portion after `/-/`. Falls back to `"/"` if `/-/` is not in the path.
    - `__absolutePath`: `window.location.pathname` (the full path).
    - `__fragment`: `window.location.hash` with the leading `#` stripped, or `""` if no hash.
    - `__href`: `window.location.href` (the full URL).
@@ -566,10 +568,10 @@ This extends the existing cycle from Part 1 (which only sends `__queryParams`) t
    };
    ```
 2. **Update the `Navigate()` function** to handle the extended payload:
-   - `null`/`undefined` path → keep current local path; otherwise resolve the path relative to the widget's base path (the portion up to and including `/local/`).
+   - `null`/`undefined` path → keep current path; otherwise resolve the path relative to the widget's base path (the portion up to and including `/-/`).
    - `null`/`undefined` queryParams → keep `window.location.search`; `""` → clear search; otherwise set `url.search`.
    - `null`/`undefined` fragment → keep `window.location.hash`; `""` → clear hash; otherwise set `url.hash`.
-   - History management: if `replace` is explicitly `true`, use `history.replaceState`; if explicitly `false`, use `history.pushState`; if `null`, default to `replaceState` for local navigation.
+   - History management: if `replace` is explicitly `true`, use `history.replaceState`; if explicitly `false`, use `history.pushState`; if `null`, default to `replaceState` for navigation within the widget.
 3. **Security validation** (extending existing cross-origin check):
    - Reject non-same-origin URLs — the resolved URL must have the same origin as `window.location.origin`.
    - Reject dangerous schemes — only allow `http:`, `https:`, and relative URLs. Block `javascript:`, `data:`, `vbscript:`, and other executable schemes.
@@ -631,7 +633,7 @@ All routing logic is pure Python. No frontend changes needed. The router reads U
 2. **Create a module-level context** for route params: `_route_params_context = create_context({})` using the already-implemented `create_context` function.
 3. **Route compilation**: recursively walk all `route` children, building a list of `(resolved_pattern, element, param_names)` tuples. Child paths are appended to parent paths.
 4. **Conflict detection**: after compilation, check for duplicate resolved static paths among siblings. Raise `ValueError` if conflicts are found.
-5. **Matching**: call `use_path()` to get the current local path. Match against compiled patterns with specificity ordering:
+5. **Matching**: call `use_path()` to get the current path. Match against compiled patterns with specificity ordering:
    - Static segments before parameterized segments.
    - Longer (more segments) before shorter.
    - Wildcard routes (`*`) have the lowest priority among siblings.
@@ -686,7 +688,7 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 
 ### Unit Tests (Python)
 
-1. **`use_path`** — returns correct relative path from various URL patterns; returns absolute path when `absolute=True`; falls back to `"/"` when `/local/` is absent.
+1. **`use_path`** — returns correct relative path from various URL patterns; returns absolute path when `absolute=True`; falls back to `"/"` when `/-/` is absent.
 2. **`use_navigate`** — serializes correct event payload for path-only, query-only, fragment-only, and combined navigation; validates `ValueError` when no args provided; correctly merges inline path query/fragment with explicit args; normalizes leading `/` and `#`.
 3. **`use_url_components`** — returns correct `SplitResult` fields from full URL.
 4. **`ui.route`** — validates `path`/`index` mutual exclusivity; collects children correctly; builds `_Route` dataclass properly.
@@ -712,7 +714,7 @@ No frontend changes needed — routing logic is entirely in the Python backend.
 1. **API reference** — Document all new hooks (`use_path`, `use_navigate`, `use_url_components`, `use_params`), components (`ui.router`, `ui.route`), types (`NavigationTarget`), and the `to` prop on `ui.link`.
 2. **Routing guide** — A conceptual guide covering:
    - How URL state flows between frontend and backend
-   - Path resolution and the `/local/` boundary
+   - Path resolution and the `/-/` boundary
    - Declarative routing with `ui.router` and `ui.route`
    - Navigation patterns (programmatic vs link-based)
 3. **Migration notes** — Document that `use_set_query_param` continues to work unchanged; `use_navigate` is the new general-purpose navigation hook.
