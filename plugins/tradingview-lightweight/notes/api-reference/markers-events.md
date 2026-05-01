@@ -51,7 +51,16 @@ Passed to click/dblClick/crosshairMove handlers.
 | `seriesData` | `Map<ISeriesApi, DataItem>` | No | Data for all series at this position |
 | `hoveredSeries` | `ISeriesApi` | Yes | Series under cursor |
 | `hoveredObjectId` | `unknown` | Yes | Object under cursor |
+| `hoveredItem` | `HoveredItem` | Yes | Structured info about the hovered chart element (v5.2+) |
+| `hoveredTarget` | `HoveredTargetType` | Yes | Coarse target category (`'series'`, `'priceScale'`, `'timeScale'`, etc.) (v5.2+) |
 | `sourceEvent` | `TouchMouseEventData` | Yes | Raw mouse/touch event data |
+
+> **Python plugin note.** `MouseEventParams` is a JS-runtime payload delivered to
+> `subscribeClick` / `subscribeCrosshairMove` handlers. The Deephaven Python plugin
+> is a static config builder and does not subscribe to mouse events from Python,
+> so neither the legacy fields nor the v5.2 `hoveredItem` / `hoveredTarget`
+> additions are reachable from the Python `chart()` API. They are listed here for
+> completeness and for any future bidirectional event-channel work.
 
 ### Point
 ```ts

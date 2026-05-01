@@ -6,4 +6,6 @@ How can a user create two python charts and have them synced together? For examp
 
 5.2 adds better hover/click event details. How can we expose on_press events similar to deephaven.ui to the python API so that users can get events from the chart and use them in their application? We probably only want to expose actual click events, not hover events as that is to expensive to track back in python. Make a plan to accomplish adding support for click events on TVL charts via a python API.
 
+Tooltips default styling feature
+
 Make a plan to create comprehensive documentation in a /docs folder for the tradingview-lightweight plugin. It should mirror the structure of the plotly-express plugin documention, with simlar sections and approach to documention. We want to comprehensively cover all features of the plugin API in our documentation, arranged logically and with examples for as much as possible. We want to use the same writting style and tone of voice. We need to also cover special aspects of our plugin such as automatic downsampling and autobinning.

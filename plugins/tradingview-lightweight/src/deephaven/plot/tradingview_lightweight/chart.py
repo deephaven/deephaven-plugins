@@ -23,6 +23,7 @@ from .options import (
     LineType,
     LineWidth,
     PrecomputeConflationPriority,
+    PriceScaleId,
     PriceScaleMode,
     PriceFormatter,
     TickmarksPriceFormatter,
@@ -197,6 +198,8 @@ def chart(
     # fontFamily is intentionally omitted — we do not allow font customization.
     attribution_logo: Optional[bool] = None,
     color_space: Optional[ColorSpace] = None,
+    hovered_series_on_top: Optional[bool] = None,
+    default_visible_price_scale_id: Optional[PriceScaleId] = None,
     # Grid
     vert_lines_visible: Optional[bool] = None,
     vert_lines_color: Optional[str] = None,
@@ -232,6 +235,7 @@ def chart(
     right_price_scale_ticks_visible: Optional[bool] = None,
     right_price_scale_minimum_width: Optional[int] = None,
     right_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    right_price_scale_tick_mark_density: Optional[float] = None,
     right_price_scale_margin_top: Optional[float] = None,
     right_price_scale_margin_bottom: Optional[float] = None,
     # Left price scale
@@ -247,6 +251,7 @@ def chart(
     left_price_scale_ticks_visible: Optional[bool] = None,
     left_price_scale_minimum_width: Optional[int] = None,
     left_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    left_price_scale_tick_mark_density: Optional[float] = None,
     left_price_scale_margin_top: Optional[float] = None,
     left_price_scale_margin_bottom: Optional[float] = None,
     # Overlay price scale defaults
@@ -263,6 +268,7 @@ def chart(
     overlay_price_scale_text_color: Optional[str] = None,
     overlay_price_scale_entire_text_only: Optional[bool] = None,
     overlay_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    overlay_price_scale_tick_mark_density: Optional[float] = None,
     # Time scale
     time_visible: Optional[bool] = None,
     seconds_visible: Optional[bool] = None,
@@ -375,6 +381,19 @@ def chart(
         color_space: Canvas color space -- ``'srgb'`` (default) or
             ``'display-p3'`` for wide-gamut displays. Must be set at chart
             creation; cannot be changed later.
+        hovered_series_on_top: Whether the hovered series renders above its
+            siblings within the same pane. Defaults to ``True``. Set ``False``
+            to keep the configured Z-order regardless of cursor position.
+        default_visible_price_scale_id: Which price scale (``'left'`` or
+            ``'right'``) is used for new series that do not specify one.
+            Defaults to ``'right'``.
+        right_price_scale_tick_mark_density: Approximate density of tick marks
+            on the right price scale. Lower = fewer labels, higher = more.
+            Defaults to ``2.5``.
+        left_price_scale_tick_mark_density: Same as
+            ``right_price_scale_tick_mark_density`` but for the left scale.
+        overlay_price_scale_tick_mark_density: Same, applied to overlay price
+            scale defaults.
         (all other chart-level options as kwargs)
 
     Returns:
@@ -558,6 +577,7 @@ def chart(
             "ticksVisible": right_price_scale_ticks_visible,
             "minimumWidth": right_price_scale_minimum_width,
             "ensureEdgeTickMarksVisible": right_price_scale_ensure_edge_tick_marks_visible,
+            "tickMarkDensity": right_price_scale_tick_mark_density,
         }
     )
     rps_margins = _filter_none(
@@ -590,6 +610,7 @@ def chart(
             "ticksVisible": left_price_scale_ticks_visible,
             "minimumWidth": left_price_scale_minimum_width,
             "ensureEdgeTickMarksVisible": left_price_scale_ensure_edge_tick_marks_visible,
+            "tickMarkDensity": left_price_scale_tick_mark_density,
         }
     )
     lps_margins = _filter_none(
@@ -621,6 +642,7 @@ def chart(
             "ticksVisible": overlay_price_scale_ticks_visible,
             "minimumWidth": overlay_price_scale_minimum_width,
             "ensureEdgeTickMarksVisible": overlay_price_scale_ensure_edge_tick_marks_visible,
+            "tickMarkDensity": overlay_price_scale_tick_mark_density,
         }
     )
     ops_margins = _filter_none(
@@ -819,6 +841,10 @@ def chart(
         }
     if add_default_pane is not None:
         chart_options["addDefaultPane"] = add_default_pane
+    if hovered_series_on_top is not None:
+        chart_options["hoveredSeriesOnTop"] = hovered_series_on_top
+    if default_visible_price_scale_id is not None:
+        chart_options["defaultVisiblePriceScaleId"] = default_visible_price_scale_id
 
     return TvlChart(
         series_list=list(series),

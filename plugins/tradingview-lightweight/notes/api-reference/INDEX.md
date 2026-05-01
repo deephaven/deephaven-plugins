@@ -1,4 +1,4 @@
-# TradingView Lightweight Charts v5.1 — API Reference
+# TradingView Lightweight Charts v5.2 — API Reference
 
 Complete API reference for the [lightweight-charts](https://tradingview.github.io/lightweight-charts/docs/api) library.
 

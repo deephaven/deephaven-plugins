@@ -58,7 +58,7 @@
     "@deephaven/log": "1.1.0",
     "@deephaven/plugin": "^1.2.0",
     "@deephaven/utils": "^1.1.0",
-    "lightweight-charts": "^5.1.0"
+    "lightweight-charts": "^5.2.0"
   },
   "publishConfig": {
     "access": "public"

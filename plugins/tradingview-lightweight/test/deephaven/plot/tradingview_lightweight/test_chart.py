@@ -1455,6 +1455,43 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         self.assertTrue(lps["ticksVisible"])
         self.assertEqual(lps["minimumWidth"], 60)
 
+    def test_hovered_series_on_top(self):
+        """hoveredSeriesOnTop is set when supplied; absent when None."""
+        s = line_series(self.table)
+        c = chart(s, hovered_series_on_top=False)
+        self.assertEqual(c.chart_options["hoveredSeriesOnTop"], False)
+        c2 = chart(s, hovered_series_on_top=True)
+        self.assertEqual(c2.chart_options["hoveredSeriesOnTop"], True)
+        c3 = chart(s)
+        self.assertNotIn("hoveredSeriesOnTop", c3.chart_options)
+
+    def test_default_visible_price_scale_id(self):
+        """defaultVisiblePriceScaleId passes through 'left'/'right' values."""
+        s = line_series(self.table)
+        for value in ("left", "right"):
+            c = chart(s, default_visible_price_scale_id=value)
+            self.assertEqual(c.chart_options["defaultVisiblePriceScaleId"], value)
+        c_none = chart(s)
+        self.assertNotIn("defaultVisiblePriceScaleId", c_none.chart_options)
+
+    def test_tick_mark_density(self):
+        """tickMarkDensity is set on each of right/left/overlay price scales."""
+        s = line_series(self.table)
+        c = chart(
+            s,
+            right_price_scale_tick_mark_density=4.0,
+            left_price_scale_tick_mark_density=1.5,
+            overlay_price_scale_tick_mark_density=3.0,
+        )
+        self.assertEqual(c.chart_options["rightPriceScale"]["tickMarkDensity"], 4.0)
+        self.assertEqual(c.chart_options["leftPriceScale"]["tickMarkDensity"], 1.5)
+        self.assertEqual(c.chart_options["overlayPriceScales"]["tickMarkDensity"], 3.0)
+        # Default: not present
+        c_none = chart(s)
+        self.assertNotIn("rightPriceScale", c_none.chart_options)
+        self.assertNotIn("leftPriceScale", c_none.chart_options)
+        self.assertNotIn("overlayPriceScales", c_none.chart_options)
+
     def test_overlay_price_scale_defaults(self):
         s = line_series(self.table)
         c = chart(

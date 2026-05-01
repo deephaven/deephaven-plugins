@@ -64,3 +64,21 @@ The series API for interacting with individual chart series. Returned by `chart.
 - `historicalUpdate` flag on `update()` allows inserting data before the last bar
 - `pop()` returns the removed items
 - Price lines persist until explicitly removed with `removePriceLine()`
+
+## Custom Series (`ICustomSeriesView` / `ICustomSeriesPaneRenderer`)
+
+Custom series let JS extensions add new chart types via a user-supplied
+`ICustomSeriesView` whose `renderer()` returns an `ICustomSeriesPaneRenderer`.
+
+| Renderer hook | Signature | Description |
+|---------------|-----------|-------------|
+| `draw()` | `(target, priceConverter, isHovered, hitTestData?) → void` | Required; paints the series onto the canvas. |
+| `drawBackground()` | `(target, priceConverter, isHovered, hitTestData?) → void` | Optional; paints below other series. |
+| `hitTest(x, y)` | `(x: Coordinate, y: Coordinate) → CustomSeriesPaneRendererHitTestResult \| null` | Optional, **v5.2+**. Returns custom hit-test info that surfaces in `MouseEventParams.hoveredItem` / `hoveredTarget`. |
+
+> **Python plugin note.** Custom series require user-supplied JavaScript
+> `ICustomSeriesView` implementations. The Python plugin serializes static
+> JSON config and has no mechanism to ship Python callables as JS functions,
+> so `customSeriesDefaultOptions`, the renderer's `draw()` / `drawBackground()`
+> hooks, and the new v5.2 `hitTest()` hook are all N/A from the Python
+> `chart()` API. See `options.py` for the matching block comment.

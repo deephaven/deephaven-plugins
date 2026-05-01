@@ -93,7 +93,7 @@ Type guard: checks if time is a numeric UTC timestamp.
 ```ts
 version(): string
 ```
-Returns library version string (e.g., `"5.1.0"`).
+Returns library version string (e.g., `"5.2.0"`).
 
 ---
 

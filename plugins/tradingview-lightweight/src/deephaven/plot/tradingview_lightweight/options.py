@@ -23,6 +23,7 @@ LineWidth = Literal[1, 2, 3, 4]
 
 HorzAlign = Literal["left", "center", "right"]
 VertAlign = Literal["top", "center", "bottom"]
+PriceScaleId = Literal["left", "right"]
 CrosshairMode = Literal["normal", "magnet", "hidden", "magnet_ohlc"]
 PriceScaleMode = Literal["normal", "logarithmic", "percentage", "indexed_to_100"]
 MarkerShape = Literal["circle", "square", "arrow_up", "arrow_down"]

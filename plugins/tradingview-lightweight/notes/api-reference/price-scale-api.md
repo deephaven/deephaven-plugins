@@ -32,6 +32,7 @@ Returned by `chart.priceScale(id)` or `series.priceScale()`.
 | `ticksVisible` | `boolean` | `false` | Small tick lines on labels |
 | `minimumWidth` | `number` | `0` | Minimum width (px) |
 | `ensureEdgeTickMarksVisible` | `boolean` | `false` | Ensure ticks at boundaries |
+| `tickMarkDensity` | `number` | `2.5` | Approximate tick-mark density on the scale; lower = fewer labels (v5.2+) |
 
 ### PriceScaleMargins
 

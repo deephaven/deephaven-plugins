@@ -90,6 +90,8 @@ Top-level options passed to `createChart()`.
 | `trackingMode` | `TrackingModeOptions` | — | Mobile tracking mode |
 | `localization` | `LocalizationOptionsBase` | — | Locale/formatting |
 | `addDefaultPane` | `boolean` | `true` | Create default pane automatically |
+| `hoveredSeriesOnTop` | `boolean` | `true` | Hovered series renders above siblings within the same pane (v5.2+) |
+| `defaultVisiblePriceScaleId` | `'left' \| 'right'` | `'right'` | Price scale used by new series that do not specify one (v5.2+) |
 
 ---
 

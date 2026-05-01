@@ -178,7 +178,7 @@ The DH web client loads the JS plugin via `/js-plugins/manifest.json`. The CJS b
 
 ## API Reference Notes
 
-Comprehensive TradingView Lightweight Charts v5.1 API documentation is in `notes/api-reference/`.
+Comprehensive TradingView Lightweight Charts v5.2 API documentation is in `notes/api-reference/`.
 
 **Index:** `notes/api-reference/INDEX.md` — links to all sub-pages with quick lookup tables.
 
