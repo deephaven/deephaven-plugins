@@ -91,20 +91,13 @@ class JsBaseTableProxy<T extends ProxyableTable, R> {
       hiddenColumns: [],
     };
 
-    const {
-      frontColumns = null,
-      frozenColumns = null,
-      backColumns = null,
-      hiddenColumns = null,
-      columnGroups = null,
-    } = layoutHints;
-
     this.layoutHints = {
-      frontColumns,
-      frozenColumns,
-      backColumns,
-      hiddenColumns,
-      columnGroups,
+      frontColumns: null,
+      frozenColumns: null,
+      backColumns: null,
+      hiddenColumns: null,
+      columnGroups: null,
+      ...layoutHints,
       areSavedLayoutsAllowed: false,
     };
 

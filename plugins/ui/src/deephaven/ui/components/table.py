@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal, Any, Optional
 import logging
-from deephaven.table import Table, RollupTable, TreeTable
+from deephaven.table import RollupTable, TreeTable
 from ..elements import Element, resolve
 from ..elements.UriElement import UriElement
 from .types import AlignSelf, DimensionValue, JustifySelf, LayoutFlex, Position
@@ -16,6 +16,7 @@ from ..types import (
     RowPressCallback,
     ResolvableContextMenuItem,
     SelectionChangeCallback,
+    TableLike,
 )
 from .._internal import dict_to_react_props, RenderContext
 
@@ -159,7 +160,7 @@ class TableDatabar:
 
 def _validate_table_format(
     format_: list[TableFormat] | TableFormat,
-    table: Table | RollupTable | TreeTable | UriElement | str,
+    table: TableLike | UriElement | str,
 ) -> None:
     """Validate format rules for the table.
 
@@ -304,7 +305,7 @@ class table(Element):
 
     def __init__(
         self,
-        table: Table | RollupTable | TreeTable | UriElement | str,
+        table: TableLike | UriElement | str,
         *,
         format_: TableFormat | list[TableFormat] | None = None,
         on_row_press: RowPressCallback | None = None,

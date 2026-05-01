@@ -22,6 +22,7 @@ import numpy
 
 from deephaven import SortDirection
 from deephaven.dtypes import DType
+from deephaven.table import Table, RollupTable, TreeTable
 
 
 # Color values for the DH color palette exposed to end users in spectrum components
@@ -458,6 +459,7 @@ ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
 # TODO: Fill in the list of Deephaven Colors we allow
 LockType = Literal["shared", "exclusive"]
+TableLike = Table | RollupTable | TreeTable
 QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
 ColumnData = List[Any]
