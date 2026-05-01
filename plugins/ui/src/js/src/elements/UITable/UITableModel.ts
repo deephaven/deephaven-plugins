@@ -32,6 +32,7 @@ import {
   HEATMAP_MAX_SUFFIX,
 } from './UITableUtils';
 import JsTableProxy, { type UITableLayoutHints } from './JsTableProxy';
+import JsTreeTableProxy from './JsTreeTableProxy';
 import { resolveNamedScale } from './ColorScales';
 import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
 
@@ -60,7 +61,7 @@ export async function makeUiTableModel(
   // defense-in-depth.
   const isTreeTable = TableUtils.isTreeTable(baseTableProp);
   if (isTreeTable) {
-    const baseTable = await (baseTableProp as unknown as DhType.Table).copy();
+    const baseTreeTable = await baseTableProp.copy();
 
     const hasIfRule = format.some(rule => {
       const { if_ } = rule;
@@ -72,12 +73,15 @@ export async function makeUiTableModel(
       );
     }
 
-    const uiTableProxy = new JsTableProxy({
-      table: baseTable as unknown as DhType.Table,
+    const uiTreeTableProxy = new JsTreeTableProxy({
+      table: baseTreeTable,
       layoutHints,
       onClose: () => undefined,
     });
-    const baseModel = await IrisGridModelFactory.makeModel(dh, uiTableProxy);
+    const baseModel = await IrisGridModelFactory.makeModel(
+      dh,
+      uiTreeTableProxy as unknown as DhType.Table
+    );
     return new UITableModel({
       dh,
       model: baseModel,
@@ -86,7 +90,7 @@ export async function makeUiTableModel(
     });
   }
 
-  const baseTable = await (baseTableProp as DhType.Table).copy();
+  const baseTable = await baseTableProp.copy();
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
     const { if_ } = rule;
