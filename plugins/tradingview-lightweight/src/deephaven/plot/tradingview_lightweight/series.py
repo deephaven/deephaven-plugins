@@ -50,6 +50,16 @@ class SeriesSpec:
     price_scale_options: dict = field(default_factory=dict)
     pane: Optional[int] = None
 
+    # ---- Auto-bin (server-side time-bucket aggregation) ----
+    # Tri-state: None=auto-detect by table size, True=force on, False=opt out.
+    auto_bin: Optional[bool] = None
+    # ISO 8601 duration override (e.g. 'PT1S'). When set, overrides nice_bin_width.
+    bin_width: Optional[str] = None
+    # Override TARGET_BINS for the initial aggregation.
+    bin_count: Optional[int] = None
+    # Histogram-only aggregation mode: "sum" | "count" | "avg" | "last".
+    agg: Optional[str] = None
+
     def to_dict(
         self, series_id: str, table_id: int, marker_table_id: int | None = None
     ) -> dict:
@@ -262,8 +272,22 @@ def candlestick_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
 ) -> SeriesSpec:
-    """Create a candlestick series specification."""
+    """Create a candlestick series specification.
+
+    Auto-bin parameters (large raw tick tables only):
+        auto_bin: ``None`` (default) auto-bins when the table exceeds the
+            ``AUTO_BIN_THRESHOLD`` (5000 rows). ``True`` forces aggregation
+            even for small tables. ``False`` ships the raw table.
+        bin_width: ISO 8601 duration override (e.g. ``'PT1S'``, ``'PT5M'``).
+        bin_count: Override the target number of bins (default 5000).
+
+    Aggregation: ``first(open)``, ``max(high)``, ``min(low)``, ``last(close)``.
+    Four distinct OHLC columns are required.
+    """
     _validate_price_format(price_format)
     options = {
         **_build_common_options(
@@ -335,6 +359,10 @@ def candlestick_series(
             ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
         ),
         pane=pane,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
+        agg="ohlc",
     )
 
 
@@ -382,8 +410,14 @@ def bar_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
 ) -> SeriesSpec:
-    """Create a bar (OHLC) series specification."""
+    """Create a bar (OHLC) series specification.
+
+    See :func:`candlestick_series` for auto-bin parameter semantics.
+    """
     _validate_price_format(price_format)
     options = {
         **_build_common_options(
@@ -445,6 +479,10 @@ def bar_series(
             ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
         ),
         pane=pane,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
+        agg="ohlc",
     )
 
 
@@ -897,8 +935,24 @@ def histogram_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
+    agg: str = "sum",
 ) -> SeriesSpec:
-    """Create a histogram series specification."""
+    """Create a histogram series specification.
+
+    Auto-bin parameters (large raw tick tables only):
+        auto_bin: ``None`` (default) auto-bins when the table exceeds the
+            ``AUTO_BIN_THRESHOLD`` (5000 rows). ``True`` forces aggregation
+            even for small tables. ``False`` ships the raw table.
+        bin_width: ISO 8601 duration override (e.g. ``'PT1S'``, ``'PT5M'``,
+            ``'P1D'``). Bypasses the nice-duration snapping.
+        bin_count: Override the target number of bins for the initial
+            aggregation (default 5000).
+        agg: Reduction per bin for the value column.
+            ``'sum'`` (default), ``'count'``, ``'avg'``, ``'last'``.
+    """
     _validate_price_format(price_format)
     options = {
         **_build_common_options(
@@ -927,6 +981,10 @@ def histogram_series(
     column_mapping = {"time": time, "value": value}
     if color_column is not None:
         column_mapping["color"] = color_column
+    from .auto_bin import HIST_AGGS as _HIST_AGGS
+
+    if agg not in _HIST_AGGS:
+        raise ValueError(f"agg must be one of {sorted(_HIST_AGGS)}, got {agg!r}")
     return SeriesSpec(
         series_type="Histogram",
         table=table,
@@ -952,4 +1010,8 @@ def histogram_series(
             ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
         ),
         pane=pane,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
+        agg=agg,
     )

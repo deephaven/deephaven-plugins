@@ -675,12 +675,146 @@ _ticking_table = (
 )
 tvl_ticking_line = tvl.line(_ticking_table, time="Timestamp", value="Price")
 
-# Candlestick (non-eligible for downsample) at large size
-tvl_big_candlestick = tvl.candlestick(
+# =============================================================================
+# Auto-bin fixtures — server-side time-bucket aggregation
+# =============================================================================
+
+# A 10M-row "tick" table with derived OHLC columns. Auto-bin will reduce
+# this to ~5000 bars on initial load.
+big_ohlc_table = big_table.update(
+    [
+        "Open = Price - 1.0",
+        "High = Price + 2.0",
+        "Low = Price - 2.0",
+        "Close = Price",
+        "Volume = 1000.0 + Math.abs(Math.sin(ii * 0.01)) * 500.0",
+    ]
+)
+
+# Histogram (default agg=sum) — auto-binned
+tvl_big_hist = tvl.histogram(
     big_table,
     time="Timestamp",
-    open="Price",
-    high="Price",
-    low="Price",
-    close="Price",
+    value="Price",
+)
+
+# Histogram with count aggregation
+tvl_big_hist_count = tvl.histogram(
+    big_table,
+    time="Timestamp",
+    value="Price",
+    agg="count",
+)
+
+# Candlestick with four distinct OHLC columns (replaces the previously
+# unsupported single-price Candlestick fixture).
+tvl_big_candlestick = tvl.candlestick(
+    big_ohlc_table,
+    time="Timestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
+)
+
+# Bar (OHLC) variant
+tvl_big_bar = tvl.bar(
+    big_ohlc_table,
+    time="Timestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
+)
+
+# Small histogram — should NOT trigger auto-bin
+_small_hist_table = new_table(
+    [
+        datetime_col(
+            "Timestamp",
+            [to_j_instant(f"2024-01-{i+2:02d}T10:00:00 ET") for i in range(10)],
+        ),
+        double_col("Volume", [100.0 + i * 5 for i in range(10)]),
+    ]
+)
+tvl_small_hist = tvl.histogram(_small_hist_table, time="Timestamp", value="Volume")
+
+# Ticking histogram — verify aggregated view ticks
+tvl_ticking_hist = tvl.histogram(_ticking_table, time="Timestamp", value="Price")
+
+# Mixed series: Line (downsample path) + Histogram (auto-bin path)
+# on different source tables.
+tvl_mixed_line_hist = tvl.chart(
+    tvl.line_series(big_table, time="Timestamp", value="Price"),
+    tvl.histogram_series(big_table, time="Timestamp", value="Price"),
+)
+
+# Histogram with explicit bin_width override.
+# Use a 1-month subset so PT5M produces ~8640 bins, not millions.
+_bin_override_table = empty_table(1_000_000).update(
+    [
+        "Timestamp = '2024-01-01T00:00:00 ET' + (long)(ii * (30L * 24 * 3600 * 1_000_000_000L / 1_000_000))",
+        "Price = 100 + Math.sin(ii * 0.0001) * 50",
+    ]
+)
+tvl_big_hist_pt5m = tvl.histogram(
+    _bin_override_table,
+    time="Timestamp",
+    value="Price",
+    bin_width="PT5M",
+)
+
+# Histogram with bin_count override
+tvl_big_hist_bc200 = tvl.histogram(
+    big_table,
+    time="Timestamp",
+    value="Price",
+    bin_count=200,
+)
+
+# Histogram with auto_bin=False — opts out (small derived table to avoid
+# shipping 10M rows to the client).
+_optout_table = big_table.head(2000)
+tvl_big_hist_optout = tvl.histogram(
+    _optout_table,
+    time="Timestamp",
+    value="Price",
+    auto_bin=False,
+)
+
+# Diagnostic: area + volume histogram on big_table in 2 panes (mimics
+# Sizzle Price+Volume panel shape).
+tvl_big_area_volume_panes = tvl.chart(
+    tvl.area_series(
+        big_ohlc_table, time="Timestamp", value="Close", title="Price", pane=0
+    ),
+    tvl.histogram_series(
+        big_ohlc_table,
+        time="Timestamp",
+        value="Volume",
+        price_scale_id="vol",
+        pane=1,
+    ),
+    pane_stretch_factors=[3.0, 1.0],
+)
+
+# Diagnostic: same shape as Sizzle Price+Volume — area+histogram on a
+# FILTERED ticking table (uses where()).
+from deephaven import updateby as _uby_diag
+
+_diag_seed = empty_table(4000).update(
+    [
+        "Sym = ii % 5 == 0 ? `AAPL` : `OTHER`",
+        "Timestamp = '2024-05-29T09:30:00 ET' + (long)(ii * 60_000_000_000L)",
+        "Close = 150.0 + Math.sin(ii * 0.01) * 20",
+        "Volume = (long)(500_000 + Math.random() * 1_500_000)",
+    ]
+)
+_diag_aapl = _diag_seed.where("Sym = `AAPL`")
+tvl_diag_filtered_panes = tvl.chart(
+    tvl.area_series(_diag_aapl, time="Timestamp", value="Close", pane=0),
+    tvl.histogram_series(
+        _diag_aapl, time="Timestamp", value="Volume", price_scale_id="vol", pane=1
+    ),
+    pane_stretch_factors=[3.0, 1.0],
 )

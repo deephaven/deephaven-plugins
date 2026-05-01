@@ -133,9 +133,7 @@ test.describe('TradingView Lightweight - Multi-Series', () => {
 // --------------------------------------------------------------------------
 
 test.describe('TradingView Lightweight - Panes', () => {
-  test('Two-pane chart with candlestick and volume loads', async ({
-    page,
-  }) => {
+  test('Two-pane chart with candlestick and volume loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_panes_basic');
     await expect(tvlChart(page)).toHaveScreenshot();
@@ -249,9 +247,7 @@ test.describe('TradingView Lightweight - By Ticking', () => {
     await panel.getByRole('button', { name: 'Add GOOG' }).click();
 
     // Wait for button text to confirm callback ran
-    await expect(
-      panel.getByRole('button', { name: 'Added' })
-    ).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Added' })).toBeVisible();
 
     // Wait for the async chain: PartitionedTable EVENT_KEYADDED →
     // JS getTable(key) → subscribe → data render
@@ -291,7 +287,9 @@ interface DsState {
 }
 
 /** Read the structured debug state from the data-tvl-state attribute. */
-async function getDsState(page: import('@playwright/test').Page): Promise<DsState> {
+async function getDsState(
+  page: import('@playwright/test').Page
+): Promise<DsState> {
   return page.evaluate(() => {
     const el = document.querySelector('.dh-tvl-chart');
     const raw = el?.getAttribute('data-tvl-state');
@@ -300,7 +298,10 @@ async function getDsState(page: import('@playwright/test').Page): Promise<DsStat
 }
 
 /** Wait until jsDs is true, pendingDs is false, and colDataRows > 0. */
-async function waitForDsReady(page: import('@playwright/test').Page, timeout = 15000): Promise<DsState> {
+async function waitForDsReady(
+  page: import('@playwright/test').Page,
+  timeout = 15000
+): Promise<DsState> {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     const state = await getDsState(page);
@@ -406,10 +407,7 @@ async function wheelZoom(
 }
 
 /** Pan by dragging on the chart body. Negative dx = pan toward later dates. */
-async function panChart(
-  page: import('@playwright/test').Page,
-  dx: number
-) {
+async function panChart(page: import('@playwright/test').Page, dx: number) {
   const rect = await getChartRect(page);
   const cy = rect.y + rect.h / 2;
   const startX = rect.x + rect.w / 2;
@@ -428,10 +426,7 @@ async function panChart(
  * LWC uses a TABLE layout; the time axis is a separate TR below the
  * plot canvas. Positive dx = drag right = zoom out.
  */
-async function xAxisZoom(
-  page: import('@playwright/test').Page,
-  dx: number
-) {
+async function xAxisZoom(page: import('@playwright/test').Page, dx: number) {
   // Find the time axis canvas (bottom row of LWC's table)
   const timeAxisY = await page.evaluate(() => {
     const chart = document.querySelector('.dh-tvl-chart');
@@ -478,7 +473,9 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
   // A. INITIAL LOAD
   // =======================================================================
 
-  test('10M table: initial load is downsampled at full range', async ({ page }) => {
+  test('10M table: initial load is downsampled at full range', async ({
+    page,
+  }) => {
     const s = await openDsChart(page);
     expect(s.jsDs).toBe(true);
     expect(s.pendingDs).toBe(false);
@@ -502,13 +499,25 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
     expect(s.jsDs).toBe(false);
   });
 
-  // Skipped: 10M candlestick without downsample tries to subscribe to
-  // the full table, which hangs. Not a downsample test — eligibility
-  // is tested via the small_table test above.
-  test.skip('candlestick on big table: NOT downsampled (ineligible type)', async ({ page }) => {
+  // 10M candlestick is now safe to load: auto-bin aggregates server-side.
+  test('candlestick on big table: NOT JS-downsampled (auto-binned instead)', async ({
+    page,
+  }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'tvl_big_candlestick');
+    await openPanel(page, 'tvl_big_candlestick', '.dh-panel', false);
     await expect(tvlChart(page)).toBeVisible();
+    // The downsample-state attribute is set by the chart's debug hook;
+    // jsDs must remain false because candlestick uses auto-bin instead.
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(5000);
+    const raw = await page.evaluate(() => {
+      const els = Array.from(document.querySelectorAll('.dh-tvl-chart'));
+      const el = els[els.length - 1];
+      return el?.getAttribute('data-tvl-state');
+    });
+    const s = raw ? JSON.parse(raw) : null;
+    expect(s).not.toBeNull();
+    expect(s.jsDs).toBe(false);
   });
 
   // =======================================================================
@@ -594,7 +603,9 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
     }
   });
 
-  test('zoom state is stable — no oscillation after settling', async ({ page }) => {
+  test('zoom state is stable — no oscillation after settling', async ({
+    page,
+  }) => {
     await openDsChart(page);
 
     await wheelZoom(page, 15, -200);
@@ -777,7 +788,9 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
   // E. X-AXIS DRAG ZOOM
   // =======================================================================
 
-  test('x-axis drag zoom out widens range and preserves data', async ({ page }) => {
+  test('x-axis drag zoom out widens range and preserves data', async ({
+    page,
+  }) => {
     await openDsChart(page);
 
     await wheelZoom(page, 15, -200);
@@ -1028,3 +1041,400 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
   });
 });
 
+// --------------------------------------------------------------------------
+// Auto-bin (server-side time-bucket aggregation) interactions
+// --------------------------------------------------------------------------
+
+interface TvlState {
+  jsDs: boolean;
+  tableSize: number;
+  colDataRows: number;
+  pendingDs: boolean;
+  visRange: [number, number] | null;
+  autoBin: boolean;
+  binWidthNs: number | null;
+  aggType: string | null;
+  resampleSeq: number;
+}
+
+async function getTvlState(
+  page: import('@playwright/test').Page
+): Promise<TvlState> {
+  return page.evaluate(() => {
+    // Multiple .dh-tvl-chart instances may exist (eg WidgetPanel renders one
+    // hidden + one visible). Pick the last visible one to match what the
+    // user sees and what tvlChart() asserts on.
+    const els = Array.from(document.querySelectorAll('.dh-tvl-chart'));
+    const el = els[els.length - 1];
+    const raw = el?.getAttribute('data-tvl-state');
+    return raw ? JSON.parse(raw) : {};
+  });
+}
+
+async function waitForResampleSettled(
+  page: import('@playwright/test').Page,
+  timeout = 30000
+): Promise<TvlState> {
+  const start = Date.now();
+  // Require a stable state for two consecutive samples to avoid catching a
+  // transient pending=false between back-to-back rebuilds.
+  let prev: TvlState | null = null;
+  while (Date.now() - start < timeout) {
+    const s = await getTvlState(page);
+    if (
+      !s.pendingDs &&
+      s.colDataRows > 0 &&
+      prev !== null &&
+      !prev.pendingDs &&
+      prev.binWidthNs === s.binWidthNs &&
+      prev.colDataRows === s.colDataRows &&
+      prev.resampleSeq === s.resampleSeq
+    ) {
+      return s;
+    }
+    prev = s;
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(300);
+  }
+  return getTvlState(page);
+}
+
+async function waitForBinWidthChange(
+  page: import('@playwright/test').Page,
+  prevWidth: number | null,
+  timeout = 15000
+): Promise<TvlState> {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const s = await getTvlState(page);
+    if (s.binWidthNs !== prevWidth && !s.pendingDs && s.colDataRows > 0) {
+      return s;
+    }
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(200);
+  }
+  return getTvlState(page);
+}
+
+const NICE_BIN_WIDTHS_NS = [
+  1, 100, 1_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000,
+  5_000_000_000, 15_000_000_000, 30_000_000_000, 60_000_000_000,
+  300_000_000_000, 900_000_000_000, 1_800_000_000_000, 3_600_000_000_000,
+  14_400_000_000_000, 43_200_000_000_000, 86_400_000_000_000,
+  604_800_000_000_000,
+];
+
+test.describe('TradingView Lightweight - Auto-bin', () => {
+  test.setTimeout(120_000);
+
+  // ===== Group 1 — Eligibility =====
+
+  test('big histogram triggers auto-bin', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.autoBin).toBe(true);
+    expect(s.aggType).toBe('sum');
+    expect(s.binWidthNs).not.toBeNull();
+    if (s.binWidthNs != null) expect(s.binWidthNs).toBeGreaterThan(0);
+  });
+
+  test('big candlestick (4 distinct OHLC cols) triggers auto-bin', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_candlestick');
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.autoBin).toBe(true);
+    expect(s.aggType).toBe('ohlc');
+  });
+
+  test('small histogram is NOT auto-binned', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_small_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(3000);
+    const s = await getTvlState(page);
+    expect(s.autoBin).toBe(false);
+    expect(s.binWidthNs).toBeNull();
+  });
+
+  test('auto_bin=False opts out', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist_optout');
+    await expect(tvlChart(page)).toBeVisible();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(3000);
+    const s = await getTvlState(page);
+    expect(s.autoBin).toBe(false);
+  });
+
+  test('count aggregation propagates to aggType', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist_count');
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.autoBin).toBe(true);
+    expect(s.aggType).toBe('count');
+  });
+
+  // ===== Group 2 — Bin-width snapping =====
+
+  test('initial bin_width snaps to a "nice" duration', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.binWidthNs).not.toBeNull();
+    expect(NICE_BIN_WIDTHS_NS).toContain(s.binWidthNs);
+  });
+
+  test('bin_width=PT5M overrides nice snapping', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist_pt5m', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.binWidthNs).toBe(5 * 60 * 1_000_000_000);
+  });
+
+  test('bin_count=200 narrows the bin width', async ({ page }) => {
+    // With bin_count=200 over 10 years, bins are coarser than the default 5000.
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const a = await waitForResampleSettled(page);
+
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist_bc200', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const b = await waitForResampleSettled(page);
+
+    expect(a.binWidthNs).not.toBeNull();
+    expect(b.binWidthNs).not.toBeNull();
+    if (a.binWidthNs != null && b.binWidthNs != null) {
+      expect(b.binWidthNs).toBeGreaterThan(a.binWidthNs);
+    }
+  });
+
+  // ===== Group 3 — Re-aggregation trigger =====
+
+  test('zoom past MIN_VISIBLE_BINS triggers re-aggregation', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const initial = await waitForResampleSettled(page);
+    expect(initial.binWidthNs).not.toBeNull();
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500); // settle delay
+    // Zoom hard enough to drop below MIN_VISIBLE_BINS for 1-day bins.
+    await wheelZoom(page, 60, -300);
+    const next = await waitForBinWidthChange(page, initial.binWidthNs, 30000);
+    expect(next.binWidthNs).not.toBeNull();
+    if (initial.binWidthNs != null && next.binWidthNs != null) {
+      expect(next.binWidthNs).toBeLessThan(initial.binWidthNs);
+    }
+  });
+
+  test('double-click reset reverts to initial bin_width', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const initial = await waitForResampleSettled(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500);
+    await wheelZoom(page, 60, -300);
+    await waitForBinWidthChange(page, initial.binWidthNs, 30000);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(1500);
+    // Synthesize a dblclick on the canvas so the chart's container-level
+    // listener fires reliably across browsers.
+    await page.evaluate(() => {
+      const canvas = document.querySelector(
+        '.dh-tvl-chart canvas'
+      ) as HTMLElement | null;
+      if (!canvas) return;
+      const r = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new MouseEvent('dblclick', {
+          clientX: r.left + r.width / 2,
+          clientY: r.top + r.height / 2,
+          bubbles: true,
+          cancelable: true,
+          detail: 2,
+        })
+      );
+    });
+
+    const restored = await waitForResampleSettled(page, 30000);
+    expect(restored.binWidthNs).toBe(initial.binWidthNs);
+  });
+
+  test('rapid zooms increment resampleSeq monotonically', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const initial = await waitForResampleSettled(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500);
+    // Three bursts of significant zoom — enough to cross MIN_VISIBLE_BINS
+    for (let i = 0; i < 3; i += 1) {
+      await wheelZoom(page, 25, -250);
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(300);
+    }
+    const settled = await waitForResampleSettled(page, 30000);
+    expect(settled.resampleSeq).toBeGreaterThan(initial.resampleSeq);
+    expect(settled.pendingDs).toBe(false);
+  });
+
+  // ===== Group 4 — Race conditions =====
+
+  test('5 rapid zooms produce a single monotonically-narrowing settled state', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const initial = await waitForResampleSettled(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500);
+    for (let i = 0; i < 5; i += 1) {
+      await wheelZoom(page, 12, -250);
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(120);
+    }
+
+    const settled = await waitForResampleSettled(page, 30000);
+    expect(settled.pendingDs).toBe(false);
+    if (initial.binWidthNs != null && settled.binWidthNs != null) {
+      // Bin width must be ≤ initial — never bounce back coarser during zoom-in
+      expect(settled.binWidthNs).toBeLessThanOrEqual(initial.binWidthNs);
+    }
+
+    // Sample state every 250ms for 2.5s — binWidthNs must stop bouncing.
+    // Allow at most one transition (in case a queued resample drains in.)
+    const widths: (number | null)[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      const s = await getTvlState(page);
+      widths.push(s.binWidthNs);
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(250);
+    }
+    const distinct = new Set(widths.filter(w => w != null));
+    expect(distinct.size).toBeLessThanOrEqual(2);
+  });
+
+  test('zoom then immediate reset within debounce window settles to initial', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const initial = await waitForResampleSettled(page);
+    const rect = await getChartRect(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500);
+    await wheelZoom(page, 12, -200);
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(200);
+    await page.mouse.dblclick(rect.x + rect.w / 2, rect.y + rect.h / 2);
+
+    const reset = await waitForResampleSettled(page);
+    expect(reset.pendingDs).toBe(false);
+    expect(reset.binWidthNs).toBe(initial.binWidthNs);
+  });
+
+  test('pan during in-flight zoom does not produce empty data', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    await waitForResampleSettled(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(2500);
+    await wheelZoom(page, 15, -200);
+    // Pan immediately, before settle
+    await panChart(page, -300);
+
+    const settled = await waitForResampleSettled(page);
+    expect(settled.colDataRows).toBeGreaterThan(0);
+    expect(settled.pendingDs).toBe(false);
+  });
+
+  // ===== Group 5 — Mixed series + edge data =====
+
+  test('Line + Histogram on same source: both routed correctly', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_mixed_line_hist', '.dh-panel', false);
+    await expect(tvlChart(page)).toBeVisible();
+    const s = await waitForResampleSettled(page);
+    expect(s.autoBin).toBe(true);
+    expect(s.jsDs).toBe(true);
+    expect(s.pendingDs).toBe(false);
+    expect(s.colDataRows).toBeGreaterThan(0);
+  });
+
+  // ===== Group 6 — Ticking + snap-to-live =====
+
+  test('ticking histogram: aggregated view reflects new ticks', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_ticking_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(5000);
+    const s1 = await getTvlState(page);
+
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(4000);
+    const s2 = await getTvlState(page);
+
+    // colDataRows should not shrink as new ticks land
+    expect(s2.colDataRows).toBeGreaterThanOrEqual(s1.colDataRows);
+  });
+
+  test('ticking histogram: panning right does not break aggregation', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_ticking_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(5000);
+
+    await panChart(page, -200);
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(3000);
+    const s = await getTvlState(page);
+    expect(s.colDataRows).toBeGreaterThan(0);
+    expect(s.pendingDs).toBe(false);
+  });
+
+  // ===== Group 7 — Performance smoke =====
+
+  test('big histogram initial settle in under 30s', async ({ page }) => {
+    const t0 = Date.now();
+    await gotoPage(page, '');
+    await openPanel(page, 'tvl_big_hist');
+    await expect(tvlChart(page)).toBeVisible();
+    await waitForResampleSettled(page, 30000);
+    const dt = Date.now() - t0;
+    expect(dt).toBeLessThan(30000);
+  });
+});

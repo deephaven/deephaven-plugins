@@ -15,6 +15,7 @@ import {
   transformTableData,
   deduplicateByTime,
   buildMarkersFromTableData,
+  convertTime,
 } from './TradingViewUtils';
 import type {
   TvlChartType,
@@ -142,6 +143,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   /** True while the user is actively dragging (pointer down on chart). */
   const draggingRef = useRef(false);
 
+  /**
+   * False until the user expresses a viewport preference (zoom/pan).
+   * While false, every data update re-fits content so late-arriving tables
+   * (lazy agg_by snapshots, multi-table panels, ticks) keep extending the
+   * visible range. The dblclick reset clears it; user zoom/pan sets it.
+   */
+  const userInteractedRef = useRef(false);
+
   /** Cleanup for downsample subscriptions. */
   const dsCleanupRef = useRef<(() => void) | null>(null);
 
@@ -154,7 +163,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     if (!model) return '{}';
     let tableSize = 0;
     let colDataRows = 0;
-    model.getDownsampledTableIds().forEach(tid => {
+    // Sample any resampled table for size/colDataRows; fall back to all tables
+    // if neither downsample nor auto-bin is active.
+    const sampleTableIds: number[] = [];
+    model.getDownsampledTableIds().forEach(tid => sampleTableIds.push(tid));
+    Object.keys(model.getAutoBinMeta()).forEach(refStr =>
+      sampleTableIds.push(Number(refStr))
+    );
+    sampleTableIds.forEach(tid => {
       const t = model.getTable(tid);
       if (t) tableSize = t.size;
       const cd = model.getColumnData(tid);
@@ -173,12 +189,39 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         // chart may not be ready
       }
     }
+    // Auto-bin summary: pick the smallest binWidthNs across all binned tables.
+    const autoBinMeta = model.getAutoBinMeta();
+    const autoBinKeys = Object.keys(autoBinMeta);
+    let binWidthNs: number | null = null;
+    let aggType: string | null = null;
+    let rangeNs: [number, number] | null = null;
+    if (autoBinKeys.length > 0) {
+      const widths = autoBinKeys.map(k => autoBinMeta[k].binWidthNs);
+      binWidthNs = Math.min(...widths);
+      // Pick the agg from the first series of the first auto-binned table.
+      const first = autoBinMeta[autoBinKeys[0]];
+      const firstSeriesId = Object.keys(first.series)[0];
+      if (firstSeriesId) {
+        aggType = first.series[firstSeriesId].agg;
+      }
+      // Body range from the first auto-binned table; null means full source.
+      rangeNs = model.getAutoBinBodyRange(Number(autoBinKeys[0]));
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const m = model as any;
+    const pendingDs =
+      (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean);
     return JSON.stringify({
       jsDs: model.isDownsampled(),
       tableSize,
       colDataRows,
-      pendingDs: (model as any).pendingDownsample as boolean,
+      pendingDs,
       visRange,
+      autoBin: model.isAutoBinned(),
+      binWidthNs,
+      aggType,
+      rangeNs,
+      resampleSeq: (m.resampleSeq as number) ?? 0,
     });
   }
 
@@ -262,7 +305,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     const figure = model.getFigureData();
     if (!figure) return;
 
-    // Find time extent across all data (includes head + body + tail)
+    // Dense scaffold path: covers both downsample (line/area) and autobin
+    // (histogram). For autobin, the body+anchors agg only spans the
+    // visible window; the scaffold's bookends must reach the source's
+    // full extent so panning past the body lands on time-proportional
+    // empty space and clamps to fixLeftEdge/fixRightEdge against the
+    // anchor rows.
     let dataMin = Infinity;
     let dataMax = -Infinity;
     figure.series.forEach(series => {
@@ -275,6 +323,19 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (first < dataMin) dataMin = first;
       if (last > dataMax) dataMax = last;
     });
+
+    // Union with autobin source extents (in case the body window has
+    // contracted inside fullRangeNs since the last data update).
+    if (model.isAutoBinned()) {
+      const tz = model.getTimeZone();
+      const meta = model.getAutoBinMeta();
+      Object.values(meta).forEach(m => {
+        const startSec = convertTime(m.fullRangeNs[0], tz);
+        const endSec = convertTime(m.fullRangeNs[1], tz);
+        if (startSec < dataMin) dataMin = startSec;
+        if (endSec > dataMax) dataMax = endSec;
+      });
+    }
 
     if (dataMin >= dataMax) return;
 
@@ -337,17 +398,27 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       const figure = model.getFigureData();
       if (!figure) return;
 
+      // Scaffold is a hidden LineSeries that anchors the chart's time
+      // scale. Two roles depending on the resampling path:
+      //   - JS-downsample: dense (~width*2 whitespace points) so the line
+      //     lays out proportionally across head/body/tail densities.
+      //   - Server autobin: just two bookend whitespace points at
+      //     fullRangeNs[0]/[1], so the chart's time extent covers the
+      //     full source even when the histogram's viewport only loads a
+      //     window. Without bookends, panning past the viewport would
+      //     hit ``fixLeftEdge``/``fixRightEdge`` and the user couldn't
+      //     trigger the next viewport shift.
       renderer.configureSeries(
         figure.series,
         getColorway(chartTheme),
         getOhlcColors(chartTheme),
-        model.isDownsampled()
+        model.isResampling()
       );
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
       renderAllSeriesData(renderer, model, figure);
-      if (model.isDownsampled()) {
+      if (model.isResampling()) {
         updateScaffold(renderer, model);
       }
       renderer.fitContent();
@@ -368,12 +439,15 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         figure.series,
         getColorway(chartThemeRef.current),
         getOhlcColors(chartThemeRef.current),
-        model.isDownsampled()
+        model.isResampling()
       );
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
       renderAllSeriesData(renderer, model, figure);
+      if (model.isResampling()) {
+        updateScaffold(renderer, model);
+      }
       renderer.fitContent();
     }
 
@@ -475,8 +549,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       }
 
       // --- Viewport control ---
-      if (isResetView === true || isInitialLoad === true) {
-        // Reset or initial load: show everything, clear any saved range
+      if (
+        isResetView === true ||
+        isInitialLoad === true ||
+        !userInteractedRef.current
+      ) {
+        // Reset, initial load, or pre-interaction tick / late-arriving table:
+        // keep the visible range glued to the full data extent. Once the user
+        // zooms or pans, userInteractedRef flips and we stop re-fitting.
         restoreRangeRef.current = null;
         renderer.fitContent();
       } else if (isDownsampleSwap && restoreRangeRef.current) {
@@ -517,11 +597,15 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       }
 
       // --- Un-suppress after delay (only for data swaps) ---
+      // 600ms gives the chart time to settle after fitContent before we let
+      // range-change events trigger another resample. Auto-bin's RESET path
+      // is sensitive to this — a too-short window lets a buffered-full-range
+      // ZOOM race the RESET and re-aggregate at the previous (zoomed) width.
       if (isDownsampleSwap) {
         if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current);
         suppressTimerRef.current = setTimeout(() => {
           suppressRef.current = false;
-        }, 300);
+        }, 600);
       }
     }
 
@@ -590,6 +674,16 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           case 'DOWNSAMPLE_PENDING':
             if (event.pending) {
               setPendingDs(true);
+            } else {
+              setPendingDs(false);
+            }
+            // Refresh data-tvl-state so consumers (Playwright) see the
+            // up-to-date pendingDs without waiting for a DATA_UPDATED.
+            if (containerRef.current) {
+              containerRef.current.setAttribute(
+                'data-tvl-state',
+                buildStateJson(model, renderer)
+              );
             }
             break;
           case 'DISCONNECTED':
@@ -640,7 +734,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         renderer
       );
 
-      if (!cancelled && model.isDownsampled()) {
+      if (!cancelled && model.isResampling()) {
         setupDownsampleSubscriptions(renderer, model);
       }
     }
@@ -683,6 +777,11 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
       let debounceTimer: ReturnType<typeof setTimeout> | null = null;
       let settled = false;
+      // Wall-clock deadline — processRangeChange and the resize listener
+      // ignore events while ``Date.now() < dblClickGuardUntil``. Set in
+      // onDblClick to a value ~1.5s in the future, blocks post-fit reflow
+      // events from racing the in-flight RESET.
+      let dblClickGuardUntil = 0;
 
       // Baseline: the range we last sent a downsample request for.
       // Used to detect whether the user has zoomed/panned enough to
@@ -703,6 +802,18 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           }
         } catch {
           // chart may not be ready
+        }
+        // Initial RETRIEVE is server-initiated and has no chart width to
+        // base target_bins on, so it falls back to a constant default. Now
+        // that the chart has laid out, send one AUTOBIN_RESET with the real
+        // width so bars on small dashboard panels widen to the MIN_BAR_PX
+        // floor. userInteractedRef is still false here, so the resulting
+        // AUTOBIN_FIGURE response re-fits to full data extent automatically.
+        if (model.isAutoBinned()) {
+          const w = timeScale.width();
+          if (w > 0) {
+            model.performAutoBin(null, w);
+          }
         }
       }, 1000);
 
@@ -731,6 +842,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
        */
       function processRangeChange(): void {
         if (suppressRef.current) return;
+        if (Date.now() < dblClickGuardUntil) return;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const vr = timeScale.getVisibleRange() as any;
@@ -759,14 +871,21 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
               ) / visDur
             : 0;
 
-        if (durChange > 0.1 || centerShift > 0.2) {
+        const isZoom = durChange > 0.1;
+        const isPanOnly = !isZoom && centerShift > 0.2;
+        if (isZoom || isPanOnly) {
+          // User-initiated zoom/pan: from now on the chart respects their
+          // viewport choice, so handleDataUpdate stops auto-fitting.
+          userInteractedRef.current = true;
           // Update baseline to current visible range
           baselineFrom = visFrom;
           baselineTo = visTo;
 
-          // Add 50% buffer so the user can pan a bit before needing
-          // another downsample
-          const buf = visDur * 0.5;
+          // Buffer the visible window for the resample request. Tracks
+          // the 20% pan-detection threshold above so a fresh build's
+          // body covers the next pan-detection window without a
+          // round-trip.
+          const buf = visDur * 0.2;
           const dsFrom = visFrom - buf;
           const dsTo = visTo + buf;
 
@@ -775,11 +894,15 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           lastDsRangeRef.current = [dsFrom, dsTo];
 
           updateDebugState(
-            gatherDebug('ZOOM/PAN', model, renderer),
+            gatherDebug(isZoom ? 'ZOOM' : 'PAN', model, renderer),
             model,
             renderer
           );
-          model.performDownsample([dsFrom, dsTo], timeScale.width());
+
+          // Pan and zoom both rebuild server-side (for autobin) and
+          // re-downsample (for line/area). The autobin viewport-shift
+          // path is gone — the body always covers the visible window.
+          model.performResample([dsFrom, dsTo], timeScale.width());
         }
 
         // Refresh state attribute for tests
@@ -812,39 +935,58 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
       // --- Double-click reset ---
       // Full range downsample (null range) + fitContent + reset price scales.
+      // dblClickGuardUntil is consulted by processRangeChange and the resize
+      // listener so post-fit reflow events can't race the in-flight RESET
+      // back into a zoomed state.
       const onDblClick = () => {
         if (!settled) return;
+        // Dblclick is a "snap back to full" gesture — re-arm auto-fit so
+        // late ticks keep extending the visible range until the user zooms.
+        userInteractedRef.current = false;
         baselineFrom = null;
         baselineTo = null;
         restoreRangeRef.current = null; // fitContent, not restore
         lastDsRangeRef.current = null; // full range
         renderer.resetPriceScales();
+        dblClickGuardUntil = Date.now() + 1500;
         updateDebugState(
           gatherDebug('DBLCLICK → RESET', model, renderer),
           model,
           renderer
         );
-        model.performDownsample(null, timeScale.width());
+        model.performResample(null, timeScale.width());
       };
       container.addEventListener('dblclick', onDblClick);
 
       // --- Resize ---
-      // Re-downsample at new width with current range.
+      // Re-downsample at new width. Pre-interaction we resample at full
+      // range (so target_bins refines for the new pixel count); post-
+      // interaction we preserve the user's visible range and only refresh
+      // density.
       let lastWidth = timeScale.width();
       const unsubSize = renderer.subscribeSizeChange(() => {
         if (!settled || suppressRef.current) return;
+        if (Date.now() < dblClickGuardUntil) return;
         const newWidth = timeScale.width();
         if (newWidth <= 0 || newWidth === lastWidth) return;
         lastWidth = newWidth;
+
+        if (!userInteractedRef.current) {
+          restoreRangeRef.current = null;
+          lastDsRangeRef.current = null;
+          model.performResample(null, newWidth);
+          return;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const visRange = timeScale.getVisibleRange() as any;
         const from = visRange?.from as number | undefined;
         const to = visRange?.to as number | undefined;
         if (from != null && to != null) {
           restoreRangeRef.current = { from, to };
-          const buf = (to - from) * 0.5;
+          const buf = (to - from) * 0.2;
           lastDsRangeRef.current = [from - buf, to + buf];
-          model.performDownsample([from - buf, to + buf], newWidth);
+          model.performResample([from - buf, to + buf], newWidth);
         }
       });
 
@@ -899,7 +1041,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         const { width, height } = entry.contentRect;
         if (width === 0 || height === 0) return;
         rendererRef.current?.resize(width, height);
-        if (modelRef.current?.isDownsampled() !== true) {
+        if (modelRef.current?.isResampling() !== true) {
           rendererRef.current?.fitContent();
         }
       });

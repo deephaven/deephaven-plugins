@@ -43,18 +43,19 @@ class TvlChartConnection(MessageStream):
             payload, references
         )
 
-        # Push DOWNSAMPLE_READY responses to the client explicitly.
-        # The initial NEW_FIGURE response is pushed by create_client_connection.
+        # Push asynchronous responses to the client explicitly. The initial
+        # NEW_FIGURE response (replying to the seed RETRIEVE) is pushed by
+        # create_client_connection in __init__.py.
+        _PUSHED_TYPES = {"DOWNSAMPLE_READY", "AUTOBIN_FIGURE"}
         if response_payload and self._client_connection is not None:
             try:
-                # Check if this is a DOWNSAMPLE_READY (not NEW_FIGURE)
                 raw = (
                     response_payload.decode("utf-8")
                     if isinstance(response_payload, bytes)
                     else bytes(response_payload).decode("utf-8")
                 )
                 msg = json.loads(raw)
-                if msg.get("type") == "DOWNSAMPLE_READY":
+                if msg.get("type") in _PUSHED_TYPES:
                     self._client_connection.on_data(response_payload, response_refs)
             except (json.JSONDecodeError, UnicodeDecodeError):
                 pass

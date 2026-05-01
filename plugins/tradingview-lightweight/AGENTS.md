@@ -45,6 +45,16 @@ Per-host config: drop a `dev-server.env.$(hostname -s)` next to `dev-server.sh` 
 
 Not hot-reloadable: the `TvlChartType` registration itself and the `JsPlugin` manifest path. Only _construction_ code inside the tvl package picks up `importlib.reload`.
 
+**JS bundle staleness gotcha.** If hard-refresh doesn't pick up your JS change, the running DH server is probably serving a stale bundle. Verify by md5-comparing on-disk vs served bundle:
+
+```bash
+md5sum src/deephaven/plot/tradingview_lightweight/_js/dist/bundle/index.js
+curl -s http://localhost:10000/js-plugins/@deephaven/js-plugin-tradingview-lightweight/dist/bundle/index.js | md5sum
+# Hashes differ -> server is serving cached bytes from boot. Restart dev-server.sh.
+```
+
+Two known causes: (1) `_js/dist` got materialized as a real directory by a prior `start-server.sh` wheel install, so dev-server.sh's symlink step skipped — Vite then writes to a different path than the server reads. Check with `ls -la src/deephaven/plot/tradingview_lightweight/_js/dist` (should be a symlink); if it's a directory, `rm -rf` it and restart `dev-server.sh`. (2) Even when the symlink is correct, the server caches the bundle in memory at boot — so JS changes that arrive after startup require a restart anyway. When in doubt, restart.
+
 `dev-server.sh` removes both dev-only symlinks on exit (the site-packages plugin dir, and `_js/dist`) so a subsequent `start-server.sh` wheel build/uninstall runs cleanly without following the symlink into the source tree.
 
 The ticking/by tests require `deephaven-plugin-ui`:

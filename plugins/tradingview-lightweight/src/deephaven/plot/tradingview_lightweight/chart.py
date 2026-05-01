@@ -849,6 +849,9 @@ def candlestick(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
     # Common chart options
     background_color: Optional[str] = None,
     text_color: Optional[str] = None,
@@ -876,6 +879,9 @@ def candlestick(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
     )
     return chart(
         s,
@@ -1048,6 +1054,9 @@ def bar(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
     background_color: Optional[str] = None,
     text_color: Optional[str] = None,
     crosshair_mode: Optional[CrosshairMode] = None,
@@ -1070,6 +1079,9 @@ def bar(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
     )
     return chart(
         s,
@@ -1139,6 +1151,10 @@ def histogram(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    auto_bin: Optional[bool] = None,
+    bin_width: Optional[str] = None,
+    bin_count: Optional[int] = None,
+    agg: str = "sum",
     background_color: Optional[str] = None,
     text_color: Optional[str] = None,
     crosshair_mode: Optional[CrosshairMode] = None,
@@ -1158,6 +1174,10 @@ def histogram(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
+        auto_bin=auto_bin,
+        bin_width=bin_width,
+        bin_count=bin_count,
+        agg=agg,
     )
     return chart(
         s,

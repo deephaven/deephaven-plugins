@@ -30,6 +30,43 @@ export interface TvlDownsampleMeta {
   seriesTypes: string[];
 }
 
+/** Per-source-table metadata for server-side auto-bin aggregation. */
+export interface TvlAutoBinMeta {
+  /** Time column name on the source table. */
+  timeCol: string;
+  /** Current aggregation bin width in nanoseconds. */
+  binWidthNs: number;
+  /** [minNs, maxNs] full extent of the raw source table. */
+  fullRangeNs: [number, number];
+  /** Target bin count used to compute the initial bin width. */
+  targetBins: number;
+  /** Per-series aggregation spec. Keyed by series id. */
+  series: Record<
+    string,
+    {
+      type: 'Histogram' | 'Candlestick' | 'Bar';
+      agg: 'sum' | 'count' | 'avg' | 'last' | 'ohlc';
+      valueCols: string[];
+    }
+  >;
+}
+
+/** Server response to AUTOBIN_ZOOM / AUTOBIN_RESET. */
+export interface AutoBinFigureMessage {
+  type: 'AUTOBIN_FIGURE';
+  revision: number;
+  /** Source-table ref the zoom request was for. */
+  tableRef: number;
+  /** New bin width in nanoseconds for that table. */
+  binWidthNs: number;
+  /** Updated full autoBinMeta map. */
+  autoBinMeta: Record<string, TvlAutoBinMeta>;
+  /** New reference list (parallels NEW_FIGURE). Empty when noop is true. */
+  new_references: number[];
+  /** True when the server determined no re-aggregation was needed. */
+  noop?: boolean;
+}
+
 export interface TvlFigureData {
   chartType?: TvlChartType;
   chartOptions: Record<string, unknown>;
@@ -41,6 +78,8 @@ export interface TvlFigureData {
   };
   /** Present when tables are eligible for JS-side downsampling. Keyed by table ref ID. */
   downsampleMeta?: Record<string, TvlDownsampleMeta>;
+  /** Present when source tables are server-side auto-binned. Keyed by source-table ref ID. */
+  autoBinMeta?: Record<string, TvlAutoBinMeta>;
 }
 
 export interface TvlSeriesConfig {

@@ -1,6 +1,8 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import type {
+  AutoBinFigureMessage,
+  TvlAutoBinMeta,
   TvlChartType,
   TvlDownsampleMeta,
   TvlFigureData,
@@ -38,7 +40,12 @@ class TradingViewChartModel {
   /** Tables currently subscribed to (may be original or downsampled). */
   private tables: Map<number, DhType.Table> = new Map();
 
-  /** Active full-table subscriptions. All tables use full subscribe now. */
+  /**
+   * Active subscriptions, keyed by tableId. All paths (downsample,
+   * autobin, and direct) use a full table.subscribe() — autobin tables
+   * are server-side scoped to a body+anchors aggregation that's already
+   * small enough to subscribe to wholesale.
+   */
   private tableSubscriptionMap: Map<number, DhType.TableSubscription> =
     new Map();
 
@@ -74,6 +81,10 @@ class TradingViewChartModel {
   /** IANA timezone string (e.g. "America/New_York") for time column conversion. */
   private timeZone = '';
 
+  getTimeZone(): string {
+    return this.timeZone;
+  }
+
   /** Chart type — determines whether time columns need TZ conversion. */
   private chartType: TvlChartType = 'standard';
 
@@ -100,6 +111,45 @@ class TradingViewChartModel {
     width: number;
   } | null = null;
 
+  // ---- Server-side auto-bin state ----
+
+  /** Tables that were auto-binned server-side. */
+  private autoBinnedTableIds: Set<number> = new Set();
+
+  /** Per-table auto-bin metadata from the server. */
+  private autoBinMeta: Record<string, TvlAutoBinMeta> = {};
+
+  /**
+   * Per-table currently-scoped body range in UTC nanoseconds, or null when
+   * the full source is in use. Updated when AUTOBIN_ZOOM/RESET is sent so
+   * tests and debug overlays can read the current scope.
+   */
+  private autoBinBodyRange: Record<string, [number, number] | null> = {};
+
+  /** True while waiting for an AUTOBIN_FIGURE response from the server. */
+  pendingAutoBin = false;
+
+  /**
+   * True if the in-flight auto-bin request was triggered by a RESET
+   * (double-click), not a zoom/pan. The server's AUTOBIN_FIGURE response
+   * doesn't distinguish, so the model carries the flag forward to plumb
+   * isResetView into the resulting DATA_UPDATED event.
+   */
+  private autoBinPendingIsReset = false;
+
+  /**
+   * Monotonic counter incremented every time a resample request is issued
+   * (downsample or auto-bin). Tests use this to assert race-condition
+   * invariants ("N rapid zooms produce exactly N seq increments").
+   */
+  resampleSeq = 0;
+
+  /** If a new auto-bin zoom was requested while pending, store it here. */
+  private pendingAutoBinParams: {
+    range: [number, number] | null;
+    width?: number;
+  } | null = null;
+
   /** Tables that should trigger fitContent on next DATA_UPDATED. */
   private resetPendingForTable: Set<number> = new Set();
 
@@ -120,6 +170,13 @@ class TradingViewChartModel {
   private setPendingDownsample(pending: boolean): void {
     if (this.pendingDownsample === pending) return;
     this.pendingDownsample = pending;
+    this.emit({ type: 'DOWNSAMPLE_PENDING', pending });
+  }
+
+  /** Same UX signal as setPendingDownsample but for the auto-bin path. */
+  private setPendingAutoBin(pending: boolean): void {
+    if (this.pendingAutoBin === pending) return;
+    this.pendingAutoBin = pending;
     this.emit({ type: 'DOWNSAMPLE_PENDING', pending });
   }
 
@@ -219,6 +276,13 @@ class TradingViewChartModel {
     if (this.figureData.downsampleMeta) {
       this.downsampleMeta = this.figureData.downsampleMeta;
     }
+    // Read auto-bin metadata from Python
+    if (this.figureData.autoBinMeta) {
+      this.autoBinMeta = this.figureData.autoBinMeta;
+      Object.keys(this.autoBinMeta).forEach(refStr => {
+        this.autoBinnedTableIds.add(Number(refStr));
+      });
+    }
 
     // Determine which ref index is the PartitionedTable (if any)
     const ptRefIndex = this.figureData.partitionSpec?.refIndex;
@@ -267,7 +331,9 @@ class TradingViewChartModel {
           })
         );
       } else {
-        // Non-downsampled: subscribe directly
+        // Non-downsampled (including server-side autobin): subscribe directly.
+        // Autobin tables are scoped server-side to body + anchors so the
+        // full aggregation is small enough for a regular subscription.
         this.subscribeTable(tableId, table);
       }
     });
@@ -297,6 +363,29 @@ class TradingViewChartModel {
   /** Whether JS-side downsampling is active for any table. */
   isDownsampled(): boolean {
     return this.jsDownsampledTableIds.size > 0;
+  }
+
+  /** Whether server-side auto-bin is active for any table. */
+  isAutoBinned(): boolean {
+    return this.autoBinnedTableIds.size > 0;
+  }
+
+  /** Whether any resampling path is active (downsample or auto-bin). */
+  isResampling(): boolean {
+    return this.isDownsampled() || this.isAutoBinned();
+  }
+
+  /** Get the auto-bin metadata from Python. */
+  getAutoBinMeta(): Record<string, TvlAutoBinMeta> {
+    return this.autoBinMeta;
+  }
+
+  /**
+   * Currently-scoped body range (UTC ns) for the given auto-binned table,
+   * or null when at full source. Returns null when the table is unknown.
+   */
+  getAutoBinBodyRange(tableRef: number): [number, number] | null {
+    return this.autoBinBodyRange[String(tableRef)] ?? null;
   }
 
   /** Get the downsample metadata from Python. */
@@ -423,6 +512,7 @@ class TradingViewChartModel {
     }
 
     this.setPendingDownsample(true);
+    this.resampleSeq += 1;
 
     const isReset = range == null;
 
@@ -454,6 +544,177 @@ class TradingViewChartModel {
       const p = this.pendingZoomParams;
       this.pendingZoomParams = null;
       this.performDownsample(p.range, p.width);
+    }
+  }
+
+  // ---- Server-side auto-bin API ----
+
+  /**
+   * Request a re-aggregation for the visible range. Sends AUTOBIN_ZOOM
+   * (or AUTOBIN_RESET if range is null) to the server. The server
+   * responds asynchronously with AUTOBIN_FIGURE which is handled in
+   * listenToWidget.
+   */
+  performAutoBin(range: [number, number] | null, width?: number): void {
+    if (!this.isAutoBinned()) return;
+
+    if (this.pendingAutoBin) {
+      this.pendingAutoBinParams = { range, width };
+      return;
+    }
+
+    this.setPendingAutoBin(true);
+    this.resampleSeq += 1;
+    this.autoBinPendingIsReset = range == null;
+
+    // Round chart width up to the nearest 1000 px so the server's derived
+    // bin width lands on a small set of common values across sessions —
+    // makes the engine's `upperBin(time, w)` results cache-friendly. The
+    // raw width is sent alongside as `actualWidthPx` so the server can
+    // floor `target_bins` to keep each bar at least MIN_BAR_PX wide,
+    // regardless of how much the rounding overshoots.
+    const actualWidthPx =
+      width != null && width > 0 ? Math.round(width) : undefined;
+    const widthPx =
+      actualWidthPx != null
+        ? Math.max(1000, Math.ceil(actualWidthPx / 1000) * 1000)
+        : undefined;
+
+    this.autoBinnedTableIds.forEach(tableRef => {
+      if (range == null) {
+        this.autoBinBodyRange[String(tableRef)] = null;
+        this.sendWidgetMessage({
+          type: 'AUTOBIN_RESET',
+          tableRef,
+          widthPx,
+          actualWidthPx,
+        });
+        return;
+      }
+      // Range comes in as TZ-shifted epoch seconds (matching the chart's
+      // visible range). Convert to UTC nanoseconds for the server.
+      const fromUtcSec = unconvertTime(range[0], this.timeZone);
+      const toUtcSec = unconvertTime(range[1], this.timeZone);
+      const fromNs = Math.floor(fromUtcSec * 1e9);
+      const toNs = Math.floor(toUtcSec * 1e9);
+      // atLiveEdge: visible range's right edge is at or past the source's
+      // full extent. Server then extends the body's right bound past the
+      // tail anchor so live ticks land in the body's last bin.
+      const meta = this.autoBinMeta[String(tableRef)];
+      const atLiveEdge = meta != null && toNs >= meta.fullRangeNs[1];
+      this.autoBinBodyRange[String(tableRef)] = [fromNs, toNs];
+      this.sendWidgetMessage({
+        type: 'AUTOBIN_ZOOM',
+        tableRef,
+        fromNs,
+        toNs,
+        widthPx,
+        actualWidthPx,
+        atLiveEdge,
+      });
+    });
+  }
+
+  /** Unified resample router: dispatches to downsample and auto-bin paths. */
+  performResample(range: [number, number] | null, width: number): void {
+    if (this.isDownsampled()) {
+      this.performDownsample(range, width).catch(err => {
+        log.warn('performDownsample failed', err);
+      });
+    }
+    if (this.isAutoBinned()) {
+      this.performAutoBin(range, width);
+    }
+  }
+
+  private sendWidgetMessage(msg: Record<string, unknown>): void {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this.widget as any).sendMessage(JSON.stringify(msg), []);
+    } catch (e) {
+      log.error('Failed to send widget message', msg.type, e);
+      this.setPendingAutoBin(false);
+    }
+  }
+
+  /** Handle an AUTOBIN_FIGURE message from the server. */
+  private async handleAutoBinFigure(
+    msg: AutoBinFigureMessage,
+    exportedObjects: DhType.WidgetExportedObject[]
+  ): Promise<void> {
+    try {
+      // Update meta first so the renderer reflects the new bin width.
+      this.autoBinMeta = msg.autoBinMeta;
+      if (this.figureData) {
+        this.figureData.autoBinMeta = msg.autoBinMeta;
+      }
+      this.revision = msg.revision;
+
+      if (msg.noop === true || msg.new_references.length === 0) {
+        this.setPendingAutoBin(false);
+        this.drainPendingAutoBin();
+        return;
+      }
+
+      // Fetch the swapped-in aggregated table for the affected ref.
+      const { tableRef } = msg;
+      if (tableRef >= exportedObjects.length) {
+        log.warn(
+          'AUTOBIN_FIGURE tableRef out of range',
+          tableRef,
+          exportedObjects.length
+        );
+        this.setPendingAutoBin(false);
+        this.drainPendingAutoBin();
+        return;
+      }
+
+      const newTable = (await exportedObjects[
+        tableRef
+      ].fetch()) as DhType.Table;
+      if (this.closed) {
+        try {
+          newTable.close();
+        } catch {
+          // ignore
+        }
+        return;
+      }
+
+      // Tear down old subscription before swapping.
+      this.cleanupSubscriptions(tableRef);
+      this.chartDataMap.delete(tableRef);
+      this.tableDataMap.delete(tableRef);
+
+      const oldTable = this.tables.get(tableRef);
+      if (oldTable && oldTable !== newTable) {
+        try {
+          oldTable.close();
+        } catch {
+          // ignore
+        }
+      }
+
+      this.tables.set(tableRef, newTable);
+      this.freshDownsampleTables.add(tableRef);
+      if (this.autoBinPendingIsReset) {
+        this.resetPendingForTable.add(tableRef);
+      }
+      // Server-side scoped: subscribe to the entire (small) agg table.
+      this.subscribeTable(tableRef, newTable);
+    } catch (err) {
+      log.error('Error handling AUTOBIN_FIGURE', err);
+    } finally {
+      this.setPendingAutoBin(false);
+      this.drainPendingAutoBin();
+    }
+  }
+
+  private drainPendingAutoBin(): void {
+    if (this.pendingAutoBinParams != null) {
+      const p = this.pendingAutoBinParams;
+      this.pendingAutoBinParams = null;
+      this.performAutoBin(p.range, p.width);
     }
   }
 
@@ -756,6 +1017,12 @@ class TradingViewChartModel {
             figure: this.figureData!,
             tables: Array.from(this.tables.values()),
           });
+        } else if (msg.type === 'AUTOBIN_FIGURE') {
+          const exported = (data.exportedObjects ??
+            []) as DhType.WidgetExportedObject[];
+          this.handleAutoBinFigure(msg as AutoBinFigureMessage, exported).catch(
+            err => log.error('handleAutoBinFigure failed', err)
+          );
         }
       } catch (e) {
         log.error('Error processing widget message', e);
@@ -903,6 +1170,7 @@ class TradingViewChartModel {
     this.resetPendingForTable.clear();
     this.freshDownsampleTables.clear();
     this.jsDownsampledTableIds.clear();
+    this.autoBinnedTableIds.clear();
     this.seenPartitionKeys.clear();
   }
 }
