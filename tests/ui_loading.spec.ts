@@ -41,7 +41,7 @@ test('slow multi-panel shows loaders on element Reload', async ({ page }) => {
 
   const widgetLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT);
   // Loader should show up
-  await expect(widgetLocator.locator('.loading-spinner')).toHaveCount(1);
+  await expect(widgetLocator.locator('.loading-spinner')).toHaveCount(3);
   // Then disappear and show components again
   await expect(widgetLocator.locator('.loading-spinner')).toHaveCount(0);
 
