@@ -17,6 +17,9 @@ from .maps import (
     scatter_map,
     density_map,
     line_map,
+    choropleth,
+    choropleth_map,
+    choropleth_mapbox,
 )
 from .heatmap import density_heatmap
 from .indicator import indicator

@@ -105,13 +105,53 @@ test('Candlestick chart loads', async ({ page }) => {
 });
 
 test('Titles fig loads', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'titles_fig', '.js-plotly-plot');
-    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+  await gotoPage(page, '');
+  await openPanel(page, 'titles_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
 test('Subplots fig loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'keep_subplot_titles_fig', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Choropleth loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'choropleth_fig', '.js-plotly-plot');
+  // The choropleth trace renders an SVG <g class="choropleth"> per trace.
+  await expect(
+    page.locator('.iris-chart-panel').locator('g.choropleth').first()
+  ).toBeVisible();
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Choropleth ticking updates live', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'choropleth_ticking_fig', '.js-plotly-plot');
+
+  const plot = page.locator('.iris-chart-panel').locator('.js-plotly-plot');
+  await expect(plot).toBeVisible();
+  await expect(
+    page.locator('.iris-chart-panel').locator('g.choropleth').first()
+  ).toBeVisible();
+
+  // Snapshot the trace's z values, wait for a couple of ticks, and verify
+  // they have changed — this proves the live table is driving the chart.
+  const readZ = async () =>
+    plot.evaluate((el: HTMLElement) => {
+      const data = (el as unknown as { data?: Array<{ z?: number[] }> }).data;
+      return data?.[0]?.z?.slice() ?? null;
+    });
+
+  const initialZ = await readZ();
+  expect(initialZ).not.toBeNull();
+  expect(initialZ?.length).toBe(5);
+
+  await expect
+    .poll(async () => readZ(), {
+      message: 'z values should change as the table ticks',
+      timeout: 5000,
+    })
+    .not.toEqual(initialZ);
 });

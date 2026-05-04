@@ -138,6 +138,43 @@ candlestick_fig = dx.candlestick(
     ohlc_source, x="Timestamp", open="Open", high="High", low="Low", close="Close"
 )
 
+# Choropleth (SVG, deterministic for snapshot)
+choropleth_source = new_table(
+    [
+        string_col("State", ["NY", "CA", "TX", "FL", "WA"]),
+        double_col("Population", [19.5, 39.0, 29.0, 21.5, 7.7]),
+    ]
+)
+choropleth_fig = dx.choropleth(
+    choropleth_source,
+    locations="State",
+    locationmode="USA-states",
+    color="Population",
+    scope="usa",
+)
+
+# Ticking choropleth — verifies live-table updates flow through to the chart.
+# Only the values change; the set of states is fixed so the trace is stable.
+choropleth_ticking_source = (
+    time_table("PT0.5S")
+    .update_view(
+        [
+            "idx = (int)(ii % 5)",
+            "State = (new String[]{`NY`,`CA`,`TX`,`FL`,`WA`})[idx]",
+            "Population = (double)((ii % 100) + 1)",
+        ]
+    )
+    .last_by("State")
+    .view(["State", "Population"])
+)
+choropleth_ticking_fig = dx.choropleth(
+    choropleth_ticking_source,
+    locations="State",
+    locationmode="USA-states",
+    color="Population",
+    scope="usa",
+)
+
 # Add titles to subplots
 titles_fig = dx.make_subplots(
     dx.scatter(express_source, x="Values", y="Values2"),
