@@ -168,8 +168,14 @@ test('UI all components render 3', async ({ page }) => {
 
 test('UI markdown renders code correctly', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'markdown_code', SELECTORS.REACT_PANEL_VISIBLE);
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(
+    page,
+    'markdown_code',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toHaveScreenshot();
 });
 
 // Tests flex components render as expected
