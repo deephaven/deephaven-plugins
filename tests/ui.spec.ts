@@ -5,6 +5,7 @@ import {
   SELECTORS,
   generateVarName,
   pasteInMonaco,
+  waitForLoad,
 } from './utils';
 
 test('UI loads', async ({ page }) => {
@@ -150,37 +151,25 @@ test('Using keys for lists works', async ({ page }) => {
 
 test('UI all components render 1', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all1');
-  await openPanel(
-    page,
-    'ui_render_all1',
-    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
-  );
+  await waitForLoad(page);
   await expect(
-    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
   ).toHaveScreenshot();
 });
 
 test('UI all components render 2', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all2');
-  await openPanel(
-    page,
-    'ui_render_all2',
-    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
-  );
+  await waitForLoad(page);
   await expect(
-    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
   ).toHaveScreenshot();
 });
 
 test('UI all components render 3', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all3');
-  await openPanel(
-    page,
-    'ui_render_all3',
-    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
-  );
+  await waitForLoad(page);
   await expect(
-    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
   ).toHaveScreenshot();
 });
 
