@@ -85,7 +85,6 @@ _example_dashboard = ui.dashboard(
     create_dashboard(today, today.plusSeconds(SECONDS_IN_DAY * 10), _table)
 )
 
-_stocks = dx.data.stocks()
 _dash_2x1 = ui.dashboard(ui.row(ui.panel("A", title="A"), ui.panel("B", title="B")))
 _dash_1x2 = ui.dashboard(ui.column(ui.panel("A", title="A"), ui.panel("B", title="B")))
 _dash_2x2 = ui.dashboard(
