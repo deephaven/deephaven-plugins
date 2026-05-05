@@ -54,7 +54,18 @@ import WidgetStatusContext, {
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import Navigate, { NAVIGATE_EVENT, QUERY_PARAM } from '../events/Navigate';
+import Navigate, {
+  NAVIGATE_EVENT,
+  type NavigateParams,
+  URL_CHANGED_EVENT,
+  QUERY_PARAM,
+  PATH_PARAM,
+  ABSOLUTE_PATH_PARAM,
+  FRAGMENT_PARAM,
+  HREF_PARAM,
+  getWidgetRelativePath,
+} from '../events/Navigate';
+import NavigateContext from '../events/NavigateContext';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
@@ -165,6 +176,10 @@ function WidgetHandler({
     });
     return {
       [QUERY_PARAM]: queryParams,
+      [PATH_PARAM]: getWidgetRelativePath(),
+      [ABSOLUTE_PATH_PARAM]: window.location.pathname,
+      [FRAGMENT_PARAM]: window.location.hash.replace(/^#/, ''),
+      [HREF_PARAM]: window.location.href,
     };
   }, []);
 
@@ -205,6 +220,14 @@ function WidgetHandler({
       }
     );
   }, [jsonClient, getUrlState]);
+
+  /**
+   * Navigate and send updated URL state to the backend.
+   * Provided to child components via NavigateContext.
+   */
+  const handleNavigate = useCallback((params: NavigateParams) => {
+    Navigate(params);
+  }, []);
 
   const callableFinalizationRegistry = useMemo(
     () =>
@@ -462,8 +485,6 @@ function WidgetHandler({
               break;
             case NAVIGATE_EVENT:
               Navigate(eventParams);
-              // Re-send URL state to backend after navigation
-              sendUrlState();
               break;
             default:
               throw new Error(`Unknown event ${name}`);
@@ -479,28 +500,25 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [
-      jsonClient,
-      onDataChange,
-      sendUrlState,
-      callableFinalizationRegistry,
-      sendSetState,
-    ]
+    [jsonClient, onDataChange, callableFinalizationRegistry, sendSetState]
   );
 
   /**
-   * Listen for popstate events so that when the user clicks the back button
-   * after a client-side navigation, we can update the URL state in the backend
-   * and re-render with the correct URL state.
+   * Listen for URL changes from any source:
+   * - popstate: browser back/forward buttons
+   * - URL_CHANGED_EVENT: programmatic navigation via Navigate()
+   * All widget handlers listen so every widget stays in sync.
    */
   useEffect(
-    function listenForPopstate() {
-      const handlePopstate = () => {
+    function listenForUrlChanges() {
+      const handleUrlChange = () => {
         sendUrlState();
       };
-      window.addEventListener('popstate', handlePopstate);
+      window.addEventListener('popstate', handleUrlChange);
+      window.addEventListener(URL_CHANGED_EVENT, handleUrlChange);
       return () => {
-        window.removeEventListener('popstate', handlePopstate);
+        window.removeEventListener('popstate', handleUrlChange);
+        window.removeEventListener(URL_CHANGED_EVENT, handleUrlChange);
       };
     },
     [sendUrlState]
@@ -591,16 +609,18 @@ function WidgetHandler({
   }, [error, widgetDescriptor, isLoading]);
 
   return renderedDocument != null ? (
-    <WidgetStatusContext.Provider value={widgetStatus}>
-      <DocumentHandler
-        widget={widgetDescriptor}
-        initialData={initialData}
-        onDataChange={onDataChange}
-        onClose={onClose}
-      >
-        {renderedDocument}
-      </DocumentHandler>
-    </WidgetStatusContext.Provider>
+    <NavigateContext.Provider value={handleNavigate}>
+      <WidgetStatusContext.Provider value={widgetStatus}>
+        <DocumentHandler
+          widget={widgetDescriptor}
+          initialData={initialData}
+          onDataChange={onDataChange}
+          onClose={onClose}
+        >
+          {renderedDocument}
+        </DocumentHandler>
+      </WidgetStatusContext.Provider>
+    </NavigateContext.Provider>
   ) : null;
 }
 

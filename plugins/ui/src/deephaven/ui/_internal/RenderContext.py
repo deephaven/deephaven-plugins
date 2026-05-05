@@ -423,6 +423,38 @@ class RenderContext:
         """
         return self._root.get_query_params()
 
+    def get_path(self) -> str:
+        """
+        Get the widget-relative path received from the frontend.
+        Returns:
+            The current widget-relative path.
+        """
+        return self._root.get_path()
+
+    def get_absolute_path(self) -> str:
+        """
+        Get the full absolute path from the URL.
+        Returns:
+            The full absolute path.
+        """
+        return self._root.get_absolute_path()
+
+    def get_fragment(self) -> str:
+        """
+        Get the URL fragment received from the frontend.
+        Returns:
+            The current URL fragment (without leading #).
+        """
+        return self._root.get_fragment()
+
+    def get_href(self) -> str:
+        """
+        Get the full URL href received from the frontend.
+        Returns:
+            The full URL href.
+        """
+        return self._root.get_href()
+
     def update_url_state(self, query_params: QueryParams) -> None:
         """
         Update the URL query parameters.
@@ -625,6 +657,14 @@ class RenderContext:
         # contexts (which never carry __queryParams) don't accidentally clear URL state.
         if "__queryParams" in state:
             self._root.set_query_params(state.pop("__queryParams"))
+        if "__path" in state:
+            self._root.set_path(state.pop("__path"))
+        if "__absolutePath" in state:
+            self._root.set_absolute_path(state.pop("__absolutePath"))
+        if "__fragment" in state:
+            self._root.set_fragment(state.pop("__fragment"))
+        if "__href" in state:
+            self._root.set_href(state.pop("__href"))
 
         if "state" in state:
             for key, value in state["state"].items():

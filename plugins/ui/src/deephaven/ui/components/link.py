@@ -14,7 +14,21 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import LinkVariant
+from ..types import LinkVariant, NavigationTarget
+from ..hooks.use_navigate import _build_navigate_payload
+
+
+def _parse_link_to(to: str | NavigationTarget) -> dict:
+    """Parse a 'to' prop into a navigate payload dict."""
+    if isinstance(to, str):
+        to = {"path": to}
+
+    return _build_navigate_payload(
+        path=to.get("path"),
+        query_params=to.get("query_params"),
+        fragment=to.get("fragment"),
+        replace=to.get("replace", True),
+    )
 
 
 def link(
@@ -24,6 +38,7 @@ def link(
     auto_focus: bool | None = None,
     href: str | None = None,
     target: Target | None = None,
+    to: str | NavigationTarget | None = None,
     rel: str | None = None,
     ping: str | None = None,
     download: str | None = None,
@@ -91,7 +106,13 @@ def link(
         is_quiet: Whether the link should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
         href: A URL to link to.
+        Triggers a full page reload. Mutually exclusive with to.
         target: The target window for the link.
+        to: The target location for single-page application navigation.
+        Either a plain string (parsed for path, query params, and fragment),
+        or a NavigationTarget dict with path, query_params,
+        fragment, and replace. Defaults to replace=True (replaces
+        history entry). Mutually exclusive with href.
         rel: The relationship between the linked resource and the current page.
         ping: A space-separated list of URLs to ping when the link is followed.
         download: Causes the browser to download the linked URL.
@@ -153,13 +174,24 @@ def link(
     Returns:
         The rendered link element.
 
+    Raises:
+        ValueError: If both to and href are provided.
     """
+    if to is not None and href is not None:
+        raise ValueError(
+            "The 'to' and 'href' props are mutually exclusive. "
+            "Use 'to' for SPA navigation or 'href' for full page reload."
+        )
+
+    navigate_payload: dict | None = _parse_link_to(to) if to is not None else None
+
     return component_element(
         "Link",
         *children,
         variant=variant,
         is_quiet=is_quiet,
         auto_focus=auto_focus,
+        navigate=navigate_payload,
         href=href,
         target=target,
         rel=rel,

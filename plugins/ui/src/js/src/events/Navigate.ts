@@ -5,33 +5,123 @@ const log = Log.module('Navigate');
 // Event types received from the server
 export const NAVIGATE_EVENT = 'navigate.event';
 
+/**
+ * Custom event dispatched after Navigate() changes the URL.
+ * All WidgetHandlers listen for this to sync URL state to the backend.
+ * This doesn't work for navigation triggered outside this plugin, so external
+ * code would need to dispatch this event to trigger URL sync for this plugin
+ * if it is needed.
+ */
+export const URL_CHANGED_EVENT = 'deephaven-url-changed';
+
 export type NavigateParams = {
+  path?: string | null;
   queryParams?: string | null;
+  fragment?: string | null;
   replace?: boolean | null;
 };
 
-// Type sent to the server for current location
+// Types sent to the server for current location
 export const QUERY_PARAM = '__queryParams';
+export const PATH_PARAM = '__path';
+export const ABSOLUTE_PATH_PARAM = '__absolutePath';
+export const FRAGMENT_PARAM = '__fragment';
+export const HREF_PARAM = '__href';
+
+/** Separator between platform routing and widget routing in the URL */
+const WIDGET_PATH_SEPARATOR = '/-/';
+
+/** Allowed URL schemes for navigation */
+const ALLOWED_SCHEMES = new Set(['http:', 'https:', '']);
 
 /**
- * Handle a navigate event by updating the browser URL query parameters
+ * Get the widget base path from the current URL.
+ * This is the portion up to and including `/-/`.
+ * If `/-/` is not in the path, returns the full pathname.
+ */
+function getWidgetBasePath(): string {
+  const { pathname } = window.location;
+  const separatorIndex = pathname.indexOf(WIDGET_PATH_SEPARATOR);
+  if (separatorIndex === -1) {
+    return pathname;
+  }
+  return pathname.substring(0, separatorIndex + WIDGET_PATH_SEPARATOR.length);
+}
+
+/**
+ * Get the widget-relative path from the current URL.
+ * This is the portion after `/-/`, or "/" if `/-/` is not present.
+ */
+export function getWidgetRelativePath(): string {
+  const { pathname } = window.location;
+  const separatorIndex = pathname.indexOf(WIDGET_PATH_SEPARATOR);
+  if (separatorIndex === -1) {
+    return '/';
+  }
+  const relativePath = pathname.substring(
+    separatorIndex + WIDGET_PATH_SEPARATOR.length
+  );
+  return relativePath ? `/${relativePath}` : '/';
+}
+
+/**
+ * Handle a navigate event by updating the browser URL
  * and pushing or replacing the history entry.
  *
  * @param params The navigate event parameters
  */
 export function Navigate(params: NavigateParams): void {
-  const { queryParams: navQueryParams, replace: navReplace } = params;
+  const {
+    path: navPath,
+    queryParams: navQueryParams,
+    fragment: navFragment,
+    replace: navReplace,
+  } = params;
 
   const url = new URL(window.location.href);
 
-  // null/undefined should preserve
+  // Handle path
+  if (navPath != null) {
+    // Sanitize path: strip '..' traversal sequences
+    const sanitizedPath = navPath.replace(/(?:^|\/)\.\./g, '');
+    const basePath = getWidgetBasePath();
+    // If basePath includes /-/, append the new path after it
+    if (basePath.includes(WIDGET_PATH_SEPARATOR)) {
+      url.pathname = basePath + sanitizedPath.replace(/^\//, '');
+    } else {
+      // No /-/ boundary yet — establish it
+      url.pathname =
+        basePath.replace(/\/$/, '') +
+        WIDGET_PATH_SEPARATOR +
+        sanitizedPath.replace(/^\//, '');
+    }
+  }
+
+  // Handle query params: null/undefined = preserve (or clear if path changed), "" = clear
   if (navQueryParams != null) {
     url.search = navQueryParams;
+  } else if (navPath != null) {
+    // If a new path is provided without explicit query params, clear them
+    url.search = '';
+  }
+
+  // Handle fragment: null/undefined = preserve (or clear if path changed), "" = clear
+  if (navFragment != null) {
+    url.hash = navFragment ? `#${navFragment}` : '';
+  } else if (navPath != null) {
+    // If a new path is provided without explicit fragment, clear it
+    url.hash = '';
   }
 
   // Security: reject cross-origin navigation
   if (url.origin !== window.location.origin) {
     log.warn('Blocked cross-origin navigation attempt to', url.origin);
+    return;
+  }
+
+  // Security: reject dangerous schemes
+  if (!ALLOWED_SCHEMES.has(url.protocol)) {
+    log.warn('Blocked navigation with disallowed scheme:', url.protocol);
     return;
   }
 
@@ -42,6 +132,10 @@ export function Navigate(params: NavigateParams): void {
   } else {
     window.history.pushState(null, '', newUrl);
   }
+
+  // Notify all WidgetHandlers that the URL changed so they can sync state.
+  // Uses a custom event (not popstate) to avoid interfering with browser navigation.
+  window.dispatchEvent(new Event(URL_CHANGED_EVENT));
 }
 
 export default Navigate;
