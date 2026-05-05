@@ -3,3 +3,8 @@ build
 pip
 setuptools
 tox
+
+# Plugin builder dependencies
+click
+watchdog
+deephaven-server
