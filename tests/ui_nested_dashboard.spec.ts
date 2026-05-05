@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage, SELECTORS, waitForLoad } from './utils';
+import { openPanel, gotoPage, SELECTORS } from './utils';
 
 test.describe('Nested Dashboards', () => {
   test('renders a dashboard inside a panel', async ({ page }) => {
