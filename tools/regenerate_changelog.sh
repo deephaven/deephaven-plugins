@@ -128,7 +128,7 @@ for tag in "${tags[@]}"; do
     GIT_AUTHOR_DATE="$tag_date" GIT_COMMITTER_DATE="$tag_date" \
         git commit -m "tmp: prep ${tag}" || true
 
-    if ! /tmp/cog-bin/cog bump --package "$package" --version "$version" 2>&1 | tail -3; then
+    if ! cog bump --package "$package" --version "$version" 2>&1 | tail -3; then
         echo "cog bump failed for ${tag}" >&2
         exit 1
     fi
