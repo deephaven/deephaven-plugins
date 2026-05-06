@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.36.0 - 2026-05-06
+#### Features
+- DH-22178: deephaven.ui context (#1334) - (e528392) - Joe
+#### Documentation
+- DOC-1344: dh.ui improvements with confirmed details (#1338) - (bcd183f) - elijahpetty
+
+- - -
+
 ## ui-v0.35.0 - 2026-04-22
 #### Features
 - DH-21654: Routing hooks (#1319) - (95de68d) - Joe
