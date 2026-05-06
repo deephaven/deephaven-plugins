@@ -8,6 +8,7 @@ type UIWidgetProps = WidgetComponentProps<dh.Widget>;
 export function UIWidget(props: UIWidgetProps): JSX.Element | null {
   const { metadata: widgetDescriptor } = props;
   if (widgetDescriptor?.type === PortalPanel.displayName) {
+    // PortalPanel was used by the legacy DashboardPlugin to render elements. We just ignore them here.
     return null;
   }
 
