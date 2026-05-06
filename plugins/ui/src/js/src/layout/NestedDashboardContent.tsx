@@ -2,7 +2,6 @@ import React, { type PropsWithChildren } from 'react';
 import { usePersistentState } from '@deephaven/dashboard';
 import { ReactPanelContext } from './ReactPanelContext';
 import { ReactPanelManagerContext } from './ReactPanelManager';
-import PortalPanelManager from './PortalPanelManager';
 import DashboardContent from './DashboardContent';
 import usePanelManager from './usePanelManager';
 import useWidgetStatus from './useWidgetStatus';
@@ -29,14 +28,12 @@ function NestedDashboardContent({
   });
 
   return (
-    <PortalPanelManager>
-      <ReactPanelManagerContext.Provider value={panelManager}>
-        {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
-        <ReactPanelContext.Provider value={null}>
-          <DashboardContent>{children}</DashboardContent>
-        </ReactPanelContext.Provider>
-      </ReactPanelManagerContext.Provider>
-    </PortalPanelManager>
+    <ReactPanelManagerContext.Provider value={panelManager}>
+      {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
+      <ReactPanelContext.Provider value={null}>
+        <DashboardContent>{children}</DashboardContent>
+      </ReactPanelContext.Provider>
+    </ReactPanelManagerContext.Provider>
   );
 }
 
