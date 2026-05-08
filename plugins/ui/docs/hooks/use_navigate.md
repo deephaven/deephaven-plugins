@@ -2,6 +2,9 @@
 
 `use_navigate` is a hook that returns a function to trigger single page application (SPA) navigation within Deephaven. For declarative navigation, consider using [`link`](../components/link.md) with the `to` prop instead.
 
+> [!NOTE]
+> Deephaven and all custom components share the path. Avoid using routers, the path, path parameters, and navigation in shared components to prevent conflicts. Do not use the route segment `/-/` in your application path as it is reserved for internal use by Deephaven.
+
 ## Example
 
 ```python order=app

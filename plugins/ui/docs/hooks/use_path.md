@@ -4,6 +4,9 @@
 
 Widgets use `/-/` to separate Deephaven's internal router from user-specified widget routing. `use_path()` returns only the portion after `/-/` by default and returns the whole path if the `absolute` argument is set to `True`.
 
+> [!NOTE]
+> Deephaven and all custom components share the path. Avoid using routers, the path, path parameters, and navigation in shared components to prevent conflicts. Do not use the route segment `/-/` in your application path as it is reserved for internal use by Deephaven.
+
 ## Example
 
 ```python order=app

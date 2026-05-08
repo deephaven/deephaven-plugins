@@ -2,6 +2,9 @@
 
 `use_params` is a hook that returns the route parameters extracted by the nearest ancestor [`router`](../components/router.md).
 
+> [!NOTE]
+> Deephaven and all custom components share the path. Avoid using routers, the path, path parameters, and navigation in shared components to prevent conflicts. Do not use the route segment `/-/` in your application path as it is reserved for internal use by Deephaven.
+
 ## Example
 
 ```python order=app

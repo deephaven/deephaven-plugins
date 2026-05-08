@@ -92,6 +92,9 @@ The `to` prop enables single-page application (SPA) navigation within Deephaven.
 
 `to` accepts either a string (parsed for path, query params, and fragment) or a `NavigationTarget` dict for explicit control.
 
+> [!NOTE]
+> Deephaven and all custom components share the path. Avoid using routers, the path, path parameters, and navigation in shared components to prevent conflicts. Do not use the route segment `/-/` in your application path as it is reserved for internal use by Deephaven.
+
 ```python
 from deephaven import ui
 

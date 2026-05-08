@@ -2,6 +2,9 @@
 
 `ui.router` is a component that matches the current URL path against provided routes and renders the matching route's element. Use it with [`route`](#route) to define hierarchical navigation structures.
 
+> [!NOTE]
+> Deephaven and all custom components share the path. Avoid using routers, the path, path parameters, and navigation in shared components to prevent conflicts. Do not use the route segment `/-/` in your application path as it is reserved for internal use by Deephaven.
+
 ## Example
 
 ```python order=app
