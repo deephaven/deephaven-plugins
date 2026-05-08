@@ -498,6 +498,10 @@
             ]
           }
         ]
+      },
+      {
+        "label": "Changelog",
+        "path": "changelog.md"
       }
     ]
   }
