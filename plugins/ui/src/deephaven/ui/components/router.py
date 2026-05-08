@@ -3,11 +3,9 @@ from __future__ import annotations
 import re
 from typing import Any, Callable
 
-from plugins.ui.src.deephaven.ui.hooks import use_memo
-
 from ..components import text
 from ..elements import create_context
-from ..hooks.use_path import use_path
+from ..hooks import use_path, use_memo
 from .route import _Route
 from .make_component import make_component as component
 
