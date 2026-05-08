@@ -21,9 +21,12 @@ function NestedDashboardContent({
   const [widgetData, setWidgetData] = usePersistentState<
     WidgetData | undefined
   >(undefined, { type: 'NestedDashboardWidgetData', version: 1 });
+  const handleDataChange = (data: WidgetData) => {
+    setWidgetData(oldData => ({ ...oldData, ...data }));
+  };
   const panelManager = usePanelManager({
     widget,
-    onDataChange: setWidgetData,
+    onDataChange: handleDataChange,
     initialData: widgetData,
   });
 
