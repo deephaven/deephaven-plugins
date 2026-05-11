@@ -146,11 +146,11 @@ This produces the following route table:
 
 #### Path patterns
 
-- `"{var_name}"`: Required dynamic segment
-- `"{var_name?}"`: Optional dynamic segment (matches zero or one segments)
-- `"*"`: Wildcard, matches any remaining path segments
+- `{var_name}`: Required dynamic segment
+- `{var_name?}`: Optional dynamic segment (matches zero or one segments)
+- `*`: Wildcard, matches any remaining path segments
 - Static text: Exact match
 
 See [`use_params`](../hooks/use_params.md) for more details on route parameters.
 
-Child paths are appended to parent paths. For example, `ui.route(ui.route(path="{user_id}"), path="users")` produces `"/users/{user_id}"`.
+Child paths are appended to parent paths. For example, `ui.route(ui.route(path="{user_id}"), path="users")` produces `/users/{user_id}`.

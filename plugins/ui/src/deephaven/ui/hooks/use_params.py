@@ -8,7 +8,7 @@ def use_params() -> dict[str, str]:
     """
     Get the route parameters from the nearest ancestor router.
 
-    Route parameters are defined by `{var_name}` segments in route paths
+    Route parameters are defined by "{var_name}" segments in route paths
     and extracted when the route matches.
 
     Returns:
