@@ -26,13 +26,13 @@ def route(
     Args:
         *children: Child routes for nested routing.
         path: The path segment appended to the parent route's path. Variables
-        are defined with {var_name} syntax and extracted as route
-        params. Optional variables use {var_name?} syntax. Wildcard
-        segments are supported with "*". Leading / is optional.
-        Mutually exclusive with index.
+            are defined with {var_name} syntax and extracted as route
+            params. Optional variables use {var_name?} syntax. Wildcard
+            segments are supported with "*". Leading / is optional.
+            Mutually exclusive with index.
         element: The component function to render when this route matches.
         index: If True, this route matches the parent's exact path (like
-        an index route). Mutually exclusive with path.
+            an index route). Mutually exclusive with path.
 
     Returns:
         A _Route instance, to be consumed by the router component.
