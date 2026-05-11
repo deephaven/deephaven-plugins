@@ -106,13 +106,13 @@ def link(
         is_quiet: Whether the link should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
         href: A URL to link to.
-        Triggers a full page reload. Mutually exclusive with to.
+            Triggers a full page reload. Mutually exclusive with to.
         target: The target window for the link.
         to: The target location for single-page application navigation.
-        Either a plain string (parsed for path, query params, and fragment),
-        or a NavigationTarget dict with path, query_params,
-        fragment, and replace. Defaults to replace=True (replaces
-        history entry). Mutually exclusive with href.
+            Either a plain string (parsed for path, query params, and fragment),
+            or a NavigationTarget dict with path, query_params,
+            fragment, and replace. Defaults to replace=True (replaces
+            history entry). Mutually exclusive with href.
         rel: The relationship between the linked resource and the current page.
         ping: A space-separated list of URLs to ping when the link is followed.
         download: Causes the browser to download the linked URL.

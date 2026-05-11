@@ -7,6 +7,8 @@ description: Write documentation. Use when asked to write documentation, update 
 
 For plugins that support it (indicated by the presence of a `make_docs.py` file, e.g. `plugins/ui/make_docs.py` or `plugins/plotly-express/make_docs.py`), document functions using the `dhautofunction` directive rather than building any table or description manually.
 
+The functions themselves should be fully documented with docstrings in the source code. Parameters with multiple lines in their description should use an indented block after the first line.
+
 ### Example
 
 ````markdown
