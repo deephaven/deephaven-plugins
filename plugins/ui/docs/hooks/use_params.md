@@ -107,8 +107,8 @@ app = app()
 Route parameters are defined by segments in the route path that are enclosed in curly braces. The following patterns are supported:
 
 ```python skip-test
-{var_name}   # matches a required segment and extracts it as "var_name" in the params dict
-{tab?}       # matches an optional segment; the parameter is omitted if the segment is missing
+{user_id}   # matches a required segment and extracts it as "user_id" in the params dict
+{section?}       # matches an optional segment; the parameter is omitted if the segment is missing
 *            # matches any remaining path; the value is available as the "*" key
 ```
 
