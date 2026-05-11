@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any, Callable
 
-from ..components import text
+from .text import text
 from ..elements import create_context
 from ..hooks import use_path, use_memo
 from .route import _Route

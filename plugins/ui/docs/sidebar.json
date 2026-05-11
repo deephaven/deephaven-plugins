@@ -363,10 +363,6 @@
                 "path": "components/router.md"
               },
               {
-                "label": "router",
-                "path": "components/router.md"
-              },
-              {
                 "label": "search_field",
                 "path": "components/search_field.md"
               },

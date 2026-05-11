@@ -51,7 +51,13 @@ def user_page():
     # The use_params hook gives access to route parameters defined in the path
     params = ui.use_params()
     # user_id is optional due to the ? in the route path, so provide a default value
-    user_id = params.get("user_id", "unknown")
+    user_id = params.get("user_id", None)
+    if user_id is None:
+        return ui.flex(
+            nav_links(),
+            ui.text("All users page"),
+            direction="column",
+        )
     return ui.flex(
         nav_links(),
         ui.text(f"User profile for user {user_id}"),
@@ -128,7 +134,7 @@ This produces the following route table:
 1. Static segments are preferred over parameterized segments.
 2. Longer matches (more segments) are preferred over shorter ones.
 3. Wildcard routes (`*`) have the lowest priority.
-4. Optional segments are matched greedily.
+4. Optional segments are matched if present but do not prevent a match if absent.
 5. Index routes match only the exact parent path.
 6. If no route matches, the router renders an error.
 
@@ -141,10 +147,10 @@ This produces the following route table:
 #### Path patterns
 
 - `{var_name}`: Required dynamic segment
-- `{var_name?}`: Optional dynamic segment (matches zero or one segment)
+- `{var_name?}`: Optional dynamic segment (matches zero or one segments)
 - `*`: Wildcard, matches any remaining path segments
 - Static text: Exact match
 
-See [use_params](../hooks/use_params.md) for more details on route parameters.
+See [`use_params`](../hooks/use_params.md) for more details on route parameters.
 
-Child paths are appended to parent paths. `ui.route(ui.route(path="{user_id}"), path="users")` produces `/users/{user_id}`.
+Child paths are appended to parent paths. For example, `ui.route(ui.route(path="{user_id}"), path="users")` produces `/users/{user_id}`.
