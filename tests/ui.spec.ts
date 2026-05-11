@@ -152,25 +152,19 @@ test('Using keys for lists works', async ({ page }) => {
 test('UI all components render 1', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all1');
   await waitForLoad(page);
-  await expect(
-    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
-  ).toHaveScreenshot();
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI all components render 2', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all2');
   await waitForLoad(page);
-  await expect(
-    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
-  ).toHaveScreenshot();
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI all components render 3', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_render_all3');
   await waitForLoad(page);
-  await expect(
-    page.locator(SELECTORS.DASHBOARD_ELEMENT_VISIBLE)
-  ).toHaveScreenshot();
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI markdown renders code correctly', async ({ page }) => {
