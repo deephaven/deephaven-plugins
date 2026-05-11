@@ -15,7 +15,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 from ..types import LinkVariant, NavigationTarget
-from ..hooks.use_navigate import _build_navigate_payload
+from ..hooks.use_navigate import build_navigate_payload
 
 
 def _parse_link_to(to: str | NavigationTarget) -> dict:
@@ -23,7 +23,7 @@ def _parse_link_to(to: str | NavigationTarget) -> dict:
     if isinstance(to, str):
         to = {"path": to}
 
-    return _build_navigate_payload(
+    return build_navigate_payload(
         path=to.get("path"),
         query_params=to.get("query_params"),
         fragment=to.get("fragment"),

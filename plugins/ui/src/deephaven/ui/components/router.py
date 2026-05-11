@@ -251,7 +251,8 @@ def _match_route(
                     params["*"] = val if val else ""
                 else:
                     val = match.group(name)
-                    params[name] = val if val is not None else ""
+                    if val is not None:
+                        params[name] = val
             return element, params
 
     return None

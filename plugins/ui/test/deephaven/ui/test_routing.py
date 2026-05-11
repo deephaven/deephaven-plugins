@@ -207,9 +207,8 @@ class UseNavigateTestCase(BaseTestCase):
         name, payload = mock.call_args[0]
         self.assertEqual(name, "navigate.event")
         self.assertEqual(payload["path"], "/dashboard")
-        # When path is provided and query_params/fragment omitted, they are cleared
-        self.assertEqual(payload["queryParams"], "")
-        self.assertEqual(payload["fragment"], "")
+        self.assertRaises(KeyError, lambda: payload["queryParams"])
+        self.assertRaises(KeyError, lambda: payload["fragment"])
 
     def test_navigate_path_with_inline_query(self):
         from deephaven.ui.hooks.use_navigate import use_navigate
@@ -674,7 +673,7 @@ class RouterMatchingTestCase(BaseTestCase):
         # With optional segment absent
         result = _match_route("/users", compiled)
         self.assertIsNotNone(result)
-        self.assertEqual(result[1], {"tab": ""})
+        self.assertEqual(result[1], {})
 
     def test_no_match_returns_none(self):
         from deephaven.ui.components.router import _compile_routes, _match_route

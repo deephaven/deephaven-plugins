@@ -605,13 +605,14 @@ class NumberRange(TypedDict):
 
 ToastVariant = Literal["positive", "negative", "neutral", "info"]
 
-QueryParams = Dict[str, List[str]]
+QueryParams = Dict[str, Union[str, List[str]]]
 """
 A type alias for query parameter dictionaries used throughout the routing API.
 
-Keys are parameter names. Values are always list[str] — even for keys
-that appear only once.  When serialised to a URL, list values repeat the
-key: {"tag": ["python", "java"]} becomes ?tag=python&tag=java.
+Keys are parameter names. Values can be either a single string or a list of strings.
+Generally, strings or lists can be passed into the API but only lists are returned from the API.
+When serialised to a URL, list values repeat the key:
+{"tag": ["python", "java"]} becomes ?tag=python&tag=java.
 """
 
 
@@ -624,7 +625,7 @@ class NavigationTarget(TypedDict, total=False):
     path: str
     """The path to navigate to (e.g. "/dashboard")."""
 
-    query_params: str | QueryParams
+    query_params: Union[str, QueryParams]
     """Query string (e.g. "?foo=bar") or a QueryParams dict."""
 
     fragment: str

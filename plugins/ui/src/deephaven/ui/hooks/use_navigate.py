@@ -90,7 +90,7 @@ def _parse_inline_url(path: str) -> tuple[str, str | None, str | None]:
     return clean_path, inline_query, inline_fragment
 
 
-def _build_navigate_payload(
+def build_navigate_payload(
     path: str | None = None,
     query_params: str | QueryParams | None = None,
     fragment: str | None = None,
@@ -169,7 +169,7 @@ def use_navigate() -> Callable[..., None]:
                 "At least one of path, query_params, or fragment must be provided."
             )
 
-        payload = _build_navigate_payload(path, query_params, fragment, replace)
+        payload = build_navigate_payload(path, query_params, fragment, replace)
         send_event(_NAVIGATE_EVENT, payload)
 
     return navigate

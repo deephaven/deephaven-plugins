@@ -676,7 +676,7 @@ describe('navigate event handling', () => {
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
       '',
-      '/app/widget/local/dashboard/-/new-page?q=1#sec'
+      '/app/widget/local/dashboard/-/new-page'
     );
 
     unmount();
