@@ -3,7 +3,7 @@
 # Simply run this code snippet, then navigate to http://localhost:10000/iframe/widget/?name=home
 # Creating example dashboards
 from deephaven.time import dh_now
-from deephaven import time_table, ui
+from deephaven import empty_table, ui
 import deephaven.plot.express as dx
 
 
@@ -74,7 +74,7 @@ def create_dashboard(start_date, end_date, table):
 
 SECONDS_IN_DAY = 86400
 today = dh_now()
-_table = time_table("PT1s").update_view(
+_table = empty_table(20).update_view(
     [
         "Date=today.plusSeconds(SECONDS_IN_DAY*i)",
         "Value=i%2==0 ? `A` : `B`",
