@@ -107,12 +107,12 @@ app = app()
 
 This produces the following route table:
 
-| URL Path         | Matched Element | Params                   |
-| ---------------- | --------------- | ------------------------ |
-| `/`              | `dashboard`     | `{}`                     |
-| `/users`         | `user_page`     | `{}`                     |
-| `/users/42`      | `user_page`     | `{"user_id": "42"}`      |
-| `/anything-else` | `not_found`     | `{"*": "anything-else"}` |
+| URL Path         | Matched Element | Params                    |
+| ---------------- | --------------- | ------------------------- |
+| `/`              | `dashboard`     | none                      |
+| `/users`         | `user_page`     | none                      |
+| `/users/42`      | `user_page`     | `"user_id"` = `"42"`      |
+| `/anything-else` | `not_found`     | `"*"` = `"anything-else"` |
 
 ## Recommendations
 
@@ -146,11 +146,17 @@ This produces the following route table:
 
 #### Path patterns
 
-- `{var_name}`: Required dynamic segment
-- `{var_name?}`: Optional dynamic segment (matches zero or one segments)
-- `*`: Wildcard, matches any remaining path segments
-- Static text: Exact match
+```python skip-test
+{var_name}   # Required dynamic segment
+{var_name?}  # Optional dynamic segment (matches zero or one segments)
+*            # Wildcard, matches any remaining path segments
+segment      # Static text: Exact match
+```
 
 See [`use_params`](../hooks/use_params.md) for more details on route parameters.
 
-Child paths are appended to parent paths. For example, `ui.route(ui.route(path="{user_id}"), path="users")` produces `/users/{user_id}`.
+Child paths are appended to parent paths. For example:
+
+```python skip-test
+ui.route(ui.route(path="{user_id}"), path="users")  # produces /users/{user_id}
+```
