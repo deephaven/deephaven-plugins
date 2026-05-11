@@ -9,6 +9,7 @@ def use_params() -> dict[str, str]:
     Get the route parameters from the nearest ancestor router.
 
     Route parameters are defined by curly-braced segments in route paths.
+
     Returns:
         A dictionary mapping parameter names to their matched string values.
         Returns an empty dict if no router ancestor exists.
