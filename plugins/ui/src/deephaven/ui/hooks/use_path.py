@@ -12,8 +12,8 @@ def use_path(absolute: bool = False) -> str:
 
     Args:
         absolute: If True, returns the full absolute path from the URL.
-        If False (default), returns the path relative to the
-        current widget (after /-/).
+            If False (default), returns the path relative to the
+            current widget (after /-/).
 
     Returns:
         The current path as a string.
