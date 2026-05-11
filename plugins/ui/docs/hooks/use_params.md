@@ -104,7 +104,7 @@ app = app()
 
 ## Route Parameter Patterns
 
-Route parameters are defined by <code>{'{var_name}'}</code> segments in route paths:
+Route parameters are defined by <code>{"{var_name}"}</code> segments in route paths:
 
 - `{user_id}` matches a required segment and extracts it as `"user_id"` in the params dict.
 - `{tab?}` matches an optional segment. The parameter is not included if the segment is missing.
