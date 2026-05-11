@@ -146,8 +146,8 @@ This produces the following route table:
 
 #### Path patterns
 
-- `{var_name}`: Required dynamic segment
-- `{var_name?}`: Optional dynamic segment (matches zero or one segments)
+- `\{var_name}`: Required dynamic segment
+- `\{var_name?}`: Optional dynamic segment (matches zero or one segments)
 - `*`: Wildcard, matches any remaining path segments
 - Static text: Exact match
 
