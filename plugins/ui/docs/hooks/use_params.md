@@ -104,10 +104,10 @@ app = app()
 
 ## Route Parameter Patterns
 
-Route parameters are defined by `&#123;var_name&#125;` segments in route paths:
+Route parameters are defined by `\{var_name}` segments in route paths:
 
-- `&#123;user_id&#125;` matches a required segment and extracts it as `"user_id"` in the params dict.
-- `&#123;tab?&#125;` matches an optional segment. The parameter is not included if the segment is missing.
+- `{user_id}` matches a required segment and extracts it as `"user_id"` in the params dict.
+- `{tab?}` matches an optional segment. The parameter is not included if the segment is missing.
 - `*` matches any remaining path. The value is available as the `"*"` key.
 
 See [`router`](../components/router.md) for more details on defining routes and path patterns.
