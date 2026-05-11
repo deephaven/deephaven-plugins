@@ -249,7 +249,7 @@ dash_no_headers = ui.dashboard(
 ```
 
 > [!NOTE]
-> When `show_headers=False`, users will not be able to drag panels to rearrange the layout, since the header is the drag handle.
+> When `show_headers=False`, users will not be able to drag panels to rearrange the layout or change to other panels in a `ui.stack`, since the header is the target and drag handle.
 
 ## Nested Dashboards
 
