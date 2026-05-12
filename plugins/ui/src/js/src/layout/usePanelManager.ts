@@ -65,7 +65,7 @@ export function usePanelManager({
     () =>
       typeof widget === 'string'
         ? widget
-        : widget.id ?? widget.name ?? widget.type,
+        : `${widget.id}-${widget.name}-${widget.type}`,
     [widget]
   );
 

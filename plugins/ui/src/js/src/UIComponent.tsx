@@ -14,6 +14,13 @@ type UIComponentProps = WidgetComponentProps<dh.Widget> & {
   uri?: UriVariableDescriptor;
 };
 
+/**
+ * A component for rendering a UI widget. This component is responsible for managing the widget data state and providing it
+ * to the `WidgetHandler`, which will render the actual widget content.
+ * @param props Props for the component which extend the basic widget component props with an optional `uri` for resolved widgets.
+ * The `metadata` field of the props will be used as the widget descriptor if the `uri` is not provided.
+ * @returns A JSX element representing the UI component, or null if the descriptor is not available.
+ */
 export function UIComponent(props: UIComponentProps): JSX.Element | null {
   const { metadata: widgetDescriptor, uri, __dhId } = props;
 
@@ -46,10 +53,7 @@ export function UIComponent(props: UIComponentProps): JSX.Element | null {
       // eslint-disable-next-line react/jsx-no-useless-fragment
       <></>
     ),
-    // We only want to update this callback when the descriptor changes, not
-    // every time the widgetData (panelIds) changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [descriptor]
+    []
   );
 
   return (
