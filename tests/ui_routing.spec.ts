@@ -7,7 +7,7 @@ test.describe('UI routing - use_path', () => {
     await openPanel(page, 'ui_use_path', SELECTORS.REACT_PANEL_VISIBLE);
 
     const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
-    await expect(panel.getByText('path=/')).toBeVisible();
+    await expect(panel.getByText('path=/', { exact: true })).toBeVisible();
   });
 });
 
