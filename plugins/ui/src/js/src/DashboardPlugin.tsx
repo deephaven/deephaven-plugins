@@ -23,8 +23,7 @@ import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
 import { usePanelId } from './layout/ReactPanelContext';
-
-const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
+import { DASHBOARD_PLUGIN_NAME } from './UIWidgetPlugin';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
 
@@ -66,7 +65,7 @@ function InnerDashboardPlugin(
   const { id, layout } = props;
   const [pluginData, setPluginData] = useDashboardPluginData(
     id,
-    PLUGIN_NAME
+    DASHBOARD_PLUGIN_NAME
   ) as unknown as [DashboardPluginData, (data: DashboardPluginData) => void];
   const [initialPluginData] = useState(pluginData);
 
