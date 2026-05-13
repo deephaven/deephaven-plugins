@@ -1077,6 +1077,26 @@ def generate_figure(
         data_cols, custom_call_args, table, start_index
     )
 
+    # Some trace types (choropleth, choropleth_map, choropleth_mapbox) store
+    # color values in the trace's `z` field rather than `marker.color`. The
+    # default `color` -> `marker/color` override produces a path the JS client
+    # cannot walk (TypeError: Cannot set properties of undefined). Rewrite the
+    # mapping keys for those trace types here so the figure stays in sync as
+    # the underlying live table updates.
+    _CHOROPLETH_TRACE_TYPES = {"choropleth", "choroplethmap", "choroplethmapbox"}
+    for offset, trace in enumerate(px_fig.data):
+        if getattr(trace, "type", None) not in _CHOROPLETH_TRACE_TYPES:
+            continue
+        idx = offset
+        if idx < len(data_mapping._data_mapping):  # noqa: SLF001
+            var_col = data_mapping._data_mapping[idx]  # noqa: SLF001
+            if "marker/color" in var_col:
+                var_col["z"] = var_col.pop("marker/color")
+        if idx < len(hover_mapping):
+            hov = hover_mapping[idx]
+            if "marker/color" in hov:
+                hov["z"] = hov.pop("marker/color")
+
     types = get_hovertext_types(data_cols)
 
     hover_text, legend_title = create_hover_and_axis_titles(

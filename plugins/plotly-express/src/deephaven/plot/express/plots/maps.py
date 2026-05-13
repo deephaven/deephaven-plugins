@@ -694,3 +694,188 @@ def density_map(
     args = locals()
 
     return process_args(args, set(), px_func=px.density_map)
+
+
+def choropleth(
+    table: TableLike,
+    locations: str | None = None,
+    locationmode: str | None = None,
+    geojson: str | dict | None = None,
+    featureidkey: str = "id",
+    color: str | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    color_continuous_scale: list[str] | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
+    projection: str | None = None,
+    scope: str | None = None,
+    center: MapCenter | None = None,
+    fitbounds: bool | str = False,
+    basemap_visible: bool | None = None,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
+    on_click: Callable | None = None,
+    on_select: Callable | None = None,
+    on_deselect: Callable | None = None,
+    on_hover: Callable | None = None,
+    on_unhover: Callable | None = None,
+    on_relayout: Callable | None = None,
+    on_legend_click: Callable | None = None,
+) -> DeephavenFigure:
+    """
+    Create a choropleth plot
+
+    Args:
+      table: A table to pull data from.
+      locations: A column name to use for location values.
+        These map to predefined geographic regions when used with locationmode,
+        or to features in the geojson argument.
+      locationmode: A location mode to use.
+        One of 'ISO-3', 'USA-states', or 'country names'.
+        These map locations to predefined geographic regions.
+      geojson: GeoJSON data to use for geographic regions.
+      featureidkey: The feature ID key to use for geographic regions.
+        For example, 'properties.district' for a geojson with district properties.
+      color: A column name with values that determine the color of each region.
+        The values are used on a continuous color scale.
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply when
+        color is a non-numeric (categorical) column.
+      color_discrete_map: If dict, the keys should be strings of the column values which
+        map to colors. Used when color is categorical.
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      projection: The projection type to use.
+        Default depends on scope.
+        One of 'equirectangular', 'mercator', 'orthographic', 'natural earth',
+        'kavrayskiy7', 'miller', 'robinson', 'eckert4', 'azimuthal equal area',
+        'azimuthal equidistant', 'conic equal area', 'conic conformal',
+        'conic equidistant', 'gnomonic', 'stereographic', 'mollweide', 'hammer',
+        'transverse mercator', 'albers usa', 'winkel tripel', 'aitoff', or
+        'sinusoidal'
+      scope: The scope of the map.
+        Default of 'world', but forced to 'usa' if projection is 'albers usa'
+        One of 'world', 'usa', 'europe', 'asia', 'africa', 'north america', or
+        'south america'
+      center: A dictionary of center coordinates.
+        The keys should be 'lat' and 'lon' and the values should be floats
+        that represent the lat and lon of the center of the map.
+      fitbounds: One of False, 'locations', or 'geojson'
+        If 'locations' or 'geojson', the map will zoom to the extent of the
+        locations or geojson bounds respectively.
+      basemap_visible: If True, the basemap layer is visible.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+        DeephavenFigure: A DeephavenFigure that contains the choropleth figure
+    """
+    args = locals()
+
+    return process_args(args, set(), px_func=px.choropleth)
+
+
+def choropleth_map(
+    table: TableLike,
+    locations: str | None = None,
+    geojson: str | dict | None = None,
+    featureidkey: str = "id",
+    color: str | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    color_continuous_scale: list[str] | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
+    opacity: float | None = None,
+    zoom: float | None = 0,
+    center: MapCenter | None = None,
+    map_style: str | None = None,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
+    on_click: Callable | None = None,
+    on_select: Callable | None = None,
+    on_deselect: Callable | None = None,
+    on_hover: Callable | None = None,
+    on_unhover: Callable | None = None,
+    on_relayout: Callable | None = None,
+    on_legend_click: Callable | None = None,
+) -> DeephavenFigure:
+    """
+    Create a choropleth_map plot
+
+    Args:
+      table: A table to pull data from.
+      locations: A column name to use for location values.
+        These map to features in the geojson argument.
+      geojson: GeoJSON data to use for geographic regions.
+      featureidkey: The feature ID key to use for geographic regions.
+        For example, 'properties.district' for a geojson with district properties.
+      color: A column name with values that determine the color of each region.
+        The values are used on a continuous color scale.
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply when
+        color is a non-numeric (categorical) column.
+      color_discrete_map: If dict, the keys should be strings of the column values which
+        map to colors. Used when color is categorical.
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      opacity: Opacity to apply to all regions. 0 is completely transparent
+        and 1 is completely opaque.
+      zoom: The zoom level of the map. 0 is the whole world, and higher values zoom in closer.
+      center: A dictionary of center coordinates.
+        The keys should be 'lat' and 'lon' and the values should be floats
+        that represent the lat and lon of the center of the map.
+      map_style: The style of the map. Defaults to None, which uses the theme's default.
+        If a str, one of 'basic', 'carto-darkmatter', 'carto-darkmatter-nolabels', 'carto-positron',
+        'carto-positron-nolabels', 'carto-voyager', 'carto-voyager-nolabels', 'dark', 'light',
+        'open-street-map', 'outdoors', 'satellite', 'satellite-streets', 'streets', 'white-bg'.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+        DeephavenFigure: A DeephavenFigure that contains the choropleth_map figure
+    """
+    args = locals()
+
+    return process_args(args, set(), px_func=px.choropleth_map)
+
+
+def choropleth_mapbox(*args, **kwargs) -> DeephavenFigure:
+    """
+    Deprecated function. Use choropleth_map instead.
+    """
+    warnings.warn(
+        "choropleth_mapbox is deprecated and will be removed in a future release. Use choropleth_map instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
+    return choropleth_map(*args, **kwargs)

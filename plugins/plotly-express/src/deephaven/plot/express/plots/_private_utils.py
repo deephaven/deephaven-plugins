@@ -434,12 +434,22 @@ def process_args(
             # Set a default center to prevent px from auto-centering based on data
             # which breaks the initial view for map plots since the data may be null initially
             # Auto centering on the server side is also a bad idea since the data can change,
-            # so that should be done on the client side if desired
-            center = {
-                "lat": 0,
-                "lon": 0,
-            }
-        render_args["args"]["center"] = center
+            # so that should be done on the client side if desired.
+            # Skip for geo-based plots (e.g. `choropleth`) since the geo subplot uses
+            # `scope`/`projection` and a forced {lat:0, lon:0} center conflicts with
+            # projections like `albers usa`, which crashes the JS renderer.
+            is_geo_plot = (
+                "scope" in render_args["args"]
+                or "projection" in render_args["args"]
+                or "locationmode" in render_args["args"]
+            )
+            if not is_geo_plot:
+                center = {
+                    "lat": 0,
+                    "lon": 0,
+                }
+        if center is not None:
+            render_args["args"]["center"] = center
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]

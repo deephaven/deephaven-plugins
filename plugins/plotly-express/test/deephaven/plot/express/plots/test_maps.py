@@ -1,4 +1,5 @@
 import unittest
+import warnings
 
 from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
@@ -6,13 +7,17 @@ from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 class MapTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
-        from deephaven.column import int_col
+        from deephaven.column import int_col, string_col
 
         self.source = new_table(
             [
                 int_col("lat", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("lon", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("z", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
+                string_col(
+                    "loc",
+                    ["USA", "CAN", "MEX", "BRA", "ARG", "GBR", "FRA", "DEU", "JPN"],
+                ),
             ]
         )
 
@@ -45,7 +50,6 @@ class MapTestCase(BaseTestCase):
 
         expected_layout = {
             "geo": {
-                "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "fitbounds": False,
             },
@@ -126,7 +130,6 @@ class MapTestCase(BaseTestCase):
 
         expected_layout = {
             "geo": {
-                "center": {"lat": 0, "lon": 0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "fitbounds": False,
             },
@@ -232,6 +235,93 @@ class MapTestCase(BaseTestCase):
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
+
+
+class ChoroplethTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        from deephaven import new_table
+        from deephaven.column import int_col, string_col
+
+        self.source = new_table(
+            [
+                int_col("z", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
+                string_col(
+                    "loc",
+                    ["USA", "CAN", "MEX", "BRA", "ARG", "GBR", "FRA", "DEU", "JPN"],
+                ),
+            ]
+        )
+
+    def test_basic_choropleth(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.choropleth(
+            self.source,
+            locations="loc",
+            locationmode="ISO-3",
+            color="z",
+        ).to_dict(self.exporter)
+        plotly = chart["plotly"]
+
+        self.assertEqual(len(plotly["data"]), 1)
+        trace = plotly["data"][0]
+        self.assertEqual(trace["type"], "choropleth")
+        self.assertEqual(trace["locationmode"], "ISO-3")
+        self.assertEqual(trace["featureidkey"], "id")
+        self.assertEqual(trace["geo"], "geo")
+        self.assertEqual(trace["coloraxis"], "coloraxis")
+        # locations and z column data is a placeholder array filled by the live table
+        self.assertIn("locations", trace)
+        self.assertIn("z", trace)
+
+        layout = plotly["layout"]
+        self.assertIn("geo", layout)
+        self.assertIn("coloraxis", layout)
+        self.assertEqual(layout["geo"]["fitbounds"], False)
+
+    def test_basic_choropleth_map(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.choropleth_map(
+            self.source,
+            locations="loc",
+            color="z",
+            zoom=3,
+        ).to_dict(self.exporter)
+        plotly = chart["plotly"]
+
+        self.assertEqual(len(plotly["data"]), 1)
+        trace = plotly["data"][0]
+        self.assertEqual(trace["type"], "choroplethmap")
+        self.assertEqual(trace["featureidkey"], "id")
+        self.assertEqual(trace["subplot"], "map")
+        self.assertEqual(trace["coloraxis"], "coloraxis")
+        self.assertIn("locations", trace)
+        self.assertIn("z", trace)
+
+        layout = plotly["layout"]
+        self.assertIn("map", layout)
+        self.assertEqual(layout["map"]["zoom"], 3)
+        self.assertIn("coloraxis", layout)
+
+    def test_choropleth_mapbox_deprecated(self):
+        import src.deephaven.plot.express as dx
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            chart = dx.choropleth_mapbox(
+                self.source,
+                locations="loc",
+                color="z",
+            ).to_dict(self.exporter)
+
+        self.assertTrue(
+            any(issubclass(w.category, DeprecationWarning) for w in caught),
+            "choropleth_mapbox should emit a DeprecationWarning",
+        )
+
+        trace = chart["plotly"]["data"][0]
+        self.assertEqual(trace["type"], "choroplethmap")
 
 
 if __name__ == "__main__":

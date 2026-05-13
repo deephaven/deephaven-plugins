@@ -30,6 +30,14 @@
             "path": "candlestick.md"
           },
           {
+            "label": "Choropleth",
+            "path": "choropleth.md"
+          },
+          {
+            "label": "Choropleth Map",
+            "path": "choropleth-map.md"
+          },
+          {
             "label": "Density Heatmap",
             "path": "density_heatmap.md"
           },
