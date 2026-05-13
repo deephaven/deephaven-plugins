@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.36.1 - 2026-05-13
+
+#### Bug Fixes
+
+- DH-22174: ui.table works with rollup and tree tables ([#1343](https://github.com/deephaven/deephaven-plugins/pull/1343)) - (3a83d3f) - mofojed
+
+#### Documentation
+
+- DOC-752 copies changelog on docs build and adds to sidebar menu ([#1345](https://github.com/deephaven/deephaven-plugins/pull/1345)) - (6fa17ba) - dsmmcken
+
+- - -
+
+
 ## ui-v0.36.0 - 2026-05-06
 
 #### Features
