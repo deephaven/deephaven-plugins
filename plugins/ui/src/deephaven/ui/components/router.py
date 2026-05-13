@@ -194,15 +194,16 @@ def _check_conflicts(
 
 def _compile_and_check(
     routes: list[_Route],
-) -> list[tuple[str, Callable[..., Any] | None, list[str], bool]]:
+) -> list[tuple[re.Pattern[str], Callable[..., Any] | None, list[str], bool]]:
     """
-    Compile routes and check for conflicts. Returns compiled routes if valid.
+    Compile routes and check for conflicts. Returns compiled routes with
+    precompiled regexes.
 
     Args:
         routes: The list of _Route definitions to compile and check.
 
     Returns:
-        A list of compiled route tuples (pattern, element, param_names, is_index).
+        A list of compiled route tuples (compiled_regex, element, param_names, is_index).
 
     Raises:
         ValueError: If conflicting route paths are detected among siblings.
@@ -215,12 +216,16 @@ def _compile_and_check(
         key=lambda r: _specificity_key(r[0], r[3]),
         reverse=True,
     )
-    return sorted_routes
+    # Precompile regexes so _match_route doesn't recompile on every call
+    return [
+        (re.compile(_pattern_to_regex(pattern)), element, param_names, is_index)
+        for pattern, element, param_names, is_index in sorted_routes
+    ]
 
 
 def _match_route(
     path: str,
-    compiled: list[tuple[str, Callable[..., Any] | None, list[str], bool]],
+    compiled: list[tuple[re.Pattern[str], Callable[..., Any] | None, list[str], bool]],
 ) -> tuple[Callable[..., Any] | None, dict[str, str]] | None:
     """
     Match a path against compiled routes.
@@ -228,7 +233,7 @@ def _match_route(
 
     Args:
         path: The URL path to match.
-        compiled: The list of compiled route tuples (pattern, element, param_names, is_index).
+        compiled: The list of compiled route tuples (compiled_regex, element, param_names, is_index).
 
     Returns:
         A tuple of (element, params) for the best match, or None if no match is found.
@@ -240,9 +245,8 @@ def _match_route(
 
     # Iterate through compiled routes in order of specificity and return the first match
     # It's assumed the routes are pre-sorted by specificity, so the first match is the best match.
-    for pattern, element, param_names, _ in compiled:
-        regex = _pattern_to_regex(pattern)
-        match = re.match(regex, "/" + normalized_path if normalized_path else "/")
+    for regex, element, param_names, _ in compiled:
+        match = regex.match("/" + normalized_path if normalized_path else "/")
         if match:
             params: dict[str, str] = {}
             for name in param_names:

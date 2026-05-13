@@ -32,6 +32,7 @@ export const HREF_PARAM = '__href';
 const WIDGET_PATH_SEPARATOR = '/-/';
 
 /** Allowed URL schemes for navigation */
+/** Local routing doesn't have a scheme, but future routing might. */
 const ALLOWED_SCHEMES = new Set(['http:', 'https:', '']);
 
 /**
@@ -98,6 +99,7 @@ export function Navigate(params: NavigateParams): void {
   }
 
   // Handle query params: null/undefined = preserve (or clear if path changed), "" = clear
+  // Query params are cleared if a new path is provided without explicit query params as it is assumed they are not relevant.
   if (navQueryParams != null) {
     url.search = navQueryParams;
   } else if (navPath != null) {
@@ -106,6 +108,7 @@ export function Navigate(params: NavigateParams): void {
   }
 
   // Handle fragment: null/undefined = preserve (or clear if path changed), "" = clear
+  // Fragments are cleared if a new path is provided without an explicit fragment as it is assumed it is not relevant.
   if (navFragment != null) {
     url.hash = navFragment ? `#${navFragment}` : '';
   } else if (navPath != null) {

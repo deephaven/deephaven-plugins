@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Callable
 from urllib.parse import urlencode, urlsplit
 
-from ..types import QueryParams
+from ..types import QueryParamsInput
 from .use_send_event import use_send_event
 
 
@@ -30,7 +30,7 @@ def _normalize_path(path: str | None) -> str | None:
     return path
 
 
-def _normalize_query_params(query_params: str | QueryParams | None) -> str | None:
+def _normalize_query_params(query_params: str | QueryParamsInput | None) -> str | None:
     """
     Normalize query params to a ?-prefixed string. None passthrough, empty clears.
 
@@ -92,7 +92,7 @@ def _parse_inline_url(path: str) -> tuple[str, str | None, str | None]:
 
 def build_navigate_payload(
     path: str | None = None,
-    query_params: str | QueryParams | None = None,
+    query_params: str | QueryParamsInput | None = None,
     fragment: str | None = None,
     replace: bool | None = None,
 ) -> dict[str, Any]:
@@ -145,7 +145,7 @@ def use_navigate() -> Callable[..., None]:
 
     def navigate(
         path: str | None = None,
-        query_params: str | QueryParams | None = None,
+        query_params: str | QueryParamsInput | None = None,
         fragment: str | None = None,
         replace: bool | None = None,
     ) -> None:
