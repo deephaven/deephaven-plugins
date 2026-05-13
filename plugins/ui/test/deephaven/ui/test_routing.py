@@ -515,26 +515,26 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertIn("users/{user_id}/posts/{post_id}", patterns)
 
     def test_match_static_path(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def home():
             return None
 
-        compiled = _compile_routes([_Route(path="home", element=home)])
+        compiled = _compile_and_check([_Route(path="home", element=home)])
         result = _match_route("/home", compiled)
         self.assertIsNotNone(result)
         self.assertEqual(result[0], home)
         self.assertEqual(result[1], {})
 
     def test_match_parameterized_path(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def user():
             return None
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(path="users/{user_id}", element=user),
             ]
@@ -545,13 +545,13 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[1], {"user_id": "42"})
 
     def test_match_nested_params(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def user_post():
             return None
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(
                     path="users",
@@ -571,7 +571,7 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[1], {"user_id": "42", "post_id": "7"})
 
     def test_static_preferred_over_param(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def settings():
@@ -580,7 +580,7 @@ class RouterMatchingTestCase(BaseTestCase):
         def user():
             return "user"
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(path="users/settings", element=settings),
                 _Route(path="users/{user_id}", element=user),
@@ -591,7 +591,7 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[0], settings)
 
     def test_wildcard_lowest_priority(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def home():
@@ -600,7 +600,7 @@ class RouterMatchingTestCase(BaseTestCase):
         def not_found():
             return "not_found"
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(path="home", element=home),
                 _Route(path="*", element=not_found),
@@ -616,19 +616,19 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[1], {"*": "anything-else"})
 
     def test_wildcard_matches_deep_path(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def catch_all():
             return None
 
-        compiled = _compile_routes([_Route(path="*", element=catch_all)])
+        compiled = _compile_and_check([_Route(path="*", element=catch_all)])
         result = _match_route("/a/b/c", compiled)
         self.assertIsNotNone(result)
         self.assertEqual(result[1], {"*": "a/b/c"})
 
     def test_index_route_matches_parent_exact(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def index():
@@ -637,7 +637,7 @@ class RouterMatchingTestCase(BaseTestCase):
         def child():
             return "child"
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(
                     path="users",
@@ -654,13 +654,13 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[0], index)
 
     def test_optional_param(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def user_page():
             return None
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(path="users/{tab?}", element=user_page),
             ]
@@ -676,24 +676,24 @@ class RouterMatchingTestCase(BaseTestCase):
         self.assertEqual(result[1], {})
 
     def test_no_match_returns_none(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def home():
             return None
 
-        compiled = _compile_routes([_Route(path="home", element=home)])
+        compiled = _compile_and_check([_Route(path="home", element=home)])
         result = _match_route("/nonexistent", compiled)
         self.assertIsNone(result)
 
     def test_root_path_match(self):
-        from deephaven.ui.components.router import _compile_routes, _match_route
+        from deephaven.ui.components.router import _compile_and_check, _match_route
         from deephaven.ui.components.route import _Route
 
         def dashboard():
             return None
 
-        compiled = _compile_routes(
+        compiled = _compile_and_check(
             [
                 _Route(index=True, element=dashboard),
             ]
