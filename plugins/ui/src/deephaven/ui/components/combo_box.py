@@ -45,51 +45,17 @@ SUPPORTED_SOURCE_ARGS = {
 
 _NULLABLE_PROPS = ["selected_key"]
 
-# Props that only apply to single-select ComboBox.
+# Props that only apply to single-select ComboBox and are stripped in multi mode.
 _SINGLE_ONLY_PROPS = {
     "selected_key",
     "default_selected_key",
 }
 
-# Props that only apply to multi-select mode.
+# Props that only apply to multi-select mode and are stripped in single mode.
 _MULTI_ONLY_PROPS = {
     "selected_keys",
     "default_selected_keys",
 }
-
-# Props that raise a ValueError if explicitly set in the wrong mode.
-_SINGLE_ONLY_VALIDATED = {
-    "selected_key": Undefined,
-    "default_selected_key": None,
-}
-
-_MULTI_ONLY_VALIDATED = {
-    "selected_keys": None,
-    "default_selected_keys": None,
-}
-
-
-def _validate_selection_mode(props: dict[str, Any], mode: str) -> None:
-    """Validate and strip props that conflict with the given selection mode.
-
-    Raises ValueError for props that conflict with the active mode,
-    and removes props that only apply to the other mode.
-
-    Args:
-        props: The props to validate.
-        mode: The active selection mode.
-    """
-    if mode == "multiple":
-        validated, strip = _SINGLE_ONLY_VALIDATED, _SINGLE_ONLY_PROPS
-    else:
-        validated, strip = _MULTI_ONLY_VALIDATED, _MULTI_ONLY_PROPS
-
-    for prop, default in validated.items():
-        val = props.get(prop)
-        if val is not default:
-            raise ValueError(f"'{prop}' is not supported when selection_mode='{mode}'.")
-    for prop in strip:
-        props.pop(prop, None)
 
 
 def _wrap_callback_as_selection(
@@ -116,10 +82,60 @@ def _wrap_callback_as_selection(
     return wrapper
 
 
+def _process_selection_props(
+    props: dict[str, Any],
+    is_multiple: bool,
+    *,
+    stacklevel: int = 3,
+) -> None:
+    """Process selection-related props: emit deprecation warnings, strip
+    inapplicable props, and wrap callbacks when needed.
+
+    When the deprecated ``selected_key`` / ``default_selected_key`` props are
+    used, callbacks continue to receive a single ``Key``.  When only the new
+    ``selected_keys`` / ``default_selected_keys`` props are used, callbacks in
+    single-select mode are wrapped so they always receive a ``Selection``.
+
+    Args:
+        props: Mutable props dict (modified in place).
+        is_multiple: Whether multi-select mode is active.
+        stacklevel: Stack level passed to warnings.warn to point to the caller's code.
+    """
+    uses_deprecated = (
+        props.get("selected_key") is not Undefined
+        or props.get("default_selected_key") is not None
+    )
+
+    # warn about deprecated single-select props if they are set
+    if props.get("selected_key") is not Undefined:
+        warnings.warn(
+            "'selected_key' is deprecated. Use 'selected_keys' instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+    if props.get("default_selected_key") is not None:
+        warnings.warn(
+            "'default_selected_key' is deprecated. Use 'default_selected_keys' instead.",
+            DeprecationWarning,
+            stacklevel=stacklevel,
+        )
+
+    # strip props that don't apply to the active mode
+    for prop in _SINGLE_ONLY_PROPS if is_multiple else _MULTI_ONLY_PROPS:
+        props.pop(prop, None)
+
+    # When not using deprecated key props in single-select mode, wrap
+    # callbacks so they receive a Selection instead of a single Key.
+    if not is_multiple and not uses_deprecated:
+        for cb_name in ("on_selection_change", "on_change"):
+            cb = props.get(cb_name)
+            if cb is not None:
+                props[cb_name] = _wrap_callback_as_selection(cb)
+
+
 def combo_box(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     selection_mode: Literal["single", "multiple"] = "single",
-    selection_event: bool = False,
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
     align: Align | None = "end",
@@ -231,11 +247,6 @@ def combo_box(
         *children: The options to render within the combo box.
         selection_mode: Whether the combo box allows single or multiple selection.
             Defaults to `"single"`.
-        selection_event: When True, `on_selection_change` and `on_change` receive a
-            `Selection` (list of keys) instead of a single `Key` in single-select mode.
-            Defaults to False for backwards compatibility. Set to True to opt in to the
-            new behavior. In a future version, this will become the default and this
-            prop will be deprecated.
         menu_trigger: The interaction required to display the ComboBox menu.
         is_quiet: Whether the ComboBox should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
@@ -279,11 +290,11 @@ def combo_box(
         on_open_change: Method that is called when the open state of the menu changes.
             Returns the new open state and the action that caused the opening of the menu.
         on_selection_change: Handler that is called when the selection changes.
-            When `selection_event=True`, always receives a `Selection` (list of keys).
-            Otherwise, receives a single `Key` in single-select mode (deprecated).
+            Receives a `Selection` (list of keys).  When the deprecated `selected_key`
+            or `default_selected_key` props are used, receives a single `Key` instead.
         on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
-            When `selection_event=True`, always receives a `Selection` (list of keys).
-            Otherwise, receives a single `Key` in single-select mode (deprecated).
+            Receives a `Selection` (list of keys).  When the deprecated `selected_key`
+            or `default_selected_key` props are used, receives a single `Key` instead.
         on_input_change: Handler that is called when the ComboBox input value changes.
         on_focus: Handler that is called when the element receives focus.
         on_blur: Handler that is called when the element loses focus.
@@ -340,42 +351,9 @@ def combo_box(
     """
     children, props = create_props(locals())
 
-    if selected_key is not Undefined:
-        warnings.warn(
-            "'selected_key' is deprecated. Use 'selected_keys' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-    if default_selected_key is not None:
-        warnings.warn(
-            "'default_selected_key' is deprecated. Use 'default_selected_keys' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
     is_multiple = props.pop("selection_mode", "single") == "multiple"
-    use_selection_event = props.pop("selection_event", False)
 
-    if not is_multiple:
-        if use_selection_event:
-            for cb_name in ("on_selection_change", "on_change"):
-                cb = props.get(cb_name)
-                if cb is not None:
-                    props[cb_name] = _wrap_callback_as_selection(cb)
-        else:
-            for cb_name in ("on_selection_change", "on_change"):
-                if props.get(cb_name) is not None:
-                    warnings.warn(
-                        f"'{cb_name}' currently receives a single Key in "
-                        "single-select mode. In a future version, it will "
-                        "receive a Selection (list of keys). Set "
-                        "selection_event=True to opt in to the new behavior "
-                        "and suppress this warning.",
-                        DeprecationWarning,
-                        stacklevel=2,
-                    )
-
-    _validate_selection_mode(props, "multiple" if is_multiple else "single")
+    _process_selection_props(props, is_multiple)
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 

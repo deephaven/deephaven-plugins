@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_basic():
-    option, set_option = ui.use_state("")
+    option, set_option = ui.use_state([])
 
     return ui.combo_box(
         ui.item("red panda"),
@@ -21,7 +21,7 @@ def ui_combo_box_basic():
         ui.item("snake"),
         ui.item("ant"),
         label="Favorite Animal",
-        selected_key=option,
+        selected_keys=option,
         on_change=set_option,
     )
 
@@ -262,9 +262,11 @@ my_combo_box_required_examples = ui_combo_box_required_examples()
 
 ## Selection
 
-In a combo box, the `default_selected_key` or `selected_key` props set a selected option.
+Use `selected_keys` or `default_selected_keys` to set the selected option(s).
 
-The `default_selected_key` is useful for simpler scenarios where you don't need to control the state externally. The `selected_key` is used for scenarios where the state should be managed by the parent component, providing control and flexibility over the selection of the combo box.
+`default_selected_keys` is useful for simpler scenarios where you don't need to control the state externally. `selected_keys` is used for scenarios where the state should be managed by the parent component, providing control and flexibility over the selection of the combo box.
+
+> [!NOTE] > `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks always receive a list of keys.
 
 ```python
 from deephaven import ui
@@ -272,7 +274,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_selected_key_examples():
-    option, set_option = ui.use_state("Option 1")
+    option, set_option = ui.use_state(["Option 1"])
     return [
         ui.combo_box(
             ui.item("Option 1"),
@@ -284,7 +286,7 @@ def ui_combo_box_selected_key_examples():
             ui.item("Option 7"),
             ui.item("Option 8"),
             ui.item("Option 9"),
-            default_selected_key="Option 2",
+            default_selected_keys=["Option 2"],
             label="Pick an option (uncontrolled)",
         ),
         ui.combo_box(
@@ -297,7 +299,7 @@ def ui_combo_box_selected_key_examples():
             ui.item("Option 7"),
             ui.item("Option 8"),
             ui.item("Option 9"),
-            selected_key=option,
+            selected_keys=option,
             on_change=set_option,
             label="Pick an option (controlled)",
         ),
@@ -347,11 +349,13 @@ my_combo_box_section_example = ui.combo_box(
 
 ## Events
 
-Combo boxes support selection via mouse, keyboard, and touch. You can handle all these via the `on_change` prop, which receives the selected key as an argument. Additionally, combo boxes accept an `on_input_change` prop, which is triggered whenever the search value is edited by the user, whether through typing or option selection.
+Combo boxes support selection via mouse, keyboard, and touch. You can handle all these via the `on_change` prop. Additionally, combo boxes accept an `on_input_change` prop, which is triggered whenever the search value is edited by the user, whether through typing or option selection.
 
 Each interaction done in the combo box will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
+
+> [!NOTE] > `on_change` and `on_selection_change` receive a `Selection` (list of keys) by default. When the deprecated `selected_key` or `default_selected_key` props are used, callbacks receive a single `Key` instead for backwards compatibility. Eventually the single key props will be removed and callbacks will always receive a list of keys.
 
 ```python
 from deephaven import ui
@@ -360,17 +364,15 @@ from deephaven import ui
 @ui.component
 def ui_combo_box_control_example():
     input_value, set_input_value = ui.use_state("")
-    selection_state, set_selection_state = ui.use_state("")
+    selection_state, set_selection_state = ui.use_state([])
 
     def handle_input_change(new_value):
-        set_selection_state("")
         set_input_value(new_value)
-        print(f"Text changed to {input_value}")
+        print(f"Text changed to {new_value}")
 
     def handle_selection_change(new_value):
-        set_input_value(new_value)
         set_selection_state(new_value)
-        print(f"Selection changed to {selection_state}")
+        print(f"Selection changed to {new_value}")
 
     return [
         ui.combo_box(
@@ -383,11 +385,10 @@ def ui_combo_box_control_example():
             ui.item("Option 7"),
             ui.item("Option 8"),
             ui.item("Option 9"),
-            input_value=input_value,
             on_input_change=handle_input_change,
-            selected_key=selection_state,
+            selected_keys=selection_state,
             on_change=handle_selection_change,
-        )
+        ),
     ]
 
 
@@ -600,7 +601,7 @@ my_combo_box_is_read_only_example = ui.combo_box(
     ui.item("Option 6", key="Option 6"),
     ui.item("Option 7", key="Option 7"),
     ui.item("Option 8", key="Option 8"),
-    default_selected_key="Option 1",
+    default_selected_keys=["Option 1"],
     is_read_only=True,
 )
 ```
@@ -765,84 +766,36 @@ def ui_combo_box_alignment_direction_examples():
 my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_examples()
 ```
 
-## How to create a multi-select component
+## Multi-select
 
-By leveraging the `on_change` handler of `ui.combo_box` to dynamically generate items, you can pair it with `ui.tag_group` to build a multi-select component.
+Set `selection_mode="multiple"` to allow selecting multiple items. Selected items appear as tags inside the input area, and the dropdown list can be filtered by typing.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def ui_combo_box_multi_select_example(
-    options, on_input_change_callback=None, on_selection_change_callback=None
-):
-    input_value, set_input_value = ui.use_state("")
-    selection_state, set_selection_state = ui.use_state("")
-    items, set_items = ui.use_state([])
+def ui_combo_box_multi_select_example():
+    selected, set_selected = ui.use_state([])
 
-    def handle_input_change(new_value):
-        set_selection_state("")
-        set_input_value(new_value)
-        print(f"Text changed to {new_value}")
-        if on_input_change_callback:
-            on_input_change_callback(new_value)
-
-    def handle_selection_change(new_value):
-        set_input_value("")
-        set_selection_state(new_value)
-        set_items(
-            lambda prev_items: prev_items + [new_value]
-            if new_value not in prev_items and new_value is not None
-            else prev_items
-        )
-        print(f"Selection changed to {items}")
-        if on_selection_change_callback:
-            on_selection_change_callback(new_value, items)
-
-    return [
-        ui.flex(
-            ui.flex(
-                ui.combo_box(
-                    *[ui.item(option) for option in options],
-                    input_value=input_value,
-                    on_input_change=handle_input_change,
-                    selected_key=selection_state,
-                    on_change=handle_selection_change,
-                ),
-                ui.tag_group(
-                    *[ui.item(item, key=item.lower()) for item in items],
-                    on_remove=lambda keys: set_items(
-                        [item for item in items if item.lower() not in keys]
-                    ),
-                ),
-                direction="row",
-                align_items="center",
-            ),
-            align_items="start",
-        )
-    ]
+    return ui.combo_box(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        ui.item("Option 5"),
+        ui.item("Option 6"),
+        ui.item("Option 7"),
+        ui.item("Option 8"),
+        ui.item("Option 9"),
+        selection_mode="multiple",
+        selected_keys=selected,
+        on_change=set_selected,
+        label="Pick options",
+    )
 
 
-my_options = [
-    "Option 1",
-    "Option 2",
-    "Option 3",
-    "Option 4",
-    "Option 5",
-    "Option 6",
-    "Option 7",
-    "Option 8",
-    "Option 9",
-]
-
-my_combo_box_multi_select_example = ui_combo_box_multi_select_example(
-    options=my_options,
-    on_input_change_callback=lambda value: print(f"Custom input handler: {value}"),
-    on_selection_change_callback=lambda value, items: print(
-        f"Custom selection handler: {value}, {items}"
-    ),
-)
+my_combo_box_multi_select_example = ui_combo_box_multi_select_example()
 ```
 
 ## API Reference
