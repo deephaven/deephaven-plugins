@@ -32,6 +32,7 @@ import {
   HEATMAP_MAX_SUFFIX,
 } from './UITableUtils';
 import JsTableProxy, { type UITableLayoutHints } from './JsTableProxy';
+import JsTreeTableProxy from './JsTreeTableProxy';
 import { resolveNamedScale } from './ColorScales';
 import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
 
@@ -46,11 +47,49 @@ import { interpolateColor, normalizeValue } from '../utils/HeatmapUtils';
  */
 export async function makeUiTableModel(
   dh: typeof DhType,
-  baseTableProp: DhType.Table,
+  baseTableProp: DhType.Table | DhType.TreeTable,
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
+  // TreeTable (includes rollup tables) supports copy() but does NOT support
+  // naturalJoin() or getTotalsTable(), so databars/heatmaps with auto min/max
+  // are unsupported. Conditional formatting via `if_` is also unsupported:
+  // applyCustomColumns on a rollup adds the column to the source rather than
+  // the aggregated output, so the column is not present on the rollup itself.
+  // The Python side validates and rejects these cases up front; this is
+  // defense-in-depth.
+  const isTreeTable = TableUtils.isTreeTable(baseTableProp);
+  if (isTreeTable) {
+    const baseTreeTable = await baseTableProp.copy();
+
+    const hasIfRule = format.some(rule => {
+      const { if_ } = rule;
+      return if_ != null;
+    });
+    if (hasIfRule) {
+      throw new Error(
+        'ui.TableFormat if_ is not supported on tree or rollup tables.'
+      );
+    }
+
+    const uiTreeTableProxy = new JsTreeTableProxy({
+      table: baseTreeTable,
+      layoutHints,
+      onClose: () => undefined,
+    });
+    const baseModel = await IrisGridModelFactory.makeModel(
+      dh,
+      uiTreeTableProxy as unknown as DhType.Table
+    );
+    return new UITableModel({
+      dh,
+      model: baseModel,
+      format,
+      displayNameMap,
+    });
+  }
+
   const baseTable = await baseTableProp.copy();
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
