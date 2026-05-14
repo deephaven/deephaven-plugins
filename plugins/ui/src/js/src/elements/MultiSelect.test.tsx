@@ -41,16 +41,8 @@ jest.mock('./hooks/useObjectViewObject', () => ({
 
 jest.mock('@deephaven/components', () => ({
   MultiSelect: jest.fn(
-    ({
-      children,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      [key: string]: unknown;
-    }) => (
-      <div data-testid="dh-multi-select" {...props}>
-        {children}
-      </div>
+    ({ children }: { children?: React.ReactNode; [key: string]: unknown }) => (
+      <div data-testid="dh-multi-select">{children}</div>
     )
   ),
 }));
@@ -65,7 +57,7 @@ jest.mock('@deephaven/react-hooks', () => ({
 
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
   ApiContext: {
-    Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    Provider: ({ children }: { children: React.ReactNode }) => children,
   },
 }));
 
@@ -80,7 +72,12 @@ describe('MultiSelect', () => {
       label: 'Test',
     } as unknown as SerializedMultiSelectProps;
 
-    const { getByTestId } = render(<MultiSelect {...props} />);
+    const { getByTestId } = render(
+      <MultiSelect
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      />
+    );
     expect(getByTestId('dh-multi-select')).toBeTruthy();
   });
 
@@ -103,7 +100,12 @@ describe('MultiSelect', () => {
       label: 'Loading test',
     } as unknown as SerializedMultiSelectProps;
 
-    const { getByTestId } = render(<MultiSelect {...props} />);
+    const { getByTestId } = render(
+      <MultiSelect
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      />
+    );
     const el = getByTestId('dh-multi-select');
     expect(el).toBeTruthy();
   });
@@ -127,7 +129,12 @@ describe('MultiSelect', () => {
       label: 'Error test',
     } as unknown as SerializedMultiSelectProps;
 
-    const { getByTestId } = render(<MultiSelect {...props} />);
+    const { getByTestId } = render(
+      <MultiSelect
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      />
+    );
     const el = getByTestId('dh-multi-select');
     expect(el).toBeTruthy();
   });
@@ -151,7 +158,12 @@ describe('MultiSelect', () => {
       label: 'JSApi test',
     } as unknown as SerializedMultiSelectProps;
 
-    const { getByTestId } = render(<MultiSelect {...props} />);
+    const { getByTestId } = render(
+      <MultiSelect
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+      />
+    );
     expect(getByTestId('dh-multi-select-jsapi')).toBeTruthy();
   });
 });

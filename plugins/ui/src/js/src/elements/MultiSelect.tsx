@@ -4,9 +4,9 @@ import { MultiSelect as DHMultiSelectJSApi } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import {
-  SerializedMultiSelectProps,
+  type SerializedMultiSelectProps,
   useMultiSelectProps,
 } from './hooks/useMultiSelectProps';
 import ObjectView from './ObjectView';

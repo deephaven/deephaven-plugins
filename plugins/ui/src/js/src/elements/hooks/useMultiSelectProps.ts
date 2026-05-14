@@ -1,10 +1,10 @@
-import { MultiSelectProps as DHMultiSelectProps } from '@deephaven/components';
-import { MultiSelectProps as DHMultiSelectJSApiProps } from '@deephaven/jsapi-components';
+import type { MultiSelectProps as DHMultiSelectProps } from '@deephaven/components';
+import type { MultiSelectProps as DHMultiSelectJSApiProps } from '@deephaven/jsapi-components';
 import {
-  SerializedSelectionProps,
+  type SerializedSelectionProps,
   useSelectionProps,
 } from './useSelectionProps';
-import {
+import type {
   SerializedPickerEventProps,
   WrappedDHPickerJSApiProps,
 } from './usePickerProps';
