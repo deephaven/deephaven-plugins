@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Callable, Any, Literal
 
 from .types import (
@@ -91,9 +92,34 @@ def _validate_selection_mode(props: dict[str, Any], mode: str) -> None:
         props.pop(prop, None)
 
 
+def _wrap_callback_as_selection(
+    callback: Callable[..., None] | None,
+) -> Callable[..., None] | None:
+    """
+    Wrap a callback so it always receives a Selection instead of a single Key.
+
+    Args:
+        callback: The callback to wrap.
+
+    Returns:
+        A wrapped callback that always receives a Selection.
+    """
+    if callback is None:
+        return None
+
+    def wrapper(value: Any) -> None:
+        if isinstance(value, (str, int, float, bool)):
+            callback([value])
+        else:
+            callback(value)
+
+    return wrapper
+
+
 def combo_box(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     selection_mode: Literal["single", "multiple"] = "single",
+    selection_event: bool = False,
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
     align: Align | None = "end",
@@ -126,8 +152,8 @@ def combo_box(
     necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
-    on_selection_change: Callable[[Key | None], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
+    on_selection_change: Callable[[Selection | None], None] | None = None,
+    on_change: Callable[[Selection], None] | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_focus: Callable[[FocusEventCallable], None] | None = None,
     on_blur: Callable[[FocusEventCallable], None] | None = None,
@@ -206,6 +232,11 @@ def combo_box(
         selection_mode: Whether the combo box allows single or multiple selection.
             Defaults to `"single"`. When `"multiple"`, use `selected_keys`/`default_selected_keys`
             instead of `selected_key`/`default_selected_key`.
+        selection_event: When True, `on_selection_change` and `on_change` receive a
+            `Selection` (list of keys) instead of a single `Key` in single-select mode.
+            Defaults to False for backwards compatibility. Set to True to opt in to the
+            new behavior. In a future version, this will become the default and this
+            prop will be deprecated.
         menu_trigger: The interaction required to display the ComboBox menu.
         is_quiet: Whether the ComboBox should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
@@ -227,14 +258,10 @@ def combo_box(
             If the typed text matches an existing item's label, that item's key is used instead.
         disabled_keys: The item keys that are disabled.
             These items cannot be selected, focused, or otherwise interacted with.
-        selected_key: The currently selected key in the collection (controlled).
-            Only applies in single-select mode.
-        default_selected_key: The initial selected key in the collection (uncontrolled).
-            Only applies in single-select mode.
+        selected_key: Deprecated. Use `selected_keys` instead.
+        default_selected_key: Deprecated. Use `default_selected_keys` instead.
         selected_keys: The currently selected keys in the collection (controlled).
-            Only applies in multi-select mode.
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
-            Only applies in multi-select mode.
         is_disabled: Whether the input is disabled.
         is_read_only: Whether the input can be selected but not changed by the user.
         is_required: Whether user input is required on the input before form submission.
@@ -253,9 +280,11 @@ def combo_box(
         on_open_change: Method that is called when the open state of the menu changes.
             Returns the new open state and the action that caused the opening of the menu.
         on_selection_change: Handler that is called when the selection changes.
-            In single-select mode, receives the selected key.
-            In multi-select mode, receives the full selection (set of keys).
+            When `selection_event=True`, always receives a `Selection` (list of keys).
+            Otherwise, receives a single `Key` in single-select mode (deprecated).
         on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
+            When `selection_event=True`, always receives a `Selection` (list of keys).
+            Otherwise, receives a single `Key` in single-select mode (deprecated).
         on_input_change: Handler that is called when the ComboBox input value changes.
         on_focus: Handler that is called when the element receives focus.
         on_blur: Handler that is called when the element loses focus.
@@ -312,7 +341,40 @@ def combo_box(
     """
     children, props = create_props(locals())
 
+    if selected_key is not Undefined:
+        warnings.warn(
+            "'selected_key' is deprecated. Use 'selected_keys' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    if default_selected_key is not None:
+        warnings.warn(
+            "'default_selected_key' is deprecated. Use 'default_selected_keys' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     is_multiple = props.pop("selection_mode", "single") == "multiple"
+    use_selection_event = props.pop("selection_event", False)
+
+    if not is_multiple:
+        if use_selection_event:
+            for cb_name in ("on_selection_change", "on_change"):
+                cb = props.get(cb_name)
+                if cb is not None:
+                    props[cb_name] = _wrap_callback_as_selection(cb)
+        else:
+            for cb_name in ("on_selection_change", "on_change"):
+                if props.get(cb_name) is not None:
+                    warnings.warn(
+                        f"'{cb_name}' currently receives a single Key in "
+                        "single-select mode. In a future version, it will "
+                        "receive a Selection (list of keys). Set "
+                        "selection_event=True to opt in to the new behavior "
+                        "and suppress this warning.",
+                        DeprecationWarning,
+                        stacklevel=2,
+                    )
 
     _validate_selection_mode(props, "multiple" if is_multiple else "single")
 
