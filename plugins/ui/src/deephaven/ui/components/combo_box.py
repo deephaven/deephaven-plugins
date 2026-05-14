@@ -230,8 +230,7 @@ def combo_box(
     Args:
         *children: The options to render within the combo box.
         selection_mode: Whether the combo box allows single or multiple selection.
-            Defaults to `"single"`. When `"multiple"`, use `selected_keys`/`default_selected_keys`
-            instead of `selected_key`/`default_selected_key`.
+            Defaults to `"single"`.
         selection_event: When True, `on_selection_change` and `on_change` receive a
             `Selection` (list of keys) instead of a single `Key` in single-select mode.
             Defaults to False for backwards compatibility. Set to True to opt in to the
