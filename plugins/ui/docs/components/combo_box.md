@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_basic():
-    option, set_option = ui.use_state([""])
+    option, set_option = ui.use_state([])
 
     return ui.combo_box(
         ui.item("red panda"),
@@ -268,7 +268,7 @@ Use `selected_keys` or `default_selected_keys` to set the selected option(s).
 
 <!-- prettier-ignore -->
 > [!NOTE]
-> `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks always receive a list of keys.
+ > `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks generally receive a list of keys (unless `None` in the case of `on_change`).
 
 ```python
 from deephaven import ui
@@ -359,7 +359,7 @@ Note, this is not the case for selections; when a selection is made, both the `o
 
 <!-- prettier-ignore -->
 > [!NOTE]
-> `on_change` and `on_selection_change` receive a `Selection` (list of keys) by default. When the deprecated `selected_key` or `default_selected_key` props are used, callbacks receive a single `Key` instead for backwards compatibility. Eventually the single key props will be removed and callbacks will always receive a list of keys.
+ > `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks generally receive a list of keys (unless `None` in the case of `on_change`).
 
 ```python
 from deephaven import ui
@@ -368,7 +368,7 @@ from deephaven import ui
 @ui.component
 def ui_combo_box_control_example():
     input_value, set_input_value = ui.use_state("")
-    selection_state, set_selection_state = ui.use_state([""])
+    selection_state, set_selection_state = ui.use_state([])
 
     def handle_input_change(new_value):
         set_selection_state([""])
@@ -783,7 +783,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_multi_select_example():
-    selected, set_selected = ui.use_state([""])
+    selected, set_selected = ui.use_state([])
 
     return ui.combo_box(
         ui.item("Option 1"),

@@ -62,6 +62,7 @@ _SELECTION_CALLBACKS = {"on_selection_change", "on_change"}
 
 def _wrap_callback_as_selection(
     callback: Callable[..., None] | None,
+    callback_name: str | None = None,
 ) -> Callable[..., None] | None:
     """
     Wrap a callback so it always receives a Selection instead of a single Key.
@@ -81,6 +82,9 @@ def _wrap_callback_as_selection(
     def wrapper(value: Any) -> None:
         if isinstance(value, (str, int, float, bool)):
             wrapped([value])
+        elif value is None and callback_name is "on_change":
+            # on_change with None means no selection
+            wrapped([])
         else:
             wrapped(value)
 
@@ -108,9 +112,9 @@ def _process_selection_props(
         is_multiple: Whether multi-select mode is active.
         stacklevel: Stack level passed to warnings.warn to point to the caller's code.
     """
-    uses_deprecated = (
-        props.get("selected_key") is not Undefined
-        or props.get("default_selected_key") is not None
+    uses_keys = (
+        props.get("selected_keys") is not Undefined
+        or props.get("default_selected_keys") is not None
     )
 
     # warn about deprecated single-select props if they are set
@@ -131,8 +135,8 @@ def _process_selection_props(
         # Multi-select: strip deprecated single-select props
         for prop in _SINGLE_ONLY_PROPS:
             props.pop(prop, None)
-    elif uses_deprecated:
-        # Single-select with deprecated props: strip the new multi props
+    elif not uses_keys:
+        # Doesn't use multi props: strip them
         for prop in _MULTI_ONLY_PROPS:
             props.pop(prop, None)
     else:
@@ -144,14 +148,24 @@ def _process_selection_props(
         props.pop("default_selected_key", None)
 
         if sel_keys is not None:
+            if not isinstance(sel_keys, list) or len(sel_keys) > 1:
+                warnings.warn(
+                    f"'selected_keys' should be a list with at most one key when 'selection_mode' is 'single'. Got: {sel_keys}",
+                    stacklevel=3,
+                )
             props["selected_key"] = sel_keys[0] if sel_keys else None
         if def_sel_keys is not None:
+            if not isinstance(def_sel_keys, list) or len(def_sel_keys) > 1:
+                warnings.warn(
+                    f"'default_selected_keys' should be a list with at most one key when 'selection_mode' is 'single'. Got: {def_sel_keys}",
+                    stacklevel=3,
+                )
             props["default_selected_key"] = def_sel_keys[0] if def_sel_keys else None
 
         for cb_name in _SELECTION_CALLBACKS:
             cb = props.get(cb_name)
             if cb is not None:
-                props[cb_name] = _wrap_callback_as_selection(cb)
+                props[cb_name] = _wrap_callback_as_selection(cb, cb_name)
 
 
 def combo_box(
@@ -189,8 +203,8 @@ def combo_box(
     necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
-    on_selection_change: Callable[[Selection | None], None] | None = None,
-    on_change: Callable[[Selection], None] | None = None,
+    on_selection_change: Callable[[Key | Selection | None], None] | None = None,
+    on_change: Callable[[Key | Selection], None] | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_focus: Callable[[FocusEventCallable], None] | None = None,
     on_blur: Callable[[FocusEventCallable], None] | None = None,
