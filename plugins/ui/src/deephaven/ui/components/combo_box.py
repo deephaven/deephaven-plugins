@@ -29,7 +29,7 @@ from .section import SectionElement
 from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element, NodeType
-from .._internal.utils import create_props, unpack_item_table_source
+from .._internal.utils import create_props, unpack_item_table_source, wrap_callable
 from ..types import Key, Selection, Undefined, UndefinedType
 from .basic import component_element
 
@@ -57,12 +57,15 @@ _MULTI_ONLY_PROPS = {
     "default_selected_keys",
 }
 
+_SELECTION_CALLBACKS = {"on_selection_change", "on_change"}
+
 
 def _wrap_callback_as_selection(
     callback: Callable[..., None] | None,
 ) -> Callable[..., None] | None:
     """
     Wrap a callback so it always receives a Selection instead of a single Key.
+    Uses wrap_callable to handle user callbacks with varying argument counts.
 
     Args:
         callback: The callback to wrap.
@@ -73,11 +76,13 @@ def _wrap_callback_as_selection(
     if callback is None:
         return None
 
+    wrapped = wrap_callable(callback)
+
     def wrapper(value: Any) -> None:
         if isinstance(value, (str, int, float, bool)):
-            callback([value])
+            wrapped([value])
         else:
-            callback(value)
+            wrapped(value)
 
     return wrapper
 
@@ -88,13 +93,15 @@ def _process_selection_props(
     *,
     stacklevel: int = 3,
 ) -> None:
-    """Process selection-related props: emit deprecation warnings, strip
-    inapplicable props, and wrap callbacks when needed.
+    """Process selection-related props: emit deprecation warnings, convert or
+    strip inapplicable props, and wrap callbacks when needed.
 
-    When the deprecated ``selected_key`` / ``default_selected_key`` props are
-    used, callbacks continue to receive a single ``Key``.  When only the new
-    ``selected_keys`` / ``default_selected_keys`` props are used, callbacks in
-    single-select mode are wrapped so they always receive a ``Selection``.
+    In single-select mode with the new selected_keys / default_selected_keys
+    props, converts them to selected_key / default_selected_key (which the
+    JS ComboBox understands) and wraps callbacks so they receive a Selection.
+
+    When the deprecated selected_key / default_selected_key props are
+    used, callbacks continue to receive a single Key.
 
     Args:
         props: Mutable props dict (modified in place).
@@ -120,14 +127,28 @@ def _process_selection_props(
             stacklevel=stacklevel,
         )
 
-    # strip props that don't apply to the active mode
-    for prop in _SINGLE_ONLY_PROPS if is_multiple else _MULTI_ONLY_PROPS:
-        props.pop(prop, None)
+    if is_multiple:
+        # Multi-select: strip deprecated single-select props
+        for prop in _SINGLE_ONLY_PROPS:
+            props.pop(prop, None)
+    elif uses_deprecated:
+        # Single-select with deprecated props: strip the new multi props
+        for prop in _MULTI_ONLY_PROPS:
+            props.pop(prop, None)
+    else:
+        # Single-select but using new multi props
+        # Convert to single for ComboBox and wrap callbacks
+        sel_keys = props.pop("selected_keys", None)
+        def_sel_keys = props.pop("default_selected_keys", None)
+        props.pop("selected_key", None)
+        props.pop("default_selected_key", None)
 
-    # When not using deprecated key props in single-select mode, wrap
-    # callbacks so they receive a Selection instead of a single Key.
-    if not is_multiple and not uses_deprecated:
-        for cb_name in ("on_selection_change", "on_change"):
+        if sel_keys is not None:
+            props["selected_key"] = sel_keys[0] if sel_keys else None
+        if def_sel_keys is not None:
+            props["default_selected_key"] = def_sel_keys[0] if def_sel_keys else None
+
+        for cb_name in _SELECTION_CALLBACKS:
             cb = props.get(cb_name)
             if cb is not None:
                 props[cb_name] = _wrap_callback_as_selection(cb)

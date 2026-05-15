@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_basic():
-    option, set_option = ui.use_state([])
+    option, set_option = ui.use_state([""])
 
     return ui.combo_box(
         ui.item("red panda"),
@@ -266,7 +266,9 @@ Use `selected_keys` or `default_selected_keys` to set the selected option(s).
 
 `default_selected_keys` is useful for simpler scenarios where you don't need to control the state externally. `selected_keys` is used for scenarios where the state should be managed by the parent component, providing control and flexibility over the selection of the combo box.
 
-> [!NOTE] > `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks always receive a list of keys.
+<!-- prettier-ignore -->
+> [!NOTE]
+> `selected_key` and `default_selected_key` are deprecated. Use `selected_keys` and `default_selected_keys` instead. When the deprecated props are used, `on_selection_change` and `on_change` continue to receive a single key for backwards compatibility. When using the new props, callbacks always receive a list of keys.
 
 ```python
 from deephaven import ui
@@ -355,7 +357,9 @@ Each interaction done in the combo box will trigger its associated event handler
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
 
-> [!NOTE] > `on_change` and `on_selection_change` receive a `Selection` (list of keys) by default. When the deprecated `selected_key` or `default_selected_key` props are used, callbacks receive a single `Key` instead for backwards compatibility. Eventually the single key props will be removed and callbacks will always receive a list of keys.
+<!-- prettier-ignore -->
+> [!NOTE]
+> `on_change` and `on_selection_change` receive a `Selection` (list of keys) by default. When the deprecated `selected_key` or `default_selected_key` props are used, callbacks receive a single `Key` instead for backwards compatibility. Eventually the single key props will be removed and callbacks will always receive a list of keys.
 
 ```python
 from deephaven import ui
@@ -364,13 +368,15 @@ from deephaven import ui
 @ui.component
 def ui_combo_box_control_example():
     input_value, set_input_value = ui.use_state("")
-    selection_state, set_selection_state = ui.use_state([])
+    selection_state, set_selection_state = ui.use_state([""])
 
     def handle_input_change(new_value):
+        set_selection_state([""])
         set_input_value(new_value)
         print(f"Text changed to {new_value}")
 
     def handle_selection_change(new_value):
+        set_input_value(new_value[0] if new_value else "")
         set_selection_state(new_value)
         print(f"Selection changed to {new_value}")
 
@@ -385,10 +391,11 @@ def ui_combo_box_control_example():
             ui.item("Option 7"),
             ui.item("Option 8"),
             ui.item("Option 9"),
+            input_value=input_value,
             on_input_change=handle_input_change,
             selected_keys=selection_state,
             on_change=handle_selection_change,
-        ),
+        )
     ]
 
 
@@ -776,7 +783,7 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_multi_select_example():
-    selected, set_selected = ui.use_state([])
+    selected, set_selected = ui.use_state([""])
 
     return ui.combo_box(
         ui.item("Option 1"),

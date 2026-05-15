@@ -17,8 +17,10 @@ class ComboBoxProcessSelectionPropsTest(BaseTestCase):
             warnings.simplefilter("always")
             _process_selection_props(props, is_multiple)
 
-    def test_single_mode_strips_multi_props(self):
+    def test_single_mode_converts_selected_keys_to_selected_key(self):
         props = {
+            "selected_key": self.Undefined,
+            "default_selected_key": None,
             "selected_keys": ["a", "b"],
             "default_selected_keys": ["c"],
             "other": "value",
@@ -26,7 +28,45 @@ class ComboBoxProcessSelectionPropsTest(BaseTestCase):
         self._process(props, is_multiple=False)
         self.assertNotIn("selected_keys", props)
         self.assertNotIn("default_selected_keys", props)
+        self.assertEqual(props["selected_key"], "a")
+        self.assertEqual(props["default_selected_key"], "c")
         self.assertEqual(props["other"], "value")
+
+    def test_single_mode_converts_empty_selected_keys_to_none(self):
+        props = {
+            "selected_key": self.Undefined,
+            "default_selected_key": None,
+            "selected_keys": [],
+            "default_selected_keys": [],
+        }
+        self._process(props, is_multiple=False)
+        self.assertIsNone(props["selected_key"])
+        self.assertIsNone(props["default_selected_key"])
+
+    def test_single_mode_no_conversion_when_keys_none(self):
+        props = {
+            "selected_key": self.Undefined,
+            "default_selected_key": None,
+            "selected_keys": None,
+            "default_selected_keys": None,
+        }
+        self._process(props, is_multiple=False)
+        self.assertNotIn("selected_key", props)
+        self.assertNotIn("default_selected_key", props)
+        self.assertNotIn("selected_keys", props)
+        self.assertNotIn("default_selected_keys", props)
+
+    def test_single_mode_deprecated_strips_multi_props(self):
+        props = {
+            "selected_key": "a",
+            "default_selected_key": None,
+            "selected_keys": ["x"],
+            "default_selected_keys": ["y"],
+        }
+        self._process(props, is_multiple=False)
+        self.assertNotIn("selected_keys", props)
+        self.assertNotIn("default_selected_keys", props)
+        self.assertEqual(props["selected_key"], "a")
 
     def test_multiple_mode_strips_single_props(self):
         props = {
@@ -162,9 +202,13 @@ class ComboBoxCallbackWrappingTest(BaseTestCase):
         props = {
             "selected_key": Undefined,
             "default_selected_key": None,
+            "selected_keys": ["a"],
             "on_change": handler,
         }
         self._process(props, is_multiple=False)
+        # selected_keys converted to selected_key
+        self.assertEqual(props["selected_key"], "a")
+        # callback wrapped
         props["on_change"]("my_key")
         self.assertEqual(received, [["my_key"]])
 
