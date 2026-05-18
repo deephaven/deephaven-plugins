@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Callable, Any, Literal
+from typing import Callable, Any, Literal, Sequence
 
 from .types import (
     FocusEventCallable,
@@ -65,8 +65,7 @@ def _wrap_callback_as_selection(
     callback_name: str | None = None,
 ) -> Callable[..., None] | None:
     """
-    Wrap a callback so it always receives a Selection instead of a single Key.
-    Uses wrap_callable to handle user callbacks with varying argument counts.
+    Wrap a callback so it always receives a Selection instead of (possibly) a single Key.
 
     Args:
         callback: The callback to wrap.
@@ -82,8 +81,8 @@ def _wrap_callback_as_selection(
     def wrapper(value: Any) -> None:
         if isinstance(value, (str, int, float, bool)):
             wrapped([value])
-        elif value is None and callback_name is "on_change":
-            # on_change with None means no selection
+        elif value is None and callback_name == "on_change":
+            # on_change with None means an empty list to be consistent with the typing
             wrapped([])
         else:
             wrapped(value)
@@ -91,77 +90,98 @@ def _wrap_callback_as_selection(
     return wrapper
 
 
+def _convert_selection_prop(
+    props: dict[str, Any],
+    multi_prop: str,
+    single_prop: str,
+    is_multiple: bool,
+    default_val: Any,
+) -> bool:
+    """
+    Convert between single and multi select props based on the selection mode, emitting warnings as needed.
+
+    Args:
+        props: The props dict to modify in place.
+        multi_prop: The name of the multi-select prop (e.g. "selected_keys").
+        single_prop: The name of the single-select prop (e.g. "selected_key").
+        is_multiple: Whether multi-select mode is active.
+        default_val: The default value to use (for the single prop only).
+
+    Returns:
+        True if callbacks should always return a Key
+    """
+    multi_val = props.pop(multi_prop)
+    single_val = props.pop(single_prop)
+
+    if single_val is not default_val:
+        if is_multiple:
+            # Throw an error if the user is trying to use the single prop in multi-select mode since it shouldn't work
+            raise ValueError(
+                f"'{single_prop}' cannot be used when 'selection_mode' is 'multiple'. Use '{multi_prop}' instead."
+            )
+        # Otherwise use the single prop value
+        # Warn and don't convert callbacks since the user is using the deprecated single prop which expects a single Key
+        warnings.warn(
+            f"'{single_prop}' is deprecated. Use '{multi_prop}' instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+        props[single_prop] = single_val
+        return True
+
+    if is_multiple:
+        # In multi-select mode, multi_prop is expected
+        props[multi_prop] = multi_val
+        return False
+
+    if multi_val is not None:
+        # multi_prop is provided in single-select mode, so we need to convert it to the single prop
+        if not isinstance(multi_val, list) or len(multi_val) > 1:
+            warnings.warn(
+                f"'{multi_prop}' should be a list with at most one key when 'selection_mode' is 'single'. Got: {multi_val}",
+                stacklevel=2,
+            )
+        # Use the single prop for the ComboBox
+        props[single_prop] = multi_val[0] if multi_val else None
+        # In single-select mode but using the multi prop, so the callbacks receive a Selection
+        return False
+
+    # No value provided for either prop, so keep the callback as is, expecting a Selection
+    # This is technically an ambiguous case and may conflict with deprecated usage
+    # but we have no way to know if the user intends to use the Key or Selection callbacks
+    # without a hacky check of some sort.
+    props[single_prop] = single_val
+    return False
+
+
 def _process_selection_props(
     props: dict[str, Any],
     is_multiple: bool,
-    *,
-    stacklevel: int = 3,
 ) -> None:
-    """Process selection-related props: emit deprecation warnings, convert or
+    """
+    Process selection-related props: emit deprecation warnings, convert or
     strip inapplicable props, and wrap callbacks when needed.
 
     In single-select mode with the new selected_keys / default_selected_keys
     props, converts them to selected_key / default_selected_key (which the
-    JS ComboBox understands) and wraps callbacks so they receive a Selection.
+    ComboBox understands) and wraps callbacks so they receive a Selection.
 
     When the deprecated selected_key / default_selected_key props are
     used, callbacks continue to receive a single Key.
 
     Args:
-        props: Mutable props dict (modified in place).
+        props: Mutable props dict
         is_multiple: Whether multi-select mode is active.
-        stacklevel: Stack level passed to warnings.warn to point to the caller's code.
     """
-    uses_keys = (
-        props.get("selected_keys") is not Undefined
-        or props.get("default_selected_keys") is not None
+    selected_takes_key = _convert_selection_prop(
+        props, "selected_keys", "selected_key", is_multiple, Undefined
+    )
+    default_takes_key = _convert_selection_prop(
+        props, "default_selected_keys", "default_selected_key", is_multiple, None
     )
 
-    # warn about deprecated single-select props if they are set
-    if props.get("selected_key") is not Undefined:
-        warnings.warn(
-            "'selected_key' is deprecated. Use 'selected_keys' instead.",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
-    if props.get("default_selected_key") is not None:
-        warnings.warn(
-            "'default_selected_key' is deprecated. Use 'default_selected_keys' instead.",
-            DeprecationWarning,
-            stacklevel=stacklevel,
-        )
-
-    if is_multiple:
-        # Multi-select: strip deprecated single-select props
-        for prop in _SINGLE_ONLY_PROPS:
-            props.pop(prop, None)
-    elif not uses_keys:
-        # Doesn't use multi props: strip them
-        for prop in _MULTI_ONLY_PROPS:
-            props.pop(prop, None)
-    else:
-        # Single-select but using new multi props
-        # Convert to single for ComboBox and wrap callbacks
-        sel_keys = props.pop("selected_keys", None)
-        def_sel_keys = props.pop("default_selected_keys", None)
-        props.pop("selected_key", None)
-        props.pop("default_selected_key", None)
-
-        if sel_keys is not None:
-            if not isinstance(sel_keys, list) or len(sel_keys) > 1:
-                warnings.warn(
-                    f"'selected_keys' should be a list with at most one key when 'selection_mode' is 'single'. Got: {sel_keys}",
-                    stacklevel=3,
-                )
-            props["selected_key"] = sel_keys[0] if sel_keys else None
-        if def_sel_keys is not None:
-            if not isinstance(def_sel_keys, list) or len(def_sel_keys) > 1:
-                warnings.warn(
-                    f"'default_selected_keys' should be a list with at most one key when 'selection_mode' is 'single'. Got: {def_sel_keys}",
-                    stacklevel=3,
-                )
-            props["default_selected_key"] = def_sel_keys[0] if def_sel_keys else None
-
+    if not (selected_takes_key or default_takes_key):
+        # We aren't in the deprecated single prop case, so we need to convert callbacks to always receive a Selection
         for cb_name in _SELECTION_CALLBACKS:
             cb = props.get(cb_name)
             if cb is not None:

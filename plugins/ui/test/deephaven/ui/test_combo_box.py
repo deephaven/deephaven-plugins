@@ -51,8 +51,9 @@ class ComboBoxProcessSelectionPropsTest(BaseTestCase):
             "default_selected_keys": None,
         }
         self._process(props, is_multiple=False)
-        self.assertNotIn("selected_key", props)
-        self.assertNotIn("default_selected_key", props)
+        # When selected_keys is None, falls through and sets single prop to its default
+        self.assertEqual(props["selected_key"], self.Undefined)
+        self.assertEqual(props["default_selected_key"], None)
         self.assertNotIn("selected_keys", props)
         self.assertNotIn("default_selected_keys", props)
 
@@ -72,6 +73,8 @@ class ComboBoxProcessSelectionPropsTest(BaseTestCase):
         props = {
             "selected_key": self.Undefined,
             "default_selected_key": None,
+            "selected_keys": None,
+            "default_selected_keys": None,
             "other": "value",
         }
         self._process(props, is_multiple=True)
@@ -79,14 +82,15 @@ class ComboBoxProcessSelectionPropsTest(BaseTestCase):
         self.assertNotIn("default_selected_key", props)
         self.assertEqual(props["other"], "value")
 
-    def test_multiple_mode_strips_set_single_props(self):
+    def test_multiple_mode_raises_when_single_props_set(self):
         props = {
             "selected_key": "some_key",
             "default_selected_key": "other",
+            "selected_keys": None,
+            "default_selected_keys": None,
         }
-        self._process(props, is_multiple=True)
-        self.assertNotIn("selected_key", props)
-        self.assertNotIn("default_selected_key", props)
+        with self.assertRaises(ValueError):
+            self._process(props, is_multiple=True)
 
 
 class ComboBoxWrapCallbackTest(BaseTestCase):
@@ -142,7 +146,7 @@ class ComboBoxDeprecationTest(BaseTestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             combo_box(selected_key="a")
-            dep_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
+            dep_warnings = [x for x in w if issubclass(x.category, FutureWarning)]
             messages = [str(x.message) for x in dep_warnings]
             self.assertTrue(
                 any("selected_key" in m and "selected_keys" in m for m in messages),
@@ -155,7 +159,7 @@ class ComboBoxDeprecationTest(BaseTestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             combo_box(default_selected_key="a")
-            dep_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
+            dep_warnings = [x for x in w if issubclass(x.category, FutureWarning)]
             messages = [str(x.message) for x in dep_warnings]
             self.assertTrue(
                 any(
@@ -174,7 +178,7 @@ class ComboBoxDeprecationTest(BaseTestCase):
             dep_warnings = [
                 x
                 for x in w
-                if issubclass(x.category, DeprecationWarning)
+                if issubclass(x.category, FutureWarning)
                 and ("selected_key" in str(x.message))
             ]
             self.assertEqual(
@@ -203,6 +207,7 @@ class ComboBoxCallbackWrappingTest(BaseTestCase):
             "selected_key": Undefined,
             "default_selected_key": None,
             "selected_keys": ["a"],
+            "default_selected_keys": None,
             "on_change": handler,
         }
         self._process(props, is_multiple=False)
@@ -218,6 +223,8 @@ class ComboBoxCallbackWrappingTest(BaseTestCase):
         props = {
             "selected_key": "a",
             "default_selected_key": None,
+            "selected_keys": None,
+            "default_selected_keys": None,
             "on_change": handler,
         }
         self._process(props, is_multiple=False)
@@ -232,22 +239,31 @@ class ComboBoxCallbackWrappingTest(BaseTestCase):
         props = {
             "selected_key": Undefined,
             "default_selected_key": "b",
+            "selected_keys": None,
+            "default_selected_keys": None,
             "on_change": handler,
         }
         self._process(props, is_multiple=False)
         props["on_change"]("my_key")
         self.assertEqual(received, ["my_key"])
 
-    def test_multiple_no_wrap_regardless(self):
+    def test_multiple_wraps_callbacks(self):
+        from deephaven.ui.types import Undefined
+
         received = []
         handler = lambda v: received.append(v)
         props = {
-            "selected_key": "x",
+            "selected_key": Undefined,
             "default_selected_key": None,
+            "selected_keys": ["x"],
+            "default_selected_keys": None,
             "on_change": handler,
         }
         self._process(props, is_multiple=True)
-        # single props are stripped, callback untouched
+        # single props are stripped
+        self.assertNotIn("selected_key", props)
+        self.assertNotIn("default_selected_key", props)
+        # callback wrapped but lists pass through unchanged
         props["on_change"](["a", "b"])
         self.assertEqual(received, [["a", "b"]])
 
