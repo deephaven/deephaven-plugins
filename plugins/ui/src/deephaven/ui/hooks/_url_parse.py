@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from urllib.parse import SplitResult, urlsplit, parse_qs
 
 from ..types import QueryParams

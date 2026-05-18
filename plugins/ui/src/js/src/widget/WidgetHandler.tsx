@@ -160,11 +160,12 @@ function WidgetHandler({
     [widget]
   );
 
-  const getUrlState = useCallback(() => {
-    return {
+  const getUrlState = useCallback(
+    () => ({
       [URL_PARAM]: window.location.href,
-    };
-  }, []);
+    }),
+    []
+  );
 
   const sendSetState = useCallback(
     (newState: Record<string, unknown> = {}) => {
