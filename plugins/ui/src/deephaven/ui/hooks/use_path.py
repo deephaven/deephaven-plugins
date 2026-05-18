@@ -1,4 +1,5 @@
 from .._internal import get_context
+from ._url_parse import get_path
 
 
 def use_path(absolute: bool = False) -> str:
@@ -19,6 +20,5 @@ def use_path(absolute: bool = False) -> str:
         The current path as a string.
     """
     context = get_context()
-    if absolute:
-        return context.get_absolute_path() or "/"
-    return context.get_path() or "/"
+    url = context.get_url()
+    return get_path(url, absolute)

@@ -58,12 +58,7 @@ import Navigate, {
   NAVIGATE_EVENT,
   type NavigateParams,
   URL_CHANGED_EVENT,
-  QUERY_PARAM,
-  PATH_PARAM,
-  ABSOLUTE_PATH_PARAM,
-  FRAGMENT_PARAM,
-  HREF_PARAM,
-  getWidgetRelativePath,
+  URL_PARAM,
 } from '../events/Navigate';
 import NavigateContext from '../events/NavigateContext';
 import UriExportedObject from './UriExportedObject';
@@ -166,20 +161,8 @@ function WidgetHandler({
   );
 
   const getUrlState = useCallback(() => {
-    const queryParams: Record<string, string[]> = {};
-    const searchParams = new URLSearchParams(window.location.search);
-    searchParams.forEach((value, key) => {
-      if (queryParams[key] == null) {
-        queryParams[key] = [];
-      }
-      queryParams[key].push(value);
-    });
     return {
-      [QUERY_PARAM]: queryParams,
-      [PATH_PARAM]: getWidgetRelativePath(),
-      [ABSOLUTE_PATH_PARAM]: window.location.pathname,
-      [FRAGMENT_PARAM]: window.location.hash.replace(/^#/, ''),
-      [HREF_PARAM]: window.location.href,
+      [URL_PARAM]: window.location.href,
     };
   }, []);
 

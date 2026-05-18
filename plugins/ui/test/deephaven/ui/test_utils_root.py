@@ -18,11 +18,7 @@ class TestRoot:
     ):
         self._on_change = on_change
         self._on_queue_render = on_queue_render
-        self._query_params: Dict[str, List[str]] = {}
-        self._path: str = "/"
-        self._absolute_path: str = "/"
-        self._fragment: str = ""
-        self._href: str = ""
+        self._url: str = ""
 
     def on_change(self, update: Callable[[], None]) -> None:
         self._on_change(update)
@@ -30,32 +26,8 @@ class TestRoot:
     def on_queue_render(self, update: Callable[[], None]) -> None:
         self._on_queue_render(update)
 
-    def get_query_params(self) -> Dict[str, List[str]]:
-        return self._query_params
+    def get_url(self) -> str:
+        return self._url
 
-    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
-        self._query_params = query_params
-
-    def get_path(self) -> str:
-        return self._path
-
-    def set_path(self, path: str) -> None:
-        self._path = path
-
-    def get_absolute_path(self) -> str:
-        return self._absolute_path
-
-    def set_absolute_path(self, absolute_path: str) -> None:
-        self._absolute_path = absolute_path
-
-    def get_fragment(self) -> str:
-        return self._fragment
-
-    def set_fragment(self, fragment: str) -> None:
-        self._fragment = fragment
-
-    def get_href(self) -> str:
-        return self._href
-
-    def set_href(self, href: str) -> None:
-        self._href = href
+    def set_url(self, url: str) -> None:
+        self._url = url

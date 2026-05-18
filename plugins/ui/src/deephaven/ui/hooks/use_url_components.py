@@ -1,6 +1,7 @@
-from urllib.parse import SplitResult, urlsplit
+from urllib.parse import SplitResult
 
 from .._internal import get_context
+from ._url_parse import parse_url
 
 
 def use_url_components() -> SplitResult:
@@ -17,5 +18,5 @@ def use_url_components() -> SplitResult:
         - fragment: Fragment (without leading "#")
     """
     context = get_context()
-    href = context.get_href()
-    return urlsplit(href)
+    url = context.get_url()
+    return parse_url(url)

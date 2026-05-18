@@ -103,12 +103,8 @@ it('updates the document when event is received', async () => {
   expect(setStatePayload.method).toBe('setState');
   expect(setStatePayload.params[0]).toMatchObject({
     ...initialData.state,
-    __queryParams: {},
   });
-  expect(setStatePayload.params[0]).toHaveProperty('__path');
-  expect(setStatePayload.params[0]).toHaveProperty('__absolutePath');
-  expect(setStatePayload.params[0]).toHaveProperty('__fragment');
-  expect(setStatePayload.params[0]).toHaveProperty('__href');
+  expect(setStatePayload.params[0]).toHaveProperty('__url');
 
   const listener = mockAddEventListener.mock.calls[0][1];
 
@@ -192,8 +188,8 @@ it('updates the initial data only when widget has changed', async () => {
   expect(setStatePayload1.method).toBe('setState');
   expect(setStatePayload1.params[0]).toMatchObject({
     ...data1.state,
-    __queryParams: {},
   });
+  expect(setStatePayload1.params[0]).toHaveProperty('__url');
 
   let listener = addEventListener.mock.calls[0][1];
 
@@ -264,8 +260,8 @@ it('updates the initial data only when widget has changed', async () => {
   expect(setStatePayload2.method).toBe('setState');
   expect(setStatePayload2.params[0]).toMatchObject({
     ...data2.state,
-    __queryParams: {},
   });
+  expect(setStatePayload2.params[0]).toHaveProperty('__url');
   expect(sendMessage).toHaveBeenCalledTimes(1);
 
   // Send the initial document
@@ -322,8 +318,8 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   expect(setStatePayloadErr.method).toBe('setState');
   expect(setStatePayloadErr.params[0]).toMatchObject({
     ...data1.state,
-    __queryParams: {},
   });
+  expect(setStatePayloadErr.params[0]).toHaveProperty('__url');
 
   const listener = mockAddEventListener.mock.calls[0][1];
 
@@ -413,7 +409,7 @@ async function setupWidgetWithListener() {
 }
 
 describe('URL state in sendSetState', () => {
-  it('includes __queryParams from window.location.search', async () => {
+  it('includes __url from window.location.href', async () => {
     // Set up URL with query params
     const url = new URL('http://localhost/test?foo=bar&baz=qux');
     Object.defineProperty(window, 'location', {
@@ -442,49 +438,12 @@ describe('URL state in sendSetState', () => {
     expect(payload.method).toBe('setState');
     expect(payload.params[0]).toMatchObject({
       key: 'val',
-      __queryParams: { foo: ['bar'], baz: ['qux'] },
+      __url: 'http://localhost/test?foo=bar&baz=qux',
     });
 
     unmount();
 
     // Reset location
-    Object.defineProperty(window, 'location', {
-      value: new URL('http://localhost/'),
-      writable: true,
-    });
-  });
-
-  it('includes multi-value query params', async () => {
-    const url = new URL('http://localhost/test?tag=python&tag=java');
-    Object.defineProperty(window, 'location', {
-      value: url,
-      writable: true,
-    });
-
-    const widget = makeWidgetDescriptor();
-    const mockSendMessage = jest.fn();
-    mockWidgetWrapper = {
-      widget: makeWidget({
-        addEventListener: jest.fn(() => jest.fn()),
-        getDataAsString: jest.fn(() => ''),
-        sendMessage: mockSendMessage,
-      }),
-      error: null,
-      api: jest.fn() as unknown as typeof dh,
-    };
-
-    const { unmount } = render(
-      makeWidgetHandler({ widgetDescriptor: widget, initialData: undefined })
-    );
-
-    const payload = JSON.parse(mockSendMessage.mock.calls[0][0] as string);
-    expect(payload.method).toBe('setState');
-    expect(payload.params[0]).toMatchObject({
-      __queryParams: { tag: ['python', 'java'] },
-    });
-
-    unmount();
-
     Object.defineProperty(window, 'location', {
       value: new URL('http://localhost/'),
       writable: true,
@@ -630,7 +589,8 @@ describe('navigate event handling', () => {
       (c: { method: string }) => c.method === 'setUrlState'
     );
     expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__queryParams');
+    expect(urlStateCall.params[0]).toHaveProperty('__url');
+    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
 
     unmount();
   });
@@ -754,7 +714,7 @@ describe('navigate event handling', () => {
     unmount();
   });
 
-  it('sends extended URL state after navigation', async () => {
+  it('sends URL state after navigation', async () => {
     const { listener, mockSendMessage, unmount } =
       await setupWidgetWithListener();
 
@@ -775,11 +735,8 @@ describe('navigate event handling', () => {
       (c: { method: string }) => c.method === 'setUrlState'
     );
     expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__queryParams');
-    expect(urlStateCall.params[0]).toHaveProperty('__path');
-    expect(urlStateCall.params[0]).toHaveProperty('__absolutePath');
-    expect(urlStateCall.params[0]).toHaveProperty('__fragment');
-    expect(urlStateCall.params[0]).toHaveProperty('__href');
+    expect(urlStateCall.params[0]).toHaveProperty('__url');
+    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
 
     unmount();
   });
@@ -802,11 +759,8 @@ describe('popstate listener', () => {
       (c: { method: string }) => c.method === 'setUrlState'
     );
     expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__queryParams');
-    expect(urlStateCall.params[0]).toHaveProperty('__path');
-    expect(urlStateCall.params[0]).toHaveProperty('__absolutePath');
-    expect(urlStateCall.params[0]).toHaveProperty('__fragment');
-    expect(urlStateCall.params[0]).toHaveProperty('__href');
+    expect(urlStateCall.params[0]).toHaveProperty('__url');
+    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
 
     unmount();
   });

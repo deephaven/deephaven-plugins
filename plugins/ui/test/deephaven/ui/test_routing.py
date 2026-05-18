@@ -24,117 +24,51 @@ def make_render_context(
 
 
 class UrlStateRenderContextTestCase(BaseTestCase):
-    """Tests for extended URL state on RenderContext."""
+    """Tests for URL state on RenderContext (only url is stored)."""
 
-    def test_default_path_is_root(self):
+    def test_default_url_is_empty(self):
         rc = make_render_context()
-        self.assertEqual(rc.get_path(), "/")
+        self.assertEqual(rc.get_url(), "")
 
-    def test_default_absolute_path_is_root(self):
-        rc = make_render_context()
-        self.assertEqual(rc.get_absolute_path(), "/")
-
-    def test_default_fragment_is_empty(self):
-        rc = make_render_context()
-        self.assertEqual(rc.get_fragment(), "")
-
-    def test_default_href_is_empty(self):
-        rc = make_render_context()
-        self.assertEqual(rc.get_href(), "")
-
-    def test_import_state_with_path(self):
+    def test_import_state_with_url(self):
         rc = make_render_context()
         state: Dict[str, Any] = {
-            "__path": "/dashboard/settings",
-        }
-        rc.import_state(state)
-        self.assertEqual(rc.get_path(), "/dashboard/settings")
-
-    def test_import_state_with_absolute_path(self):
-        rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__absolutePath": "/iriside/embed/widget/q/w/-/dashboard",
+            "__url": "https://example.com/widget/-/page?q=1#sec",
         }
         rc.import_state(state)
         self.assertEqual(
-            rc.get_absolute_path(),
-            "/iriside/embed/widget/q/w/-/dashboard",
-        )
-
-    def test_import_state_with_fragment(self):
-        rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__fragment": "section-2",
-        }
-        rc.import_state(state)
-        self.assertEqual(rc.get_fragment(), "section-2")
-
-    def test_import_state_with_href(self):
-        rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__href": "https://example.com/widget/-/page?q=1#sec",
-        }
-        rc.import_state(state)
-        self.assertEqual(
-            rc.get_href(),
+            rc.get_url(),
             "https://example.com/widget/-/page?q=1#sec",
         )
 
-    def test_import_state_all_url_fields(self):
+    def test_import_state_preserves_url_when_absent(self):
         rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__queryParams": {"page": ["1"]},
-            "__path": "/dashboard",
-            "__absolutePath": "/app/-/dashboard",
-            "__fragment": "top",
-            "__href": "https://example.com/app/-/dashboard?page=1#top",
-        }
-        rc.import_state(state)
-        self.assertEqual(rc.get_query_params(), {"page": ["1"]})
-        self.assertEqual(rc.get_path(), "/dashboard")
-        self.assertEqual(rc.get_absolute_path(), "/app/-/dashboard")
-        self.assertEqual(rc.get_fragment(), "top")
-        self.assertEqual(
-            rc.get_href(),
-            "https://example.com/app/-/dashboard?page=1#top",
-        )
-
-    def test_import_state_preserves_path_when_absent(self):
-        rc = make_render_context()
-        rc.import_state({"__path": "/page1"})
-        self.assertEqual(rc.get_path(), "/page1")
-        # Import without __path should preserve
+        rc.import_state({"__url": "https://example.com/app/-/page1"})
+        self.assertEqual(rc.get_url(), "https://example.com/app/-/page1")
+        # Import without __url should preserve
         rc.import_state({})
-        self.assertEqual(rc.get_path(), "/page1")
+        self.assertEqual(rc.get_url(), "https://example.com/app/-/page1")
 
     def test_url_fields_not_in_exported_state(self):
         rc = make_render_context()
         state: Dict[str, Any] = {
-            "__path": "/dashboard",
-            "__absolutePath": "/app/-/dashboard",
-            "__fragment": "top",
-            "__href": "https://example.com/app/-/dashboard#top",
+            "__url": "https://example.com/app/-/dashboard#top",
             "state": {"0": 42},
         }
         rc.import_state(state)
         exported = rc.export_state()
-        self.assertNotIn("__path", exported)
-        self.assertNotIn("__absolutePath", exported)
-        self.assertNotIn("__fragment", exported)
-        self.assertNotIn("__href", exported)
+        self.assertNotIn("__url", exported)
 
-    def test_child_context_reads_url_state_from_root(self):
+    def test_child_context_reads_url_from_root(self):
         rc = make_render_context()
         rc.import_state(
             {
-                "__path": "/users",
-                "__fragment": "details",
+                "__url": "https://example.com/app/-/users#details",
             }
         )
         with rc.open():
             child = rc.get_child_context("child0")
-            self.assertEqual(child.get_path(), "/users")
-            self.assertEqual(child.get_fragment(), "details")
+            self.assertEqual(child.get_url(), "https://example.com/app/-/users#details")
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -149,16 +83,25 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state({"__path": "/dashboard/settings"})
+        rc.import_state({"__url": "https://example.com/app/-/dashboard/settings"})
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/dashboard/settings")
 
-    def test_returns_root_when_no_path(self):
+    def test_returns_root_when_no_url(self):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
         rc.import_state({})
+        with rc.open():
+            result = use_path()
+            self.assertEqual(result, "/")
+
+    def test_returns_root_when_no_separator(self):
+        from deephaven.ui.hooks.use_path import use_path
+
+        rc = make_render_context()
+        rc.import_state({"__url": "https://example.com/app/page"})
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/")
@@ -168,13 +111,20 @@ class UsePathTestCase(BaseTestCase):
 
         rc = make_render_context()
         rc.import_state(
-            {
-                "__absolutePath": "/iriside/embed/widget/q/w/-/page",
-            }
+            {"__url": "https://example.com/iriside/embed/widget/q/w/-/page"}
         )
         with rc.open():
             result = use_path(absolute=True)
             self.assertEqual(result, "/iriside/embed/widget/q/w/-/page")
+
+    def test_returns_root_relative_at_separator_boundary(self):
+        from deephaven.ui.hooks.use_path import use_path
+
+        rc = make_render_context()
+        rc.import_state({"__url": "https://example.com/app/-/"})
+        with rc.open():
+            result = use_path()
+            self.assertEqual(result, "/")
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -388,7 +338,7 @@ class UseUrlComponentsTestCase(BaseTestCase):
         rc = make_render_context()
         rc.import_state(
             {
-                "__href": "https://example.com:8080/app/-/page?q=1&tag=py#top",
+                "__url": "https://example.com:8080/app/-/page?q=1&tag=py#top",
             }
         )
         with rc.open():
@@ -399,7 +349,7 @@ class UseUrlComponentsTestCase(BaseTestCase):
             self.assertEqual(result.query, "q=1&tag=py")
             self.assertEqual(result.fragment, "top")
 
-    def test_returns_empty_for_no_href(self):
+    def test_returns_empty_for_no_url(self):
         from deephaven.ui.hooks.use_url_components import use_url_components
 
         rc = make_render_context()

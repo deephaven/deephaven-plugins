@@ -1,4 +1,4 @@
-import { Navigate, getWidgetRelativePath } from './Navigate';
+import { Navigate } from './Navigate';
 
 describe('Navigate', () => {
   let originalLocation: Location;
@@ -141,56 +141,5 @@ describe('Navigate', () => {
     const call = (window.history.replaceState as jest.Mock).mock.calls[0];
     const newUrl = call[2] as string;
     expect(newUrl).not.toContain('..');
-  });
-});
-
-describe('getWidgetRelativePath', () => {
-  let originalLocation: Location;
-
-  beforeEach(() => {
-    originalLocation = window.location;
-  });
-
-  afterEach(() => {
-    Object.defineProperty(window, 'location', {
-      value: originalLocation,
-      writable: true,
-    });
-  });
-
-  it('returns path after /-/', () => {
-    Object.defineProperty(window, 'location', {
-      value: new URL('http://localhost/app/widget/q/w/-/dashboard/settings'),
-      writable: true,
-    });
-
-    expect(getWidgetRelativePath()).toBe('/dashboard/settings');
-  });
-
-  it('returns / when /-/ has no trailing path', () => {
-    Object.defineProperty(window, 'location', {
-      value: new URL('http://localhost/app/widget/q/w/-/'),
-      writable: true,
-    });
-
-    expect(getWidgetRelativePath()).toBe('/');
-  });
-
-  it('returns / when /-/ is not in URL', () => {
-    Object.defineProperty(window, 'location', {
-      value: new URL('http://localhost/app/widget/q/w'),
-      writable: true,
-    });
-
-    expect(getWidgetRelativePath()).toBe('/');
-  });
-
-  it('returns /page for single segment after /-/', () => {
-    Object.defineProperty(window, 'location', {
-      value: new URL('http://localhost/app/widget/q/w/-/page'),
-      writable: true,
-    });
-
-    expect(getWidgetRelativePath()).toBe('/page');
   });
 });

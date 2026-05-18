@@ -21,7 +21,6 @@ from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
-from ..types import QueryParams
 from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
@@ -415,54 +414,13 @@ class RenderContext:
                 "RenderContext method called when RenderContext is unmounted"
             )
 
-    def get_query_params(self) -> QueryParams:
+    def get_url(self) -> str:
         """
-        Get the URL query parameters received from the frontend.
+        Get the full URL received from the frontend.
         Returns:
-            A dictionary mapping parameter names to lists of values.
+            The full URL.
         """
-        return self._root.get_query_params()
-
-    def get_path(self) -> str:
-        """
-        Get the widget-relative path received from the frontend.
-        Returns:
-            The current widget-relative path.
-        """
-        return self._root.get_path()
-
-    def get_absolute_path(self) -> str:
-        """
-        Get the full absolute path from the URL.
-        Returns:
-            The full absolute path.
-        """
-        return self._root.get_absolute_path()
-
-    def get_fragment(self) -> str:
-        """
-        Get the URL fragment received from the frontend.
-        Returns:
-            The current URL fragment (without leading #).
-        """
-        return self._root.get_fragment()
-
-    def get_href(self) -> str:
-        """
-        Get the full URL href received from the frontend.
-        Returns:
-            The full URL href.
-        """
-        return self._root.get_href()
-
-    def update_url_state(self, query_params: QueryParams) -> None:
-        """
-        Update the URL query parameters.
-
-        Args:
-            query_params: New query parameter mapping to store.
-        """
-        self._root.set_query_params(query_params)
+        return self._root.get_url()
 
     def has_state(self, key: StateKey) -> bool:
         """
@@ -654,17 +612,9 @@ class RenderContext:
 
         # Extract URL state fields (prefixed with __) before processing component state.
         # Only update when the key is explicitly present so recursive calls for child
-        # contexts (which never carry __queryParams) don't accidentally clear URL state.
-        if "__queryParams" in state:
-            self._root.set_query_params(state.pop("__queryParams"))
-        if "__path" in state:
-            self._root.set_path(state.pop("__path"))
-        if "__absolutePath" in state:
-            self._root.set_absolute_path(state.pop("__absolutePath"))
-        if "__fragment" in state:
-            self._root.set_fragment(state.pop("__fragment"))
-        if "__href" in state:
-            self._root.set_href(state.pop("__href"))
+        # contexts (which never carry __url) don't accidentally clear URL state.
+        if "__url" in state:
+            self._root.set_url(state.pop("__url"))
 
         if "state" in state:
             for key, value in state["state"].items():

@@ -21,12 +21,8 @@ export type NavigateParams = {
   replace?: boolean | null;
 };
 
-// Types sent to the server for current location
-export const QUERY_PARAM = '__queryParams';
-export const PATH_PARAM = '__path';
-export const ABSOLUTE_PATH_PARAM = '__absolutePath';
-export const FRAGMENT_PARAM = '__fragment';
-export const HREF_PARAM = '__href';
+// Type sent to the server for current location
+export const URL_PARAM = '__url';
 
 /** Separator between platform routing and widget routing in the URL */
 const WIDGET_PATH_SEPARATOR = '/-/';
@@ -47,22 +43,6 @@ function getWidgetBasePath(): string {
     return pathname;
   }
   return pathname.substring(0, separatorIndex + WIDGET_PATH_SEPARATOR.length);
-}
-
-/**
- * Get the widget-relative path from the current URL.
- * This is the portion after `/-/`, or "/" if `/-/` is not present.
- */
-export function getWidgetRelativePath(): string {
-  const { pathname } = window.location;
-  const separatorIndex = pathname.indexOf(WIDGET_PATH_SEPARATOR);
-  if (separatorIndex === -1) {
-    return '/';
-  }
-  const relativePath = pathname.substring(
-    separatorIndex + WIDGET_PATH_SEPARATOR.length
-  );
-  return relativePath ? `/${relativePath}` : '/';
 }
 
 /**

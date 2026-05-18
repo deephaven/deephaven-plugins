@@ -5,7 +5,6 @@ from typing import (
     runtime_checkable,
     Protocol,
 )
-from ..types import QueryParams
 
 StateUpdateCallable = Callable[[], None]
 """
@@ -28,42 +27,10 @@ class RootRenderContextProtocol(Protocol):
         """Called when work is being requested for the render loop."""
         ...
 
-    def get_query_params(self) -> QueryParams:
-        """Get the current URL query parameters."""
+    def get_url(self) -> str:
+        """Get the full URL sent from the frontend."""
         ...
 
-    def set_query_params(self, query_params: QueryParams) -> None:
-        """Update the URL query parameters."""
-        ...
-
-    def get_path(self) -> str:
-        """Get the current widget-relative path."""
-        ...
-
-    def set_path(self, path: str) -> None:
-        """Set the current widget-relative path."""
-        ...
-
-    def get_absolute_path(self) -> str:
-        """Get the full absolute path from the URL."""
-        ...
-
-    def set_absolute_path(self, absolute_path: str) -> None:
-        """Set the full absolute path from the URL."""
-        ...
-
-    def get_fragment(self) -> str:
-        """Get the current URL fragment (without leading #)."""
-        ...
-
-    def set_fragment(self, fragment: str) -> None:
-        """Set the current URL fragment."""
-        ...
-
-    def get_href(self) -> str:
-        """Get the full URL href."""
-        ...
-
-    def set_href(self, href: str) -> None:
-        """Set the full URL href."""
+    def set_url(self, url: str) -> None:
+        """Set the full URL."""
         ...
