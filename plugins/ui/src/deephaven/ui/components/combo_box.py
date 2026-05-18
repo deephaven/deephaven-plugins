@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import warnings
 from typing import Callable, Any, Literal, Sequence
 
@@ -32,6 +33,9 @@ from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source, wrap_callable
 from ..types import Key, Selection, Undefined, UndefinedType
 from .basic import component_element
+
+
+logger = logging.getLogger(__name__)
 
 ComboBoxElement = BaseElement
 
@@ -136,9 +140,13 @@ def _convert_selection_prop(
 
     if multi_val is not None:
         # multi_prop is provided in single-select mode, so we need to convert it to the single prop
-        if not isinstance(multi_val, list) or len(multi_val) > 1:
-            warnings.warn(
-                f"'{multi_prop}' should be a list with at most one key when 'selection_mode' is 'single'. Got: {multi_val}",
+        if not isinstance(multi_val, Sequence) or isinstance(multi_val, str):
+            raise ValueError(
+                f"'{multi_prop}' should be a Sequence when 'selection_mode' is 'single'. Got type: {type(multi_val)}"
+            )
+        if len(multi_val) > 1:
+            logger.warning(
+                f"'{multi_prop}' should be a Sequence with at most one key when 'selection_mode' is 'single'. Got: {multi_val}. Only the first value will be used.",
                 stacklevel=2,
             )
         # Use the single prop for the ComboBox
