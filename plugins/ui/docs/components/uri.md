@@ -60,6 +60,28 @@ list_view = ui.list_view(
 )
 ```
 
+### Nesting a component from another query
+
+You can use `ui.resolve` to reference a `@ui.component` defined in another Persistent Query and nest it inside a panel in the current query. The resolved component is rendered by the web client, so the worker hosting the dashboard does not need to load the data or recompute the component.
+
+```py order=null
+from deephaven import ui
+
+# Resolve a ui widget defined in another persistent query
+remote_widget = ui.resolve("pq://DataServiceQuery/scope/my_widget")
+
+
+@ui.component
+def cross_query_dashboard():
+    return ui.row(
+        ui.panel(remote_widget, title="Remote Widget"),
+        ui.panel("Local Content", title="Local"),
+    )
+
+
+my_dashboard = ui.dashboard(cross_query_dashboard())
+```
+
 ## URI Encoding
 
 If your URI contains any special characters, such as spaces or slashes, you must encode the URI components using standard URL encoding. This is because URIs are often used in web contexts where special characters can cause issues. You can use Python's built-in `urllib.parse.quote` function to encode your URIs.
