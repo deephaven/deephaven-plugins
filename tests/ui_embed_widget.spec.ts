@@ -3,7 +3,9 @@ import { gotoPage, SELECTORS, waitForLoad } from './utils';
 
 test('UI single panel loads in embed widget', async ({ page }) => {
   await gotoPage(page, '/iframe/widget/?name=ui_component');
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toBeVisible();
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toBeVisible();
   await waitForLoad(page);
   await expect(page).toHaveScreenshot();
 });

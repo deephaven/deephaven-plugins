@@ -232,6 +232,25 @@ dash_holy_grail = ui.dashboard(
 )
 ```
 
+## Hiding Panel Headers
+
+By default, each panel in a dashboard displays a header bar with the panel title and controls. Setting `show_headers=False` removes all panel headers, giving a cleaner, borderless appearance useful for presentation-style dashboards.
+
+```python
+from deephaven import ui
+
+dash_no_headers = ui.dashboard(
+    ui.row(
+        ui.panel("A", title="A"),
+        ui.panel("B", title="B"),
+    ),
+    show_headers=False,
+)
+```
+
+> [!NOTE]
+> When `show_headers=False`, users will not be able to drag panels to rearrange the layout or change to other panels in a `ui.stack`, since the header is the target and drag handle.
+
 ## Nested Dashboards
 
 Dashboards can be nested inside panels to create complex layouts with isolated drag-and-drop regions. Each nested dashboard creates its own independent layout that users can rearrange without affecting the parent dashboard.

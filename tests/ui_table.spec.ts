@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage, clickGridRow } from './utils';
-
-const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
+import { SELECTORS, openPanel, gotoPage, clickGridRow } from './utils';
 
 test.describe('UI table', () => {
   [
@@ -33,21 +31,28 @@ test.describe('UI table', () => {
     't_heatmap_both',
     't_heatmap_databar_overlay',
     't_heatmap_databar_mixed',
+    't_rollup_format',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, name, REACT_PANEL_VISIBLE);
+      await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-      await expect(page.locator(REACT_PANEL_VISIBLE)).toHaveScreenshot();
+      await expect(
+        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+      ).toHaveScreenshot();
     });
   });
 });
 
 test('UI table responds to prop changes', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'toggle_table', REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'toggle_table',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const locator = page.locator(REACT_PANEL_VISIBLE);
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   await expect(locator).toHaveScreenshot();
 
@@ -61,9 +66,11 @@ test('UI table responds to prop changes', async ({ page }) => {
 
 test('UI table on_selection_change', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 't_selection', REACT_PANEL_VISIBLE);
+  await openPanel(page, 't_selection', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-  const locator = page.locator(`${REACT_PANEL_VISIBLE} .iris-grid`);
+  const locator = page.locator(
+    `${SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE} .iris-grid`
+  );
 
   await clickGridRow(locator, 3);
   await expect(page.getByText('Selection: CAT/NYPE')).toBeVisible();
@@ -73,4 +80,20 @@ test('UI table on_selection_change', async ({ page }) => {
 
   await page.keyboard.press('Escape');
   await expect(page.getByText('Selection: None')).toBeVisible();
+});
+
+test('UI table with rollup table', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_rollup', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
+});
+
+test('UI table with tree table', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_tree', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
 });

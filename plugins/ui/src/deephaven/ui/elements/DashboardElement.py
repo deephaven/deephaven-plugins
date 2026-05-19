@@ -8,5 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class DashboardElement(BaseElement):
-    def __init__(self, element: FunctionElement):
-        super().__init__("deephaven.ui.components.Dashboard", element)
+    def __init__(
+        self,
+        element: FunctionElement,
+        *,
+        show_headers: bool = True,
+    ):
+        super().__init__(
+            "deephaven.ui.components.Dashboard",
+            element,
+            show_headers=show_headers,
+        )

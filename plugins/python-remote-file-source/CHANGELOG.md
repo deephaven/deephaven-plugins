@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## python-remote-file-source-v0.1.3 - 2026-05-06
+#### Bug Fixes
+- DH-21221: Fixed a bug with remote file source cache eviction (#1332) - (8812358) - bmingles
+
+- - -
+
 ## python-remote-file-source-v0.1.2 - 2025-11-13
 #### Tests
 - Added tox test (#1266) - (d65ebc6) - bmingles
