@@ -407,28 +407,35 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
 
-    def _set_state(self, state: ExportedRenderState) -> None:
+    def _set_state(
+        self, state: ExportedRenderState, app_state: dict[str, Any] | None = None
+    ) -> None:
         """
         Set the state of the element. This is called by the client on initial load.
 
         Args:
-            state: The state to set
+            state: The component state to set.
+            app_state: Application-level state (e.g. url). Sent atomically with
+                component state to prevent inconsistencies on initialization.
         """
-        logger.debug("Setting state: %s", state)
+        logger.debug("Setting state: %s, app_state: %s", state, app_state)
+        if app_state is not None:
+            url = app_state.get("url")
+            if url is not None:
+                self.set_url(url)
         self._context.import_state(state)
         self._mark_dirty()
 
-    def _set_url_state(self, url_state: dict[str, Any]) -> None:
+    def _set_url_state(self, url: str) -> None:
         """
         Update the URL state. Called by the client after a client-side
         navigation so that the component re-renders with updated URL state.
 
         Args:
-            url_state: Dict with __url field containing the full URL.
+            url: The full URL string.
         """
-        logger.debug("Setting URL state: %s", url_state)
-        if "__url" in url_state:
-            self.set_url(url_state["__url"])
+        logger.debug("Setting URL state: %s", url)
+        self.set_url(url)
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:

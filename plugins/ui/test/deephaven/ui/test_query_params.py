@@ -25,7 +25,7 @@ class UseQueryParamsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_params import use_query_params
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/-/page?page=2&sort=asc"})
+        rc.set_url("https://example.com/app/-/page?page=2&sort=asc")
         with rc.open():
             result = use_query_params()
             self.assertEqual(result, {"page": ["2"], "sort": ["asc"]})
@@ -34,7 +34,7 @@ class UseQueryParamsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_params import use_query_params
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/-/page"})
+        rc.set_url("https://example.com/app/-/page")
         with rc.open():
             result = use_query_params()
             self.assertEqual(result, {})
@@ -43,7 +43,6 @@ class UseQueryParamsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_params import use_query_params
 
         rc = make_render_context()
-        rc.import_state({})
         with rc.open():
             result = use_query_params()
             self.assertEqual(result, {})
@@ -52,7 +51,7 @@ class UseQueryParamsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_params import use_query_params
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?tag=python&tag=java"})
+        rc.set_url("https://example.com/app?tag=python&tag=java")
         with rc.open():
             result = use_query_params()
             self.assertEqual(result, {"tag": ["python", "java"]})
@@ -65,7 +64,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?other=val"})
+        rc.set_url("https://example.com/app?other=val")
         with rc.open():
             result = use_query_param("missing")
             self.assertIsNone(result)
@@ -74,7 +73,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app"})
+        rc.set_url("https://example.com/app")
         with rc.open():
             result = use_query_param("missing", [])
             self.assertEqual(result, [])
@@ -84,7 +83,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?foo"})
+        rc.set_url("https://example.com/app?foo")
         with rc.open():
             result = use_query_param("foo")
             self.assertEqual(result, "")
@@ -93,7 +92,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?page=3"})
+        rc.set_url("https://example.com/app?page=3")
         with rc.open():
             result = use_query_param("page")
             self.assertEqual(result, "3")
@@ -103,7 +102,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?tag=python&tag=java"})
+        rc.set_url("https://example.com/app?tag=python&tag=java")
         with rc.open():
             result = use_query_param("tag")
             self.assertEqual(result, "java")
@@ -112,7 +111,7 @@ class UseQueryParamTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_query_param import use_query_param
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app?tag=python&tag=java"})
+        rc.set_url("https://example.com/app?tag=python&tag=java")
         with rc.open():
             result = use_query_param("tag", [])
             self.assertEqual(result, ["python", "java"])
@@ -131,7 +130,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
         url = "https://example.com/app"
         if query_string:
             url += f"?{query_string}"
-        rc.import_state({"__url": url})
+        rc.set_url(url)
 
         send_event_mock = Mock()
         ec = EventContext(send_event_mock)

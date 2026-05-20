@@ -58,13 +58,18 @@ import Navigate, {
   NAVIGATE_EVENT,
   type NavigateParams,
   URL_CHANGED_EVENT,
-  URL_PARAM,
 } from '../events/Navigate';
 import NavigateContext from '../events/NavigateContext';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
+
+/** State sent alongside component state on each setState RPC call. */
+interface AppState {
+  /** The current full URL of the client browser window. */
+  url: string;
+}
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
@@ -152,20 +157,18 @@ function WidgetHandler({
     [widget]
   );
 
-  const getUrlState = useCallback(
-    () => ({
-      [URL_PARAM]: window.location.href,
-    }),
-    []
-  );
-
+  /**
+   * Send state to the backend via the `setState` RPC. Used after any client-side state change.
+   * Additionally sends AppState which includes useful client metadata that should be kept in sync with state.
+   * @param newState The new state to send to the backend
+   */
   const sendSetState = useCallback(
     (newState: Record<string, unknown> = {}) => {
       if (jsonClient == null) {
         return;
       }
-      const stateWithUrl = { ...newState, ...getUrlState() };
-      jsonClient.request('setState', [stateWithUrl]).then(
+      const appState: AppState = { url: window.location.href };
+      jsonClient.request('setState', [newState, appState]).then(
         result => {
           log.debug('Set state result', result);
         },
@@ -175,18 +178,18 @@ function WidgetHandler({
         }
       );
     },
-    [jsonClient, getUrlState]
+    [jsonClient]
   );
 
   /**
    * Send URL state to the backend via the `setUrlState` RPC.
-   * Used after client-side navigation events.
+   * Used after granular client-side navigation events.
    */
   const sendUrlState = useCallback(() => {
     if (jsonClient == null) {
       return;
     }
-    jsonClient.request('setUrlState', [getUrlState()]).then(
+    jsonClient.request('setUrlState', [window.location.href]).then(
       result => {
         log.debug('Set URL state result', result);
       },
@@ -195,7 +198,7 @@ function WidgetHandler({
         setInternalError(e);
       }
     );
-  }, [jsonClient, getUrlState]);
+  }, [jsonClient]);
 
   /**
    * Navigate and send updated URL state to the backend.

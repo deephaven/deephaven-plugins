@@ -422,6 +422,14 @@ class RenderContext:
         """
         return self._root.get_url()
 
+    def set_url(self, url: str) -> None:
+        """
+        Set the full URL on the root.
+        Args:
+            url: The URL to set.
+        """
+        self._root.set_url(url)
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -609,12 +617,6 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
-
-        # Extract URL state fields (prefixed with __) before processing component state.
-        # Only update when the key is explicitly present so recursive calls for child
-        # contexts (which never carry __url) don't accidentally clear URL state.
-        if "__url" in state:
-            self._root.set_url(state.pop("__url"))
 
         if "state" in state:
             for key, value in state["state"].items():

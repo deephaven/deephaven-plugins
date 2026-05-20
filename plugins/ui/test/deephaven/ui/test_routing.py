@@ -30,42 +30,32 @@ class UrlStateRenderContextTestCase(BaseTestCase):
         rc = make_render_context()
         self.assertEqual(rc.get_url(), "")
 
-    def test_import_state_with_url(self):
+    def test_set_url(self):
         rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__url": "https://example.com/widget/-/page?q=1#sec",
-        }
-        rc.import_state(state)
+        rc.set_url("https://example.com/widget/-/page?q=1#sec")
         self.assertEqual(
             rc.get_url(),
             "https://example.com/widget/-/page?q=1#sec",
         )
 
-    def test_import_state_preserves_url_when_absent(self):
+    def test_import_state_preserves_url(self):
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/-/page1"})
+        rc.set_url("https://example.com/app/-/page1")
         self.assertEqual(rc.get_url(), "https://example.com/app/-/page1")
-        # Import without __url should preserve
+        # Import state should not affect URL
         rc.import_state({})
         self.assertEqual(rc.get_url(), "https://example.com/app/-/page1")
 
-    def test_url_fields_not_in_exported_state(self):
+    def test_url_not_in_exported_state(self):
         rc = make_render_context()
-        state: Dict[str, Any] = {
-            "__url": "https://example.com/app/-/dashboard#top",
-            "state": {"0": 42},
-        }
-        rc.import_state(state)
+        rc.set_url("https://example.com/app/-/dashboard#top")
+        rc.import_state({"state": {"0": 42}})
         exported = rc.export_state()
         self.assertNotIn("__url", exported)
 
     def test_child_context_reads_url_from_root(self):
         rc = make_render_context()
-        rc.import_state(
-            {
-                "__url": "https://example.com/app/-/users#details",
-            }
-        )
+        rc.set_url("https://example.com/app/-/users#details")
         with rc.open():
             child = rc.get_child_context("child0")
             self.assertEqual(child.get_url(), "https://example.com/app/-/users#details")
@@ -83,7 +73,7 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/-/dashboard/settings"})
+        rc.set_url("https://example.com/app/-/dashboard/settings")
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/dashboard/settings")
@@ -92,7 +82,6 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state({})
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/")
@@ -101,7 +90,7 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/page"})
+        rc.set_url("https://example.com/app/page")
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/")
@@ -110,9 +99,7 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state(
-            {"__url": "https://example.com/iriside/embed/widget/q/w/-/page"}
-        )
+        rc.set_url("https://example.com/iriside/embed/widget/q/w/-/page")
         with rc.open():
             result = use_path(absolute=True)
             self.assertEqual(result, "/iriside/embed/widget/q/w/-/page")
@@ -121,7 +108,7 @@ class UsePathTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_path import use_path
 
         rc = make_render_context()
-        rc.import_state({"__url": "https://example.com/app/-/"})
+        rc.set_url("https://example.com/app/-/")
         with rc.open():
             result = use_path()
             self.assertEqual(result, "/")
@@ -336,11 +323,7 @@ class UseUrlComponentsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_url_components import use_url_components
 
         rc = make_render_context()
-        rc.import_state(
-            {
-                "__url": "https://example.com:8080/app/-/page?q=1&tag=py#top",
-            }
-        )
+        rc.set_url("https://example.com:8080/app/-/page?q=1&tag=py#top")
         with rc.open():
             result = use_url_components()
             self.assertEqual(result.scheme, "https")
@@ -353,7 +336,6 @@ class UseUrlComponentsTestCase(BaseTestCase):
         from deephaven.ui.hooks.use_url_components import use_url_components
 
         rc = make_render_context()
-        rc.import_state({})
         with rc.open():
             result = use_url_components()
             self.assertEqual(result.scheme, "")

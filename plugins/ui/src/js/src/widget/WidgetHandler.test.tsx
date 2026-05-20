@@ -95,7 +95,7 @@ it('updates the document when event is received', async () => {
   expect(mockAddEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
 
-  // Verify setState was called with URL state fields
+  // Verify setState was called with component state and appState
   expect(mockSendMessage).toHaveBeenCalledTimes(1);
   const setStatePayload = JSON.parse(
     mockSendMessage.mock.calls[0][0] as string
@@ -104,14 +104,15 @@ it('updates the document when event is received', async () => {
   expect(setStatePayload.params[0]).toMatchObject({
     ...initialData.state,
   });
-  expect(setStatePayload.params[0]).toHaveProperty('__url');
+  expect(setStatePayload.params[1]).toHaveProperty('url');
+  expect(typeof setStatePayload.params[1].url).toBe('string');
 
   const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
-    // Respond to the setState call first
-    listener(makeWidgetEventJsonRpcResponse(1));
+    // Respond to the setState call
+    listener(makeWidgetEventJsonRpcResponse(0));
   });
 
   function testPatch(patch: Operation[], expected: Record<string, unknown>) {
@@ -183,20 +184,20 @@ it('updates the initial data only when widget has changed', async () => {
   );
   expect(addEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
-  // Verify setState was called with URL state
+  // Verify setState was called with component state and appState
   const setStatePayload1 = JSON.parse(sendMessage.mock.calls[0][0] as string);
   expect(setStatePayload1.method).toBe('setState');
   expect(setStatePayload1.params[0]).toMatchObject({
     ...data1.state,
   });
-  expect(setStatePayload1.params[0]).toHaveProperty('__url');
+  expect(setStatePayload1.params[1]).toHaveProperty('url');
 
   let listener = addEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
-    // Respond to the setState call first
-    listener(makeWidgetEventJsonRpcResponse(1));
+    // Respond to the setState call
+    listener(makeWidgetEventJsonRpcResponse(0));
 
     // Then send the initial document update
     listener(makeWidgetEventDocumentPatched(patch1));
@@ -261,13 +262,13 @@ it('updates the initial data only when widget has changed', async () => {
   expect(setStatePayload2.params[0]).toMatchObject({
     ...data2.state,
   });
-  expect(setStatePayload2.params[0]).toHaveProperty('__url');
+  expect(setStatePayload2.params[1]).toHaveProperty('url');
   expect(sendMessage).toHaveBeenCalledTimes(1);
 
   // Send the initial document
   await act(async () => {
-    // Respond to the setState call first
-    listener(makeWidgetEventJsonRpcResponse(1));
+    // Respond to the setState call
+    listener(makeWidgetEventJsonRpcResponse(0));
 
     // Then send the initial document update
     listener(makeWidgetEventDocumentPatched(patch2));
@@ -319,14 +320,14 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   expect(setStatePayloadErr.params[0]).toMatchObject({
     ...data1.state,
   });
-  expect(setStatePayloadErr.params[0]).toHaveProperty('__url');
+  expect(setStatePayloadErr.params[1]).toHaveProperty('url');
 
   const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
-    // Respond to the setState call first
-    listener(makeWidgetEventJsonRpcResponse(1));
+    // Respond to the setState call
+    listener(makeWidgetEventJsonRpcResponse(0));
 
     // Then send the initial document update
     listener(makeWidgetEventDocumentPatched(patch1));
@@ -399,7 +400,7 @@ async function setupWidgetWithListener() {
 
   // Respond to initial setState so the jsonClient is ready
   await act(async () => {
-    listener(makeWidgetEventJsonRpcResponse(1));
+    listener(makeWidgetEventJsonRpcResponse(0));
   });
 
   // Clear mocks so we can assert on subsequent calls
@@ -408,8 +409,8 @@ async function setupWidgetWithListener() {
   return { listener, mockSendMessage, unmount };
 }
 
-describe('URL state in sendSetState', () => {
-  it('includes __url from window.location.href', async () => {
+describe('URL state sent separately', () => {
+  it('sends setState with appState containing URL, and setUrlState on navigation', async () => {
     // Set up URL with query params
     const url = new URL('http://localhost/test?foo=bar&baz=qux');
     Object.defineProperty(window, 'location', {
@@ -434,11 +435,14 @@ describe('URL state in sendSetState', () => {
       makeWidgetHandler({ widgetDescriptor: widget, initialData })
     );
 
-    const payload = JSON.parse(mockSendMessage.mock.calls[0][0] as string);
-    expect(payload.method).toBe('setState');
-    expect(payload.params[0]).toMatchObject({
-      key: 'val',
-      __url: 'http://localhost/test?foo=bar&baz=qux',
+    // Only setState is called on init, with appState as second arg
+    expect(mockSendMessage).toHaveBeenCalledTimes(1);
+    const statePayload = JSON.parse(mockSendMessage.mock.calls[0][0] as string);
+    expect(statePayload.method).toBe('setState');
+    expect(statePayload.params[0]).toMatchObject({ key: 'val' });
+    expect(statePayload.params[0]).not.toHaveProperty('__url');
+    expect(statePayload.params[1]).toEqual({
+      url: 'http://localhost/test?foo=bar&baz=qux',
     });
 
     unmount();
@@ -589,8 +593,7 @@ describe('navigate event handling', () => {
       (c: { method: string }) => c.method === 'setUrlState'
     );
     expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__url');
-    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
+    expect(typeof urlStateCall.params[0]).toBe('string');
 
     unmount();
   });
@@ -735,8 +738,7 @@ describe('navigate event handling', () => {
       (c: { method: string }) => c.method === 'setUrlState'
     );
     expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__url');
-    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
+    expect(typeof urlStateCall.params[0]).toBe('string');
 
     unmount();
   });
@@ -752,15 +754,14 @@ describe('popstate listener', () => {
 
     // setUrlState should have been called
     expect(mockSendMessage).toHaveBeenCalled();
-    const calls = mockSendMessage.mock.calls.map((c: unknown[]) =>
+    const calls2 = mockSendMessage.mock.calls.map((c: unknown[]) =>
       JSON.parse(c[0] as string)
     );
-    const urlStateCall = calls.find(
+    const urlStateCall2 = calls2.find(
       (c: { method: string }) => c.method === 'setUrlState'
     );
-    expect(urlStateCall).toBeDefined();
-    expect(urlStateCall.params[0]).toHaveProperty('__url');
-    expect(Object.keys(urlStateCall.params[0])).toEqual(['__url']);
+    expect(urlStateCall2).toBeDefined();
+    expect(typeof urlStateCall2.params[0]).toBe('string');
 
     unmount();
   });
