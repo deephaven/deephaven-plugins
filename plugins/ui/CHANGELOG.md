@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.37.0 - 2026-05-20
+
+#### Features
+
+- DH-21898: Local routing ([#1348](https://github.com/deephaven/deephaven-plugins/pull/1348)) - (a42efa4) - jnumainville
+- DH-21757: WidgetPlugin support in deephaven.ui ([#1341](https://github.com/deephaven/deephaven-plugins/pull/1341)) - (86c141e) - mofojed
+
+- - -
+
+
 ## ui-v0.36.1 - 2026-05-13
 
 #### Bug Fixes
