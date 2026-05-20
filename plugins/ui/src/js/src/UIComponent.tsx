@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useDhId } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import {
@@ -22,15 +23,16 @@ type UIComponentProps = WidgetComponentProps<dh.Widget> & {
  * @returns A JSX element representing the UI component, or null if the descriptor is not available.
  */
 export function UIComponent(props: UIComponentProps): JSX.Element | null {
-  const { metadata: widgetDescriptor, uri, __dhId } = props;
+  const { metadata: widgetDescriptor, uri } = props;
 
+  const dhId = useDhId();
   const [widgetData, setWidgetData] = usePersistentState<
     WidgetData | undefined
   >(undefined, { type: 'UIComponentWidgetData', version: 1 });
 
   const id = useMemo(
-    () => __dhId ?? widgetDescriptor?.id ?? nanoid(),
-    [__dhId, widgetDescriptor]
+    () => dhId ?? widgetDescriptor?.id ?? nanoid(),
+    [dhId, widgetDescriptor]
   );
 
   const handleDataChange = useCallback(
