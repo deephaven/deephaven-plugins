@@ -1,4 +1,4 @@
-import test, { Locator, Page, expect } from '@playwright/test';
+import test, { type Locator, type Page, expect } from '@playwright/test';
 import os from 'node:os';
 
 export const SELECTORS = {

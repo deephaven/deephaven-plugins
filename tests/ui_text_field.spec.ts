@@ -1,0 +1,77 @@
+import { expect, test } from '@playwright/test';
+import { gotoPage, openPanel, SELECTORS } from './utils';
+
+// The `ui_slow_text_field` panel renders a `ui.text_field` whose on_change
+// handler sleeps 1.5s and then writes back the value uppercased. This lets us
+// exercise the case where the server sends a new value back after a noticeable
+// delay relative to user input.
+test('ui.text_field does not overwrite user typing while focused', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ui_slow_text_field', SELECTORS.REACT_PANEL_VISIBLE);
+
+  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const input = panelLocator.getByRole('textbox', { name: 'Slow Text' });
+
+  await expect(input).toHaveValue('hello');
+
+  // Replace the text and keep the field focused. The server will respond with
+  // an uppercased version after ~1.5s. We must not let that clobber what the
+  // user is typing while still focused.
+  await input.click();
+  await input.press('ControlOrMeta+a');
+  await input.pressSequentially('abc', { delay: 0 });
+  await expect(input).toHaveValue('abc');
+  await expect(input).toBeFocused();
+
+  // Wait long enough for the server to complete its slow on_change and send
+  // back the transformed value ("ABC"). The fix in useTextInputProps /
+  // useDebouncedOnChange should keep the user's "abc" in place while focused.
+  await page.waitForTimeout(2500);
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('abc');
+
+  // After blurring, the latest server value should now be applied.
+  await input.blur();
+  await expect(input).toHaveValue('ABC');
+});
+
+// The `ui_text_field_events` panel renders a `ui.text_field` whose on_focus,
+// on_change, and on_blur handlers append entries to a read-only Event Log
+// textarea. Focus events include the input's current value.
+test('ui.text_field fires on_focus, on_change, and on_blur with expected payloads', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ui_text_field_events', SELECTORS.REACT_PANEL_VISIBLE);
+
+  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const input = panelLocator.getByRole('textbox', { name: 'Events Text' });
+  const log = panelLocator.getByRole('textbox', { name: 'Event Log' });
+
+  await expect(input).toHaveValue('hi');
+  await expect(log).toHaveValue('');
+
+  // Focus the field. on_focus should fire with value="hi".
+  await input.focus();
+  await expect(log).toHaveValue(/focus:hi/);
+
+  // Type a character. on_change should fire with the new value.
+  await input.press('ControlOrMeta+a');
+  await input.pressSequentially('world', { delay: 20 });
+  await expect(log).toHaveValue(/change:world/);
+
+  // Blur the field. on_blur should fire with the typed value.
+  await input.blur();
+  await expect(log).toHaveValue(/blur:world/);
+
+  // Final log should contain focus, at least one change, and blur, in order.
+  const logValue = await log.inputValue();
+  const focusIdx = logValue.indexOf('focus:hi');
+  const changeIdx = logValue.indexOf('change:world');
+  const blurIdx = logValue.indexOf('blur:world');
+  expect(focusIdx).toBeGreaterThanOrEqual(0);
+  expect(changeIdx).toBeGreaterThan(focusIdx);
+  expect(blurIdx).toBeGreaterThan(changeIdx);
+});
