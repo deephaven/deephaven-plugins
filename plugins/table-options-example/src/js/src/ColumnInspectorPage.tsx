@@ -1,14 +1,14 @@
 import { Button } from '@deephaven/components';
-import { type IrisGridSidebarPageProps } from '@deephaven/iris-grid';
+import { type IrisGridTableOptionsPageProps } from '@deephaven/iris-grid';
 
 /**
  * Minimal `configPage` demo. Receives `{ model, onBack }` from
- * `IrisGrid`'s page switch (see `IrisGridSidebarPageProps`).
+ * `IrisGrid`'s page switch (see `IrisGridTableOptionsPageProps`).
  */
 export function ColumnInspectorPage({
   model,
   onBack,
-}: IrisGridSidebarPageProps): JSX.Element {
+}: IrisGridTableOptionsPageProps): JSX.Element {
   return (
     <div className="iris-grid-plugin-sidebar-page" style={{ padding: 12 }}>
       <h5>Column Inspector</h5>

@@ -1,7 +1,7 @@
 {
   "name": "@deephaven/js-plugin-table-options-example",
   "version": "0.0.0",
-  "description": "Example WidgetMiddlewarePlugin that customizes the IrisGrid Table Options sidebar via IrisGridSidebarContext.",
+  "description": "Example WidgetMiddlewarePlugin that customizes the IrisGrid Table Options sidebar via IrisGridTableOptionsContext.",
   "keywords": [
     "Deephaven",
     "plugin",

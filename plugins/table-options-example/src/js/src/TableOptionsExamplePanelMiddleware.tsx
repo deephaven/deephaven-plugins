@@ -1,7 +1,7 @@
-import { IrisGridSidebarContext } from '@deephaven/iris-grid';
+import { IrisGridTableOptionsContext } from '@deephaven/iris-grid';
 import Log from '@deephaven/log';
 import type { WidgetMiddlewarePanelProps } from '@deephaven/plugin';
-import { useComposedSidebarExtension } from './useComposedSidebarExtension';
+import { useComposedTableOptionsExtension } from './useComposedTableOptionsExtension';
 
 const log = Log.module(
   '@deephaven/js-plugin-table-options-example/TableOptionsExamplePanelMiddleware'
@@ -9,20 +9,20 @@ const log = Log.module(
 
 /**
  * Middleware that wraps the panel widget (`IrisGridPanel` host) in an
- * `IrisGridSidebarContext.Provider`. Same composition rules as the
+ * `IrisGridTableOptionsContext.Provider`. Same composition rules as the
  * non-panel `TableOptionsExampleMiddleware`.
  */
 export function TableOptionsExamplePanelMiddleware({
   Component,
   ...props
 }: WidgetMiddlewarePanelProps): JSX.Element {
-  const extension = useComposedSidebarExtension();
+  const extension = useComposedTableOptionsExtension();
   log.debug('Wrapping panel component', { Component, props });
   return (
-    <IrisGridSidebarContext.Provider value={extension}>
+    <IrisGridTableOptionsContext.Provider value={extension}>
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <Component {...props} />
-    </IrisGridSidebarContext.Provider>
+    </IrisGridTableOptionsContext.Provider>
   );
 }
 

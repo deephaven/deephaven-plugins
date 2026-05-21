@@ -6,7 +6,7 @@ import {
 } from '@deephaven/iris-grid';
 import { renderHook } from '@testing-library/react';
 import React, { type ReactNode } from 'react';
-import { useComposedTableOptionsExtension } from './useComposedSidebarExtension';
+import { useComposedTableOptionsExtension } from './useComposedTableOptionsExtension';
 import { COLUMN_INSPECTOR_ITEM_TYPE } from './columnInspectorItemType';
 
 function makeDefaults(): readonly OptionItem[] {
