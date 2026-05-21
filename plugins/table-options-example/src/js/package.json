@@ -1,0 +1,38 @@
+{
+  "name": "@deephaven/js-plugin-table-options-example",
+  "version": "0.0.0",
+  "description": "Example WidgetMiddlewarePlugin that customizes the IrisGrid Table Options sidebar via IrisGridTableOptionsContext.",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "table-options",
+    "middleware"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "files": [
+    "dist/index.js"
+  ],
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@deephaven/components": "^1.17.0",
+    "@deephaven/iris-grid": "^1.17.0",
+    "@deephaven/log": "^1.17.0",
+    "@deephaven/plugin": "^1.17.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
