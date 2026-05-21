@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, Sequence
 
 from .types import (
     FocusEventCallable,
@@ -29,10 +29,11 @@ from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key, Undefined, UndefinedType
+from ..types import Key, Selection
 from .basic import component_element
 
-ComboBoxElement = BaseElement
+
+MultiSelectElement = BaseElement
 
 SUPPORTED_SOURCE_ARGS = {
     "key_column",
@@ -42,10 +43,8 @@ SUPPORTED_SOURCE_ARGS = {
     "title_column",
 }
 
-_NULLABLE_PROPS = ["selected_key"]
 
-
-def combo_box(
+def multi_select(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
@@ -60,8 +59,8 @@ def combo_box(
     default_input_value: str | None = None,
     allows_custom_value: bool | None = None,
     disabled_keys: list[Key] | None = None,
-    selected_key: Key | None | UndefinedType = Undefined,
-    default_selected_key: Key | None = None,
+    selected_keys: Selection | None = None,
+    default_selected_keys: Selection | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
@@ -77,8 +76,8 @@ def combo_box(
     necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
-    on_selection_change: Callable[[Key | None], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
+    on_selection_change: Callable[[Selection], None] | None = None,
+    on_change: Callable[[Selection], None] | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_focus: Callable[[FocusEventCallable], None] | None = None,
     on_blur: Callable[[FocusEventCallable], None] | None = None,
@@ -129,9 +128,12 @@ def combo_box(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-) -> ComboBoxElement:
+) -> MultiSelectElement:
     """
-    A combo box that can be used to search or select from a list. Children should be one of five types:
+    A multi-select component that displays selected items as tags inside the input area
+    and presents a filterable dropdown list for multi-selection.
+
+    Children should be one of five types:
 
     1. If children are of type `Item`, they are the dropdown options.
     2. If children are of type `SectionElement`, they are the dropdown sections.
@@ -147,26 +149,28 @@ def combo_box(
         `icon_column`, and `title_column`.
 
     Args:
-        *children: The options to render within the combo box.
-        menu_trigger: The interaction required to display the ComboBox menu.
-        is_quiet: Whether the ComboBox should be displayed with a quiet style.
+        *children: The options to render within the multi-select.
+        menu_trigger: The interaction required to display the menu.
+        is_quiet: Whether the component should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
-        direction: Direction the menu will render relative to the ComboBox.
-        loading_state: The current loading state of the ComboBox.
+        direction: Direction the menu will render relative to the component.
+        loading_state: The current loading state.
             Determines whether or not the progress circle should be shown.
         should_flip: Whether the menu should automatically flip direction when space is limited.
-        menu_width: Width of the menu. By default, matches width of the combobox.
-            Note that the minimum width of the dropdown is always equal to the combobox's width.
-        form_value: Whether the text or key of the selected item is submitted as part of an HTML form.
-            When allowsCustomValue is true, this option does not apply and the text is always submitted.
+        menu_width: Width of the menu. By default, matches width of the component.
+            Note that the minimum width of the dropdown is always equal to the component's width.
+        form_value: Whether the text or key of the selected items is submitted as part of an HTML form.
+            Controls whether comma-joined keys or labels are submitted via the hidden form input.
         should_focus_wrap: Whether keyboard navigation is circular.
         input_value: The value of the search input (controlled).
         default_input_value: The default value of the search input (uncontrolled).
-        allows_custom_value: Whether the ComboBox allows a non-item matching input value to be set.
+        allows_custom_value: Whether the component allows a non-item matching input value to be set.
+            Pressing Enter when no item is focused adds the typed text as a custom tag.
+            If the typed text matches an existing item's label, that item's key is used instead.
         disabled_keys: The item keys that are disabled.
             These items cannot be selected, focused, or otherwise interacted with.
-        selected_key: The currently selected key in the collection (controlled).
-        default_selected_key: The initial selected key in the collection (uncontrolled).
+        selected_keys: The currently selected keys in the collection (controlled).
+        default_selected_keys: The initial selected keys in the collection (uncontrolled).
         is_disabled: Whether the input is disabled.
         is_read_only: Whether the input can be selected but not changed by the user.
         is_required: Whether user input is required on the input before form submission.
@@ -185,8 +189,10 @@ def combo_box(
         on_open_change: Method that is called when the open state of the menu changes.
             Returns the new open state and the action that caused the opening of the menu.
         on_selection_change: Handler that is called when the selection changes.
+            Receives a `Selection` (list of keys).
         on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
-        on_input_change: Handler that is called when the ComboBox input value changes.
+            Receives a `Selection` (list of keys).
+        on_input_change: Handler that is called when the input value changes.
         on_focus: Handler that is called when the element receives focus.
         on_blur: Handler that is called when the element loses focus.
         on_focus_change: Handler that is called when the element's focus status changes.
@@ -238,12 +244,14 @@ def combo_box(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered ComboBox.
+        The rendered MultiSelect.
     """
     children, props = create_props(locals())
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
     return component_element(
-        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+        "MultiSelect",
+        *children,
+        **props,
     )
