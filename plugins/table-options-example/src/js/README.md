@@ -9,9 +9,9 @@ that:
    page lists the model's column count.
 
 Both contributions compose with any parent `IrisGridSidebarContext` —
-this plugin reads the parent value and merges its own `transformItems`
-on top, so multiple middleware plugins can stack without clobbering
-one another.
+this plugin reads the parent value and merges its own
+`transformTableOptions` on top, so multiple middleware plugins can
+stack without clobbering one another.
 
 ## Build
 
@@ -20,7 +20,7 @@ npm install
 npm run build
 ```
 
-Bundle is emitted at `dist/bundle/index.js`.
+Bundle is emitted at `dist/index.js`.
 
 ## How it plugs in
 
@@ -28,4 +28,4 @@ Bundle is emitted at `dist/bundle/index.js`.
 deephaven-plugins dev proxy serves the bundle. At runtime
 `@deephaven/iris-grid` resolves `IrisGridSidebarContext` from React
 context inside `IrisGridPanel` and `GridWidgetPlugin`, and forwards
-the merged `transformItems` to `IrisGrid#sidebarItems`.
+the merged `transformTableOptions` to `IrisGrid#transformTableOptions`.

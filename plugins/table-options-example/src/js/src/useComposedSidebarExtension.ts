@@ -19,17 +19,17 @@ const COLUMN_INSPECTOR_ITEM: OptionItem = {
  * Composes this plugin's contribution on top of any parent
  * `IrisGridSidebarContext` value already present in the tree:
  *
- *   parent.transformItems → drop SELECT_DISTINCT → append COLUMN_INSPECTOR_ITEM
+ *   parent.transformTableOptions → drop SELECT_DISTINCT → append COLUMN_INSPECTOR_ITEM
  *
- * Returning a memoized value keeps `IrisGrid`'s
- * `applySidebarItemsTransform` dependency stable between renders.
+ * Returning a memoized value keeps `IrisGrid`'s transform input
+ * referentially stable between renders.
  */
 export function useComposedSidebarExtension(): IrisGridSidebarExtension {
   const parent = useContext(IrisGridSidebarContext);
   return useMemo<IrisGridSidebarExtension>(() => {
-    const parentTransform = parent?.transformItems;
+    const parentTransform = parent?.transformTableOptions;
     return {
-      transformItems: defaults => {
+      transformTableOptions: defaults => {
         const base =
           parentTransform != null ? parentTransform(defaults) : defaults;
         const filtered = base.filter(

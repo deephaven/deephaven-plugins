@@ -11,17 +11,9 @@
   ],
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
-  "main": "dist/bundle/index.js",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/bundle/index.js",
-      "default": "./dist/bundle/index.js"
-    }
-  },
+  "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist/index.js"
   ],
   "scripts": {
     "start": "vite build --watch",

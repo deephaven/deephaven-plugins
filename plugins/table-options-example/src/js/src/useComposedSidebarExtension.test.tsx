@@ -32,7 +32,7 @@ describe('useComposedSidebarExtension', () => {
     const { result } = renderHook(() => useComposedSidebarExtension(), {
       wrapper: wrap(null),
     });
-    const out = result.current.transformItems!(makeDefaults());
+    const out = result.current.transformTableOptions!(makeDefaults());
 
     expect(out.map(o => o.type)).toEqual([
       OptionType.QUICK_FILTERS,
@@ -52,9 +52,9 @@ describe('useComposedSidebarExtension', () => {
         ) as readonly OptionItem[]
     );
     const { result } = renderHook(() => useComposedSidebarExtension(), {
-      wrapper: wrap({ transformItems: parentTransform }),
+      wrapper: wrap({ transformTableOptions: parentTransform }),
     });
-    const out = result.current.transformItems!(makeDefaults());
+    const out = result.current.transformTableOptions!(makeDefaults());
 
     expect(parentTransform).toHaveBeenCalledTimes(1);
     expect(out.map(o => o.type)).toEqual([
@@ -65,7 +65,7 @@ describe('useComposedSidebarExtension', () => {
 
   it('returns a stable transform across renders when parent is unchanged', () => {
     const parent = {
-      transformItems: (defaults: readonly OptionItem[]) => defaults,
+      transformTableOptions: (defaults: readonly OptionItem[]) => defaults,
     };
     const { result, rerender } = renderHook(
       () => useComposedSidebarExtension(),

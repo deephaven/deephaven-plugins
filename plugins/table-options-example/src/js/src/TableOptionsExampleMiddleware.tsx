@@ -17,7 +17,7 @@ export function TableOptionsExampleMiddleware({
   ...props
 }: WidgetMiddlewareComponentProps): JSX.Element {
   const extension = useComposedSidebarExtension();
-  log.info('Wrapping widget component', { Component, props });
+  log.debug('Wrapping widget component', { Component, props });
   return (
     <IrisGridSidebarContext.Provider value={extension}>
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
