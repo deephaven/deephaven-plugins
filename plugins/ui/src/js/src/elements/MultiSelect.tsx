@@ -5,6 +5,7 @@ import { isElementOfType } from '@deephaven/react-hooks';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
 import { getSettings, type RootState } from '@deephaven/redux';
+import { EMPTY_ARRAY } from '@deephaven/utils';
 import {
   type SerializedMultiSelectProps,
   useMultiSelectProps,
@@ -35,7 +36,7 @@ export function MultiSelect(
           errorMessage={message}
           validationState="invalid"
         >
-          {[]}
+          {EMPTY_ARRAY}
         </DHMultiSelect>
       );
     }
@@ -46,7 +47,7 @@ export function MultiSelect(
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <DHMultiSelect loadingState="loading" {...multiSelectProps}>
-          {[]}
+          {EMPTY_ARRAY}
         </DHMultiSelect>
       );
     }

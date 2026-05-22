@@ -124,27 +124,25 @@ from deephaven import ui
 
 
 @ui.component
-def ui_multi_select_form_examples():
-    return [
-        ui.form(
-            ui.multi_select(
-                ui.item("Chocolate"),
-                ui.item("Mint"),
-                ui.item("Vanilla"),
-                ui.item("Strawberry"),
-                ui.item("Cookies and Cream"),
-                ui.item("Coffee"),
-                ui.item("Mango"),
-                label="Ice cream flavors",
-                name="flavors",
-            ),
-            ui.button("Submit", type="submit"),
-            on_submit=lambda event: print(event),
-        )
-    ]
+def ui_multi_select_form_example():
+    return ui.form(
+        ui.multi_select(
+            ui.item("Chocolate"),
+            ui.item("Mint"),
+            ui.item("Vanilla"),
+            ui.item("Strawberry"),
+            ui.item("Cookies and Cream"),
+            ui.item("Coffee"),
+            ui.item("Mango"),
+            label="Ice cream flavors",
+            name="flavors",
+        ),
+        ui.button("Submit", type="submit"),
+        on_submit=lambda event: print(event),
+    )
 
 
-my_multi_select_form_examples = ui_multi_select_form_examples()
+my_multi_select_form_example = ui_multi_select_form_example()
 ```
 
 ## Labeling
@@ -351,24 +349,22 @@ def ui_multi_select_events_example():
         set_selection_state(new_value)
         print(f"Selection changed to {new_value}")
 
-    return [
-        ui.multi_select(
-            ui.item("Option 1"),
-            ui.item("Option 2"),
-            ui.item("Option 3"),
-            ui.item("Option 4"),
-            ui.item("Option 5"),
-            ui.item("Option 6"),
-            ui.item("Option 7"),
-            ui.item("Option 8"),
-            ui.item("Option 9"),
-            input_value=input_value,
-            on_input_change=handle_input_change,
-            selected_keys=selection_state,
-            on_change=handle_selection_change,
-            label="Pick options",
-        )
-    ]
+    return ui.multi_select(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        ui.item("Option 5"),
+        ui.item("Option 6"),
+        ui.item("Option 7"),
+        ui.item("Option 8"),
+        ui.item("Option 9"),
+        input_value=input_value,
+        on_input_change=handle_input_change,
+        selected_keys=selection_state,
+        on_change=handle_selection_change,
+        label="Pick options",
+    )
 
 
 my_multi_select_events_example = ui_multi_select_events_example()
