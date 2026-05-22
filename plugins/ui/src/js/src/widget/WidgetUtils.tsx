@@ -20,7 +20,6 @@ import {
   Footer,
   Heading,
   Item,
-  Link,
   ListActionGroup,
   ListActionMenu,
   MenuTrigger,
@@ -106,6 +105,7 @@ import {
   ToggleButton,
   UITable,
   Tabs,
+  Link,
 } from '../elements';
 import UriObjectView from '../elements/UriObjectView';
 

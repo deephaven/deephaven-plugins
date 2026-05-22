@@ -359,6 +359,10 @@
                 "path": "components/range_slider.md"
               },
               {
+                "label": "route",
+                "path": "components/router.md"
+              },
+              {
                 "label": "search_field",
                 "path": "components/search_field.md"
               },
@@ -456,6 +460,18 @@
                 "path": "hooks/use_memo.md"
               },
               {
+                "label": "use_navigate",
+                "path": "hooks/use_navigate.md"
+              },
+              {
+                "label": "use_params",
+                "path": "hooks/use_params.md"
+              },
+              {
+                "label": "use_path",
+                "path": "hooks/use_path.md"
+              },
+              {
                 "label": "use_query_param",
                 "path": "hooks/use_query_param.md"
               },
@@ -494,10 +510,18 @@
               {
                 "label": "use_table_listener",
                 "path": "hooks/use_table_listener.md"
+              },
+              {
+                "label": "use_url_components",
+                "path": "hooks/use_url_components.md"
               }
             ]
           }
         ]
+      },
+      {
+        "label": "Changelog",
+        "path": "changelog.md"
       }
     ]
   }

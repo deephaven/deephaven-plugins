@@ -22,6 +22,7 @@ export * from './IconElementView';
 export * from './IllustratedMessage';
 export * from './Image';
 export * from './LabeledValue';
+export * from './Link';
 export * from './InlineAlert';
 export * from './ListView';
 export * from './LogicButton';

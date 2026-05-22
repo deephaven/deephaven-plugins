@@ -18,6 +18,7 @@ file_11=ag_grid.py
 file_12=theme_demo.py
 file_13=ui_nested_dashboard.py
 file_14=ui_query_params.py
-file_15=ui_combo_box.py
-file_16=ui_multi_select.py
-
+file_15=ui_home_screen.py
+file_16=ui_routing.py
+file_17=ui_combo_box.py
+file_18=ui_multi_select.py

@@ -18,7 +18,7 @@ class TestRoot:
     ):
         self._on_change = on_change
         self._on_queue_render = on_queue_render
-        self._query_params: Dict[str, List[str]] = {}
+        self._url: str = ""
 
     def on_change(self, update: Callable[[], None]) -> None:
         self._on_change(update)
@@ -26,8 +26,8 @@ class TestRoot:
     def on_queue_render(self, update: Callable[[], None]) -> None:
         self._on_queue_render(update)
 
-    def get_query_params(self) -> Dict[str, List[str]]:
-        return self._query_params
+    def get_url(self) -> str:
+        return self._url
 
-    def set_query_params(self, query_params: Dict[str, List[str]]) -> None:
-        self._query_params = query_params
+    def set_url(self, url: str) -> None:
+        self._url = url

@@ -5,7 +5,6 @@ from typing import (
     runtime_checkable,
     Protocol,
 )
-from ..types import QueryParams
 
 StateUpdateCallable = Callable[[], None]
 """
@@ -28,10 +27,10 @@ class RootRenderContextProtocol(Protocol):
         """Called when work is being requested for the render loop."""
         ...
 
-    def get_query_params(self) -> QueryParams:
-        """Get the current URL query parameters."""
+    def get_url(self) -> str:
+        """Get the full URL sent from the frontend."""
         ...
 
-    def set_query_params(self, query_params: QueryParams) -> None:
-        """Update the URL query parameters."""
+    def set_url(self, url: str) -> None:
+        """Set the full URL."""
         ...

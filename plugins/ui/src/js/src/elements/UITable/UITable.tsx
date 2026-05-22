@@ -104,7 +104,7 @@ function useUITableModel({
   columnDisplayNames,
 }: {
   dh: typeof DhType | null;
-  table: DhType.Table | null;
+  table: DhType.Table | DhType.TreeTable | null;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
   columnDisplayNames: Record<string, string>;
@@ -233,7 +233,7 @@ export function UITable({
     api: dh,
     isLoading,
     error,
-  } = useExportedObject<DhType.Table>(exportedTable);
+  } = useExportedObject<DhType.Table | DhType.TreeTable>(exportedTable);
 
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);

@@ -83,6 +83,8 @@ from .time_field import time_field
 from .toast import toast
 from .toggle_button import toggle_button
 from .view import view
+from .route import route
+from .router import router
 
 from . import html
 
@@ -152,6 +154,8 @@ __all__ = [
     "radio_group",
     "range_calendar",
     "range_slider",
+    "route",
+    "router",
     "row",
     "search_field",
     "section",
