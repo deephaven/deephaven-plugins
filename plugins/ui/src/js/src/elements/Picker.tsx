@@ -44,17 +44,13 @@ export function Picker(
       const message = getErrorShortMessage(error);
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHPicker {...pickerProps} errorMessage={message} isInvalid>
-          {[]}
-        </DHPicker>
+        <DHPicker {...pickerProps} errorMessage={message} isInvalid />
       );
     }
     if (isLoading || table == null || api == null) {
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHPicker isLoading {...pickerProps}>
-          {[]}
-        </DHPicker>
+        <DHPicker isLoading {...pickerProps} />
       );
     }
     return (
