@@ -8,6 +8,7 @@ import {
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
+import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
 
 function LayoutColumn({
   children,
@@ -47,6 +48,13 @@ function LayoutColumn({
 
 function Column({ children, width }: ColumnElementProps): JSX.Element {
   const panelId = usePanelId();
+  const initialLayoutConfig = useInitialLayoutConfig();
+  if (initialLayoutConfig != null) {
+    // If there's already an initial layout defined, user has likely already customized their layout.
+    // Don't add a row here
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
+  }
 
   if (panelId == null) {
     return <LayoutColumn width={width}>{children}</LayoutColumn>;

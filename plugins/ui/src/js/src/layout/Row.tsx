@@ -5,6 +5,7 @@ import { Flex } from '@deephaven/components';
 import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
+import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
 
 function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
@@ -40,6 +41,13 @@ function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
 
 function Row({ children, height }: RowElementProps): JSX.Element {
   const panelId = usePanelId();
+  const initialLayoutConfig = useInitialLayoutConfig();
+  if (initialLayoutConfig != null) {
+    // If there's already an initial layout defined, user has likely already customized their layout.
+    // Don't add a row here
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
+  }
 
   if (panelId == null) {
     return <LayoutRow height={height}>{children}</LayoutRow>;

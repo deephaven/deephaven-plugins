@@ -3,8 +3,9 @@ import { useLayoutManager } from '@deephaven/dashboard';
 import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
 import { normalizeStackChildren, type StackElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
+import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
 
-function Stack({
+function LayoutStack({
   children,
   height,
   width,
@@ -12,6 +13,7 @@ function Stack({
 }: StackElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
+
   const stack = useMemo(() => {
     const newStack = layoutManager.createContentItem(
       {
@@ -35,7 +37,6 @@ function Stack({
       stack.setActiveContentItem(stack.contentItems[activeItemIndex]);
     }
   }, [activeItemIndex, parent, stack]);
-
   const normalizedChildren = normalizeStackChildren(children);
 
   return (
@@ -43,6 +44,21 @@ function Stack({
       {normalizedChildren}
     </ParentItemContext.Provider>
   );
+}
+
+function Stack(props: StackElementProps): JSX.Element | null {
+  const initialLayoutConfig = useInitialLayoutConfig();
+
+  if (initialLayoutConfig != null) {
+    // If there's already an initial layout defined, user has likely already customized their layout.
+    // Don't add a row here
+    const { children } = props;
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
+  }
+
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <LayoutStack {...props} />;
 }
 
 export default Stack;
