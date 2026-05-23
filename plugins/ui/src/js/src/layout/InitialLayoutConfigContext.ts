@@ -1,4 +1,4 @@
-import { DashboardLayoutConfig } from '@deephaven/dashboard';
+import type { DashboardLayoutConfig } from '@deephaven/dashboard';
 import { createContext, useContext } from 'react';
 
 /**

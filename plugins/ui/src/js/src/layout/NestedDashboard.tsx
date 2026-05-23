@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {
-  DashboardLayoutConfig,
+  type DashboardLayoutConfig,
   Dashboard as DHCDashboard,
   usePersistentState,
 } from '@deephaven/dashboard';
