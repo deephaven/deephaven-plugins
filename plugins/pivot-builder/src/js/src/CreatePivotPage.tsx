@@ -7,7 +7,10 @@ import {
 } from '@deephaven/iris-grid';
 import deepEqual from 'fast-deep-equal';
 import Log from '@deephaven/log';
-import { isPivotBuilderIrisGridModel } from './pivotBuilderModel';
+import {
+  isPivotBuilderIrisGridModel,
+  type PivotConfig,
+} from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
 
 // `IrisGridTableOptionsPageProps` is not yet in the installed
@@ -38,6 +41,18 @@ const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
   aggregations: [],
   showOnTop: false,
 };
+
+function aggregationsToPivot(
+  settings: AggregationSettings
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  settings.aggregations.forEach(agg => {
+    if (agg.selected.length === 0) return;
+    const op = String(agg.operation);
+    out[op] = [...(out[op] ?? []), ...agg.selected];
+  });
+  return out;
+}
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/CreatePivotPage');
 
@@ -115,6 +130,43 @@ export function CreatePivotPage({
       ? aggregationSettings
       : EMPTY_AGGREGATION_SETTINGS;
 
+    const pivotActive =
+      mockPivotColumnsOn &&
+      mockPivotColumns.length > 0 &&
+      mockRollupRows.length > 0 &&
+      aggsActive;
+
+    if (pivotActive) {
+      // Pivot swaps the proxy's inner model wholesale, superseding any
+      // active rollup/totals. We deliberately DO NOT clear rollupConfig
+      // or totalsConfig here: `IrisGridProxyModel.setNextModel` cancels
+      // the previous in-flight model promise by `.close()`-ing the
+      // resolved model, so clearing rollupConfig first (which queues a
+      // swap back to `originalModel`) and then setting pivotConfig
+      // would cancel that swap and close the source table before the
+      // pivot promise can use it. When pivot is later cleared, the
+      // pivot-inactive branch re-reconciles rollup/totals state.
+      const nextPivot: PivotConfig = {
+        rowKeys: mockRollupRows,
+        columnKeys: mockPivotColumns,
+        aggregations: aggregationsToPivot(effectiveAggregationSettings),
+      };
+      if (!deepEqual(nextPivot, model.pivotConfig)) {
+        log.debug('Applying pivotConfig', nextPivot);
+        // eslint-disable-next-line no-param-reassign
+        model.pivotConfig = nextPivot;
+      }
+      return;
+    }
+
+    // Pivot inactive — clear any prior pivot before falling through to
+    // the rollup/totals logic.
+    if (model.pivotConfig != null) {
+      log.debug('Clearing pivotConfig (pivot inactive)');
+      // eslint-disable-next-line no-param-reassign
+      model.pivotConfig = null;
+    }
+
     if (rollupActive) {
       const uiConfig = {
         columns: mockRollupRows,
@@ -162,6 +214,8 @@ export function CreatePivotPage({
     mockRollupRows,
     mockIncludeConstituents,
     mockNonAggregatedInRollup,
+    mockPivotColumnsOn,
+    mockPivotColumns,
     aggregatesOn,
     aggregationSettings,
   ]);

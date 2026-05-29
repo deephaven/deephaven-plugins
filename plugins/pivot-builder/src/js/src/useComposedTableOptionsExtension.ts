@@ -11,7 +11,7 @@ import { CREATE_PIVOT_ITEM_TYPE } from './createPivotItemType';
 
 const CREATE_PIVOT_ITEM: OptionItem = {
   type: CREATE_PIVOT_ITEM_TYPE,
-  title: 'Pivot Builder',
+  title: 'Rollup, Aggregate and Pivot',
   icon: dhPivotTable,
   configPage: CreatePivotPage,
 };

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Button,
   Checkbox,
@@ -13,16 +14,13 @@ import {
   Select,
   UISwitch,
 } from '@deephaven/components';
-import { vsAdd, vsEdit, vsGripper, vsTrash } from '@deephaven/icons';
+import { vsEdit, vsGripper, vsTrash } from '@deephaven/icons';
 import {
   AggregationOperation,
   AggregationUtils,
   type Aggregation,
   type AggregationSettings,
 } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
-
-const log = Log.module('@deephaven/js-plugin-pivot-builder/PivotConfigSection');
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
@@ -170,6 +168,7 @@ const popoverEmptyStyle: React.CSSProperties = {
 };
 
 type PickerProps = {
+  anchorRef: React.RefObject<HTMLElement>;
   available: readonly string[];
   excluded: readonly string[];
   placeholder?: string;
@@ -177,7 +176,43 @@ type PickerProps = {
   onClose: () => void;
 };
 
+/**
+ * Position a fixed-position popover so its top-right corner is anchored
+ * just below the anchor element. Flips above the anchor when the
+ * preferred placement would fall off the bottom of the viewport.
+ */
+function usePortalAnchorPosition(
+  anchorRef: React.RefObject<HTMLElement>,
+  popoverRef: React.RefObject<HTMLElement>
+): { top: number; right: number } | null {
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  useLayoutEffect(() => {
+    const a = anchorRef.current;
+    const p = popoverRef.current;
+    if (a == null) return undefined;
+    const compute = (): void => {
+      const r = a.getBoundingClientRect();
+      const ph = p?.getBoundingClientRect().height ?? 0;
+      const gap = 4;
+      const wantTop = r.bottom + gap;
+      const overflowsBottom = wantTop + ph > window.innerHeight - 8;
+      const top = overflowsBottom ? Math.max(8, r.top - gap - ph) : wantTop;
+      const right = window.innerWidth - r.right;
+      setPos({ top, right });
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, true);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute, true);
+    };
+  }, [anchorRef, popoverRef]);
+  return pos;
+}
+
 function ColumnPicker({
+  anchorRef,
   available,
   excluded,
   placeholder = 'Find column...',
@@ -189,9 +224,11 @@ function ColumnPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<SearchInput>(null);
   const excludedSet = useMemo(() => new Set(excluded), [excluded]);
+  const pos = usePortalAnchorPosition(anchorRef, containerRef);
 
   useEffect(() => {
-    searchRef.current?.focus();
+    const id = requestAnimationFrame(() => searchRef.current?.focus());
+    return () => cancelAnimationFrame(id);
   }, []);
 
   const filtered = useMemo(() => {
@@ -243,8 +280,18 @@ function ColumnPicker({
     [activeIndex, filtered, onPick]
   );
 
-  return (
-    <div ref={containerRef} style={popoverStyle} role="dialog">
+  return createPortal(
+    <div
+      ref={containerRef}
+      style={{
+        ...popoverStyle,
+        position: 'fixed',
+        top: pos?.top ?? -9999,
+        right: pos?.right ?? 0,
+        visibility: pos == null ? 'hidden' : 'visible',
+      }}
+      role="dialog"
+    >
       <div style={popoverSearchStyle}>
         <SearchInput
           ref={searchRef}
@@ -282,7 +329,8 @@ function ColumnPicker({
           ))
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -292,7 +340,9 @@ type ConfigCardProps = {
   onToggle: (next: boolean) => void;
   onAdd: () => void;
   addDisabled?: boolean;
-  picker?: React.ReactNode;
+  /** When true, the whole card is greyed-out and non-interactive. */
+  disabled?: boolean;
+  picker?: (anchorRef: React.RefObject<HTMLElement>) => React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -302,25 +352,32 @@ function ConfigCard({
   onToggle,
   onAdd,
   addDisabled,
+  disabled,
   picker,
   children,
 }: ConfigCardProps): JSX.Element {
+  const buttonRef = useRef<HTMLSpanElement>(null);
   return (
-    <div style={cardStyle}>
+    <div
+      style={
+        disabled === true
+          ? { ...cardStyle, opacity: 0.5, pointerEvents: 'none' }
+          : cardStyle
+      }
+      aria-disabled={disabled === true}
+    >
       <div style={cardHeaderStyle}>
         <span style={cardTitleStyle}>{title}</span>
         <UISwitch on={on} onClick={() => onToggle(!on)} />
-        <div style={{ position: 'relative' }}>
-          <Button
-            kind="secondary"
-            icon={vsAdd}
-            onClick={onAdd}
-            disabled={!on || addDisabled === true}
-          >
-            Add
-          </Button>
-          {picker}
-        </div>
+        <Button
+          ref={buttonRef}
+          kind="tertiary"
+          onClick={onAdd}
+          disabled={!on || addDisabled === true || disabled === true}
+        >
+          Add
+        </Button>
+        {picker?.(buttonRef)}
       </div>
       <div style={on ? undefined : disabledBodyStyle} aria-disabled={!on}>
         {children}
@@ -329,20 +386,102 @@ function ConfigCard({
   );
 }
 
+/**
+ * Returns the props needed to make a row draggable for reordering, but only
+ * when the drag is initiated from the grip handle. Drag scope is limited to
+ * the given `groupKey` so rows in different cards don't cross-reorder.
+ */
+function useDraggableRow(
+  groupKey: string,
+  index: number,
+  onReorder: (from: number, to: number) => void
+): {
+  draggable: boolean;
+  isDragOver: boolean;
+  onDragStart: React.DragEventHandler<HTMLDivElement>;
+  onDragEnd: React.DragEventHandler<HTMLDivElement>;
+  onDragOver: React.DragEventHandler<HTMLDivElement>;
+  onDragLeave: React.DragEventHandler<HTMLDivElement>;
+  onDrop: React.DragEventHandler<HTMLDivElement>;
+  onGripMouseDown: () => void;
+  onGripMouseUp: () => void;
+} {
+  const [draggable, setDraggable] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const mime = `application/x-pivot-row+${groupKey}`;
+  return {
+    draggable,
+    isDragOver,
+    onDragStart: e => {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData(mime, String(index));
+    },
+    onDragEnd: () => {
+      setDraggable(false);
+      setIsDragOver(false);
+    },
+    onDragOver: e => {
+      if (e.dataTransfer.types.includes(mime)) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setIsDragOver(true);
+      }
+    },
+    onDragLeave: () => setIsDragOver(false),
+    onDrop: e => {
+      const raw = e.dataTransfer.getData(mime);
+      setIsDragOver(false);
+      if (raw === '') return;
+      const from = Number(raw);
+      if (!Number.isFinite(from) || from === index) return;
+      e.preventDefault();
+      onReorder(from, index);
+    },
+    onGripMouseDown: () => setDraggable(true),
+    onGripMouseUp: () => setDraggable(false),
+  };
+}
+
+const dragOverRowStyle: React.CSSProperties = {
+  boxShadow: 'inset 0 2px 0 0 var(--dh-color-accent, #4a90e2)',
+};
+const gripStyle: React.CSSProperties = { cursor: 'grab' };
+
 type ColumnRowProps = {
   name: string;
+  index: number;
+  groupKey: string;
+  onReorder: (from: number, to: number) => void;
   onDelete: () => void;
 };
 
-function ColumnRow({ name, onDelete }: ColumnRowProps): JSX.Element {
+function ColumnRow({
+  name,
+  index,
+  groupKey,
+  onReorder,
+  onDelete,
+}: ColumnRowProps): JSX.Element {
+  const d = useDraggableRow(groupKey, index, onReorder);
   return (
-    <div style={rowStyle}>
+    <div
+      draggable={d.draggable}
+      onDragStart={d.onDragStart}
+      onDragEnd={d.onDragEnd}
+      onDragOver={d.onDragOver}
+      onDragLeave={d.onDragLeave}
+      onDrop={d.onDrop}
+      style={d.isDragOver ? { ...rowStyle, ...dragOverRowStyle } : rowStyle}
+    >
       <span style={rowLabelStyle}>{name}</span>
       <Button
         kind="ghost"
         icon={vsGripper}
-        tooltip="Reorder (not yet wired)"
+        tooltip="Drag to reorder"
         onClick={() => undefined}
+        style={gripStyle}
+        onMouseDown={d.onGripMouseDown}
+        onMouseUp={d.onGripMouseUp}
       />
       <Button kind="ghost" icon={vsTrash} tooltip="Remove" onClick={onDelete} />
     </div>
@@ -351,28 +490,46 @@ function ColumnRow({ name, onDelete }: ColumnRowProps): JSX.Element {
 
 type AggregateRowProps = {
   entry: Aggregation;
+  index: number;
+  groupKey: string;
+  onReorder: (from: number, to: number) => void;
   onEdit: () => void;
   onDelete: () => void;
 };
 
 function AggregateRow({
   entry,
+  index,
+  groupKey,
+  onReorder,
   onEdit,
   onDelete,
 }: AggregateRowProps): JSX.Element {
+  const d = useDraggableRow(groupKey, index, onReorder);
   const label =
     entry.selected.length > 0
       ? `${entry.operation} (${entry.selected.join(', ')})`
       : entry.operation;
   return (
-    <div style={rowStyle}>
+    <div
+      draggable={d.draggable}
+      onDragStart={d.onDragStart}
+      onDragEnd={d.onDragEnd}
+      onDragOver={d.onDragOver}
+      onDragLeave={d.onDragLeave}
+      onDrop={d.onDrop}
+      style={d.isDragOver ? { ...rowStyle, ...dragOverRowStyle } : rowStyle}
+    >
       <span style={rowLabelStyle}>{label}</span>
       <Button kind="ghost" icon={vsEdit} tooltip="Edit" onClick={onEdit} />
       <Button
         kind="ghost"
         icon={vsGripper}
-        tooltip="Reorder (not yet wired)"
+        tooltip="Drag to reorder"
         onClick={() => undefined}
+        style={gripStyle}
+        onMouseDown={d.onGripMouseDown}
+        onMouseUp={d.onGripMouseUp}
       />
       <Button kind="ghost" icon={vsTrash} tooltip="Remove" onClick={onDelete} />
     </div>
@@ -413,6 +570,7 @@ const aggregateFooterStyle: React.CSSProperties = {
 };
 
 type AggregatePickerProps = {
+  anchorRef: React.RefObject<HTMLElement>;
   availableColumns: readonly string[];
   columnTypes: Readonly<Record<string, string>>;
   availableOperations: readonly string[];
@@ -422,6 +580,7 @@ type AggregatePickerProps = {
 };
 
 function AggregatePicker({
+  anchorRef,
   availableColumns,
   columnTypes,
   availableOperations,
@@ -436,16 +595,13 @@ function AggregatePicker({
     () => new Set(initial.selected)
   );
   const [query, setQuery] = useState('');
-  const [placeAbove, setPlaceAbove] = useState(false);
+  const pos = usePortalAnchorPosition(anchorRef, containerRef);
 
-  useLayoutEffect(() => {
-    const el = containerRef.current;
-    if (el == null) return;
-    const rect = el.getBoundingClientRect();
-    if (rect.bottom > window.innerHeight - 8) {
-      setPlaceAbove(true);
-    }
-    selectRef.current?.focus();
+  useEffect(() => {
+    // Defer focus past portal mount + position so the browser actually
+    // gives the (visible) <select> focus.
+    const id = requestAnimationFrame(() => selectRef.current?.focus());
+    return () => cancelAnimationFrame(id);
   }, []);
 
   const isColumnValid = useCallback(
@@ -537,18 +693,16 @@ function AggregatePicker({
     });
   }, [operation, selected, availableColumns, onCommit]);
 
-  return (
+  return createPortal(
     <div
       ref={containerRef}
-      style={
-        placeAbove
-          ? {
-              ...aggregatePopoverStyle,
-              top: 'auto',
-              bottom: 'calc(100% + 4px)',
-            }
-          : aggregatePopoverStyle
-      }
+      style={{
+        ...aggregatePopoverStyle,
+        position: 'fixed',
+        top: pos?.top ?? -9999,
+        right: pos?.right ?? 0,
+        visibility: pos == null ? 'hidden' : 'visible',
+      }}
       role="dialog"
     >
       <div>
@@ -567,7 +721,16 @@ function AggregatePicker({
         </Select>
       </div>
       <div
-        style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          flex: 1,
+          // Allow this flex child to shrink below its content size so
+          // the inner column list's `overflowY: auto` kicks in and the
+          // footer stays inside the popover's bounded maxHeight.
+          minHeight: 0,
+        }}
       >
         <div style={aggregateFieldLabelStyle}>
           Select column(s)
@@ -614,7 +777,8 @@ function AggregatePicker({
           Aggregate
         </Button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -643,6 +807,7 @@ export function PivotConfigSection({
   onNonAggregatedInRollupChange,
 }: PivotConfigSectionProps): JSX.Element {
   const [rollupPickerOpen, setRollupPickerOpen] = useState(false);
+  const [pivotPickerOpen, setPivotPickerOpen] = useState(false);
   // `null` = closed. `{ mode: 'add' }` = adding new. `{ mode: 'edit', index }`
   // = editing existing entry.
   const [aggPickerState, setAggPickerState] = useState<
@@ -662,16 +827,27 @@ export function PivotConfigSection({
   );
 
   const handleAddPivotColumn = useCallback(() => {
-    log.info('Pivot column picker not yet wired');
+    setPivotPickerOpen(open => !open);
   }, []);
 
-  const handleAddFilterable = useCallback(() => {
-    log.info('Filterable column picker not yet wired');
-  }, []);
+  const handlePickPivotColumn = useCallback(
+    (name: string) => {
+      onPivotColumnsChange([...pivotColumns, name]);
+      setPivotPickerOpen(false);
+    },
+    [pivotColumns, onPivotColumnsChange]
+  );
 
   const usedOperations = useMemo(
     () => aggregationSettings.aggregations.map(a => a.operation as string),
     [aggregationSettings.aggregations]
+  );
+
+  const hasAggregateSelections = useMemo(
+    () =>
+      aggregatesOn &&
+      aggregationSettings.aggregations.some(a => a.selected.length > 0),
+    [aggregatesOn, aggregationSettings.aggregations]
   );
 
   const selectableOperations = useMemo(
@@ -763,6 +939,14 @@ export function PivotConfigSection({
     return next;
   };
 
+  const moveItem = <T,>(arr: readonly T[], from: number, to: number): T[] => {
+    const next = arr.slice();
+    if (from === to) return next;
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    return next;
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <ConfigCard
@@ -770,9 +954,10 @@ export function PivotConfigSection({
         on={rollupRowsOn}
         onToggle={onRollupRowsOnChange}
         onAdd={handleAddRollupRow}
-        picker={
+        picker={anchorRef =>
           rollupPickerOpen ? (
             <ColumnPicker
+              anchorRef={anchorRef}
               available={availableColumns}
               excluded={rollupRows}
               onPick={handlePickRollupRow}
@@ -789,6 +974,11 @@ export function PivotConfigSection({
               // eslint-disable-next-line react/no-array-index-key
               key={`${name}-${i}`}
               name={name}
+              index={i}
+              groupKey="rollup-rows"
+              onReorder={(from, to) =>
+                onRollupRowsChange(moveItem(rollupRows, from, to))
+              }
               onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
             />
           ))
@@ -800,19 +990,45 @@ export function PivotConfigSection({
         on={pivotColumnsOn}
         onToggle={onPivotColumnsOnChange}
         onAdd={handleAddPivotColumn}
+        addDisabled={rollupRows.length === 0 || !hasAggregateSelections}
+        picker={anchorRef =>
+          pivotPickerOpen ? (
+            <ColumnPicker
+              anchorRef={anchorRef}
+              available={availableColumns}
+              excluded={pivotColumns}
+              onPick={handlePickPivotColumn}
+              onClose={() => setPivotPickerOpen(false)}
+            />
+          ) : null
+        }
       >
-        {pivotColumns.length === 0 ? (
-          <div style={emptyStyle}>No columns</div>
-        ) : (
-          pivotColumns.map((name, i) => (
+        {(() => {
+          if (pivotColumnsOn && rollupRows.length === 0) {
+            return <div style={emptyStyle}>Add at least one Rollup row</div>;
+          }
+          if (pivotColumnsOn && !hasAggregateSelections) {
+            return (
+              <div style={emptyStyle}>Add at least one Aggregate value</div>
+            );
+          }
+          if (pivotColumns.length === 0) {
+            return <div style={emptyStyle}>No columns</div>;
+          }
+          return pivotColumns.map((name, i) => (
             <ColumnRow
               // eslint-disable-next-line react/no-array-index-key
               key={`${name}-${i}`}
               name={name}
+              index={i}
+              groupKey="pivot-columns"
+              onReorder={(from, to) =>
+                onPivotColumnsChange(moveItem(pivotColumns, from, to))
+              }
               onDelete={() => onPivotColumnsChange(removeAt(pivotColumns, i))}
             />
-          ))
-        )}
+          ));
+        })()}
       </ConfigCard>
 
       <ConfigCard
@@ -821,9 +1037,10 @@ export function PivotConfigSection({
         onToggle={onAggregatesOnChange}
         onAdd={handleAddAggregate}
         addDisabled={usedOperations.length >= selectableOperations.length}
-        picker={
+        picker={anchorRef =>
           aggPickerState != null ? (
             <AggregatePicker
+              anchorRef={anchorRef}
               availableColumns={availableColumns}
               columnTypes={columnTypes}
               availableOperations={pickerAvailableOps}
@@ -842,6 +1059,18 @@ export function PivotConfigSection({
               // eslint-disable-next-line react/no-array-index-key
               key={`${entry.operation}-${i}`}
               entry={entry}
+              index={i}
+              groupKey="aggregations"
+              onReorder={(from, to) =>
+                onAggregationSettingsChange({
+                  ...aggregationSettings,
+                  aggregations: moveItem(
+                    aggregationSettings.aggregations,
+                    from,
+                    to
+                  ),
+                })
+              }
               onEdit={() => handleEditAggregate(i)}
               onDelete={() => handleDeleteAggregate(i)}
             />
@@ -849,27 +1078,8 @@ export function PivotConfigSection({
         )}
       </ConfigCard>
 
-      <ConfigCard
-        title="Add filterable columns"
-        on={filterableColumnsOn}
-        onToggle={onFilterableColumnsOnChange}
-        onAdd={handleAddFilterable}
-      >
-        {filterableColumns.length === 0 ? (
-          <div style={emptyStyle}>No columns</div>
-        ) : (
-          filterableColumns.map((name, i) => (
-            <ColumnRow
-              // eslint-disable-next-line react/no-array-index-key
-              key={`${name}-${i}`}
-              name={name}
-              onDelete={() =>
-                onFilterableColumnsChange(removeAt(filterableColumns, i))
-              }
-            />
-          ))
-        )}
-      </ConfigCard>
+      {/* Filterable columns card hidden for now \u2014 props are still threaded
+          through so it can be re-enabled without churn. */}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <Checkbox
