@@ -1,16 +1,18 @@
 import { useContext, useMemo } from 'react';
 import {
   IrisGridTableOptionsContext,
+  OptionType,
   type IrisGridTableOptionsExtension,
   type OptionItem,
 } from '@deephaven/iris-grid';
+import { dhPivotTable } from '@deephaven/icons';
 import { CreatePivotPage } from './CreatePivotPage';
 import { CREATE_PIVOT_ITEM_TYPE } from './createPivotItemType';
 
 const CREATE_PIVOT_ITEM: OptionItem = {
   type: CREATE_PIVOT_ITEM_TYPE,
-  title: 'Create Pivot',
-  subtitle: 'Build a pivot from this table',
+  title: 'Pivot Builder',
+  icon: dhPivotTable,
   configPage: CreatePivotPage,
 };
 
@@ -27,7 +29,17 @@ export function useComposedTableOptionsExtension(): IrisGridTableOptionsExtensio
       transformTableOptions: defaults => {
         const base =
           parentTransform != null ? parentTransform(defaults) : defaults;
-        return [...base, CREATE_PIVOT_ITEM];
+        const aggregationsIndex = base.findIndex(
+          item => item.type === OptionType.AGGREGATIONS
+        );
+        if (aggregationsIndex < 0) {
+          return [...base, CREATE_PIVOT_ITEM];
+        }
+        return [
+          ...base.slice(0, aggregationsIndex),
+          CREATE_PIVOT_ITEM,
+          ...base.slice(aggregationsIndex),
+        ];
       },
     };
   }, [parent]);

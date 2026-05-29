@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   IrisGrid,
+  IrisGridModel,
   IrisGridTableOptionsContext,
-  type IrisGridModel,
 } from '@deephaven/iris-grid';
 import { LoadingOverlay } from '@deephaven/components';
 import { useApi, useObjectFetch } from '@deephaven/jsapi-bootstrap';
-import { isCorePlusDh } from '@deephaven/js-plugin-pivot';
+import {
+  isCorePlusDh,
+  usePivotMouseHandlers,
+  usePivotRenderer,
+  usePivotMetricCalculatorFactory,
+  usePivotTheme,
+} from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { WidgetMiddlewareComponentProps } from '@deephaven/plugin';
-import PivotBuilderIrisGridModel from './PivotBuilderIrisGridModel';
+import {
+  isPivotBuilderIrisGridModel,
+  makePivotBuilderModel,
+  type PivotBuilderProxyModel,
+} from './pivotBuilderModel';
 import { useComposedTableOptionsExtension } from './useComposedTableOptionsExtension';
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/PivotBuilderWidget');
@@ -28,7 +38,16 @@ export function PivotBuilderWidget({
   const extension = useComposedTableOptionsExtension();
   const [model, setModel] = useState<IrisGridModel | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const builtModelRef = useRef<PivotBuilderIrisGridModel | null>(null);
+  const [isPivot, setIsPivot] = useState(false);
+  const builtModelRef = useRef<PivotBuilderProxyModel | null>(null);
+
+  // Pivot-specific overrides. Built unconditionally (hooks must be stable);
+  // we only forward them to `<IrisGrid>` when the proxy is currently in
+  // pivot mode (i.e. the inner model is an `IrisGridPivotModel`).
+  const pivotMouseHandlers = usePivotMouseHandlers();
+  const pivotRenderer = usePivotRenderer();
+  const pivotMetricCalculator = usePivotMetricCalculatorFactory();
+  const pivotTheme = usePivotTheme();
 
   // Subscribe to the well-known `psp` PivotService on the same query.
   const pspDescriptor = useMemo<DhType.ide.VariableDescriptor>(() => {
@@ -66,7 +85,7 @@ export function PivotBuilderWidget({
           table?.close?.();
           return;
         }
-        const built = new PivotBuilderIrisGridModel(
+        const built = await makePivotBuilderModel(
           dh,
           table,
           pspWidget as DhType.Widget
@@ -94,6 +113,29 @@ export function PivotBuilderWidget({
     []
   );
 
+  // Track whether the proxy is currently in pivot mode by watching
+  // COLUMNS_CHANGED (which fires after `setNextModel` swaps the inner
+  // model). The pivot-specific renderer / mouse handlers / metric
+  // calculator must only be applied when the inner model is actually a
+  // pivot model — otherwise they'd crash on the flat table.
+  useEffect(() => {
+    if (model == null) {
+      setIsPivot(false);
+      return undefined;
+    }
+    const update = (): void => {
+      const next =
+        isPivotBuilderIrisGridModel(model) && model.pivotConfig != null;
+      setIsPivot(prev => (prev === next ? prev : next));
+    };
+    update();
+    const handler = (): void => update();
+    model.addEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
+    return () => {
+      model.removeEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
+    };
+  }, [model]);
+
   if (error != null) {
     return (
       <LoadingOverlay
@@ -107,7 +149,17 @@ export function PivotBuilderWidget({
 
   return (
     <IrisGridTableOptionsContext.Provider value={extension}>
-      <IrisGrid model={model} />
+      {isPivot ? (
+        <IrisGrid
+          model={model}
+          mouseHandlers={pivotMouseHandlers}
+          renderer={pivotRenderer}
+          getMetricCalculator={pivotMetricCalculator}
+          theme={pivotTheme}
+        />
+      ) : (
+        <IrisGrid model={model} />
+      )}
     </IrisGridTableOptionsContext.Provider>
   );
 }

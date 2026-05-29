@@ -1,144 +1,177 @@
-import { useCallback, useContext, useMemo, useState } from 'react';
-import { Button } from '@deephaven/components';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, Checkbox, Select } from '@deephaven/components';
 import { type IrisGridTableOptionsPageProps } from '@deephaven/iris-grid';
-import { useApi, useObjectFetch } from '@deephaven/jsapi-bootstrap';
-import { IrisGridPivotModel, isCorePlusDh } from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
-import type { dh as DhType } from '@deephaven/jsapi-types';
-import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-import PivotBuilderIrisGridModel, {
+import {
+  isNumericColumn,
   isPivotBuilderIrisGridModel,
-} from './PivotBuilderIrisGridModel';
-import { PivotBuilderPanelContext } from './PivotBuilderPanelContext';
+  makeDefaultPivotConfig,
+  type PivotConfig,
+} from './pivotBuilderModel';
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/CreatePivotPage');
 
 /**
- * Returns `true` when `model` quacks like the host
- * `IrisGridProxyModel` (it owns a swappable inner model via `setNextModel`
- * and exposes the current `table`). We avoid an `instanceof` check so the
- * plugin doesn't pin its build to a specific iris-grid copy.
+ * Aggregation functions supported by the pivot service. `numericOnly` filters
+ * the column pool; functions like `Count` can be applied to any column (or to
+ * no columns at all, meaning a row count).
  */
-function isSwappableProxy(model: unknown): model is {
-  setNextModel(promise: Promise<unknown>): void;
-  table?: DhType.Table;
-  model?: { table?: DhType.Table };
-} {
-  return (
-    typeof model === 'object' &&
-    model !== null &&
-    typeof (model as { setNextModel?: unknown }).setNextModel === 'function'
-  );
-}
+const PIVOT_FUNCTIONS: readonly {
+  value: string;
+  label: string;
+  numericOnly: boolean;
+}[] = [
+  { value: 'Sum', label: 'Sum', numericOnly: true },
+  { value: 'AbsSum', label: 'Abs Sum', numericOnly: true },
+  { value: 'Avg', label: 'Average', numericOnly: true },
+  { value: 'Min', label: 'Min', numericOnly: false },
+  { value: 'Max', label: 'Max', numericOnly: false },
+  { value: 'Std', label: 'Standard deviation', numericOnly: true },
+  { value: 'Var', label: 'Variance', numericOnly: true },
+  { value: 'Median', label: 'Median', numericOnly: true },
+  { value: 'First', label: 'First', numericOnly: false },
+  { value: 'Last', label: 'Last', numericOnly: false },
+  { value: 'Count', label: 'Count', numericOnly: false },
+];
 
-function getProxyTable(model: unknown): DhType.Table | null {
-  if (!isSwappableProxy(model)) return null;
-  // IrisGridProxyModel forwards `table` to the inner IrisGridTableModel.
-  const t = model.table ?? model.model?.table;
-  return t ?? null;
+const DEFAULT_FUNCTION = 'Sum';
+
+function isNumericOnly(fn: string): boolean {
+  return PIVOT_FUNCTIONS.find(f => f.value === fn)?.numericOnly ?? false;
 }
 
 /**
  * Sidebar `configPage` for the Create Pivot menu item.
  *
- * Two paths:
- *  - **Non-panel widget path**: the active model is a
- *    `PivotBuilderIrisGridModel`; we just write a default `pivotConfig`.
- *  - **Panel path**: the active model is the host `IrisGridProxyModel`;
- *    we build the pivot ourselves and hand it to `setNextModel`.
+ * Selecting columns and clicking Apply sets `model.pivotConfig`; the
+ * pivot-builder proxy then swaps its inner model and fires the standard
+ * `COLUMNS_CHANGED`/`UPDATED` events, causing IrisGrid to re-render in
+ * place.
  */
 export function CreatePivotPage({
   model,
-  onBack,
 }: IrisGridTableOptionsPageProps): JSX.Element {
-  const dh = useApi();
-  const panelContext = useContext(PivotBuilderPanelContext);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   const isProxy = isPivotBuilderIrisGridModel(model);
   const hasPivot = isProxy && model.pivotConfig != null;
-  const swappableProxy = isSwappableProxy(model) ? model : null;
-  const panelPathReady =
-    !isProxy &&
-    swappableProxy != null &&
-    isCorePlusDh(dh) &&
-    panelContext?.metadata != null;
 
-  // Subscribe to the well-known `psp` PivotService when in panel mode.
-  const pspDescriptor = useMemo<DhType.ide.VariableDescriptor>(() => {
-    if (!panelPathReady || panelContext?.metadata == null) {
-      return { type: 'PivotService', name: '__unavailable__' };
-    }
-    return { ...panelContext.metadata, type: 'PivotService', name: 'psp' };
-  }, [panelPathReady, panelContext]);
-  const pspFetch = useObjectFetch<DhType.Widget>(pspDescriptor);
+  // Always source columns from the original (pre-pivot) table so the
+  // selectors don't shift to pivot output columns after Apply.
+  const columns = isProxy ? model.sourceTable.columns : model.columns;
+  const numericColumnNames = useMemo(
+    () => columns.filter(isNumericColumn).map(c => c.name),
+    [columns]
+  );
+  const allColumnNames = useMemo(() => columns.map(c => c.name), [columns]);
 
-  const canCreate =
-    isProxy ||
-    (panelPathReady &&
-      (pspFetch.status === 'ready' || pspFetch.status === 'loading'));
+  // Seed state from current pivotConfig (if any) or sensible defaults.
+  const seed = useMemo<PivotConfig>(
+    () => (isProxy && model.pivotConfig) || makeDefaultPivotConfig(columns),
+    [isProxy, model, columns]
+  );
 
-  const handleCreate = useCallback(async () => {
-    setError(null);
-    if (isPivotBuilderIrisGridModel(model)) {
-      try {
-        const defaults = PivotBuilderIrisGridModel.makeDefaultPivotConfig(
-          model.columns
-        );
-        log.info('Applying default pivot config (widget path)', defaults);
-        model.pivotConfig = defaults;
-        onBack();
-      } catch (e) {
-        log.error('Failed to apply pivot config', e);
-        setError(e instanceof Error ? e.message : String(e));
-      }
-      return;
-    }
+  // Pick the first function in `seed.aggregations` (the config supports a
+  // map of `function -> columns`, but the UI currently exposes a single
+  // function at a time).
+  const seededFunction = Object.keys(seed.aggregations)[0] ?? DEFAULT_FUNCTION;
 
-    if (swappableProxy == null || !isCorePlusDh(dh)) {
-      setError('Create Pivot requires the CorePlus JS API.');
-      return;
-    }
-    const table = getProxyTable(model);
-    if (table == null) {
-      setError('Active model has no underlying table.');
-      return;
-    }
-    if (pspFetch.status !== 'ready') {
-      setError('PivotService is not ready yet — try again in a moment.');
-      return;
-    }
+  const [rowKeys, setRowKeys] = useState<string[]>(seed.rowKeys);
+  const [columnKeys, setColumnKeys] = useState<string[]>(seed.columnKeys);
+  const [aggFunction, setAggFunction] = useState<string>(seededFunction);
+  const [aggColumns, setAggColumns] = useState<string[]>(
+    seed.aggregations[seededFunction] ?? []
+  );
 
-    setBusy(true);
-    try {
-      const pspWidget = (await pspFetch.fetch()) as CorePlusDhType.Widget;
-      const config = PivotBuilderIrisGridModel.makeDefaultPivotConfig(
-        model.columns
-      );
-      log.info('Building pivot via panel path', config);
-      const pivotService = await (
-        dh as unknown as typeof CorePlusDhType
-      ).coreplus.pivot.PivotService.getInstance(pspWidget);
-      const pivotTable = await pivotService.createPivotTable({
-        source: table as unknown as CorePlusDhType.Table,
-        rowKeys: config.rowKeys,
-        columnKeys: config.columnKeys,
-        aggregations: config.aggregations,
+  useEffect(() => {
+    const fn = Object.keys(seed.aggregations)[0] ?? DEFAULT_FUNCTION;
+    setRowKeys(seed.rowKeys);
+    setColumnKeys(seed.columnKeys);
+    setAggFunction(fn);
+    setAggColumns(seed.aggregations[fn] ?? []);
+  }, [seed]);
+
+  const aggPool = useMemo(
+    () => (isNumericOnly(aggFunction) ? numericColumnNames : allColumnNames),
+    [aggFunction, numericColumnNames, allColumnNames]
+  );
+
+  const handleFunctionChange = useCallback(
+    (value: string): void => {
+      setAggFunction(value);
+      // Drop columns that aren't eligible for the new function.
+      const nextPool = isNumericOnly(value)
+        ? new Set(numericColumnNames)
+        : new Set(allColumnNames);
+      setAggColumns(prev => prev.filter(n => nextPool.has(n)));
+    },
+    [numericColumnNames, allColumnNames]
+  );
+
+  // Selecting a column in one role removes it from the other two (a column
+  // can only play one role at a time). All checkboxes stay active so the
+  // user can move a column between roles in a single click. Future work:
+  // surface a visual cue when a column is already claimed by another role.
+  const handleToggle = useCallback(
+    (role: 'row' | 'col' | 'agg', name: string, checked: boolean): void => {
+      const withRemoved = (prev: string[]): string[] =>
+        prev.filter(n => n !== name);
+      const withAdded = (prev: string[]): string[] =>
+        prev.includes(name) ? prev : [...prev, name];
+
+      setRowKeys(prev => {
+        if (role === 'row') {
+          return checked ? withAdded(prev) : withRemoved(prev);
+        }
+        return checked ? withRemoved(prev) : prev;
       });
-      const pivotModel = new IrisGridPivotModel(
-        dh as unknown as typeof CorePlusDhType,
-        pivotTable
+      setColumnKeys(prev => {
+        if (role === 'col') {
+          return checked ? withAdded(prev) : withRemoved(prev);
+        }
+        return checked ? withRemoved(prev) : prev;
+      });
+      setAggColumns(prev => {
+        if (role === 'agg') {
+          return checked ? withAdded(prev) : withRemoved(prev);
+        }
+        return checked ? withRemoved(prev) : prev;
+      });
+    },
+    []
+  );
+
+  const handleApply = useCallback(() => {
+    setError(null);
+    if (!isPivotBuilderIrisGridModel(model)) {
+      setError(
+        'Create Pivot requires the pivot-builder proxy model (CorePlus PivotService).'
       );
-      swappableProxy.setNextModel(Promise.resolve(pivotModel));
-      onBack();
-    } catch (e) {
-      log.error('Failed to build pivot (panel path)', e);
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
+      return;
     }
-  }, [model, swappableProxy, dh, pspFetch, onBack]);
+    if (rowKeys.length === 0) {
+      setError('Select at least one row key.');
+      return;
+    }
+    // For `Count` an empty column list is meaningful (count rows). For other
+    // functions, require at least one column.
+    if (aggFunction !== 'Count' && aggColumns.length === 0) {
+      setError(`Select at least one column for ${aggFunction}.`);
+      return;
+    }
+    try {
+      const config: PivotConfig = {
+        rowKeys,
+        columnKeys,
+        aggregations: { [aggFunction]: aggColumns },
+      };
+      log.info('Applying pivot config', config);
+      model.pivotConfig = config;
+    } catch (e) {
+      log.error('Failed to apply pivot config', e);
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, [model, rowKeys, columnKeys, aggFunction, aggColumns]);
 
   const handleReset = useCallback(() => {
     if (!isPivotBuilderIrisGridModel(model)) return;
@@ -147,29 +180,89 @@ export function CreatePivotPage({
     setError(null);
   }, [model]);
 
+  // Prevent the same column from being selected in multiple roles.
+  const renderColumnList = (
+    role: 'row' | 'col' | 'agg',
+    selected: string[],
+    pool: readonly string[]
+  ): JSX.Element => (
+    <div
+      style={{
+        maxHeight: 160,
+        overflowY: 'auto',
+        border: '1px solid var(--dh-color-border-base, #444)',
+        borderRadius: 3,
+        padding: '4px 8px',
+      }}
+    >
+      {pool.length === 0 && (
+        <div style={{ opacity: 0.6, fontStyle: 'italic' }}>No columns</div>
+      )}
+      {pool.map(name => (
+        <Checkbox
+          key={name}
+          checked={selected.includes(name)}
+          onChange={e => handleToggle(role, name, e.target.checked)}
+        >
+          {name}
+        </Checkbox>
+      ))}
+    </div>
+  );
+
   return (
     <div className="iris-grid-plugin-sidebar-page" style={{ padding: 12 }}>
-      <h5>Create Pivot</h5>
-      <p>
-        Build a pivot view of this table using sensible defaults. The first
-        non-numeric column becomes the row key, the second non-numeric column
-        (if any) becomes the column key, and all numeric columns are summed.
-      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <label style={{ fontWeight: 600 }}>Row keys</label>
+          {renderColumnList('row', rowKeys, allColumnNames)}
+        </div>
+        <div>
+          <label style={{ fontWeight: 600 }}>Column keys</label>
+          {renderColumnList('col', columnKeys, allColumnNames)}
+        </div>
+        <div>
+          <label
+            htmlFor="pivot-builder-aggregation-function"
+            style={{ fontWeight: 600 }}
+          >
+            Aggregation function
+          </label>
+          <Select
+            id="pivot-builder-aggregation-function"
+            value={aggFunction}
+            onChange={handleFunctionChange}
+          >
+            {PIVOT_FUNCTIONS.map(f => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div>
+          <label style={{ fontWeight: 600 }}>
+            Columns ({aggFunction})
+            {aggFunction === 'Count' && (
+              <span style={{ fontWeight: 400, opacity: 0.7, marginLeft: 6 }}>
+                — leave empty to count rows
+              </span>
+            )}
+          </label>
+          {renderColumnList('agg', aggColumns, aggPool)}
+        </div>
+      </div>
       {error != null && (
-        <p role="alert" style={{ color: 'var(--dh-color-red, #c43d3d)' }}>
+        <p
+          role="alert"
+          style={{ color: 'var(--dh-color-red, #c43d3d)', marginTop: 8 }}
+        >
           {error}
         </p>
       )}
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <Button kind="secondary" onClick={onBack}>
-          Back
-        </Button>
-        <Button
-          kind="primary"
-          onClick={handleCreate}
-          disabled={!canCreate || busy}
-        >
-          {busy ? 'Creating…' : 'Create Pivot'}
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <Button kind="primary" onClick={handleApply} disabled={!isProxy}>
+          {hasPivot ? 'Update Pivot' : 'Create Pivot'}
         </Button>
         {hasPivot && (
           <Button kind="danger" onClick={handleReset}>
