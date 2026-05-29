@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { Button, Checkbox, UISwitch } from '@deephaven/components';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Checkbox, SearchInput, UISwitch } from '@deephaven/components';
 import { vsAdd, vsEdit, vsGripper, vsTrash } from '@deephaven/icons';
 import Log from '@deephaven/log';
 
@@ -7,8 +7,8 @@ const log = Log.module('@deephaven/js-plugin-pivot-builder/PivotConfigSection');
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
- * Rollups & Aggregations sidebar. State is fully controlled by the parent;
- * nothing here is wired to the pivot model yet.
+ * Rollups & Aggregations sidebar. State is fully controlled by the parent.
+ * Only the Rollup rows card is wired to the model (in CreatePivotPage).
  */
 
 export type AggregateEntry = {
@@ -18,7 +18,7 @@ export type AggregateEntry = {
 };
 
 export type PivotConfigSectionProps = {
-  /** Available source columns, used to seed `Add` placeholders. */
+  /** Available source columns. */
   availableColumns: readonly string[];
 
   rollupRows: string[];
@@ -86,6 +86,51 @@ const emptyStyle: React.CSSProperties = {
   padding: '4px 2px',
 };
 
+const disabledBodyStyle: React.CSSProperties = {
+  opacity: 0.4,
+  pointerEvents: 'none',
+  userSelect: 'none',
+};
+
+const popoverStyle: React.CSSProperties = {
+  position: 'absolute',
+  zIndex: 1000,
+  top: 'calc(100% + 4px)',
+  right: 0,
+  width: 240,
+  maxHeight: 320,
+  display: 'flex',
+  flexDirection: 'column',
+  background: 'var(--dh-color-bg-200, #1f1f1f)',
+  border: '1px solid var(--dh-color-border-base, #444)',
+  borderRadius: 8,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+  overflow: 'hidden',
+};
+
+const popoverSearchStyle: React.CSSProperties = {
+  padding: 8,
+};
+
+const popoverListStyle: React.CSSProperties = {
+  overflowY: 'auto',
+  flex: 1,
+};
+
+const popoverItemStyle: React.CSSProperties = {
+  padding: '6px 12px',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+};
+
+const popoverEmptyStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  opacity: 0.6,
+  fontStyle: 'italic',
+};
+
 function newId(): string {
   if (
     typeof crypto !== 'undefined' &&
@@ -96,15 +141,113 @@ function newId(): string {
   return `id-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-/** Pick the next column not already in `taken`, falling back to a generated name. */
-function nextPlaceholderColumn(
-  available: readonly string[],
-  taken: readonly string[]
-): string {
-  const used = new Set(taken);
-  const free = available.find(c => !used.has(c));
-  if (free != null) return free;
-  return `Column ${taken.length + 1}`;
+type ColumnPickerProps = {
+  available: readonly string[];
+  excluded: readonly string[];
+  onPick: (name: string) => void;
+  onClose: () => void;
+};
+
+function ColumnPicker({
+  available,
+  excluded,
+  onPick,
+  onClose,
+}: ColumnPickerProps): JSX.Element {
+  const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const excludedSet = useMemo(() => new Set(excluded), [excluded]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return available.filter(
+      c => !excludedSet.has(c) && (q === '' || c.toLowerCase().includes(q))
+    );
+  }, [available, excludedSet, query]);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query, filtered.length]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent): void {
+      if (
+        containerRef.current != null &&
+        e.target instanceof Node &&
+        !containerRef.current.contains(e.target)
+      ) {
+        onClose();
+      }
+    }
+    function handleKey(e: KeyboardEvent): void {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [onClose]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex(i => Math.min(filtered.length - 1, i + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex(i => Math.max(0, i - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const pick = filtered[activeIndex];
+        if (pick != null) onPick(pick);
+      }
+    },
+    [activeIndex, filtered, onPick]
+  );
+
+  return (
+    <div ref={containerRef} style={popoverStyle} role="dialog">
+      <div style={popoverSearchStyle}>
+        <SearchInput
+          value={query}
+          placeholder="Find column..."
+          onChange={e => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+      </div>
+      <div style={popoverListStyle} role="listbox">
+        {filtered.length === 0 ? (
+          <div style={popoverEmptyStyle}>No columns</div>
+        ) : (
+          filtered.map((name, i) => (
+            <div
+              key={name}
+              role="option"
+              aria-selected={i === activeIndex}
+              style={{
+                ...popoverItemStyle,
+                background:
+                  i === activeIndex
+                    ? 'var(--dh-color-bg-300, #333)'
+                    : 'transparent',
+              }}
+              onMouseEnter={() => setActiveIndex(i)}
+              onMouseDown={e => {
+                // mousedown so click-outside handler doesn't fire first
+                e.preventDefault();
+                onPick(name);
+              }}
+            >
+              {name}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
 }
 
 type ConfigCardProps = {
@@ -112,6 +255,7 @@ type ConfigCardProps = {
   on: boolean;
   onToggle: (next: boolean) => void;
   onAdd: () => void;
+  picker?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -120,6 +264,7 @@ function ConfigCard({
   on,
   onToggle,
   onAdd,
+  picker,
   children,
 }: ConfigCardProps): JSX.Element {
   return (
@@ -127,11 +272,16 @@ function ConfigCard({
       <div style={cardHeaderStyle}>
         <span style={cardTitleStyle}>{title}</span>
         <UISwitch on={on} onClick={() => onToggle(!on)} />
-        <Button kind="secondary" icon={vsAdd} onClick={onAdd}>
-          Add
-        </Button>
+        <div style={{ position: 'relative' }}>
+          <Button kind="secondary" icon={vsAdd} onClick={onAdd} disabled={!on}>
+            Add
+          </Button>
+          {picker}
+        </div>
       </div>
-      {on && <div>{children}</div>}
+      <div style={on ? undefined : disabledBodyStyle} aria-disabled={!on}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -206,26 +356,27 @@ export function PivotConfigSection({
   nonAggregatedInRollup,
   onNonAggregatedInRollupChange,
 }: PivotConfigSectionProps): JSX.Element {
+  const [rollupPickerOpen, setRollupPickerOpen] = useState(false);
+
   const handleAddRollupRow = useCallback(() => {
-    onRollupRowsChange([
-      ...rollupRows,
-      nextPlaceholderColumn(availableColumns, rollupRows),
-    ]);
-  }, [availableColumns, rollupRows, onRollupRowsChange]);
+    setRollupPickerOpen(open => !open);
+  }, []);
+
+  const handlePickRollupRow = useCallback(
+    (name: string) => {
+      onRollupRowsChange([...rollupRows, name]);
+      setRollupPickerOpen(false);
+    },
+    [rollupRows, onRollupRowsChange]
+  );
 
   const handleAddPivotColumn = useCallback(() => {
-    onPivotColumnsChange([
-      ...pivotColumns,
-      nextPlaceholderColumn(availableColumns, pivotColumns),
-    ]);
-  }, [availableColumns, pivotColumns, onPivotColumnsChange]);
+    log.info('Pivot column picker not yet wired');
+  }, []);
 
   const handleAddFilterable = useCallback(() => {
-    onFilterableColumnsChange([
-      ...filterableColumns,
-      nextPlaceholderColumn(availableColumns, filterableColumns),
-    ]);
-  }, [availableColumns, filterableColumns, onFilterableColumnsChange]);
+    log.info('Filterable column picker not yet wired');
+  }, []);
 
   const handleAddAggregate = useCallback(() => {
     const first = availableColumns[0] ?? 'Value';
@@ -252,6 +403,16 @@ export function PivotConfigSection({
         on={rollupRowsOn}
         onToggle={onRollupRowsOnChange}
         onAdd={handleAddRollupRow}
+        picker={
+          rollupPickerOpen ? (
+            <ColumnPicker
+              available={availableColumns}
+              excluded={rollupRows}
+              onPick={handlePickRollupRow}
+              onClose={() => setRollupPickerOpen(false)}
+            />
+          ) : null
+        }
       >
         {rollupRows.length === 0 ? (
           <div style={emptyStyle}>No columns</div>
