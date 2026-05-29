@@ -1,27 +1,54 @@
 import { useEffect, useMemo, useState } from 'react';
-import { IrisGridUtils, type IrisGridModel } from '@deephaven/iris-grid';
+import {
+  IrisGridUtils,
+  type AggregationSettings,
+  type IrisGridModel,
+  type UITotalsTableConfig,
+} from '@deephaven/iris-grid';
 import deepEqual from 'fast-deep-equal';
 import Log from '@deephaven/log';
 import { isPivotBuilderIrisGridModel } from './pivotBuilderModel';
-import { PivotConfigSection, type AggregateEntry } from './PivotConfigSection';
+import { PivotConfigSection } from './PivotConfigSection';
 
 // `IrisGridTableOptionsPageProps` is not yet in the installed
 // `@deephaven/iris-grid` typings (added in a newer host build), but is
 // emitted at runtime. Inline-type the prop until the dep bumps.
 type IrisGridTableOptionsPageProps = { model: IrisGridModel };
 
+// Statics added to IrisGridUtils after the installed v1.18.0 — present at
+// runtime via the host's workspace build. Cast to access until the
+// installed @deephaven/iris-grid typings are bumped.
+type IrisGridUtilsWithExtras = typeof IrisGridUtils & {
+  getModelTotalsConfig: (
+    columns: readonly { name: string }[],
+    rollupConfig:
+      | {
+          columns?: readonly string[];
+          showConstituents?: boolean;
+          showNonAggregatedColumns?: boolean;
+          includeDescriptions?: boolean;
+        }
+      | undefined,
+    aggregationSettings: AggregationSettings
+  ) => UITotalsTableConfig | null;
+};
+const IrisGridUtilsExt = IrisGridUtils as IrisGridUtilsWithExtras;
+
+const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
+  aggregations: [],
+  showOnTop: false,
+};
+
 const log = Log.module('@deephaven/js-plugin-pivot-builder/CreatePivotPage');
 
 /**
  * Sidebar `configPage` for the Create Pivot menu item.
  *
- * Renders the card-based config panel. The Rollup rows card is wired to
- * `model.rollupConfig`; the other three cards are mock-data only (see
- * `plans/DH-21476-pivot-builder-rollup-rows-wiring.md`).
- *
- * The legacy column-selector UI below the cards is intentionally removed
- * — it duplicated controls now owned by the cards and will be partially
- * revived once Pivot columns / Aggregate values are wired.
+ * Renders the card-based config panel. The Rollup rows and Aggregate
+ * values cards are wired to `model.rollupConfig` / `model.totalsConfig`;
+ * the other two cards are mock-data only (see
+ * `plans/DH-21476-pivot-builder-rollup-rows-wiring.md` and
+ * `plans/DH-21476-pivot-builder-aggregate-values-wiring.md`).
  */
 export function CreatePivotPage({
   model,
@@ -35,12 +62,17 @@ export function CreatePivotPage({
     () => columns.map((c: { name: string }) => c.name),
     [columns]
   );
+  const columnTypes = useMemo(() => {
+    const map: Record<string, string> = {};
+    columns.forEach((c: { name: string; type: string }) => {
+      map[c.name] = c.type;
+    });
+    return map;
+  }, [columns]);
 
-  // Seed Rollup rows from the existing `model.rollupConfig` once. There's
-  // no faithful way to recover `showNonAggregatedColumns` from a
-  // `dh.RollupConfig` (it's a UI-only flag that controls whether
-  // `getModelRollupConfig` synthesises a `First` aggregation), so it
-  // defaults to `true`.
+  // Seed Rollup rows from the existing `model.rollupConfig` once.
+  // `showNonAggregatedColumns` is UI-only (not faithfully recoverable
+  // from a `dh.RollupConfig`) so it defaults to `true`.
   const [mockRollupRows, setMockRollupRows] = useState<string[]>(() => {
     const cfg = model.rollupConfig;
     return cfg?.groupingColumns?.map((c: unknown) => String(c)) ?? [];
@@ -51,44 +83,78 @@ export function CreatePivotPage({
   const [mockNonAggregatedInRollup, setMockNonAggregatedInRollup] =
     useState(true);
 
-  // Mock-data state for the remaining cards. Not yet wired to any model
-  // setter — see plans/DH-21476-pivot-builder-rollup-rows-wiring.md.
+  // Aggregate values state. Source-of-truth shape matches the host's
+  // `AggregationSettings` so we can hand it straight to
+  // `IrisGridUtils.getModelRollupConfig` / `.getModelTotalsConfig`.
+  const [aggregationSettings, setAggregationSettings] =
+    useState<AggregationSettings>(EMPTY_AGGREGATION_SETTINGS);
+  const [aggregatesOn, setAggregatesOn] = useState(true);
+
+  // Mock-data state for the remaining cards.
   const [mockPivotColumns, setMockPivotColumns] = useState<string[]>([]);
   const [mockPivotColumnsOn, setMockPivotColumnsOn] = useState(true);
-  const [mockAggregates, setMockAggregates] = useState<AggregateEntry[]>([
-    { id: 'seed-sum', fn: 'Sum', columns: ['Price', 'Size'] },
-  ]);
-  const [mockAggregatesOn, setMockAggregatesOn] = useState(true);
   const [mockFilterable, setMockFilterable] = useState<string[]>([]);
   const [mockFilterableOn, setMockFilterableOn] = useState(true);
 
-  // Sync the Rollup rows card to `model.rollupConfig`. The host's
-  // `IrisGridProxyModel` swaps the inner model to `table.rollup(cfg)`
-  // when this property is assigned (mirroring the existing Rollup Rows
-  // sidebar).
+  // Combined effect that owns BOTH `model.rollupConfig` and
+  // `model.totalsConfig`. The two surfaces are mutually exclusive in
+  // IrisGrid: when a rollup is active, totals are suppressed and
+  // aggregations are folded into the rollup config; otherwise
+  // aggregations become a standalone totals row.
   useEffect(() => {
     if (!isPivotBuilderIrisGridModel(model)) return;
 
-    const uiConfig =
-      mockRollupRowsOn && mockRollupRows.length > 0
-        ? {
-            columns: mockRollupRows,
-            showConstituents: mockIncludeConstituents,
-            showNonAggregatedColumns: mockNonAggregatedInRollup,
-            includeDescriptions: true as const,
-          }
-        : undefined;
+    const rollupActive = mockRollupRowsOn && mockRollupRows.length > 0;
+    const aggsActive =
+      aggregatesOn &&
+      aggregationSettings.aggregations.some(
+        a => a.selected.length > 0 || a.invert
+      );
 
-    const next = IrisGridUtils.getModelRollupConfig(
-      model.sourceTable.columns,
-      uiConfig,
-      { aggregations: [], showOnTop: false }
-    );
+    const effectiveAggregationSettings = aggsActive
+      ? aggregationSettings
+      : EMPTY_AGGREGATION_SETTINGS;
 
-    if (!deepEqual(next, model.rollupConfig)) {
-      log.debug('Applying rollupConfig from Rollup rows card', next);
+    if (rollupActive) {
+      const uiConfig = {
+        columns: mockRollupRows,
+        showConstituents: mockIncludeConstituents,
+        showNonAggregatedColumns: mockNonAggregatedInRollup,
+        includeDescriptions: true as const,
+      };
+      const nextRollup = IrisGridUtils.getModelRollupConfig(
+        model.sourceTable.columns,
+        uiConfig,
+        effectiveAggregationSettings
+      );
+      if (!deepEqual(nextRollup, model.rollupConfig)) {
+        log.debug('Applying rollupConfig (rollup active)', nextRollup);
+        // eslint-disable-next-line no-param-reassign
+        model.rollupConfig = nextRollup;
+      }
+      if (model.totalsConfig != null) {
+        log.debug('Clearing totalsConfig (rollup wins)');
+        // eslint-disable-next-line no-param-reassign
+        model.totalsConfig = null;
+      }
+      return;
+    }
+
+    // No rollup: clear it, then push totals (or null).
+    if (model.rollupConfig != null) {
+      log.debug('Clearing rollupConfig (rollup inactive)');
       // eslint-disable-next-line no-param-reassign
-      model.rollupConfig = next;
+      model.rollupConfig = null;
+    }
+    const nextTotals = IrisGridUtilsExt.getModelTotalsConfig(
+      model.sourceTable.columns,
+      undefined,
+      effectiveAggregationSettings
+    );
+    if (!deepEqual(nextTotals, model.totalsConfig)) {
+      log.debug('Applying totalsConfig (standalone aggregations)', nextTotals);
+      // eslint-disable-next-line no-param-reassign
+      model.totalsConfig = nextTotals;
     }
   }, [
     model,
@@ -96,6 +162,8 @@ export function CreatePivotPage({
     mockRollupRows,
     mockIncludeConstituents,
     mockNonAggregatedInRollup,
+    aggregatesOn,
+    aggregationSettings,
   ]);
 
   return (
@@ -103,6 +171,7 @@ export function CreatePivotPage({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <PivotConfigSection
           availableColumns={allColumnNames}
+          columnTypes={columnTypes}
           rollupRows={mockRollupRows}
           onRollupRowsChange={setMockRollupRows}
           rollupRowsOn={mockRollupRowsOn}
@@ -111,10 +180,10 @@ export function CreatePivotPage({
           onPivotColumnsChange={setMockPivotColumns}
           pivotColumnsOn={mockPivotColumnsOn}
           onPivotColumnsOnChange={setMockPivotColumnsOn}
-          aggregates={mockAggregates}
-          onAggregatesChange={setMockAggregates}
-          aggregatesOn={mockAggregatesOn}
-          onAggregatesOnChange={setMockAggregatesOn}
+          aggregationSettings={aggregationSettings}
+          onAggregationSettingsChange={setAggregationSettings}
+          aggregatesOn={aggregatesOn}
+          onAggregatesOnChange={setAggregatesOn}
           filterableColumns={mockFilterable}
           onFilterableColumnsChange={setMockFilterable}
           filterableColumnsOn={mockFilterableOn}
@@ -124,14 +193,6 @@ export function CreatePivotPage({
           nonAggregatedInRollup={mockNonAggregatedInRollup}
           onNonAggregatedInRollupChange={setMockNonAggregatedInRollup}
         />
-        {/*
-          TODO(DH-21476): legacy column-selector UI (Row keys / Column
-          keys / aggregation function / Columns / Apply / Reset) was
-          removed in favour of the card-based PivotConfigSection above.
-          The previous implementation lives in git history (commit
-          "Mock builder UI") and will be partially revived as Pivot
-          columns / Aggregate values get wired to `model.pivotConfig`.
-        */}
       </div>
     </div>
   );
