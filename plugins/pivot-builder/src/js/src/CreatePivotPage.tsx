@@ -8,6 +8,7 @@ import {
   makeDefaultPivotConfig,
   type PivotConfig,
 } from './pivotBuilderModel';
+import { PivotConfigSection, type AggregateEntry } from './PivotConfigSection';
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/CreatePivotPage');
 
@@ -82,6 +83,25 @@ export function CreatePivotPage({
   const [aggColumns, setAggColumns] = useState<string[]>(
     seed.aggregations[seededFunction] ?? []
   );
+
+  // Mock-data state for the new card-based config section. Not yet wired to
+  // any model setter — see plans/DH-21476-pivot-builder-config-ui.md.
+  const [mockRollupRows, setMockRollupRows] = useState<string[]>([
+    'Sym',
+    'Exchange',
+  ]);
+  const [mockRollupRowsOn, setMockRollupRowsOn] = useState(true);
+  const [mockPivotColumns, setMockPivotColumns] = useState<string[]>([]);
+  const [mockPivotColumnsOn, setMockPivotColumnsOn] = useState(false);
+  const [mockAggregates, setMockAggregates] = useState<AggregateEntry[]>([
+    { id: 'seed-sum', fn: 'Sum', columns: ['Price', 'Size'] },
+  ]);
+  const [mockAggregatesOn, setMockAggregatesOn] = useState(true);
+  const [mockFilterable, setMockFilterable] = useState<string[]>([]);
+  const [mockFilterableOn, setMockFilterableOn] = useState(false);
+  const [mockIncludeConstituents, setMockIncludeConstituents] = useState(true);
+  const [mockNonAggregatedInRollup, setMockNonAggregatedInRollup] =
+    useState(true);
 
   useEffect(() => {
     const fn = Object.keys(seed.aggregations)[0] ?? DEFAULT_FUNCTION;
@@ -213,6 +233,29 @@ export function CreatePivotPage({
   return (
     <div className="iris-grid-plugin-sidebar-page" style={{ padding: 12 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <PivotConfigSection
+          availableColumns={allColumnNames}
+          rollupRows={mockRollupRows}
+          onRollupRowsChange={setMockRollupRows}
+          rollupRowsOn={mockRollupRowsOn}
+          onRollupRowsOnChange={setMockRollupRowsOn}
+          pivotColumns={mockPivotColumns}
+          onPivotColumnsChange={setMockPivotColumns}
+          pivotColumnsOn={mockPivotColumnsOn}
+          onPivotColumnsOnChange={setMockPivotColumnsOn}
+          aggregates={mockAggregates}
+          onAggregatesChange={setMockAggregates}
+          aggregatesOn={mockAggregatesOn}
+          onAggregatesOnChange={setMockAggregatesOn}
+          filterableColumns={mockFilterable}
+          onFilterableColumnsChange={setMockFilterable}
+          filterableColumnsOn={mockFilterableOn}
+          onFilterableColumnsOnChange={setMockFilterableOn}
+          includeConstituents={mockIncludeConstituents}
+          onIncludeConstituentsChange={setMockIncludeConstituents}
+          nonAggregatedInRollup={mockNonAggregatedInRollup}
+          onNonAggregatedInRollupChange={setMockNonAggregatedInRollup}
+        />
         <div>
           <label style={{ fontWeight: 600 }}>Row keys</label>
           {renderColumnList('row', rowKeys, allColumnNames)}
