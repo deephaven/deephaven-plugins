@@ -249,6 +249,39 @@ def install_with_all_extras(
     run_command(f'find {wheels} | xargs -I {{}} {install} "{{}}[all]"')
 
 
+def run_install_editable(
+    plugins: tuple[str],
+    reinstall: bool,
+) -> None:
+    """
+    Install plugins in editable mode (pip install -e) for plugins that have a setup.cfg.
+    Editable installs let Python source edits take effect without rebuilding wheels.
+
+    Args:
+        plugins: The plugins to install. If empty, all plugins with a setup.cfg are installed.
+        reinstall: Whether to reinstall the plugins.
+            If True, the --force-reinstall and --no-deps flags are added to pip install.
+            Useful when JS bundles or entry points need to be re-linked.
+
+    Returns:
+        None
+    """
+    install = "pip install"
+    if reinstall:
+        install += " --force-reinstall --no-deps"
+    install += " -e"
+
+    for plugin in plugin_names(plugins):
+        plugin_path = f"{plugins_dir}/{plugin}"
+        if os.path.exists(f"{plugin_path}/setup.cfg"):
+            click.echo(f"Installing {plugin} (editable)")
+            run_command(f'{install} "{plugin_path}[all]"')
+        elif plugins:
+            # explicit plugin list: error on missing setup.cfg, matching wheel-mode behavior
+            click.echo(f"Error: setup.cfg not found in {plugin}")
+            os._exit(1)
+
+
 def run_install(
     plugins: tuple[str],
     reinstall: bool,
@@ -372,6 +405,7 @@ def handle_args(
     server_arg: tuple[str],
     js: bool,
     configure: str | None,
+    wheel: bool,
     plugins: tuple[str],
     stop_event: threading.Event,
 ) -> None:
@@ -388,6 +422,8 @@ def handle_args(
         js: True to build the JS files for the plugins
         configure: The configuration to use. 'min' will install the minimum requirements for development.
             'full' will install some optional packages for development, such as sphinx and deephaven-server.
+        wheel: True to use the legacy wheel-based build/install path. When False (the default),
+            installs run as `pip install -e` so Python source edits do not require a rebuild.
         plugins: Plugins to build and install
         stop_event: The event to signal the function to stop
     """
@@ -400,6 +436,13 @@ def handle_args(
         js = True
         install = True
 
+    # in editable mode, --build is meaningless because no wheels are produced.
+    # warn once so the user is not surprised when nothing is built.
+    if build and not wheel:
+        click.echo(
+            "Note: --build is ignored in editable mode. Pass --wheel to build wheels."
+        )
+
     # if this thread is signaled to stop, return after the current command
     # instead of in the middle of a command, which could leave the environment in a bad state
     if stop_event.is_set():
@@ -411,14 +454,17 @@ def handle_args(
     if stop_event.is_set():
         return
 
-    if build or install or reinstall:
+    if wheel and (build or install or reinstall):
         run_build(plugins, len(plugins) > 0)
 
     if stop_event.is_set():
         return
 
     if install or reinstall:
-        run_install(plugins, reinstall)
+        if wheel:
+            run_install(plugins, reinstall)
+        else:
+            run_install_editable(plugins, reinstall)
 
     if stop_event.is_set():
         return
@@ -460,13 +506,18 @@ def handle_args(
     "By default, all plugins with the necessary file are used unless specified via the plugins arg.",
 )
 @click.option(
-    "--build", "-b", is_flag=True, help="Build all plugins that have a setup.cfg"
+    "--build",
+    "-b",
+    is_flag=True,
+    help="Build all plugins that have a setup.cfg. "
+    "Only meaningful with --wheel; ignored in the default editable-install mode.",
 )
 @click.option(
     "--install",
     "-i",
     is_flag=True,
-    help="Install all plugins that have a setup.cfg. This is the default behavior if no flags are provided.",
+    help="Install all plugins that have a setup.cfg. This is the default behavior if no flags are provided. "
+    "Defaults to an editable install (`pip install -e`); pass --wheel to build and install wheels instead.",
 )
 @click.option(
     "--reinstall",
@@ -474,7 +525,8 @@ def handle_args(
     is_flag=True,
     help="Reinstall all plugins that have a setup.cfg. "
     "This adds the --force-reinstall and --no-deps flags to pip install. "
-    "Useful to reinstall a plugin that has already been installed and does not have a new version number.",
+    "Useful to reinstall a plugin that has already been installed and does not have a new version number, "
+    "or to re-link refreshed JS bundles / entry points in editable mode.",
 )
 @click.option(
     "--docs",
@@ -525,6 +577,13 @@ def handle_args(
     "This will rerun all other commands (except configure) when files are changed. "
     "The top level directory of this project is watched.",
 )
+@click.option(
+    "--wheel",
+    is_flag=True,
+    help="Use the legacy wheel-based build/install path. "
+    "By default, plugins are installed with `pip install -e` (editable) so Python source edits "
+    "do not require a wheel rebuild. Pass --wheel to build wheels and install them instead.",
+)
 @click.argument("plugins", nargs=-1)
 def builder(
     build: bool,
@@ -537,6 +596,7 @@ def builder(
     js: bool,
     configure: str | None,
     watch: bool,
+    wheel: bool,
     plugins: tuple[str],
 ) -> None:
     """
@@ -554,6 +614,7 @@ def builder(
         configure: The configuration to use. 'min' will install the minimum requirements for development.
             'full' will install some optional packages for development, such as sphinx and deephaven-server.
         watch: True to rerun the other commands when files are changed
+        wheel: True to use the legacy wheel-based build/install path instead of editable installs
         plugins: Plugins to build and install
     """
     # no matter what, only run the configure command once
@@ -575,6 +636,7 @@ def builder(
             server_arg,
             js,
             configure,
+            wheel,
             plugins,
             stop_event,
         )
