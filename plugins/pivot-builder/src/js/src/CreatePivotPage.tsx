@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  IrisGridModel,
   IrisGridUtils,
   type AggregationSettings,
-  type IrisGridModel,
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
 import deepEqual from 'fast-deep-equal';
@@ -12,6 +12,7 @@ import {
   type PivotConfig,
 } from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
+import { usePivotServiceStatus } from './PivotServiceContext';
 
 // `IrisGridTableOptionsPageProps` is not yet in the installed
 // `@deephaven/iris-grid` typings (added in a newer host build), but is
@@ -43,7 +44,8 @@ const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
 };
 
 function aggregationsToPivot(
-  settings: AggregationSettings
+  settings: AggregationSettings,
+  fallbackCountColumn: string | undefined
 ): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   settings.aggregations.forEach(agg => {
@@ -51,6 +53,9 @@ function aggregationsToPivot(
     const op = String(agg.operation);
     out[op] = [...(out[op] ?? []), ...agg.selected];
   });
+  if (Object.keys(out).length === 0 && fallbackCountColumn != null) {
+    out.Count = [fallbackCountColumn];
+  }
   return out;
 }
 
@@ -69,6 +74,8 @@ export function CreatePivotPage({
   model,
 }: IrisGridTableOptionsPageProps): JSX.Element {
   const isProxy = isPivotBuilderIrisGridModel(model);
+  const pivotServiceStatus = usePivotServiceStatus();
+  const pivotAvailable = pivotServiceStatus === 'ready';
 
   // Always source columns from the original (pre-pivot) table so the
   // selectors don't shift to pivot output columns after Apply.
@@ -111,6 +118,21 @@ export function CreatePivotPage({
   const [mockFilterable, setMockFilterable] = useState<string[]>([]);
   const [mockFilterableOn, setMockFilterableOn] = useState(true);
 
+  // `IrisGridProxyModel.totalsConfig`'s setter silently drops writes
+  // while a model swap is in progress (see the `modelPromise` guard).
+  // Clearing `rollupConfig` triggers exactly such a swap, so a same-
+  // tick assignment of `totalsConfig` is lost. Bump this counter on
+  // every COLUMNS_CHANGED so the combined effect re-runs after the
+  // swap settles and re-applies the totals config.
+  const [swapEpoch, setSwapEpoch] = useState(0);
+  useEffect(() => {
+    const handler = (): void => setSwapEpoch(e => e + 1);
+    model.addEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
+    return () => {
+      model.removeEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
+    };
+  }, [model]);
+
   // Combined effect that owns BOTH `model.rollupConfig` and
   // `model.totalsConfig`. The two surfaces are mutually exclusive in
   // IrisGrid: when a rollup is active, totals are suppressed and
@@ -130,13 +152,18 @@ export function CreatePivotPage({
       ? aggregationSettings
       : EMPTY_AGGREGATION_SETTINGS;
 
+    // Pivot is valid with empty rowKeys (PSP collapses to a single
+    // row). It is NOT valid with an empty aggregations map, so we
+    // synthesize a `Count` over the first source column that isn't
+    // already used as a row or pivot key. Also gate on PSP being
+    // available on this worker; otherwise createPivotTable hangs and
+    // the proxy times out after 10s.
     const pivotActive =
-      mockPivotColumnsOn &&
-      mockPivotColumns.length > 0 &&
-      mockRollupRows.length > 0 &&
-      aggsActive;
+      pivotAvailable && mockPivotColumnsOn && mockPivotColumns.length > 0;
 
     if (pivotActive) {
+      const used = new Set<string>([...mockRollupRows, ...mockPivotColumns]);
+      const countFallback = allColumnNames.find(c => !used.has(c));
       // Pivot swaps the proxy's inner model wholesale, superseding any
       // active rollup/totals. We deliberately DO NOT clear rollupConfig
       // or totalsConfig here: `IrisGridProxyModel.setNextModel` cancels
@@ -149,7 +176,10 @@ export function CreatePivotPage({
       const nextPivot: PivotConfig = {
         rowKeys: mockRollupRows,
         columnKeys: mockPivotColumns,
-        aggregations: aggregationsToPivot(effectiveAggregationSettings),
+        aggregations: aggregationsToPivot(
+          effectiveAggregationSettings,
+          countFallback
+        ),
       };
       if (!deepEqual(nextPivot, model.pivotConfig)) {
         log.debug('Applying pivotConfig', nextPivot);
@@ -218,6 +248,9 @@ export function CreatePivotPage({
     mockPivotColumns,
     aggregatesOn,
     aggregationSettings,
+    allColumnNames,
+    pivotAvailable,
+    swapEpoch,
   ]);
 
   return (
@@ -234,6 +267,7 @@ export function CreatePivotPage({
           onPivotColumnsChange={setMockPivotColumns}
           pivotColumnsOn={mockPivotColumnsOn}
           onPivotColumnsOnChange={setMockPivotColumnsOn}
+          pivotColumnsDisabled={!pivotAvailable}
           aggregationSettings={aggregationSettings}
           onAggregationSettingsChange={setAggregationSettings}
           aggregatesOn={aggregatesOn}

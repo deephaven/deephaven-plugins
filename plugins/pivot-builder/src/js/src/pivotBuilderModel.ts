@@ -200,6 +200,9 @@ export async function makePivotBuilderModel(
         });
         return new IrisGridPivotModel(corePlusDh, pivotTable);
       })();
+      promise.catch(e => {
+        log.error('createPivotTable failed for config', config, e);
+      });
 
       proxy.setNextModel(promise);
     },

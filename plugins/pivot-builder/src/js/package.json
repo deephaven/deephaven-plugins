@@ -43,6 +43,7 @@
     "react-dom": "^18.0.0"
   },
   "peerDependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },

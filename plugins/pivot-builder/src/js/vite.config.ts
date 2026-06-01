@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => ({
       external: [
         'react',
         'react-dom',
+        '@hello-pangea/dnd',
         '@deephaven/components',
         '@deephaven/dashboard',
         '@deephaven/dashboard-core-plugins',
