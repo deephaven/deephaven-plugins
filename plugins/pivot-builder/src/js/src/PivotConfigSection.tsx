@@ -8,12 +8,23 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  type BeforeCapture,
-  DragDropContext,
-  Draggable,
-  Droppable,
-  type DropResult,
-} from '@hello-pangea/dnd';
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  MeasuringStrategy,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   ActionButton,
   Button,
@@ -52,34 +63,19 @@ const PIVOT_DND_STYLES = `
   border-radius: 2px;
   transition: background-color 0.15s ease;
 }
-.pivot-config-section .pivot-droppable-placeholder {
+.pivot-config-section .pivot-droppable-empty {
   min-height: 36px;
   margin: 4px 0;
   padding: 4px;
   border: dashed 1px transparent;
   border-radius: 2px;
 }
-/* Collapse empty drop-zone visuals when no drag is in progress, or
- * when the active drag's source is incompatible with this card. The
- * droppable element stays in the DOM (with non-zero size for hit
- * tests during drag), but its decoration is hidden. */
-.pivot-config-section:not(.is-dragging) .pivot-droppable-placeholder,
-.pivot-config-section.is-dragging-aggregations
-  .pivot-droppable-columns.pivot-droppable-placeholder,
-.pivot-config-section.is-dragging-columns
-  .pivot-droppable-aggregations.pivot-droppable-placeholder {
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-}
+/* Marching-ants on every active drop zone whose accepted source type
+ * matches the current drag. is-dragging-columns is set on the root
+ * while a column row (rollup/pivot) is being dragged;
+ * is-dragging-aggregations while an aggregation is being dragged. */
 .pivot-config-section.is-dragging-columns .pivot-droppable-columns,
-.pivot-config-section.is-dragging-columns
-  .pivot-droppable-columns.pivot-droppable-placeholder,
-.pivot-config-section.is-dragging-aggregations
-  .pivot-droppable-aggregations,
-.pivot-config-section.is-dragging-aggregations
-  .pivot-droppable-aggregations.pivot-droppable-placeholder {
+.pivot-config-section.is-dragging-aggregations .pivot-droppable-aggregations {
   background-image:
     linear-gradient(to right, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%),
     linear-gradient(to right, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%),
@@ -90,8 +86,8 @@ const PIVOT_DND_STYLES = `
   background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
   animation: march 0.5s linear infinite;
 }
-.pivot-config-section.is-dragging .pivot-droppable.is-dragging-over,
-.pivot-config-section.is-dragging .pivot-droppable-placeholder.is-dragging-over {
+.pivot-config-section .pivot-droppable.is-dragging-over,
+.pivot-config-section .pivot-droppable-empty.is-dragging-over {
   background-color: var(--dh-color-item-list-selected-hover-bg, rgba(255, 255, 255, 0.08));
 }
 `;
@@ -500,50 +496,111 @@ const ROLLUP_ROWS_DROPPABLE = 'rollup-rows';
 const PIVOT_COLUMNS_DROPPABLE = 'pivot-columns';
 const AGGREGATIONS_DROPPABLE = 'aggregations';
 
+type DroppableListProps = {
+  id: string;
+  type: 'columns' | 'aggregations';
+  itemIds: string[];
+  isEmpty: boolean;
+  children: React.ReactNode;
+};
+
+/**
+ * A SortableContext-wrapped container that also registers as a
+ * droppable so empty lists can accept drops. `type` controls the CSS
+ * class so the marching-ants decoration toggles based on the active
+ * drag's source (set on the section root).
+ */
+function DroppableList({
+  id,
+  type,
+  itemIds,
+  isEmpty,
+  children,
+}: DroppableListProps): JSX.Element {
+  const { setNodeRef, isOver } = useDroppable({ id, data: { container: id } });
+  const baseClass =
+    type === 'columns'
+      ? 'pivot-droppable-columns'
+      : 'pivot-droppable-aggregations';
+  const stateClass = isEmpty ? 'pivot-droppable-empty' : 'pivot-droppable';
+  const overClass = isOver ? ' is-dragging-over' : '';
+  return (
+    <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+      <div
+        ref={setNodeRef}
+        className={`${baseClass} ${stateClass}${overClass}`}
+      >
+        {children}
+      </div>
+    </SortableContext>
+  );
+}
+
 type ColumnRowProps = {
   name: string;
-  index: number;
   droppableId: string;
   onDelete: () => void;
 };
 
+function columnRowId(droppableId: string, name: string): string {
+  return `${droppableId}:${name}`;
+}
+
 function ColumnRow({
   name,
-  index,
   droppableId,
   onDelete,
 }: ColumnRowProps): JSX.Element {
+  const id = columnRowId(droppableId, name);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, data: { type: 'column', container: droppableId } });
+  const style: React.CSSProperties = {
+    ...rowStyle,
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : 1,
+  };
   return (
-    <Draggable draggableId={`${droppableId}:${name}`} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...provided.draggableProps}
-          style={{
-            ...rowStyle,
-            ...provided.draggableProps.style,
-            ...(snapshot.isDragging ? draggingRowStyle : null),
-          }}
-        >
-          <span style={rowLabelStyle}>{name}</span>
-          <Button
-            kind="ghost"
-            icon={vsTrash}
-            tooltip="Remove"
-            onClick={onDelete}
-          />
-          <span
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...provided.dragHandleProps}
-            style={gripHandleStyle}
-            aria-label="Drag to re-order"
-          >
-            <GripIcon />
-          </span>
-        </div>
-      )}
-    </Draggable>
+    <div ref={setNodeRef} style={style}>
+      <span style={rowLabelStyle}>{name}</span>
+      <Button kind="ghost" icon={vsTrash} tooltip="Remove" onClick={onDelete} />
+      <span
+        ref={setActivatorNodeRef}
+        style={gripHandleStyle}
+        aria-label="Drag to re-order"
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...attributes}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...listeners}
+      >
+        <GripIcon />
+      </span>
+    </div>
+  );
+}
+
+/** Static (non-dnd) rendering of a column row for use inside DragOverlay. */
+function ColumnRowPreview({ name }: { name: string }): JSX.Element {
+  return (
+    <div style={{ ...rowStyle, ...draggingRowStyle }}>
+      <span style={rowLabelStyle}>{name}</span>
+      <Button
+        kind="ghost"
+        icon={vsTrash}
+        tooltip="Remove"
+        onClick={() => undefined}
+      />
+      <span style={gripHandleStyle} aria-hidden>
+        <GripIcon />
+      </span>
+    </div>
   );
 }
 
@@ -554,51 +611,81 @@ type AggregateRowProps = {
   onDelete: () => void;
 };
 
+function aggregationRowId(index: number): string {
+  return `${AGGREGATIONS_DROPPABLE}:${index}`;
+}
+
+function formatAggLabel(entry: Aggregation): string {
+  return entry.selected.length > 0
+    ? `${entry.operation} (${entry.selected.join(', ')})`
+    : entry.operation;
+}
+
 function AggregateRow({
   entry,
   index,
   onEdit,
   onDelete,
 }: AggregateRowProps): JSX.Element {
-  const label =
-    entry.selected.length > 0
-      ? `${entry.operation} (${entry.selected.join(', ')})`
-      : entry.operation;
+  const id = aggregationRowId(index);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id,
+    data: { type: 'aggregation', container: AGGREGATIONS_DROPPABLE },
+  });
+  const style: React.CSSProperties = {
+    ...rowStyle,
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : 1,
+  };
   return (
-    <Draggable
-      draggableId={`${AGGREGATIONS_DROPPABLE}:${entry.operation}:${index}`}
-      index={index}
-    >
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...provided.draggableProps}
-          style={{
-            ...rowStyle,
-            ...provided.draggableProps.style,
-            ...(snapshot.isDragging ? draggingRowStyle : null),
-          }}
-        >
-          <span style={rowLabelStyle}>{label}</span>
-          <Button kind="ghost" icon={vsEdit} tooltip="Edit" onClick={onEdit} />
-          <Button
-            kind="ghost"
-            icon={vsTrash}
-            tooltip="Remove"
-            onClick={onDelete}
-          />
-          <span
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...provided.dragHandleProps}
-            style={gripHandleStyle}
-            aria-label="Drag to re-order"
-          >
-            <GripIcon />
-          </span>
-        </div>
-      )}
-    </Draggable>
+    <div ref={setNodeRef} style={style}>
+      <span style={rowLabelStyle}>{formatAggLabel(entry)}</span>
+      <Button kind="ghost" icon={vsEdit} tooltip="Edit" onClick={onEdit} />
+      <Button kind="ghost" icon={vsTrash} tooltip="Remove" onClick={onDelete} />
+      <span
+        ref={setActivatorNodeRef}
+        style={gripHandleStyle}
+        aria-label="Drag to re-order"
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...attributes}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...listeners}
+      >
+        <GripIcon />
+      </span>
+    </div>
+  );
+}
+
+function AggregateRowPreview({ entry }: { entry: Aggregation }): JSX.Element {
+  return (
+    <div style={{ ...rowStyle, ...draggingRowStyle }}>
+      <span style={rowLabelStyle}>{formatAggLabel(entry)}</span>
+      <Button
+        kind="ghost"
+        icon={vsEdit}
+        tooltip="Edit"
+        onClick={() => undefined}
+      />
+      <Button
+        kind="ghost"
+        icon={vsTrash}
+        tooltip="Remove"
+        onClick={() => undefined}
+      />
+      <span style={gripHandleStyle} aria-hidden>
+        <GripIcon />
+      </span>
+    </div>
   );
 }
 
@@ -1011,46 +1098,79 @@ export function PivotConfigSection({
     return next;
   };
 
-  // Flip `dragSource` in `onBeforeCapture` (NOT `onDragStart`) so the
-  // `is-dragging` / `is-dragging-columns` classes are applied — and
-  // any collapsed empty droppables expanded — *before* hello-pangea
-  // snapshots droppable rects. Using `onDragStart` here would make an
-  // empty droppable's hit-area register as 0 px high for the duration
-  // of the drag.
-  const handleBeforeCapture = useCallback((before: BeforeCapture): void => {
-    // draggableId is namespaced as `${droppableId}:...` (see ColumnRow
-    // and the AggregateRow draggableId below), so the prefix recovers
-    // the source droppable without waiting for onDragStart.
-    const id = before.draggableId;
+  // Flip `dragSource` in `onDragStart`. With @dnd-kit's
+  // MeasuringStrategy.Always (set on the DndContext), every droppable
+  // is re-measured continuously, so the empty drop-zones can expand
+  // from 0px to their full hit-area after the drag starts and the
+  // marching-ants class is applied.
+  // Track the active draggable's id for the DragOverlay preview.
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const handleDragStart = useCallback((event: DragStartEvent): void => {
+    const container = String(event.active.data.current?.container ?? '');
+    setDragSource(container === '' ? null : container);
+    setActiveId(String(event.active.id));
+  }, []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
+  const resolveContainerOfId = useCallback((id: string): string | null => {
+    // Container ids are exact matches; item ids are namespaced as
+    // `${container}:...`.
+    if (
+      id === ROLLUP_ROWS_DROPPABLE ||
+      id === PIVOT_COLUMNS_DROPPABLE ||
+      id === AGGREGATIONS_DROPPABLE
+    ) {
+      return id;
+    }
     const colonIdx = id.indexOf(':');
-    setDragSource(colonIdx === -1 ? id : id.slice(0, colonIdx));
+    return colonIdx === -1 ? null : id.slice(0, colonIdx);
   }, []);
 
   const handleDragEnd = useCallback(
-    (result: DropResult): void => {
+    (event: DragEndEvent): void => {
       setDragSource(null);
-      const { source, destination } = result;
-      if (destination == null) return;
-      const fromId = source.droppableId;
-      const toId = destination.droppableId;
-      if (fromId === toId && source.index === destination.index) return;
+      setActiveId(null);
+      const { active, over } = event;
+      if (over == null) return;
+
+      const activeIdStr = String(active.id);
+      const overIdStr = String(over.id);
+      const fromId = resolveContainerOfId(activeIdStr);
+      const toId = resolveContainerOfId(overIdStr);
+      if (fromId == null || toId == null) return;
 
       // Aggregations are a separate scope — reorder only.
       if (fromId === AGGREGATIONS_DROPPABLE) {
         if (toId !== AGGREGATIONS_DROPPABLE) return;
+        // Active id is `aggregations:<i>`, over may be `aggregations:<j>`
+        // or the container id (drop at end).
+        const fromIdx = aggregationSettings.aggregations.findIndex(
+          (_, i) => aggregationRowId(i) === activeIdStr
+        );
+        if (fromIdx < 0) return;
+        const toIdx =
+          overIdStr === AGGREGATIONS_DROPPABLE
+            ? aggregationSettings.aggregations.length - 1
+            : aggregationSettings.aggregations.findIndex(
+                (_, i) => aggregationRowId(i) === overIdStr
+              );
+        if (toIdx < 0 || fromIdx === toIdx) return;
         onAggregationSettingsChange({
           ...aggregationSettings,
           aggregations: moveItem(
             aggregationSettings.aggregations,
-            source.index,
-            destination.index
+            fromIdx,
+            toIdx
           ),
         });
         return;
       }
+      // Columns can never land in the aggregations list.
       if (toId === AGGREGATIONS_DROPPABLE) return;
 
-      // Column lists (rollup-rows ↔ pivot-columns).
       const lists: Record<
         string,
         { items: string[]; set: (next: string[]) => void }
@@ -1068,18 +1188,38 @@ export function PivotConfigSection({
       const to = lists[toId];
       if (from == null || to == null) return;
 
+      // Recover the moved column name from the active id
+      // (`${container}:${name}`).
+      const colonIdx = activeIdStr.indexOf(':');
+      if (colonIdx === -1) return;
+      const moved = activeIdStr.slice(colonIdx + 1);
+      const fromIdx = from.items.indexOf(moved);
+      if (fromIdx < 0) return;
+
+      let toIdx: number;
+      if (overIdStr === toId) {
+        // Dropped on container background — append.
+        toIdx = to.items.length;
+      } else {
+        const overColon = overIdStr.indexOf(':');
+        const overName =
+          overColon === -1 ? overIdStr : overIdStr.slice(overColon + 1);
+        const overIdx = to.items.indexOf(overName);
+        toIdx = overIdx < 0 ? to.items.length : overIdx;
+      }
+
       if (fromId === toId) {
-        from.set(moveItem(from.items, source.index, destination.index));
+        if (fromIdx === toIdx) return;
+        from.set(moveItem(from.items, fromIdx, toIdx));
         return;
       }
 
       // Cross-list move. Drop silently if the column already exists in
-      // the destination list (we don't allow duplicates within a card).
-      const moved = from.items[source.index];
-      if (moved == null || to.items.includes(moved)) return;
-      from.set(removeAt(from.items.slice(), source.index));
+      // the destination list (no duplicates within a card).
+      if (to.items.includes(moved)) return;
+      from.set(removeAt(from.items.slice(), fromIdx));
       const nextTo = to.items.slice();
-      nextTo.splice(destination.index, 0, moved);
+      nextTo.splice(Math.min(toIdx, nextTo.length), 0, moved);
       to.set(nextTo);
     },
     [
@@ -1088,14 +1228,65 @@ export function PivotConfigSection({
       onPivotColumnsChange,
       onRollupRowsChange,
       pivotColumns,
+      resolveContainerOfId,
       rollupRows,
     ]
   );
 
+  const handleDragCancel = useCallback((): void => {
+    setDragSource(null);
+    setActiveId(null);
+  }, []);
+
+  const rollupItemIds = useMemo(
+    () => rollupRows.map(n => columnRowId(ROLLUP_ROWS_DROPPABLE, n)),
+    [rollupRows]
+  );
+  const pivotItemIds = useMemo(
+    () => pivotColumns.map(n => columnRowId(PIVOT_COLUMNS_DROPPABLE, n)),
+    [pivotColumns]
+  );
+  const aggItemIds = useMemo(
+    () => aggregationSettings.aggregations.map((_, i) => aggregationRowId(i)),
+    [aggregationSettings.aggregations]
+  );
+
+  // Resolve the preview for DragOverlay.
+  const activeColumnName = (() => {
+    if (activeId == null) {
+      return null;
+    }
+    const container = resolveContainerOfId(activeId);
+    if (
+      container !== ROLLUP_ROWS_DROPPABLE &&
+      container !== PIVOT_COLUMNS_DROPPABLE
+    ) {
+      return null;
+    }
+    const colonIdx = activeId.indexOf(':');
+    return colonIdx === -1 ? null : activeId.slice(colonIdx + 1);
+  })();
+  const activeAggregation = (() => {
+    if (activeId == null) {
+      return null;
+    }
+    const container = resolveContainerOfId(activeId);
+    if (container !== AGGREGATIONS_DROPPABLE) {
+      return null;
+    }
+    const colonIdx = activeId.indexOf(':');
+    const idx = colonIdx === -1 ? -1 : Number(activeId.slice(colonIdx + 1));
+    return aggregationSettings.aggregations[idx] ?? null;
+  })();
+
   return (
-    <DragDropContext
-      onBeforeCapture={handleBeforeCapture}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <style>{PIVOT_DND_STYLES}</style>
       <div
@@ -1130,31 +1321,21 @@ export function PivotConfigSection({
             ) : null
           }
         >
-          <Droppable droppableId={ROLLUP_ROWS_DROPPABLE}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                className={`pivot-droppable-columns ${
-                  rollupRows.length === 0
-                    ? 'pivot-droppable-placeholder'
-                    : 'pivot-droppable'
-                }${snapshot.isDraggingOver ? ' is-dragging-over' : ''}`}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...provided.droppableProps}
-              >
-                {rollupRows.map((name, i) => (
-                  <ColumnRow
-                    key={`${ROLLUP_ROWS_DROPPABLE}:${name}`}
-                    name={name}
-                    index={i}
-                    droppableId={ROLLUP_ROWS_DROPPABLE}
-                    onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <DroppableList
+            id={ROLLUP_ROWS_DROPPABLE}
+            type="columns"
+            itemIds={rollupItemIds}
+            isEmpty={rollupRows.length === 0}
+          >
+            {rollupRows.map((name, i) => (
+              <ColumnRow
+                key={columnRowId(ROLLUP_ROWS_DROPPABLE, name)}
+                name={name}
+                droppableId={ROLLUP_ROWS_DROPPABLE}
+                onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
+              />
+            ))}
+          </DroppableList>
         </ConfigCard>
 
         <ConfigCard
@@ -1176,33 +1357,21 @@ export function PivotConfigSection({
             ) : null
           }
         >
-          <Droppable droppableId={PIVOT_COLUMNS_DROPPABLE}>
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                className={`pivot-droppable-columns ${
-                  pivotColumns.length === 0
-                    ? 'pivot-droppable-placeholder'
-                    : 'pivot-droppable'
-                }${snapshot.isDraggingOver ? ' is-dragging-over' : ''}`}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...provided.droppableProps}
-              >
-                {pivotColumns.map((name, i) => (
-                  <ColumnRow
-                    key={`${PIVOT_COLUMNS_DROPPABLE}:${name}`}
-                    name={name}
-                    index={i}
-                    droppableId={PIVOT_COLUMNS_DROPPABLE}
-                    onDelete={() =>
-                      onPivotColumnsChange(removeAt(pivotColumns, i))
-                    }
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <DroppableList
+            id={PIVOT_COLUMNS_DROPPABLE}
+            type="columns"
+            itemIds={pivotItemIds}
+            isEmpty={pivotColumns.length === 0}
+          >
+            {pivotColumns.map((name, i) => (
+              <ColumnRow
+                key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
+                name={name}
+                droppableId={PIVOT_COLUMNS_DROPPABLE}
+                onDelete={() => onPivotColumnsChange(removeAt(pivotColumns, i))}
+              />
+            ))}
+          </DroppableList>
         </ConfigCard>
 
         <ConfigCard
@@ -1225,37 +1394,23 @@ export function PivotConfigSection({
             ) : null
           }
         >
-          <Droppable
-            droppableId={AGGREGATIONS_DROPPABLE}
-            isDropDisabled={
-              dragSource != null && dragSource !== AGGREGATIONS_DROPPABLE
-            }
+          <DroppableList
+            id={AGGREGATIONS_DROPPABLE}
+            type="aggregations"
+            itemIds={aggItemIds}
+            isEmpty={aggregationSettings.aggregations.length === 0}
           >
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                className={`pivot-droppable-aggregations ${
-                  aggregationSettings.aggregations.length === 0
-                    ? 'pivot-droppable-placeholder'
-                    : 'pivot-droppable'
-                }${snapshot.isDraggingOver ? ' is-dragging-over' : ''}`}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...provided.droppableProps}
-              >
-                {aggregationSettings.aggregations.map((entry, i) => (
-                  <AggregateRow
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${entry.operation}-${i}`}
-                    entry={entry}
-                    index={i}
-                    onEdit={() => handleEditAggregate(i)}
-                    onDelete={() => handleDeleteAggregate(i)}
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+            {aggregationSettings.aggregations.map((entry, i) => (
+              <AggregateRow
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${entry.operation}-${i}`}
+                entry={entry}
+                index={i}
+                onEdit={() => handleEditAggregate(i)}
+                onDelete={() => handleDeleteAggregate(i)}
+              />
+            ))}
+          </DroppableList>
         </ConfigCard>
 
         {/* Filterable columns card hidden for now \u2014 props are still threaded
@@ -1276,7 +1431,17 @@ export function PivotConfigSection({
           </Checkbox>
         </div>
       </div>
-    </DragDropContext>
+      {createPortal(
+        <DragOverlay dropAnimation={null}>
+          {activeColumnName != null ? (
+            <ColumnRowPreview name={activeColumnName} />
+          ) : activeAggregation != null ? (
+            <AggregateRowPreview entry={activeAggregation} />
+          ) : null}
+        </DragOverlay>,
+        document.body
+      )}
+    </DndContext>
   );
 }
 

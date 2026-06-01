@@ -26,10 +26,10 @@
     "@deephaven/dashboard-core-plugins": "^1.18.0",
     "@deephaven/icons": "^1.2.0",
     "@deephaven/iris-grid": "^1.18.0",
+    "@deephaven/js-plugin-pivot": "*",
     "@deephaven/jsapi-bootstrap": "^1.17.0",
     "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
     "@deephaven/jsapi-utils": "^1.16.0",
-    "@deephaven/js-plugin-pivot": "*",
     "@deephaven/log": "^1.8.0",
     "@deephaven/plugin": "^1.18.0",
     "@deephaven/utils": "^1.10.0",
@@ -43,7 +43,9 @@
     "react-dom": "^18.0.0"
   },
   "peerDependencies": {
-    "@hello-pangea/dnd": "^18.0.1",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },

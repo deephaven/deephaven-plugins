@@ -18,12 +18,11 @@ export default defineConfig(({ mode }) => ({
       // Externalize peer deps following the grid-toolbar pattern.
       // These are provided at runtime by DHE's remote-component.config.ts
       // resolve map (or by the loaded js-plugin-pivot bundle in DHE's
-      // plugin loader). `fast-deep-equal` is small and not in DHE's resolve,
+      // plugin loader). `fast-deep-equal` is not in DHE's resolve map,
       // so we let it bundle.
       external: [
         'react',
         'react-dom',
-        '@hello-pangea/dnd',
         '@deephaven/components',
         '@deephaven/dashboard',
         '@deephaven/dashboard-core-plugins',
@@ -34,6 +33,9 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/js-plugin-pivot',
         '@deephaven/log',
         '@deephaven/plugin',
+        '@dnd-kit/core',
+        '@dnd-kit/sortable',
+        '@dnd-kit/utilities',
       ],
     },
   },
