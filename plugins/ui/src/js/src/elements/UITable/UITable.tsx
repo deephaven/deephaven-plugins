@@ -8,8 +8,10 @@ import React, {
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
+  type ChartBuilderSettings,
   type DehydratedQuickFilter,
   IrisGrid,
+  type IrisGridModel,
   type IrisGridType,
   type IrisGridContextMenuData,
   type IrisGridProps,
@@ -18,6 +20,7 @@ import {
   type IrisGridState,
   type DehydratedIrisGridState,
   type DehydratedGridState,
+  isIrisGridTableModelTemplate,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -30,6 +33,7 @@ import {
 } from '@deephaven/components';
 import {
   InputFilterEvent,
+  IrisGridEvent,
   useDashboardColumnFilters,
   useGridLinker,
   useTablePlugin,
@@ -648,6 +652,25 @@ export function UITable({
     model?.table
   );
 
+  const handleCreateChart = useCallback(
+    (
+      chartBuilderSettings: ChartBuilderSettings,
+      irisGridModel: IrisGridModel
+    ) => {
+      eventHub.emit(IrisGridEvent.CREATE_CHART, {
+        metadata: {
+          settings: chartBuilderSettings,
+          table: irisGridModel.description || 'Table',
+          tableSettings: {},
+        },
+        table: isIrisGridTableModelTemplate(irisGridModel)
+          ? irisGridModel.table
+          : undefined,
+      });
+    },
+    [eventHub]
+  );
+
   const handleClearAllFilters = useCallback(() => {
     if (irisGrid == null) {
       return;
@@ -673,6 +696,7 @@ export function UITable({
         <IrisGrid
           ref={ref => setIrisGrid(ref)}
           model={model}
+          onCreateChart={handleCreateChart}
           onStateChange={onStateChange}
           onSelectionChanged={debouncedHandleSelectionChanged}
           columnSelectionValidator={columnSelectionValidator}
