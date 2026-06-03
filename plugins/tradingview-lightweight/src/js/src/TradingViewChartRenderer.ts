@@ -35,6 +35,7 @@ import type {
   TvlSeriesConfig,
   TvlMarkerData,
 } from './TradingViewTypes';
+import { resolveColor, resolveColorsDeep } from './TradingViewColors';
 
 const log = Log.module('TradingViewChartRenderer');
 
@@ -224,6 +225,45 @@ function defaultTickMarkFormatter(
 }
 
 /**
+ * Tick mark formatter for the yield-curve chart. LWC's createYieldCurveChart
+ * treats horizontal-axis values as months and internally maps them to seconds
+ * from the unix epoch, so the default time-axis formatter would render
+ * Tenor=240 as "1990-01-01" (i.e. 240 months after 1970). We override the
+ * formatter so the axis reads as "Xm" / "Xy" instead.
+ */
+function yieldCurveTickMarkFormatter(time: unknown): string {
+  const months = Number(time) || 0;
+  if (months >= 12 && months % 12 === 0) return `${months / 12}y`;
+  if (months >= 12) return `${(months / 12).toFixed(1)}y`;
+  return `${months}m`;
+}
+
+/**
+ * Crosshair time formatter for yield-curve charts: format the maturity
+ * value (months) as a duration instead of a date.
+ */
+function yieldCurveCrosshairFormatter(time: unknown): string {
+  return yieldCurveTickMarkFormatter(time);
+}
+
+/**
+ * Tick mark formatter for the options / custom-numeric chart. LWC's
+ * createOptionsChart maps each x-value to seconds-from-epoch, so the
+ * default time-axis formatter renders X=5 as "1970-01-01 00:00:05". We
+ * override it so the axis reads back the raw numeric value (with light
+ * formatting so 100000 renders as "100,000").
+ */
+function optionsTickMarkFormatter(time: unknown): string {
+  const n = Number(time);
+  if (!Number.isFinite(n)) return '';
+  return n.toLocaleString('en-US', { maximumFractionDigits: 6 });
+}
+
+function optionsCrosshairFormatter(time: unknown): string {
+  return optionsTickMarkFormatter(time);
+}
+
+/**
  * Crosshair / tooltip time formatter — always shows full precision
  * including milliseconds: "YYYY-MM-DD HH:MM:SS.mmm"
  */
@@ -320,6 +360,20 @@ class TradingViewChartRenderer {
   /** Whether scaffold is currently enabled. */
   private scaffoldEnabled = false;
 
+  /**
+   * Watermark options captured at construction (or via the most recent
+   * setChartType call). Used to re-apply the watermark after the chart is
+   * rebuilt for a different chartType.
+   */
+  private constructorWatermark: LegacyWatermarkOptions | null = null;
+
+  /**
+   * Resolved chart options at construction time, kept so setChartType can
+   * rebuild the underlying chart with the new chartType while preserving
+   * theme/layout config.
+   */
+  private resolvedChartOpts: Record<string, unknown>;
+
   constructor(
     container: HTMLElement,
     options: DeepPartial<ChartOptions> = {},
@@ -328,8 +382,13 @@ class TradingViewChartRenderer {
     this.container = container;
     this.chartType = chartType;
 
-    // Extract watermark and resolve localization before passing to createChart
-    const { watermark: wmRaw, ...rawOpts } = options as Record<string, unknown>;
+    // Extract watermark and resolve localization before passing to createChart.
+    // Resolve DH theme color names (e.g. "accent-300") to canvas-paintable
+    // values; lightweight-charts paints to canvas and can't resolve
+    // var(--dh-color-*) / theme tokens itself.
+    const { watermark: wmRaw, ...rawOpts } = resolveColorsDeep(
+      options as Record<string, unknown>
+    );
     const chartOpts = resolveLocalization(rawOpts);
 
     const resolvedTextColor =
@@ -345,6 +404,23 @@ class TradingViewChartRenderer {
         >
       )?.color as string) ?? '';
 
+    this.resolvedChartOpts = chartOpts;
+    this.constructorWatermark = (wmRaw as LegacyWatermarkOptions) ?? null;
+    this.chart = this.buildChart(chartType);
+
+    if (wmRaw != null) {
+      this.applyWatermark(wmRaw as LegacyWatermarkOptions);
+    }
+  }
+
+  /**
+   * Build the underlying lightweight-charts instance for ``chartType`` using
+   * the already-resolved chart options. Called from the constructor and from
+   * :meth:`setChartType` when the chart needs to be torn down and rebuilt.
+   */
+  private buildChart(chartType: TvlChartType): IChartApi {
+    const chartOpts = this.resolvedChartOpts;
+    const resolvedTextColor = this.textColor;
     const commonOpts = {
       ...chartOpts,
       layout: {
@@ -364,39 +440,85 @@ class TradingViewChartRenderer {
         // which is too few for downsampled tables (runChartDownsample output
         // can be much larger than the requested pixel count).
         minBarSpacing: 0.01,
-        tickMarkFormatter: defaultTickMarkFormatter,
+        tickMarkFormatter:
+          chartType === 'yieldCurve'
+            ? yieldCurveTickMarkFormatter
+            : chartType === 'options'
+              ? optionsTickMarkFormatter
+              : defaultTickMarkFormatter,
         ...(chartOpts.timeScale as Record<string, unknown>),
       },
       localization: {
-        timeFormatter: crosshairTimeFormatter,
+        timeFormatter:
+          chartType === 'yieldCurve'
+            ? yieldCurveCrosshairFormatter
+            : chartType === 'options'
+              ? optionsCrosshairFormatter
+              : crosshairTimeFormatter,
         ...(chartOpts.localization as Record<string, unknown>),
       },
       autoSize: true,
     };
 
     switch (chartType) {
-      case 'yieldCurve':
-        this.chart = createYieldCurveChart(
-          container,
-          commonOpts as DeepPartial<YieldCurveChartOptions>
+      case 'yieldCurve': {
+        // LWC's createYieldCurveChart uses its own horzScaleBehavior that
+        // ignores timeScale.tickMarkFormatter and localization.timeFormatter.
+        // The maturity-axis formatter lives on yieldCurve.formatTime.
+        const yieldOpts: Record<string, unknown> = {
+          ...commonOpts,
+          yieldCurve: {
+            ...((commonOpts as Record<string, unknown>).yieldCurve as
+              | Record<string, unknown>
+              | undefined),
+            formatTime: yieldCurveTickMarkFormatter,
+          },
+        };
+        return createYieldCurveChart(
+          this.container,
+          yieldOpts as DeepPartial<YieldCurveChartOptions>
         ) as unknown as IChartApi;
-        break;
+      }
       case 'options':
-        this.chart = createOptionsChart(
-          container,
+        return createOptionsChart(
+          this.container,
           commonOpts as DeepPartial<PriceChartOptions>
         ) as unknown as IChartApi;
-        break;
       default:
-        this.chart = createChart(
-          container,
+        return createChart(
+          this.container,
           commonOpts as DeepPartial<ChartOptions>
         );
-        break;
     }
+  }
 
-    if (wmRaw != null) {
-      this.applyWatermark(wmRaw as LegacyWatermarkOptions);
+  /**
+   * Switch the chart's horzScaleBehavior at runtime. Tears down the existing
+   * chart and rebuilds it. Intended to be called once during initial connect,
+   * before any series are added (the chartType arrives in the figure message,
+   * which is parsed *after* the renderer is constructed). No-op when ``ct``
+   * matches the current chart type.
+   */
+  setChartType(ct: TvlChartType): void {
+    if (ct === this.chartType) return;
+    if (this.seriesMap.size > 0) {
+      log.warn(
+        'setChartType called after series were added; ignoring change from',
+        this.chartType,
+        'to',
+        ct
+      );
+      return;
+    }
+    if (this.watermarkPlugin) {
+      this.watermarkPlugin.detach();
+      this.watermarkPlugin = null;
+    }
+    this.chart.remove();
+    this.chartType = ct;
+    this.chart = this.buildChart(ct);
+    if (this.constructorWatermark != null) {
+      this.applyWatermark(this.constructorWatermark);
     }
   }
 
@@ -470,6 +592,24 @@ class TradingViewChartRenderer {
     ohlcColors?: { upColor: string; downColor: string },
     enableScaffold = false
   ): void {
+    // Resolve any DH theme color names in user-supplied options up front so
+    // canvas drawing calls receive concrete CSS color strings (hex/rgba).
+    seriesConfigs.forEach(cfg => {
+      if (cfg.options) resolveColorsDeep(cfg.options);
+      cfg.priceLines?.forEach(pl => {
+        if (pl.color != null) pl.color = resolveColor(pl.color);
+      });
+    });
+    // eslint-disable-next-line no-param-reassign
+    colorway = colorway.map(c => resolveColor(c) ?? c);
+    if (ohlcColors) {
+      // eslint-disable-next-line no-param-reassign
+      ohlcColors = {
+        upColor: resolveColor(ohlcColors.upColor) ?? ohlcColors.upColor,
+        downColor: resolveColor(ohlcColors.downColor) ?? ohlcColors.downColor,
+      };
+    }
+
     // Store theme colors for marker resolution
     this.colorway = colorway;
     this.ohlcColors = ohlcColors;
@@ -504,9 +644,15 @@ class TradingViewChartRenderer {
       this.createScaffold();
     }
 
-    // Create new series
+    // Create new series. Skip partition templates — those are NOT
+    // rendered directly; the model's partition-watcher clones each
+    // template into one runtime series per partition key (with a
+    // synthesized id) and pushes those into figureData.series.
     let colorIndex = 0;
     seriesConfigs.forEach(config => {
+      if (config.partition != null) {
+        return;
+      }
       const options: Record<string, unknown> = { ...config.options };
 
       if (OHLC_TYPES.has(config.type)) {
@@ -690,15 +836,18 @@ class TradingViewChartRenderer {
     const series = this.seriesMap.get(seriesId);
     if (!series) return;
 
-    const chartMarkers: SeriesMarker<Time>[] = markers.map(m => ({
-      time: m.time as Time,
-      position: m.position,
-      shape: m.shape,
-      color: this.resolveMarkerColor(m),
-      text: m.text,
-      size: m.size,
-      ...(m.price != null ? { price: m.price } : {}),
-    })) as SeriesMarker<Time>[];
+    const chartMarkers: SeriesMarker<Time>[] = markers.map(m => {
+      const raw = this.resolveMarkerColor(m);
+      return {
+        time: m.time as Time,
+        position: m.position,
+        shape: m.shape,
+        color: resolveColor(raw) ?? raw,
+        text: m.text,
+        size: m.size,
+        ...(m.price != null ? { price: m.price } : {}),
+      };
+    }) as SeriesMarker<Time>[];
 
     // Use createSeriesMarkers API for v5
     let markerPlugin = this.markersMap.get(seriesId);
@@ -736,7 +885,9 @@ class TradingViewChartRenderer {
    * Apply new chart-level options (e.g., on theme change).
    */
   applyOptions(options: DeepPartial<ChartOptions>): void {
-    const { watermark: wmRaw, ...rawOpts } = options as Record<string, unknown>;
+    const { watermark: wmRaw, ...rawOpts } = resolveColorsDeep(
+      options as Record<string, unknown>
+    );
     const chartOpts = resolveLocalization(rawOpts);
 
     // Update cached theme colors so derived defaults use the new values

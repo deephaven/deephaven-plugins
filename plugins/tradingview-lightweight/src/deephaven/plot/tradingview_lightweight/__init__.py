@@ -20,15 +20,6 @@ from .chart import (
     options_chart,
     custom_numeric,
 )
-from .series import (
-    SeriesSpec,
-    candlestick_series,
-    bar_series,
-    line_series,
-    area_series,
-    baseline_series,
-    histogram_series,
-)
 from .markers import (
     Marker,
     PriceLine,
@@ -64,10 +55,12 @@ from .options import (
     TrackingModeExitMode,
     VertAlign,
     WatermarkLine,
+    watermark_line,
 )
 from ._types import BusinessDay, business_day
 from .utils import is_business_day, is_utc_timestamp
 from .communication.connection import TvlChartConnection
+from . import data
 
 NAME = "deephaven.plot.tradingview_lightweight.TvlChart"
 
@@ -95,7 +88,6 @@ class TvlChartType(BidirectionalObjectType):
 __all__ = [
     # Core
     "TvlChart",
-    "TvlChartType",
     # Chart creation
     "chart",
     "candlestick",
@@ -107,14 +99,6 @@ __all__ = [
     "yield_curve",
     "options_chart",
     "custom_numeric",
-    # Series creation
-    "SeriesSpec",
-    "candlestick_series",
-    "bar_series",
-    "line_series",
-    "area_series",
-    "baseline_series",
-    "histogram_series",
     # Annotations
     "Marker",
     "PriceLine",
@@ -151,7 +135,10 @@ __all__ = [
     "TrackingModeExitMode",
     "VertAlign",
     "WatermarkLine",
+    "watermark_line",
     # Utility functions
     "is_business_day",
     "is_utc_timestamp",
+    # Submodules
+    "data",
 ]

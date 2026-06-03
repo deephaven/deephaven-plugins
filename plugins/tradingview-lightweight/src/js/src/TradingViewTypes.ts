@@ -11,15 +11,19 @@ export interface NewFigureMessage {
 
 export type TvlChartType = 'standard' | 'yieldCurve' | 'options';
 
-export interface TvlPartitionSpec {
-  /** Index into the exported references for the PartitionedTable. */
-  refIndex: number;
+/**
+ * Per-series partition template. Each series with `by=` on the Python
+ * side gets one of these. The JS partition-watcher uses the series'
+ * own `dataMapping.columns`, `options`, `type`, `paneIndex`, and
+ * `priceScaleOptions` as the template — only `byColumn` and `refIndex`
+ * are unique to the partition block.
+ */
+export interface TvlSeriesPartition {
   /** Column name used for partitioning. */
   byColumn: string;
-  /** Series type to create for each partition. */
-  seriesType: TvlSeriesConfig['type'];
-  /** Column mapping for each partition's series. */
-  columns: Record<string, string>;
+  /** Index into the exported references for this series' PartitionedTable.
+   *  Patched in by the Python listener at serialize time. */
+  refIndex?: number;
 }
 
 /** Per-table metadata for JS-side downsampling via runChartDownsample. */
@@ -71,7 +75,6 @@ export interface TvlFigureData {
   chartType?: TvlChartType;
   chartOptions: Record<string, unknown>;
   series: TvlSeriesConfig[];
-  partitionSpec?: TvlPartitionSpec;
   paneStretchFactors?: number[];
   deephaven: {
     mappings: TvlDataMapping[];
@@ -95,6 +98,11 @@ export interface TvlSeriesConfig {
   priceLines?: TvlPriceLineData[];
   priceScaleOptions?: Record<string, unknown>;
   paneIndex?: number;
+  /** Set when the series is a partition template (Python-side `by=`).
+   *  The JS partition-watcher creates one runtime series per partition
+   *  key using this series' options/dataMapping/type/paneIndex as the
+   *  template. The series itself is NOT rendered directly. */
+  partition?: TvlSeriesPartition;
 }
 
 export interface TvlDataMapping {

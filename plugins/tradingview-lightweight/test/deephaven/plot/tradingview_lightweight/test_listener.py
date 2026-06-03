@@ -69,6 +69,8 @@ def _make_series(
         bin_count=bin_count,
         agg=agg,
         marker_spec=None,
+        by=None,
+        partitioned_table=None,
     )
 
 
@@ -100,7 +102,6 @@ def _make_chart(series_list, chart_type: str = "standard") -> SimpleNamespace:
                 for i, s in enumerate(series_list)
             ],
         },
-        _partitioned_table=None,
     )
 
 

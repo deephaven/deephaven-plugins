@@ -4,6 +4,24 @@ import type {
   TvlMarkerSpec,
   TvlSeriesConfig,
 } from './TradingViewTypes';
+import { resolveColor } from './TradingViewColors';
+
+/**
+ * Cache of resolved theme-color strings keyed by their raw input.
+ * `color_column` rows typically repeat a small handful of distinct values
+ * (e.g. "positive"/"negative") across thousands of rows; caching avoids
+ * calling `getComputedStyle` once per row.
+ */
+const rowColorCache = new Map<string, string | undefined>();
+function resolveRowColor(value: unknown): unknown {
+  if (typeof value !== 'string' || value === '') return value;
+  let cached = rowColorCache.get(value);
+  if (cached === undefined && !rowColorCache.has(value)) {
+    cached = resolveColor(value);
+    rowColorCache.set(value, cached);
+  }
+  return cached ?? value;
+}
 
 /**
  * Cache of Intl.DateTimeFormat instances keyed by timezone string.
@@ -76,10 +94,15 @@ export function transformTableData(
       if (field === 'time') return;
       const data = columnData.get(colName);
       if (data != null) {
-        point[field] =
+        const raw =
           typeof data[i] === 'object' && data[i] !== null
             ? Number(data[i])
             : data[i];
+        // `color` rows can carry DH theme names ("positive") or
+        // `var(--dh-color-...)` expressions — resolve them to canvas-paintable
+        // CSS so lightweight-charts paints theme colors per-row, not the
+        // literal token. Cached so the hot path stays cheap.
+        point[field] = field === 'color' ? resolveRowColor(raw) : raw;
       }
     });
 

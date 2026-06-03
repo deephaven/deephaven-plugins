@@ -363,12 +363,17 @@ class TvlChartListener:
                     "seriesTypes": [s.series_type for s in ds_series],
                 }
 
-        # Export PartitionedTable if the chart was built with `by`
-        pt_ref_index = None
-        if self._chart._partitioned_table is not None:
-            pt_ref_index = len(exported_objects)
-            exported_objects.append(self._chart._partitioned_table)
-            new_refs.append(pt_ref_index)
+        # Export PartitionedTable per series that carries `by=`. The
+        # series_id -> partitioned-table refIndex is patched into the
+        # figure's per-series "partition" block below.
+        partition_ref_indices: dict[str, int] = {}
+        for i, s in enumerate(self._chart.series_list):
+            if s.partitioned_table is None:
+                continue
+            ref_index = len(exported_objects)
+            exported_objects.append(s.partitioned_table)
+            new_refs.append(ref_index)
+            partition_ref_indices[f"series_{i}"] = ref_index
 
         # Serialize figure (using original table_id_map), then patch the
         # auto-binned series' dataMapping.tableId to the aggregated ref.
@@ -379,8 +384,11 @@ class TvlChartListener:
                 if sid in series_table_overrides:
                     s_dict["dataMapping"]["tableId"] = series_table_overrides[sid]
 
-        if pt_ref_index is not None and "partitionSpec" in figure_data:
-            figure_data["partitionSpec"]["refIndex"] = pt_ref_index
+        if partition_ref_indices:
+            for s_dict in figure_data.get("series", []):
+                sid = s_dict.get("id")
+                if sid in partition_ref_indices and "partition" in s_dict:
+                    s_dict["partition"]["refIndex"] = partition_ref_indices[sid]
 
         if downsample_meta:
             figure_data["downsampleMeta"] = downsample_meta
@@ -547,9 +555,14 @@ class TvlChartListener:
         # Reconstruct the exported objects list: originals at their natural
         # refs, aggregated tables at their (post-original) refs.
         tables = self._chart.get_tables()
+        partitioned_tables = [
+            s.partitioned_table
+            for s in self._chart.series_list
+            if s.partitioned_table is not None
+        ]
         max_ref = max(self._autobin_states.keys(), default=len(tables) - 1)
-        if self._chart._partitioned_table is not None:
-            max_ref = max(max_ref, max_ref + 1)
+        if partitioned_tables:
+            max_ref = max(max_ref, max_ref + len(partitioned_tables))
         size_needed = max_ref + 1
         exported_objects: list[Any] = [None] * size_needed
         new_refs: list[int] = []
@@ -561,9 +574,9 @@ class TvlChartListener:
             exported_objects[ref_index] = st.aggregated_table
             new_refs.append(ref_index)
 
-        if self._chart._partitioned_table is not None:
+        for pt in partitioned_tables:
             pt_ref = len(exported_objects)
-            exported_objects.append(self._chart._partitioned_table)
+            exported_objects.append(pt)
             new_refs.append(pt_ref)
 
         meta = {

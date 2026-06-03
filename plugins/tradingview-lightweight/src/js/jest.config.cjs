@@ -11,4 +11,12 @@ module.exports = {
       'src/__mocks__/lightweight-charts.js'
     ),
   },
+  setupFilesAfterEach: [
+    ...(baseConfig.setupFilesAfterEach ?? []),
+    path.join(__dirname, 'jest.setup.ts'),
+  ],
+  setupFiles: [
+    ...(baseConfig.setupFiles ?? []),
+    path.join(__dirname, 'jest.setup.ts'),
+  ],
 };

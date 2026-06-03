@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 from .series import SeriesSpec
 from .markers import Marker, MarkerSpec, PriceLine
@@ -19,10 +19,13 @@ from .options import (
     ColorSpace,
     CrosshairMode,
     HorzAlign,
+    LastPriceAnimationMode,
     LineStyle,
     LineType,
     LineWidth,
     PrecomputeConflationPriority,
+    PriceFormat,
+    PriceLineSource,
     PriceScaleId,
     PriceScaleMode,
     PriceFormatter,
@@ -40,6 +43,7 @@ from .options import (
     TRACKING_MODE_EXIT_MODE_MAP,
 )
 from . import series as series_module
+from ._colors import Color
 
 _YIELD_CURVE_SERIES_TYPES = {"Line", "Area"}
 
@@ -48,11 +52,67 @@ def _filter_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
 
+def _wrap_as_chart(spec: SeriesSpec, by: Optional[str], func_name: str) -> "TvlChart":
+    """Build a default-styled TvlChart wrapping a single SeriesSpec.
+
+    Used by the per-type unified constructors (``tvl.line``, ``tvl.area``,
+    etc.). When ``by`` is set, the source table is partitioned and the
+    resulting :class:`PartitionedTable` is stashed on the spec for the
+    JS partition-watcher.
+    """
+    if by is not None:
+        _validate_by_column(spec.table, by, func_name)
+        spec.by = by
+        spec.partitioned_table = spec.table.partition_by([by])
+    return TvlChart(series_list=[spec], chart_options={})
+
+
+def _validate_by_column(table: Any, by: str, func: str) -> None:
+    """Raise a clear ValueError if ``by`` is not a column on ``table``.
+
+    Without this check ``table.partition_by([by])`` would still raise, but
+    with a much less actionable error wrapped in a Java exception. Surface
+    a Python-native error early so a typo in ``by="Symm"`` is obvious.
+    """
+    try:
+        col_names = [c.name for c in table.columns]
+    except Exception:
+        # Tests may pass mock tables without `.columns`; skip validation.
+        return
+    if by not in col_names:
+        raise ValueError(
+            f"{func}(by={by!r}) — column not found on table. "
+            f"Available columns: {col_names}"
+        )
+
+
 class TvlChart:
     """A TradingView Lightweight Chart.
 
-    Holds chart configuration and series specs. When displayed in Deephaven,
-    it is serialized to JSON and rendered by the JS plugin.
+    Holds chart configuration and series specs.  When displayed in
+    Deephaven, the chart is serialized to JSON and rendered by the
+    TVL JS plugin.
+
+    Construct instances through :func:`chart` (or one of the
+    convenience helpers like :func:`candlestick`, :func:`line`,
+    :func:`area`) rather than calling this constructor directly.  The
+    constructor signature is considered semi-internal: it accepts the
+    already-resolved chart options dict and may change between
+    releases.
+
+    Args:
+        series_list: One or more :class:`SeriesSpec` instances to plot.
+        chart_options: Pre-resolved camelCase JS-shaped options dict
+            (the output of :func:`chart`'s argument processing).
+        pane_stretch_factors: Optional list of per-pane stretch
+            factors.  Length must match the highest ``pane`` index used
+            by any series + 1.
+        pane_preserve_empty: Optional list of booleans controlling
+            whether each pane is preserved even when empty.
+        chart_type: One of ``"standard"``, ``"yieldCurve"``,
+            ``"options"`` (camelCase TVL backend names).  Use
+            :func:`chart` to translate from the Pythonic
+            :data:`ChartType` aliases.
     """
 
     def __init__(
@@ -69,14 +129,6 @@ class TvlChart:
         self._pane_preserve_empty = pane_preserve_empty
         self._chart_type = chart_type
 
-        # Partition metadata (set by line()/area() when by is used)
-        self._partitioned_table: Any = None
-        self._by_column: Optional[str] = None
-        self._series_factory: Optional[Callable[..., SeriesSpec]] = None
-        self._series_kwargs: Optional[dict] = None
-        # Extra refs to keep alive (e.g. PartitionedTable)
-        self._extra_refs: list[Any] = []
-
         # Liveness: manage refreshing tables so they survive GC
         self._liveness_scope = None
         if LivenessScope is not None:
@@ -92,9 +144,15 @@ class TvlChart:
             if isinstance(table, Table) and not table.is_refreshing:
                 continue
             self._liveness_scope.manage(table)
-        # Also manage the PartitionedTable itself
-        if self._partitioned_table is not None:
-            self._liveness_scope.manage(self._partitioned_table)
+        # Per-series partitioned tables must also be managed.
+        for s in self._series_list:
+            if s.partitioned_table is not None:
+                self._liveness_scope.manage(s.partitioned_table)
+
+    @property
+    def partitioned_series(self) -> list[SeriesSpec]:
+        """Series in this chart that carry a partition (``by=``) template."""
+        return [s for s in self._series_list if s.by is not None]
 
     def __del__(self) -> None:
         if self._liveness_scope is not None:
@@ -121,7 +179,14 @@ class TvlChart:
         return self._chart_type
 
     def get_tables(self) -> list[Any]:
-        """Get all unique tables referenced by this chart's series."""
+        """Return all unique Deephaven tables referenced by this chart's
+        series and marker specs.
+
+        Returns:
+            list[Any]: De-duplicated list of tables (order = first
+            occurrence in :attr:`series_list`).  Marker-spec tables
+            are appended after series tables.
+        """
         seen = set()
         tables = []
         for s in self._series_list:
@@ -137,10 +202,19 @@ class TvlChart:
         return tables
 
     def to_dict(self, table_id_map: dict) -> dict:
-        """Serialize to dict for JSON transport.
+        """Serialize this chart to a dict suitable for JSON transport
+        to the JS plugin.
 
         Args:
-            table_id_map: Maps table id() to integer reference ID.
+            table_id_map: dict mapping Python ``id(table)`` to the
+                integer reference ID used by the wire protocol.
+
+        Returns:
+            dict: A JSON-serializable dict with keys ``chartType``,
+            ``chartOptions``, ``series``, and (when set)
+            ``paneStretchFactors``, ``panePreserveEmpty``. Each series
+            entry may carry a ``"partition"`` block when its ``by``
+            field is set.
         """
         series_dicts = []
         for i, s in enumerate(self._series_list):
@@ -161,28 +235,11 @@ class TvlChart:
             result["paneStretchFactors"] = self._pane_stretch_factors
         if self._pane_preserve_empty is not None:
             result["panePreserveEmpty"] = self._pane_preserve_empty
-        # Partition spec for client-side `by` watching
-        if self._partitioned_table is not None and self._series_factory is not None:
-            # Map series factory to lightweight-charts type string
-            series_type_map = {
-                "line_series": "Line",
-                "area_series": "Area",
-            }
-            series_type = series_type_map.get(self._series_factory.__name__, "Line")
-            result["partitionSpec"] = {
-                "byColumn": self._by_column,
-                "seriesType": series_type,
-                "columns": {
-                    k: v
-                    for k, v in (self._series_kwargs or {}).items()
-                    if isinstance(v, str)  # only include column name mappings
-                },
-            }
         return result
 
 
 def chart(
-    *series: SeriesSpec,
+    *sources: "TvlChart | SeriesSpec",
     # Chart type
     chart_type: Optional[ChartType] = None,
     # Yield curve options (only for chart_type="yield_curve")
@@ -190,10 +247,10 @@ def chart(
     minimum_time_range: Optional[int] = None,
     start_time_range: Optional[int] = None,
     # Layout
-    background_color: Optional[str] = None,
-    background_top_color: Optional[str] = None,
-    background_bottom_color: Optional[str] = None,
-    text_color: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    background_top_color: Optional[Color] = None,
+    background_bottom_color: Optional[Color] = None,
+    text_color: Optional[Color] = None,
     font_size: Optional[int] = None,
     # fontFamily is intentionally omitted — we do not allow font customization.
     attribution_logo: Optional[bool] = None,
@@ -202,35 +259,35 @@ def chart(
     default_visible_price_scale_id: Optional[PriceScaleId] = None,
     # Grid
     vert_lines_visible: Optional[bool] = None,
-    vert_lines_color: Optional[str] = None,
+    vert_lines_color: Optional[Color] = None,
     vert_lines_style: Optional[LineStyle] = None,
     horz_lines_visible: Optional[bool] = None,
-    horz_lines_color: Optional[str] = None,
+    horz_lines_color: Optional[Color] = None,
     horz_lines_style: Optional[LineStyle] = None,
     # Crosshair
     crosshair_mode: Optional[CrosshairMode] = None,
     crosshair_vert_line_width: Optional[LineWidth] = None,
-    crosshair_vert_line_color: Optional[str] = None,
+    crosshair_vert_line_color: Optional[Color] = None,
     crosshair_vert_line_style: Optional[LineStyle] = None,
     crosshair_vert_line_visible: Optional[bool] = None,
     crosshair_vert_line_label_visible: Optional[bool] = None,
-    crosshair_vert_line_label_background_color: Optional[str] = None,
+    crosshair_vert_line_label_background_color: Optional[Color] = None,
     crosshair_horz_line_width: Optional[LineWidth] = None,
-    crosshair_horz_line_color: Optional[str] = None,
+    crosshair_horz_line_color: Optional[Color] = None,
     crosshair_horz_line_style: Optional[LineStyle] = None,
     crosshair_horz_line_visible: Optional[bool] = None,
     crosshair_horz_line_label_visible: Optional[bool] = None,
-    crosshair_horz_line_label_background_color: Optional[str] = None,
+    crosshair_horz_line_label_background_color: Optional[Color] = None,
     crosshair_do_not_snap_to_hidden_series: Optional[bool] = None,
     # Right price scale
     right_price_scale_visible: Optional[bool] = None,
     right_price_scale_border_visible: Optional[bool] = None,
-    right_price_scale_border_color: Optional[str] = None,
+    right_price_scale_border_color: Optional[Color] = None,
     right_price_scale_auto_scale: Optional[bool] = None,
     right_price_scale_mode: Optional[PriceScaleMode] = None,
     right_price_scale_invert_scale: Optional[bool] = None,
     right_price_scale_align_labels: Optional[bool] = None,
-    right_price_scale_text_color: Optional[str] = None,
+    right_price_scale_text_color: Optional[Color] = None,
     right_price_scale_entire_text_only: Optional[bool] = None,
     right_price_scale_ticks_visible: Optional[bool] = None,
     right_price_scale_minimum_width: Optional[int] = None,
@@ -241,12 +298,12 @@ def chart(
     # Left price scale
     left_price_scale_visible: Optional[bool] = None,
     left_price_scale_border_visible: Optional[bool] = None,
-    left_price_scale_border_color: Optional[str] = None,
+    left_price_scale_border_color: Optional[Color] = None,
     left_price_scale_auto_scale: Optional[bool] = None,
     left_price_scale_mode: Optional[PriceScaleMode] = None,
     left_price_scale_invert_scale: Optional[bool] = None,
     left_price_scale_align_labels: Optional[bool] = None,
-    left_price_scale_text_color: Optional[str] = None,
+    left_price_scale_text_color: Optional[Color] = None,
     left_price_scale_entire_text_only: Optional[bool] = None,
     left_price_scale_ticks_visible: Optional[bool] = None,
     left_price_scale_minimum_width: Optional[int] = None,
@@ -264,8 +321,8 @@ def chart(
     overlay_price_scale_mode: Optional[PriceScaleMode] = None,
     overlay_price_scale_invert_scale: Optional[bool] = None,
     overlay_price_scale_align_labels: Optional[bool] = None,
-    overlay_price_scale_border_color: Optional[str] = None,
-    overlay_price_scale_text_color: Optional[str] = None,
+    overlay_price_scale_border_color: Optional[Color] = None,
+    overlay_price_scale_text_color: Optional[Color] = None,
     overlay_price_scale_entire_text_only: Optional[bool] = None,
     overlay_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
     overlay_price_scale_tick_mark_density: Optional[float] = None,
@@ -273,7 +330,7 @@ def chart(
     time_visible: Optional[bool] = None,
     seconds_visible: Optional[bool] = None,
     time_scale_border_visible: Optional[bool] = None,
-    time_scale_border_color: Optional[str] = None,
+    time_scale_border_color: Optional[Color] = None,
     right_offset: Optional[int] = None,
     right_offset_pixels: Optional[int] = None,
     bar_spacing: Optional[float] = None,
@@ -298,7 +355,7 @@ def chart(
     time_scale_visible: Optional[bool] = None,
     # Watermark — single-line shortcut (backwards-compatible)
     watermark_text: Optional[str] = None,
-    watermark_color: Optional[str] = None,
+    watermark_color: Optional[Color] = None,
     watermark_visible: Optional[bool] = None,
     watermark_font_size: Optional[int] = None,
     # watermark_font_family is intentionally omitted — we do not allow font customization.
@@ -335,8 +392,8 @@ def chart(
     percentage_formatter: Optional[PercentageFormatter] = None,
     tickmarks_percentage_formatter: Optional[TickmarksPercentageFormatter] = None,
     # Panes
-    pane_separator_color: Optional[str] = None,
-    pane_separator_hover_color: Optional[str] = None,
+    pane_separator_color: Optional[Color] = None,
+    pane_separator_hover_color: Optional[Color] = None,
     pane_enable_resize: Optional[bool] = None,
     pane_stretch_factors: Optional[list[float]] = None,
     pane_preserve_empty: Optional[list[bool]] = None,
@@ -344,65 +401,348 @@ def chart(
     # They require callable JS objects with a draw() method that receives a
     # canvas rendering context at browser render time. The Python plugin is a
     # static configuration builder with no mechanism to express JS callables.
-    # Sizing
-    width: Optional[int] = None,
-    height: Optional[int] = None,
     # Behavior / interaction
-    auto_size: Optional[bool] = None,
     tracking_mode_exit_mode: Optional[TrackingModeExitMode] = None,
     add_default_pane: Optional[bool] = None,
 ) -> TvlChart:
-    """Create a TradingView Lightweight chart with one or more series.
+    """Compose one or more series into a TradingView Lightweight chart.
+
+    This is the chart-composition entry point. Each positional input is
+    a :class:`TvlChart` returned by one of the per-type constructors
+    (:func:`candlestick`, :func:`line`, :func:`area`, :func:`bar`,
+    :func:`baseline`, :func:`histogram`). Their series are concatenated
+    in order, and the chart-level styling kwargs supplied here apply to
+    the composed chart. Any chart-level state on the input sources
+    (default options from standalone use) is discarded.
+
+    A single-series chart is most often created by the per-type
+    constructor directly (e.g. ``tvl.area(t, timestamp="T", value="V")``).
+    Reach for ``tvl.chart(...)`` when you want multi-series, multi-pane,
+    or fine-grained chart styling.
 
     Args:
-        *series: One or more SeriesSpec objects created by series functions.
-        chart_type: Selects the horizontal scale backend. Allowed values:
+        *sources (TvlChart): One or more per-type construction results
+            (e.g. ``tvl.candlestick(...)``, ``tvl.line(...)``). Their
+            series are merged in order; the pane each series targets
+            comes from its ``pane=`` argument (default pane 0).
 
-            - ``"standard"`` (default) -- time-based x-axis via ``createChart``.
-            - ``"yield_curve"`` -- monthly-duration numeric x-axis via
-              ``createYieldCurveChart``; only Line and Area series are valid.
-            - ``"options"`` -- numeric x-axis via ``createOptionsChart``; any
-              series type is valid.  Best used through ``options_chart()``.
-            - ``"custom_numeric"`` -- alias for ``"options"``; prefer this name
-              when the x-axis represents arbitrary numeric values (e.g.
-              strike prices, frequencies) rather than option strikes specifically.
+        chart_type (Optional[ChartType]): Selects the horizontal scale
+            backend.  See :data:`ChartType` for the allowed values
+            (``"standard"`` (default), ``"yield_curve"``, ``"options"``,
+            ``"custom_numeric"``).
 
-        background_color: Solid background color as a CSS color string (e.g.,
-            ``'#1a1a2e'``). Mutually exclusive with ``background_top_color`` /
+
+        base_resolution (Optional[int]): The base time resolution in
+            seconds — controls how the maturity axis is rendered.
+        minimum_time_range (Optional[int]): Minimum visible time range
+            in maturity units.
+        start_time_range (Optional[int]): Initial visible time range.
+
+
+        background_color (Optional[Color]): Solid background color as a
+            CSS color string (e.g. ``"#1a1a2e"``).  Mutually exclusive
+            with the gradient pair.
+        background_top_color (Optional[Color]): Top color for a vertical
+            gradient.  Must be set together with
             ``background_bottom_color``.
-        background_top_color: Top color for a vertical gradient background. Must
-            be provided together with ``background_bottom_color``. Mutually
-            exclusive with ``background_color``.
-        background_bottom_color: Bottom color for a vertical gradient background.
-            Must be provided together with ``background_top_color``. Mutually
-            exclusive with ``background_color``.
-        attribution_logo: Whether to display the TradingView attribution logo.
-            Defaults to ``True`` (library default). Set ``False`` to hide it.
-        color_space: Canvas color space -- ``'srgb'`` (default) or
-            ``'display-p3'`` for wide-gamut displays. Must be set at chart
-            creation; cannot be changed later.
-        hovered_series_on_top: Whether the hovered series renders above its
-            siblings within the same pane. Defaults to ``True``. Set ``False``
-            to keep the configured Z-order regardless of cursor position.
-        default_visible_price_scale_id: Which price scale (``'left'`` or
-            ``'right'``) is used for new series that do not specify one.
-            Defaults to ``'right'``.
-        right_price_scale_tick_mark_density: Approximate density of tick marks
-            on the right price scale. Lower = fewer labels, higher = more.
-            Defaults to ``2.5``.
-        left_price_scale_tick_mark_density: Same as
-            ``right_price_scale_tick_mark_density`` but for the left scale.
-        overlay_price_scale_tick_mark_density: Same, applied to overlay price
-            scale defaults.
-        (all other chart-level options as kwargs)
+        background_bottom_color (Optional[Color]): Bottom color of the
+            gradient; pair with ``background_top_color``.
+        text_color (Optional[Color]): Default text color for axis labels
+            and tooltips.
+        font_size (Optional[int]): Base font size in pixels for axis
+            labels and tooltips.
+        attribution_logo (Optional[bool]): Show the TradingView
+            attribution logo (default ``True``).
+        color_space (Optional[ColorSpace]): Canvas color space — see
+            :data:`ColorSpace`.
+        hovered_series_on_top (Optional[bool]): Render the hovered
+            series above its siblings in the same pane (default
+            ``True``).
+        default_visible_price_scale_id (Optional[PriceScaleId]):
+            Default price scale (``"left"`` / ``"right"``) for series
+            that do not specify one.
+
+
+        vert_lines_visible (Optional[bool]): Show vertical gridlines.
+        vert_lines_color (Optional[Color]): Vertical gridline CSS color.
+        vert_lines_style (Optional[LineStyle]): Vertical gridline dash
+            pattern; see :data:`LineStyle`.
+        horz_lines_visible (Optional[bool]): Show horizontal gridlines.
+        horz_lines_color (Optional[Color]): Horizontal gridline CSS color.
+        horz_lines_style (Optional[LineStyle]): Horizontal gridline
+            dash pattern.
+
+
+        crosshair_mode (Optional[CrosshairMode]): Crosshair tracking
+            behavior; see :data:`CrosshairMode`.
+        crosshair_vert_line_width (Optional[LineWidth]): Width of the
+            vertical crosshair line in pixels.
+        crosshair_vert_line_color (Optional[Color]): Vertical crosshair
+            color.
+        crosshair_vert_line_style (Optional[LineStyle]): Vertical
+            crosshair dash pattern.
+        crosshair_vert_line_visible (Optional[bool]): Show the vertical
+            crosshair line.
+        crosshair_vert_line_label_visible (Optional[bool]): Show the
+            vertical crosshair's axis label.
+        crosshair_vert_line_label_background_color (Optional[Color]):
+            Vertical crosshair label background color.
+        crosshair_horz_line_width (Optional[LineWidth]): Width of the
+            horizontal crosshair line in pixels.
+        crosshair_horz_line_color (Optional[Color]): Horizontal crosshair
+            color.
+        crosshair_horz_line_style (Optional[LineStyle]): Horizontal
+            crosshair dash pattern.
+        crosshair_horz_line_visible (Optional[bool]): Show the
+            horizontal crosshair line.
+        crosshair_horz_line_label_visible (Optional[bool]): Show the
+            horizontal crosshair's axis label.
+        crosshair_horz_line_label_background_color (Optional[Color]):
+            Horizontal crosshair label background color.
+        crosshair_do_not_snap_to_hidden_series (Optional[bool]): When
+            ``True``, the crosshair skips hidden series in
+            magnet/snap modes.
+
+
+        right_price_scale_visible (Optional[bool]): Show the right
+            price scale.
+        right_price_scale_border_visible (Optional[bool]): Show the
+            scale border.
+        right_price_scale_border_color (Optional[Color]): Border color.
+        right_price_scale_auto_scale (Optional[bool]): Auto-fit the
+            scale to the visible data.
+        right_price_scale_mode (Optional[PriceScaleMode]): Scale mode;
+            see :data:`PriceScaleMode`.
+        right_price_scale_invert_scale (Optional[bool]): Invert the
+            scale (high values at bottom).
+        right_price_scale_align_labels (Optional[bool]): Align scale
+            labels with chart pixels.
+        right_price_scale_text_color (Optional[Color]): Scale label
+            color.
+        right_price_scale_entire_text_only (Optional[bool]): Render
+            only complete labels (avoid clipping).
+        right_price_scale_ticks_visible (Optional[bool]): Show tick
+            marks on the scale.
+        right_price_scale_minimum_width (Optional[int]): Minimum width
+            of the scale in pixels.
+        right_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
+            Force-render tick marks at the very top and bottom edges.
+        right_price_scale_tick_mark_density (Optional[float]):
+            Approximate tick density (default ``2.5``).
+        right_price_scale_margin_top (Optional[float]): Top margin as a
+            fraction (0–1).
+        right_price_scale_margin_bottom (Optional[float]): Bottom
+            margin as a fraction (0–1).
+
+
+        left_price_scale_visible (Optional[bool]): Show the left price
+            scale.
+        left_price_scale_border_visible (Optional[bool]): Show its
+            border.
+        left_price_scale_border_color (Optional[Color]): Border color.
+        left_price_scale_auto_scale (Optional[bool]): Auto-fit the
+            scale.
+        left_price_scale_mode (Optional[PriceScaleMode]): Scale mode.
+        left_price_scale_invert_scale (Optional[bool]): Invert the
+            scale.
+        left_price_scale_align_labels (Optional[bool]): Align labels
+            with pixels.
+        left_price_scale_text_color (Optional[Color]): Label color.
+        left_price_scale_entire_text_only (Optional[bool]): Only render
+            complete labels.
+        left_price_scale_ticks_visible (Optional[bool]): Show tick
+            marks.
+        left_price_scale_minimum_width (Optional[int]): Minimum width
+            in pixels.
+        left_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
+            Force-render edge tick marks.
+        left_price_scale_tick_mark_density (Optional[float]): Tick
+            density.
+        left_price_scale_margin_top (Optional[float]): Top margin
+            fraction.
+        left_price_scale_margin_bottom (Optional[float]): Bottom margin
+            fraction.
+
+        overlay_price_scale_border_visible (Optional[bool]): Show
+            overlay scale borders.
+        overlay_price_scale_ticks_visible (Optional[bool]): Show
+            overlay tick marks.
+        overlay_price_scale_minimum_width (Optional[int]): Minimum
+            overlay width.
+        overlay_price_scale_margin_top (Optional[float]): Top margin.
+        overlay_price_scale_margin_bottom (Optional[float]): Bottom
+            margin.
+        overlay_price_scale_auto_scale (Optional[bool]): Auto-fit.
+        overlay_price_scale_mode (Optional[PriceScaleMode]): Scale mode.
+        overlay_price_scale_invert_scale (Optional[bool]): Invert.
+        overlay_price_scale_align_labels (Optional[bool]): Align labels.
+        overlay_price_scale_border_color (Optional[Color]): Border color.
+        overlay_price_scale_text_color (Optional[Color]): Label color.
+        overlay_price_scale_entire_text_only (Optional[bool]): Only
+            complete labels.
+        overlay_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
+            Force edge ticks.
+        overlay_price_scale_tick_mark_density (Optional[float]): Tick
+            density.
+
+
+        time_visible (Optional[bool]): Show the time scale at the
+            bottom of the chart.
+        seconds_visible (Optional[bool]): Show seconds in time labels.
+        time_scale_border_visible (Optional[bool]): Show time scale
+            border.
+        time_scale_border_color (Optional[Color]): Border color.
+        right_offset (Optional[int]): Empty bars beyond the rightmost
+            data point.
+        right_offset_pixels (Optional[int]): Pixel offset of the right
+            edge.
+        bar_spacing (Optional[float]): Pixels between adjacent bars.
+        min_bar_spacing (Optional[float]): Minimum bar spacing
+            (zoom-in cap).
+        max_bar_spacing (Optional[float]): Maximum bar spacing
+            (zoom-out cap).
+        fix_left_edge (Optional[bool]): Prevent scrolling past the
+            leftmost data point.
+        fix_right_edge (Optional[bool]): Prevent scrolling past the
+            rightmost data point.
+        lock_visible_time_range_on_resize (Optional[bool]): Keep the
+            visible time range when the chart is resized.
+        right_bar_stays_on_scroll (Optional[bool]): Pin the rightmost
+            bar in view while scrolling.
+        shift_visible_range_on_new_bar (Optional[bool]): Auto-scroll
+            when a new bar is added.
+        allow_shift_visible_range_on_whitespace_replacement (Optional[bool]):
+            Shift when whitespace bars are replaced by real data.
+        time_scale_ticks_visible (Optional[bool]): Show tick marks on
+            the time scale.
+        tick_mark_max_character_length (Optional[int]): Maximum
+            character length of a tick label before truncation.
+        uniform_distribution (Optional[bool]): Force uniform bar
+            spacing regardless of timestamp gaps.
+        time_scale_minimum_height (Optional[int]): Minimum height of
+            the time scale area in pixels.
+        allow_bold_labels (Optional[bool]): Allow bold time labels.
+        ignore_whitespace_indices (Optional[bool]): Ignore whitespace
+            indices when computing visible logical range.
+        enable_conflation (Optional[bool]): Conflate sub-pixel data
+            points for performance.
+        conflation_threshold_factor (Optional[float]): Conflation
+            sensitivity multiplier.
+        precompute_conflation_on_init (Optional[bool]): Precompute
+            conflation on chart init.
+        precompute_conflation_priority (Optional[PrecomputeConflationPriority]):
+            Scheduling priority for precomputation; see
+            :data:`PrecomputeConflationPriority`.
+        time_scale_visible (Optional[bool]): Master visibility toggle
+            for the time scale.
+
+
+        watermark_text (Optional[str]): Text to display as a single
+            watermark line.  Mutually exclusive with ``watermark_lines``.
+        watermark_color (Optional[Color]): Watermark text color.
+        watermark_visible (Optional[bool]): Show the watermark.
+        watermark_font_size (Optional[int]): Font size in pixels.
+        watermark_font_style (Optional[str]): CSS font-style string
+            (e.g. ``"italic"``).
+        watermark_line_height (Optional[float]): Line height in pixels.
+        watermark_horz_align (Optional[HorzAlign]): Horizontal
+            alignment; see :data:`HorzAlign`.
+        watermark_vert_align (Optional[VertAlign]): Vertical alignment;
+            see :data:`VertAlign`.
+
+
+        watermark_lines (Optional[list[WatermarkLine]]): List of
+            :class:`WatermarkLine` instances, each with its own text
+            and per-line styling.  Mutually exclusive with the
+            single-line shortcut params.
+
+
+        watermark_image_url (Optional[str]): URL of an image to draw
+            as a watermark.
+        watermark_image_max_width (Optional[int]): Maximum image width
+            in pixels.
+        watermark_image_max_height (Optional[int]): Maximum image
+            height in pixels.
+        watermark_image_padding (Optional[int]): Padding around the
+            image in pixels.
+        watermark_image_alpha (Optional[float]): Image opacity (0–1).
+        watermark_image_visible (Optional[bool]): Show the image
+            watermark.
+
+
+        handle_scroll (Optional[bool]): Master toggle for all scroll
+            interactions.  When set, overrides the per-axis booleans.
+        handle_scroll_mouse_wheel (Optional[bool]): Allow mouse-wheel
+            scrolling.
+        handle_scroll_pressed_mouse_move (Optional[bool]): Allow
+            click-drag scrolling.
+        handle_scroll_horz_touch_drag (Optional[bool]): Allow
+            horizontal touch scrolling.
+        handle_scroll_vert_touch_drag (Optional[bool]): Allow vertical
+            touch scrolling.
+        handle_scale (Optional[bool]): Master toggle for all scale /
+            zoom interactions.
+        handle_scale_mouse_wheel (Optional[bool]): Allow zooming with
+            the mouse wheel.
+        handle_scale_pinch (Optional[bool]): Allow pinch-to-zoom on
+            touch devices.
+        handle_scale_axis_pressed_mouse_move (Optional[bool]): Allow
+            scaling by dragging an axis.
+        handle_scale_axis_double_click_reset (Optional[bool]): Reset
+            axis scale on double-click.
+        kinetic_scroll_touch (Optional[bool]): Enable kinetic scrolling
+            on touch devices.
+        kinetic_scroll_mouse (Optional[bool]): Enable kinetic scrolling
+            with the mouse.
+
+
+        price_formatter (Optional[PriceFormatter]): Price formatter
+            preset; see :data:`PriceFormatter`.
+        locale (Optional[str]): BCP 47 locale string for number
+            formatting (e.g. ``"en-US"``).
+        tickmarks_price_formatter (Optional[TickmarksPriceFormatter]):
+            Tick-label price formatter; see :data:`TickmarksPriceFormatter`.
+        percentage_formatter (Optional[PercentageFormatter]):
+            Crosshair percentage formatter; see :data:`PercentageFormatter`.
+        tickmarks_percentage_formatter (Optional[TickmarksPercentageFormatter]):
+            Tick-label percentage formatter; see
+            :data:`TickmarksPercentageFormatter`.
+
+
+        pane_separator_color (Optional[Color]): Color of the lines
+            between panes.
+        pane_separator_hover_color (Optional[Color]): Pane separator
+            color when hovered.
+        pane_enable_resize (Optional[bool]): Allow the user to resize
+            panes by dragging separators.
+        pane_stretch_factors (Optional[list[float]]): Relative stretch
+            factor per pane (longer list = more panes).
+        pane_preserve_empty (Optional[list[bool]]): Per-pane flag — if
+            ``True``, the pane is kept visible even when empty.
+
+
+        tracking_mode_exit_mode (Optional[TrackingModeExitMode]): When
+            the touch-device tracking mode exits; see
+            :data:`TrackingModeExitMode`.
+        add_default_pane (Optional[bool]): Add a default pane on
+            chart creation (default ``True``).  Set ``False`` for
+            advanced multi-pane setups that fully specify their own
+            panes.
 
     Returns:
-        A TvlChart that can be displayed in Deephaven.
+        TvlChart: A chart object that can be displayed in Deephaven.
 
     Note:
-        ``createChartEx`` with a custom ``horzScaleBehavior`` is not supported
-        from Python. The named chart types above cover all built-in horizontal
-        scale behaviors shipped with TVL v5.
+        ``createChartEx`` with a custom ``horzScaleBehavior`` is not
+        supported from Python.  The named :data:`ChartType` values
+        cover all built-in horizontal-scale behaviors shipped with TVL
+        v5.  Users needing arbitrary custom horizontal scales must
+        ship a JS plugin extension.
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> c = tvl.chart(tvl.line(my_table, timestamp="Timestamp", value="Price"),
+        ...               background_color="#1a1a2e", time_visible=True)
     """
     # Resolve chart type
     if chart_type is None:
@@ -418,9 +758,24 @@ def chart(
             f"from Python — use a JS plugin extension for fully custom horizontal scales."
         )
 
+    # Extract series from each source. Accept both TvlChart (the new
+    # public API) and bare SeriesSpec (for internal callers like
+    # yield_curve / options_chart / custom_numeric).
+    series_list: list[SeriesSpec] = []
+    for src in sources:
+        if isinstance(src, TvlChart):
+            series_list.extend(src.series_list)
+        elif isinstance(src, SeriesSpec):
+            series_list.append(src)
+        else:
+            raise TypeError(
+                f"chart() inputs must be TvlChart instances (returned by "
+                f"tvl.line(), tvl.area(), etc.), got {type(src).__name__}"
+            )
+
     # Validate yield curve series constraints
     if resolved_type == "yieldCurve":
-        for s in series:
+        for s in series_list:
             if s.series_type not in _YIELD_CURVE_SERIES_TYPES:
                 raise ValueError(
                     f"Yield curve charts only support Line and Area series, "
@@ -826,15 +1181,7 @@ def chart(
     if loc:
         chart_options["localization"] = loc
 
-    # Sizing
-    if width is not None:
-        chart_options["width"] = width
-    if height is not None:
-        chart_options["height"] = height
-
     # Behavior / interaction
-    if auto_size is not None:
-        chart_options["autoSize"] = auto_size
     if tracking_mode_exit_mode is not None:
         chart_options["trackingMode"] = {
             "exitMode": TRACKING_MODE_EXIT_MODE_MAP[tracking_mode_exit_mode]
@@ -847,7 +1194,7 @@ def chart(
         chart_options["defaultVisiblePriceScaleId"] = default_visible_price_scale_id
 
     return TvlChart(
-        series_list=list(series),
+        series_list=series_list,
         chart_options=chart_options,
         pane_stretch_factors=pane_stretch_factors,
         pane_preserve_empty=pane_preserve_empty,
@@ -855,325 +1202,465 @@ def chart(
     )
 
 
-# --- Convenience functions ---
+# --- Per-type unified constructors ---
+#
+# Each of the six functions below is the public entry point for a series
+# type. They accept the FULL series-factory signature from series.py +
+# `by=` for partitioning, and return a single-series TvlChart with default
+# chart options. The returned TvlChart can be displayed directly OR passed
+# to tvl.chart(...) to be combined with other series under shared chart
+# styling. Chart-styling options (background_color, text_color, watermark_*,
+# crosshair_*, time_*, width, height, etc.) live only on tvl.chart.
 
 
 def candlestick(
     table: Any,
-    time: str = "Timestamp",
+    timestamp: str = "Timestamp",
     open: str = "Open",
     high: str = "High",
     low: str = "Low",
     close: str = "Close",
-    up_color: Optional[str] = None,
-    down_color: Optional[str] = None,
-    border_up_color: Optional[str] = None,
-    border_down_color: Optional[str] = None,
-    wick_up_color: Optional[str] = None,
-    wick_down_color: Optional[str] = None,
+    up_color: Optional[Color] = None,
+    down_color: Optional[Color] = None,
+    border_visible: Optional[bool] = None,
+    border_color: Optional[Color] = None,
+    border_up_color: Optional[Color] = None,
+    border_down_color: Optional[Color] = None,
+    wick_visible: Optional[bool] = None,
+    wick_color: Optional[Color] = None,
+    wick_up_color: Optional[Color] = None,
+    wick_down_color: Optional[Color] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    last_value_visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    color_column: Optional[str] = None,
+    border_color_column: Optional[str] = None,
+    wick_color_column: Optional[str] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     auto_bin: Optional[bool] = None,
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
-    # Common chart options
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    by: Optional[str] = None,
 ) -> TvlChart:
-    """Create a candlestick chart. Shorthand for chart(candlestick_series(...))."""
-    s = series_module.candlestick_series(
-        table,
-        time=time,
-        open=open,
-        high=high,
-        low=low,
-        close=close,
-        up_color=up_color,
-        down_color=down_color,
-        border_up_color=border_up_color,
-        border_down_color=border_down_color,
-        wick_up_color=wick_up_color,
-        wick_down_color=wick_down_color,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-        auto_bin=auto_bin,
-        bin_width=bin_width,
-        bin_count=bin_count,
-    )
-    return chart(
-        s,
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
+    """Create a candlestick series.
+
+    The result is a single-series :class:`TvlChart` that can be
+    displayed directly OR passed to :func:`chart` to be combined with
+    other series under shared chart styling.
+
+    All series-level options are accepted (full TVL Candlestick
+    options surface). Chart-level styling (background_color,
+    watermark_text, crosshair_mode, time_visible, width, height, etc.)
+    lives on :func:`chart` — wrap this result in ``tvl.chart(...)`` to
+    customize them.
+
+    Args:
+        table: Deephaven table containing OHLC data.
+        timestamp, open, high, low, close: Column names for the OHLC channels.
+        by (Optional[str]): Column name to partition the table by. When
+            set, one runtime series is created per unique value.
+        Other parameters: see :func:`candlestick_series`-equivalent docs.
+
+    Returns:
+        TvlChart: A chart wrapping a single candlestick series.
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> c = tvl.candlestick(ohlc)
+        >>> # Composed with other series:
+        >>> c = tvl.chart(tvl.candlestick(ohlc), tvl.line(sma, "Timestamp", "Sma"))
+    """
+    kwargs = {k: v for k, v in locals().items() if k not in ("by",)}
+    spec = series_module.candlestick_series(**kwargs)
+    return _wrap_as_chart(spec, by, "candlestick")
 
 
 def line(
     table: Any,
-    time: str = "Timestamp",
-    value: str = "Value",
-    color: Optional[str] = None,
+    timestamp: str,
+    value: str,
+    color: Optional[Color] = None,
     line_width: Optional[LineWidth] = None,
     line_style: Optional[LineStyle] = None,
     line_type: Optional[LineType] = None,
+    line_visible: Optional[bool] = None,
+    point_markers_visible: Optional[bool] = None,
+    point_markers_radius: Optional[float] = None,
+    crosshair_marker_visible: Optional[bool] = None,
+    crosshair_marker_radius: Optional[float] = None,
+    crosshair_marker_border_color: Optional[Color] = None,
+    crosshair_marker_background_color: Optional[Color] = None,
+    crosshair_marker_border_width: Optional[float] = None,
+    last_price_animation: Optional[LastPriceAnimationMode] = None,
+    last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    color_column: Optional[str] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     by: Optional[str] = None,
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
 ) -> TvlChart:
-    """Create a line chart. Shorthand for chart(line_series(...)).
+    """Create a line series.
 
-    When ``by`` is set, the table is partitioned by that column and one
-    series is created per unique value.  New partition keys that appear
-    at runtime (ticking tables) automatically add new series.
+    The result is a single-series :class:`TvlChart` that can be
+    displayed directly OR passed to :func:`chart` to be combined with
+    other series under shared chart styling.
+
+    Args:
+        table: Deephaven table with the data.
+        timestamp: Column name for the time axis.
+        value: Column name for the y-axis.
+        by (Optional[str]): Column name to partition the table by.
+            When set, one line is drawn per unique value of this column;
+            new partition keys discovered at runtime (ticking tables)
+            add new lines automatically.
+        Other parameters: full TVL Line series options surface (see
+            equivalent of :func:`line_series`).
+
+    Returns:
+        TvlChart: A chart wrapping a single line series (or one line per
+        partition when ``by`` is set).
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> tvl.line(t, "Timestamp", "Price")
+        >>> tvl.chart(tvl.line(t, "Timestamp", "Price", by="Sym"))
     """
-    chart_kwargs: dict[str, Any] = dict(
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
-
-    if by is not None:
-        # JS side discovers all keys via PartitionedTable — no initial
-        # series needed on the Python side.
-        partitioned = table.partition_by([by])
-        c = chart(**chart_kwargs)
-        c._partitioned_table = partitioned
-        c._by_column = by
-        c._series_factory = series_module.line_series
-        c._series_kwargs = dict(
-            time=time,
-            value=value,
-            color=color,
-            line_width=line_width,
-            line_style=line_style,
-            line_type=line_type,
-            title=title,
-        )
-        c._extra_refs.append(partitioned)
-        c._manage_tables()
-        return c
-
-    s = series_module.line_series(
-        table,
-        time=time,
-        value=value,
-        color=color,
-        line_width=line_width,
-        line_style=line_style,
-        line_type=line_type,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-    )
-    return chart(s, **chart_kwargs)
+    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    spec = series_module.line_series(**kwargs)
+    return _wrap_as_chart(spec, by, "line")
 
 
 def area(
     table: Any,
-    time: str = "Timestamp",
-    value: str = "Value",
-    line_color: Optional[str] = None,
-    top_color: Optional[str] = None,
-    bottom_color: Optional[str] = None,
+    timestamp: str,
+    value: str,
+    line_color: Optional[Color] = None,
+    top_color: Optional[Color] = None,
+    bottom_color: Optional[Color] = None,
+    relative_gradient: Optional[bool] = None,
+    invert_filled_area: Optional[bool] = None,
     line_width: Optional[LineWidth] = None,
+    line_style: Optional[LineStyle] = None,
+    line_type: Optional[LineType] = None,
+    line_visible: Optional[bool] = None,
+    point_markers_visible: Optional[bool] = None,
+    point_markers_radius: Optional[float] = None,
+    crosshair_marker_visible: Optional[bool] = None,
+    crosshair_marker_radius: Optional[float] = None,
+    crosshair_marker_border_color: Optional[Color] = None,
+    crosshair_marker_background_color: Optional[Color] = None,
+    crosshair_marker_border_width: Optional[float] = None,
+    last_price_animation: Optional[LastPriceAnimationMode] = None,
+    last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    line_color_column: Optional[str] = None,
+    top_color_column: Optional[str] = None,
+    bottom_color_column: Optional[str] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     by: Optional[str] = None,
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
 ) -> TvlChart:
-    """Create an area chart. Shorthand for chart(area_series(...)).
+    """Create an area series.
 
-    When ``by`` is set, the table is partitioned by that column and one
-    series is created per unique value.  New partition keys that appear
-    at runtime (ticking tables) automatically add new series.
+    The result is a single-series :class:`TvlChart` that can be
+    displayed directly OR passed to :func:`chart` to be combined with
+    other series under shared chart styling.
+
+    Args:
+        table: Deephaven table with the data.
+        timestamp: Column name for the time axis.
+        value: Column name for the y-axis.
+        by (Optional[str]): Column name to partition by. One area series
+            per unique value (new keys at runtime add new series).
+        Other parameters: full TVL Area series options surface.
+
+    Returns:
+        TvlChart: A chart wrapping a single area series (or one per
+        partition when ``by`` is set).
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> tvl.area(t, "Timestamp", "Price")
+        >>> tvl.chart(tvl.area(t, "Timestamp", "Price"), background_color="#111")
     """
-    chart_kwargs: dict[str, Any] = dict(
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
-
-    if by is not None:
-        partitioned = table.partition_by([by])
-        c = chart(**chart_kwargs)
-        c._partitioned_table = partitioned
-        c._by_column = by
-        c._series_factory = series_module.area_series
-        c._series_kwargs = dict(
-            time=time,
-            value=value,
-            line_color=line_color,
-            top_color=top_color,
-            bottom_color=bottom_color,
-            line_width=line_width,
-            title=title,
-        )
-        c._extra_refs.append(partitioned)
-        c._manage_tables()
-        return c
-
-    s = series_module.area_series(
-        table,
-        time=time,
-        value=value,
-        line_color=line_color,
-        top_color=top_color,
-        bottom_color=bottom_color,
-        line_width=line_width,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-    )
-    return chart(s, **chart_kwargs)
+    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    spec = series_module.area_series(**kwargs)
+    return _wrap_as_chart(spec, by, "area")
 
 
 def bar(
     table: Any,
-    time: str = "Timestamp",
+    timestamp: str = "Timestamp",
     open: str = "Open",
     high: str = "High",
     low: str = "Low",
     close: str = "Close",
-    up_color: Optional[str] = None,
-    down_color: Optional[str] = None,
+    up_color: Optional[Color] = None,
+    down_color: Optional[Color] = None,
+    open_visible: Optional[bool] = None,
+    thin_bars: Optional[bool] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    last_value_visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    color_column: Optional[str] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     auto_bin: Optional[bool] = None,
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    by: Optional[str] = None,
 ) -> TvlChart:
-    """Create a bar chart. Shorthand for chart(bar_series(...))."""
-    s = series_module.bar_series(
-        table,
-        time=time,
-        open=open,
-        high=high,
-        low=low,
-        close=close,
-        up_color=up_color,
-        down_color=down_color,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-        auto_bin=auto_bin,
-        bin_width=bin_width,
-        bin_count=bin_count,
-    )
-    return chart(
-        s,
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
+    """Create a bar (OHLC) series.
+
+    Bar charts render each bucket as a vertical line with open/close
+    ticks; contrast with :func:`candlestick` which fills the body.
+    The result is a single-series :class:`TvlChart` standalone-renderable
+    or nestable inside :func:`chart`.
+
+    Args:
+        table: Deephaven OHLC table.
+        timestamp, open, high, low, close: Column names for OHLC channels.
+        by (Optional[str]): Partition column.
+        Other parameters: full TVL Bar series options surface.
+
+    Returns:
+        TvlChart: A chart wrapping a single bar series.
+    """
+    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    spec = series_module.bar_series(**kwargs)
+    return _wrap_as_chart(spec, by, "bar")
 
 
 def baseline(
     table: Any,
-    time: str = "Timestamp",
-    value: str = "Value",
-    base_value: float = 0.0,
-    top_line_color: Optional[str] = None,
-    bottom_line_color: Optional[str] = None,
+    timestamp: str,
+    value: str,
+    base_value: Optional[float] = None,
+    top_line_color: Optional[Color] = None,
+    top_fill_color1: Optional[Color] = None,
+    top_fill_color2: Optional[Color] = None,
+    bottom_line_color: Optional[Color] = None,
+    bottom_fill_color1: Optional[Color] = None,
+    bottom_fill_color2: Optional[Color] = None,
     line_width: Optional[LineWidth] = None,
+    line_style: Optional[LineStyle] = None,
+    line_type: Optional[LineType] = None,
+    line_visible: Optional[bool] = None,
+    relative_gradient: Optional[bool] = None,
+    point_markers_visible: Optional[bool] = None,
+    point_markers_radius: Optional[float] = None,
+    crosshair_marker_visible: Optional[bool] = None,
+    crosshair_marker_radius: Optional[float] = None,
+    crosshair_marker_border_color: Optional[Color] = None,
+    crosshair_marker_background_color: Optional[Color] = None,
+    crosshair_marker_border_width: Optional[float] = None,
+    last_price_animation: Optional[LastPriceAnimationMode] = None,
+    last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    top_line_color_column: Optional[str] = None,
+    top_fill_color1_column: Optional[str] = None,
+    top_fill_color2_column: Optional[str] = None,
+    bottom_line_color_column: Optional[str] = None,
+    bottom_fill_color1_column: Optional[str] = None,
+    bottom_fill_color2_column: Optional[str] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    by: Optional[str] = None,
 ) -> TvlChart:
-    """Create a baseline chart. Shorthand for chart(baseline_series(...))."""
-    s = series_module.baseline_series(
-        table,
-        time=time,
-        value=value,
-        base_value=base_value,
-        top_line_color=top_line_color,
-        bottom_line_color=bottom_line_color,
-        line_width=line_width,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-    )
-    return chart(
-        s,
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
+    """Create a baseline series.
+
+    Fills the area between the value line and a horizontal base value
+    with different gradient colors above (top) and below (bottom).
+    Single-series :class:`TvlChart` standalone-renderable or nestable in
+    :func:`chart`.
+
+    Args:
+        table: Deephaven table.
+        timestamp, value: Column names.
+        base_value: Baseline price level (default 0.0).
+        by (Optional[str]): Partition column.
+        Other parameters: full TVL Baseline series options surface.
+    """
+    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    spec = series_module.baseline_series(**kwargs)
+    return _wrap_as_chart(spec, by, "baseline")
 
 
 def histogram(
     table: Any,
-    time: str = "Timestamp",
-    value: str = "Value",
-    color: Optional[str] = None,
+    timestamp: str,
+    value: str,
+    color: Optional[Color] = None,
+    base: Optional[float] = None,
     color_column: Optional[str] = None,
+    last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
+    visible: Optional[bool] = None,
+    price_scale_id: Optional[str] = None,
+    price_format: Optional[PriceFormat] = None,
+    price_line_visible: Optional[bool] = None,
+    price_line_source: Optional[PriceLineSource] = None,
+    price_line_width: Optional[LineWidth] = None,
+    price_line_color: Optional[Color] = None,
+    price_line_style: Optional[LineStyle] = None,
+    base_line_visible: Optional[bool] = None,
+    base_line_color: Optional[Color] = None,
+    base_line_width: Optional[LineWidth] = None,
+    base_line_style: Optional[LineStyle] = None,
+    auto_scale: Optional[bool] = None,
+    scale_margin_top: Optional[float] = None,
+    scale_margin_bottom: Optional[float] = None,
+    scale_mode: Optional[PriceScaleMode] = None,
+    scale_invert: Optional[bool] = None,
+    scale_align_labels: Optional[bool] = None,
+    scale_border_visible: Optional[bool] = None,
+    scale_border_color: Optional[Color] = None,
+    scale_text_color: Optional[Color] = None,
+    scale_entire_text_only: Optional[bool] = None,
+    scale_visible: Optional[bool] = None,
+    scale_ticks_visible: Optional[bool] = None,
+    scale_minimum_width: Optional[int] = None,
+    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
@@ -1181,40 +1668,25 @@ def histogram(
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
     agg: str = "sum",
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
-    crosshair_mode: Optional[CrosshairMode] = None,
-    time_visible: Optional[bool] = None,
-    watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
+    by: Optional[str] = None,
 ) -> TvlChart:
-    """Create a histogram chart. Shorthand for chart(histogram_series(...))."""
-    s = series_module.histogram_series(
-        table,
-        time=time,
-        value=value,
-        color=color,
-        color_column=color_column,
-        title=title,
-        markers=markers,
-        price_lines=price_lines,
-        marker_spec=marker_spec,
-        auto_bin=auto_bin,
-        bin_width=bin_width,
-        bin_count=bin_count,
-        agg=agg,
-    )
-    return chart(
-        s,
-        background_color=background_color,
-        text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        time_visible=time_visible,
-        watermark_text=watermark_text,
-        width=width,
-        height=height,
-    )
+    """Create a histogram series.
+
+    One vertical bar per time bucket. ``agg`` selects the per-bin
+    reduction (sum / count / avg / last) when auto-binning fires.
+    Single-series :class:`TvlChart` standalone-renderable or nestable in
+    :func:`chart`.
+
+    Args:
+        table: Deephaven table.
+        timestamp, value: Column names.
+        agg: Per-bin reduction (``"sum"``, ``"count"``, ``"avg"``, ``"last"``).
+        by (Optional[str]): Partition column.
+        Other parameters: full TVL Histogram series options surface.
+    """
+    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    spec = series_module.histogram_series(**kwargs)
+    return _wrap_as_chart(spec, by, "histogram")
 
 
 # --- Non-standard chart type convenience functions ---
@@ -1226,35 +1698,65 @@ def yield_curve(
     value: str = "Yield",
     series_type: str = "line",
     # Series styling
-    color: Optional[str] = None,
+    color: Optional[Color] = None,
     line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     # Area-specific (only used when series_type="area")
-    line_color: Optional[str] = None,
-    top_color: Optional[str] = None,
-    bottom_color: Optional[str] = None,
+    line_color: Optional[Color] = None,
+    top_color: Optional[Color] = None,
+    bottom_color: Optional[Color] = None,
     # Yield curve options
     base_resolution: Optional[int] = None,
     minimum_time_range: Optional[int] = None,
     start_time_range: Optional[int] = None,
     # Common chart options
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    text_color: Optional[Color] = None,
     crosshair_mode: Optional[CrosshairMode] = None,
     watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
 ) -> TvlChart:
     """Create a yield curve chart with a single Line or Area series.
 
-    The horizontal axis represents maturity in months (numeric).
-    Only Line and Area series are supported by yield curve charts.
+    A yield-curve chart has a numeric horizontal axis representing
+    maturity in months and is rendered via the TVL JS
+    ``createYieldCurveChart`` backend.  Only Line and Area series are
+    supported.
 
     Args:
-        table: Deephaven table with the data.
-        maturity: Column name for the x-axis (months, numeric).
-        value: Column name for the y-axis (yield values).
-        series_type: ``"line"`` (default) or ``"area"``.
+        table (Any): Deephaven table with the yield-curve data.
+        maturity (str): Column name for the x-axis (months, numeric).
+        value (str): Column name for the y-axis (yield values).
+        series_type (str): ``"line"`` (default) or ``"area"``.
+        color (Optional[Color]): Line color (also used as the area's
+            line color when ``line_color`` is not set).
+        line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
+        title (Optional[str]): Title shown in the series tooltip /
+            legend.
+        line_color (Optional[Color]): Area-only: explicit line color
+            (overrides ``color``).
+        top_color (Optional[Color]): Area-only: top gradient fill color.
+        bottom_color (Optional[Color]): Area-only: bottom gradient fill
+            color.
+        base_resolution (Optional[int]): Yield-curve x-axis base
+            resolution in seconds.
+        minimum_time_range (Optional[int]): Minimum visible time range.
+        start_time_range (Optional[int]): Initial visible time range.
+        background_color (Optional[Color]): Chart background CSS color.
+        text_color (Optional[Color]): Axis / label text color.
+        crosshair_mode (Optional[CrosshairMode]): Crosshair mode; see
+            :data:`CrosshairMode`.
+        watermark_text (Optional[str]): Single-line watermark text.
+
+    Returns:
+        TvlChart: A yield-curve chart with a single series.
+
+    Raises:
+        ValueError: If ``series_type`` is not ``"line"`` or ``"area"``.
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> c = tvl.yield_curve(curve, maturity="Maturity",
+        ...                     value="Yield", series_type="line")
     """
     st = series_type.lower()
     _valid_yc = {"line", "area"}
@@ -1265,7 +1767,7 @@ def yield_curve(
     if st == "area":
         s = series_module.area_series(
             table,
-            time=maturity,
+            timestamp=maturity,
             value=value,
             line_color=line_color or color,
             top_color=top_color,
@@ -1276,7 +1778,7 @@ def yield_curve(
     else:
         s = series_module.line_series(
             table,
-            time=maturity,
+            timestamp=maturity,
             value=value,
             color=color,
             line_width=line_width,
@@ -1292,8 +1794,6 @@ def yield_curve(
         text_color=text_color,
         crosshair_mode=crosshair_mode,
         watermark_text=watermark_text,
-        width=width,
-        height=height,
     )
 
 
@@ -1303,30 +1803,60 @@ def options_chart(
     value: str = "Value",
     series_type: str = "line",
     # Series styling
-    color: Optional[str] = None,
+    color: Optional[Color] = None,
     line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     # Area-specific
-    line_color: Optional[str] = None,
-    top_color: Optional[str] = None,
-    bottom_color: Optional[str] = None,
+    line_color: Optional[Color] = None,
+    top_color: Optional[Color] = None,
+    bottom_color: Optional[Color] = None,
     # Common chart options
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    text_color: Optional[Color] = None,
     crosshair_mode: Optional[CrosshairMode] = None,
     watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
 ) -> TvlChart:
     """Create an options chart with a single series.
 
-    The horizontal axis represents strike prices (numeric).
+    The horizontal axis represents strike prices (numeric) and the
+    chart is rendered via the TVL JS ``createOptionsChart`` backend.
+    For non-strike numeric x-axes (frequency, distance, etc.), prefer
+    :func:`custom_numeric`, which uses the same renderer with a more
+    descriptive name and parameter (``x`` instead of ``strike``).
 
     Args:
-        table: Deephaven table with the data.
-        strike: Column name for the x-axis (strike prices, numeric).
-        value: Column name for the y-axis.
-        series_type: ``"line"`` (default), ``"area"``, or ``"histogram"``.
+        table (Any): Deephaven table with the data.
+        strike (str): Column name for the x-axis (strike prices,
+            numeric).
+        value (str): Column name for the y-axis.
+        series_type (str): ``"line"`` (default), ``"area"``, or
+            ``"histogram"``.
+        color (Optional[Color]): Line / histogram color.  For area
+            series, falls back to ``line_color`` when set.
+        line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
+        title (Optional[str]): Title shown in the series tooltip /
+            legend.
+        line_color (Optional[Color]): Area-only: explicit line color.
+        top_color (Optional[Color]): Area-only: top gradient fill color.
+        bottom_color (Optional[Color]): Area-only: bottom gradient fill
+            color.
+        background_color (Optional[Color]): Chart background CSS color.
+        text_color (Optional[Color]): Axis / label text color.
+        crosshair_mode (Optional[CrosshairMode]): Crosshair mode; see
+            :data:`CrosshairMode`.
+        watermark_text (Optional[str]): Single-line watermark text.
+
+    Returns:
+        TvlChart: An options chart with a single series.
+
+    Raises:
+        ValueError: If ``series_type`` is not ``"line"``, ``"area"``,
+            or ``"histogram"``.
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> c = tvl.options_chart(opt_chain, strike="Strike",
+        ...                       value="IV", series_type="line")
     """
     st = series_type.lower()
     _valid_oc = {"line", "area", "histogram"}
@@ -1337,7 +1867,7 @@ def options_chart(
     if st == "area":
         s = series_module.area_series(
             table,
-            time=strike,
+            timestamp=strike,
             value=value,
             line_color=line_color or color,
             top_color=top_color,
@@ -1348,7 +1878,7 @@ def options_chart(
     elif st == "histogram":
         s = series_module.histogram_series(
             table,
-            time=strike,
+            timestamp=strike,
             value=value,
             color=color,
             title=title,
@@ -1356,7 +1886,7 @@ def options_chart(
     else:
         s = series_module.line_series(
             table,
-            time=strike,
+            timestamp=strike,
             value=value,
             color=color,
             line_width=line_width,
@@ -1369,8 +1899,6 @@ def options_chart(
         text_color=text_color,
         crosshair_mode=crosshair_mode,
         watermark_text=watermark_text,
-        width=width,
-        height=height,
     )
 
 
@@ -1380,37 +1908,63 @@ def custom_numeric(
     value: str = "Value",
     series_type: str = "line",
     # Series styling
-    color: Optional[str] = None,
+    color: Optional[Color] = None,
     line_width: Optional[LineWidth] = None,
     title: Optional[str] = None,
     # Area-specific
-    line_color: Optional[str] = None,
-    top_color: Optional[str] = None,
-    bottom_color: Optional[str] = None,
+    line_color: Optional[Color] = None,
+    top_color: Optional[Color] = None,
+    bottom_color: Optional[Color] = None,
     # Common chart options
-    background_color: Optional[str] = None,
-    text_color: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    text_color: Optional[Color] = None,
     crosshair_mode: Optional[CrosshairMode] = None,
     watermark_text: Optional[str] = None,
-    width: Optional[int] = None,
-    height: Optional[int] = None,
 ) -> TvlChart:
     """Create a chart with a generic numeric x-axis.
 
-    Use this when the x-axis represents arbitrary numeric values (e.g. frequency,
-    distance, price levels) rather than timestamps.  Internally this uses the same
-    ``createOptionsChart`` renderer as :func:`options_chart`, which provides a
-    linearly-spaced numeric horizontal scale.
+    Use this when the x-axis represents arbitrary numeric values
+    (frequency, distance, price level, etc.) rather than timestamps.
+    Internally uses the same ``createOptionsChart`` renderer as
+    :func:`options_chart`, which provides a linearly-spaced numeric
+    horizontal scale.
 
     Args:
-        table: Deephaven table with the data.
-        x: Column name for the x-axis (numeric values).
-        value: Column name for the y-axis.
-        series_type: ``"line"`` (default), ``"area"``, or ``"histogram"``.
+        table (Any): Deephaven table with the data.
+        x (str): Column name for the x-axis (numeric values).
+        value (str): Column name for the y-axis.
+        series_type (str): ``"line"`` (default), ``"area"``, or
+            ``"histogram"``.
+        color (Optional[Color]): Line / histogram color.
+        line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
+        title (Optional[str]): Title shown in the series tooltip /
+            legend.
+        line_color (Optional[Color]): Area-only: explicit line color.
+        top_color (Optional[Color]): Area-only: top gradient fill color.
+        bottom_color (Optional[Color]): Area-only: bottom gradient fill
+            color.
+        background_color (Optional[Color]): Chart background CSS color.
+        text_color (Optional[Color]): Axis / label text color.
+        crosshair_mode (Optional[CrosshairMode]): Crosshair mode; see
+            :data:`CrosshairMode`.
+        watermark_text (Optional[str]): Single-line watermark text.
+
+    Returns:
+        TvlChart: A chart with a generic numeric x-axis.
+
+    Raises:
+        ValueError: If ``series_type`` is not ``"line"``, ``"area"``,
+            or ``"histogram"``.
 
     Note:
-        ``createChartEx`` with a fully custom ``horzScaleBehavior`` is not
-        supported from Python.  Write a JS plugin extension for that use case.
+        ``createChartEx`` with a fully custom ``horzScaleBehavior``
+        is not supported from Python.  Ship a JS plugin extension for
+        that use case.
+
+    Example:
+        >>> import deephaven.plot.tradingview_lightweight as tvl
+        >>> c = tvl.custom_numeric(data, x="Frequency",
+        ...                        value="Amplitude")
     """
     st = series_type.lower()
     _valid_cn = {"line", "area", "histogram"}
@@ -1421,7 +1975,7 @@ def custom_numeric(
     if st == "area":
         s = series_module.area_series(
             table,
-            time=x,
+            timestamp=x,
             value=value,
             line_color=line_color or color,
             top_color=top_color,
@@ -1432,7 +1986,7 @@ def custom_numeric(
     elif st == "histogram":
         s = series_module.histogram_series(
             table,
-            time=x,
+            timestamp=x,
             value=value,
             color=color,
             title=title,
@@ -1440,7 +1994,7 @@ def custom_numeric(
     else:
         s = series_module.line_series(
             table,
-            time=x,
+            timestamp=x,
             value=value,
             color=color,
             line_width=line_width,
@@ -1453,6 +2007,118 @@ def custom_numeric(
         text_color=text_color,
         crosshair_mode=crosshair_mode,
         watermark_text=watermark_text,
-        width=width,
-        height=height,
     )
+
+
+def _inherit_series_docstring(
+    unified_fn: Any, factory_fn: Any, returns_desc: str
+) -> None:
+    """Replace the unified constructor's terse docstring with one derived
+    from the matching ``*_series`` factory.
+
+    The deephaven_autodoc Sphinx extension iterates the function signature
+    and requires every parameter to appear in the rendered Args list with
+    ``name (type) -- description`` format. The unified constructors share
+    the factory's parameter set + ``by``, so the factory's Args block is
+    reused verbatim and a ``by`` entry is appended. The Returns line is
+    rewritten to ``TvlChart`` since the unified constructor wraps the spec.
+    """
+    factory_doc = factory_fn.__doc__ or ""
+    lines = factory_doc.split("\n")
+    # Find Args: and Returns: section boundaries
+    args_idx = None
+    returns_idx = None
+    for i, ln in enumerate(lines):
+        if ln.strip() == "Args:":
+            args_idx = i
+        elif ln.strip().startswith("Returns:"):
+            returns_idx = i
+            break
+    if args_idx is None or returns_idx is None:
+        return  # factory has no Args/Returns; leave the existing terse doc
+
+    # Insert `by` entry as the last item in Args (before Returns).
+    by_doc = [
+        "        by (Optional[str]): Column name to partition the table by.",
+        "            When set, one runtime series is created per unique value;",
+        "            new partition keys discovered at runtime (ticking tables)",
+        "            add new series automatically.",
+    ]
+    # Find the last non-blank line of the Args block.
+    insert_at = returns_idx
+    while insert_at > args_idx + 1 and not lines[insert_at - 1].strip():
+        insert_at -= 1
+
+    new_lines = lines[:insert_at] + by_doc + [""] + lines[returns_idx:]
+
+    # Rewrite the Returns body. Find the indented description line(s)
+    # after `Returns:` and replace with the unified-constructor's return.
+    out: list[str] = []
+    in_returns = False
+    skipped_returns_body = False
+    for ln in new_lines:
+        if ln.strip().startswith("Returns:"):
+            out.append(ln)
+            in_returns = True
+            skipped_returns_body = False
+            continue
+        if in_returns and not skipped_returns_body:
+            # Replace the first description with our own.
+            if ln.strip() and ln.startswith(" "):
+                out.append("        TvlChart: " + returns_desc)
+                skipped_returns_body = True
+                continue
+            elif ln.strip() == "":
+                continue
+        if in_returns and ln and not ln.startswith(" "):
+            in_returns = False
+        out.append(ln)
+
+    # Take the first paragraph of the factory's docstring as the summary
+    # and prepend a sentence about the unified constructor's behavior.
+    summary_end = 0
+    for i, ln in enumerate(lines):
+        if i > 0 and ln.strip() == "":
+            summary_end = i
+            break
+    summary = "\n".join(lines[:summary_end])
+
+    unified_fn.__doc__ = (
+        summary
+        + "\n\n    The result is a single-series :class:`TvlChart` that can be displayed\n"
+        + "    directly OR passed to :func:`chart` to be combined with other series\n"
+        + "    under shared chart styling.\n\n"
+        + "\n".join(out[summary_end:])
+    )
+
+
+_inherit_series_docstring(
+    candlestick,
+    series_module.candlestick_series,
+    "A chart wrapping a single candlestick series.",
+)
+_inherit_series_docstring(
+    line,
+    series_module.line_series,
+    "A chart wrapping a single line series (or one line per partition when ``by`` is set).",
+)
+_inherit_series_docstring(
+    area,
+    series_module.area_series,
+    "A chart wrapping a single area series (or one per partition when ``by`` is set).",
+)
+_inherit_series_docstring(
+    bar,
+    series_module.bar_series,
+    "A chart wrapping a single bar series.",
+)
+_inherit_series_docstring(
+    baseline,
+    series_module.baseline_series,
+    "A chart wrapping a single baseline series.",
+)
+_inherit_series_docstring(
+    histogram,
+    series_module.histogram_series,
+    "A chart wrapping a single histogram series.",
+)

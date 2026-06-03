@@ -1,9 +1,39 @@
-"""Type definitions and constants for TradingView Lightweight Charts plugin."""
+"""Type definitions and constants for TradingView Lightweight Charts plugin.
+
+This module exposes the string-literal type aliases ("enum-like" choices) used
+throughout the public TVL API for styling, axis behavior, and marker shapes.
+
+All such aliases are :data:`typing.Literal` types, not :class:`enum.Enum`
+subclasses, so they appear in signatures as a union of string literals (e.g.
+``Literal["solid", "dotted", ...]``).  Each alias also has a ``__doc__``
+attached via direct assignment so that ``dhautofunction`` and other autodoc
+machinery can surface the full list of allowed values.
+
+The full set of aliases exported as enums:
+
+* :data:`LineStyle`, :data:`LineType`, :data:`LineWidth`
+* :data:`CrosshairMode`, :data:`HorzAlign`, :data:`VertAlign`
+* :data:`PriceScaleMode`, :data:`MarkerShape`, :data:`MarkerPosition`
+* :data:`ChartType`, :data:`ColorSpace`, :data:`ColorType`
+* :data:`PriceFormatter`, :data:`TickmarksPriceFormatter`
+* :data:`PercentageFormatter`, :data:`TickmarksPercentageFormatter`
+* :data:`PrecomputeConflationPriority`, :data:`LastPriceAnimationMode`
+* :data:`MarkerSign`, :data:`MismatchDirection`, :data:`PriceLineSource`
+* :data:`TickMarkType`, :data:`TrackingModeExitMode`
+
+Limitation: Sphinx ``autodoc`` cannot render ``Literal`` aliases as full
+documented members on their own.  The ``__doc__`` attribute on a
+``Literal`` alias is only visible through ``help()`` / ``__doc__``
+introspection; the recommended docs surface is to refer back to this
+module's docstring for the enumerated values.  See
+``notes/docstring-audit-limitations.md`` for details.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Literal, Optional, TypedDict
+from ._colors import Color
 
 # Line style constants (matching lightweight-charts LineStyle enum)
 SOLID = 0
@@ -13,8 +43,35 @@ LARGE_DASHED = 3
 SPARSE_DOTTED = 4
 
 LineStyle = Literal["solid", "dotted", "dashed", "large_dashed", "sparse_dotted"]
+"""Line dash pattern used by chart grid lines, crosshairs, price lines, and
+series with a line component.
+
+Allowed values:
+
+- ``"solid"`` — unbroken line.
+- ``"dotted"`` — small evenly-spaced dots.
+- ``"dashed"`` — short dashes.
+- ``"large_dashed"`` — long dashes.
+- ``"sparse_dotted"`` — widely-spaced dots.
+"""
+
 LineType = Literal["simple", "with_steps", "curved"]
+"""Geometry used to connect successive data points in line / area / baseline
+series.
+
+Allowed values:
+
+- ``"simple"`` — straight line segments between points.
+- ``"with_steps"`` — staircase (constant value until next point).
+- ``"curved"`` — smoothed monotone-cubic interpolation.
+"""
+
 LineWidth = Literal[1, 2, 3, 4]
+"""Stroke width in CSS pixels for series lines, crosshairs, and price lines.
+
+Allowed values: ``1``, ``2``, ``3``, ``4``.  Values outside this range are
+rejected by the TVL JS runtime.
+"""
 
 # Coordinate and Logical are JS-only nominal types used by ITimeScaleApi
 # (logicalToCoordinate, coordinateToLogical) and mouse event handlers.
@@ -22,11 +79,55 @@ LineWidth = Literal[1, 2, 3, 4]
 # See: notes/api-coverage-report.md §16, §26.
 
 HorzAlign = Literal["left", "center", "right"]
+"""Horizontal alignment for text watermarks.
+
+Allowed values: ``"left"``, ``"center"``, ``"right"``.
+"""
+
 VertAlign = Literal["top", "center", "bottom"]
+"""Vertical alignment for text watermarks.
+
+Allowed values: ``"top"``, ``"center"``, ``"bottom"``.
+"""
+
 PriceScaleId = Literal["left", "right"]
+"""Which built-in price scale a series is attached to.
+
+Allowed values: ``"left"``, ``"right"``.  Charts default to ``"right"``;
+supply ``"left"`` on a series to render against the left price scale.
+"""
+
 CrosshairMode = Literal["normal", "magnet", "hidden", "magnet_ohlc"]
+"""Crosshair tracking behavior.
+
+Allowed values:
+
+- ``"normal"`` — free cursor; crosshair follows the pointer exactly.
+- ``"magnet"`` — snaps the horizontal crosshair to the nearest data point.
+- ``"hidden"`` — crosshair is fully suppressed.
+- ``"magnet_ohlc"`` — like ``"magnet"`` but snaps to OHLC bar extremes
+  (open/high/low/close), not just data values.
+"""
+
 PriceScaleMode = Literal["normal", "logarithmic", "percentage", "indexed_to_100"]
+"""How a price scale maps data values to vertical screen coordinates.
+
+Allowed values:
+
+- ``"normal"`` — linear mapping from raw values.
+- ``"logarithmic"`` — base-10 logarithmic mapping.
+- ``"percentage"`` — values shown as percentage change from the leftmost
+  visible value.
+- ``"indexed_to_100"`` — leftmost visible value rebased to 100; subsequent
+  values shown relative to that 100.
+"""
+
 MarkerShape = Literal["circle", "square", "arrow_up", "arrow_down"]
+"""Glyph drawn for a series marker.
+
+Allowed values: ``"circle"``, ``"square"``, ``"arrow_up"``, ``"arrow_down"``.
+"""
+
 MarkerPosition = Literal[
     "above_bar",
     "below_bar",
@@ -35,6 +136,20 @@ MarkerPosition = Literal[
     "at_price_bottom",
     "at_price_middle",
 ]
+"""Where on the chart a series marker is anchored.
+
+Allowed values:
+
+- ``"above_bar"`` — just above the data point / bar.
+- ``"below_bar"`` — just below the data point / bar.
+- ``"in_bar"`` — vertically centered on the bar body.
+- ``"at_price_top"`` — at the supplied ``price``, glyph above the line.
+- ``"at_price_bottom"`` — at the supplied ``price``, glyph below the line.
+- ``"at_price_middle"`` — at the supplied ``price``, glyph centered on the line.
+
+The three ``"at_price_*"`` positions require a ``price`` field on the marker.
+"""
+
 PriceFormatter = Literal[
     "currency_usd",
     "currency_eur",
@@ -44,10 +159,20 @@ PriceFormatter = Literal[
     "compact",
     "scientific",
 ]
+"""Preset name for the chart's price formatter (used on crosshair price labels
+and last-value badges).
 
-# Preset names for tickmarks price formatters (axis tick labels).
-# Shares the same preset set as PriceFormatter because both format price values.
-# Separate type alias for documentation clarity (IDEs show the correct name).
+Allowed values:
+
+- ``"currency_usd"`` — formatted as US dollars (``$1,234.56``).
+- ``"currency_eur"`` — formatted as Euros (``€1.234,56``).
+- ``"currency_gbp"`` — formatted as British pounds (``£1,234.56``).
+- ``"currency_jpy"`` — formatted as Japanese yen (``¥1,235``, no decimals).
+- ``"percent"`` — formatted as a percentage (``42.50%``).
+- ``"compact"`` — compact notation with magnitude suffix (``1.2K``, ``3.4M``).
+- ``"scientific"`` — scientific notation (``1.23e+3``).
+"""
+
 TickmarksPriceFormatter = Literal[
     "currency_usd",
     "currency_eur",
@@ -57,64 +182,181 @@ TickmarksPriceFormatter = Literal[
     "compact",
     "scientific",
 ]
+"""Preset name for the tickmarks (axis tick label) price formatter.
 
-# Preset names for percentage formatters (crosshair percentage label).
-# TVL passes raw percentage values (e.g. 42.5 means 42.5%).
+Shares the same preset set as :data:`PriceFormatter` because both format the
+same kind of numeric price values, but applied to axis tick labels rather than
+crosshair / last-value labels.
+
+Allowed values:
+
+- ``"currency_usd"`` — US dollars (``$1,234.56``).
+- ``"currency_eur"`` — Euros (``€1.234,56``).
+- ``"currency_gbp"`` — British pounds (``£1,234.56``).
+- ``"currency_jpy"`` — Japanese yen (``¥1,235``).
+- ``"percent"`` — percentage (``42.50%``).
+- ``"compact"`` — compact magnitude (``1.2K``, ``3.4M``).
+- ``"scientific"`` — scientific notation (``1.23e+3``).
+"""
+
 PercentageFormatter = Literal[
-    "percent",  # "42.50%"
-    "percent_1dp",  # "42.5%"
-    "percent_0dp",  # "43%"
-    "decimal",  # "0.4250" (raw ratio)
+    "percent",
+    "percent_1dp",
+    "percent_0dp",
+    "decimal",
 ]
+"""Preset name for the crosshair percentage formatter used when the price scale
+is in ``"percentage"`` mode.  TVL passes raw percentage values (``42.5`` means
+``42.5%``).
 
-# Preset names for tickmarks percentage formatters (axis tick labels for percentage mode).
+Allowed values:
+
+- ``"percent"`` — ``"42.50%"`` (two decimal places).
+- ``"percent_1dp"`` — ``"42.5%"`` (one decimal place).
+- ``"percent_0dp"`` — ``"43%"`` (no decimals, rounded).
+- ``"decimal"`` — ``"0.4250"`` (raw ratio, no percent sign).
+"""
+
 TickmarksPercentageFormatter = Literal[
     "percent",
     "percent_1dp",
     "percent_0dp",
     "decimal",
 ]
+"""Preset name for the tickmarks percentage formatter (axis tick labels when the
+price scale is in ``"percentage"`` mode).
+
+Allowed values:
+
+- ``"percent"`` — ``"42.50%"`` (two decimals).
+- ``"percent_1dp"`` — ``"42.5%"`` (one decimal).
+- ``"percent_0dp"`` — ``"43%"`` (no decimals).
+- ``"decimal"`` — ``"0.4250"`` (raw ratio).
+"""
+
 ChartType = Literal["standard", "yield_curve", "options", "custom_numeric"]
+"""Backend renderer / horizontal-scale selector for :func:`chart`.
+
+Allowed values:
+
+- ``"standard"`` — time-based x-axis via ``createChart``.  All series types
+  are valid.
+- ``"yield_curve"`` — numeric x-axis representing maturity in months via
+  ``createYieldCurveChart``.  Only Line and Area series are supported.
+- ``"options"`` — numeric x-axis via ``createOptionsChart``, originally for
+  options-strike charts but usable for any numeric x.  All series types are
+  valid.
+- ``"custom_numeric"`` — alias for ``"options"``; prefer this name when the
+  x-axis represents arbitrary numeric values (frequency, distance, etc.)
+  rather than option strikes.
+"""
+
 ColorSpace = Literal["srgb", "display-p3"]
+"""Canvas color space used by the chart.
 
-# PrecomputeConflationPriority (matches browser Scheduler API task priorities)
-# Consumer: TimeScaleOptions.precomputeConflationPriority — controls the scheduling
-# priority for precomputed conflation when precomputeConflationOnInit is true.
+Allowed values:
+
+- ``"srgb"`` — standard sRGB color space (default).
+- ``"display-p3"`` — wide-gamut Display P3 color space for HDR / wide-gamut
+  displays.  Must be set at chart creation; cannot be changed later.
+"""
+
 PrecomputeConflationPriority = Literal["background", "user-visible", "user-blocking"]
+"""Scheduling priority for precomputed conflation when
+``precompute_conflation_on_init=True``.  Maps directly to the browser
+``Scheduler.postTask`` priorities.
 
-# ColorType enum (matches TradingView ColorType)
-# Used for layout.background: "solid" = SolidColor, "gradient" = VerticalGradientColor.
-# The gradient case is activated by providing background_top_color and
-# background_bottom_color to chart() — see 03-layout-options.md plan.
+Allowed values:
+
+- ``"background"`` — runs in idle time; lowest priority.
+- ``"user-visible"`` — runs at normal task priority.
+- ``"user-blocking"`` — runs ahead of other tasks; use sparingly.
+
+Consumer: ``TimeScaleOptions.precomputeConflationPriority``.
+"""
+
 ColorType = Literal["solid", "gradient"]
+"""Background fill mode for the chart layout.
 
-# LastPriceAnimationMode enum (matches TradingView LastPriceAnimationMode)
-# Consumer: lastPriceAnimation option on Line, Area, Baseline series.
+Allowed values:
+
+- ``"solid"`` — single solid color (``layout.background.color``).
+- ``"gradient"`` — vertical gradient between ``topColor`` and ``bottomColor``.
+
+In the Python API this is selected implicitly: pass ``background_color`` for
+solid, or ``background_top_color`` + ``background_bottom_color`` together for
+a gradient.
+"""
+
 LastPriceAnimationMode = Literal["disabled", "continuous", "on_data_update"]
+"""Animation behavior of the last-price dot on Line, Area, and Baseline series.
 
-# MarkerSign enum (matches TradingView MarkerSign)
-# Consumer: SeriesMarker.sign property (optional per-marker annotation).
+Allowed values:
+
+- ``"disabled"`` — no last-price animation (default).
+- ``"continuous"`` — pulsing animation runs continuously.
+- ``"on_data_update"`` — pulses once each time the series data updates.
+"""
+
 MarkerSign = Literal["negative", "neutral", "positive"]
+"""Optional per-marker sign annotation passed through to
+``SeriesMarker.sign``.
 
-# MismatchDirection enum (matches TradingView MismatchDirection)
-# Consumer: ISeriesApi.dataByIndex() / barsInLogicalRange() — JS runtime methods.
-# These methods are N/A for the static Python configuration layer; the enum is
-# provided for completeness and for any future bidirectional messaging work.
+Allowed values: ``"negative"``, ``"neutral"``, ``"positive"``.
+
+Mainly used by JS-side rendering hooks; included in the Python API for
+completeness.
+"""
+
 MismatchDirection = Literal["nearest_left", "none", "nearest_right"]
+"""Mismatch-direction selector used by ``ISeriesApi.dataByIndex()`` and
+``barsInLogicalRange()``.  Allowed values:
 
-# PriceLineSource enum (matches TradingView PriceLineSource)
-# Consumer: SeriesOptionsCommon.priceLineSource (which bar the auto price line tracks).
+- ``"nearest_left"`` — closest data point at or to the left of the index.
+- ``"none"`` — exact match only; returns null if no data at that index.
+- ``"nearest_right"`` — closest data point at or to the right of the index.
+
+These methods are JS-runtime only; the alias is exported for type-hint
+completeness and for any future bidirectional messaging work.
+"""
+
 PriceLineSource = Literal["last_bar", "last_visible"]
+"""Which bar drives the automatic last-price horizontal rule on a series.
 
-# TickMarkType enum (matches TradingView TickMarkType)
-# Consumer: TimeScaleOptions.tickMarkFormatter callback.
-# tickMarkFormatter requires a JS callable and is N/A for the static Python layer.
-# This enum is defined for completeness; it has no current consumer.
+Allowed values:
+
+- ``"last_bar"`` — uses the very last bar in the data set (default).
+- ``"last_visible"`` — uses the last bar within the current viewport.
+
+Consumer: ``SeriesOptionsCommon.priceLineSource``.
+"""
+
 TickMarkType = Literal["year", "month", "day_of_month", "time", "time_with_seconds"]
+"""Tick-mark granularity passed to ``TimeScaleOptions.tickMarkFormatter``.
 
-# TrackingModeExitMode enum (matches TradingView TrackingModeExitMode)
-# Consumer: ChartOptionsBase.trackingMode.exitMode.
+Allowed values:
+
+- ``"year"`` — year boundary.
+- ``"month"`` — month boundary.
+- ``"day_of_month"`` — day boundary.
+- ``"time"`` — intra-day hours / minutes.
+- ``"time_with_seconds"`` — intra-day with seconds resolution.
+
+``tickMarkFormatter`` itself requires a JS callable and is not exposed from
+Python; this alias is provided for completeness.
+"""
+
 TrackingModeExitMode = Literal["on_touch_end", "on_next_tap"]
+"""When the touch-device tracking mode (crosshair stays where the user
+tapped) is exited.
+
+Allowed values:
+
+- ``"on_touch_end"`` — exit as soon as the touch is released.
+- ``"on_next_tap"`` — keep tracking until the user taps somewhere else.
+
+Consumer: ``ChartOptionsBase.trackingMode.exitMode``.
+"""
 
 # Map Python-friendly names to lightweight-charts enum values
 LINE_STYLE_MAP = {
@@ -235,7 +477,7 @@ class WatermarkLine:
     """
 
     text: str
-    color: Optional[str] = None
+    color: Optional[Color] = None
     font_size: Optional[int] = None
     line_height: Optional[float] = None
     font_style: Optional[str] = None
@@ -257,6 +499,50 @@ def _watermark_line_to_dict(line: WatermarkLine) -> dict:
     if line.font_style is not None:
         d["fontStyle"] = line.font_style
     return d
+
+
+def watermark_line(
+    text: str,
+    color: Optional[Color] = None,
+    font_size: Optional[int] = None,
+    line_height: Optional[float] = None,
+    font_style: Optional[str] = None,
+) -> WatermarkLine:
+    """Create one line of a multi-line text watermark.
+
+    Pass a list of ``watermark_line(...)`` results to
+    ``tvl.chart(..., watermark_lines=[...])`` to draw a stacked
+    multi-line watermark behind the chart.  All fields except ``text``
+    are optional; omitted fields inherit TVL defaults
+    (``font_size=48``, color a theme-derived semi-transparent value,
+    ``line_height=1.2 * font_size``, ``font_style=''``).
+
+    Args:
+        text (str): The watermark text.  Required (the line is skipped
+            if empty).
+        color (Optional[Color]): CSS color string.  Defaults to a
+            theme-derived semi-transparent color.
+        font_size (Optional[int]): Font size in pixels.  Defaults to
+            ``48``.
+        line_height (Optional[float]): Line height in pixels.  Defaults
+            to ``1.2 * font_size``.
+        font_style (Optional[str]): CSS font-style string, e.g.
+            ``"italic"``.  Defaults to ``""``.
+
+    Returns:
+        WatermarkLine: A :class:`WatermarkLine` instance suitable for
+        passing inside ``watermark_lines=[...]``.
+
+    Example:
+        >>> wl = tvl.watermark_line("AAPL", color="#888", font_size=72)
+    """
+    return WatermarkLine(
+        text=text,
+        color=color,
+        font_size=font_size,
+        line_height=line_height,
+        font_style=font_style,
+    )
 
 
 # PriceFormatCustom is intentionally not implemented.

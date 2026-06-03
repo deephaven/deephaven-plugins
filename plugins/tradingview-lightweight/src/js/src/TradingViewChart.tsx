@@ -212,6 +212,13 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     const pendingDs =
       (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean);
     return JSON.stringify({
+      // Snapshot-relevant readiness signal: true once every known series
+      // has its first row of data. Polled by the image-snapshotter so it
+      // can take a stable screenshot without hard-coded waits — especially
+      // important for `by`-partitioned charts where series are pushed in
+      // asynchronously after the container box has already stabilized.
+      dataReady: model.isReady(),
+      seriesCount: model.getFigureData()?.series.length ?? 0,
       jsDs: model.isDownsampled(),
       tableSize,
       colDataRows,
@@ -235,6 +242,20 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       containerRef.current.setAttribute(
         'data-tvl-state',
         buildStateJson(model, renderer)
+      );
+      // Generic readiness signal for plugin-agnostic consumers (the docs
+      // image-snapshotter polls this). True once every known series has
+      // its first row of data AND nothing is mid-resample.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const m = model as any;
+      const pendingDs = model
+        ? ((m.pendingDownsample as boolean) ||
+          (m.pendingAutoBin as boolean))
+        : true;
+      const ready = !!model && model.isReady() && !pendingDs;
+      containerRef.current.setAttribute(
+        'data-snapshot-ready',
+        ready ? 'true' : 'false'
       );
     }
   }
@@ -635,6 +656,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       userOptionsRef.current = userOptions;
       const ct = message.figure?.chartType ?? 'standard';
       chartTypeRef.current = ct;
+
+      // The renderer was constructed with the default chartType ('standard')
+      // before the figure message was available — switch it now so options /
+      // yieldCurve / custom_numeric charts get their numeric horzScale and
+      // tick formatters. No-op on reconnect when ct already matches.
+      renderer.setChartType(ct);
 
       if (Object.keys(userOptions).length > 0) {
         const themeOptions = chartThemeToOptions(chartThemeRef.current);
@@ -1055,6 +1082,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     <div
       ref={containerRef}
       className="dh-tvl-chart"
+      data-snapshot-ready="false"
       style={{
         width: '100%',
         height: '100%',

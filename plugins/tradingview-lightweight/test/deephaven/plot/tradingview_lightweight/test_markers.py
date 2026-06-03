@@ -437,13 +437,13 @@ class TestMarkerSpecPriceAndId(unittest.TestCase):
 
     def test_get_columns_includes_price_column(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="T", price_column="Px")
+        spec = MarkerSpec(table=table, timestamp="T", price_column="Px")
         cols = spec.get_columns()
         self.assertIn("Px", cols)
 
     def test_get_columns_includes_id_column(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="T", id_column="Mid")
+        spec = MarkerSpec(table=table, timestamp="T", id_column="Mid")
         cols = spec.get_columns()
         self.assertIn("Mid", cols)
 
@@ -739,7 +739,7 @@ class TestMarkerSpec(unittest.TestCase):
         table = MagicMock(name="table")
         spec = MarkerSpec(table=table)
         self.assertIs(spec.table, table)
-        self.assertEqual(spec.time, "Timestamp")
+        self.assertEqual(spec.timestamp, "Timestamp")
         self.assertEqual(spec.position, "above_bar")
         self.assertEqual(spec.shape, "circle")
         self.assertIsNone(spec.color)
@@ -750,14 +750,14 @@ class TestMarkerSpec(unittest.TestCase):
         table = MagicMock(name="table")
         spec = MarkerSpec(
             table=table,
-            time="Date",
+            timestamp="Date",
             position="below_bar",
             shape="arrow_up",
             color="red",
             text="alert",
             size=3,
         )
-        self.assertEqual(spec.time, "Date")
+        self.assertEqual(spec.timestamp, "Date")
         self.assertEqual(spec.position, "below_bar")
         self.assertEqual(spec.shape, "arrow_up")
         self.assertEqual(spec.color, "red")
@@ -773,7 +773,7 @@ class TestMarkersFromTable(unittest.TestCase):
         spec = markers_from_table(table)
         self.assertIsInstance(spec, MarkerSpec)
         self.assertIs(spec.table, table)
-        self.assertEqual(spec.time, "Timestamp")
+        self.assertEqual(spec.timestamp, "Timestamp")
         self.assertEqual(spec.position, "above_bar")
         self.assertEqual(spec.shape, "circle")
         self.assertIsNone(spec.color)
@@ -784,7 +784,7 @@ class TestMarkersFromTable(unittest.TestCase):
         table = MagicMock(name="marker_table")
         spec = markers_from_table(
             table,
-            time="EventTime",
+            timestamp="EventTime",
             position="in_bar",
             shape="square",
             color="#ff6600",
@@ -792,7 +792,7 @@ class TestMarkersFromTable(unittest.TestCase):
             size=2,
         )
         self.assertIs(spec.table, table)
-        self.assertEqual(spec.time, "EventTime")
+        self.assertEqual(spec.timestamp, "EventTime")
         self.assertEqual(spec.position, "in_bar")
         self.assertEqual(spec.shape, "square")
         self.assertEqual(spec.color, "#ff6600")
@@ -945,7 +945,7 @@ class TestMarkerSpecToDict(unittest.TestCase):
 
     def test_all_fixed_defaults(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="SignalTime", text="Buy")
+        spec = MarkerSpec(table=table, timestamp="SignalTime", text="Buy")
         d = spec.to_dict(table_id=1)
         self.assertEqual(d["tableId"], 1)
         self.assertEqual(d["columns"], {"time": "SignalTime"})
@@ -958,7 +958,7 @@ class TestMarkerSpecToDict(unittest.TestCase):
         table = MagicMock(name="table")
         spec = MarkerSpec(
             table=table,
-            time="Time",
+            timestamp="Time",
             text_column="Label",
             color_column="Color",
         )
@@ -977,7 +977,7 @@ class TestMarkerSpecToDict(unittest.TestCase):
         table = MagicMock(name="table")
         spec = MarkerSpec(
             table=table,
-            time="T",
+            timestamp="T",
             position_column="Pos",
             shape_column="Shape",
             color_column="Col",
@@ -1003,7 +1003,7 @@ class TestMarkerSpecToDict(unittest.TestCase):
         table = MagicMock(name="table")
         spec = MarkerSpec(
             table=table,
-            time="T",
+            timestamp="T",
             position="below_bar",
             shape="arrow_up",
         )
@@ -1013,14 +1013,14 @@ class TestMarkerSpecToDict(unittest.TestCase):
 
     def test_get_columns_time_only(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="SignalTime")
+        spec = MarkerSpec(table=table, timestamp="SignalTime")
         self.assertEqual(spec.get_columns(), ["SignalTime"])
 
     def test_get_columns_with_overrides(self):
         table = MagicMock(name="table")
         spec = MarkerSpec(
             table=table,
-            time="Time",
+            timestamp="Time",
             text_column="Label",
             color_column="Color",
         )
@@ -1032,13 +1032,13 @@ class TestMarkerSpecToDict(unittest.TestCase):
 
     def test_size_in_defaults(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="T", size=3)
+        spec = MarkerSpec(table=table, timestamp="T", size=3)
         d = spec.to_dict(table_id=0)
         self.assertEqual(d["defaults"]["size"], 3)
 
     def test_size_not_in_defaults_when_none(self):
         table = MagicMock(name="table")
-        spec = MarkerSpec(table=table, time="T")
+        spec = MarkerSpec(table=table, timestamp="T")
         d = spec.to_dict(table_id=0)
         self.assertNotIn("size", d["defaults"])
 
@@ -1048,8 +1048,8 @@ class TestMarkersFromTableUpdated(unittest.TestCase):
 
     def test_with_text_column(self):
         table = MagicMock(name="table")
-        spec = markers_from_table(table, time="SignalTime", text_column="Label")
-        self.assertEqual(spec.time, "SignalTime")
+        spec = markers_from_table(table, timestamp="SignalTime", text_column="Label")
+        self.assertEqual(spec.timestamp, "SignalTime")
         self.assertEqual(spec.text_column, "Label")
         self.assertIsNone(spec.position_column)
 
@@ -1057,7 +1057,7 @@ class TestMarkersFromTableUpdated(unittest.TestCase):
         table = MagicMock(name="table")
         spec = markers_from_table(
             table,
-            time="T",
+            timestamp="T",
             position_column="Pos",
             shape_column="Shape",
             color_column="Col",
@@ -1074,7 +1074,7 @@ class TestMarkersFromTableUpdated(unittest.TestCase):
         table = MagicMock(name="table")
         spec = markers_from_table(
             table,
-            time="T",
+            timestamp="T",
             text_column="Label",
             position="below_bar",
             color="#FF0000",
@@ -1093,7 +1093,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         table = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="SignalTime", text="Buy")
+        ms = MarkerSpec(table=marker_table, timestamp="SignalTime", text="Buy")
 
         spec = candlestick_series(table, marker_spec=ms)
         self.assertIs(spec.marker_spec, ms)
@@ -1103,7 +1103,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         table = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="T", text_column="Lbl")
+        ms = MarkerSpec(table=marker_table, timestamp="T", text_column="Lbl")
 
         spec = line_series(table, marker_spec=ms)
         result = spec.to_dict("s0", 0, marker_table_id=1)
@@ -1118,7 +1118,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         table = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="T")
+        ms = MarkerSpec(table=marker_table, timestamp="T")
 
         spec = line_series(table, marker_spec=ms)
         result = spec.to_dict("s0", 0)  # no marker_table_id
@@ -1136,7 +1136,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         table = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="T")
+        ms = MarkerSpec(table=marker_table, timestamp="T")
 
         for fn in (
             candlestick_series,
@@ -1155,7 +1155,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         data = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="T")
+        ms = MarkerSpec(table=marker_table, timestamp="T")
         s = line_series(data, marker_spec=ms)
         c = TvlChart([s], {})
         tables = c.get_tables()
@@ -1169,7 +1169,7 @@ class TestMarkerSpecInSeries(unittest.TestCase):
 
         data = MagicMock(name="data")
         marker_table = MagicMock(name="markers")
-        ms = MarkerSpec(table=marker_table, time="T", text="Signal")
+        ms = MarkerSpec(table=marker_table, timestamp="T", text="Signal")
         s = line_series(data, marker_spec=ms)
         c = TvlChart([s], {})
         table_id_map = {id(data): 0, id(marker_table): 1}

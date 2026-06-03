@@ -6,7 +6,6 @@ import type {
   TvlChartType,
   TvlDownsampleMeta,
   TvlFigureData,
-  TvlPartitionSpec,
   TvlSeriesConfig,
   ModelEvent,
   ModelEventListener,
@@ -71,12 +70,16 @@ class TradingViewChartModel {
   /** Next table ID for dynamically added partition tables. */
   private nextTableId = 0;
 
-  /** Cleanup for PartitionedTable event listener. */
-  private partitionCleanup: (() => void) | null = null;
-
-  /** PartitionedTable reference (for cleanup on close). */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private partitionedTable: any = null;
+  /** Per-template partition watcher state, keyed by template series id. */
+  private partitionWatchers: Map<
+    string,
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      partitionedTable: any;
+      cleanup: () => void;
+      seenKeys: Set<string>;
+    }
+  > = new Map();
 
   /** IANA timezone string (e.g. "America/New_York") for time column conversion. */
   private timeZone = '';
@@ -284,13 +287,20 @@ class TradingViewChartModel {
       });
     }
 
-    // Determine which ref index is the PartitionedTable (if any)
-    const ptRefIndex = this.figureData.partitionSpec?.refIndex;
+    // Collect partition refIndex'es so we don't try to .fetch() them
+    // as regular tables — PartitionedTables are fetched separately by
+    // setupPartitionWatcher.
+    const partitionRefIndices = new Set<number>();
+    this.figureData.series.forEach(s => {
+      if (s.partition?.refIndex != null) {
+        partitionRefIndices.add(s.partition.refIndex);
+      }
+    });
 
-    // Fetch all referenced tables (skip the PartitionedTable ref)
+    // Fetch all referenced tables (skip PartitionedTable refs)
     const tablePromises: Promise<void>[] = [];
     message.new_references.forEach(refIdx => {
-      if (refIdx === ptRefIndex) return; // handled separately below
+      if (partitionRefIndices.has(refIdx)) return; // handled below
       if (refIdx < exportedObjects.length) {
         const exported = exportedObjects[refIdx];
         tablePromises.push(
@@ -339,13 +349,18 @@ class TradingViewChartModel {
     });
     await Promise.all(downsamplePromises);
 
-    // Fetch and watch the PartitionedTable for new partition keys
-    if (ptRefIndex != null && ptRefIndex < exportedObjects.length) {
-      await this.setupPartitionWatcher(
-        exportedObjects[ptRefIndex],
-        this.figureData.partitionSpec!
-      );
-    }
+    // For each series that's a partition template, fetch its
+    // PartitionedTable and start watching for keys.
+    const partitionPromises: Promise<void>[] = [];
+    this.figureData.series.forEach(template => {
+      const ref = template.partition?.refIndex;
+      if (ref != null && ref < exportedObjects.length) {
+        partitionPromises.push(
+          this.setupPartitionWatcher(template, exportedObjects[ref])
+        );
+      }
+    });
+    await Promise.all(partitionPromises);
 
     // Listen for widget config updates
     this.widgetListenerCleanup = this.listenToWidget();
@@ -721,27 +736,28 @@ class TradingViewChartModel {
   // ---- Partition handling ----
 
   /**
-   * Add a single partition key: fetch its constituent table, subscribe,
-   * create a series config, and push it to the figure.
+   * Add a single partition key for a given template series: fetch its
+   * constituent table, subscribe, clone the template into a runtime
+   * series, and push it to the figure.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private seenPartitionKeys = new Set<string>();
-
   private async addPartitionKey(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pt: any,
     key: unknown,
-    spec: TvlPartitionSpec
+    template: TvlSeriesConfig
   ): Promise<void> {
+    const watcher = this.partitionWatchers.get(template.id);
+    if (!watcher) return;
     const keyStr = String(key);
-    if (this.seenPartitionKeys.has(keyStr)) {
+    if (watcher.seenKeys.has(keyStr)) {
       return; // Duplicate key — already added
     }
-    this.seenPartitionKeys.add(keyStr);
+    watcher.seenKeys.add(keyStr);
 
     const table = await pt.getTable(key);
     if (!table) {
       log.warn('getTable returned null for key:', key);
-      this.seenPartitionKeys.delete(keyStr);
+      watcher.seenKeys.delete(keyStr);
       return;
     }
 
@@ -749,14 +765,19 @@ class TradingViewChartModel {
     this.nextTableId += 1;
     this.tables.set(newTableId, table as DhType.Table);
 
+    // Clone the template into a runtime series. Preserve options,
+    // type, paneIndex, priceScaleOptions, columns; give it a unique id
+    // and a per-key title.
     const newSeries: TvlSeriesConfig = {
-      id: `by_${keyStr}`,
-      type: spec.seriesType,
-      options: { title: keyStr },
+      id: `${template.id}_${keyStr}`,
+      type: template.type,
+      options: { ...(template.options ?? {}), title: keyStr },
       dataMapping: {
         tableId: newTableId,
-        columns: spec.columns,
+        columns: { ...template.dataMapping.columns },
       },
+      paneIndex: template.paneIndex,
+      priceScaleOptions: template.priceScaleOptions,
     };
 
     // Push the series config BEFORE subscribing so that
@@ -766,6 +787,8 @@ class TradingViewChartModel {
       log.debug(
         'Added series for key:',
         keyStr,
+        'template:',
+        template.id,
         'total:',
         this.figureData.series.length
       );
@@ -775,30 +798,24 @@ class TradingViewChartModel {
   }
 
   /**
-   * Fetch the PartitionedTable, discover all existing keys, subscribe
-   * to each, and listen for new keys that appear later.
+   * Fetch the PartitionedTable for a template series, discover all
+   * existing keys, subscribe to each, and listen for new keys.
+   *
+   * Per the DH JSAPI contract, the keyadded listener must be attached
+   * BEFORE :meth:`getKeys` is read so no keys are missed between snapshot
+   * and listener-attach. The per-template seenKeys dedup handles the
+   * overlap between the listener firing and the initial getKeys() sweep.
    */
   private async setupPartitionWatcher(
-    exported: DhType.WidgetExportedObject,
-    spec: TvlPartitionSpec
+    template: TvlSeriesConfig,
+    exported: DhType.WidgetExportedObject
   ): Promise<void> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pt = (await exported.fetch()) as any;
-      this.partitionedTable = pt;
 
-      // Discover and add all existing keys
-      const existingKeys = pt.getKeys();
-      log.debug('Existing partition keys:', existingKeys?.size ?? 0);
-      if (existingKeys) {
-        const keyPromises: Promise<void>[] = [];
-        existingKeys.forEach((key: unknown) => {
-          keyPromises.push(this.addPartitionKey(pt, key, spec));
-        });
-        await Promise.all(keyPromises);
-      }
-
-      // Listen for new keys that appear after init
+      // Resolve the keyadded event name from the DH namespace; fall back to
+      // the literal string if the constant isn't surfaced.
       let eventName = 'keyadded';
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -810,12 +827,21 @@ class TradingViewChartModel {
         // PartitionedTable not on dh namespace, use string fallback
       }
 
-      this.partitionCleanup = pt.addEventListener(
+      // Pre-register the watcher entry so addPartitionKey can dedup.
+      this.partitionWatchers.set(template.id, {
+        partitionedTable: pt,
+        cleanup: () => {},
+        seenKeys: new Set<string>(),
+      });
+
+      // Attach the listener FIRST so any keys delivered between fetch() and
+      // our getKeys() sweep are still picked up.
+      const cleanup = pt.addEventListener(
         eventName,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async (event: any) => {
           try {
-            await this.addPartitionKey(pt, event.detail, spec);
+            await this.addPartitionKey(pt, event.detail, template);
             if (this.figureData) {
               this.emit({
                 type: 'FIGURE_UPDATED',
@@ -828,13 +854,50 @@ class TradingViewChartModel {
           }
         }
       );
+      const entry = this.partitionWatchers.get(template.id);
+      if (entry) entry.cleanup = cleanup;
+
+      // Discover existing keys.
+      const rawKeys: unknown = pt.getKeys();
+      const existingKeys =
+        rawKeys != null && typeof (rawKeys as Promise<unknown>).then === 'function'
+          ? ((await rawKeys) as Set<unknown> | null | undefined)
+          : (rawKeys as Set<unknown> | null | undefined);
+      const initialCount = existingKeys?.size ?? 0;
       log.debug(
-        'Partition watcher set up with',
-        existingKeys?.size ?? 0,
+        'Existing partition keys for template',
+        template.id,
+        ':',
+        initialCount
+      );
+      if (existingKeys && initialCount > 0) {
+        const keyPromises: Promise<void>[] = [];
+        existingKeys.forEach((key: unknown) => {
+          keyPromises.push(this.addPartitionKey(pt, key, template));
+        });
+        await Promise.all(keyPromises);
+        if (this.figureData) {
+          this.emit({
+            type: 'FIGURE_UPDATED',
+            figure: this.figureData,
+            tables: Array.from(this.tables.values()),
+          });
+        }
+      }
+
+      log.debug(
+        'Partition watcher set up for',
+        template.id,
+        'with',
+        initialCount,
         'initial keys'
       );
     } catch (err) {
-      log.error('Failed to set up partition watcher', err);
+      log.error(
+        'Failed to set up partition watcher for template',
+        template.id,
+        err
+      );
       this.emit({
         type: 'ERROR',
         message: `Partition watcher failed: ${String(err)}`,
@@ -1067,6 +1130,41 @@ class TradingViewChartModel {
     return val;
   }
 
+  /**
+   * Whether the chart is "ready" — i.e. every series currently in
+   * ``figureData`` has at least one row of data in :attr:`tableDataMap`.
+   *
+   * For non-partitioned charts this becomes true on the first DATA_UPDATED
+   * after model.init. For ``by``-partitioned charts it additionally
+   * requires at least one partition key to have been discovered (otherwise
+   * ``figureData.series`` is empty and the chart would be a blank canvas).
+   * The image-snapshotter polls this signal to know when to take a stable
+   * screenshot without resorting to hard-coded waits.
+   */
+  isReady(): boolean {
+    if (!this.figureData) return false;
+    // A partitioned chart with no keys discovered yet should NOT be
+    // considered ready — there's nothing to render.
+    if (this.figureData.series.length === 0) return false;
+    for (const series of this.figureData.series) {
+      const tableId = series.dataMapping.tableId;
+      const tableData = this.tableDataMap.get(tableId);
+      if (!tableData) return false;
+      const timeColName = series.dataMapping.columns.time;
+      const timeCol = tableData[timeColName];
+      if (timeCol && timeCol.length > 0) continue;
+      // No rows arrived yet. Distinguish "still waiting for first data"
+      // from "source table is intentionally empty" (e.g. a `where(...)`
+      // that filters everything out — used by the pane_preserve_empty
+      // docs example). An empty source reports size === 0 immediately
+      // after fetch, so treat that as ready instead of hanging forever.
+      const table = this.tables.get(tableId);
+      if (table != null && table.size === 0) continue;
+      return false;
+    }
+    return true;
+  }
+
   getFigureData(): TvlFigureData | null {
     return this.figureData;
   }
@@ -1154,15 +1252,22 @@ class TradingViewChartModel {
       this.widgetListenerCleanup = null;
     }
 
-    // Clean up partition watcher
-    if (this.partitionCleanup) {
-      this.partitionCleanup();
-      this.partitionCleanup = null;
-    }
-    if (this.partitionedTable?.close) {
-      this.partitionedTable.close();
-      this.partitionedTable = null;
-    }
+    // Clean up all per-template partition watchers
+    this.partitionWatchers.forEach(({ partitionedTable, cleanup }) => {
+      try {
+        cleanup();
+      } catch {
+        // ignore
+      }
+      if (partitionedTable?.close) {
+        try {
+          partitionedTable.close();
+        } catch {
+          // ignore
+        }
+      }
+    });
+    this.partitionWatchers.clear();
 
     this.listeners.clear();
     this.chartDataMap.clear();
@@ -1171,7 +1276,6 @@ class TradingViewChartModel {
     this.freshDownsampleTables.clear();
     this.jsDownsampledTableIds.clear();
     this.autoBinnedTableIds.clear();
-    this.seenPartitionKeys.clear();
   }
 }
 

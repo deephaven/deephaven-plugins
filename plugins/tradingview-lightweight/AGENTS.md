@@ -2,67 +2,21 @@
 
 tradingview-lightweight charts I call tvl for short.
 
-Always write and save any planning documents to the `notes/` directory, never the .claude directory.
-
 ## Quick Start
 
-```bash
-# Start server (builds JS, installs plugin, launches DH server on port 10000)
-bash start-server.sh
-
-# Stop server (kills all DH processes, closes browser)
-bash stop-server.sh
-```
-
-After code changes, re-run `bash start-server.sh` — it rebuilds and restarts automatically.
-
-## Live-refresh dev loop (faster iteration)
-
-For tight edit cycles, use `dev-server.sh` instead:
+Use the root `tools/plugin_builder.py` to build the JS bundle + Python wheel
+and bring up a Deephaven server with the plugin installed. From the repo root:
 
 ```bash
-bash dev-server.sh     # Ctrl-C to stop (shuts down Vite + DH cleanly)
+python tools/plugin_builder.py --plugin tradingview-lightweight
 ```
 
-It replaces the wheel-rebuild loop with:
+After code changes, re-run the same command to rebuild and restart.
 
-- A one-time wheel install (per fresh venv) for entry-point registration
-- `site-packages/deephaven/plot/tradingview_lightweight/` symlinked to the source tree so Python edits are live (editable install doesn't work — see note below)
-- `_js/dist` symlinked to `src/js/dist` so Vite output goes live
-- `vite build --watch` running in the background (log: `.dev-vite.log`)
-- a `tvl_reload()` helper exposed in the DH console
-
-Why not `pip install -e .`? `deephaven-server` ships `deephaven/plot/__init__.py` as a regular package, which shadows the editable install's `.pth` path entry. Python finds `deephaven.plot` in site-packages and never looks in `src/`, so the plugin sub-package never resolves. Symlinking the sub-package directly into the existing regular package avoids the conflict.
-
-Per-host config: drop a `dev-server.env.$(hostname -s)` next to `dev-server.sh` to override `PY_UV` / `PY` / `VENV` (gitignored). Each host gets its own `.server-venv-<hostname>/` so a shared working tree can hold multiple venvs side by side.
-
-| Change                                                                      | Action                                                                       |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `src/js/src/**` (JS/TS)                                                     | Vite rebuilds; **hard-refresh browser** (Ctrl+Shift+R)                       |
-| `src/deephaven/.../chart.py`, `series.py`, `markers.py`, `options.py`, etc. | Call `tvl_reload()` in the console, then re-run your construction expression |
-| `tests/app.d/tradingview_lightweight.py`                                    | DH app mode reloads automatically (fixture is symlinked, not copied)         |
-| `_register.py`, new chart type, entry-point changes                         | Restart `dev-server.sh` — registration is frozen at server startup           |
-
-Not hot-reloadable: the `TvlChartType` registration itself and the `JsPlugin` manifest path. Only _construction_ code inside the tvl package picks up `importlib.reload`.
-
-**JS bundle staleness gotcha.** If hard-refresh doesn't pick up your JS change, the running DH server is probably serving a stale bundle. Verify by md5-comparing on-disk vs served bundle:
-
-```bash
-md5sum src/deephaven/plot/tradingview_lightweight/_js/dist/bundle/index.js
-curl -s http://localhost:10000/js-plugins/@deephaven/js-plugin-tradingview-lightweight/dist/bundle/index.js | md5sum
-# Hashes differ -> server is serving cached bytes from boot. Restart dev-server.sh.
-```
-
-Two known causes: (1) `_js/dist` got materialized as a real directory by a prior `start-server.sh` wheel install, so dev-server.sh's symlink step skipped — Vite then writes to a different path than the server reads. Check with `ls -la src/deephaven/plot/tradingview_lightweight/_js/dist` (should be a symlink); if it's a directory, `rm -rf` it and restart `dev-server.sh`. (2) Even when the symlink is correct, the server caches the bundle in memory at boot — so JS changes that arrive after startup require a restart anyway. When in doubt, restart.
-
-`dev-server.sh` removes both dev-only symlinks on exit (the site-packages plugin dir, and `_js/dist`) so a subsequent `start-server.sh` wheel build/uninstall runs cleanly without following the symlink into the source tree.
-
-The ticking/by tests require `deephaven-plugin-ui`:
-
-```bash
-# One-time: install deephaven-plugin-ui into the server venv
-.server-venv/bin/pip install deephaven-plugin-ui
-```
+App.d fixtures for local dev/snapshot capture live under `app.d/` at the
+plugin root (`disconnect_test.py`, `downsample_compare.py`). Point the
+Deephaven server at this directory with `-Ddeephaven.application.dir=$(pwd)/app.d`
+when you need the fixtures pre-loaded.
 
 ## Testing with agent-browser
 
@@ -96,7 +50,7 @@ agent-browser wait 5000            # wait for panel to open and data to load
 # 3. Move mouse away and screenshot
 agent-browser mouse move 0 0
 agent-browser wait 500
-agent-browser screenshot plugins/tradingview-lightweight/notes/tmp/tvl_test.png
+agent-browser screenshot /tmp/tvl_test.png
 ```
 
 Multi-statement commands work the same way:
@@ -146,7 +100,7 @@ agent-browser mouse move 0 0
 agent-browser wait 500
 
 # Screenshot the full page (chart will be visible in the panel area)
-agent-browser screenshot plugins/tradingview-lightweight/notes/tmp/tvl_chart.png
+agent-browser screenshot /tmp/tvl_chart.png
 
 # Or check for chart elements
 agent-browser eval "document.querySelectorAll('.dh-tvl-chart').length"
@@ -161,41 +115,29 @@ View the screenshot with the `Read` tool on the image path. Always screenshot in
 - **Use variable assignments** to open widget panels (e.g., `my_chart = tvl_line`). Bare expressions evaluate but don't open panels.
 - **Enter, not Ctrl+Enter.** Plain `Enter` executes single-line commands. `Ctrl+Enter` may insert a newline instead.
 - **Dismiss autocomplete** with `agent-browser press Escape` before pressing Enter, otherwise it may select a completion instead of executing.
-- **Zombie processes.** If the server seems stale (serving old JS), run `bash stop-server.sh` which kills all DH-related processes aggressively.
+- **Zombie processes.** If the server seems stale (serving old JS), kill any
+  lingering `deephaven_server` processes (`pkill -f deephaven_server`) and
+  re-run `tools/plugin_builder.py`.
 
 ## How It Works
 
-`start-server.sh`:
+`tools/plugin_builder.py --plugin tradingview-lightweight`:
 
-1. Creates `.server-venv/` with `deephaven-server` + `deephaven-plugin-utilities` (skipped if exists)
-2. Builds JS via `npm run build` in `src/js/`
-3. Builds a Python wheel and installs it into `.server-venv/`
-4. Copies test fixtures from `tests/app.d/` into `.app.d/`
-5. Starts the DH server on port 10000 using the Python Server API
-6. Waits for the server to be ready
+1. Builds the JS bundle via `npm run build` in `src/js/`.
+2. Builds the Python wheel and installs it into a Deephaven server venv.
+3. Starts the DH server on port 10000.
 
-The DH web client loads the JS plugin via `/js-plugins/manifest.json`. The CJS bundle uses `require()` for modules the DH client provides (react, @deephaven/plugin, etc.) — these are resolved by the client's built-in require shim.
+The DH web client loads the JS plugin via `/js-plugins/manifest.json`. The
+CJS bundle uses `require()` for modules the DH client provides (react,
+`@deephaven/plugin`, etc.) — these are resolved by the client's built-in
+require shim.
 
 ## API Reference Notes
 
-Comprehensive TradingView Lightweight Charts v5.2 API documentation is in `notes/api-reference/`.
-
-**Index:** `notes/api-reference/INDEX.md` — links to all sub-pages with quick lookup tables.
-
-| File                     | What's Covered                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `enumerations.md`        | All 11 enums (LineStyle, CrosshairMode, PriceScaleMode, TickMarkType, etc.)                            |
-| `chart-api.md`           | `IChartApi` (26 methods), `ChartOptionsBase`, layout, grid, crosshair, watermark, scroll/scale options |
-| `series-api.md`          | `ISeriesApi` (5 props, 20 methods) — setData/update, price lines, primitives                           |
-| `series-types.md`        | Data interfaces per series type + all style options with defaults                                      |
-| `time-scale-api.md`      | `ITimeScaleApi` (22 methods), `TimeScaleOptions` (25+ props), Time/BusinessDay/UTCTimestamp            |
-| `price-scale-api.md`     | `IPriceScaleApi`, `PriceScaleOptions`, `PriceLineOptions`, `IPriceLine`                                |
-| `markers-events.md`      | SeriesMarker, MouseEventParams, marker shapes/positions, touch events                                  |
-| `functions-variables.md` | createChart, createYieldCurveChart, watermark/marker factories, series definition variables            |
-| `panes-api.md`           | `IPaneApi` (15 methods), stretch factors, pane primitives                                              |
-| `utility-types.md`       | DeepPartial, Coordinate, Logical, LineWidth, PriceFormat, Background                                   |
-
-Use these when you need to look up available properties/methods, default values, or type signatures without fetching the web docs.
+For TradingView Lightweight Charts v5.2 API documentation, fetch the
+upstream docs at https://tradingview.github.io/lightweight-charts/docs (the
+local notes/api-reference/ snapshot has been removed to keep the plugin
+tree clean).
 
 ## Architecture Overview
 
@@ -254,11 +196,16 @@ Uses `WidgetPanel` from `@deephaven/dashboard-core-plugins` for session-level di
 
 ### Test Fixtures
 
-`start-server.sh` copies fixtures from `tests/app.d/` into `.app.d/`. Override with `FIXTURES="filename.py"` env var. Default fixture is `tradingview_lightweight.py`. Additional test fixtures in `tests/app.d/`:
+Hand-written app.d fixtures live under `app.d/` at the plugin root. Point
+the DH server at this directory with `-Ddeephaven.application.dir=$(pwd)/app.d`
+to pre-load them as panels:
 
-- `tvl_downsample_test.py` — 10M static + 100M ticking tables
 - `disconnect_test.py` — grid + plotly + tvl for disconnect comparison
 - `downsample_compare.py` — 100K table for downsample size comparison
+
+The docs snapshotter (`tools/image-snapshotter`) generates its own per-block
+app.d into `snapshot-results/<plugin>-app.d/` at run time; that directory
+is build output and not checked in.
 
 ## Downsample Benchmarking
 
@@ -266,14 +213,14 @@ Use `dh exec` to benchmark downsample approaches headlessly. **Each approach mus
 
 ### How to run
 
-1. Write each approach as a standalone `.py` file under `notes/`.
-2. Run with: `dh exec notes/bench_my_experiment.py 2>&1 | grep "^RESULT:"`
-3. Compare approaches by running each in a separate `dh exec` invocation, or use `notes/bench_isolated.sh` which automates this.
+1. Write each approach as a standalone `.py` file under a scratch dir.
+2. Run with: `dh exec bench_my_experiment.py 2>&1 | grep "^RESULT:"`
+3. Compare approaches by running each in a separate `dh exec` invocation, or use `bench_isolated.sh` which automates this.
 
 ### Writing a benchmark script
 
 ```python
-"""Benchmark: <description>. Run with: dh exec notes/bench_<name>.py"""
+"""Benchmark: <description>. Run with: dh exec bench_<name>.py"""
 import time
 from deephaven import empty_table, agg, merge as dh_merge
 

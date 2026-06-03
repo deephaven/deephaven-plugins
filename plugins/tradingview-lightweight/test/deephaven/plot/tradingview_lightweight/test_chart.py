@@ -51,10 +51,10 @@ class TestTvlChart(unittest.TestCase):
 
     def test_properties(self):
         s1 = line_series(self.table1)
-        c = TvlChart(series_list=[s1], chart_options={"width": 800})
+        c = TvlChart(series_list=[s1], chart_options={"fontSize": 14})
         self.assertEqual(len(c.series_list), 1)
         self.assertIs(c.series_list[0], s1)
-        self.assertEqual(c.chart_options, {"width": 800})
+        self.assertEqual(c.chart_options, {"fontSize": 14})
 
     def test_get_tables_single(self):
         s1 = line_series(self.table1)
@@ -86,15 +86,15 @@ class TestTvlChart(unittest.TestCase):
         s2 = candlestick_series(self.table2, up_color="green")
         c = TvlChart(
             series_list=[s1, s2],
-            chart_options={"width": 600, "height": 400},
+            chart_options={"fontSize": 14, "attributionLogo": False},
         )
         table_id_map = {id(self.table1): 0, id(self.table2): 1}
         result = c.to_dict(table_id_map)
 
         self.assertIn("chartOptions", result)
         self.assertIn("series", result)
-        self.assertEqual(result["chartOptions"]["width"], 600)
-        self.assertEqual(result["chartOptions"]["height"], 400)
+        self.assertEqual(result["chartOptions"]["fontSize"], 14)
+        self.assertEqual(result["chartOptions"]["attributionLogo"], False)
 
         self.assertEqual(len(result["series"]), 2)
         self.assertEqual(result["series"][0]["id"], "series_0")
@@ -476,18 +476,6 @@ class TestChartFunction(unittest.TestCase):
         wm = c.chart_options["watermark"]
         self.assertFalse(wm["visible"])
 
-    def test_sizing(self):
-        s = line_series(self.table)
-        c = chart(s, width=1200, height=600)
-        self.assertEqual(c.chart_options["width"], 1200)
-        self.assertEqual(c.chart_options["height"], 600)
-
-    def test_sizing_not_set_by_default(self):
-        s = line_series(self.table)
-        c = chart(s)
-        self.assertNotIn("width", c.chart_options)
-        self.assertNotIn("height", c.chart_options)
-
     def test_price_formatter(self):
         s = line_series(self.table)
         c = chart(s, price_formatter="currency_eur")
@@ -624,39 +612,8 @@ class TestChartFunction(unittest.TestCase):
         self.assertNotIn("leftPriceScale", c.chart_options)
         self.assertNotIn("timeScale", c.chart_options)
         self.assertNotIn("watermark", c.chart_options)
-        self.assertNotIn("autoSize", c.chart_options)
         self.assertNotIn("trackingMode", c.chart_options)
         self.assertNotIn("addDefaultPane", c.chart_options)
-
-    # --- auto_size tests ---
-
-    def test_auto_size_true(self):
-        """auto_size=True should set autoSize in chart_options."""
-        s = line_series(self.table)
-        c = chart(s, auto_size=True)
-        self.assertTrue(c.chart_options["autoSize"])
-
-    def test_auto_size_false(self):
-        """auto_size=False should set autoSize to False in chart_options."""
-        s = line_series(self.table)
-        c = chart(s, auto_size=False)
-        self.assertFalse(c.chart_options["autoSize"])
-
-    def test_auto_size_not_set_by_default(self):
-        """auto_size omitted should not include autoSize in chart_options.
-        The JS renderer provides its own default (true) in that case.
-        """
-        s = line_series(self.table)
-        c = chart(s)
-        self.assertNotIn("autoSize", c.chart_options)
-
-    def test_auto_size_false_with_explicit_dimensions(self):
-        """auto_size=False combined with width/height is the intended use."""
-        s = line_series(self.table)
-        c = chart(s, auto_size=False, width=1200, height=600)
-        self.assertFalse(c.chart_options["autoSize"])
-        self.assertEqual(c.chart_options["width"], 1200)
-        self.assertEqual(c.chart_options["height"], 600)
 
     # --- tracking_mode_exit_mode tests ---
 
@@ -953,26 +910,25 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertEqual(c.series_list[0].column_mapping["open"], "Open")
 
     def test_candlestick_custom(self):
-        c = candlestick(
-            self.table,
-            time="Date",
-            open="O",
-            high="H",
-            low="L",
-            close="C",
-            up_color="green",
-            down_color="red",
-            title="OHLC",
+        # Chart-styling options moved to tvl.chart(...) in the unified API.
+        c = chart(
+            candlestick(
+                self.table,
+                timestamp="Date",
+                open="O",
+                high="H",
+                low="L",
+                close="C",
+                up_color="green",
+                down_color="red",
+                title="OHLC",
+            ),
             background_color="#000",
-            width=800,
-            height=400,
         )
         series = c.series_list[0]
         self.assertEqual(series.column_mapping["time"], "Date")
         self.assertEqual(series.options["upColor"], "green")
         self.assertEqual(series.options["title"], "OHLC")
-        self.assertEqual(c.chart_options["width"], 800)
-        self.assertEqual(c.chart_options["height"], 400)
         self.assertIn("layout", c.chart_options)
 
     def test_candlestick_with_markers(self):
@@ -986,20 +942,22 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertEqual(len(c.series_list[0].price_lines), 1)
 
     def test_line_convenience(self):
-        c = line(self.table)
+        c = line(self.table, "Timestamp", "Value")
         self.assertIsInstance(c, TvlChart)
         self.assertEqual(len(c.series_list), 1)
         self.assertEqual(c.series_list[0].series_type, "Line")
         self.assertEqual(c.series_list[0].column_mapping["value"], "Value")
 
     def test_line_custom(self):
-        c = line(
-            self.table,
-            time="ts",
-            value="price",
-            color="red",
-            line_width=3,
-            title="Close Price",
+        c = chart(
+            line(
+                self.table,
+                timestamp="ts",
+                value="price",
+                color="red",
+                line_width=3,
+                title="Close Price",
+            ),
             watermark_text="MSFT",
         )
         series = c.series_list[0]
@@ -1008,18 +966,22 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertIn("watermark", c.chart_options)
 
     def test_area_convenience(self):
-        c = area(self.table)
+        c = area(self.table, "Timestamp", "Value")
         self.assertIsInstance(c, TvlChart)
         self.assertEqual(c.series_list[0].series_type, "Area")
 
     def test_area_custom(self):
-        c = area(
-            self.table,
-            line_color="blue",
-            top_color="rgba(0,0,255,0.3)",
-            bottom_color="rgba(0,0,255,0.0)",
-            line_width=2,
-            title="Depth",
+        c = chart(
+            area(
+                self.table,
+                timestamp="T",
+                value="V",
+                line_color="blue",
+                top_color="rgba(0,0,255,0.3)",
+                bottom_color="rgba(0,0,255,0.0)",
+                line_width=2,
+                title="Depth",
+            ),
             time_visible=True,
         )
         series = c.series_list[0]
@@ -1034,11 +996,13 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertEqual(c.series_list[0].series_type, "Bar")
 
     def test_bar_custom(self):
-        c = bar(
-            self.table,
-            time="Date",
-            up_color="#26a69a",
-            down_color="#ef5350",
+        c = chart(
+            bar(
+                self.table,
+                timestamp="Date",
+                up_color="#26a69a",
+                down_color="#ef5350",
+            ),
             crosshair_mode="magnet",
         )
         series = c.series_list[0]
@@ -1046,18 +1010,22 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertEqual(c.chart_options["crosshair"]["mode"], 1)
 
     def test_baseline_convenience(self):
-        c = baseline(self.table)
+        c = baseline(self.table, "Timestamp", "Value")
         self.assertIsInstance(c, TvlChart)
         self.assertEqual(c.series_list[0].series_type, "Baseline")
 
     def test_baseline_custom(self):
-        c = baseline(
-            self.table,
-            base_value=50.0,
-            top_line_color="green",
-            bottom_line_color="red",
-            line_width=2,
-            title="Profit/Loss",
+        c = chart(
+            baseline(
+                self.table,
+                timestamp="T",
+                value="V",
+                base_value=50.0,
+                top_line_color="green",
+                bottom_line_color="red",
+                line_width=2,
+                title="Profit/Loss",
+            ),
             text_color="#ddd",
         )
         series = c.series_list[0]
@@ -1066,24 +1034,25 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertEqual(c.chart_options["layout"]["textColor"], "#ddd")
 
     def test_histogram_convenience(self):
-        c = histogram(self.table)
+        c = histogram(self.table, "Timestamp", "Value")
         self.assertIsInstance(c, TvlChart)
         self.assertEqual(c.series_list[0].series_type, "Histogram")
 
     def test_histogram_custom(self):
-        c = histogram(
-            self.table,
-            value="Volume",
-            color="teal",
-            color_column="VolumeColor",
-            title="Vol",
-            height=200,
+        c = chart(
+            histogram(
+                self.table,
+                timestamp="T",
+                value="Volume",
+                color="teal",
+                color_column="VolumeColor",
+                title="Vol",
+            ),
         )
         series = c.series_list[0]
         self.assertEqual(series.column_mapping["value"], "Volume")
         self.assertEqual(series.column_mapping["color"], "VolumeColor")
         self.assertEqual(series.options["color"], "teal")
-        self.assertEqual(c.chart_options["height"], 200)
 
 
 class TestChartFullSerialization(unittest.TestCase):
@@ -1104,7 +1073,7 @@ class TestChartFullSerialization(unittest.TestCase):
         pl = PriceLine(price=200.0, color="blue", title="Target")
         s = line_series(
             self.table,
-            time="Date",
+            timestamp="Date",
             value="Close",
             color="#2962FF",
             line_width=2,
@@ -1119,8 +1088,6 @@ class TestChartFullSerialization(unittest.TestCase):
             crosshair_mode="normal",
             time_visible=True,
             watermark_text="AAPL",
-            width=800,
-            height=400,
         )
 
         table_id_map = {id(self.table): 0}
@@ -1135,8 +1102,6 @@ class TestChartFullSerialization(unittest.TestCase):
         self.assertEqual(result["chartOptions"]["timeScale"]["timeVisible"], True)
         self.assertEqual(result["chartOptions"]["watermark"]["text"], "AAPL")
         self.assertTrue(result["chartOptions"]["watermark"]["visible"])
-        self.assertEqual(result["chartOptions"]["width"], 800)
-        self.assertEqual(result["chartOptions"]["height"], 400)
 
         # Series
         self.assertEqual(len(result["series"]), 1)
@@ -1698,7 +1663,7 @@ class TestChartType(unittest.TestCase):
         self.assertEqual(result["chartType"], "standard")
 
     def test_yield_curve_chart_type(self):
-        s = line_series(self.table, time="Months", value="Yield")
+        s = line_series(self.table, timestamp="Months", value="Yield")
         c = chart(s, chart_type="yield_curve")
         self.assertEqual(c.chart_type, "yieldCurve")
 
@@ -1709,7 +1674,7 @@ class TestChartType(unittest.TestCase):
         self.assertEqual(result["chartType"], "yieldCurve")
 
     def test_options_chart_type(self):
-        s = line_series(self.table, time="Strike", value="Premium")
+        s = line_series(self.table, timestamp="Strike", value="Premium")
         c = chart(s, chart_type="options")
         self.assertEqual(c.chart_type, "options")
 
@@ -1799,7 +1764,7 @@ class TestChartType(unittest.TestCase):
 
     def test_custom_numeric_chart_type(self):
         """'custom_numeric' should be accepted and map to 'options' in the wire format."""
-        s = line_series(self.table, time="X", value="Y")
+        s = line_series(self.table, timestamp="X", value="Y")
         c = chart(s, chart_type="custom_numeric")
         # The Python-side chart_type stores the resolved JS value
         self.assertEqual(c.chart_type, "options")
@@ -1939,15 +1904,11 @@ class TestCustomNumericConvenience(unittest.TestCase):
             text_color="#fff",
             crosshair_mode="normal",
             watermark_text="VOL",
-            width=800,
-            height=400,
         )
         self.assertEqual(c.chart_options["layout"]["background"]["color"], "#000")
         self.assertEqual(c.chart_options["layout"]["textColor"], "#fff")
         self.assertEqual(c.chart_options["crosshair"]["mode"], 0)
         self.assertEqual(c.chart_options["watermark"]["text"], "VOL")
-        self.assertEqual(c.chart_options["width"], 800)
-        self.assertEqual(c.chart_options["height"], 400)
 
     def test_to_dict_structure(self):
         c = custom_numeric(self.table, x="Strike", value="Delta")
@@ -1978,20 +1939,14 @@ class TestLiveness(unittest.TestCase):
         # In test env, LivenessScope import fails → _liveness_scope is None
         self.assertIsNone(c._liveness_scope)
 
-    def test_extra_refs_initialized(self):
-        table = MagicMock(name="table")
-        s = line_series(table)
-        c = TvlChart([s], {})
-        self.assertEqual(c._extra_refs, [])
-
     def test_partition_metadata_defaults(self):
         table = MagicMock(name="table")
-        s = line_series(table)
+        s = line_series(table, "T", "V")
         c = TvlChart([s], {})
-        self.assertIsNone(c._partitioned_table)
-        self.assertIsNone(c._by_column)
-        self.assertIsNone(c._series_factory)
-        self.assertIsNone(c._series_kwargs)
+        # No series carries a by template by default.
+        self.assertEqual(c.partitioned_series, [])
+        self.assertIsNone(c.series_list[0].by)
+        self.assertIsNone(c.series_list[0].partitioned_table)
 
     def test_del_no_error_when_scope_none(self):
         table = MagicMock(name="table")
@@ -2025,39 +1980,46 @@ class TestByParameter(unittest.TestCase):
 
         return partitioned, constituents
 
-    def test_partition_spec_in_to_dict(self):
-        """When by is used, to_dict should include partitionSpec."""
-        from deephaven.plot.tradingview_lightweight.chart import TvlChart
-        from deephaven.plot.tradingview_lightweight import series as sm
+    def test_per_series_partition_in_to_dict(self):
+        """When `by=` is used, each series carries a `partition` block."""
+        from deephaven.plot.tradingview_lightweight.series import line_series
 
-        c = TvlChart([], {})
-        c._partitioned_table = MagicMock(name="pt")
-        c._by_column = "Sym"
-        c._series_factory = sm.line_series
-        c._series_kwargs = {"time": "Timestamp", "value": "Price"}
+        spec = line_series(MagicMock(name="t"), timestamp="Timestamp", value="Price")
+        spec.by = "Sym"
+        spec.partitioned_table = MagicMock(name="pt")
 
-        d = c.to_dict({})
-        self.assertIn("partitionSpec", d)
-        self.assertEqual(d["partitionSpec"]["byColumn"], "Sym")
-        self.assertEqual(d["partitionSpec"]["seriesType"], "Line")
-        self.assertEqual(d["partitionSpec"]["columns"]["time"], "Timestamp")
-        self.assertEqual(d["partitionSpec"]["columns"]["value"], "Price")
-        # No initial series — JS discovers keys
-        self.assertEqual(len(d["series"]), 0)
+        c = TvlChart([spec], {})
+        d = c.to_dict({id(spec.table): 0})
+        # No top-level partitionSpec anymore — it lives on each series.
+        self.assertNotIn("partitionSpec", d)
+        self.assertEqual(d["series"][0]["partition"]["byColumn"], "Sym")
 
     def test_line_without_by_unchanged(self):
-        """line() without by should produce a single series as before."""
+        """line() without by should produce a single series, no partition state."""
         table = MagicMock(name="table")
-        c = line(table, time="T", value="V", color="red")
+        c = line(table, timestamp="T", value="V", color="red")
         self.assertEqual(len(c.series_list), 1)
         self.assertEqual(c.series_list[0].options.get("color"), "red")
-        self.assertIsNone(c._partitioned_table)
+        self.assertIsNone(c.series_list[0].by)
+        self.assertIsNone(c.series_list[0].partitioned_table)
 
     def test_area_without_by_unchanged(self):
         table = MagicMock(name="table")
-        c = area(table, time="T", value="V", line_color="blue")
+        c = area(table, timestamp="T", value="V", line_color="blue")
         self.assertEqual(len(c.series_list), 1)
-        self.assertIsNone(c._partitioned_table)
+        self.assertIsNone(c.series_list[0].by)
+
+    def test_chart_compose_extracts_series_from_tvl_charts(self):
+        """tvl.chart accepts TvlChart sources and concatenates their series."""
+        table = MagicMock(name="t")
+        c1 = line(table, "T", "V", color="red")
+        c2 = histogram(table, "T", "V", pane=1)
+        combined = chart(c1, c2, pane_stretch_factors=[3, 1])
+        self.assertEqual(len(combined.series_list), 2)
+        self.assertEqual(combined.series_list[0].series_type, "Line")
+        self.assertEqual(combined.series_list[1].series_type, "Histogram")
+        self.assertEqual(combined.series_list[1].pane, 1)
+        self.assertEqual(combined.pane_stretch_factors, [3, 1])
 
 
 class TestEnumMaps(unittest.TestCase):

@@ -57,7 +57,7 @@ class TestCandlestickSeries(unittest.TestCase):
     def test_custom_columns(self):
         spec = candlestick_series(
             self.table,
-            time="ts",
+            timestamp="ts",
             open="o",
             high="h",
             low="l",
@@ -207,7 +207,7 @@ class TestBarSeries(unittest.TestCase):
     def test_custom_params(self):
         spec = bar_series(
             self.table,
-            time="Date",
+            timestamp="Date",
             open="O",
             high="H",
             low="L",
@@ -248,7 +248,7 @@ class TestLineSeries(unittest.TestCase):
     def test_custom_params(self):
         spec = line_series(
             self.table,
-            time="ts",
+            timestamp="ts",
             value="price",
             color="blue",
             line_width=3,
@@ -327,7 +327,7 @@ class TestAreaSeries(unittest.TestCase):
     def test_custom_params(self):
         spec = area_series(
             self.table,
-            time="date",
+            timestamp="date",
             value="vol",
             line_color="#0000ff",
             top_color="rgba(0,0,255,0.4)",
@@ -463,7 +463,7 @@ class TestHistogramSeries(unittest.TestCase):
     def test_custom_params(self):
         spec = histogram_series(
             self.table,
-            time="Date",
+            timestamp="Date",
             value="Volume",
             color="rgba(0,150,136,0.8)",
             title="Volume",
