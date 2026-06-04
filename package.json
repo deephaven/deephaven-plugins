@@ -115,7 +115,6 @@
   "overrides": {
     "react": "$react",
     "react-dom": "$react-dom",
-    "@adobe/react-spectrum": "3.47.0",
     "@deephaven/eslint-config": {
       "eslint-import-resolver-typescript": "3.5.0"
     }
