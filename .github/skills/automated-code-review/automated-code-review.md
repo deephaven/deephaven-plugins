@@ -26,6 +26,7 @@ If any of the concerns seem likely (above 50% confidence that the concern applie
 If any of the concerns might apply (above 10% confidence that the concern applies), flag for scan.
 Additionally, select a portion of the changes to randomly review. Select chunks of code that can reasonably be reviewed in isolation using the following guidelines:
 This portion should be as high as 15% if less than 10% of the code is flagged already and as low as 5% if above 50% of the code is already flagged.
+Code should be randomly flagged with a tool, not "randomly" by the reviewer.
 
 Provide reason(s) and confidence for flagging, and if possible, provide specific suggestions for improvement if they are blockers. If code is randomly flagged, that should be noted as the reason for review and it should be considered code for careful review, regardless of any confidence level. Code should only be randomly flagged if not already flagged for careful review or scan. Do not randomly flag user-facing documentation such as markdown files, but you can randomly flag code comments and docstrings.
 
@@ -33,7 +34,7 @@ These flags should be provided in addition to any specific comments on the code,
 
 ## Running this skill:
 
-If the user asks for a review, by default, the code on the current branch should be compared to the origin's main branch with `git diff` unless the user specifies otherwise. The user can specify a different branch, commit, file, or pull request to review against.
+If the user asks for a review, by default, the code on the current branch should be compared to the origin's main branch with `git diff` unless the user specifies otherwise. The user can specify a different branch, commit, file, or pull request to review against. You should only review committed code, not uncommitted changes, and only the changes made from the current branch, not the changes over both branches.
 The user can provide a file name for output. If no file name is provided, write the output to the console.
 Output into the markdown file at the specified location with the following format if the output is not going to the console:
 
