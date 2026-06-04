@@ -39,6 +39,7 @@ import {
   useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
 import {
+  useDhId,
   useLayoutManager,
   useListener,
   usePersistentState,
@@ -652,23 +653,35 @@ export function UITable({
     model?.table
   );
 
+  const sourcePanelId = useDhId();
+
   const handleCreateChart = useCallback(
     (
       chartBuilderSettings: ChartBuilderSettings,
       irisGridModel: IrisGridModel
     ) => {
+      const tableSettings = dehydratedState
+        ? {
+            quickFilters: dehydratedState.quickFilters,
+            advancedFilters: dehydratedState.advancedFilters,
+            sorts: dehydratedState.sorts,
+            inputFilters,
+          }
+        : {};
+
       eventHub.emit(IrisGridEvent.CREATE_CHART, {
         metadata: {
           settings: chartBuilderSettings,
+          sourcePanelId,
           table: irisGridModel.description || 'Table',
-          tableSettings: {},
+          tableSettings,
         },
         table: isIrisGridTableModelTemplate(irisGridModel)
           ? irisGridModel.table
           : undefined,
       });
     },
-    [eventHub]
+    [eventHub, sourcePanelId, dehydratedState, inputFilters]
   );
 
   const handleClearAllFilters = useCallback(() => {
