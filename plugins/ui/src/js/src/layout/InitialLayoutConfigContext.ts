@@ -10,7 +10,7 @@ export const InitialLayoutConfigContext = createContext<
 
 /**
  * Gets the initial layout config from the nearest context.
- * @returns The initial layout config or null if not set
+ * @returns The initial layout config or undefined if not set
  */
 export function useInitialLayoutConfig(): DashboardLayoutConfig | undefined {
   return useContext(InitialLayoutConfigContext);

@@ -51,7 +51,8 @@ function Stack(props: StackElementProps): JSX.Element | null {
 
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
-    // Don't add a row here
+    // Don't add a stack here, or normalize the children which might add a stack unnecessarily.
+    // Just render the children as they are, and the initial layout config should already have the panels mapped out.
     const { children } = props;
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;

@@ -44,7 +44,8 @@ function Row({ children, height }: RowElementProps): JSX.Element {
   const initialLayoutConfig = useInitialLayoutConfig();
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
-    // Don't add a row here
+    // Don't add a row here, or normalize the children which might add a stack unnecessarily.
+    // Just render the children as they are, and the initial layout config should already have the panels mapped out.
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;
   }

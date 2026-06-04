@@ -62,7 +62,7 @@ function NestedDashboard({
   const { layoutConfig, widgetData } = dashboardData ?? {};
 
   // We want to know if the initial layoutConfig is set so we know if the dashboard has previously been loaded.
-  // User may have moved panels around, and we don't want the layout rows/columns to be blow away their changes
+  // User may have moved panels around, and we don't want the layout rows/columns to be blown away their changes
   const [initialLayoutConfig] = useState(() => layoutConfig);
   const [initialWidgetData] = useState(() => widgetData);
 
