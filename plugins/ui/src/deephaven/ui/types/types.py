@@ -608,12 +608,39 @@ ToastVariant = Literal["positive", "negative", "neutral", "info"]
 
 QueryParams = Dict[str, List[str]]
 """
-A type alias for query parameter dictionaries used throughout the routing API.
+A type alias for query parameter dictionaries returned by the routing API.
 
-Keys are parameter names. Values are always ``list[str]`` — even for keys
+Keys are parameter names. Values are always `list[str]`, even for keys
 that appear only once.  When serialised to a URL, list values repeat the
-key: ``{"tag": ["python", "java"]}`` becomes ``?tag=python&tag=java``.
+key: `{"tag": ["python", "java"]}` becomes `?tag=python&tag=java`.
 """
+
+QueryParamsInput = Dict[str, Union[str, List[str]]]
+"""
+A type alias for query parameter dictionaries accepted as input.
+
+Keys are parameter names. Values can be either a single string or a list
+of strings.  Single strings are treated as one-element lists.
+"""
+
+
+class NavigationTarget(TypedDict, total=False):
+    """
+    A typed dictionary used by ui.link's to prop for explicit control
+    over navigation.
+    """
+
+    path: str
+    """The path to navigate to (e.g. "/dashboard")."""
+
+    query_params: Union[str, QueryParamsInput]
+    """Query string (e.g. "?foo=bar") or a QueryParamsInput dict."""
+
+    fragment: str
+    """URL fragment, e.g. "section" (leading "#" optional)."""
+
+    replace: bool
+    """If True, replace the current history entry instead of pushing."""
 
 
 _DISABLE_NULLISH_CONSTRUCTORS = False

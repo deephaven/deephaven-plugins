@@ -10,7 +10,7 @@ import threading
 import traceback
 from enum import Enum
 from queue import Queue
-from typing import Any, Callable, TypedDict
+from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
@@ -21,7 +21,6 @@ from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from ..renderer.NodeEncoder import CALLABLE_KEY
-from ..types import QueryParams
 from .._internal import (
     RenderContext,
     ExportedRenderState,
@@ -33,12 +32,6 @@ from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
-
-_UrlState = TypedDict("_UrlState", {"__queryParams": QueryParams})
-"""
-The URL state sent from the client, containing query parameter names mapped to
-their list of string values.
-"""
 
 
 class _RenderState(Enum):
@@ -177,11 +170,8 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     The last document sent to the client. Used to generate a patch for the next document
     """
 
-    _query_params: QueryParams
-    """
-    The URL query parameters, populated from the frontend.
-    Keys are parameter names, values are lists of string values.
-    """
+    _url: str
+    """The full URL."""
 
     def __init__(self, element: Element, connection: MessageStream):
         """
@@ -199,7 +189,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder()
         self._event_encoder = EventEncoder(self._serialize_callables)
-        self._query_params = {}
+        self._url = ""
         self._context = RenderContext(self)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
@@ -314,11 +304,20 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._callable_queue.put(callable)
         self._queue_render()
 
-    def get_query_params(self) -> QueryParams:
-        return self._query_params
+    def get_url(self) -> str:
+        """
+        Get the full URL.
+        """
+        return self._url
 
-    def set_query_params(self, query_params: QueryParams) -> None:
-        self._query_params = query_params
+    def set_url(self, url: str) -> None:
+        """
+        Set the full URL.
+
+        Args:
+            url: The URL to set
+        """
+        self._url = url
 
     def start(self) -> None:
         """
@@ -408,29 +407,35 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
 
-    def _set_state(self, state: ExportedRenderState) -> None:
+    def _set_state(
+        self, state: ExportedRenderState, app_state: dict[str, Any] | None = None
+    ) -> None:
         """
         Set the state of the element. This is called by the client on initial load.
 
         Args:
-            state: The state to set
+            state: The component state to set.
+            app_state: Application-level state (e.g. url). Sent atomically with
+                component state to prevent inconsistencies on initialization.
         """
-        logger.debug("Setting state: %s", state)
+        logger.debug("Setting state: %s, app_state: %s", state, app_state)
+        if app_state is not None:
+            url = app_state.get("url")
+            if url is not None:
+                self.set_url(url)
         self._context.import_state(state)
         self._mark_dirty()
 
-    def _set_url_state(self, url_state: _UrlState) -> None:
+    def _set_url_state(self, url: str) -> None:
         """
-        Update only the URL state (query params). Called by the client after a
-        client-side navigation so that the component re-renders with updated URL
-        params.
+        Update the URL state. Called by the client after a client-side
+        navigation so that the component re-renders with updated URL state.
 
         Args:
-            url_state: Dict with key ``__queryParams`` mapping param names to
-                lists of string values.
+            url: The full URL string.
         """
-        logger.debug("Setting URL state: %s", url_state)
-        self.set_query_params(url_state.get("__queryParams", {}))
+        logger.debug("Setting URL state: %s", url)
+        self.set_url(url)
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:

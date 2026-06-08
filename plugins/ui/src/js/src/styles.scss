@@ -22,7 +22,8 @@
   position: relative;
 }
 
-.dh-react-panel {
+.dh-react-panel,
+.dh-default-panel-content {
   // using grid to allow the panel to grow to fill the container
   // without having to set the width/height explicitly
   // so that overflow will include it's padding
@@ -86,6 +87,37 @@
     padding: 0 !important; // important required to override inline spectrum style
 
     > .dh-inner-react-panel > .dashboard-container {
+      border: none;
+    }
+  }
+
+  // remove padding around single child nested dashboards in react panels
+  // (the .dh-nested-dashboard wrapper provides its own padding/border below)
+  &:has(> .dh-inner-react-panel > .dh-nested-dashboard:only-child) {
+    padding: 0 !important; // important required to override inline spectrum style
+  }
+}
+
+.dh-react-panel,
+.dh-default-panel-content,
+.dh-panel {
+  .dh-nested-dashboard {
+    padding: var(--spectrum-global-dimension-size-100);
+    .dashboard-container {
+      border: 1px solid var(--dh-color-bg);
+    }
+  }
+}
+
+// When the panel header is hidden (e.g. embed-widget-app or iframe widget mode),
+// the outermost dh-nested-dashboard should not have extra padding/border.
+// We detect this via GoldenLayout's DOM: .lm_header[display:none] precedes .lm_items.
+// If a dh-nested-dashboard is itself nested inside another, keep the
+// padding and border so inner dashboards remain visually distinct.
+.lm_header[style*='display: none'] ~ .lm_items {
+  .dh-nested-dashboard:not(.dh-nested-dashboard .dh-nested-dashboard) {
+    padding: 0;
+    > .dashboard-container {
       border: none;
     }
   }

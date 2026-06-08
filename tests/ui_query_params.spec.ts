@@ -4,18 +4,26 @@ import { openPanel, gotoPage, SELECTORS } from './utils';
 test.describe('UI query params', () => {
   test('displays query params from URL', async ({ page }) => {
     await gotoPage(page, '?page=2&sort=asc');
-    await openPanel(page, 'ui_query_params', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(
+      page,
+      'ui_query_params',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('page=2')).toBeVisible();
     await expect(panel.getByText('sort=asc')).toBeVisible();
   });
 
   test('displays no query params when URL has none', async ({ page }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'ui_query_params', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(
+      page,
+      'ui_query_params',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('No query params')).toBeVisible();
   });
 
@@ -24,10 +32,10 @@ test.describe('UI query params', () => {
     await openPanel(
       page,
       'ui_query_param_single',
-      SELECTORS.REACT_PANEL_VISIBLE
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
     );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('page=5')).toBeVisible();
   });
 
@@ -36,18 +44,22 @@ test.describe('UI query params', () => {
     await openPanel(
       page,
       'ui_query_param_single',
-      SELECTORS.REACT_PANEL_VISIBLE
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
     );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('page=None')).toBeVisible();
   });
 
   test('set_query_param updates the URL', async ({ page }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'ui_set_query_param', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(
+      page,
+      'ui_set_query_param',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('counter=0')).toBeVisible();
 
     await panel.getByRole('button', { name: 'Increment (current: 0)' }).click();
@@ -64,9 +76,13 @@ test.describe('UI query params', () => {
 
   test('supports multi-value query params', async ({ page }) => {
     await gotoPage(page, '?tag=python&tag=java');
-    await openPanel(page, 'ui_query_params', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(
+      page,
+      'ui_query_params',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel.getByText('tag=python')).toBeVisible();
     await expect(panel.getByText('tag=java')).toBeVisible();
   });

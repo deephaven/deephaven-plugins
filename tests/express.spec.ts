@@ -64,8 +64,14 @@ test('Calendar line chart loads', async ({ page }) => {
 
 test('Chart image loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'line_plot_img', SELECTORS.REACT_PANEL_VISIBLE);
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(
+    page,
+    'line_plot_img',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+  await expect(
+    page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+  ).toHaveScreenshot();
 });
 
 test('Bar chart on x loads', async ({ page }) => {
@@ -105,9 +111,9 @@ test('Candlestick chart loads', async ({ page }) => {
 });
 
 test('Titles fig loads', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'titles_fig', '.js-plotly-plot');
-    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+  await gotoPage(page, '');
+  await openPanel(page, 'titles_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
 test('Subplots fig loads', async ({ page }) => {

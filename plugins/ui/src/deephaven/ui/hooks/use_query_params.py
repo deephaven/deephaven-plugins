@@ -1,5 +1,6 @@
 from ..types import QueryParams
 from .._internal import get_context
+from ._url_parse import get_query_params as _get_query_params
 
 
 def use_query_params() -> QueryParams:
@@ -10,4 +11,5 @@ def use_query_params() -> QueryParams:
         A dictionary mapping parameter names to lists of string values.
     """
     context = get_context()
-    return context.get_query_params()
+    url = context.get_url()
+    return _get_query_params(url)

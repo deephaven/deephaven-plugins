@@ -7,6 +7,7 @@ import { type ReactPanelProps } from '../layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
 import { ELEMENT_NAME } from '../elements/model/ElementConstants';
+import WidgetStatusContext from '../layout/WidgetStatusContext';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>
@@ -35,15 +36,22 @@ function makeDocument(children: React.ReactNode = []): React.ReactNode {
   });
 }
 
+const mockWidgetStatus = {
+  status: 'ready' as const,
+  descriptor: TestUtils.createMockProxy<WidgetDescriptor>({}),
+};
+
 function makeDocumentHandler({
   children = makeDocument(),
   widget = TestUtils.createMockProxy<WidgetDescriptor>({}),
   onClose = jest.fn(),
 }: Partial<DocumentHandlerProps> = {}) {
   return (
-    <DocumentHandler widget={widget} onClose={onClose}>
-      {children}
-    </DocumentHandler>
+    <WidgetStatusContext.Provider value={mockWidgetStatus}>
+      <DocumentHandler widget={widget} onClose={onClose}>
+        {children}
+      </DocumentHandler>
+    </WidgetStatusContext.Provider>
   );
 }
 
@@ -72,10 +80,12 @@ it('should throw an error if the document mixes panel and non-panel elements', (
   );
 });
 
-it('should combine multiple single elements into one panel', () => {
+it('should render multiple single elements directly without wrapping in a panel', () => {
   const children = makeDocument([makeElement('foo'), makeElement('bar')]);
   render(makeDocumentHandler({ children }));
-  expect(mockReactPanel).toHaveBeenCalledTimes(1);
+  // When not nested (no PanelIdContext), non-layout children are rendered directly
+  // without being wrapped in a ReactPanel (WidgetPlugin handles the panel)
+  expect(mockReactPanel).toHaveBeenCalledTimes(0);
 });
 
 it('should render multiple panels', () => {

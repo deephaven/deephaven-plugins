@@ -15,6 +15,7 @@ import {
   useListener,
   type PersistentState,
   PersistentStateProvider,
+  usePanelId as useLayoutPanelId,
 } from '@deephaven/dashboard';
 import {
   View,
@@ -102,7 +103,8 @@ function ReactPanel({
     useReactPanel();
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
-  const panelTitle = title ?? metadata?.name ?? '';
+  const panelTitle =
+    title ?? (typeof metadata === 'string' ? metadata : metadata?.name ?? '');
   const [initialData, setInitialData] = useState<PersistentState[]>(
     getInitialData() as PersistentState[]
   );
@@ -127,6 +129,10 @@ function ReactPanel({
   const contentKey = useMemo(() => nanoid(), [metadata]);
 
   const parent = useParentItem();
+  const layoutPanelId = useLayoutPanelId();
+  // If we're opening these panels at the top level, they should be closable.
+  // We may make this settable as a prop on the panel in the future
+  const isClosable = layoutPanelId == null;
   const contextPanelId = usePanelId();
   if (contextPanelId != null) {
     throw new NestedPanelError(
@@ -180,6 +186,7 @@ function ReactPanel({
           props: { metadata },
           title: panelTitle,
           id: panelId,
+          isClosable,
         };
 
         LayoutUtils.openComponent({ root: parent, config });
@@ -206,7 +213,7 @@ function ReactPanel({
         LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
       }
     },
-    [parent, metadata, onOpen, panelId, panelTitle]
+    [isClosable, parent, metadata, onOpen, panelId, panelTitle]
   );
   const widgetStatus = useWidgetStatus();
 

@@ -21,7 +21,6 @@ from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
-from ..types import QueryParams
 from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
@@ -415,22 +414,21 @@ class RenderContext:
                 "RenderContext method called when RenderContext is unmounted"
             )
 
-    def get_query_params(self) -> QueryParams:
+    def get_url(self) -> str:
         """
-        Get the URL query parameters received from the frontend.
+        Get the full URL received from the frontend.
         Returns:
-            A dictionary mapping parameter names to lists of values.
+            The full URL.
         """
-        return self._root.get_query_params()
+        return self._root.get_url()
 
-    def update_url_state(self, query_params: QueryParams) -> None:
+    def set_url(self, url: str) -> None:
         """
-        Update the URL query parameters.
-
+        Set the full URL on the root.
         Args:
-            query_params: New query parameter mapping to store.
+            url: The URL to set.
         """
-        self._root.set_query_params(query_params)
+        self._root.set_url(url)
 
     def has_state(self, key: StateKey) -> bool:
         """
@@ -619,12 +617,6 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
-
-        # Extract URL state fields (prefixed with __) before processing component state.
-        # Only update when the key is explicitly present so recursive calls for child
-        # contexts (which never carry __queryParams) don't accidentally clear URL state.
-        if "__queryParams" in state:
-            self._root.set_query_params(state.pop("__queryParams"))
 
         if "state" in state:
             for key, value in state["state"].items():

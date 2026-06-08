@@ -6,10 +6,10 @@ test.describe('UI dialog components', () => {
   ['my_popover', 'my_tray'].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, name, SELECTORS.REACT_PANEL_VISIBLE);
+      await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
       await expect(
-        page.locator(SELECTORS.REACT_PANEL_VISIBLE)
+        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       ).toHaveScreenshot();
     });
   });
@@ -17,7 +17,7 @@ test.describe('UI dialog components', () => {
   ['my_modal', 'my_fullscreen', 'my_fullscreen_takeover'].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, name, SELECTORS.REACT_PANEL_VISIBLE);
+      await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
       await expect(page).toHaveScreenshot();
     });
