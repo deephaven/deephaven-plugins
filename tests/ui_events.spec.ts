@@ -9,9 +9,13 @@ test('ui.text_field does not overwrite user typing while focused', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_text_field', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_slow_text_field',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('textbox', { name: 'Slow Text' });
 
   await expect(input).toHaveValue('hello');
@@ -44,9 +48,13 @@ test('ui.text_field fires on_focus, on_change, and on_blur with expected payload
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_text_field_events', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_text_field_events',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('textbox', { name: 'Events Text' });
   const log = panelLocator.getByRole('textbox', { name: 'Event Log' });
 
@@ -84,9 +92,13 @@ test('ui.text_area does not overwrite user typing while focused', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_text_area', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_slow_text_area',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('textbox', { name: 'Slow Area' });
 
   await expect(input).toHaveValue('hello');
@@ -117,9 +129,13 @@ test('ui.text_area fires on_focus, on_change, and on_blur with expected payloads
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_text_area_events', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_text_area_events',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('textbox', { name: 'Events Area' });
   const log = panelLocator.getByRole('textbox', { name: 'Event Log' });
 
@@ -157,10 +173,14 @@ test('ui.number_field does not overwrite user typing while focused', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_number_field', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_slow_number_field',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
-  const input = panelLocator.getByRole('spinbutton', { name: 'Slow Number' });
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const input = panelLocator.getByRole('textbox', { name: 'Slow Number' });
 
   await expect(input).toHaveValue('1');
 
@@ -193,11 +213,11 @@ test('ui.number_field fires on_focus, on_change, and on_blur with expected paylo
   await openPanel(
     page,
     'ui_number_field_events',
-    SELECTORS.REACT_PANEL_VISIBLE
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
   );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
-  const input = panelLocator.getByRole('spinbutton', { name: 'Events Number' });
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const input = panelLocator.getByRole('textbox', { name: 'Events Number' });
   const log = panelLocator.getByRole('textbox', { name: 'Event Log' });
 
   await expect(input).toHaveValue('1');
@@ -207,9 +227,12 @@ test('ui.number_field fires on_focus, on_change, and on_blur with expected paylo
   await input.focus();
   await expect(log).toHaveValue(/focus:1/);
 
-  // Type a new value. on_change should fire with the new number.
+  // Type a new value and commit it with Enter. Spectrum's NumberField only
+  // fires on_change once the value is committed (Enter or blur), not on every
+  // keystroke, so press Enter to commit before asserting on_change.
   await input.press('ControlOrMeta+a');
   await input.pressSequentially('42', { delay: 20 });
+  await input.press('Enter');
   await expect(log).toHaveValue(/change:42/);
 
   // Blur the field. on_blur should fire with the typed value.
@@ -234,9 +257,13 @@ test('ui.search_field does not overwrite user typing while focused', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_slow_search_field', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_slow_search_field',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('searchbox', { name: 'Slow Search' });
 
   await expect(input).toHaveValue('hello');
@@ -267,9 +294,13 @@ test('ui.search_field fires on_focus, on_change, and on_blur with expected paylo
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_search_field_events', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_search_field_events',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   const input = panelLocator.getByRole('searchbox', { name: 'Events Search' });
   const log = panelLocator.getByRole('textbox', { name: 'Event Log' });
 
