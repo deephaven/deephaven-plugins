@@ -4,9 +4,9 @@ import { openPanel, gotoPage, SELECTORS } from './utils';
 test.describe('UI multi_select', () => {
   test('renders basic multi select', async ({ page }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'ms_basic', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(page, 'ms_basic', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel).toHaveScreenshot();
   });
 
@@ -14,9 +14,13 @@ test.describe('UI multi_select', () => {
     page,
   }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'ms_controlled', SELECTORS.REACT_PANEL_VISIBLE);
+    await openPanel(
+      page,
+      'ms_controlled',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
     await expect(panel).toHaveScreenshot();
   });
 });
