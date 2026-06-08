@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Literal, Any, Optional
+from typing import Literal, Any, Union
 import logging
 from deephaven.table import RollupTable, TreeTable
 from ..elements import Element, resolve
@@ -39,6 +39,8 @@ AggTypes = Literal[
     "Var",
 ]
 
+SortDirection = Literal["ASC", "DESC"]
+
 
 @dataclass
 class TableAgg:
@@ -56,6 +58,27 @@ class TableAgg:
     agg: AggTypes
     cols: ColumnName | list[ColumnName] | None = None
     ignore_cols: ColumnName | list[ColumnName] | None = None
+
+
+@dataclass
+class TableSort:
+    """
+    A sort configuration for a table.
+
+    Args:
+        column: The column to sort.
+        direction: The sort direction. One of "ASC" or "DESC".
+        is_abs: Whether to sort by absolute value.
+    Returns:
+        The TableSort configuration.
+    """
+
+    column: ColumnName
+    direction: SortDirection = "ASC"
+    is_abs: bool = False
+
+
+TableSortLike = Union[ColumnName, TableSort]
 
 
 @dataclass
@@ -206,6 +229,38 @@ def _validate_table_format(
                 raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
 
+def _normalize_table_sorts(
+    sorts: TableSortLike | list[TableSortLike],
+) -> list[dict[str, Any]]:
+    """Normalize table sorts into the dehydrated sort shape used by iris-grid."""
+
+    sort_list = sorts if isinstance(sorts, list) else [sorts]
+    normalized: list[dict[str, Any]] = []
+    for sort in sort_list:
+        if isinstance(sort, str):
+            sort = TableSort(column=sort)
+        elif not isinstance(sort, TableSort):
+            raise ValueError(
+                "Table sorts must be a column name, TableSort, or list of column "
+                f"names and TableSort instances. Received {type(sort).__name__}."
+            )
+
+        direction = sort.direction.upper()
+        if direction not in ("ASC", "DESC"):
+            raise ValueError(
+                f"Invalid sort direction: {sort.direction}. Expected 'ASC' or 'DESC'."
+            )
+        normalized.append(
+            {
+                "column": sort.column,
+                "direction": direction,
+                "isAbs": sort.is_abs,
+            }
+        )
+
+    return normalized
+
+
 class table(Element):
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -232,6 +287,9 @@ class table(Element):
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
+        sorts: The sorts to apply as UI state on load.
+            These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
+            Accepts a column name, TableSort, or list containing column names and TableSort instances.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
         aggregations_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
@@ -317,6 +375,7 @@ class table(Element):
         on_selection_change: SelectionChangeCallback | None = None,
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
+        sorts: TableSortLike | list[TableSortLike] | None = None,
         show_quick_filters: bool = False,
         aggregations: TableAgg | list[TableAgg] | None = None,
         aggregations_position: Literal["top", "bottom"] | None = None,
@@ -383,6 +442,9 @@ class table(Element):
 
         if format_ is not None:
             _validate_table_format(format_, table)
+
+        if sorts is not None:
+            props["sorts"] = _normalize_table_sorts(sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]

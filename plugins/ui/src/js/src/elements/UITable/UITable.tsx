@@ -630,18 +630,24 @@ export function UITable({
    * In the future we may want to do a smarter merge of these.
    */
   const mergedIrisGridProps = useMemo(() => {
-    if (initialIrisGridServerProps.current === irisGridServerProps) {
-      return {
-        ...irisGridServerProps,
-        ...initialHydratedState,
-      };
+    const mergedProps: Partial<IrisGridProps> =
+      initialIrisGridServerProps.current === irisGridServerProps
+        ? {
+            ...irisGridServerProps,
+            ...initialHydratedState,
+          }
+        : {
+            ...initialHydratedState,
+            ...irisGridServerProps,
+          };
+
+    // If sorts are explicitly provided by ui.table, prefer them over persisted state.
+    if (sorts !== undefined) {
+      mergedProps.sorts = hydratedSorts;
     }
 
-    return {
-      ...initialHydratedState,
-      ...irisGridServerProps,
-    };
-  }, [irisGridServerProps, initialHydratedState]);
+    return mergedProps;
+  }, [irisGridServerProps, initialHydratedState, sorts, hydratedSorts]);
 
   const inputFilters = useDashboardColumnFilters(
     model?.columns ?? null,
