@@ -1,72 +1,67 @@
 import { useSelector } from 'react-redux';
-import {
-  ComboBox as DHComboBox,
-  type ComboBoxProps as DHComboBoxProps,
-} from '@deephaven/components';
-import {
-  ComboBox as DHComboBoxJSApi,
-  type ComboBoxProps as DHComboBoxJSApiProps,
-} from '@deephaven/jsapi-components';
+import { MultiSelect as DHMultiSelect } from '@deephaven/components';
+import { MultiSelect as DHMultiSelectJSApi } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
 import { getSettings, type RootState } from '@deephaven/redux';
 import {
-  type SerializedPickerProps,
-  usePickerProps,
-  type WrappedDHPickerJSApiProps,
-} from './hooks/usePickerProps';
+  type SerializedMultiSelectProps,
+  useMultiSelectProps,
+} from './hooks/useMultiSelectProps';
 import ObjectView from './ObjectView';
 import { useObjectViewObject } from './hooks/useObjectViewObject';
 import UriObjectView from './UriObjectView';
 import { getErrorShortMessage } from '../widget/WidgetErrorUtils';
 
-export function ComboBox(
-  props: SerializedPickerProps<
-    DHComboBoxProps | WrappedDHPickerJSApiProps<DHComboBoxJSApiProps>
-  >
+export function MultiSelect(
+  props: SerializedMultiSelectProps
 ): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
-  const { children, ...pickerProps } = usePickerProps(props);
+  const { children, ...multiSelectProps } = useMultiSelectProps(props);
 
   const isObjectView =
     isElementOfType(children, ObjectView) ||
     isElementOfType(children, UriObjectView);
-  const {
-    widget: table,
-    api,
-    isLoading,
-    error,
-  } = useObjectViewObject<dh.Table>(children);
+  const { widget: table, api, error } = useObjectViewObject<dh.Table>(children);
 
   if (isObjectView) {
     if (error != null) {
       const message = getErrorShortMessage(error);
       return (
-        <DHComboBox
+        <DHMultiSelect
           // eslint-disable-next-line react/jsx-props-no-spreading
-          {...pickerProps}
+          {...multiSelectProps}
           errorMessage={message}
           validationState="invalid"
         />
       );
     }
-    if (isLoading || table == null || api == null) {
+    // Don't gate on `isLoading` as it flips true on server round-trips and
+    // would unmount/remount the spectrum MultiSelect, closing any open
+    // popover.
+    if (table == null || api == null) {
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHComboBox loadingState="loading" {...pickerProps} />
+        <DHMultiSelect loadingState="loading" {...multiSelectProps} />
       );
     }
     return (
       <ApiContext.Provider value={api}>
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <DHComboBoxJSApi {...pickerProps} table={table} settings={settings} />
+        <DHMultiSelectJSApi
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...multiSelectProps}
+          table={table}
+          settings={settings}
+        />
       </ApiContext.Provider>
     );
   }
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <DHComboBox {...pickerProps}>{children}</DHComboBox>;
+  return (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <DHMultiSelect {...multiSelectProps}>{children}</DHMultiSelect>
+  );
 }
 
-export default ComboBox;
+export default MultiSelect;
