@@ -24,6 +24,7 @@ const mockModel = {
 jest.mock('@deephaven/dashboard', () => {
   const react = jest.requireActual('react');
   return {
+    useDhId: () => 'mock-panel-id',
     useLayoutManager: () => ({
       eventHub: { emit: mockEmit, on: jest.fn(), off: jest.fn() },
     }),
@@ -160,14 +161,18 @@ describe('UITable chart builder', () => {
 
     capturedOnCreateChart!(chartSettings, irisGridModel);
 
-    expect(mockEmit).toHaveBeenCalledWith('IrisGridevent.CREATE_CHART', {
-      metadata: {
-        settings: chartSettings,
-        table: 'my_table',
-        tableSettings: {},
-      },
-      table: irisGridModel.table,
-    });
+expect(mockEmit).toHaveBeenCalledWith(
+  'IrisGridevent.CREATE_CHART',
+  expect.objectContaining({
+    metadata: expect.objectContaining({
+      settings: chartSettings,
+      sourcePanelId: 'mock-panel-id',
+      table: 'my_table',
+      tableSettings: {},
+    }),
+    table: irisGridModel.table,
+  })
+);
   });
 
   it('uses fallback table name when description is empty', async () => {
@@ -216,13 +221,17 @@ describe('UITable chart builder', () => {
 
     capturedOnCreateChart!(chartSettings, irisGridModel);
 
-    expect(mockEmit).toHaveBeenCalledWith('IrisGridevent.CREATE_CHART', {
-      metadata: {
-        settings: chartSettings,
-        table: 'tree_table',
-        tableSettings: {},
-      },
-      table: undefined,
-    });
+expect(mockEmit).toHaveBeenCalledWith(
+  'IrisGridevent.CREATE_CHART',
+  expect.objectContaining({
+    metadata: expect.objectContaining({
+      settings: chartSettings,
+      sourcePanelId: 'mock-panel-id',
+      table: 'tree_table',
+      tableSettings: {},
+    }),
+    table: undefined,
+  })
+);
   });
 });
