@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  IrisGridModel,
+  type IrisGridModel,
   IrisGridUtils,
   type AggregationSettings,
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
-import deepEqual from 'fast-deep-equal';
-import Log from '@deephaven/log';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   isPivotBuilderIrisGridModel,
   type PivotConfig,
@@ -43,6 +42,72 @@ const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
   showOnTop: false,
 };
 
+/**
+ * Convert an `operation → columns` map (as stored on `RollupConfig` and
+ * `PivotConfig`) into the host's `AggregationSettings.aggregations`
+ * array. The `invert` flag is not recoverable from a map and defaults
+ * to `false`.
+ */
+function aggregationsFromOpMap(
+  map: Record<string, readonly string[]>
+): AggregationSettings['aggregations'] {
+  return Object.entries(map)
+    .filter(([, cols]) => (cols?.length ?? 0) > 0)
+    .map(([operation, cols]) => ({
+      operation:
+        operation as AggregationSettings['aggregations'][number]['operation'],
+      selected: [...(cols ?? [])],
+      invert: false,
+    }));
+}
+
+/**
+ * Reverse-engineer `AggregationSettings` from a `RollupConfig` or
+ * `UITotalsTableConfig` so the sidebar's Aggregate values card hydrates
+ * from the proxy's last-seen state. The `invert` flag is not
+ * recoverable from either source and defaults to `false`.
+ */
+function seedAggregationSettings(
+  rollup: DhType.RollupConfig | null,
+  totals: UITotalsTableConfig | null
+): AggregationSettings {
+  const rollupAggs = (
+    rollup as { aggregations?: Record<string, readonly string[]> } | null
+  )?.aggregations;
+  if (rollupAggs) {
+    return {
+      aggregations: aggregationsFromOpMap(rollupAggs),
+      showOnTop: false,
+    };
+  }
+  if (totals?.operationMap) {
+    const byOp = new Map<string, string[]>();
+    Object.entries(totals.operationMap).forEach(([col, ops]) => {
+      (ops ?? []).forEach(op => {
+        const list = byOp.get(op) ?? [];
+        list.push(col);
+        byOp.set(op, list);
+      });
+    });
+    const order = totals.operationOrder ?? [...byOp.keys()];
+    const seen = new Set<string>();
+    const aggregations = order
+      .filter(op => {
+        if (seen.has(op)) return false;
+        seen.add(op);
+        return byOp.has(op);
+      })
+      .map(op => ({
+        operation:
+          op as AggregationSettings['aggregations'][number]['operation'],
+        selected: byOp.get(op) ?? [],
+        invert: false,
+      }));
+    return { aggregations, showOnTop: totals.showOnTop ?? false };
+  }
+  return EMPTY_AGGREGATION_SETTINGS;
+}
+
 function aggregationsToPivot(
   settings: AggregationSettings,
   fallbackCountColumn: string | undefined
@@ -58,8 +123,6 @@ function aggregationsToPivot(
   }
   return out;
 }
-
-const log = Log.module('@deephaven/js-plugin-pivot-builder/CreatePivotPage');
 
 /**
  * Sidebar `configPage` for the Create Pivot menu item.
@@ -92,16 +155,27 @@ export function CreatePivotPage({
     return map;
   }, [columns]);
 
-  // Seed Rollup rows from the existing `model.rollupConfig` once.
-  // `showNonAggregatedColumns` is UI-only (not faithfully recoverable
-  // from a `dh.RollupConfig`) so it defaults to `true`.
+  // Seed all four configurable cards from the proxy's last applied
+  // intent (`builderConfig`) so reopening the Create Pivot page never
+  // sends a stripped config through `applyPivotBuilderConfig`. The proxy
+  // is the single source of truth for the user's intent — pivot's
+  // rowKeys/aggregations are NOT recoverable from `model.rollupConfig` /
+  // `model.totalsConfig` (those reflect the inner-model state, which
+  // pivot supersedes). `showNonAggregatedColumns` is UI-only (not
+  // faithfully recoverable from a `dh.RollupConfig`) so it defaults to
+  // `true`.
+  const intent = isProxy ? model.builderConfig : null;
+  const pivotIntent = intent?.pivot ?? null;
+  const rollupIntent = intent?.rollup ?? model.rollupConfig ?? null;
+  const totalsIntent = intent?.totals ?? model.totalsConfig ?? null;
+
   const [mockRollupRows, setMockRollupRows] = useState<string[]>(() => {
-    const cfg = model.rollupConfig;
-    return cfg?.groupingColumns?.map((c: unknown) => String(c)) ?? [];
+    if (pivotIntent != null) return [...pivotIntent.rowKeys];
+    return rollupIntent?.groupingColumns?.map((c: unknown) => String(c)) ?? [];
   });
   const [mockRollupRowsOn, setMockRollupRowsOn] = useState<boolean>(true);
   const [mockIncludeConstituents, setMockIncludeConstituents] =
-    useState<boolean>(() => model.rollupConfig?.includeConstituents ?? true);
+    useState<boolean>(() => rollupIntent?.includeConstituents ?? true);
   const [mockNonAggregatedInRollup, setMockNonAggregatedInRollup] =
     useState(true);
 
@@ -109,35 +183,31 @@ export function CreatePivotPage({
   // `AggregationSettings` so we can hand it straight to
   // `IrisGridUtils.getModelRollupConfig` / `.getModelTotalsConfig`.
   const [aggregationSettings, setAggregationSettings] =
-    useState<AggregationSettings>(EMPTY_AGGREGATION_SETTINGS);
+    useState<AggregationSettings>(() => {
+      if (pivotIntent != null) {
+        return {
+          aggregations: aggregationsFromOpMap(pivotIntent.aggregations),
+          showOnTop: false,
+        };
+      }
+      return seedAggregationSettings(rollupIntent, totalsIntent);
+    });
   const [aggregatesOn, setAggregatesOn] = useState(true);
 
-  // Mock-data state for the remaining cards.
-  const [mockPivotColumns, setMockPivotColumns] = useState<string[]>([]);
+  const [mockPivotColumns, setMockPivotColumns] = useState<string[]>(() =>
+    pivotIntent != null ? [...pivotIntent.columnKeys] : []
+  );
   const [mockPivotColumnsOn, setMockPivotColumnsOn] = useState(true);
   const [mockFilterable, setMockFilterable] = useState<string[]>([]);
   const [mockFilterableOn, setMockFilterableOn] = useState(true);
 
-  // `IrisGridProxyModel.totalsConfig`'s setter silently drops writes
-  // while a model swap is in progress (see the `modelPromise` guard).
-  // Clearing `rollupConfig` triggers exactly such a swap, so a same-
-  // tick assignment of `totalsConfig` is lost. Bump this counter on
-  // every COLUMNS_CHANGED so the combined effect re-runs after the
-  // swap settles and re-applies the totals config.
-  const [swapEpoch, setSwapEpoch] = useState(0);
-  useEffect(() => {
-    const handler = (): void => setSwapEpoch(e => e + 1);
-    model.addEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
-    return () => {
-      model.removeEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, handler);
-    };
-  }, [model]);
-
-  // Combined effect that owns BOTH `model.rollupConfig` and
-  // `model.totalsConfig`. The two surfaces are mutually exclusive in
-  // IrisGrid: when a rollup is active, totals are suppressed and
-  // aggregations are folded into the rollup config; otherwise
-  // aggregations become a standalone totals row.
+  // Reconcile pivot/rollup/totals on every relevant state change. The
+  // proxy owns ordering, diffing against last intent, and the mid-swap
+  // queue for `totalsConfig` — see `applyPivotBuilderConfig`. Direct
+  // writes to `model.rollupConfig` / `model.totalsConfig` are silently
+  // dropped by the proxy (the host `IrisGridModelUpdater` writes those
+  // on every render and the pivot-builder sidebar replaces those host
+  // surfaces).
   useEffect(() => {
     if (!isPivotBuilderIrisGridModel(model)) return;
 
@@ -161,19 +231,15 @@ export function CreatePivotPage({
     const pivotActive =
       pivotAvailable && mockPivotColumnsOn && mockPivotColumns.length > 0;
 
+    let pivot: PivotConfig | null = null;
+    let rollup: ReturnType<typeof IrisGridUtils.getModelRollupConfig> | null =
+      null;
+    let totals: UITotalsTableConfig | null = null;
+
     if (pivotActive) {
       const used = new Set<string>([...mockRollupRows, ...mockPivotColumns]);
       const countFallback = allColumnNames.find(c => !used.has(c));
-      // Pivot swaps the proxy's inner model wholesale, superseding any
-      // active rollup/totals. We deliberately DO NOT clear rollupConfig
-      // or totalsConfig here: `IrisGridProxyModel.setNextModel` cancels
-      // the previous in-flight model promise by `.close()`-ing the
-      // resolved model, so clearing rollupConfig first (which queues a
-      // swap back to `originalModel`) and then setting pivotConfig
-      // would cancel that swap and close the source table before the
-      // pivot promise can use it. When pivot is later cleared, the
-      // pivot-inactive branch re-reconciles rollup/totals state.
-      const nextPivot: PivotConfig = {
+      pivot = {
         rowKeys: mockRollupRows,
         columnKeys: mockPivotColumns,
         aggregations: aggregationsToPivot(
@@ -181,63 +247,29 @@ export function CreatePivotPage({
           countFallback
         ),
       };
-      if (!deepEqual(nextPivot, model.pivotConfig)) {
-        log.debug('Applying pivotConfig', nextPivot);
-        // eslint-disable-next-line no-param-reassign
-        model.pivotConfig = nextPivot;
-      }
-      return;
-    }
-
-    // Pivot inactive — clear any prior pivot before falling through to
-    // the rollup/totals logic.
-    if (model.pivotConfig != null) {
-      log.debug('Clearing pivotConfig (pivot inactive)');
-      // eslint-disable-next-line no-param-reassign
-      model.pivotConfig = null;
-    }
-
-    if (rollupActive) {
-      const uiConfig = {
-        columns: mockRollupRows,
-        showConstituents: mockIncludeConstituents,
-        showNonAggregatedColumns: mockNonAggregatedInRollup,
-        includeDescriptions: true as const,
-      };
-      const nextRollup = IrisGridUtils.getModelRollupConfig(
+    } else if (rollupActive) {
+      // Rollup folds aggregations into its config; standalone totals row
+      // is suppressed.
+      rollup = IrisGridUtils.getModelRollupConfig(
         model.sourceTable.columns,
-        uiConfig,
+        {
+          columns: mockRollupRows,
+          showConstituents: mockIncludeConstituents,
+          showNonAggregatedColumns: mockNonAggregatedInRollup,
+          includeDescriptions: true as const,
+        },
         effectiveAggregationSettings
       );
-      if (!deepEqual(nextRollup, model.rollupConfig)) {
-        log.debug('Applying rollupConfig (rollup active)', nextRollup);
-        // eslint-disable-next-line no-param-reassign
-        model.rollupConfig = nextRollup;
-      }
-      if (model.totalsConfig != null) {
-        log.debug('Clearing totalsConfig (rollup wins)');
-        // eslint-disable-next-line no-param-reassign
-        model.totalsConfig = null;
-      }
-      return;
+    } else {
+      // No pivot, no rollup — aggregations become a standalone totals row.
+      totals = IrisGridUtilsExt.getModelTotalsConfig(
+        model.sourceTable.columns,
+        undefined,
+        effectiveAggregationSettings
+      );
     }
 
-    // No rollup: clear it, then push totals (or null).
-    if (model.rollupConfig != null) {
-      log.debug('Clearing rollupConfig (rollup inactive)');
-      // eslint-disable-next-line no-param-reassign
-      model.rollupConfig = null;
-    }
-    const nextTotals = IrisGridUtilsExt.getModelTotalsConfig(
-      model.sourceTable.columns,
-      undefined,
-      effectiveAggregationSettings
-    );
-    if (!deepEqual(nextTotals, model.totalsConfig)) {
-      log.debug('Applying totalsConfig (standalone aggregations)', nextTotals);
-      // eslint-disable-next-line no-param-reassign
-      model.totalsConfig = nextTotals;
-    }
+    model.applyPivotBuilderConfig({ pivot, rollup, totals });
   }, [
     model,
     mockRollupRowsOn,
@@ -250,7 +282,6 @@ export function CreatePivotPage({
     aggregationSettings,
     allColumnNames,
     pivotAvailable,
-    swapEpoch,
   ]);
 
   return (

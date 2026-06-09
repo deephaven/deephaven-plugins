@@ -31,7 +31,7 @@ import {
   Checkbox,
   SearchInput,
   Select,
-  UISwitch,
+  Switch,
 } from '@deephaven/components';
 import { vsEdit, vsGripper, vsTrash } from '@deephaven/icons';
 import {
@@ -469,7 +469,25 @@ function ConfigCard({
     >
       <div style={cardHeaderStyle}>
         <span style={cardTitleStyle}>{title}</span>
-        <UISwitch on={on} onClick={() => onToggle(!on)} />
+        {/*
+          Controlled Spectrum Switch. Guard onChange against echoes:
+          react-spectrum can fire onChange during prop-driven internal
+          state sync, which — if blindly forwarded — would re-set the
+          parent's on/off state to the same value and, in some
+          re-render orderings, oscillate the switch. Forwarding only
+          when the value actually flips makes the toggle a pure
+          user-driven event.
+        */}
+        <Switch
+          isSelected={on}
+          onChange={next => {
+            if (next !== on) {
+              onToggle(next);
+            }
+          }}
+          isDisabled={disabled === true}
+          aria-label={title}
+        />
         <span ref={buttonRef} style={{ display: 'inline-flex' }}>
           <ActionButton
             onPress={onAdd}
@@ -501,6 +519,7 @@ type DroppableListProps = {
   type: 'columns' | 'aggregations';
   itemIds: string[];
   isEmpty: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
 };
 
@@ -515,9 +534,14 @@ function DroppableList({
   type,
   itemIds,
   isEmpty,
+  disabled,
   children,
 }: DroppableListProps): JSX.Element {
-  const { setNodeRef, isOver } = useDroppable({ id, data: { container: id } });
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: { container: id },
+    disabled: disabled === true,
+  });
   const baseClass =
     type === 'columns'
       ? 'pivot-droppable-columns'
@@ -1251,6 +1275,9 @@ export function PivotConfigSection({
     [aggregationSettings.aggregations]
   );
 
+  const pivotActive =
+    pivotColumnsOn && pivotColumns.length > 0 && pivotColumnsDisabled !== true;
+
   // Resolve the preview for DragOverlay.
   const activeColumnName = (() => {
     if (activeId == null) {
@@ -1362,6 +1389,7 @@ export function PivotConfigSection({
             type="columns"
             itemIds={pivotItemIds}
             isEmpty={pivotColumns.length === 0}
+            disabled={pivotColumnsDisabled === true}
           >
             {pivotColumns.map((name, i) => (
               <ColumnRow
@@ -1418,13 +1446,15 @@ export function PivotConfigSection({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Checkbox
-            checked={includeConstituents}
+            checked={pivotActive ? false : includeConstituents}
+            disabled={pivotActive}
             onChange={e => onIncludeConstituentsChange(e.target.checked)}
           >
             Include constituents in rollups rows
           </Checkbox>
           <Checkbox
-            checked={nonAggregatedInRollup}
+            checked={pivotActive ? false : nonAggregatedInRollup}
+            disabled={pivotActive}
             onChange={e => onNonAggregatedInRollupChange(e.target.checked)}
           >
             Non-aggregated in rollup rows
