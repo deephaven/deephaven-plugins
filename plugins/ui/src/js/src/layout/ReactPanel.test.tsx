@@ -115,11 +115,7 @@ it('opens panel on mount, and closes panel on unmount', () => {
 it('finds and closes existing panels from the layout root, but opens in the parent stack', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
-  // `useLayoutManager` is mocked to a plain function returning a static layout
-  // object (no real React hooks), so it's safe to call it here to grab the same
-  // `root` the component will see.
-  const { root } = useLayoutManager();
-  // Use a parent that is distinct from the root, e.g. the user moved the panel
+  // Use a parent that is distinct from the layout root, e.g. the user moved the panel
   // into a different stack within the layout.
   const parent = TestUtils.createMockProxy<ContentItem>();
 
@@ -128,6 +124,8 @@ it('finds and closes existing panels from the layout root, but opens in the pare
       {makeTestComponent({ onOpen, onClose })}
     </ParentItemContext.Provider>
   );
+
+  const root = (useLayoutManager as jest.Mock).mock.results[0].value.root;
 
   // Searches for an existing panel from the root, not just the parent
   expect(LayoutUtils.getStackForConfig).toHaveBeenCalledWith(root, {
