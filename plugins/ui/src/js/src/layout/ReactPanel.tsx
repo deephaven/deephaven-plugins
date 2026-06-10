@@ -139,18 +139,18 @@ function ReactPanel({
       'ui.panel must be a top-level component or used within a dashboard layout.'
     );
   }
-  const { eventHub } = layoutManager;
+  const { eventHub, root } = layoutManager;
 
   useEffect(
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
-        LayoutUtils.closeComponent(parent, { id: panelId });
+        LayoutUtils.closeComponent(root, { id: panelId });
         isPanelOpenRef.current = false;
         onClose();
       }
     },
-    [parent, onClose, panelId]
+    [onClose, panelId, root]
   );
 
   const handlePanelClosed = useCallback(
@@ -178,7 +178,10 @@ function ReactPanel({
      */
     function openIfNecessary() {
       const itemConfig = { id: panelId };
-      const existingStack = LayoutUtils.getStackForConfig(parent, itemConfig);
+      // We check if we have an existing stack with this panel ID. Check from the root though,
+      // as the user may have moved the panel to a different stack, and we want to find it regardless
+      // of where it is in the layout.
+      const existingStack = LayoutUtils.getStackForConfig(root, itemConfig);
       if (existingStack == null) {
         const config = {
           type: 'react-component' as const,
@@ -189,6 +192,7 @@ function ReactPanel({
           isClosable,
         };
 
+        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root
         LayoutUtils.openComponent({ root: parent, config });
         log.debug('Opened panel', panelId, config);
       } else if (openedMetadataRef.current !== metadata) {
@@ -210,10 +214,10 @@ function ReactPanel({
 
       if (prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
-        LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
+        LayoutUtils.renameComponent(root, itemConfig, panelTitle);
       }
     },
-    [isClosable, parent, metadata, onOpen, panelId, panelTitle]
+    [isClosable, parent, metadata, onOpen, panelId, panelTitle, root]
   );
   const widgetStatus = useWidgetStatus();
 

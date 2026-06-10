@@ -3,14 +3,17 @@ import { render, within } from '@testing-library/react';
 import {
   LayoutUtils,
   type WidgetDescriptor,
+  useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
+import type { ContentItem } from '@deephaven/golden-layout';
 import { TestUtils } from '@deephaven/test-utils';
 import ReactPanel from './ReactPanel';
 import {
   type ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
+import { ParentItemContext } from './ParentItemContext';
 import { type ReactPanelProps } from './LayoutUtils';
 import PortalPanelManagerContext, {
   type PortalPanelMap,
@@ -107,6 +110,40 @@ it('opens panel on mount, and closes panel on unmount', () => {
   expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it('finds and closes existing panels from the layout root, but opens in the parent stack', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  // Use a parent that is distinct from the layout root, e.g. the user moved the panel
+  // into a different stack within the layout.
+  const parent = TestUtils.createMockProxy<ContentItem>();
+
+  const { unmount } = render(
+    <ParentItemContext.Provider value={parent}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+  // Searches for an existing panel from the root, not just the parent
+  expect(LayoutUtils.getStackForConfig).toHaveBeenCalledWith(root, {
+    id: mockPanelId,
+  });
+  // Opens the panel in the parent stack rather than at the root
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root: parent })
+  );
+
+  unmount();
+
+  // Closes the panel from the root, since it may have been moved out of the parent
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledWith(root, {
+    id: mockPanelId,
+  });
 });
 
 it('only calls open once if the panel has not closed and only children change', () => {
