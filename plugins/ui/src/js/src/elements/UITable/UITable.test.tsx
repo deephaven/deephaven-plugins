@@ -161,18 +161,18 @@ describe('UITable chart builder', () => {
 
     capturedOnCreateChart!(chartSettings, irisGridModel);
 
-expect(mockEmit).toHaveBeenCalledWith(
-  'IrisGridevent.CREATE_CHART',
-  expect.objectContaining({
-    metadata: expect.objectContaining({
-      settings: chartSettings,
-      sourcePanelId: 'mock-panel-id',
-      table: 'my_table',
-      tableSettings: {},
-    }),
-    table: irisGridModel.table,
-  })
-);
+    expect(mockEmit).toHaveBeenCalledWith(
+      'IrisGridevent.CREATE_CHART',
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          settings: chartSettings,
+          sourcePanelId: 'mock-panel-id',
+          table: 'my_table',
+          tableSettings: {},
+        }),
+        table: irisGridModel.table,
+      })
+    );
   });
 
   it('uses fallback table name when description is empty', async () => {
@@ -221,17 +221,17 @@ expect(mockEmit).toHaveBeenCalledWith(
 
     capturedOnCreateChart!(chartSettings, irisGridModel);
 
-expect(mockEmit).toHaveBeenCalledWith(
-  'IrisGridevent.CREATE_CHART',
-  expect.objectContaining({
-    metadata: expect.objectContaining({
-      settings: chartSettings,
-      sourcePanelId: 'mock-panel-id',
-      table: 'tree_table',
-      tableSettings: {},
-    }),
-    table: undefined,
-  })
-);
+    expect(mockEmit).toHaveBeenCalledWith(
+      'IrisGridevent.CREATE_CHART',
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          settings: chartSettings,
+          sourcePanelId: 'mock-panel-id',
+          table: 'tree_table',
+          tableSettings: {},
+        }),
+        table: undefined,
+      })
+    );
   });
 });
