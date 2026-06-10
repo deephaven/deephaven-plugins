@@ -82,9 +82,6 @@ def nested_dashboard_with_state_component():
     )
 
 
-from deephaven import ui
-
-
 @ui.component
 def buggy_drag_panel():
     """
