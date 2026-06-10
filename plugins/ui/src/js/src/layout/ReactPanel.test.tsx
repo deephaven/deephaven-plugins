@@ -125,7 +125,7 @@ it('finds and closes existing panels from the layout root, but opens in the pare
     </ParentItemContext.Provider>
   );
 
-  const root = (useLayoutManager as jest.Mock).mock.results[0].value.root;
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
 
   // Searches for an existing panel from the root, not just the parent
   expect(LayoutUtils.getStackForConfig).toHaveBeenCalledWith(root, {
