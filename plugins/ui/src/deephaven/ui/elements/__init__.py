@@ -12,6 +12,7 @@ __all__ = [
     "DashboardElement",
     "Element",
     "FunctionElement",
+    "NodeType",
     "PropsType",
     "resolve",
 ]

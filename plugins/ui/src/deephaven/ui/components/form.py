@@ -19,11 +19,11 @@ from .types import (
     NecessityIndicator,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def form(
-    *children: Any,
+    *children: NodeType,
     is_quiet: bool | None = None,
     is_emphasized: bool | None = None,
     is_disabled: bool | None = None,

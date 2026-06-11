@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from .Element import Element
+from .Element import Element, NodeType
 from .._internal import dict_to_react_props, RenderContext
 
 
@@ -22,7 +22,7 @@ class BaseElement(Element):
         self,
         name: str,
         /,
-        *children: Any,
+        *children: NodeType,
         key: str | None = None,
         _nullable_props: list[str] = [],
         **props: Any,

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def column(
-    *children: Any, width: float | None = None, key: str | None = None
+    *children: NodeType, width: float | None = None, key: str | None = None
 ) -> Element:
     """
     A column is a container that can be used to group elements.
