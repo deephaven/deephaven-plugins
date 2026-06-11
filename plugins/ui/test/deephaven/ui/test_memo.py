@@ -98,6 +98,45 @@ class MemoTestCase(BaseTestCase):
         self.assertEqual(parent_render_count[0], 2)  # Parent re-rendered
         self.assertEqual(child_render_count[0], 1)  # Child SKIPPED (memoized)
 
+    def test_memo_skips_rerender_with_same_positional_props(self):
+        """Test that memo=True skips re-render when positional (children) props are unchanged."""
+        on_change = Mock(side_effect=run_on_change)
+        on_queue = Mock(side_effect=run_on_change)
+
+        child_render_count = [0]
+
+        @ui.component(memo=True)
+        def memoized_child(name: str):
+            child_render_count[0] += 1
+            return ui.text(f"Hello, {name}!")
+
+        @ui.component
+        def parent():
+            parent_state, set_parent_state = ui.use_state(0)
+            return ui.flex(
+                ui.action_button(
+                    str(parent_state),
+                    on_press=lambda _: set_parent_state(parent_state + 1),
+                ),
+                # Pass the same value positionally each render
+                memoized_child("World"),
+            )
+
+        rc = RenderContext(on_change, on_queue)
+        renderer = Renderer(rc)
+
+        # Initial render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)
+
+        # Trigger parent re-render (change parent state)
+        button = self._find_action_button(result)
+        button.props["onPress"](None)
+
+        # Re-render
+        result = renderer.render(parent())
+        self.assertEqual(child_render_count[0], 1)  # Child SKIPPED (memoized)
+
     def test_memo_rerenders_when_props_change(self):
         """Test that memo=True re-renders when props change."""
         on_change = Mock(side_effect=run_on_change)
@@ -789,9 +828,8 @@ class MemoTestCase(BaseTestCase):
         button.props["onPress"](None)
 
         renderer.render(parent())
-        # Should re-render because children are passed as positional args and new list is created each time
-        # This is how React.memo works with children - it does a shallow compare which sees a new list of children each time
-        self.assertEqual(wrapper_render_count[0], 2)
+        # Should skip because the same stable_child object is passed
+        self.assertEqual(wrapper_render_count[0], 1)
 
     def test_memo_with_none_props(self):
         """Test memoization handles None props correctly."""

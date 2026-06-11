@@ -12,6 +12,30 @@ logger = logging.getLogger(__name__)
 CompareFunction = Callable[[PropsType, PropsType], bool]
 
 
+def _default_are_props_equal(prev_props: PropsType, next_props: PropsType) -> bool:
+    """
+    The default are_props_equal function that does a shallow comparison of the props.
+
+    Args:
+        prev_props: The previous props to check against the current props.
+        next_props: The current props to check against the previous props.
+
+    Returns:
+        True if the props are equal, False otherwise.
+    """
+    # Children are passed in as positional args wrapped in a tuple, so the tuple
+    # itself is a different object on every render even when the children are the
+    # same. Compare children by value, then shallow compare the remaining props.
+    if "children" in prev_props or "children" in next_props:
+        if prev_props.get("children") != next_props.get("children"):
+            return False
+
+    return dict_shallow_equal(
+        {k: v for k, v in prev_props.items() if k != "children"},
+        {k: v for k, v in next_props.items() if k != "children"},
+    )
+
+
 @overload
 def component(func: Callable[..., Any]) -> Callable[..., Element]:
     """Basic usage without parentheses: @ui.component"""
@@ -72,7 +96,7 @@ def component(
         compare_fn: CompareFunction | None = None
     elif memo is True:
         enable_memo = True
-        compare_fn = dict_shallow_equal
+        compare_fn = _default_are_props_equal
     elif callable(memo):
         enable_memo = True
         compare_fn = memo
