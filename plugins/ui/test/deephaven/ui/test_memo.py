@@ -10,11 +10,26 @@ from unittest.mock import Mock
 from typing import Any, Callable, List, Union
 from deephaven.ui.renderer.Renderer import Renderer
 from deephaven.ui.renderer.RenderedNode import RenderedNode
-from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
+from deephaven.ui._internal.RenderContext import (
+    RenderContext as _RenderContext,
+    OnChangeCallable,
+)
 from deephaven import ui
 from .BaseTest import BaseTestCase
+from .test_utils_root import TestRoot
 
 run_on_change: OnChangeCallable = lambda x: x()
+
+
+def RenderContext(
+    on_change: OnChangeCallable, on_queue: OnChangeCallable
+) -> _RenderContext:
+    """Create a RenderContext for tests by wrapping the callbacks in a TestRoot.
+
+    The RenderContext constructor takes a single root protocol, so this shim
+    preserves the ``RenderContext(on_change, on_queue)`` call style used below.
+    """
+    return _RenderContext(TestRoot(on_change, on_queue))
 
 
 class MemoTestCase(BaseTestCase):
