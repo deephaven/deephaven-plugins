@@ -4,13 +4,11 @@
 FROM mcr.microsoft.com/playwright:v1.44.1-jammy AS playwright
 WORKDIR /work/
 
-# Update packages list and install some build tools.
-# Installing fonts-dejavu-core so we have some common fonts with the GH actions
-# runner that can be used to render unicode fonts. See web-client-ui README for more info.
+# Install a minimal font package so rendering is closer to GH Actions runners.
 RUN set -eux; \
     apt-get update; \
-    apt-get install build-essential --yes; \
-    apt-get install fonts-dejavu-core --yes;
+    apt-get install --no-install-recommends -y fonts-dejavu-core; \
+    rm -rf /var/lib/apt/lists/*
 
 RUN fc-list : family;
 
