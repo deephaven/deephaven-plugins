@@ -455,6 +455,14 @@ class RenderContext:
         """
         return self._is_dirty
 
+    def mark_dirty(self) -> None:
+        """
+        Mark this context as dirty so that it (and its children) are re-rendered on
+        the next render pass. Used for changes that are not tracked as component
+        state, such as a URL change, which can affect any component in the tree.
+        """
+        self._is_dirty = True
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
