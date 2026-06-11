@@ -166,6 +166,10 @@ export function PivotBuilderPanelMiddleware({
   const [pivotServiceStatus, setPivotServiceStatus] =
     useState<PivotServiceStatus>(corePlusAvailable ? 'loading' : 'unavailable');
 
+  // Bumped to retry the probe (e.g. after a worker restart surfaces a fresh
+  // model). Adding this to the probe effect's deps re-runs it.
+  const [probeRetryKey, setProbeRetryKey] = useState(0);
+
   useEffect(() => {
     if (!corePlusAvailable) {
       setPivotServiceStatus('unavailable');
@@ -203,7 +207,23 @@ export function PivotBuilderPanelMiddleware({
     return () => {
       cancelled = true;
     };
-  }, [corePlusAvailable, metadata, objectFetcher]);
+  }, [corePlusAvailable, metadata, objectFetcher, probeRetryKey]);
+
+  // Re-probe when the host publishes a (re)built model and PSP was
+  // previously unavailable. Worker restarts surface as a new model from
+  // `IrisGridPanel`; if the fresh worker has PSP we want the panel to
+  // recognize it without the user reloading. We deliberately skip
+  // re-probing once status is `ready` so the happy path doesn't flicker
+  // through `loading` on every model swap (we assume PSP doesn't
+  // disappear mid-session).
+  useEffect(() => {
+    if (model != null && pivotServiceStatus === 'unavailable') {
+      setProbeRetryKey(k => k + 1);
+    }
+    // Intentionally only react to `model` changes; `pivotServiceStatus` is
+    // read as a snapshot to gate the retry, not to drive it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model]);
 
   const getPspWidget = useCallback(async (): Promise<DhType.Widget> => {
     if (pspWidgetRef.current != null) {

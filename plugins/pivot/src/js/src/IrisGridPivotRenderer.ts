@@ -106,9 +106,18 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
           if (coords != null) {
             const { x1: columnGroupLeft, x2: columnGroupRight } = coords;
 
-            // Set column index to end of the current group
-            columnIndex =
+            // Advance to the end of the current group, but never move backward
+            // or to a non-finite index. If the column header groups are
+            // momentarily out of sync with the columns array, a group's last
+            // child index can be <= the current column (or undefined when the
+            // group has no children yet). Assigning that directly would make
+            // this loop fail to progress and spin forever (hard page freeze),
+            // since the trailing `columnIndex += 1` could never pass endIndex.
+            const lastChildIndex =
               headerGroup.childIndexes[headerGroup.childIndexes.length - 1];
+            if (lastChildIndex != null && lastChildIndex > columnIndex) {
+              columnIndex = lastChildIndex;
+            }
 
             const columnWidth = columnGroupRight - columnGroupLeft;
 

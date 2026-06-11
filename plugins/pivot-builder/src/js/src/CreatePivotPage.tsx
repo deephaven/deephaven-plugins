@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   type IrisGridModel,
   IrisGridUtils,
@@ -9,6 +9,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   isPivotBuilderIrisGridModel,
   type PivotConfig,
+  type PivotBuilderUiState,
 } from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
 import { usePivotServiceStatus } from './PivotServiceContext';
@@ -109,8 +110,7 @@ function seedAggregationSettings(
 }
 
 function aggregationsToPivot(
-  settings: AggregationSettings,
-  fallbackCountColumn: string | undefined
+  settings: AggregationSettings
 ): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   settings.aggregations.forEach(agg => {
@@ -118,20 +118,18 @@ function aggregationsToPivot(
     const op = String(agg.operation);
     out[op] = [...(out[op] ?? []), ...agg.selected];
   });
-  if (Object.keys(out).length === 0 && fallbackCountColumn != null) {
-    out.Count = [fallbackCountColumn];
-  }
   return out;
 }
 
 /**
  * Sidebar `configPage` for the Create Pivot menu item.
  *
- * Renders the card-based config panel. The Rollup rows and Aggregate
- * values cards are wired to `model.rollupConfig` / `model.totalsConfig`;
- * the other two cards are mock-data only (see
+ * Renders the card-based config panel. The Rollup rows, Aggregate values,
+ * and Pivot columns cards drive the model via `applyPivotBuilderConfig`;
+ * the Filterable columns card is still a placeholder (not yet wired to the
+ * model) — see
  * `plans/DH-21476-pivot-builder-rollup-rows-wiring.md` and
- * `plans/DH-21476-pivot-builder-aggregate-values-wiring.md`).
+ * `plans/DH-21476-pivot-builder-aggregate-values-wiring.md`.
  */
 export function CreatePivotPage({
   model,
@@ -143,9 +141,21 @@ export function CreatePivotPage({
   // Always source columns from the original (pre-pivot) table so the
   // selectors don't shift to pivot output columns after Apply.
   const columns = isProxy ? model.sourceTable.columns : model.columns;
+  // `model.sourceTable.columns` (and `IrisGridModel.columns`) is a JS API
+  // getter that can hand back a fresh array on every access. Keying the
+  // memos below on the raw array would change `allColumnNames` /
+  // `columnTypes` identity every render, re-firing the reconcile effect
+  // below — which dispatches `PIVOT_BUILDER_CONFIG_CHANGED`, which calls
+  // `setPersistedConfig` upstream, which re-renders us — an infinite loop
+  // that thrashes the whole sidebar (including the host's back button).
+  // Derive a stable signature from the column names+types instead.
+  const columnsKey = columns
+    .map((c: { name: string; type: string }) => `${c.name}\u0000${c.type}`)
+    .join('\u0001');
   const allColumnNames = useMemo(
     () => columns.map((c: { name: string }) => c.name),
-    [columns]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [columnsKey]
   );
   const columnTypes = useMemo(() => {
     const map: Record<string, string> = {};
@@ -153,7 +163,8 @@ export function CreatePivotPage({
       map[c.name] = c.type;
     });
     return map;
-  }, [columns]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnsKey]);
 
   // Seed all four configurable cards from the proxy's last applied
   // intent (`builderConfig`) so reopening the Create Pivot page never
@@ -168,22 +179,35 @@ export function CreatePivotPage({
   const pivotIntent = intent?.pivot ?? null;
   const rollupIntent = intent?.rollup ?? model.rollupConfig ?? null;
   const totalsIntent = intent?.totals ?? model.totalsConfig ?? null;
+  // Persisted UI/card state (switch positions + contents). When present it
+  // is the authoritative seed source — it restores cards exactly as the
+  // user left them, including toggled-off cards whose contents are dropped
+  // from the derived model config. Absent on legacy configs, in which case
+  // we fall back to deriving seed state from the model config below.
+  const uiIntent: PivotBuilderUiState | null = intent?.ui ?? null;
 
-  const [mockRollupRows, setMockRollupRows] = useState<string[]>(() => {
+  const [rollupRows, setRollupRows] = useState<string[]>(() => {
+    if (uiIntent != null) return [...uiIntent.rollupRows];
     if (pivotIntent != null) return [...pivotIntent.rowKeys];
     return rollupIntent?.groupingColumns?.map((c: unknown) => String(c)) ?? [];
   });
-  const [mockRollupRowsOn, setMockRollupRowsOn] = useState<boolean>(true);
-  const [mockIncludeConstituents, setMockIncludeConstituents] =
-    useState<boolean>(() => rollupIntent?.includeConstituents ?? true);
-  const [mockNonAggregatedInRollup, setMockNonAggregatedInRollup] =
-    useState(true);
+  const [rollupRowsOn, setRollupRowsOn] = useState<boolean>(
+    () => uiIntent?.rollupRowsOn ?? true
+  );
+  const [includeConstituents, setIncludeConstituents] = useState<boolean>(
+    () =>
+      uiIntent?.includeConstituents ?? rollupIntent?.includeConstituents ?? true
+  );
+  const [nonAggregatedInRollup, setNonAggregatedInRollup] = useState<boolean>(
+    () => uiIntent?.nonAggregatedInRollup ?? true
+  );
 
   // Aggregate values state. Source-of-truth shape matches the host's
   // `AggregationSettings` so we can hand it straight to
   // `IrisGridUtils.getModelRollupConfig` / `.getModelTotalsConfig`.
   const [aggregationSettings, setAggregationSettings] =
     useState<AggregationSettings>(() => {
+      if (uiIntent != null) return uiIntent.aggregations;
       if (pivotIntent != null) {
         return {
           aggregations: aggregationsFromOpMap(pivotIntent.aggregations),
@@ -192,14 +216,32 @@ export function CreatePivotPage({
       }
       return seedAggregationSettings(rollupIntent, totalsIntent);
     });
-  const [aggregatesOn, setAggregatesOn] = useState(true);
-
-  const [mockPivotColumns, setMockPivotColumns] = useState<string[]>(() =>
-    pivotIntent != null ? [...pivotIntent.columnKeys] : []
+  const [aggregatesOn, setAggregatesOn] = useState<boolean>(
+    () => uiIntent?.aggregatesOn ?? true
   );
-  const [mockPivotColumnsOn, setMockPivotColumnsOn] = useState(true);
-  const [mockFilterable, setMockFilterable] = useState<string[]>([]);
-  const [mockFilterableOn, setMockFilterableOn] = useState(true);
+
+  const [pivotColumns, setPivotColumns] = useState<string[]>(() => {
+    if (uiIntent != null) return [...uiIntent.pivotColumns];
+    return pivotIntent != null ? [...pivotIntent.columnKeys] : [];
+  });
+  const [pivotColumnsOn, setPivotColumnsOn] = useState<boolean>(
+    () => uiIntent?.pivotColumnsOn ?? true
+  );
+  const [placeholderFilterable, setPlaceholderFilterable] = useState<string[]>(
+    () => uiIntent?.filterableColumns ?? []
+  );
+  const [placeholderFilterableOn, setPlaceholderFilterableOn] =
+    useState<boolean>(() => uiIntent?.filterableOn ?? true);
+
+  // Skip the mount reconcile: the model transform has already applied any
+  // persisted intent, so on first render the cards are seeded to match the
+  // model's current config and there are no user changes to write. Writing
+  // it back would dispatch `PIVOT_BUILDER_CONFIG_CHANGED`, persist identical
+  // state, and re-render the host one frame into the sidebar slide-in —
+  // tearing the animation and (with equivalent-by-key Stack children)
+  // remounting this page, re-running this effect → loop. Only persist once
+  // the user actually changes a card.
+  const hasReconciledRef = useRef(false);
 
   // Reconcile pivot/rollup/totals on every relevant state change. The
   // proxy owns ordering, diffing against last intent, and the mid-swap
@@ -211,7 +253,12 @@ export function CreatePivotPage({
   useEffect(() => {
     if (!isPivotBuilderIrisGridModel(model)) return;
 
-    const rollupActive = mockRollupRowsOn && mockRollupRows.length > 0;
+    if (!hasReconciledRef.current) {
+      hasReconciledRef.current = true;
+      return;
+    }
+
+    const rollupActive = rollupRowsOn && rollupRows.length > 0;
     const aggsActive =
       aggregatesOn &&
       aggregationSettings.aggregations.some(
@@ -223,13 +270,14 @@ export function CreatePivotPage({
       : EMPTY_AGGREGATION_SETTINGS;
 
     // Pivot is valid with empty rowKeys (PSP collapses to a single
-    // row). It is NOT valid with an empty aggregations map, so we
-    // synthesize a `Count` over the first source column that isn't
-    // already used as a row or pivot key. Also gate on PSP being
+    // row). It is NOT valid with an empty aggregations map, but that
+    // `Count` fallback is synthesized quietly at the `createPivotTable`
+    // call (see pivotBuilderModel) so it never leaks into the persisted
+    // intent or the Aggregate values card. Also gate on PSP being
     // available on this worker; otherwise createPivotTable hangs and
     // the proxy times out after 10s.
     const pivotActive =
-      pivotAvailable && mockPivotColumnsOn && mockPivotColumns.length > 0;
+      pivotAvailable && pivotColumnsOn && pivotColumns.length > 0;
 
     let pivot: PivotConfig | null = null;
     let rollup: ReturnType<typeof IrisGridUtils.getModelRollupConfig> | null =
@@ -237,15 +285,15 @@ export function CreatePivotPage({
     let totals: UITotalsTableConfig | null = null;
 
     if (pivotActive) {
-      const used = new Set<string>([...mockRollupRows, ...mockPivotColumns]);
-      const countFallback = allColumnNames.find(c => !used.has(c));
+      // Rollup rows become the pivot's row keys, but only when the rollup
+      // card is active; disabling the rollup card while pivot is on must
+      // collapse the pivot to a single row (otherwise the config is
+      // unchanged and the table doesn't react).
+      const rowKeys = rollupActive ? rollupRows : [];
       pivot = {
-        rowKeys: mockRollupRows,
-        columnKeys: mockPivotColumns,
-        aggregations: aggregationsToPivot(
-          effectiveAggregationSettings,
-          countFallback
-        ),
+        rowKeys,
+        columnKeys: pivotColumns,
+        aggregations: aggregationsToPivot(effectiveAggregationSettings),
       };
     } else if (rollupActive) {
       // Rollup folds aggregations into its config; standalone totals row
@@ -253,9 +301,9 @@ export function CreatePivotPage({
       rollup = IrisGridUtils.getModelRollupConfig(
         model.sourceTable.columns,
         {
-          columns: mockRollupRows,
-          showConstituents: mockIncludeConstituents,
-          showNonAggregatedColumns: mockNonAggregatedInRollup,
+          columns: rollupRows,
+          showConstituents: includeConstituents,
+          showNonAggregatedColumns: nonAggregatedInRollup,
           includeDescriptions: true as const,
         },
         effectiveAggregationSettings
@@ -269,18 +317,40 @@ export function CreatePivotPage({
       );
     }
 
-    model.applyPivotBuilderConfig({ pivot, rollup, totals });
+    model.applyPivotBuilderConfig({
+      pivot,
+      rollup,
+      totals,
+      // Persist the full card UI state (switch positions + contents) so the
+      // sidebar restores exactly what the user left — the derived
+      // pivot/rollup/totals above collapse "card off" and "card on but
+      // empty" into the same value and so can't recover the switches (or a
+      // toggled-off card's contents) on their own.
+      ui: {
+        rollupRowsOn,
+        rollupRows,
+        includeConstituents,
+        nonAggregatedInRollup,
+        aggregatesOn,
+        aggregations: aggregationSettings,
+        pivotColumnsOn,
+        pivotColumns,
+        filterableOn: placeholderFilterableOn,
+        filterableColumns: placeholderFilterable,
+      },
+    });
   }, [
     model,
-    mockRollupRowsOn,
-    mockRollupRows,
-    mockIncludeConstituents,
-    mockNonAggregatedInRollup,
-    mockPivotColumnsOn,
-    mockPivotColumns,
+    rollupRowsOn,
+    rollupRows,
+    includeConstituents,
+    nonAggregatedInRollup,
+    pivotColumnsOn,
+    pivotColumns,
     aggregatesOn,
     aggregationSettings,
-    allColumnNames,
+    placeholderFilterableOn,
+    placeholderFilterable,
     pivotAvailable,
   ]);
 
@@ -290,27 +360,27 @@ export function CreatePivotPage({
         <PivotConfigSection
           availableColumns={allColumnNames}
           columnTypes={columnTypes}
-          rollupRows={mockRollupRows}
-          onRollupRowsChange={setMockRollupRows}
-          rollupRowsOn={mockRollupRowsOn}
-          onRollupRowsOnChange={setMockRollupRowsOn}
-          pivotColumns={mockPivotColumns}
-          onPivotColumnsChange={setMockPivotColumns}
-          pivotColumnsOn={mockPivotColumnsOn}
-          onPivotColumnsOnChange={setMockPivotColumnsOn}
+          rollupRows={rollupRows}
+          onRollupRowsChange={setRollupRows}
+          rollupRowsOn={rollupRowsOn}
+          onRollupRowsOnChange={setRollupRowsOn}
+          pivotColumns={pivotColumns}
+          onPivotColumnsChange={setPivotColumns}
+          pivotColumnsOn={pivotColumnsOn}
+          onPivotColumnsOnChange={setPivotColumnsOn}
           pivotColumnsDisabled={!pivotAvailable}
           aggregationSettings={aggregationSettings}
           onAggregationSettingsChange={setAggregationSettings}
           aggregatesOn={aggregatesOn}
           onAggregatesOnChange={setAggregatesOn}
-          filterableColumns={mockFilterable}
-          onFilterableColumnsChange={setMockFilterable}
-          filterableColumnsOn={mockFilterableOn}
-          onFilterableColumnsOnChange={setMockFilterableOn}
-          includeConstituents={mockIncludeConstituents}
-          onIncludeConstituentsChange={setMockIncludeConstituents}
-          nonAggregatedInRollup={mockNonAggregatedInRollup}
-          onNonAggregatedInRollupChange={setMockNonAggregatedInRollup}
+          filterableColumns={placeholderFilterable}
+          onFilterableColumnsChange={setPlaceholderFilterable}
+          filterableColumnsOn={placeholderFilterableOn}
+          onFilterableColumnsOnChange={setPlaceholderFilterableOn}
+          includeConstituents={includeConstituents}
+          onIncludeConstituentsChange={setIncludeConstituents}
+          nonAggregatedInRollup={nonAggregatedInRollup}
+          onNonAggregatedInRollupChange={setNonAggregatedInRollup}
         />
       </div>
     </div>

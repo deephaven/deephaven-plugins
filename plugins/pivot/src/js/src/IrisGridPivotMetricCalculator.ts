@@ -21,6 +21,24 @@ import {
 } from './IrisGridPivotTypes';
 import { getKeyColumnGroups } from './PivotUtils';
 
+// [DIAG] Lightweight call-counter to detect per-frame draw storms while the
+// page is frozen. Logs every Nth hit so the console buffer reveals which
+// method is being hammered. TODO: remove before merging.
+const __diagCounts: Record<string, number> = {};
+function diagBump(label: string, every = 200, extra?: unknown): void {
+  __diagCounts[label] = (__diagCounts[label] ?? 0) + 1;
+  const n = __diagCounts[label];
+  if (n % every === 0) {
+    if (extra !== undefined) {
+      // eslint-disable-next-line no-console
+      console.log(`[DIAG ${label}] n=${n}`, extra);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`[DIAG ${label}] n=${n}`);
+    }
+  }
+}
+
 /**
  * Get the width of a column that may be not in the viewport,
  * based on the user, calculated, and theme widths.
@@ -68,6 +86,7 @@ export function getColumnHeaderCoordinates(
   state: IrisGridPivotRenderState,
   group: PivotColumnHeaderGroup
 ): BoxCoordinates | null {
+  diagBump('getColumnHeaderCoordinates', 200);
   const { metrics, theme } = state;
   const { childIndexes, depth } = group;
   const firstChildIndex = childIndexes[0];
@@ -177,6 +196,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     state: IrisGridPivotMetricState,
     maxColumnWidth: number
   ): number {
+    diagBump('getColumnHeaderGroupWidth', 200, { modelColumn, depth });
     const baseWidth = super.getColumnHeaderGroupWidth(
       modelColumn,
       depth,
@@ -213,6 +233,7 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     model: IrisGridPivotModel,
     state: IrisGridPivotMetricState
   ): number {
+    diagBump('calculateColumnSourceLabelWidth', 200);
     const { theme } = state;
     const { headerHorizontalPadding, maxColumnWidth } = theme;
     const keyColumnGroups = getKeyColumnGroups(model);
@@ -236,6 +257,12 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     if (!isIrisGridPivotModel(model)) {
       throw new Error('Model is not an IrisGridPivotModel');
     }
+
+    // [DIAG] count getMetrics calls to detect a per-frame draw storm
+    diagBump('getMetrics', 200, {
+      cols: model.columnCount,
+      rows: model.rowCount,
+    });
 
     // Update column widths if columns in the cached model don't match the current model passed in the state
     const columnSourceLabelWidth = this.calculateColumnSourceLabelWidth(

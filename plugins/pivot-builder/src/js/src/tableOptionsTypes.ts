@@ -34,6 +34,13 @@ export type OptionItem = {
   icon?: IconDefinition;
   isOn?: boolean;
   onChange?: () => void;
+  /**
+   * Optional sort weight for positioning the item within the menu. Items
+   * are stably sorted by ascending `order`; an omitted `order` sinks the
+   * item to the end of the menu. Built-in items are numbered with a stride
+   * of 100.
+   */
+  order?: number;
   configPage?: ComponentType<IrisGridTableOptionsPageProps>;
 };
 

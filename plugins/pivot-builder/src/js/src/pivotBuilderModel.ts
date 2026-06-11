@@ -2,6 +2,8 @@ import deepEqual from 'fast-deep-equal';
 import type { GridMouseHandler } from '@deephaven/grid';
 import {
   IrisGridModel,
+  AggregationOperation,
+  type AggregationSettings,
   type GetMetricCalculatorType,
   type IrisGridRenderer,
   type UITotalsTableConfig,
@@ -73,6 +75,29 @@ export interface PivotConfig {
 }
 
 /**
+ * Pure UI state of the four config cards. Persisted alongside the derived
+ * model config so the sidebar restores switch positions AND card contents
+ * exactly on reopen/reload. The derived `pivot`/`rollup`/`totals` collapse
+ * "card off" and "card on but empty" into the same value, so they cannot
+ * recover the switch positions (or the contents of a card that was toggled
+ * off) on their own. Optional/absent for configs persisted before this
+ * field existed — the sidebar falls back to deriving seed state from the
+ * model config in that case.
+ */
+export interface PivotBuilderUiState {
+  rollupRowsOn: boolean;
+  rollupRows: string[];
+  includeConstituents: boolean;
+  nonAggregatedInRollup: boolean;
+  aggregatesOn: boolean;
+  aggregations: AggregationSettings;
+  pivotColumnsOn: boolean;
+  pivotColumns: string[];
+  filterableOn: boolean;
+  filterableColumns: string[];
+}
+
+/**
  * High-level pivot-builder intent. The proxy diffs against its last
  * applied intent internally; callers can pass the same value across
  * unrelated re-renders without causing redundant writes.
@@ -81,6 +106,13 @@ export interface PivotBuilderConfig {
   pivot: PivotConfig | null;
   rollup: DhType.RollupConfig | null;
   totals: UITotalsTableConfig | null;
+  /**
+   * Pure UI/card state (switch positions + card contents). Decoupled from
+   * the derived model config above so reopening the sidebar restores the
+   * exact card state the user left, including toggled-off cards. Absent on
+   * configs persisted before this field existed.
+   */
+  ui?: PivotBuilderUiState | null;
 }
 
 /**
@@ -178,6 +210,49 @@ export function augmentPivotBuilderModel(
   // regardless of the proxy's current inner model.
   const { table } = proxy.originalModel as unknown as { table: DhType.Table };
 
+  // The pivot service hangs the worker on an aggregation that targets no
+  // columns the same way it rejects an empty aggregations map — e.g. a
+  // degenerate `{ Count: [] }` (Count over zero columns). Such an entry can
+  // arrive from a stale persisted `builderConfig` baked by an earlier build
+  // and is re-applied on every reload, so we sanitize it here at the single
+  // `createPivotTable` choke point rather than trust the incoming map.
+  //
+  // We first drop every aggregation whose column list is empty. If the user
+  // has pivot columns selected but no (valid) aggregations — i.e. the
+  // Aggregate values card is off or empty — a column-less pivot would render
+  // only key columns with no values, which is rarely what's wanted. So when
+  // the sanitized map is empty we synthesize a `Count` over a single source
+  // column (the first column not already used as a row/column key, falling
+  // back to the first column overall). This produces a meaningful count
+  // pivot. The fallback is a BUILD-TIME detail only: it is NOT folded into
+  // the persisted `builderConfig`/intent and never surfaces in the Aggregate
+  // values card — the persisted config keeps the user's actual (empty)
+  // aggregations.
+  const withFallbackAggregations = (
+    config: PivotConfig
+  ): Record<string, string[]> => {
+    const sanitized = Object.fromEntries(
+      Object.entries(config.aggregations).filter(
+        ([, columns]) => columns.length > 0
+      )
+    );
+
+    if (Object.keys(sanitized).length > 0) {
+      return sanitized;
+    }
+
+    const usedKeys = new Set([...config.rowKeys, ...config.columnKeys]);
+    const fallbackColumn =
+      table.columns.find(column => !usedKeys.has(column.name)) ??
+      table.columns[0];
+
+    if (fallbackColumn == null) {
+      return sanitized;
+    }
+
+    return { [AggregationOperation.COUNT]: [fallbackColumn.name] };
+  };
+
   let current: PivotConfig | null = null;
   // Monotonic token for in-flight pivot creations. Every `pivotConfig` write
   // increments it; async build steps abort early when their captured token
@@ -209,7 +284,7 @@ export function augmentPivotBuilderModel(
         source: table as unknown as CorePlusDhType.Table,
         rowKeys: config.rowKeys,
         columnKeys: config.columnKeys,
-        aggregations: config.aggregations,
+        aggregations: withFallbackAggregations(config),
       });
       if (token !== pivotToken) {
         // Build resolved after a newer request superseded it. Close the
@@ -393,6 +468,18 @@ export function augmentPivotBuilderModel(
     configurable: true,
     enumerable: false,
     value(config: PivotBuilderConfig): void {
+      // No-op when the config is unchanged. `CreatePivotPage` reconciles
+      // on mount (and on every relevant state change), so reopening the
+      // sidebar page re-applies the already-applied intent. Without this
+      // guard we'd still dispatch `PIVOT_BUILDER_CONFIG_CHANGED`, which
+      // calls `setPersistedConfig` upstream and re-renders the host
+      // `IrisGrid` one frame after the sidebar's slide-in starts —
+      // tearing down the in-flight push/pop animation (the page snaps in
+      // instead of sliding, and the Stack's view hook flickers).
+      if (deepEqual(config, lastIntent)) {
+        log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
+        return;
+      }
       const proxyWithPivot = proxy as unknown as {
         pivotConfig: PivotConfig | null;
       };

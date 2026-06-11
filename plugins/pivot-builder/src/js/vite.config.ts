@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => ({
       // resolve map (or by the loaded js-plugin-pivot bundle in DHE's
       // plugin loader). `fast-deep-equal` is not in DHE's resolve map,
       // so we let it bundle.
+      //
+      // TODO: `@dnd-kit/*` and `@fortawesome/react-fontawesome` are bundled for
+      // now. Once a web-client-ui release re-exports them from
+      // `@deephaven/iris-grid` / `@deephaven/components`, switch the plugin
+      // to import from those packages and externalize them again.
       external: [
         'react',
         'react-dom',
@@ -33,9 +38,6 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/js-plugin-pivot',
         '@deephaven/log',
         '@deephaven/plugin',
-        '@dnd-kit/core',
-        '@dnd-kit/sortable',
-        '@dnd-kit/utilities',
       ],
     },
   },

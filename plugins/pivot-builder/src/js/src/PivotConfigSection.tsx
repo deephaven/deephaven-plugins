@@ -29,11 +29,25 @@ import {
   ActionButton,
   Button,
   Checkbox,
+  Icon,
+  Item,
+  MenuTrigger,
+  Picker,
   SearchInput,
+  Section,
   Select,
+  SpectrumMenu,
   Switch,
+  Text,
 } from '@deephaven/components';
-import { vsEdit, vsGripper, vsTrash } from '@deephaven/icons';
+import {
+  vsBlank,
+  vsCheck,
+  vsGripper,
+  vsKebabVertical,
+  vsTrash,
+} from '@deephaven/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   AggregationOperation,
   AggregationUtils,
@@ -64,8 +78,8 @@ const PIVOT_DND_STYLES = `
   transition: background-color 0.15s ease;
 }
 .pivot-config-section .pivot-droppable-empty {
-  min-height: 36px;
-  margin: 4px 0;
+  min-height: 26px;
+  margin: 2px 0;
   padding: 4px;
   border: dashed 1px transparent;
   border-radius: 2px;
@@ -148,7 +162,7 @@ export type PivotConfigSectionProps = {
 const cardStyle: React.CSSProperties = {
   border: '1px solid var(--dh-color-border-base, #444)',
   borderRadius: 4,
-  padding: '8px 10px',
+  padding: '6px 8px',
   background: 'var(--dh-color-bg-200, transparent)',
 };
 
@@ -156,7 +170,7 @@ const cardHeaderStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
-  marginBottom: 6,
+  marginBottom: 4,
 };
 
 const cardTitleStyle: React.CSSProperties = {
@@ -168,7 +182,7 @@ const rowStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 6,
-  padding: '4px 2px',
+  padding: '2px 2px',
 };
 
 const rowLabelStyle: React.CSSProperties = {
@@ -198,29 +212,9 @@ const gripHandleStyle: React.CSSProperties = {
   color: 'var(--dh-color-fg-200, #888)',
 };
 
-/** Inline SVG icon to avoid bundling `@fortawesome/react-fontawesome`
- *  (which is not in the host's remote-component resolve map). */
+/** Drag-handle grip icon. */
 function GripIcon(): JSX.Element {
-  // vsGripper.icon = [width, height, _ligs, _unicode, svgPathData]
-  const [w, h, , , path] = vsGripper.icon as [
-    number,
-    number,
-    string[],
-    string,
-    string,
-  ];
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${w} ${h}`}
-      width="14"
-      height="14"
-      aria-hidden="true"
-      fill="currentColor"
-    >
-      <path d={path} />
-    </svg>
-  );
+  return <FontAwesomeIcon icon={vsGripper} />;
 }
 
 const disabledBodyStyle: React.CSSProperties = {
@@ -435,6 +429,99 @@ function ColumnPicker({
   );
 }
 
+type OverflowMenuItem = {
+  /** Stable key identifying the item; passed back to `onAction`. */
+  key: string;
+  /** Visible label. */
+  label: string;
+  /**
+   * Toggle state. When `true` the item shows a leading checkmark; when `false`
+   * the checkmark column is blank. When `undefined` the item is a plain action
+   * (also blank), so toggles and actions can be mixed in the same menu. Every
+   * item reserves the leading icon column so labels stay aligned.
+   */
+  isSelected?: boolean;
+};
+
+/**
+ * A group of {@link OverflowMenuItem}s. Spectrum draws a divider before every
+ * section after the first, so each section boundary renders a separator —
+ * mirroring the grouped "Organize Columns" overflow menu in
+ * `@deephaven/iris-grid`.
+ */
+type OverflowMenuSection = {
+  /** Stable key identifying the section. */
+  key: string;
+  /** Items rendered within the section. */
+  items: OverflowMenuItem[];
+};
+
+type OverflowMenuProps = {
+  /**
+   * Sections rendered in the menu, with a separator drawn between each.
+   * Memoize for a stable reference.
+   */
+  sections: OverflowMenuSection[];
+  /** Keys of items rendered as disabled. */
+  disabledKeys?: Iterable<string>;
+  /** Accessible label / tooltip for the kebab (⋮) trigger. */
+  tooltip: string;
+  /** Invoked with the key of the activated item. */
+  onAction: (key: string) => void;
+  /** Invoked when the menu opens (e.g. to dismiss other open popovers). */
+  onOpen?: () => void;
+};
+
+/**
+ * A kebab (⋮) button that opens a Spectrum `Menu`, mirroring the Organize
+ * Columns overflow menu in `@deephaven/iris-grid`. `MenuTrigger` owns the
+ * open/close state. Items may be plain actions or checkable toggles
+ * (`isSelected` defined): a toggle's leading checkmark is swapped between
+ * `vsCheck` and `vsBlank` via `FontAwesomeIcon`, exactly like the
+ * "Show hidden columns" item there.
+ */
+function OverflowMenu({
+  sections,
+  disabledKeys,
+  tooltip,
+  onAction,
+  onOpen,
+}: OverflowMenuProps): JSX.Element {
+  return (
+    <MenuTrigger
+      closeOnSelect
+      onOpenChange={isOpen => {
+        if (isOpen) {
+          onOpen?.();
+        }
+      }}
+    >
+      <ActionButton isQuiet aria-label={tooltip}>
+        <FontAwesomeIcon icon={vsKebabVertical} />
+      </ActionButton>
+      <SpectrumMenu
+        disabledKeys={disabledKeys}
+        onAction={key => onAction(String(key))}
+      >
+        {sections.map(section => (
+          <Section key={section.key}>
+            {section.items.map(item => (
+              <Item key={item.key} textValue={item.label}>
+                <Icon>
+                  <FontAwesomeIcon
+                    icon={item.isSelected === true ? vsCheck : vsBlank}
+                  />
+                </Icon>
+                <Text>{item.label}</Text>
+              </Item>
+            ))}
+          </Section>
+        ))}
+      </SpectrumMenu>
+    </MenuTrigger>
+  );
+}
+
 type ConfigCardProps = {
   title: string;
   on: boolean;
@@ -443,6 +530,8 @@ type ConfigCardProps = {
   addDisabled?: boolean;
   /** When true, the whole card is greyed-out and non-interactive. */
   disabled?: boolean;
+  /** Optional overflow (⋮) menu rendered after the Add button. */
+  overflow?: React.ReactNode;
   picker?: (anchorRef: React.RefObject<HTMLElement>) => React.ReactNode;
   children: React.ReactNode;
 };
@@ -454,6 +543,7 @@ function ConfigCard({
   onAdd,
   addDisabled,
   disabled,
+  overflow,
   picker,
   children,
 }: ConfigCardProps): JSX.Element {
@@ -496,6 +586,7 @@ function ConfigCard({
             Add
           </ActionButton>
         </span>
+        {overflow}
         {picker?.(buttonRef)}
       </div>
       <div style={on ? undefined : disabledBodyStyle} aria-disabled={!on}>
@@ -628,15 +719,35 @@ function ColumnRowPreview({ name }: { name: string }): JSX.Element {
   );
 }
 
-type AggregateRowProps = {
-  entry: Aggregation;
-  index: number;
-  onEdit: () => void;
+type AggregateSelectRowProps = {
+  id: string;
+  operation: string;
+  columnLabels: readonly string[];
+  availableOperations: readonly string[];
+  onOperationChange: (operation: string) => void;
   onDelete: () => void;
 };
 
-function aggregationRowId(index: number): string {
-  return `${AGGREGATIONS_DROPPABLE}:${index}`;
+/**
+ * Stable sortable id for a grouped aggregate row (one row per operation).
+ * Keyed by the operation rather than its index so a reorder moves the DOM
+ * node (and animates) instead of mutating content in place — positional ids
+ * stay at the same slot after a reorder, which makes dnd-kit's drop animation
+ * snap the dragged row back to where it started.
+ */
+function aggregationRowId(operation: string): string {
+  return `${AGGREGATIONS_DROPPABLE}:${operation}`;
+}
+
+/**
+ * Stable sortable id for a single function/column pair (used by the ungrouped
+ * aggregate layout). Keyed by the operation + column content (separated by a
+ * NUL so it never collides with a column name) rather than positional indices,
+ * for the same reorder-animation reason as `aggregationRowId`. The container
+ * still resolves on the first `:`.
+ */
+function aggregationPairId(operation: string, column: string): string {
+  return `${AGGREGATIONS_DROPPABLE}:${operation}\u0000${column}`;
 }
 
 function formatAggLabel(entry: Aggregation): string {
@@ -645,13 +756,21 @@ function formatAggLabel(entry: Aggregation): string {
     : entry.operation;
 }
 
-function AggregateRow({
-  entry,
-  index,
-  onEdit,
+/**
+ * Two-line aggregate row: the aggregate function rendered as a quiet
+ * Spectrum picker (changeable inline) on the first line and the column
+ * label on the second. Used both for the grouped layout (one row per
+ * function, all columns joined) and the ungrouped layout (one row per
+ * function/column pair).
+ */
+function AggregateSelectRow({
+  id,
+  operation,
+  columnLabels,
+  availableOperations,
+  onOperationChange,
   onDelete,
-}: AggregateRowProps): JSX.Element {
-  const id = aggregationRowId(index);
+}: AggregateSelectRowProps): JSX.Element {
   const {
     attributes,
     listeners,
@@ -666,26 +785,60 @@ function AggregateRow({
   });
   const style: React.CSSProperties = {
     ...rowStyle,
+    // Stack the function/columns vertically so the delete + drag icons can
+    // sit on the same centered line as the aggregate-function picker (the
+    // column labels flow underneath).
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 0,
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0 : 1,
   };
   return (
     <div ref={setNodeRef} style={style}>
-      <span style={rowLabelStyle}>{formatAggLabel(entry)}</span>
-      <Button kind="ghost" icon={vsEdit} tooltip="Edit" onClick={onEdit} />
-      <Button kind="ghost" icon={vsTrash} tooltip="Remove" onClick={onDelete} />
-      <span
-        ref={setActivatorNodeRef}
-        style={gripHandleStyle}
-        aria-label="Drag to re-order"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...listeners}
-      >
-        <GripIcon />
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Picker
+            isQuiet
+            aria-label="Aggregation function"
+            selectedKey={operation}
+            onChange={key => {
+              if (key != null) {
+                onOperationChange(String(key));
+              }
+            }}
+          >
+            {availableOperations.map(op => (
+              <Item key={op} textValue={op}>
+                {op}
+              </Item>
+            ))}
+          </Picker>
+        </div>
+        <Button
+          kind="ghost"
+          icon={vsTrash}
+          tooltip="Remove"
+          onClick={onDelete}
+        />
+        <span
+          ref={setActivatorNodeRef}
+          style={gripHandleStyle}
+          aria-label="Drag to re-order"
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...attributes}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...listeners}
+        >
+          <GripIcon />
+        </span>
+      </div>
+      {columnLabels.map(label => (
+        <span key={label} style={rowLabelStyle}>
+          {label}
+        </span>
+      ))}
     </div>
   );
 }
@@ -694,12 +847,6 @@ function AggregateRowPreview({ entry }: { entry: Aggregation }): JSX.Element {
   return (
     <div style={{ ...rowStyle, ...draggingRowStyle }}>
       <span style={rowLabelStyle}>{formatAggLabel(entry)}</span>
-      <Button
-        kind="ghost"
-        icon={vsEdit}
-        tooltip="Edit"
-        onClick={() => undefined}
-      />
       <Button
         kind="ghost"
         icon={vsTrash}
@@ -752,6 +899,9 @@ type AggregatePickerProps = {
   columnTypes: Readonly<Record<string, string>>;
   availableOperations: readonly string[];
   initial: Aggregation;
+  /** Columns already selected per operation in the card, so switching the
+   *  function in the picker reveals that function's existing columns. */
+  existingSelections: Readonly<Record<string, readonly string[]>>;
   onCommit: (next: Aggregation) => void;
   onClose: () => void;
 };
@@ -762,6 +912,7 @@ function AggregatePicker({
   columnTypes,
   availableOperations,
   initial,
+  existingSelections,
   onCommit,
   onClose,
 }: AggregatePickerProps): JSX.Element {
@@ -769,10 +920,22 @@ function AggregatePicker({
   const selectRef = useRef<HTMLSelectElement>(null);
   const [operation, setOperation] = useState<string>(initial.operation);
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(initial.selected)
+    () => new Set(existingSelections[initial.operation] ?? initial.selected)
   );
   const [query, setQuery] = useState('');
   const pos = usePortalAnchorPosition(anchorRef, containerRef);
+
+  // When the function changes, load the columns already selected for that
+  // function so the multi-select reflects the current card state. Guarded
+  // by a ref so toggling columns (which doesn't change `operation`) and
+  // parent re-renders don't clobber the user's in-progress selection.
+  const prevOperationRef = useRef(operation);
+  useEffect(() => {
+    if (prevOperationRef.current !== operation) {
+      prevOperationRef.current = operation;
+      setSelected(new Set(existingSelections[operation] ?? []));
+    }
+  }, [operation, existingSelections]);
 
   useEffect(() => {
     // Defer focus past portal mount + position so the browser actually
@@ -996,7 +1159,22 @@ export function PivotConfigSection({
   // on the root so the drop zones render the marching-ants effect.
   const [dragSource, setDragSource] = useState<string | null>(null);
 
+  // Local toggle for the "Show hidden columns in menu" overflow item. There
+  // is no hidden-columns concept threaded through the plugin yet, so this
+  // simply tracks the checkmark state for now.
+  const [showHiddenColumns, setShowHiddenColumns] = useState(false);
+
+  // Only one popover (Add picker) may be open at a time across the cards.
+  // Opening any Add picker or overflow menu dismisses the others.
+  const closeAllPickers = useCallback(() => {
+    setRollupPickerOpen(false);
+    setPivotPickerOpen(false);
+    setAggPickerState(null);
+  }, []);
+
   const handleAddRollupRow = useCallback(() => {
+    setPivotPickerOpen(false);
+    setAggPickerState(null);
     setRollupPickerOpen(open => !open);
   }, []);
 
@@ -1009,6 +1187,8 @@ export function PivotConfigSection({
   );
 
   const handleAddPivotColumn = useCallback(() => {
+    setRollupPickerOpen(false);
+    setAggPickerState(null);
     setPivotPickerOpen(open => !open);
   }, []);
 
@@ -1025,6 +1205,18 @@ export function PivotConfigSection({
     [aggregationSettings.aggregations]
   );
 
+  // Map of operation -> selected columns, so the Add picker can show the
+  // columns already chosen for whichever function is selected.
+  const aggSelectionsByOperation = useMemo<
+    Record<string, readonly string[]>
+  >(() => {
+    const map: Record<string, readonly string[]> = {};
+    aggregationSettings.aggregations.forEach(a => {
+      map[a.operation as string] = a.selected;
+    });
+    return map;
+  }, [aggregationSettings.aggregations]);
+
   const selectableOperations = useMemo(
     () =>
       SELECTABLE_OPERATIONS.filter(
@@ -1036,13 +1228,9 @@ export function PivotConfigSection({
   const closeAggPicker = useCallback(() => setAggPickerState(null), []);
 
   const handleAddAggregate = useCallback(() => {
+    setRollupPickerOpen(false);
+    setPivotPickerOpen(false);
     setAggPickerState(s => (s?.mode === 'add' ? null : { mode: 'add' }));
-  }, []);
-
-  const handleEditAggregate = useCallback((index: number) => {
-    setAggPickerState(s =>
-      s?.mode === 'edit' && s.index === index ? null : { mode: 'edit', index }
-    );
   }, []);
 
   const handleCommitAggregate = useCallback(
@@ -1051,12 +1239,120 @@ export function PivotConfigSection({
       if (aggPickerState?.mode === 'edit') {
         aggregations[aggPickerState.index] = next;
       } else {
-        aggregations.push(next);
+        // Operations are unique per card: if an entry for this function
+        // already exists, merge the new columns into it (de-duped, order
+        // preserved) instead of pushing a duplicate entry.
+        const existingIndex = aggregations.findIndex(
+          a => a.operation === next.operation
+        );
+        if (existingIndex >= 0) {
+          const existing = aggregations[existingIndex];
+          const selected = [...existing.selected];
+          next.selected.forEach(col => {
+            if (!selected.includes(col)) {
+              selected.push(col);
+            }
+          });
+          aggregations[existingIndex] = { ...existing, selected };
+        } else {
+          aggregations.push(next);
+        }
       }
       onAggregationSettingsChange({ ...aggregationSettings, aggregations });
       setAggPickerState(null);
     },
     [aggPickerState, aggregationSettings, onAggregationSettingsChange]
+  );
+
+  const handleChangeAggregateOperation = useCallback(
+    (index: number, nextOp: string) => {
+      const aggregations = aggregationSettings.aggregations.slice();
+      const current = aggregations[index];
+      if (current == null || current.operation === nextOp) {
+        return;
+      }
+      // Operations are unique per card; ignore a change that collides with
+      // an operation already used by another entry.
+      if (aggregations.some((a, i) => i !== index && a.operation === nextOp)) {
+        return;
+      }
+      aggregations[index] = {
+        ...current,
+        operation: nextOp as AggregationOperation,
+      };
+      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
+    },
+    [aggregationSettings, onAggregationSettingsChange]
+  );
+
+  // Ungrouped layout (pivot/rollup present): change the function of a
+  // single function/column pair. Moves the column out of its current entry
+  // into the entry for the target function (creating one if needed). The
+  // underlying model keeps one entry per operation, so the column merges
+  // into any existing entry for `nextOp`.
+  const handleChangeAggregatePairOperation = useCallback(
+    (entryIndex: number, column: string, nextOp: string) => {
+      let aggregations = aggregationSettings.aggregations.map(a => ({
+        ...a,
+        selected: a.selected.slice(),
+      }));
+      const source = aggregations[entryIndex];
+      if (source == null || source.operation === nextOp) {
+        return;
+      }
+      if (column === '') {
+        // Empty placeholder entry: relabel it, or drop it if the target
+        // already exists.
+        const dest = aggregations.find(a => a.operation === nextOp);
+        if (dest == null) {
+          source.operation = nextOp as AggregationOperation;
+        } else {
+          aggregations = aggregations.filter(a => a !== source);
+        }
+      } else {
+        source.selected = source.selected.filter(c => c !== column);
+        const dest = aggregations.find(a => a.operation === nextOp);
+        if (dest == null) {
+          aggregations.push({
+            operation: nextOp as AggregationOperation,
+            selected: [column],
+            invert: false,
+          });
+        } else if (!dest.selected.includes(column)) {
+          dest.selected.push(column);
+        }
+        if (source.selected.length === 0) {
+          aggregations = aggregations.filter(a => a !== source);
+        }
+      }
+      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
+    },
+    [aggregationSettings, onAggregationSettingsChange]
+  );
+
+  // Ungrouped layout: remove a single function/column pair. Removes the
+  // column from its entry, dropping the entry if it becomes empty.
+  const handleDeleteAggregatePair = useCallback(
+    (entryIndex: number, column: string) => {
+      let aggregations = aggregationSettings.aggregations.map(a => ({
+        ...a,
+        selected: a.selected.slice(),
+      }));
+      const source = aggregations[entryIndex];
+      if (source == null) {
+        return;
+      }
+      if (column === '') {
+        aggregations = aggregations.filter(a => a !== source);
+      } else {
+        source.selected = source.selected.filter(c => c !== column);
+        if (source.selected.length === 0) {
+          aggregations = aggregations.filter(a => a !== source);
+        }
+      }
+      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
+    },
+    [aggregationSettings, onAggregationSettingsChange]
   );
 
   const handleDeleteAggregate = useCallback(
@@ -1076,14 +1372,15 @@ export function PivotConfigSection({
     [aggregationSettings, onAggregationSettingsChange]
   );
 
-  // Operations available to a given picker invocation. For "add" we exclude
-  // every already-used op; for "edit" we exclude others but keep the current.
+  // Operations available to a given picker invocation. "Add" always lists
+  // every selectable function (including ones already in use); "edit"
+  // excludes the operations used by other entries but keeps the current.
   const pickerAvailableOps = useMemo(() => {
-    if (aggPickerState == null) return selectableOperations;
+    if (aggPickerState == null || aggPickerState.mode === 'add') {
+      return selectableOperations;
+    }
     const currentOp =
-      aggPickerState.mode === 'edit'
-        ? aggregationSettings.aggregations[aggPickerState.index]?.operation
-        : undefined;
+      aggregationSettings.aggregations[aggPickerState.index]?.operation;
     return selectableOperations.filter(
       op => op === currentOp || !usedOperations.includes(op)
     );
@@ -1129,14 +1426,41 @@ export function PivotConfigSection({
   // marching-ants class is applied.
   // Track the active draggable's id for the DragOverlay preview.
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Container of the in-flight drag. Unlike `activeId`/`dragSource` (cleared
+  // at the top of `handleDragEnd`), this survives the drop so the drag
+  // overlay can still tell what kind of item it just released while it plays
+  // its drop animation. Reset only on the next drag start.
+  const activeContainerRef = useRef<string | null>(null);
   const handleDragStart = useCallback((event: DragStartEvent): void => {
     const container = String(event.active.data.current?.container ?? '');
+    activeContainerRef.current = container === '' ? null : container;
     setDragSource(container === '' ? null : container);
     setActiveId(String(event.active.id));
   }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+  );
+
+  // Only measure droppables continuously *while dragging*. With
+  // `MeasuringStrategy.Always` left on permanently, dnd-kit keeps its
+  // droppable ResizeObserver/MutationObserver active when idle, so any
+  // body-portal overlay (e.g. the Spectrum overflow menu) shifts layout,
+  // triggers a re-measure, and re-renders this whole subtree — which
+  // closes the just-opened menu and flickers the trigger. `WhileDragging`
+  // (the default) disables idle measuring; we switch to `Always` for the
+  // duration of a drag so empty drop-zones still expand to their full
+  // hit-area after the marching-ants class is applied.
+  const measuring = useMemo(
+    () => ({
+      droppable: {
+        strategy:
+          activeId != null
+            ? MeasuringStrategy.Always
+            : MeasuringStrategy.WhileDragging,
+      },
+    }),
+    [activeId]
   );
 
   const resolveContainerOfId = useCallback((id: string): string | null => {
@@ -1169,25 +1493,89 @@ export function PivotConfigSection({
       // Aggregations are a separate scope — reorder only.
       if (fromId === AGGREGATIONS_DROPPABLE) {
         if (toId !== AGGREGATIONS_DROPPABLE) return;
-        // Active id is `aggregations:<i>`, over may be `aggregations:<j>`
-        // or the container id (drop at end).
-        const fromIdx = aggregationSettings.aggregations.findIndex(
-          (_, i) => aggregationRowId(i) === activeIdStr
+
+        // Grouped layout (no pivot/rollup): ids are `aggregations:<operation>`
+        // and each row is a whole entry — reorder the entries directly.
+        const groupedFromIdx = aggregationSettings.aggregations.findIndex(
+          entry => aggregationRowId(entry.operation as string) === activeIdStr
         );
+        if (groupedFromIdx >= 0) {
+          const toIdx =
+            overIdStr === AGGREGATIONS_DROPPABLE
+              ? aggregationSettings.aggregations.length - 1
+              : aggregationSettings.aggregations.findIndex(
+                  entry =>
+                    aggregationRowId(entry.operation as string) === overIdStr
+                );
+          if (toIdx < 0 || groupedFromIdx === toIdx) return;
+          onAggregationSettingsChange({
+            ...aggregationSettings,
+            aggregations: moveItem(
+              aggregationSettings.aggregations,
+              groupedFromIdx,
+              toIdx
+            ),
+          });
+          return;
+        }
+
+        // Ungrouped layout (pivot/rollup active): ids are
+        // `aggregations:<operation>\u0000<column>`, one row per function/column
+        // pair. Reorder the flat list of pairs, then rebuild one entry per
+        // operation (in order of first appearance). The model can't represent
+        // interleaved operations, so a column dropped between two columns of a
+        // different operation regroups under its own entry.
+        const pairs: { operation: string; column: string }[] = [];
+        const pairIds: string[] = [];
+        aggregationSettings.aggregations.forEach(entry => {
+          if (entry.selected.length === 0) {
+            pairs.push({ operation: entry.operation as string, column: '' });
+            pairIds.push(aggregationPairId(entry.operation as string, ''));
+          } else {
+            entry.selected.forEach(column => {
+              pairs.push({ operation: entry.operation as string, column });
+              pairIds.push(
+                aggregationPairId(entry.operation as string, column)
+              );
+            });
+          }
+        });
+        const fromIdx = pairIds.indexOf(activeIdStr);
         if (fromIdx < 0) return;
         const toIdx =
           overIdStr === AGGREGATIONS_DROPPABLE
-            ? aggregationSettings.aggregations.length - 1
-            : aggregationSettings.aggregations.findIndex(
-                (_, i) => aggregationRowId(i) === overIdStr
-              );
+            ? pairIds.length - 1
+            : pairIds.indexOf(overIdStr);
         if (toIdx < 0 || fromIdx === toIdx) return;
+
+        const reordered = moveItem(pairs, fromIdx, toIdx);
+
+        const invertByOp = new Map<string, boolean>();
+        aggregationSettings.aggregations.forEach(entry => {
+          invertByOp.set(entry.operation as string, entry.invert);
+        });
+        const byOp = new Map<string, { selected: string[]; invert: boolean }>();
+        reordered.forEach(({ operation, column }) => {
+          let entry = byOp.get(operation);
+          if (entry == null) {
+            entry = {
+              selected: [],
+              invert: invertByOp.get(operation) ?? false,
+            };
+            byOp.set(operation, entry);
+          }
+          if (column !== '') {
+            entry.selected.push(column);
+          }
+        });
         onAggregationSettingsChange({
           ...aggregationSettings,
-          aggregations: moveItem(
-            aggregationSettings.aggregations,
-            fromIdx,
-            toIdx
+          aggregations: Array.from(byOp.entries()).map(
+            ([operation, { selected, invert }]) => ({
+              operation: operation as AggregationOperation,
+              selected,
+              invert,
+            })
           ),
         });
         return;
@@ -1270,13 +1658,236 @@ export function PivotConfigSection({
     () => pivotColumns.map(n => columnRowId(PIVOT_COLUMNS_DROPPABLE, n)),
     [pivotColumns]
   );
-  const aggItemIds = useMemo(
-    () => aggregationSettings.aggregations.map((_, i) => aggregationRowId(i)),
-    [aggregationSettings.aggregations]
+
+  // Columns already used by either the Rollup rows or Pivot columns card.
+  // Excluded from both Add pickers so a column can't be selected twice.
+  const usedColumns = useMemo(
+    () => [...rollupRows, ...pivotColumns],
+    [rollupRows, pivotColumns]
   );
 
   const pivotActive =
     pivotColumnsOn && pivotColumns.length > 0 && pivotColumnsDisabled !== true;
+  const rollupActive = rollupRowsOn && rollupRows.length > 0;
+
+  // Items for the Rollup card overflow (⋮) menu. Memoized so the Spectrum
+  // `Menu` keeps a stable `sections` reference across parent renders. Each
+  // section is separated by a divider. The leading sections are
+  // aggregate-wide actions/toggles; the final section holds the rollup-row
+  // toggles, which show a checkmark when enabled and are disabled while a
+  // pivot is active.
+  const rollupMenuSections = useMemo<OverflowMenuSection[]>(
+    () => [
+      {
+        key: 'rollupToggles',
+        items: [
+          {
+            key: 'includeConstituents',
+            label: 'Include constituents in rollup rows',
+            isSelected: !pivotActive && includeConstituents,
+          },
+          {
+            key: 'nonAggregatedInRollup',
+            label: 'Non-aggregated in rollup rows',
+            isSelected: !pivotActive && nonAggregatedInRollup,
+          },
+        ],
+      },
+      {
+        key: 'showHiddenColumns',
+        items: [
+          {
+            key: 'showHiddenColumns',
+            label: 'Show hidden columns in menu',
+            isSelected: showHiddenColumns,
+          },
+        ],
+      },
+      {
+        key: 'clearAllRollupRows',
+        items: [
+          {
+            key: 'clearAllRollupRows',
+            label: 'Clear all rollup rows',
+          },
+          {
+            key: 'clearAll',
+            label: 'Clear all',
+          },
+        ],
+      },
+    ],
+    [showHiddenColumns, pivotActive, includeConstituents, nonAggregatedInRollup]
+  );
+
+  const rollupMenuDisabledKeys = useMemo<string[]>(
+    () => (pivotActive ? ['includeConstituents', 'nonAggregatedInRollup'] : []),
+    [pivotActive]
+  );
+
+  // Items for the Aggregate values card overflow (⋮) menu. Shares the three
+  // aggregate-wide actions/toggles with the Rollup menu, each in its own
+  // section so a divider is drawn between them.
+  const aggregateMenuSections = useMemo<OverflowMenuSection[]>(
+    () => [
+      {
+        key: 'moveTotalsToTop',
+        items: [
+          {
+            key: 'moveTotalsToTop',
+            label: 'Move totals to top',
+            isSelected: aggregationSettings.showOnTop,
+          },
+        ],
+      },
+      {
+        key: 'showHiddenColumns',
+        items: [
+          {
+            key: 'showHiddenColumns',
+            label: 'Show hidden columns in menu',
+            isSelected: showHiddenColumns,
+          },
+        ],
+      },
+      {
+        key: 'clearAllAggregations',
+        items: [
+          {
+            key: 'clearAllAggregations',
+            label: 'Clear all aggregations',
+          },
+          {
+            key: 'clearAll',
+            label: 'Clear all',
+          },
+        ],
+      },
+    ],
+    [aggregationSettings.showOnTop, showHiddenColumns]
+  );
+
+  // Items for the Pivot columns card overflow (⋮) menu. Each item in its
+  // own section so a divider is drawn between them.
+  const pivotMenuSections = useMemo<OverflowMenuSection[]>(
+    () => [
+      {
+        key: 'showHiddenColumns',
+        items: [
+          {
+            key: 'showHiddenColumns',
+            label: 'Show hidden columns in menu',
+            isSelected: showHiddenColumns,
+          },
+        ],
+      },
+      {
+        key: 'clearAllPivotColumns',
+        items: [
+          {
+            key: 'clearAllPivotColumns',
+            label: 'Clear all pivot columns',
+          },
+          {
+            key: 'clearAll',
+            label: 'Clear all',
+          },
+        ],
+      },
+    ],
+    [showHiddenColumns]
+  );
+
+  const handleConfigMenuAction = useCallback(
+    (key: string) => {
+      if (key === 'includeConstituents') {
+        onIncludeConstituentsChange(!includeConstituents);
+      } else if (key === 'nonAggregatedInRollup') {
+        onNonAggregatedInRollupChange(!nonAggregatedInRollup);
+      } else if (key === 'moveTotalsToTop') {
+        onAggregationSettingsChange({
+          ...aggregationSettings,
+          showOnTop: !aggregationSettings.showOnTop,
+        });
+      } else if (key === 'showHiddenColumns') {
+        setShowHiddenColumns(prev => !prev);
+      } else if (key === 'clearAllAggregations') {
+        onAggregationSettingsChange({
+          ...aggregationSettings,
+          aggregations: [],
+        });
+      } else if (key === 'clearAllRollupRows') {
+        onRollupRowsChange([]);
+      } else if (key === 'clearAllPivotColumns') {
+        onPivotColumnsChange([]);
+      } else if (key === 'clearAll') {
+        onRollupRowsChange([]);
+        onPivotColumnsChange([]);
+        onAggregationSettingsChange({
+          ...aggregationSettings,
+          aggregations: [],
+        });
+      }
+    },
+    [
+      includeConstituents,
+      nonAggregatedInRollup,
+      aggregationSettings,
+      onIncludeConstituentsChange,
+      onNonAggregatedInRollupChange,
+      onAggregationSettingsChange,
+      onRollupRowsChange,
+      onPivotColumnsChange,
+    ]
+  );
+
+  // With neither a pivot nor a rollup configured, the aggregate card groups
+  // columns by function (one row per function). When a pivot or rollup is
+  // present we keep the same two-line picker layout but list every
+  // function/column pair separately (ungrouped).
+  const onlyAggregates = !pivotActive && !rollupActive;
+
+  // Flattened function/column pairs for the ungrouped layout. Entries with
+  // no columns yet are surfaced as a single placeholder pair so the row
+  // still renders.
+  const aggregatePairs = useMemo(() => {
+    const pairs: {
+      operation: string;
+      column: string;
+      entryIndex: number;
+      columnIndex: number;
+    }[] = [];
+    aggregationSettings.aggregations.forEach((entry, entryIndex) => {
+      if (entry.selected.length === 0) {
+        pairs.push({
+          operation: entry.operation as string,
+          column: '',
+          entryIndex,
+          columnIndex: -1,
+        });
+      } else {
+        entry.selected.forEach((column, columnIndex) => {
+          pairs.push({
+            operation: entry.operation as string,
+            column,
+            entryIndex,
+            columnIndex,
+          });
+        });
+      }
+    });
+    return pairs;
+  }, [aggregationSettings.aggregations]);
+
+  const aggItemIds = useMemo(
+    () =>
+      onlyAggregates
+        ? aggregationSettings.aggregations.map(entry =>
+            aggregationRowId(entry.operation as string)
+          )
+        : aggregatePairs.map(p => aggregationPairId(p.operation, p.column)),
+    [onlyAggregates, aggregationSettings.aggregations, aggregatePairs]
+  );
 
   // Resolve the preview for DragOverlay.
   const activeColumnName = (() => {
@@ -1302,15 +1913,36 @@ export function PivotConfigSection({
       return null;
     }
     const colonIdx = activeId.indexOf(':');
-    const idx = colonIdx === -1 ? -1 : Number(activeId.slice(colonIdx + 1));
-    return aggregationSettings.aggregations[idx] ?? null;
+    if (colonIdx === -1) {
+      return null;
+    }
+    // Grouped layout ids are `AGGREGATIONS:<operation>`; ungrouped
+    // (function/column pair) ids are `AGGREGATIONS:<operation>\u0000<column>`.
+    const suffix = activeId.slice(colonIdx + 1);
+    const sepIdx = suffix.indexOf('\u0000');
+    if (sepIdx === -1) {
+      return (
+        aggregationSettings.aggregations.find(a => a.operation === suffix) ??
+        null
+      );
+    }
+    const operation = suffix.slice(0, sepIdx);
+    const column = suffix.slice(sepIdx + 1);
+    const entry = aggregationSettings.aggregations.find(
+      a => a.operation === operation
+    );
+    if (entry == null) {
+      return null;
+    }
+    // Preview just the single dragged column so the overlay matches the row.
+    return column === '' ? entry : { ...entry, selected: [column] };
   })();
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      measuring={measuring}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
@@ -1336,12 +1968,21 @@ export function PivotConfigSection({
           on={rollupRowsOn}
           onToggle={onRollupRowsOnChange}
           onAdd={handleAddRollupRow}
+          overflow={
+            <OverflowMenu
+              sections={rollupMenuSections}
+              disabledKeys={rollupMenuDisabledKeys}
+              tooltip="Rollup options"
+              onAction={handleConfigMenuAction}
+              onOpen={closeAllPickers}
+            />
+          }
           picker={anchorRef =>
             rollupPickerOpen ? (
               <ColumnPicker
                 anchorRef={anchorRef}
                 available={availableColumns}
-                excluded={rollupRows}
+                excluded={usedColumns}
                 onPick={handlePickRollupRow}
                 onClose={() => setRollupPickerOpen(false)}
               />
@@ -1372,12 +2013,20 @@ export function PivotConfigSection({
           onAdd={handleAddPivotColumn}
           addDisabled={false}
           disabled={pivotColumnsDisabled === true}
+          overflow={
+            <OverflowMenu
+              sections={pivotMenuSections}
+              tooltip="Pivot options"
+              onAction={handleConfigMenuAction}
+              onOpen={closeAllPickers}
+            />
+          }
           picker={anchorRef =>
             pivotPickerOpen ? (
               <ColumnPicker
                 anchorRef={anchorRef}
                 available={availableColumns}
-                excluded={pivotColumns}
+                excluded={usedColumns}
                 onPick={handlePickPivotColumn}
                 onClose={() => setPivotPickerOpen(false)}
               />
@@ -1407,7 +2056,14 @@ export function PivotConfigSection({
           on={aggregatesOn}
           onToggle={onAggregatesOnChange}
           onAdd={handleAddAggregate}
-          addDisabled={usedOperations.length >= selectableOperations.length}
+          overflow={
+            <OverflowMenu
+              sections={aggregateMenuSections}
+              tooltip="Aggregate options"
+              onAction={handleConfigMenuAction}
+              onOpen={closeAllPickers}
+            />
+          }
           picker={anchorRef =>
             aggPickerState != null ? (
               <AggregatePicker
@@ -1416,6 +2072,7 @@ export function PivotConfigSection({
                 columnTypes={columnTypes}
                 availableOperations={pickerAvailableOps}
                 initial={pickerInitial}
+                existingSelections={aggSelectionsByOperation}
                 onCommit={handleCommitAggregate}
                 onClose={closeAggPicker}
               />
@@ -1428,41 +2085,62 @@ export function PivotConfigSection({
             itemIds={aggItemIds}
             isEmpty={aggregationSettings.aggregations.length === 0}
           >
-            {aggregationSettings.aggregations.map((entry, i) => (
-              <AggregateRow
-                // eslint-disable-next-line react/no-array-index-key
-                key={`${entry.operation}-${i}`}
-                entry={entry}
-                index={i}
-                onEdit={() => handleEditAggregate(i)}
-                onDelete={() => handleDeleteAggregate(i)}
-              />
-            ))}
+            {onlyAggregates
+              ? aggregationSettings.aggregations.map((entry, i) => (
+                  <AggregateSelectRow
+                    key={aggregationRowId(entry.operation as string)}
+                    id={aggregationRowId(entry.operation as string)}
+                    operation={entry.operation}
+                    columnLabels={entry.selected}
+                    availableOperations={selectableOperations.filter(
+                      op =>
+                        op === entry.operation || !usedOperations.includes(op)
+                    )}
+                    onOperationChange={op =>
+                      handleChangeAggregateOperation(i, op)
+                    }
+                    onDelete={() => handleDeleteAggregate(i)}
+                  />
+                ))
+              : aggregatePairs.map(pair => (
+                  <AggregateSelectRow
+                    key={aggregationPairId(pair.operation, pair.column)}
+                    id={aggregationPairId(pair.operation, pair.column)}
+                    operation={pair.operation}
+                    columnLabels={pair.column === '' ? [] : [pair.column]}
+                    availableOperations={selectableOperations}
+                    onOperationChange={op =>
+                      handleChangeAggregatePairOperation(
+                        pair.entryIndex,
+                        pair.column,
+                        op
+                      )
+                    }
+                    onDelete={() =>
+                      handleDeleteAggregatePair(pair.entryIndex, pair.column)
+                    }
+                  />
+                ))}
           </DroppableList>
         </ConfigCard>
 
         {/* Filterable columns card hidden for now \u2014 props are still threaded
           through so it can be re-enabled without churn. */}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Checkbox
-            checked={pivotActive ? false : includeConstituents}
-            disabled={pivotActive}
-            onChange={e => onIncludeConstituentsChange(e.target.checked)}
-          >
-            Include constituents in rollups rows
-          </Checkbox>
-          <Checkbox
-            checked={pivotActive ? false : nonAggregatedInRollup}
-            disabled={pivotActive}
-            onChange={e => onNonAggregatedInRollupChange(e.target.checked)}
-          >
-            Non-aggregated in rollup rows
-          </Checkbox>
-        </div>
       </div>
       {createPortal(
-        <DragOverlay dropAnimation={null}>
+        // Aggregations can't be interleaved across operations (the pivot
+        // payload groups columns by operation), so a cross-operation drop
+        // regroups the dragged row back into its own operation. Play the
+        // default drop animation for aggregation drags so that snap-back is
+        // visible instead of looking like a no-op; column drags keep the
+        // instant drop (no animation).
+        <DragOverlay
+          dropAnimation={
+            activeContainerRef.current === AGGREGATIONS_DROPPABLE
+              ? undefined
+              : null
+          }
+        >
           {activeColumnName != null ? (
             <ColumnRowPreview name={activeColumnName} />
           ) : activeAggregation != null ? (

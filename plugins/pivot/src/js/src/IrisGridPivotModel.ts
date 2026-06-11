@@ -57,6 +57,25 @@ import { type IrisGridPivotThemeType } from './IrisGridPivotTheme';
 
 const log = Log.module('@deephaven/js-plugin-pivot/IrisGridPivotModel');
 
+// [DIAG] Lightweight call-counter to detect per-frame render storms while the
+// page is frozen. Increments a global tally per label and logs every Nth hit
+// so the console buffer reveals which method is being hammered.
+// TODO: remove before merging.
+const __diagCounts: Record<string, number> = {};
+function diagBump(label: string, every = 200, extra?: unknown): void {
+  __diagCounts[label] = (__diagCounts[label] ?? 0) + 1;
+  const n = __diagCounts[label];
+  if (n % every === 0) {
+    if (extra !== undefined) {
+      // eslint-disable-next-line no-console
+      console.log(`[DIAG ${label}] n=${n}`, extra);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`[DIAG ${label}] n=${n}`);
+    }
+  }
+}
+
 const SET_VIEWPORT_THROTTLE = 150;
 const APPLY_VIEWPORT_THROTTLE = 0;
 const ROW_BUFFER_PAGES = 1;
@@ -329,6 +348,13 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       virtualColumns: readonly PivotDisplayColumn[],
       valueSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[]
     ) => {
+      // [DIAG] A cache MISS here means one of the memo inputs changed identity.
+      // If this fires every frame, the columns array is being rebuilt in a loop.
+      diagBump('getCachedColumns(miss)', 50, {
+        snapshotColumns: snapshotColumns != null,
+        virtualColumns: virtualColumns.length,
+        valueSources: valueSources.length,
+      });
       const columns = [];
       this.pivotTable.columnSources.forEach((source, col) => {
         const index = -this.pivotTable.columnSources.length + col;
@@ -338,6 +364,14 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       if (snapshotColumns == null) {
         return columns;
       }
+      log.info('[DIAG] getCachedColumns materializing', {
+        totalCount: snapshotColumns.totalCount,
+        offset: snapshotColumns.offset,
+        count: snapshotColumns.count,
+        valueSources: valueSources.length,
+        virtualColumns: virtualColumns.length,
+        toMaterialize: snapshotColumns.totalCount * valueSources.length,
+      });
       for (let i = 0; i < snapshotColumns.totalCount; i += 1) {
         const isColumnInViewport =
           i >= snapshotColumns.offset &&
@@ -435,6 +469,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   );
 
   get virtualColumns(): readonly PivotDisplayColumn[] {
+    diagBump('get virtualColumns');
     return this.getCachedVirtualColumns(
       this.groupColumn,
       this.keyColumns,
@@ -557,6 +592,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     x: ModelIndex,
     depth = 0
   ): PivotColumnHeaderGroup | DisplayColumn | undefined {
+    diagBump('columnAtDepth', 500, { x, depth });
     if (depth === 0) {
       return this.columns[x];
     }
@@ -568,12 +604,19 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       return undefined;
     }
 
+    // Walk up the parent chain until we reach the requested depth. Guard
+    // against cycles/self-references in the parent map (which can occur when
+    // the column header groups are momentarily out of sync with the columns
+    // array): a finite acyclic chain always terminates, so revisiting a name
+    // means there is a cycle and we should bail rather than loop forever.
+    const visited = new Set<string>([group.name]);
     let currentDepth = group.depth;
     while (currentDepth < depth) {
       group = this.columnHeaderParentMap.get(group.name);
-      if (!group) {
+      if (!group || visited.has(group.name)) {
         return undefined;
       }
+      visited.add(group.name);
       currentDepth = group.depth;
     }
 
@@ -596,6 +639,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
     // Having negative indexes in the columns array is risky, because they can be lost in maps, spreads, etc,
     // but it is the least invasive change adding column source support to the existing IrisGrid functionality.
     // A better solution would be to use string keys for indexing columns.
+    diagBump('get columns');
     return this.getCachedColumns(
       this.snapshotColumns,
       this.virtualColumns,
@@ -716,6 +760,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   handleModelEvent(event: CustomEvent): void {
     log.debug2('handleModelEvent', event);
+    diagBump('handleModelEvent', 20, event?.type);
     const { detail, type } = event;
     this.dispatchEvent(new EventShimCustomEvent(type, { detail }));
   }
@@ -723,6 +768,8 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   handlePivotUpdated(
     event: CorePlusDhType.Event<CorePlusDhType.coreplus.pivot.PivotSnapshot>
   ): void {
+    // [DIAG] If this fires repeatedly, snapshots are streaming in a loop.
+    diagBump('handlePivotUpdated', 1);
     // Get the data from the snapshot, store in the model,
     // dispatch column and model update events
     const prevColumns = this.columns;
@@ -859,8 +906,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   truncationCharForCell(x: ModelIndex): '#' | undefined {
-    const column = this.columns[x];
-    const { type } = column;
+    const type = this.columns[x]?.type;
 
     if (
       TableUtils.isNumberType(type) &&
@@ -887,12 +933,14 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       // Fallback to formatting based on the value/type of the cell
       if (value != null) {
         const column = this.sourceColumn(x, y);
-        return IrisGridUtils.colorForValue(
-          theme,
-          column.type,
-          column.name,
-          value
-        );
+        if (column != null) {
+          return IrisGridUtils.colorForValue(
+            theme,
+            column.type,
+            column.name,
+            value
+          );
+        }
       }
     }
 
@@ -909,6 +957,9 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   textAlignForCell(x: ModelIndex, y: ModelIndex): CanvasTextAlign {
     const column = this.sourceColumn(x, y);
+    if (column == null) {
+      return 'left';
+    }
 
     return IrisGridUtils.textAlignForValue(column.type, column.name);
   }
@@ -1204,6 +1255,14 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
       const column = this.columns[x];
 
+      // The grid can momentarily request a cell for a column index that is
+      // beyond the current columns array (e.g. metrics computed against a
+      // previous, wider column set before the model catches up). Treat a
+      // missing column as "not available yet" rather than throwing.
+      if (column == null) {
+        return undefined;
+      }
+
       // Determine the source column type for formatting
       // Group column displays key values - use the appropriate key column's type
       let columnType = column.type;
@@ -1269,6 +1328,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   dataForCell(x: ModelIndex, y: ModelIndex): CellData | undefined {
+    diagBump('dataForCell', 500);
     const keyCount = this.keyColumns.length;
     const groupOffset = this.groupColumn == null ? 0 : 1;
     if (groupOffset === 1 && x === 0) {
@@ -1312,6 +1372,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   row(y: ModelIndex): R | null {
+    diagBump('row', 500, { y });
     if (y === 0) {
       return this.viewportData?.totalsRow ?? null;
     }
