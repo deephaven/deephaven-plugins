@@ -11,8 +11,29 @@ on:
       - 'release/**'
 
 jobs:
+  build-e2e-images:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build Docker images
+        run: docker compose -f ./tests/docker-compose.yml build deephaven-plugins e2e-tests
+
+      - name: Export Docker images
+        run: |
+          docker save tests-deephaven-plugins tests-e2e-tests | gzip > e2e-docker-images.tar.gz
+
+      - name: Upload Docker images
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-docker-images
+          path: e2e-docker-images.tar.gz
+          retention-days: 1
+
   e2e-tests:
     runs-on: ubuntu-24.04
+    needs: [build-e2e-images]
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-e2e-tests-${{ matrix.config }}
       cancel-in-progress: true
@@ -23,6 +44,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Download Docker images
+        uses: actions/download-artifact@v5
+        with:
+          name: e2e-docker-images
+
+      - name: Load Docker images
+        run: gunzip -c e2e-docker-images.tar.gz | docker load
 
       - name: Extract browser and shard config
         id: config
@@ -35,6 +64,8 @@ jobs:
           echo "shard_total=$shard_total" >> "$GITHUB_OUTPUT"
 
       - name: Run tests
+        env:
+          RUN_DOCKER_BUILD: 'false'
         run: |
           ./tools/run_docker.sh ./tests/docker-compose.yml e2e-tests \
             --reporter=blob \
