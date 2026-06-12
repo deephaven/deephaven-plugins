@@ -374,23 +374,39 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  const initialHydratedState = useMemo(() => {
-    if (model && utils && initialState.current != null) {
-      return {
-        ...utils.hydrateIrisGridState(model, initialState.current),
-        ...IrisGridUtils.hydrateGridState(model, initialState.current),
-      };
-    }
-  }, [model, utils]);
+  // Initial sorts are captured once at mount so later re-renders never push
+  // a new `sorts` reference into IrisGrid (which would call updateSorts and
+  // clobber the user's interactive sort changes).
+  const initialSortsRef = useRef(sorts);
 
-  const hydratedSorts = useMemo(() => {
-    if (utils && sorts !== undefined && columns !== undefined) {
-      log.debug('Hydrating sorts', sorts);
-
-      return utils.hydrateSort(columns, sorts);
+  // Lock the initial hydrated state to a stable value the first time model+utils
+  // are available. Recomputing it would change the `sorts` (and other) prop
+  // identities and cause IrisGrid to overwrite user changes on every re-render.
+  const lockedInitialHydratedStateRef = useRef<
+    Partial<IrisGridProps> | undefined
+  >(undefined);
+  const initialHydratedStateComputedRef = useRef(false);
+  if (!initialHydratedStateComputedRef.current && model != null && utils != null) {
+    initialHydratedStateComputedRef.current = true;
+    const persisted =
+      initialState.current != null
+        ? {
+            ...utils.hydrateIrisGridState(model, initialState.current),
+            ...IrisGridUtils.hydrateGridState(model, initialState.current),
+          }
+        : undefined;
+    const initialSorts = initialSortsRef.current;
+    const seededSorts =
+      persisted == null && initialSorts !== undefined && columns !== undefined
+        ? utils.hydrateSort(columns, initialSorts)
+        : undefined;
+    if (persisted != null) {
+      lockedInitialHydratedStateRef.current = persisted;
+    } else if (seededSorts !== undefined) {
+      lockedInitialHydratedStateRef.current = { sorts: seededSorts };
     }
-    return undefined;
-  }, [columns, utils, sorts]);
+  }
+  const initialHydratedState = lockedInitialHydratedStateRef.current;
 
   const hydratedQuickFilters = useMemo(() => {
     if (
@@ -536,7 +552,6 @@ export function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
       reverse,
@@ -586,7 +601,6 @@ export function UITable({
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
-    hydratedSorts,
     hydratedQuickFilters,
     reverse,
     density,
