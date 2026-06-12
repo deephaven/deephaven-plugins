@@ -812,7 +812,7 @@ The `sorts` prop accepts:
 
 When you pass `sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
 
-```python
+```python order=t_mixed_sort_list,t_string_sort
 from deephaven import ui, new_table
 from deephaven.column import int_col, string_col
 
