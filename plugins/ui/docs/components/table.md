@@ -816,11 +816,13 @@ When you pass `sorts`, those values seed the initial client sort state. If the u
 from deephaven import ui, new_table
 from deephaven.column import int_col, string_col
 
-data = new_table([
-    string_col("Name", ["R01", "R02", "R03", "R04", "R05", "R06"]),
-    string_col("Category", ["B", "A", "B", "A", "C", "C"]),
-    int_col("SepalLength", [51, -149, 64, 58, -32, 58]),
-])
+data = new_table(
+    [
+        string_col("Name", ["R01", "R02", "R03", "R04", "R05", "R06"]),
+        string_col("Category", ["B", "A", "B", "A", "C", "C"]),
+        int_col("SepalLength", [51, -149, 64, 58, -32, 58]),
+    ]
+)
 
 t_mixed_sort_list = ui.table(
     data,
