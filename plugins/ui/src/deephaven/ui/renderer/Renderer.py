@@ -120,7 +120,7 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     logger.debug("Rendering element %s in context %s", element.name, context)
 
     with context.open():
-        props = element.render(context)
+        props = element.render()
 
         # We also need to render any elements that are passed in as props (including `children`)
         props = _render_dict_in_open_context(props, context)

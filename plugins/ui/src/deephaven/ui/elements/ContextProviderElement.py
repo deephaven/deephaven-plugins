@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 from .Element import Element, PropsType
-from .._internal import RenderContext, _get_context_stack, get_context
+from .._internal import _get_context_stack, get_context
 
 T = TypeVar("T")
 
@@ -31,7 +31,7 @@ class ContextProviderElement(Element):
     def name(self) -> str:
         return "deephaven.ui.elements.ContextProviderElement"
 
-    def render(self, context: RenderContext) -> PropsType:
+    def render(self) -> PropsType:
         self._context._push(self._value)
         get_context().add_open_cleanup(lambda: self._context._pop())
 
