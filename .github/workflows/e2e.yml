@@ -61,7 +61,7 @@ jobs:
           path: /tmp/server-log.txt
 
   merge-reports:
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
     needs: [e2e-tests]
     steps:
