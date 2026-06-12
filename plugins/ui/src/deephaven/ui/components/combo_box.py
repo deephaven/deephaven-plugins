@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, cast
 
 from .types import (
     FocusEventCallable,
@@ -244,6 +244,12 @@ def combo_box(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
+    # Table, PartitionedTable, and ItemTableSource children are not valid React
+    # node types, but are passed through here because the JS side has special
+    # handling for these table types. Cast to the expected child type.
     return component_element(
-        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+        "ComboBox",
+        *cast("tuple[NodeType, ...]", children),
+        _nullable_props=_NULLABLE_PROPS,
+        **props,
     )

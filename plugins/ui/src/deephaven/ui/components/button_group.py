@@ -13,13 +13,13 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 BUTTON_GROUP_NAME = "ButtonGroup"
 
 
 def button_group(
-    *children: Any,
+    *children: NodeType,
     is_disabled: bool | None = None,
     orientation: Orientation = "horizontal",
     align: ButtonGroupAlignment = "start",

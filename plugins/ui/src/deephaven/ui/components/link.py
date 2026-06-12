@@ -13,7 +13,7 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import LinkVariant, NavigationTarget
 from ..hooks.use_navigate import build_navigate_payload
 
@@ -32,7 +32,7 @@ def _parse_link_to(to: str | NavigationTarget) -> dict:
 
 
 def link(
-    *children: Any,
+    *children: NodeType,
     variant: LinkVariant | None = "primary",
     is_quiet: bool | None = None,
     auto_focus: bool | None = None,
