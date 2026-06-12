@@ -800,9 +800,52 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ![Example of quick filters](../_assets/table_quick_filter.png)
 
+## Sort state
+
+You can set the initial sort state of a `ui.table` with the `sorts` prop. This controls table UI state (similar to `quick_filters` and `reverse`) without changing the underlying table definition.
+
+The `sorts` prop accepts:
+
+- A single column name string (ascending sort)
+- A `ui.TableSort` object
+- A list mixing column names and `ui.TableSort` objects
+
+When you pass `sorts`, those values take precedence over persisted client sort state.
+
+```python order=t_mixed_sort_list,t_string_sort
+from deephaven import ui, new_table
+from deephaven.column import int_col, string_col
+
+data = new_table([
+    string_col("Name", ["R01", "R02", "R03", "R04", "R05", "R06"]),
+    string_col("Category", ["B", "A", "B", "A", "C", "C"]),
+    int_col("SepalLength", [51, -149, 64, 58, -32, 58]),
+])
+
+t_mixed_sort_list = ui.table(
+    data,
+    sorts=[
+        "Category",
+        ui.TableSort(column="Name", direction="DESC"),
+        ui.TableSort(column="SepalLength", direction="ASC", is_abs=True),
+    ],
+)
+
+t_string_sort = ui.table(
+    data,
+    sorts="Name",
+)
+```
+
+`ui.TableSort` supports:
+
+- `column`: The column name to sort by.
+- `direction`: `"ASC"` or `"DESC"`.
+- `is_abs`: If `True`, sort by absolute value.
+
 ## Reverse
 
-The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client.
+The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client. If both `sorts` and `reverse` are set, reverse is applied after sorting.
 
 ```python
 from deephaven import ui
@@ -823,6 +866,12 @@ t = ui.table(dx.data.stocks(), reverse=True)
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.TableAgg
+```
+
+### TableSort
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableSort
 ```
 
 ### TableFormat
