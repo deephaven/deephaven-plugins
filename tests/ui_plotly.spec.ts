@@ -7,7 +7,7 @@ test.describe('plotly works in deephaven.ui', () => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
       await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
-
+      expect(false).toBe(true);
       await expect(
         page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       ).toHaveScreenshot();
