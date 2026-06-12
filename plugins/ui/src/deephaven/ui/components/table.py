@@ -18,7 +18,7 @@ from ..types import (
     SelectionChangeCallback,
     TableLike,
 )
-from .._internal import dict_to_react_props, RenderContext
+from .._internal import dict_to_react_props
 
 logger = logging.getLogger(__name__)
 
@@ -397,6 +397,6 @@ class table(Element):
     def key(self) -> str | None:
         return self._key
 
-    def render(self, context: RenderContext) -> dict[str, Any]:
+    def render(self) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)
         return dict_to_react_props(self._props)

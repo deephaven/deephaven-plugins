@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from .Element import Element, PropsType
-from .._internal import RenderContext
 
 
 class UriElement(Element):
@@ -29,7 +28,7 @@ class UriElement(Element):
     def key(self) -> str | None:
         return self._key
 
-    def render(self, context: RenderContext) -> PropsType:
+    def render(self) -> PropsType:
         return {"uri": self._uri}
 
     def __eq__(self, other: object) -> bool:

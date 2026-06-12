@@ -8,7 +8,7 @@ from ..elements import FunctionElement
 logger = logging.getLogger(__name__)
 
 
-def make_component(func: Callable[..., Any]):
+def component(func: Callable[..., Any]):
     """
     Create a FunctionalElement from the passed in function.
 

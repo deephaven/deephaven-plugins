@@ -7,8 +7,7 @@ from .text import text
 from ..elements import create_context
 from ..hooks import use_path, use_memo
 from .route import _Route
-from .make_component import make_component as component
-
+from .component import component
 
 # Module-level context for route params
 _route_params_context = create_context({})
