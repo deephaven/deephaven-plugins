@@ -629,25 +629,19 @@ export function UITable({
    * Otherwise, we have received changes from the server and we should use those over client state.
    * In the future we may want to do a smarter merge of these.
    */
-  const mergedIrisGridProps = useMemo(() => {
-    const mergedProps: Partial<IrisGridProps> =
+  const mergedIrisGridProps = useMemo(
+    () =>
       initialIrisGridServerProps.current === irisGridServerProps
         ? {
             ...irisGridServerProps,
-            ...initialHydratedState,
+            ...(initialHydratedState ?? {}),
           }
         : {
-            ...initialHydratedState,
+            ...(initialHydratedState ?? {}),
             ...irisGridServerProps,
-          };
-
-    // If sorts are explicitly provided by ui.table, prefer them over persisted state.
-    if (sorts !== undefined) {
-      mergedProps.sorts = hydratedSorts;
-    }
-
-    return mergedProps;
-  }, [irisGridServerProps, initialHydratedState, sorts, hydratedSorts]);
+          },
+    [irisGridServerProps, initialHydratedState]
+  );
 
   const inputFilters = useDashboardColumnFilters(
     model?.columns ?? null,

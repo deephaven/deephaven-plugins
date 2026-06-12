@@ -800,7 +800,7 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ![Example of quick filters](../_assets/table_quick_filter.png)
 
-## Sort state
+## Sort
 
 You can set the initial sort state of a `ui.table` with the `sorts` prop. This controls table UI state (similar to `quick_filters` and `reverse`) without changing the underlying table definition.
 
@@ -810,7 +810,7 @@ The `sorts` prop accepts:
 - A `ui.TableSort` object
 - A list mixing column names and `ui.TableSort` objects
 
-When you pass `sorts`, those values take precedence over persisted client sort state.
+When you pass `sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
 
 ```python
 from deephaven import ui, new_table

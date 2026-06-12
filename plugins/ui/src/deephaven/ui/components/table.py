@@ -287,8 +287,9 @@ class table(Element):
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
-        sorts: The sorts to apply as UI state on load.
+        sorts: The initial sorts to apply as UI state on load.
             These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
+            User changes to the sort state are persisted and restored on reload.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
