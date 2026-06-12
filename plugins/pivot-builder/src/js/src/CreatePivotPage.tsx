@@ -418,28 +418,36 @@ export function CreatePivotPage({
       );
     }
 
-    model.applyPivotBuilderConfig({
-      pivot,
-      rollup,
-      totals,
-      // Persist the full card UI state (switch positions + contents) so the
-      // sidebar restores exactly what the user left — the derived
-      // pivot/rollup/totals above collapse "card off" and "card on but
-      // empty" into the same value and so can't recover the switches (or a
-      // toggled-off card's contents) on their own.
-      ui: {
-        rollupRowsOn,
-        rollupRows,
-        includeConstituents,
-        nonAggregatedInRollup,
-        aggregatesOn,
-        aggregations: aggregationSettings,
-        pivotColumnsOn,
-        pivotColumns,
-        filterableOn: placeholderFilterableOn,
-        filterableColumns: placeholderFilterable,
-      },
-    });
+    // Fire-and-forget: the returned promise only settles after the async
+    // inner-model swap; the sidebar doesn't await it (the reload transform
+    // does). The no-op catch keeps no-floating-promises happy (settle never
+    // rejects).
+    model
+      .applyPivotBuilderConfig({
+        pivot,
+        rollup,
+        totals,
+        // Persist the full card UI state (switch positions + contents) so the
+        // sidebar restores exactly what the user left — the derived
+        // pivot/rollup/totals above collapse "card off" and "card on but
+        // empty" into the same value and so can't recover the switches (or a
+        // toggled-off card's contents) on their own.
+        ui: {
+          rollupRowsOn,
+          rollupRows,
+          includeConstituents,
+          nonAggregatedInRollup,
+          aggregatesOn,
+          aggregations: aggregationSettings,
+          pivotColumnsOn,
+          pivotColumns,
+          filterableOn: placeholderFilterableOn,
+          filterableColumns: placeholderFilterable,
+        },
+      })
+      .catch(() => {
+        // settle() never rejects; no-op catch satisfies no-floating-promises.
+      });
     // All reconcile inputs are fields of `state`; depend on the snapshot
     // identity rather than listing each field individually.
     // eslint-disable-next-line react-hooks/exhaustive-deps

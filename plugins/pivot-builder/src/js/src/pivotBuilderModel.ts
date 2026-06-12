@@ -142,8 +142,14 @@ export interface PivotBuilderProxyModel extends IrisGridModel {
    * `proxy.rollupConfig` / `proxy.totalsConfig` are stored on the proxy
    * but NOT propagated to the inner model — the pivot-builder sidebar
    * replaces those host surfaces and owns inner-model swaps.
+   *
+   * Returns a promise that resolves once any inner-model swap triggered by
+   * this call (the async pivot/rollup build routed through the host proxy's
+   * `setNextModel`) has settled. Synchronous callers (the sidebar) can ignore
+   * it; the reload transform awaits it so the host hydrates sort/filter
+   * against the derived model rather than the still-flat source.
    */
-  applyPivotBuilderConfig: (config: PivotBuilderConfig) => void;
+  applyPivotBuilderConfig: (config: PivotBuilderConfig) => Promise<void>;
   [PIVOT_BUILDER_TAG]: true;
 }
 
@@ -479,7 +485,23 @@ export function augmentPivotBuilderModel(
   Object.defineProperty(proxy, 'applyPivotBuilderConfig', {
     configurable: true,
     enumerable: false,
-    value(config: PivotBuilderConfig): void {
+    value(config: PivotBuilderConfig): Promise<void> {
+      // The pivot/rollup swap is routed through the host proxy's async
+      // `setNextModel`, so the inner model is not updated synchronously.
+      // `settle` resolves once any in-flight swap has finished (its
+      // `setModel` runs in the proxy's own `.then`, registered before this
+      // await, so the inner model is already swapped when we resume). The
+      // reload transform awaits this so the host hydrates sort/filter against
+      // the derived model; sidebar callers can ignore it.
+      const settle = (): Promise<void> => {
+        const pending = proxyAsAny.modelPromise as PromiseLike<unknown> | null;
+        return pending != null
+          ? Promise.resolve(pending).then(
+              () => undefined,
+              () => undefined
+            )
+          : Promise.resolve();
+      };
       // No-op when the config is unchanged. `CreatePivotPage` reconciles
       // on mount (and on every relevant state change), so reopening the
       // sidebar page re-applies the already-applied intent. Without this
@@ -490,8 +512,17 @@ export function augmentPivotBuilderModel(
       // instead of sliding, and the Stack's view hook flickers).
       if (deepEqual(config, lastIntent)) {
         log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
-        return;
+        return settle();
       }
+      // Raise the IrisGrid loading scrim while the rebuild is in flight. The
+      // model is the start signal; the stop is automatic via the
+      // COLUMNS_CHANGED / UPDATED events that the swap (or totals write)
+      // emits when it lands. No PENDING_CLEARED is needed.
+      proxy.dispatchEvent(
+        new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
+          detail: { text: 'Updating pivot...' },
+        })
+      );
       const proxyWithPivot = proxy as unknown as {
         pivotConfig: PivotConfig | null;
       };
@@ -523,7 +554,7 @@ export function augmentPivotBuilderModel(
             detail: config,
           })
         );
-        return;
+        return settle();
       }
 
       // Pivot inactive — clear it before reconciling rollup/totals.
@@ -562,6 +593,7 @@ export function augmentPivotBuilderModel(
           detail: config,
         })
       );
+      return settle();
     },
   });
 

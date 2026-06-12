@@ -62,11 +62,20 @@ export function makePivotModelTransform(
     // model. Doing this here (instead of via a post-mount effect) avoids a
     // race where a listener fires with the pre-hydration (empty) config and
     // overwrites the persisted value.
+    //
+    // We also *await* the resulting inner-model swap before returning. The
+    // pivot/rollup build is routed through the host proxy's async
+    // `setNextModel`, so without this await the host would run
+    // `hydrateIrisGridState` while the inner model is still the flat source —
+    // pushing the persisted sort/filter onto the wrong model and losing them
+    // once the pivot/rollup swaps in (the host does not re-push onto the
+    // in-place proxy). Awaiting ensures the host hydrates against the derived
+    // model's columns.
     const persisted = getPersistedConfig();
     if (persisted != null) {
       try {
         log.info('Restoring persisted builder config', persisted);
-        augmented.applyPivotBuilderConfig(persisted);
+        await augmented.applyPivotBuilderConfig(persisted);
       } catch (err) {
         log.warn('Failed to restore persisted builder config', err);
       }
