@@ -7,7 +7,7 @@ WORKDIR /work/
 # Install a minimal font package so rendering is closer to GH Actions runners.
 RUN set -eux; \
     apt-get update; \
-    apt-get install --no-install-recommends -y fonts-dejavu-core; \
+    apt-get install --no-install-recommends --yes fonts-dejavu-core; \
     rm -rf /var/lib/apt/lists/*
 
 RUN fc-list : family;
