@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import {
   type IrisGridModel,
   IrisGridUtils,
@@ -6,6 +14,8 @@ import {
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { GLOBAL_SHORTCUTS } from '@deephaven/components';
+import { useUndoRedo } from '@deephaven/react-hooks';
 import {
   isPivotBuilderIrisGridModel,
   type PivotConfig,
@@ -186,27 +196,22 @@ export function CreatePivotPage({
   // we fall back to deriving seed state from the model config below.
   const uiIntent: PivotBuilderUiState | null = intent?.ui ?? null;
 
-  const [rollupRows, setRollupRows] = useState<string[]>(() => {
-    if (uiIntent != null) return [...uiIntent.rollupRows];
-    if (pivotIntent != null) return [...pivotIntent.rowKeys];
-    return rollupIntent?.groupingColumns?.map((c: unknown) => String(c)) ?? [];
-  });
-  const [rollupRowsOn, setRollupRowsOn] = useState<boolean>(
-    () => uiIntent?.rollupRowsOn ?? true
-  );
-  const [includeConstituents, setIncludeConstituents] = useState<boolean>(
-    () =>
-      uiIntent?.includeConstituents ?? rollupIntent?.includeConstituents ?? true
-  );
-  const [nonAggregatedInRollup, setNonAggregatedInRollup] = useState<boolean>(
-    () => uiIntent?.nonAggregatedInRollup ?? true
-  );
-
-  // Aggregate values state. Source-of-truth shape matches the host's
-  // `AggregationSettings` so we can hand it straight to
-  // `IrisGridUtils.getModelRollupConfig` / `.getModelTotalsConfig`.
-  const [aggregationSettings, setAggregationSettings] =
-    useState<AggregationSettings>(() => {
+  // Consolidate all card state into a single immutable `PivotBuilderUiState`
+  // snapshot so the cards get a transient, non-persistent undo/redo stack
+  // (mirrors the Organize Columns sidebar). The stack lives only as long as
+  // this page is mounted — closing the Create Pivot page unmounts it and the
+  // history is discarded. The seed is computed once (lazy initializer) from
+  // the proxy's last applied intent, preserving the original per-field
+  // priority chains (uiIntent → pivotIntent/rollupIntent fallbacks).
+  const [initialUiState] = useState<PivotBuilderUiState>(() => {
+    const seedRollupRows = (): string[] => {
+      if (uiIntent != null) return [...uiIntent.rollupRows];
+      if (pivotIntent != null) return [...pivotIntent.rowKeys];
+      return (
+        rollupIntent?.groupingColumns?.map((c: unknown) => String(c)) ?? []
+      );
+    };
+    const seedAggregations = (): AggregationSettings => {
       if (uiIntent != null) return uiIntent.aggregations;
       if (pivotIntent != null) {
         return {
@@ -215,23 +220,119 @@ export function CreatePivotPage({
         };
       }
       return seedAggregationSettings(rollupIntent, totalsIntent);
-    });
-  const [aggregatesOn, setAggregatesOn] = useState<boolean>(
-    () => uiIntent?.aggregatesOn ?? true
+    };
+    const seedPivotColumns = (): string[] => {
+      if (uiIntent != null) return [...uiIntent.pivotColumns];
+      if (pivotIntent != null) return [...pivotIntent.columnKeys];
+      return [];
+    };
+    return {
+      rollupRowsOn: uiIntent?.rollupRowsOn ?? true,
+      rollupRows: seedRollupRows(),
+      includeConstituents:
+        uiIntent?.includeConstituents ??
+        rollupIntent?.includeConstituents ??
+        true,
+      nonAggregatedInRollup: uiIntent?.nonAggregatedInRollup ?? true,
+      aggregatesOn: uiIntent?.aggregatesOn ?? true,
+      aggregations: seedAggregations(),
+      pivotColumnsOn: uiIntent?.pivotColumnsOn ?? true,
+      pivotColumns: seedPivotColumns(),
+      filterableOn: uiIntent?.filterableOn ?? true,
+      filterableColumns: uiIntent?.filterableColumns ?? [],
+    };
+  });
+
+  const { state, set, undo, redo, canUndo, canRedo } =
+    useUndoRedo<PivotBuilderUiState>(initialUiState);
+
+  // Mirror the current snapshot into a ref so the per-field change handlers
+  // can build the next snapshot without depending on `state` (keeps their
+  // identities stable). `useUndoRedo.set` compares by reference, so each
+  // handler must spread into a fresh object for the change to register as a
+  // new undo step.
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const update = useCallback(
+    (patch: Partial<PivotBuilderUiState>) => {
+      // Advance the ref synchronously so several `update` calls fired in the
+      // same tick (e.g. the "Clear all" menu action clearing rollup rows,
+      // pivot columns, and aggregations) compose instead of each rebuilding
+      // from the pre-render snapshot and overwriting the previous clears.
+      const next = { ...stateRef.current, ...patch };
+      stateRef.current = next;
+      set(next);
+    },
+    [set]
   );
 
-  const [pivotColumns, setPivotColumns] = useState<string[]>(() => {
-    if (uiIntent != null) return [...uiIntent.pivotColumns];
-    return pivotIntent != null ? [...pivotIntent.columnKeys] : [];
-  });
-  const [pivotColumnsOn, setPivotColumnsOn] = useState<boolean>(
-    () => uiIntent?.pivotColumnsOn ?? true
+  const {
+    rollupRowsOn,
+    rollupRows,
+    includeConstituents,
+    nonAggregatedInRollup,
+    aggregatesOn,
+    aggregations: aggregationSettings,
+    pivotColumnsOn,
+    pivotColumns,
+    filterableOn: placeholderFilterableOn,
+    filterableColumns: placeholderFilterable,
+  } = state;
+
+  const setRollupRows = useCallback(
+    (next: string[]) => update({ rollupRows: next }),
+    [update]
   );
-  const [placeholderFilterable, setPlaceholderFilterable] = useState<string[]>(
-    () => uiIntent?.filterableColumns ?? []
+  const setRollupRowsOn = useCallback(
+    (next: boolean) => update({ rollupRowsOn: next }),
+    [update]
   );
-  const [placeholderFilterableOn, setPlaceholderFilterableOn] =
-    useState<boolean>(() => uiIntent?.filterableOn ?? true);
+  const setIncludeConstituents = useCallback(
+    (next: boolean) => update({ includeConstituents: next }),
+    [update]
+  );
+  const setNonAggregatedInRollup = useCallback(
+    (next: boolean) => update({ nonAggregatedInRollup: next }),
+    [update]
+  );
+  const setAggregationSettings = useCallback(
+    (next: AggregationSettings) => update({ aggregations: next }),
+    [update]
+  );
+  const setAggregatesOn = useCallback(
+    (next: boolean) => update({ aggregatesOn: next }),
+    [update]
+  );
+  const setPivotColumns = useCallback(
+    (next: string[]) => update({ pivotColumns: next }),
+    [update]
+  );
+  const setPivotColumnsOn = useCallback(
+    (next: boolean) => update({ pivotColumnsOn: next }),
+    [update]
+  );
+  const setPlaceholderFilterable = useCallback(
+    (next: string[]) => update({ filterableColumns: next }),
+    [update]
+  );
+  const setPlaceholderFilterableOn = useCallback(
+    (next: boolean) => update({ filterableOn: next }),
+    [update]
+  );
+
+  // Clear every card in a single `update` so the global "Clear all" menu
+  // action records exactly one undo step (rather than one per field).
+  const clearAll = useCallback(() => {
+    update({
+      rollupRows: [],
+      pivotColumns: [],
+      aggregations: {
+        ...stateRef.current.aggregations,
+        aggregations: [],
+      },
+    });
+  }, [update]);
 
   // Skip the mount reconcile: the model transform has already applied any
   // persisted intent, so on first render the cards are seeded to match the
@@ -339,23 +440,73 @@ export function CreatePivotPage({
         filterableColumns: placeholderFilterable,
       },
     });
-  }, [
-    model,
-    rollupRowsOn,
-    rollupRows,
-    includeConstituents,
-    nonAggregatedInRollup,
-    pivotColumnsOn,
-    pivotColumns,
-    aggregatesOn,
-    aggregationSettings,
-    placeholderFilterableOn,
-    placeholderFilterable,
-    pivotAvailable,
-  ]);
+    // All reconcile inputs are fields of `state`; depend on the snapshot
+    // identity rather than listing each field individually.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model, state, pivotAvailable]);
+
+  // Transient undo/redo keyboard shortcuts, scoped to this panel via a normal
+  // React `onKeyDown` (so they never fire for sibling pivot-builder panels and
+  // don't fight the host's global handlers). The handler only receives events
+  // when focus is within our subtree, so we also restore focus to the
+  // container when a control is unmounted from under the user (e.g. clicking
+  // "Remove" deletes the focused button, which would otherwise drop focus to
+  // `document.body` and break the shortcuts). See VisibilityOrderingBuilder for
+  // the same `focusout` + null-`relatedTarget` pattern.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (GLOBAL_SHORTCUTS.UNDO.matchesEvent(event) && canUndo) {
+        event.preventDefault();
+        event.stopPropagation();
+        undo();
+      } else if (GLOBAL_SHORTCUTS.REDO.matchesEvent(event) && canRedo) {
+        event.preventDefault();
+        event.stopPropagation();
+        redo();
+      }
+    },
+    [canUndo, canRedo, undo, redo]
+  );
+  const handleBlur = useCallback((event: ReactFocusEvent<HTMLDivElement>) => {
+    // `relatedTarget == null` means focus is moving to nothing - typically
+    // because the previously focused control was just unmounted (Remove,
+    // toggling a section off, etc.). Pull focus back to the container so
+    // keyboard shortcuts keep working. If focus is moving to a real element
+    // (another panel/control), leave it alone. The refocus is deferred to the
+    // next frame because calling `focus()` synchronously inside a `focusout`
+    // handler is ignored by the browser while focus is still mid-transition;
+    // we also re-check that focus actually fell back to the body so we don't
+    // steal it if something else claimed it in the meantime.
+    if (event.relatedTarget != null) {
+      return;
+    }
+    const container = containerRef.current;
+    requestAnimationFrame(() => {
+      if (
+        container != null &&
+        (document.activeElement == null ||
+          document.activeElement === document.body)
+      ) {
+        container.focus();
+      }
+    });
+  }, []);
 
   return (
-    <div className="iris-grid-plugin-sidebar-page" style={{ padding: 12 }}>
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
+      ref={containerRef}
+      className="iris-grid-plugin-sidebar-page"
+      // `height: 100%` so the empty area below the cards still belongs to this
+      // focusable container - clicking it focuses us (tabIndex=0) and keeps the
+      // undo/redo shortcuts working, rather than focusing an ancestor.
+      style={{ padding: 12, height: '100%', boxSizing: 'border-box' }}
+      role="menu"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <PivotConfigSection
           availableColumns={allColumnNames}
@@ -381,6 +532,11 @@ export function CreatePivotPage({
           onIncludeConstituentsChange={setIncludeConstituents}
           nonAggregatedInRollup={nonAggregatedInRollup}
           onNonAggregatedInRollupChange={setNonAggregatedInRollup}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+          onClearAll={clearAll}
         />
       </div>
     </div>

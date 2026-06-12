@@ -38,6 +38,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/js-plugin-pivot',
         '@deephaven/log',
         '@deephaven/plugin',
+        '@deephaven/react-hooks',
       ],
     },
   },

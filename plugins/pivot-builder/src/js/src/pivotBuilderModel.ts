@@ -390,16 +390,28 @@ export function augmentPivotBuilderModel(
     totals: null,
   };
   let pendingTotals: UITotalsTableConfig | null | undefined;
+  // Mirror of the totals config actually written to the source (base)
+  // model. Inner totals writes are diffed against this — NOT against
+  // `lastIntent.totals` — because the pivot and rollup branches force
+  // `lastIntent.totals` to `null` when they supersede totals without ever
+  // touching the base model. Diffing against `lastIntent.totals` would then
+  // wrongly suppress the clearing write when returning to a plain-totals
+  // view, leaving a stale Totals row on the restored base model.
+  let appliedInnerTotals: UITotalsTableConfig | null = null;
 
   const proxyAsAny = proxy as unknown as { modelPromise: unknown };
-  const innerWritable = proxy as unknown as {
-    model: IrisGridModel & { totalsConfig: UITotalsTableConfig | null };
+  const originalWritable = proxy.originalModel as unknown as {
+    totalsConfig: UITotalsTableConfig | null;
   };
 
   const writeTotalsToInner = (v: UITotalsTableConfig | null): void => {
-    // Bypass the host proxy's lossy mid-swap setter — write directly to
-    // the resolved inner model.
-    innerWritable.model.totalsConfig = v;
+    // Totals only ever apply to the source (base) model — rollup/pivot
+    // models supersede them. Write to the stable `originalModel` rather than
+    // the proxy's swap-sensitive current inner model so the clearing /
+    // restoring write always lands on the base model regardless of which
+    // model is currently displayed, and survives model swaps.
+    originalWritable.totalsConfig = v;
+    appliedInnerTotals = v;
   };
 
   const flushPendingTotals = (): void => {
@@ -526,7 +538,13 @@ export function augmentPivotBuilderModel(
       }
       storedRollup = config.rollup;
 
-      if (!deepEqual(config.totals, lastIntent.totals)) {
+      // Diff against the base model's real totals (the queued write if one
+      // is pending, otherwise the last applied value) — not
+      // `lastIntent.totals`, which is `null` after any pivot/rollup supersede
+      // and would mask a needed clearing write.
+      const effectiveInnerTotals =
+        pendingTotals !== undefined ? pendingTotals : appliedInnerTotals;
+      if (!deepEqual(config.totals, effectiveInnerTotals)) {
         log.debug('Applying totalsConfig', config.totals);
         if (proxyAsAny.modelPromise != null) {
           // Mid-swap — queue and flush on next COLUMNS_CHANGED/TABLE_CHANGED.
