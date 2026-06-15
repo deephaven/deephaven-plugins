@@ -12,8 +12,7 @@
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "files": [
-    "dist/index.js",
-    "LICENSE"
+    "dist/index.js"
   ],
   "scripts": {
     "start": "vite build --watch",
@@ -21,7 +20,7 @@
   },
   "dependencies": {
     "@deephaven/log": "^1.8.0",
-    "@deephaven/plugin": "^1.17.0"
+    "@deephaven/plugin": "^1.18.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
