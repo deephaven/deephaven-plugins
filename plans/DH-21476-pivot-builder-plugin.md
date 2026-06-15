@@ -2,8 +2,8 @@
 
 ## TL;DR
 
-New JS-only `WidgetMiddlewarePlugin` at `plugins/pivot-builder/`, modeled on
-[`table-options-example`](../plugins/table-options-example/). It owns a new
+New JS-only `WidgetMiddlewarePlugin` at `plugins/pivot-builder/`, originally
+modeled on the `table-options-example` plugin (since removed). It owns a new
 proxy model `PivotBuilderIrisGridModel` (JS-`Proxy` pattern from
 [`IrisGridProxyModel`](https://github.com/deephaven/web-client-ui/blob/main/packages/iris-grid/src/IrisGridProxyModel.ts))
 whose inner model is either the original `IrisGridTableModel` or an
@@ -36,8 +36,8 @@ no Python package, no tests.
 ### Phase 1 — Scaffold the plugin package (no deps on others)
 
 1. Create `plugins/pivot-builder/` with `LICENSE` and a minimal `README.md`.
-2. Create `plugins/pivot-builder/src/js/package.json` cloned from
-   [`table-options-example/src/js/package.json`](../plugins/table-options-example/src/js/package.json).
+2. Create `plugins/pivot-builder/src/js/package.json` cloned from another
+   JS-only plugin's `package.json` (e.g. `grid-toolbar`).
    Rename to `@deephaven/js-plugin-pivot-builder`. Add deps:
    - `@deephaven/components`, `@deephaven/iris-grid`,
      `@deephaven/jsapi-bootstrap`, `@deephaven/jsapi-types`,
@@ -45,7 +45,7 @@ no Python package, no tests.
    - peerDeps: `react`, `@deephaven-enterprise/jsapi-coreplus-types`,
      `@deephaven/js-plugin-pivot` (for `IrisGridPivotModel`, `isCorePlusDh`)
 3. Create `plugins/pivot-builder/src/js/vite.config.ts` and `tsconfig.json`
-   cloned from `table-options-example`, with externals updated for the new
+   cloned from another JS-only plugin, with externals updated for the new
    deps.
 4. Create `plugins/pivot-builder/src/js/.gitignore` for `dist/` and
    `node_modules/`.
@@ -91,9 +91,8 @@ no Python package, no tests.
      `pivotConfig = null`.
    - Defensive `instanceof` check; render note if model isn't the expected
      type.
-8. `useComposedTableOptionsExtension.ts`: mirror
-   `table-options-example/.../useComposedTableOptionsExtension.ts`. Append
-   the `CREATE_PIVOT_ITEM`; do not filter built-ins.
+8. `useComposedTableOptionsExtension.ts`: a `useComposedTableOptionsExtension`
+   hook that appends the `CREATE_PIVOT_ITEM`; do not filter built-ins.
 9. `PivotBuilderWidget.tsx`:
    - `useApi()` for `dh`, `useObjectFetch<dh.Widget>` keyed off
      `props.metadata` with `{ ...metadata, type: 'PivotService', name:
@@ -136,9 +135,6 @@ no Python package, no tests.
 - [`grid-toolbar/src/js/src/PivotBuilderDialog.tsx`](https://github.com/deephaven/deephaven-plugins/blob/pivot-builder-plugin/plugins/grid-toolbar/src/js/src/PivotBuilderDialog.tsx)
   — `PivotConfig` shape (`rowKeys`, `columnKeys`, `aggregations:
   Record<string,string[]>`) and `NUMERIC_TYPES` set.
-- [`plugins/table-options-example/src/js/`](../plugins/table-options-example/src/js/)
-  — full scaffold template (package.json, vite.config.ts,
-  plugin/middleware/extension/page files).
 - [`plugins/pivot/src/js/src/IrisGridPivotModel.ts`](../plugins/pivot/src/js/src/IrisGridPivotModel.ts)
   — exported via `@deephaven/js-plugin-pivot`; constructor `(dh,
   pivotTable)`.
@@ -175,7 +171,7 @@ no Python package, no tests.
 
 ## Decisions
 
-- JS-only plugin (matches `table-options-example`); no Python package, no
+- JS-only plugin (like `grid-toolbar`); no Python package, no
   `register.py`, no tox.
 - Panel path (`panelComponent`) keeps default `IrisGridPanel`; menu item is
   non-functional there. Documented in README. Spike acceptable.
