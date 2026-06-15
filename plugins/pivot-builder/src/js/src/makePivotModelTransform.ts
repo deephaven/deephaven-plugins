@@ -7,7 +7,6 @@ import {
   augmentPivotBuilderModel,
   type PivotBuilderConfig,
   type PivotBuilderProxyModel,
-  type PivotOverrides,
 } from './pivotBuilderModel';
 import { type IrisGridModelTransform } from './modelTypes';
 
@@ -32,8 +31,6 @@ const log = Log.module(
  *
  * @param dh CorePlus-capable API.
  * @param getPspWidget Lazily fetches the PivotService widget on first apply.
- * @param pivotOverrides Renderer / mouse handlers / metric calculator routed
- *   through the proxy whenever its inner model is a pivot.
  * @param getPersistedConfig Reads the latest persisted builder config (or
  *   `null`). Read once per model build; restored synchronously before the
  *   model is published to avoid a hydration race.
@@ -42,7 +39,6 @@ const log = Log.module(
 export function makePivotModelTransform(
   dh: typeof DhType | typeof CorePlusDhType,
   getPspWidget: () => Promise<DhType.Widget>,
-  pivotOverrides: PivotOverrides,
   getPersistedConfig: () => PivotBuilderConfig | null = () => null,
   upstream?: IrisGridModelTransform
 ): IrisGridModelTransform {
@@ -55,8 +51,7 @@ export function makePivotModelTransform(
     const augmented: PivotBuilderProxyModel = augmentPivotBuilderModel(
       dh,
       base,
-      getPspWidget,
-      pivotOverrides
+      getPspWidget
     );
     // Hydrate persisted builder config synchronously *before* returning the
     // model. Doing this here (instead of via a post-mount effect) avoids a

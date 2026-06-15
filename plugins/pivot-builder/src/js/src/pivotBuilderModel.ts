@@ -1,35 +1,15 @@
 import deepEqual from 'fast-deep-equal';
-import type { GridMouseHandler } from '@deephaven/grid';
 import {
   IrisGridModel,
   AggregationOperation,
   type AggregationSettings,
-  type GetMetricCalculatorType,
-  type IrisGridRenderer,
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
-import {
-  IrisGridPivotModel,
-  isCorePlusDh,
-  isIrisGridPivotModel,
-} from '@deephaven/js-plugin-pivot';
+import { IrisGridPivotModel, isCorePlusDh } from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
 import { EventShimCustomEvent } from '@deephaven/utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
-
-/**
- * Pivot-specific overrides supplied by the React layer. Forwarded to the
- * host `IrisGrid` via `model.getMetricCalculator` / `model.getRenderer()` /
- * `model.getMouseHandlers()` whenever the proxy's inner model is a pivot,
- * so swapping in/out happens synchronously with the model swap (no React
- * render lag).
- */
-export interface PivotOverrides {
-  getMetricCalculator: GetMetricCalculatorType;
-  renderer: IrisGridRenderer;
-  mouseHandlers: readonly GridMouseHandler[];
-}
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/pivotBuilderModel');
 
@@ -195,8 +175,7 @@ class SupersededError extends Error {
 export function augmentPivotBuilderModel(
   dh: typeof DhType | typeof CorePlusDhType,
   model: IrisGridModel,
-  getPspWidget: () => Promise<DhType.Widget>,
-  pivotOverrides: PivotOverrides
+  getPspWidget: () => Promise<DhType.Widget>
 ): PivotBuilderProxyModel {
   if (!isCorePlusDh(dh)) {
     throw new Error('CorePlus is not available; pivot builder requires DHE');
@@ -324,44 +303,6 @@ export function augmentPivotBuilderModel(
     enumerable: false,
     configurable: false,
     writable: false,
-  });
-
-  // Synchronously expose pivot overrides to the host IrisGrid whenever the
-  // inner model is a pivot model. The host reads `model.getMetricCalculator`
-  // (as a property), `model.getRenderer?.()`, and `model.getMouseHandlers?.()`
-  // — see IrisGrid.tsx. By switching these on inner-model type at access
-  // time we avoid the React render lag where, on pivot reset, the inner
-  // table model would briefly be paired with the pivot calculator/renderer
-  // (the pivot calculator throws `Model is not an IrisGridPivotModel`).
-  Object.defineProperty(proxy, 'getMetricCalculator', {
-    configurable: true,
-    enumerable: false,
-    get(): GetMetricCalculatorType | undefined {
-      const target = (proxy as unknown as { model: IrisGridModel }).model;
-      return isIrisGridPivotModel(target) === true
-        ? pivotOverrides.getMetricCalculator
-        : undefined;
-    },
-  });
-  Object.defineProperty(proxy, 'getRenderer', {
-    configurable: true,
-    enumerable: false,
-    value(): IrisGridRenderer | undefined {
-      const target = (proxy as unknown as { model: IrisGridModel }).model;
-      return isIrisGridPivotModel(target) === true
-        ? pivotOverrides.renderer
-        : undefined;
-    },
-  });
-  Object.defineProperty(proxy, 'getMouseHandlers', {
-    configurable: true,
-    enumerable: false,
-    value(): readonly GridMouseHandler[] {
-      const target = (proxy as unknown as { model: IrisGridModel }).model;
-      return isIrisGridPivotModel(target) === true
-        ? pivotOverrides.mouseHandlers
-        : [];
-    },
   });
 
   Object.defineProperty(proxy, 'pivotConfig', {
@@ -514,15 +455,23 @@ export function augmentPivotBuilderModel(
         log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
         return settle();
       }
-      // Raise the IrisGrid loading scrim while the rebuild is in flight. The
-      // model is the start signal; the stop is automatic via the
-      // COLUMNS_CHANGED / UPDATED events that the swap (or totals write)
-      // emits when it lands. No PENDING_CLEARED is needed.
-      proxy.dispatchEvent(
-        new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
-          detail: { text: 'Updating pivot...' },
-        })
-      );
+      // Raise the IrisGrid loading scrim *only* when this apply queued an
+      // async model swap (pivot/rollup change → `setNextModel`). Those swaps
+      // resolve into a COLUMNS_CHANGED / UPDATED event that clears the scrim
+      // automatically. A totals-only change (toggling the aggregate card)
+      // writes synchronously to the base model and produces no such event on
+      // the proxy, so raising the scrim there would leave it stuck forever —
+      // we must not raise it. Call this right before returning, after all
+      // mutations have had a chance to set `modelPromise`.
+      const raisePendingIfSwapping = (): void => {
+        if (proxyAsAny.modelPromise != null) {
+          proxy.dispatchEvent(
+            new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
+              detail: { text: 'Updating pivot...' },
+            })
+          );
+        }
+      };
       const proxyWithPivot = proxy as unknown as {
         pivotConfig: PivotConfig | null;
       };
@@ -549,6 +498,7 @@ export function augmentPivotBuilderModel(
         storedRollup = config.rollup;
         storedTotals = config.totals;
         lastIntent = config;
+        raisePendingIfSwapping();
         proxy.dispatchEvent(
           new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
             detail: config,
@@ -588,6 +538,7 @@ export function augmentPivotBuilderModel(
       storedTotals = config.totals;
 
       lastIntent = config;
+      raisePendingIfSwapping();
       proxy.dispatchEvent(
         new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
           detail: config,

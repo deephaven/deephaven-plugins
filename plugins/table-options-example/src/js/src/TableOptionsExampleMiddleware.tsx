@@ -1,29 +1,21 @@
 import { IrisGridTableOptionsContext } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
-import type { WidgetMiddlewareComponentProps } from '@deephaven/plugin';
+import { createWidgetMiddleware } from './createMiddleware';
 import { useComposedTableOptionsExtension } from './useComposedTableOptionsExtension';
-
-const log = Log.module(
-  '@deephaven/js-plugin-table-options-example/TableOptionsExampleMiddleware'
-);
 
 /**
  * Middleware that wraps the base widget component (the non-panel
  * `WidgetComponentProps` path, e.g. dashboard widgets via
  * `GridWidgetPlugin`) in an `IrisGridTableOptionsContext.Provider`.
  */
-export function TableOptionsExampleMiddleware({
-  Component,
-  ...props
-}: WidgetMiddlewareComponentProps): JSX.Element {
+export const TableOptionsExampleMiddleware = createWidgetMiddleware(() => {
   const extension = useComposedTableOptionsExtension();
-  log.debug('Wrapping widget component', { Component, props });
-  return (
-    <IrisGridTableOptionsContext.Provider value={extension}>
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <Component {...props} />
-    </IrisGridTableOptionsContext.Provider>
-  );
-}
+  return {
+    wrap: child => (
+      <IrisGridTableOptionsContext.Provider value={extension}>
+        {child}
+      </IrisGridTableOptionsContext.Provider>
+    ),
+  };
+}, 'TableOptionsExampleMiddleware');
 
 export default TableOptionsExampleMiddleware;

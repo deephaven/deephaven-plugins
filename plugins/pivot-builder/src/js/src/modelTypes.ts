@@ -1,4 +1,9 @@
-import { type IrisGridModel } from '@deephaven/iris-grid';
+import {
+  type IrisGridModel,
+  type IrisGridRenderer,
+  type MouseHandlersProp,
+  type GetMetricCalculatorType,
+} from '@deephaven/iris-grid';
 
 /**
  * Local copy of the model-transform props contract added to
@@ -23,4 +28,18 @@ export type IrisGridModelTransform = (
  */
 export interface IrisGridModelWidgetProps {
   transformModel?: IrisGridModelTransform;
+}
+
+/**
+ * Local mirror of `IrisGridViewProps` from `@deephaven/iris-grid`: the bag of
+ * view-concern overrides (theme, renderer, mouse handlers, metric calculator)
+ * an IrisGrid host forwards to `<IrisGrid>` as a single prop. Duplicated here
+ * until that version is published and installed, at which point this can be
+ * replaced with an import from `@deephaven/iris-grid`.
+ */
+export interface IrisGridViewProps {
+  theme?: Record<string, unknown>;
+  renderer?: IrisGridRenderer;
+  mouseHandlers?: MouseHandlersProp;
+  getMetricCalculator?: GetMetricCalculatorType;
 }

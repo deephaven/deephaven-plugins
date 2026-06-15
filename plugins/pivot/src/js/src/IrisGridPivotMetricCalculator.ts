@@ -255,7 +255,15 @@ class IrisGridPivotMetricCalculator extends IrisGridMetricCalculator {
     const { model } = state;
 
     if (!isIrisGridPivotModel(model)) {
-      throw new Error('Model is not an IrisGridPivotModel');
+      // Transient: this calculator lives in the host's component state and a
+      // pivot-config swap can pair it with a non-pivot model for a frame
+      // before the host rebuilds the calculator on COLUMNS_CHANGED. Fall back
+      // to base metrics (with a zero source-label width) instead of throwing;
+      // the next render installs the correct calculator.
+      return {
+        ...super.getMetrics(state),
+        columnSourceLabelWidth: 0,
+      };
     }
 
     // [DIAG] count getMetrics calls to detect a per-frame draw storm

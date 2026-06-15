@@ -35,6 +35,16 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   ): void {
     super.drawColumnHeaders(context, state);
 
+    // The host Grid holds this renderer in its requestAnimationFrame draw
+    // loop, decoupled from the model state at draw time. During a pivot
+    // config update the proxy can briefly pair this pivot renderer with a
+    // non-pivot inner model for a single frame before the host re-renders
+    // with the base renderer. Skip pivot-only drawing for that frame rather
+    // than throwing; the next render corrects it.
+    if (!isIrisGridPivotModel(state.model)) {
+      return;
+    }
+
     // Draw column source filters on top of headers
     this.drawColumnSourceFilters(context, state);
   }
@@ -48,7 +58,11 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   ): void {
     const { isFilterBarShown, metrics, model, theme } = state;
     if (!isIrisGridPivotModel(model)) {
-      throw new Error('Unsupported model type');
+      // Transient: the host's rAF draw loop can run this pivot renderer
+      // against a non-pivot model for one frame mid pivot-config swap. Fall
+      // back to the base column-header drawing instead of throwing.
+      super.drawColumnHeadersAtDepth(context, state, range, bounds, depth);
+      return;
     }
     const { modelColumns } = metrics;
     const { columnHeaderHeight } = theme;

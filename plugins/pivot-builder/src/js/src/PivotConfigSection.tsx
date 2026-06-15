@@ -11,6 +11,7 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
   type DragStartEvent,
   MeasuringStrategy,
@@ -105,6 +106,15 @@ const PIVOT_DND_STYLES = `
 .pivot-config-section .pivot-droppable.is-dragging-over,
 .pivot-config-section .pivot-droppable-empty.is-dragging-over {
   background-color: var(--dh-color-item-list-selected-hover-bg, rgba(255, 255, 255, 0.08));
+}
+/* Empty placeholder shown in a target card while dragging a column in from
+ * another card. Same-card reordering opens a row-height gap via
+ * SortableContext (the dragged row goes transparent and the rest shift);
+ * this mirrors that look for cross-card drags so the drop position reads as
+ * the same blank space, just in the other card. */
+.pivot-config-section .pivot-drop-indicator {
+  height: 28px;
+  margin: 1px 0;
 }
 /* Compact row buttons: the base .btn has a 32px height; shrink the
  * inline row action buttons (e.g. Remove) to keep list rows dense. */
@@ -645,6 +655,31 @@ function ConfigCard({
 const ROLLUP_ROWS_DROPPABLE = 'rollup-rows';
 const PIVOT_COLUMNS_DROPPABLE = 'pivot-columns';
 const AGGREGATIONS_DROPPABLE = 'aggregations';
+
+/** Empty row-height placeholder marking where a cross-card drag will drop. */
+function DropIndicator(): JSX.Element {
+  return <div className="pivot-drop-indicator" aria-hidden />;
+}
+
+/**
+ * Splice a {@link DropIndicator} into a list of rendered rows at `index`
+ * (clamped to the row count). Returns the rows unchanged when `index` is
+ * null.
+ */
+function withDropIndicator(
+  rows: JSX.Element[],
+  index: number | null
+): React.ReactNode {
+  if (index == null) {
+    return rows;
+  }
+  const clamped = Math.max(0, Math.min(index, rows.length));
+  return [
+    ...rows.slice(0, clamped),
+    <DropIndicator key="pivot-drop-indicator" />,
+    ...rows.slice(clamped),
+  ];
+}
 
 type DroppableListProps = {
   id: string;
@@ -1248,6 +1283,9 @@ export function PivotConfigSection({
   // nothing is being dragged. Used to toggle the `is-dragging` modifier
   // on the root so the drop zones render the marching-ants effect.
   const [dragSource, setDragSource] = useState<string | null>(null);
+  // Id of the droppable/row currently under the pointer during a drag.
+  // Drives the cross-card insertion indicator; null when idle.
+  const [overId, setOverId] = useState<string | null>(null);
 
   // Local toggle for the "Show hidden columns in menu" overflow item. There
   // is no hidden-columns concept threaded through the plugin yet, so this
@@ -1526,6 +1564,12 @@ export function PivotConfigSection({
     activeContainerRef.current = container === '' ? null : container;
     setDragSource(container === '' ? null : container);
     setActiveId(String(event.active.id));
+    setOverId(null);
+  }, []);
+
+  const handleDragOver = useCallback((event: DragOverEvent): void => {
+    const { over } = event;
+    setOverId(over == null ? null : String(over.id));
   }, []);
 
   const sensors = useSensors(
@@ -1571,6 +1615,7 @@ export function PivotConfigSection({
     (event: DragEndEvent): void => {
       setDragSource(null);
       setActiveId(null);
+      setOverId(null);
       const { active, over } = event;
       if (over == null) return;
 
@@ -1757,7 +1802,42 @@ export function PivotConfigSection({
   const handleDragCancel = useCallback((): void => {
     setDragSource(null);
     setActiveId(null);
+    setOverId(null);
   }, []);
+
+  // Index at which a cross-card insertion indicator should render in the
+  // column list `targetContainer` (or null for none). Only shown for a
+  // column drag originating in the *other* column card — same-card reorders
+  // already open a gap via SortableContext. The index mirrors the drop
+  // position computed in `handleDragEnd`: before the hovered row, or at the
+  // end when hovering the empty container background.
+  const columnInsertionIndex = useCallback(
+    (targetContainer: string, items: readonly string[]): number | null => {
+      if (activeId == null || overId == null) {
+        return null;
+      }
+      const activeContainer = resolveContainerOfId(activeId);
+      if (
+        activeContainer == null ||
+        activeContainer === targetContainer ||
+        (activeContainer !== ROLLUP_ROWS_DROPPABLE &&
+          activeContainer !== PIVOT_COLUMNS_DROPPABLE)
+      ) {
+        return null;
+      }
+      if (resolveContainerOfId(overId) !== targetContainer) {
+        return null;
+      }
+      if (overId === targetContainer) {
+        return items.length;
+      }
+      const overColon = overId.indexOf(':');
+      const overName = overColon === -1 ? overId : overId.slice(overColon + 1);
+      const idx = items.indexOf(overName);
+      return idx < 0 ? items.length : idx;
+    },
+    [activeId, overId, resolveContainerOfId]
+  );
 
   const rollupItemIds = useMemo(
     () => rollupRows.map(n => columnRowId(ROLLUP_ROWS_DROPPABLE, n)),
@@ -2098,6 +2178,7 @@ export function PivotConfigSection({
       collisionDetection={closestCenter}
       measuring={measuring}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
@@ -2149,14 +2230,17 @@ export function PivotConfigSection({
             itemIds={rollupItemIds}
             isEmpty={rollupRows.length === 0}
           >
-            {rollupRows.map((name, i) => (
-              <ColumnRow
-                key={columnRowId(ROLLUP_ROWS_DROPPABLE, name)}
-                name={name}
-                droppableId={ROLLUP_ROWS_DROPPABLE}
-                onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
-              />
-            ))}
+            {withDropIndicator(
+              rollupRows.map((name, i) => (
+                <ColumnRow
+                  key={columnRowId(ROLLUP_ROWS_DROPPABLE, name)}
+                  name={name}
+                  droppableId={ROLLUP_ROWS_DROPPABLE}
+                  onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
+                />
+              )),
+              columnInsertionIndex(ROLLUP_ROWS_DROPPABLE, rollupRows)
+            )}
           </DroppableList>
         </ConfigCard>
 
@@ -2195,14 +2279,19 @@ export function PivotConfigSection({
             isEmpty={pivotColumns.length === 0}
             disabled={pivotColumnsDisabled === true}
           >
-            {pivotColumns.map((name, i) => (
-              <ColumnRow
-                key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
-                name={name}
-                droppableId={PIVOT_COLUMNS_DROPPABLE}
-                onDelete={() => onPivotColumnsChange(removeAt(pivotColumns, i))}
-              />
-            ))}
+            {withDropIndicator(
+              pivotColumns.map((name, i) => (
+                <ColumnRow
+                  key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
+                  name={name}
+                  droppableId={PIVOT_COLUMNS_DROPPABLE}
+                  onDelete={() =>
+                    onPivotColumnsChange(removeAt(pivotColumns, i))
+                  }
+                />
+              )),
+              columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns)
+            )}
           </DroppableList>
         </ConfigCard>
 
