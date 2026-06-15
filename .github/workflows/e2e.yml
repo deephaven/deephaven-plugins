@@ -22,7 +22,7 @@ jobs:
 
       - name: Export Docker images
         run: |
-          docker save tests-deephaven-plugins tests-e2e-tests | gzip > e2e-docker-images.tar.gz
+          docker save $(docker compose -f ./tests/docker-compose.yml images -q deephaven-plugins e2e-tests) | gzip > e2e-docker-images.tar.gz
 
       - name: Upload Docker images
         uses: actions/upload-artifact@v7
