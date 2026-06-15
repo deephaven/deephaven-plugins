@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          dockerfile: ./Dockerfile
+          file: ./Dockerfile
           push: false
           load: true
           tags: tests-deephaven-plugins
@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          dockerfile: ./tests/Dockerfile
+          file: ./tests/Dockerfile
           push: false
           load: true
           tags: tests-e2e-tests
