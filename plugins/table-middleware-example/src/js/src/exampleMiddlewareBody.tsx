@@ -26,7 +26,7 @@ const log = Log.module('ExampleMiddleware');
 export const exampleMiddlewareBody: MiddlewareBody<{
   metadata?: { name?: string };
 }> = props => {
-  log.info('Middleware in chain. Incoming widget metadata:', props.metadata);
+  log.debug('Middleware in chain. Incoming widget metadata:', props.metadata);
 
   return {
     // Extra prop threaded down to the next component in the chain.

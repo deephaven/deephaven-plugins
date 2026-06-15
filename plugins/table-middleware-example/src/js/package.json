@@ -12,7 +12,8 @@
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "files": [
-    "dist/index.js"
+    "dist/index.js",
+    "LICENSE"
   ],
   "scripts": {
     "start": "vite build --watch",

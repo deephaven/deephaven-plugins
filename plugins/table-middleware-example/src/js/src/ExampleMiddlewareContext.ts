@@ -8,7 +8,7 @@ import { createContext } from 'react';
  * widget API (there is no IrisGrid coupling here).
  */
 export interface ExampleMiddlewareContextValue {
-  /** A human-readable label identifying the middleware that wrapped the tree. */
+  /** A human-readable label identifying the middleware that wrapped the widget. */
   label: string;
 }
 
