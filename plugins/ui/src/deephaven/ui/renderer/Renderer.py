@@ -234,15 +234,13 @@ class Renderer:
     At this step it executing the render() method of the Element within the RenderContext state to generate the
     realized Document tree for the Element provided.
 
-    There are a few things to note about the Renderer and RenderContext:
-        - The Renderer is responsible for rendering an Element and all of its children, but it does not manage the state of the Element, or liveness scopes, or hooks. Those are all tracked by the RenderContext.
-        - There is a RenderContext created for each Element. If that Element unmounts, that RenderContext will be destroyed.
-        - The RenderContext also has a cache that the Renderer uses to store the previous rendered result of an Element.
-        - State changes in an Element will mark the RenderContext as dirty, which will cause the Renderer to re-render the Element and its children.
-        - When an Element is dirty, it will be re-rendered along with all of it's children
-        - When a MemoizedElement is encountered, the Renderer will _only_ re-render if the props have changes (as determined by the MemoizedElement's are_props_equal function) or if the context of that Element is dirty, whether it's a dirty render or not (e.g. one of it's parent components was marked dirty)
-
-    By following these rules, we can ensure that we are only re-rendering the parts of the tree that need to be re-rendered, and we can skip re-rendering for parts of the tree that have not changed, even in cases where their parent Element has changed.
+    Key points:
+        - The Renderer executes Element.render() within a RenderContext to generate the realized Document tree.
+        - Each Element has a RenderContext that is destroyed when the Element unmounts.
+        - The RenderContext caches the previous rendered result of an Element.
+        - State changes mark the RenderContext as dirty, triggering re-render of the Element and its children.
+        - MemoizedElements only re-render if props change or the context is dirty.
+    This ensures only the necessary parts of the tree are re-rendered.
     """
 
     _context: RenderContext

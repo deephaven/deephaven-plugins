@@ -128,7 +128,7 @@ After rendering is done and React updated the DOM, the browser will repaint the 
 
 ## Optimizing Re-renders with `memo`
 
-By default, when any component's state changes, `deephaven.ui` re-renders the entire component tree from the root—not just the component that triggered the change or its children, but every component in the tree. This is usually not a problem, but if you have a deeply nested tree or expensive components, you can optimize performance by using the `memo` parameter on `@ui.component`.
+By default, when a component's state changes, `deephaven.ui` only re-renders that component and its descendants. However, if you have expensive components or want to avoid unnecessary re-renders of children when their props haven't changed, you can optimize performance by using the `memo` parameter on `@ui.component`.
 
 The `memo` parameter tells `deephaven.ui` to skip re-rendering a component when its props haven't changed:
 

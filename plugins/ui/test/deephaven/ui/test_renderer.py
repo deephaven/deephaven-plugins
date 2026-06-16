@@ -262,3 +262,38 @@ class RendererTestCase(BaseTestCase):
         )
 
         self.assertIsInstance(nested_dataclass["b"], RenderedNode)
+
+    def test_render_child_item_not_dirty(self):
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
+
+        # Test with is_dirty_render=False for dict
+        self.assertEqual(
+            _render_child_item({"key": "value"}, rc, "key", False),
+            {"key": "value"},
+        )
+
+        # Test with is_dirty_render=False for list
+        self.assertEqual(
+            _render_child_item([0, 1, 2], rc, "key", False),
+            [0, 1, 2],
+        )
+
+        @ui.component
+        def my_comp():
+            return "Hello"
+
+        @dataclass
+        class MyDataclass:
+            a: str
+            b: Element
+
+        nested_dataclass = _render_child_item(
+            [MyDataclass("test", my_comp())], rc, "key", False
+        )[0]
+
+        self.assertEqual(
+            nested_dataclass["a"],
+            "test",
+        )
+
+        self.assertIsInstance(nested_dataclass["b"], RenderedNode)

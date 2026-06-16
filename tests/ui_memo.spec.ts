@@ -37,8 +37,8 @@ test('ui.component(memo=True) skips re-render when props are unchanged and re-re
   await expect(input).toHaveValue('World');
 
   // Capture the initial random value rendered by the memoized component.
-  const initialRandom = await randomValue.textContent();
-  expect(initialRandom).toMatch(/^Random: \d+$/);
+  await expect(randomValue).toHaveText(/^Random: \d+$/);
+  const initialRandom = (await randomValue.textContent()) ?? '';
 
   // Incrementing the count re-renders the parent, but the memoized children's
   // props are unchanged, so neither should re-render.
