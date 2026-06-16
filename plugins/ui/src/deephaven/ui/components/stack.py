@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def stack(
-    *children: Any,
+    *children: NodeType,
     height: float | None = None,
     width: float | None = None,
     active_item_index: int | None = None,
