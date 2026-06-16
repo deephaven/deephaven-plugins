@@ -146,6 +146,29 @@ it('finds and closes existing panels from the layout root, but opens in the pare
   });
 });
 
+it('re-attaches a detached parent to the root before opening the panel', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  // A parent that is detached from the root (parent.parent === null)
+  const parent = TestUtils.createMockProxy<ContentItem>({ parent: null });
+
+  render(
+    <ParentItemContext.Provider value={parent}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+  // Root has no children in the mock, so addChild should be called on root itself
+  expect(root.addChild).toHaveBeenCalledWith(parent);
+  // Panel should still open in the parent stack after re-attachment
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root: parent })
+  );
+});
+
 it('only calls open once if the panel has not closed and only children change', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
