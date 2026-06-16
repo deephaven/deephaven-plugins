@@ -386,7 +386,11 @@ export function UITable({
     Partial<IrisGridProps> | undefined
   >(undefined);
   const initialHydratedStateComputedRef = useRef(false);
-  if (!initialHydratedStateComputedRef.current && model != null && utils != null) {
+  if (
+    !initialHydratedStateComputedRef.current &&
+    model != null &&
+    utils != null
+  ) {
     initialHydratedStateComputedRef.current = true;
     const persisted =
       initialState.current != null
