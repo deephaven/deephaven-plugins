@@ -44,7 +44,7 @@ type ChainedWidgetProps = WidgetComponentProps<DhType.Table> &
  * A **chained** middleware: it renders the wrapped `Component` (the base
  * `GridWidgetPlugin`) and injects a `transformModel` that augments the
  * host-built model into a `PivotBuilderIrisGridModel`, plus a composed
- * `transformTableOptions` that contributes the Create/Edit Pivot page. The
+ * `transformTableOptions` that contributes the unified Pivot page. The
  * sidebar drives the inner model swap via the proxy's `pivotConfig` setter
  * without the pivot-builder mounting its own `IrisGrid`.
  *
@@ -78,13 +78,10 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     const [model, setModel] = useState<IrisGridModel | null>(null);
     const [isPivot, setIsPivot] = useState(false);
 
-    // Compose our Create/Edit Pivot contribution on top of any upstream
-    // transform. Rebuilt when `isPivot` (a snapshot derived from model events
-    // below) changes so `IrisGrid` re-runs the transform and relabels the item
-    // without the transform reading the mutable model directly.
+    // Compose our Pivot contribution on top of any upstream transform.
     const composedTransform = useMemo(
-      () => makeCreatePivotTransform(transformTableOptions, isPivot),
-      [transformTableOptions, isPivot]
+      () => makeCreatePivotTransform(transformTableOptions),
+      [transformTableOptions]
     );
 
     // Stash latest `metadata` / `objectFetcher` in refs so the lazy PSP fetcher
@@ -132,7 +129,7 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     );
 
     // Track whether the proxy is currently in pivot mode (used to gate the
-    // pivot theme override and the Create/Edit relabel). The model is received
+    // pivot theme override). The model is received
     // via `onModelChanged`.
     useEffect(() => {
       if (model == null) {

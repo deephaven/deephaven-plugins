@@ -54,7 +54,7 @@ type ChainedPanelProps = WidgetPanelProps &
  * A **chained** middleware: it renders the wrapped `Component` (the base
  * `IrisGridPanel`) and injects a `transformModel` that augments the
  * host-built model into a `PivotBuilderIrisGridModel`, plus a composed
- * `transformTableOptions` that contributes the Create/Edit Pivot page. The
+ * `transformTableOptions` that contributes the unified Pivot page. The
  * sidebar drives the inner model swap via the proxy's `pivotConfig` setter
  * (mirrors how rollups work) without the pivot-builder mounting its own
  * `IrisGridPanel`.
@@ -99,14 +99,11 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     const [model, setModel] = useState<IrisGridModel | null>(null);
     const [isPivot, setIsPivot] = useState(false);
 
-    // Compose our Create/Edit Pivot contribution on top of any transform
-    // threaded down the middleware chain. Rebuilt when `isPivot` (a snapshot
-    // derived from model events below) changes so `IrisGrid` re-runs the
-    // transform and relabels the item without the transform reading the
-    // mutable model directly.
+    // Compose our Pivot contribution on top of any transform threaded down
+    // the middleware chain.
     const composedTransform = useMemo(
-      () => makeCreatePivotTransform(transformTableOptions, isPivot),
-      [transformTableOptions, isPivot]
+      () => makeCreatePivotTransform(transformTableOptions),
+      [transformTableOptions]
     );
 
     // Persist the applied builder config (pivot + rollup + totals) per
