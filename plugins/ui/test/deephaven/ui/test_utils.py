@@ -14,6 +14,7 @@ from deephaven.ui._internal.utils import (
     is_primitive,
     is_iterable,
     remove_empty_keys,
+    shallow_equal,
     to_camel_case,
     to_react_prop_case,
     wrap_callable,
@@ -502,9 +503,29 @@ class UtilsTest(BaseTestCase):
             dict_shallow_equal({"x": True, "y": False}, {"x": True, "y": False})
         )
 
+        # Primitives: equal but non-identical values should be equal (compared by value).
+        # int("1000") is outside CPython's small-int cache, so the two ints are
+        # distinct objects (different identity) but equal in value.
+        big1 = int("1000")
+        big2 = int("1000")
+        self.assertIsNot(big1, big2)
+        self.assertTrue(dict_shallow_equal({"count": big1}, {"count": big2}))
+
+        # Equal but non-identical strings should also be equal
+        str1 = "hello world!".upper()
+        str2 = "hello world!".upper()
+        self.assertIsNot(str1, str2)
+        self.assertTrue(dict_shallow_equal({"msg": str1}, {"msg": str2}))
+
+        # Equal but non-identical floats should also be equal
+        self.assertTrue(dict_shallow_equal({"f": 1.5 + 0.5}, {"f": 1.0 + 1.0}))
+
         # Different primitive values
         self.assertFalse(dict_shallow_equal({"a": 1}, {"a": 2}))
         self.assertFalse(dict_shallow_equal({"a": "foo"}, {"a": "bar"}))
+
+        # A primitive and a non-primitive that are not identical should not be equal
+        self.assertFalse(dict_shallow_equal({"a": 1}, {"a": "1"}))
 
         # Test with callables - same function object
         def my_func():
@@ -517,6 +538,55 @@ class UtilsTest(BaseTestCase):
             pass
 
         self.assertFalse(dict_shallow_equal({"func": my_func}, {"func": my_func2}))
+
+    def test_shallow_equal(self):
+        # Identical primitive values are equal
+        self.assertTrue(shallow_equal(1, 1))
+        self.assertTrue(shallow_equal("hello", "hello"))
+        self.assertTrue(shallow_equal(None, None))
+        self.assertTrue(shallow_equal(True, True))
+        self.assertTrue(shallow_equal(1.5, 1.5))
+
+        # Equal but non-identical primitives are equal (compared by value).
+        # int("1000") is outside CPython's small-int cache, so the two ints are
+        # distinct objects (different identity) but equal in value.
+        big1 = int("1000")
+        big2 = int("1000")
+        self.assertIsNot(big1, big2)
+        self.assertTrue(shallow_equal(big1, big2))
+
+        str1 = "hello world!".upper()
+        str2 = "hello world!".upper()
+        self.assertIsNot(str1, str2)
+        self.assertTrue(shallow_equal(str1, str2))
+
+        self.assertTrue(shallow_equal(1.5 + 0.5, 1.0 + 1.0))
+
+        # Different primitive values are not equal
+        self.assertFalse(shallow_equal(1, 2))
+        self.assertFalse(shallow_equal("foo", "bar"))
+
+        # A primitive and a non-primitive that are not identical are not equal
+        self.assertFalse(shallow_equal(1, "1"))
+
+        # Non-primitives are compared by identity, not value
+        obj = {"nested": "value"}
+        self.assertTrue(shallow_equal(obj, obj))
+        self.assertFalse(shallow_equal({"nested": "value"}, {"nested": "value"}))
+
+        lst = [1, 2, 3]
+        self.assertTrue(shallow_equal(lst, lst))
+        self.assertFalse(shallow_equal([1, 2, 3], [1, 2, 3]))
+
+        # Same function object is equal, different function objects are not
+        def my_func():
+            pass
+
+        def my_func2():
+            pass
+
+        self.assertTrue(shallow_equal(my_func, my_func))
+        self.assertFalse(shallow_equal(my_func, my_func2))
 
 
 if __name__ == "__main__":

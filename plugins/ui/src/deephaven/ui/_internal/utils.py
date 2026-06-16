@@ -963,9 +963,34 @@ def is_iterable(value: Any) -> bool:
     return isinstance(value, (list, tuple, set, dict, map, filter, range))
 
 
+def shallow_equal(value1: Any, value2: Any) -> bool:
+    """
+    Check if two values are shallowly equal.
+
+    Primitive values are compared by value (`==`) while non-primitive values are
+    compared by identity (`is`) to avoid deep comparisons on containers. Using `==`
+    for primitives avoids relying on CPython interning/caching details, which would
+    otherwise cause equal-but-distinct primitives (e.g. `int("1000")`) to be treated
+    as unequal and trigger unnecessary re-renders.
+
+    Args:
+        value1: The first value to compare.
+        value2: The second value to compare.
+
+    Returns:
+        True if the values are shallowly equal, False otherwise.
+    """
+    if is_primitive(value1) and is_primitive(value2):
+        return value1 == value2
+    return value1 is value2
+
+
 def dict_shallow_equal(dict1: Mapping[str, Any], dict2: Mapping[str, Any]) -> bool:
     """
     Check if two dictionaries are shallowly equal. By default Python does a deep equals check, but for props comparison we may just want a shallow equals.
+
+    Values are compared with `shallow_equal`: primitives by value and non-primitives
+    by identity.
 
     Args:
         dict1: The first dict to compare.
@@ -974,6 +999,6 @@ def dict_shallow_equal(dict1: Mapping[str, Any], dict2: Mapping[str, Any]) -> bo
     if dict1.keys() != dict2.keys():
         return False
     for key in dict1:
-        if dict1[key] is not dict2[key]:
+        if not shallow_equal(dict1[key], dict2[key]):
             return False
     return True

@@ -26,6 +26,7 @@ from .utils import (
     dict_to_react_props,
     remove_empty_keys,
     dict_shallow_equal,
+    shallow_equal,
     wrap_callable,
 )
 from .RootRenderContextProtocol import (

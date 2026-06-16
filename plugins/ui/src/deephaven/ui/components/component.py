@@ -2,7 +2,7 @@ from __future__ import annotations
 import functools
 import logging
 from typing import Any, Callable, overload
-from .._internal import get_component_qualname, dict_shallow_equal
+from .._internal import get_component_qualname, dict_shallow_equal, shallow_equal
 from ..elements import Element, FunctionElement, MemoizedElement, PropsType
 
 logger = logging.getLogger(__name__)
@@ -27,8 +27,21 @@ def _default_are_props_equal(prev_props: PropsType, next_props: PropsType) -> bo
     # itself is a different object on every render even when the children are the
     # same. Compare children by value, then shallow compare the remaining props.
     if "children" in prev_props or "children" in next_props:
-        if prev_props.get("children") != next_props.get("children"):
-            return False
+        prev_children = prev_props.get("children")
+        next_children = next_props.get("children")
+
+        # Check if both are tuples and have the same length
+        if isinstance(prev_children, tuple) and isinstance(next_children, tuple):
+            if len(prev_children) != len(next_children):
+                return False
+            # Compare element-wise: primitives by value, non-primitives by identity
+            for prev_child, next_child in zip(prev_children, next_children):
+                if not shallow_equal(prev_child, next_child):
+                    return False
+        else:
+            # If they're not both tuples, use value equality
+            if prev_children != next_children:
+                return False
 
     return dict_shallow_equal(
         {k: v for k, v in prev_props.items() if k != "children"},
