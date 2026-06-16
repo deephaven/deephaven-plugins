@@ -7,7 +7,6 @@ const config: PlaywrightTestConfig = {
     ...DefaultConfig.use,
     baseURL: 'http://deephaven-plugins:10000/ide/',
   },
-  reporter: process.env.CI ? [['github'], ['html']] : DefaultConfig.reporter,
 };
 
 export default config;
