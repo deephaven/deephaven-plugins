@@ -160,9 +160,36 @@ it('re-attaches a detached parent to the root before opening the panel', () => {
 
   const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
 
-  // Root has no children in the mock, so addChild should be called on root itself
+  // parent is the topmost detached ancestor; root has no children so addChild is called on root
   expect(root.addChild).toHaveBeenCalledWith(parent);
   // Panel should still open in the parent stack after re-attachment
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root: parent })
+  );
+});
+
+it('re-attaches the topmost detached ancestor to the root before opening the panel', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  // parent is a stack inside a detached row (grandparent.parent === null)
+  const grandparent = TestUtils.createMockProxy<ContentItem>({ parent: null });
+  const parent = TestUtils.createMockProxy<ContentItem>({
+    parent: grandparent,
+  });
+
+  render(
+    <ParentItemContext.Provider value={parent}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+  // The topmost detached ancestor (grandparent) should be re-added, not just parent
+  expect(root.addChild).toHaveBeenCalledWith(grandparent);
+  expect(root.addChild).not.toHaveBeenCalledWith(parent);
+  // Panel should still open in the original parent (not grandparent)
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
   expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
     expect.objectContaining({ root: parent })
