@@ -13,6 +13,14 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/pivotBuilderModel');
 
+// TEMPORARY: `IrisGridModel.EVENT.PENDING` (raises the grid loading scrim for
+// plugin-driven async updates) was added to `@deephaven/iris-grid` in
+// web-client-ui but the installed package version predates it, so it is missing
+// from the published types. The host runtime supplies the real value; reference
+// the literal event name (`'PENDING'`) here until a release that includes it is
+// installed, then replace usages with `IrisGridModel.EVENT.PENDING`.
+const IRIS_GRID_MODEL_EVENT_PENDING = 'PENDING';
+
 const NUMERIC_TYPES = new Set<string>([
   'int',
   'long',
@@ -466,7 +474,7 @@ export function augmentPivotBuilderModel(
       const raisePendingIfSwapping = (): void => {
         if (proxyAsAny.modelPromise != null) {
           proxy.dispatchEvent(
-            new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
+            new EventShimCustomEvent(IRIS_GRID_MODEL_EVENT_PENDING, {
               detail: { text: 'Updating pivot...' },
             })
           );
@@ -562,19 +570,19 @@ export function makeDefaultPivotConfig(
 ): PivotConfig {
   const numeric: string[] = [];
   const nonNumeric: string[] = [];
-  for (const col of columns) {
+  columns.forEach(col => {
     if (NUMERIC_TYPES.has(col.type)) {
       numeric.push(col.name);
     } else {
       nonNumeric.push(col.name);
     }
+  });
+  let rowKeys: string[] = [];
+  if (nonNumeric.length > 0) {
+    rowKeys = nonNumeric.slice(0, 1);
+  } else if (columns.length > 0) {
+    rowKeys = [columns[0].name];
   }
-  const rowKeys =
-    nonNumeric.length > 0
-      ? nonNumeric.slice(0, 1)
-      : columns.length > 0
-      ? [columns[0].name]
-      : [];
   const columnKeys = nonNumeric.length > 1 ? nonNumeric.slice(1, 2) : [];
   const aggregations: Record<string, string[]> =
     numeric.length > 0 ? { Sum: numeric } : { Count: [] };

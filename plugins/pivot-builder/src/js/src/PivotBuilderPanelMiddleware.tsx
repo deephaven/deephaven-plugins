@@ -185,8 +185,9 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
         name: 'psp',
       };
       const PROBE_TIMEOUT_MS = 1500;
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(
+        timeoutId = setTimeout(
           () => reject(new Error('PSP probe timed out')),
           PROBE_TIMEOUT_MS
         );
@@ -202,9 +203,13 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
           log.debug('PivotService not available', err);
           pspWidgetRef.current = null;
           setPivotServiceStatus('unavailable');
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
         });
       return () => {
         cancelled = true;
+        clearTimeout(timeoutId);
       };
     }, [corePlusAvailable, metadata, objectFetcher, probeRetryKey]);
 

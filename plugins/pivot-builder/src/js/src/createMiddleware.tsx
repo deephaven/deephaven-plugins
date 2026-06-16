@@ -53,6 +53,44 @@ export interface WidgetMiddlewarePanelProps<T = unknown>
 }
 
 /**
+ * TEMPORARY LOCAL COPY.
+ *
+ * `PluginType.MIDDLEWARE_PLUGIN` and the {@link WidgetMiddlewarePlugin}
+ * descriptor were added to `@deephaven/plugin` in web-client-ui but the
+ * upstream package version installed here predates them. The host runtime
+ * (which provides the externalized `@deephaven/plugin`) recognizes the
+ * `'MiddlewarePlugin'` discriminator, so we vendor the literal and the
+ * descriptor shape here to unblock development. Delete these and import
+ * `PluginType` / `WidgetMiddlewarePlugin` from `@deephaven/plugin` once a
+ * web-client-ui release that exports them is published.
+ */
+export const MIDDLEWARE_PLUGIN = 'MiddlewarePlugin' as const;
+
+/**
+ * A middleware plugin that can wrap and enhance another widget plugin. Mirrors
+ * `WidgetMiddlewarePlugin` from `@deephaven/plugin`. Standalone (rather than
+ * `extends Plugin`) because the installed `Plugin.type` union does not yet
+ * include the middleware discriminator. The component prop generics are left
+ * permissive (`any`) so concretely-typed middleware components (e.g. a
+ * `Table`-specific `component` alongside an `unknown` `panelComponent`) remain
+ * assignable; the real upstream type is generic over a single widget type `T`.
+ */
+export interface WidgetMiddlewarePlugin {
+  name: string;
+  type: typeof MIDDLEWARE_PLUGIN;
+  /** The middleware component that wraps the base widget component. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: ComponentType<WidgetMiddlewareComponentProps<any>>;
+  /** The server widget types this middleware applies to. */
+  supportedTypes: string | string[];
+  /** Optional middleware panel component that wraps the base panel component. */
+  panelComponent?: ForwardRefExoticComponent<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    WidgetMiddlewarePanelProps<any> & RefAttributes<unknown>
+  >;
+}
+
+/**
  * What a middleware body hook returns. Both fields are optional:
  *
  * - `inject`: extra props merged onto the wrapped `Component`, threaded down

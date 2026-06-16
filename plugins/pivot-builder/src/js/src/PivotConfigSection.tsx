@@ -2172,6 +2172,25 @@ export function PivotConfigSection({
     return column === '' ? entry : { ...entry, selected: [column] };
   })();
 
+  // Drag overlay contents: a column preview, an aggregation preview, or
+  // nothing, depending on what (if anything) is currently being dragged.
+  let dragOverlayPreview: React.ReactNode = null;
+  if (activeColumnName != null) {
+    dragOverlayPreview = <ColumnRowPreview name={activeColumnName} />;
+  } else if (activeAggregation != null) {
+    dragOverlayPreview = (
+      <AggregateRowPreview
+        entry={activeAggregation}
+        label={
+          !onlyAggregates &&
+          isCountOperation(activeAggregation.operation as string)
+            ? COUNT_OPERATION
+            : undefined
+        }
+      />
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -2198,6 +2217,9 @@ export function PivotConfigSection({
         }`}
         style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       >
+        {/* The `picker` props below are intentional render props (they need
+          the card's anchor ref); they are not unstable nested components. */}
+        {/* eslint-disable react/no-unstable-nested-components */}
         <ConfigCard
           title="Rollup rows"
           on={rollupRowsOn}
@@ -2372,6 +2394,7 @@ export function PivotConfigSection({
 
         {/* Filterable columns card hidden for now \u2014 props are still threaded
           through so it can be re-enabled without churn. */}
+        {/* eslint-enable react/no-unstable-nested-components */}
       </div>
       {createPortal(
         // Aggregations can't be interleaved across operations (the pivot
@@ -2387,19 +2410,7 @@ export function PivotConfigSection({
               : null
           }
         >
-          {activeColumnName != null ? (
-            <ColumnRowPreview name={activeColumnName} />
-          ) : activeAggregation != null ? (
-            <AggregateRowPreview
-              entry={activeAggregation}
-              label={
-                !onlyAggregates &&
-                isCountOperation(activeAggregation.operation as string)
-                  ? COUNT_OPERATION
-                  : undefined
-              }
-            />
-          ) : null}
+          {dragOverlayPreview}
         </DragOverlay>,
         document.body
       )}

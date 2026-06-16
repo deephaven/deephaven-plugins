@@ -29,7 +29,8 @@ const HIDDEN_BUILT_IN_TYPES: ReadonlySet<string> = new Set([
  * model events), passed in as a value rather than read from the model
  * inside the transform — this keeps the transform pure and lets
  * `IrisGrid` re-run it only when the snapshot (and thus the transform
- * identity) changes.
+ * identity) changes. It drives the item's title so the menu reads "Edit"
+ * once a pivot exists and "Create" otherwise.
  */
 export function makeCreatePivotTransform(
   upstream: TableOptionsTransform | undefined,
@@ -42,7 +43,9 @@ export function makeCreatePivotTransform(
     );
     const item: OptionItem = {
       type: CREATE_PIVOT_ITEM_TYPE,
-      title: 'Rollup, Aggregate and Pivot',
+      title: isPivot
+        ? 'Edit Rollup, Aggregate and Pivot'
+        : 'Rollup, Aggregate and Pivot',
       icon: dhPivotTable,
       order: 650,
       configPage: CreatePivotPage,
