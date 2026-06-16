@@ -192,7 +192,18 @@ function ReactPanel({
           isClosable,
         };
 
-        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root
+        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root.
+        // Check if the parent is still attached to the root. If not, add it back to the root first.
+        let itemInLayout: typeof parent | null = parent;
+        while (itemInLayout != null && itemInLayout !== root) {
+          itemInLayout = itemInLayout.parent;
+        }
+        if (itemInLayout === null) {
+          // Root can only have one direct child (a row/column container), so add to that instead
+          const rootChild =
+            root.contentItems.length > 0 ? root.contentItems[0] : root;
+          rootChild.addChild(parent);
+        }
         LayoutUtils.openComponent({ root: parent, config });
         log.debug('Opened panel', panelId, config);
       } else if (openedMetadataRef.current !== metadata) {
