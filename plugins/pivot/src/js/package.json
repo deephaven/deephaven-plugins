@@ -20,7 +20,7 @@
     "start": "vite build --watch",
     "build": "run-s build:bundle build:transpile",
     "build:bundle": "vite build",
-    "build:transpile": "tsc --emitDeclarationOnly"
+    "build:transpile": "tsc --emitDeclarationOnly -p tsconfig.build.json"
   },
   "devDependencies": {
     "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
