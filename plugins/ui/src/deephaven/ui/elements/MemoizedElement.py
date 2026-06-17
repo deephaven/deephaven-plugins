@@ -2,8 +2,6 @@ from __future__ import annotations
 from typing import Callable
 
 from .Element import Element, PropsType
-from .._internal import RenderContext
-
 
 class MemoizedElement(Element):
     _element: Element
