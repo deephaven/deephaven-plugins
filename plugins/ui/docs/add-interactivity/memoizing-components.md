@@ -38,7 +38,9 @@ In this example, clicking the button increments `count`, causing `app` to re-ren
 
 ## How It Works
 
-By default, when a parent component re-renders, all of its child components re-render too. With `memo=True`, `deephaven.ui` compares the new props with the previous props using shallow equality. If all props are equal, the component skips rendering and reuses its previous result.
+When a parent component re-renders, its children are considered for re-rendering too. With `memo=True`, `deephaven.ui` compares the new props with the previous props using shallow equality. If all props are equal, the component skips rendering and reuses its previous result.
+
+Memoization only applies to props from the parent. A memoized component will still re-render when its own state changes.
 
 The render cycle with memoization:
 
@@ -48,30 +50,45 @@ The render cycle with memoization:
 
 ## When to Use `memo`
 
+Treat `memo` as a performance optimization, not as a requirement for correctness. Most components do not need it.
+
 Use `memo=True` when:
 
-- A component renders often with the same props
-- A component is expensive to render (complex calculations, many children)
-- A parent component re-renders frequently but passes stable props to children
+- A component re-renders often with the same props
+- A component is expensive to render because it builds a large UI subtree or many children
+- A parent component re-renders frequently but passes stable props to the child
+- You have measured or observed lag from unnecessary re-renders
 
 Don't use `memo` when:
 
 - The component's props change on almost every render
 - The component is cheap to render
+- The expensive part is a calculation inside the component. Use [`use_memo`](../hooks/use_memo.md) for that instead.
+- The underlying issue is an impure render or side effect during rendering
 - You're prematurely optimizing without measuring performance
 
 ```python
 from deephaven import ui
 
 
-# Good candidate: renders same static content while parent updates
+# Good candidate: large rendered subtree with stable props
 @ui.component(memo=True)
-def expensive_chart(data):
-    # Imagine this does complex data processing
-    return ui.text(f"Chart with {len(data)} points")
+def activity_feed(entries):
+    return ui.flex(
+        *[
+            ui.flex(
+                ui.text(entry["time"]),
+                ui.text(entry["message"]),
+                gap="size-100",
+            )
+            for entry in entries
+        ],
+        direction="column",
+        gap="size-100",
+    )
 
 
-# Not a good candidate: props change every render
+# Not a good candidate: prop changes every render
 @ui.component
 def live_counter(count):
     return ui.text(f"Count: {count}")
@@ -80,12 +97,19 @@ def live_counter(count):
 @ui.component
 def dashboard():
     count, set_count = ui.use_state(0)
-    chart_data = [1, 2, 3, 4, 5]  # Static data
+    entries = ui.use_memo(
+        lambda: [
+            {"time": "09:00", "message": "Connected"},
+            {"time": "09:02", "message": "Loaded table"},
+            {"time": "09:05", "message": "Opened dashboard"},
+        ],
+        [],
+    )
 
     return ui.flex(
         ui.button("Update", on_press=lambda: set_count(count + 1)),
         live_counter(count),  # No benefit from memo - count always changes
-        expensive_chart(chart_data),  # Benefits from memo - data is stable
+        activity_feed(entries),  # Stable props let memo skip rebuilding the feed
         direction="column",
     )
 
@@ -93,126 +117,7 @@ def dashboard():
 dashboard_example = dashboard()
 ```
 
-## Custom Comparison Function
-
-By default, `memo=True` uses shallow equality to compare props. You can provide a custom comparison function by passing it directly to `memo`:
-
-```python
-from deephaven import ui
-
-
-def compare_by_id(prev_props, next_props):
-    """Only re-render if the 'id' prop changes."""
-    return prev_props.get("id") == next_props.get("id")
-
-
-@ui.component(memo=compare_by_id)
-def user_card(id, name, last_updated):
-    return ui.flex(
-        ui.text(f"User #{id}"),
-        ui.text(f"Name: {name}"),
-        ui.text(f"Updated: {last_updated}"),
-        direction="column",
-    )
-
-
-@ui.component
-def user_profile():
-    name, set_name = ui.use_state("Alice")
-    timestamp, set_timestamp = ui.use_state("12:00")
-
-    return ui.flex(
-        ui.button("Update timestamp", on_press=lambda: set_timestamp("12:01")),
-        ui.button("Change name", on_press=lambda: set_name("Bob")),
-        # Only re-renders if id changes, not name or last_updated
-        user_card(id=1, name=name, last_updated=timestamp),
-        direction="column",
-    )
-
-
-user_profile_example = user_profile()
-```
-
-The custom comparison function receives two dictionaries:
-
-- `prev_props`: The props from the previous render
-- `next_props`: The props for the current render
-
-Return `True` to skip re-rendering (props are "equal"), or `False` to re-render.
-
-### Deep Equality Comparison
-
-For props containing nested data structures, you might want deep equality:
-
-```python
-from deephaven import ui
-
-
-def deep_equal(prev_props, next_props):
-    """Compare props using deep equality."""
-    import json
-
-    return json.dumps(prev_props, sort_keys=True) == json.dumps(
-        next_props, sort_keys=True
-    )
-
-
-@ui.component(memo=deep_equal)
-def data_display(config):
-    return ui.text(f"Config: {config}")
-
-
-@ui.component
-def app():
-    count, set_count = ui.use_state(0)
-
-    return ui.flex(
-        ui.button("Increment", on_press=lambda: set_count(count + 1)),
-        # Even though a new dict is created each render, deep_equal
-        # will detect the values are the same and skip re-rendering
-        data_display(config={"setting": "value", "enabled": True}),
-        direction="column",
-    )
-
-
-app_example = app()
-```
-
-### Threshold-Based Comparison
-
-You can implement more sophisticated comparison logic:
-
-```python
-from deephaven import ui
-
-
-def significant_change(prev_props, next_props, threshold=5):
-    """Only re-render if value changes by more than threshold."""
-    prev_value = prev_props.get("value", 0)
-    next_value = next_props.get("value", 0)
-    return abs(next_value - prev_value) <= threshold
-
-
-@ui.component(memo=significant_change)
-def progress_bar(value):
-    return ui.progress_bar(value=value, label=f"{value}%")
-
-
-@ui.component
-def app():
-    value, set_value = ui.use_state(0)
-
-    return ui.flex(
-        ui.button("+1", on_press=lambda: set_value(value + 1)),
-        ui.button("+10", on_press=lambda: set_value(value + 10)),
-        # Only re-renders when value changes by more than 5
-        progress_bar(value=value),
-        direction="column",
-    )
-
-
-app_example = app()
-```
+In this example, `use_memo` keeps `entries` stable, while `memo=True` avoids rebuilding the `activity_feed` subtree each time `dashboard` updates for unrelated reasons.
 
 ## Syntax Options
 
@@ -231,11 +136,83 @@ def my_memoized_component(prop):
     return ui.text(prop)
 
 
-# Memoization with custom comparison function
+# Memoization with a custom comparison function
 @ui.component(memo=my_custom_compare)
 def my_component_custom(prop):
     return ui.text(prop)
 ```
+
+## Custom Comparison Function
+
+By default, `memo=True` uses shallow equality to compare props. You can provide a custom comparison function by passing it directly to `memo`:
+
+> [!WARNING]
+> Custom comparison functions are rare. Prefer reducing prop changes first by passing simpler props or stabilizing objects and callbacks with [`use_memo`](../hooks/use_memo.md) and `use_callback`. If you do write a custom comparator, compare every prop that affects rendering or behavior.
+
+```python
+from deephaven import ui
+
+
+def compare_series(prev_props, next_props):
+    """Compare a bounded series shape prop-by-prop."""
+    prev_points = prev_props.get("data_points", ())
+    next_points = next_props.get("data_points", ())
+
+    return (
+        prev_props.get("color") == next_props.get("color")
+        and len(prev_points) == len(next_points)
+        and all(
+            prev_point["x"] == next_point["x"] and prev_point["y"] == next_point["y"]
+            for prev_point, next_point in zip(prev_points, next_points)
+        )
+    )
+
+
+@ui.component(memo=compare_series)
+def sparkline(data_points, color="blue"):
+    return ui.flex(
+        ui.text(f"Color: {color}"),
+        *[ui.text("({}, {})".format(point["x"], point["y"])) for point in data_points],
+        direction="column",
+    )
+
+
+@ui.component
+def chart_panel():
+    tick, set_tick = ui.use_state(0)
+    points = ui.use_memo(
+        lambda: [
+            {"x": 0, "y": 2},
+            {"x": 1, "y": 5},
+            {"x": 2, "y": 3},
+        ],
+        [],
+    )
+
+    return ui.flex(
+        ui.button("Tick", on_press=lambda: set_tick(tick + 1)),
+        ui.text(f"Tick: {tick}"),
+        sparkline(data_points=points, color="blue"),
+        direction="column",
+    )
+
+
+chart_panel_example = chart_panel()
+```
+
+The custom comparison function receives two dictionaries:
+
+- `prev_props`: The props from the previous render
+- `next_props`: The props for the current render
+
+Return `True` to skip re-rendering (props are "equal"), or `False` to re-render.
+
+When writing a custom comparison function:
+
+- Compare every prop that affects output or behavior, including callback props
+- Only use custom comparison for data with a known, limited shape
+- Measure whether the comparison is actually cheaper than re-rendering
+- Avoid generic deep equality checks on unknown or deeply nested structures
 
 ## Common Pitfalls
 
@@ -256,17 +233,16 @@ def item_list(items):
 def app():
     count, set_count = ui.use_state(0)
 
-    # ❌ Creates a new list on every render
-    # item_list will re-render every time even though content is the same
-    items_bad = ["apple", "banana"]
+    # Bad: creating the list inline changes the reference every render.
+    # item_list(["apple", "banana"])
 
-    # ✅ Use use_memo to keep the same reference
+    # Good: use use_memo to keep the same reference.
     items_good = ui.use_memo(lambda: ["apple", "banana"], [])
 
     return ui.flex(
         ui.button("Increment", on_press=lambda: set_count(count + 1)),
         ui.text(f"Count: {count}"),
-        item_list(items_good),  # Won't re-render unnecessarily
+        item_list(items_good),  # Skips unnecessary re-renders.
         direction="column",
     )
 
@@ -291,21 +267,27 @@ def button_row(on_click):
 def app():
     count, set_count = ui.use_state(0)
 
-    # ❌ Creates a new function reference every render
-    handle_click_bad = lambda: print("clicked")
+    # Bad: creating the callback inline changes the reference every render.
+    # button_row(on_click=lambda: None)
 
-    # ✅ Use use_callback to memoize the function
+    # Good: use use_callback to memoize the function.
     handle_click_good = ui.use_callback(lambda: print("clicked"), [])
 
     return ui.flex(
         ui.button("Increment", on_press=lambda: set_count(count + 1)),
-        button_row(on_click=handle_click_good),  # Won't re-render unnecessarily
+        button_row(on_click=handle_click_good),  # Skips unnecessary re-renders.
         direction="column",
     )
 
 
 app_example = app()
 ```
+
+### Side Effects During Rendering
+
+Memoized components still need [pure rendering logic](../describing/pure_components.md). If a component mutates global state, performs I/O, or depends on side effects during rendering, `memo` can hide the bug by causing that render to run less often.
+
+Keep rendering pure, and move side effects into event handlers or [`use_effect`](../hooks/use_effect.md).
 
 ## Comparison with `use_memo`
 

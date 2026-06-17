@@ -31,6 +31,7 @@ junit.xml
 
 # Allow for local overrides of docker-compose.yml. https://docs.docker.com/compose/multiple-compose-files/merge/
 docker-compose.override.yml
+docker-compose.docs-snapshots.override.yml
 
 # Ignore temporary files created during a release
 releases/
