@@ -465,7 +465,10 @@ class RenderContext:
 
     def mark_clean(self) -> None:
         """
-        Mark this context as clean. Used for testing to reset the dirty state after a render.
+        Mark this context as clean.
+        Called after a successful render pass to reset the dirty flag. Any state
+        changes that occur after this (including inside effects) will mark the
+        context dirty again for the next render.
         """
         self._is_dirty = False
 
