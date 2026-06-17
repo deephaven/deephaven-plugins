@@ -146,6 +146,56 @@ it('finds and closes existing panels from the layout root, but opens in the pare
   });
 });
 
+it('re-attaches a detached parent to the root before opening the panel', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  // A parent that is detached from the root (parent.parent === null)
+  const parent = TestUtils.createMockProxy<ContentItem>({ parent: null });
+
+  render(
+    <ParentItemContext.Provider value={parent}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+  // parent is the topmost detached ancestor; root has no children so addChild is called on root
+  expect(root.addChild).toHaveBeenCalledWith(parent);
+  // Panel should still open in the parent stack after re-attachment
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root: parent })
+  );
+});
+
+it('re-attaches the topmost detached ancestor to the root before opening the panel', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  // parent is a stack inside a detached row (grandparent.parent === null)
+  const grandparent = TestUtils.createMockProxy<ContentItem>({ parent: null });
+  const parent = TestUtils.createMockProxy<ContentItem>({
+    parent: grandparent,
+  });
+
+  render(
+    <ParentItemContext.Provider value={parent}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+  // The topmost detached ancestor (grandparent) should be re-added, not just parent
+  expect(root.addChild).toHaveBeenCalledWith(grandparent);
+  expect(root.addChild).not.toHaveBeenCalledWith(parent);
+  // Panel should still open in the original parent (not grandparent)
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root: parent })
+  );
+});
+
 it('only calls open once if the panel has not closed and only children change', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();

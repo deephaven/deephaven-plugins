@@ -3,7 +3,10 @@ import { TestUtils } from '@deephaven/test-utils';
 import {
   GRAND_TOTALS_GROUP_NAME,
   makeColumnGroups,
+  makeSnapshotColumnGroups,
+  NULL_KEY_TOKEN,
   ROOT_DEPTH,
+  TOTALS_GROUP_NAME,
 } from './PivotUtils';
 
 const { createMockProxy } = TestUtils;
@@ -85,5 +88,98 @@ describe('getColumnGroups', () => {
         isExpanded: true,
       })
     );
+  });
+
+  it('distinguishes a real null key from a rollup total placeholder', () => {
+    // Two column sources (e.g. Level, AuthenticatedUser) where the second
+    // source contains a real null value. The "INFO" rollup total and the
+    // "INFO + null AuthenticatedUser" leaf both carry the key array
+    // ['INFO', null] and used to collapse to the same name, producing a
+    // duplicate grid column.
+    const levelSource =
+      createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+        name: 'Level',
+        type: 'string',
+      });
+    const userSource =
+      createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+        name: 'AuthenticatedUser',
+        type: 'string',
+      });
+    const valueSource =
+      createMockProxy<CorePlusDhType.coreplus.pivot.PivotSource>({
+        name: 'Timestamp',
+        type: 'long',
+      });
+
+    // c0: INFO rollup total (depth 2), c1: INFO + null user leaf (depth 3),
+    // c2: INFO + "iris" user leaf (depth 3)
+    const keysByIndex = [
+      ['INFO', null],
+      ['INFO', null],
+      ['INFO', 'iris'],
+    ];
+    const depthByIndex = [2, 3, 3];
+    const expandedByIndex = [true, false, false];
+
+    const snapshotColumns =
+      createMockProxy<CorePlusDhType.coreplus.pivot.DimensionData>({
+        offset: 0,
+        count: 3,
+        totalCount: 3,
+        getKeys: jest.fn((i: number) => keysByIndex[i]),
+        getDepth: jest.fn((i: number) => depthByIndex[i]),
+        isExpanded: jest.fn((i: number) => expandedByIndex[i]),
+      });
+
+    const result = makeSnapshotColumnGroups(
+      snapshotColumns,
+      [levelSource, userSource],
+      [valueSource]
+    );
+
+    // The INFO total leaf and the null-user leaf must resolve to distinct
+    // value columns.
+    expect(result).toContainEqual(
+      expect.objectContaining({
+        name: 'INFO/AuthenticatedUser',
+        isTotalGroup: true,
+        displayName: TOTALS_GROUP_NAME,
+        children: ['INFO/Timestamp'],
+      })
+    );
+    expect(result).toContainEqual(
+      expect.objectContaining({
+        name: `INFO/${NULL_KEY_TOKEN}`,
+        isTotalGroup: false,
+        children: [`INFO/${NULL_KEY_TOKEN}/Timestamp`],
+      })
+    );
+    expect(result).toContainEqual(
+      expect.objectContaining({
+        name: 'INFO/iris',
+        isTotalGroup: false,
+        displayName: 'iris',
+        children: ['INFO/iris/Timestamp'],
+      })
+    );
+
+    // The top-level INFO group references all three distinct child groups.
+    expect(result).toContainEqual(
+      expect.objectContaining({
+        name: 'INFO',
+        children: [
+          'INFO/AuthenticatedUser',
+          `INFO/${NULL_KEY_TOKEN}`,
+          'INFO/iris',
+        ],
+      })
+    );
+
+    // No duplicate leaf value column names across all groups.
+    const leafNames = result.flatMap(g =>
+      g.children.filter(c => c.endsWith('/Timestamp'))
+    );
+    expect(new Set(leafNames).size).toBe(leafNames.length);
   });
 });

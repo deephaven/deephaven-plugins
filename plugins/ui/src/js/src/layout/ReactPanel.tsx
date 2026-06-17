@@ -192,7 +192,23 @@ function ReactPanel({
           isClosable,
         };
 
-        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root
+        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root.
+        // Walk up from parent, tracking the topmost item seen, to determine in one pass whether the parent
+        // is detached and, if so, which ancestor to re-add. Re-adding the topmost detached ancestor (e.g. a
+        // row containing multiple stacks) better preserves the layout and ensures stack headers are rendered.
+        let topDetached: typeof parent = parent;
+        let currentParent: typeof parent | null = parent.parent;
+        while (currentParent != null && currentParent !== root) {
+          topDetached = currentParent;
+          currentParent = currentParent.parent;
+        }
+        if (currentParent === null) {
+          // currentParent reached null without hitting root, so the parent is detached.
+          // Root can only have one direct child (a row/column container), so add to that instead.
+          const rootChild =
+            root.contentItems.length > 0 ? root.contentItems[0] : root;
+          rootChild.addChild(topDetached);
+        }
         LayoutUtils.openComponent({ root: parent, config });
         log.debug('Opened panel', panelId, config);
       } else if (openedMetadataRef.current !== metadata) {

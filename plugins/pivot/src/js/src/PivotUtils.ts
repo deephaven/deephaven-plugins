@@ -36,6 +36,32 @@ export const GRAND_TOTALS_GROUP_NAME = 'Grand Total';
 export const TOTALS_GROUP_NAME = 'Total';
 export const ROOT_DEPTH = 2;
 
+/**
+ * Reserved token used to represent a real `null` value in a generated column or
+ * group name. A pivot key can be `null` for two different reasons:
+ * 1. It is a rollup/total placeholder for a grouping level deeper than the
+ *    column's depth (these slots are always `null`).
+ * 2. It is an actual `null` value present in the source data.
+ * Both used to collapse to the same generated name, producing duplicate grid
+ * columns. Encoding real nulls with this token keeps them distinct.
+ *
+ * The token contains a `#`, which `encodeURIComponent` always escapes to `%23`.
+ * Real values are run through `encodeURIComponent` (see {@link encodeKey}), so
+ * the encoded form of a real value can never contain a raw `#` and therefore
+ * can never collide with this token — including the literal string `"#NULL"`,
+ * which encodes to `%23NULL`.
+ */
+export const NULL_KEY_TOKEN = '#NULL';
+
+/**
+ * Encode a single pivot key segment for use in a generated name.
+ * Real `null` values are encoded with {@link NULL_KEY_TOKEN} so they remain
+ * distinct from rollup placeholders.
+ */
+function encodeKey(key: unknown): string {
+  return key == null ? NULL_KEY_TOKEN : encodeURIComponent(String(key));
+}
+
 export type SnapshotDimensionKeys = readonly (unknown | null)[];
 export type SnapshotDimensionKeyMap = Map<number, SnapshotDimensionKeys>;
 
@@ -159,35 +185,50 @@ export function makeGrandTotalColumnName(
 }
 
 /**
- * Create a column name for the grid based on the pivot dimension keys and depth
+ * Create a column name for the grid based on the pivot dimension keys and depth.
+ * Only the real grouping levels (`depth - 1` of them) are included; the
+ * remaining keys are rollup placeholders. Real `null` values are preserved via
+ * {@link NULL_KEY_TOKEN} so they don't collide with rollup placeholders.
+ * @param keys Column keys
+ * @param depth Snapshot depth of the column (1-based: grand total = 1)
+ * @returns Generated column name
  */
 export function makeColumnName(
   keys: SnapshotDimensionKeys,
   depth: number
 ): string {
   return keys
-    .slice(0, depth + 1)
-    .filter(k => k != null)
-    .map(k => encodeURIComponent(String(k)))
+    .slice(0, depth - 1)
+    .map(encodeKey)
     .join('/');
 }
 
 /**
- * Get the column group name for a specific depth
+ * Get the column group name for a specific hierarchy level.
+ * Slots beyond the column's real grouping depth (`snapshotDepth - 1`) are
+ * rollup/total placeholders and are named after their column source. Slots
+ * within the real grouping depth use the actual key value (real `null`s are
+ * encoded with {@link NULL_KEY_TOKEN}).
  * @param keys Column keys
  * @param columnSources Column sources
- * @param depth Column depth
+ * @param level Hierarchy level index (0-based)
+ * @param snapshotDepth Snapshot depth of the column (1-based: grand total = 1)
  * @returns Column group name
  */
 export function makeColumnGroupName(
   keys: SnapshotDimensionKeys,
   columnSources: readonly CorePlusDhType.coreplus.pivot.PivotSource[],
-  depth: number
+  level: number,
+  snapshotDepth: number
 ): string {
+  const groupingDepth = snapshotDepth - 1;
   return keys
-    .slice(0, depth + 1)
-    .map((k, i) => (k == null ? columnSources[i].name : k))
-    .map(k => encodeURIComponent(String(k)))
+    .slice(0, level + 1)
+    .map((k, i) =>
+      i >= groupingDepth
+        ? encodeURIComponent(columnSources[i].name)
+        : encodeKey(k)
+    )
     .join('/');
 }
 
@@ -398,17 +439,26 @@ export function makeSnapshotColumnGroups(
     const keys = snapshotColumns.getKeys(c);
     const depth = snapshotColumns.getDepth(c);
     const isExpanded = snapshotColumns.isExpanded(c);
+    // Number of real grouping levels for this column; slots at or beyond this
+    // index are rollup/total placeholders rather than real (possibly null) keys.
+    const groupingDepth = depth - 1;
     columnSources.forEach((_, i) => {
-      // Join keys, replace nulls with the source name for the current level
-      const name = makeColumnGroupName(keys, columnSources, i);
-      const isTotalGroup = keys[i] == null;
-      const parentKey = i > 0 ? keys[i - 1] : null;
-      const totalsGroupDisplayName = parentKey == null ? '' : groupName;
+      const name = makeColumnGroupName(keys, columnSources, i, depth);
+      // A level is a total only if it is beyond the real grouping depth. A real
+      // null value (i < groupingDepth) must not be treated as a total.
+      const isTotalGroup = i >= groupingDepth;
+      // Only the first total level (directly under a real group) gets the
+      // "Total(s)" label; deeper nested total levels are left blank.
+      const totalsGroupDisplayName =
+        i > 0 && i - 1 < groupingDepth ? groupName : '';
       const group =
         groupMap.get(name) ??
         new PivotColumnHeaderGroup({
           name,
-          displayName: isTotalGroup ? totalsGroupDisplayName : keys[i],
+          displayName: isTotalGroup
+            ? totalsGroupDisplayName
+            : formatValue?.(keys[i], columnSources[i].type) ??
+              String(keys[i] ?? ''),
           isTotalGroup,
           children: [],
           depth: maxDepth - i,
@@ -421,10 +471,10 @@ export function makeSnapshotColumnGroups(
         i === columnSources.length - 1
           ? // The last group contains all value source columns
             valueSources.map(v =>
-              makeValueSourceColumnName(makeColumnName(keys, depth - 1), v)
+              makeValueSourceColumnName(makeColumnName(keys, depth), v)
             )
           : // Add the next group in the hierarchy as a child
-            [makeColumnGroupName(keys, columnSources, i + 1)]
+            [makeColumnGroupName(keys, columnSources, i + 1, depth)]
       );
       groupMap.set(name, group);
     });
