@@ -266,15 +266,21 @@ class RendererTestCase(BaseTestCase):
     def test_render_child_item_not_dirty(self):
         rc = RenderContext(_TestRoot(Mock(), Mock()))
 
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item({"key": "value"}, rc, "dict_key", True)
+
         # Test with is_dirty_render=False for dict
         self.assertEqual(
-            _render_child_item({"key": "value"}, rc, "key", False),
+            _render_child_item({"key": "value"}, rc, "dict_key", False),
             {"key": "value"},
         )
 
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item([0, 1, 2], rc, "list_key", True)
+
         # Test with is_dirty_render=False for list
         self.assertEqual(
-            _render_child_item([0, 1, 2], rc, "key", False),
+            _render_child_item([0, 1, 2], rc, "list_key", False),
             [0, 1, 2],
         )
 
@@ -287,8 +293,11 @@ class RendererTestCase(BaseTestCase):
             a: str
             b: Element
 
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item([MyDataclass("test", my_comp())], rc, "dataclass_key", True)
+
         nested_dataclass = _render_child_item(
-            [MyDataclass("test", my_comp())], rc, "key", False
+            [MyDataclass("test", my_comp())], rc, "dataclass_key", False
         )[0]
 
         self.assertEqual(
