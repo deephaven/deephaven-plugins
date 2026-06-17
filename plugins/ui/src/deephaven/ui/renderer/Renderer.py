@@ -207,6 +207,9 @@ def _render_element(
             needs_render = not element.are_props_equal(prev_props)
 
         if not needs_render and not context.is_dirty:
+            # We can use the cached result without re-rendering this component.
+            # A child component may still need to be re-rendered if its context is dirty (e.g. child has a state change),
+            # but we can skip re-rendering this component if its props are the same and the context is not dirty.
             logger.debug("Returning cached element %s", element.name)
             rendered_props = _render_dict_in_open_context(
                 prev_rendered_element_props, context, False

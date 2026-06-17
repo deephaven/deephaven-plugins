@@ -1,12 +1,13 @@
 from __future__ import annotations
 import functools
-import logging
 from typing import Any, Callable, overload
-from .._internal import get_component_qualname, dict_shallow_equal, shallow_equal
+from .._internal import (
+    is_iterable,
+    get_component_qualname,
+    dict_shallow_equal,
+    iterable_shallow_equal,
+)
 from ..elements import Element, FunctionElement, MemoizedElement, PropsType
-
-logger = logging.getLogger(__name__)
-
 
 # Type alias for comparison functions
 CompareFunction = Callable[[PropsType, PropsType], bool]
@@ -30,22 +31,24 @@ def _default_are_props_equal(prev_props: PropsType, next_props: PropsType) -> bo
         prev_children = prev_props.get("children")
         next_children = next_props.get("children")
 
-        # Check if both are tuples and have the same length
-        if isinstance(prev_children, tuple) and isinstance(next_children, tuple):
-            if len(prev_children) != len(next_children):
+        # Compare iterable children element-wise using shallow semantics.
+        if is_iterable(prev_children) and is_iterable(next_children):
+            if not iterable_shallow_equal(prev_children, next_children):
                 return False
-            # Compare element-wise: primitives by value, non-primitives by identity
-            for prev_child, next_child in zip(prev_children, next_children):
-                if not shallow_equal(prev_child, next_child):
-                    return False
         else:
-            # If they're not both tuples, use value equality
+            # For non-iterables, compare by value.
             if prev_children != next_children:
                 return False
 
+    prev_props_without_children = dict(prev_props)
+    prev_props_without_children.pop("children", None)
+
+    next_props_without_children = dict(next_props)
+    next_props_without_children.pop("children", None)
+
     return dict_shallow_equal(
-        {k: v for k, v in prev_props.items() if k != "children"},
-        {k: v for k, v in next_props.items() if k != "children"},
+        prev_props_without_children,
+        next_props_without_children,
     )
 
 

@@ -13,6 +13,7 @@ from deephaven.ui._internal.utils import (
     convert_date_for_labeled_value,
     is_primitive,
     is_iterable,
+    iterable_shallow_equal,
     remove_empty_keys,
     shallow_equal,
     to_camel_case,
@@ -539,6 +540,36 @@ class UtilsTest(BaseTestCase):
 
         self.assertFalse(dict_shallow_equal({"func": my_func}, {"func": my_func2}))
 
+    def test_iterable_shallow_equal(self):
+        # Two empty iterables of same type are equal
+        self.assertTrue(iterable_shallow_equal([], []))
+        self.assertTrue(iterable_shallow_equal((), ()))
+
+        # Different iterable types are not equal
+        self.assertFalse(iterable_shallow_equal([], ()))
+
+        # Length mismatch is not equal
+        self.assertFalse(iterable_shallow_equal([1], [1, 2]))
+
+        # Primitives are compared by value
+        big1 = int("1000")
+        big2 = int("1000")
+        self.assertIsNot(big1, big2)
+        self.assertTrue(iterable_shallow_equal([big1, "x"], [big2, "x"]))
+
+        # Non-primitives are compared by identity
+        shared_obj = {"nested": "value"}
+        self.assertTrue(iterable_shallow_equal([shared_obj], [shared_obj]))
+        self.assertFalse(
+            iterable_shallow_equal(
+                [{"nested": "value"}],
+                [{"nested": "value"}],
+            )
+        )
+
+        # Non-iterables should return False
+        self.assertFalse(iterable_shallow_equal(1, 1))
+
     def test_shallow_equal(self):
         # Identical primitive values are equal
         self.assertTrue(shallow_equal(1, 1))
@@ -568,6 +599,10 @@ class UtilsTest(BaseTestCase):
 
         # A primitive and a non-primitive that are not identical are not equal
         self.assertFalse(shallow_equal(1, "1"))
+
+        # Primitive values with different types should not be equal
+        self.assertFalse(shallow_equal(1, 1.0))
+        self.assertFalse(shallow_equal("1", 1))
 
         # Non-primitives are compared by identity, not value
         obj = {"nested": "value"}

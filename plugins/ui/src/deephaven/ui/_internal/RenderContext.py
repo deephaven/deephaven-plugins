@@ -347,7 +347,7 @@ class RenderContext:
                 self._open_context_cleanups = []
 
                 # Reset the dirty state before processing effects, so that any state changes in effects will mark the context as dirty for the next render.
-                self._is_dirty = False
+                self.mark_clean()
 
                 # Release all child contexts that are no longer referenced
                 for context_key in old_contexts:
@@ -463,6 +463,12 @@ class RenderContext:
         """
         self._is_dirty = True
 
+    def mark_clean(self) -> None:
+        """
+        Mark this context as clean. Used for testing to reset the dirty state after a render.
+        """
+        self._is_dirty = False
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -526,7 +532,7 @@ class RenderContext:
 
         # This is not the initial state, queue up the state change on the render loop
         self._root.on_change(update_state)
-        self._is_dirty = True
+        self.mark_dirty()
 
     def get_child_context(
         self, key: ContextKey, fetch_only: bool = False
@@ -667,7 +673,7 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
-        self._is_dirty = True
+        self.mark_dirty()
 
         if "state" in state:
             for key, value in state["state"].items():

@@ -1,11 +1,8 @@
 from __future__ import annotations
-import logging
-from typing import Callable, Optional
+from typing import Callable
 
 from .Element import Element, PropsType
-from .._internal import dict_shallow_equal, RenderContext
-
-logger = logging.getLogger(__name__)
+from .._internal import RenderContext
 
 
 class MemoizedElement(Element):

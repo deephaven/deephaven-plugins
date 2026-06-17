@@ -20,6 +20,7 @@ from deephaven.dtypes import (
 from inspect import signature
 import sys
 from functools import partial
+from itertools import zip_longest
 from deephaven.time import (
     to_j_instant,
     to_j_zdt,
@@ -981,8 +982,39 @@ def shallow_equal(value1: Any, value2: Any) -> bool:
         True if the values are shallowly equal, False otherwise.
     """
     if is_primitive(value1) and is_primitive(value2):
-        return value1 == value2
+        return type(value1) == type(value2) and value1 == value2
     return value1 is value2
+
+
+def iterable_shallow_equal(iter1: Any, iter2: Any) -> bool:
+    """
+    Check if two standard iterable values are shallowly equal.
+
+    Iterables are compared element-wise with `shallow_equal`: primitives by value
+    and non-primitives by identity.
+
+    Args:
+        iter1: The first iterable to compare.
+        iter2: The second iterable to compare.
+
+    Returns:
+        True if both values are standard iterables of the same type and their
+        elements are shallowly equal in order.
+    """
+    if not is_iterable(iter1) or not is_iterable(iter2):
+        return False
+
+    if type(iter1) is not type(iter2):
+        return False
+
+    sentinel = object()
+    for value1, value2 in zip_longest(iter1, iter2, fillvalue=sentinel):
+        if value1 is sentinel or value2 is sentinel:
+            return False
+        if not shallow_equal(value1, value2):
+            return False
+
+    return True
 
 
 def dict_shallow_equal(dict1: Mapping[str, Any], dict2: Mapping[str, Any]) -> bool:
@@ -995,6 +1027,9 @@ def dict_shallow_equal(dict1: Mapping[str, Any], dict2: Mapping[str, Any]) -> bo
     Args:
         dict1: The first dict to compare.
         dict2: The second dict to compare.
+
+    Returns:
+        True if the dictionaries are shallowly equal, False otherwise.
     """
     if dict1.keys() != dict2.keys():
         return False
