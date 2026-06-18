@@ -3,6 +3,7 @@ from typing import Callable
 
 from .Element import Element, PropsType
 
+
 class MemoizedElement(Element):
     _element: Element
     _props: PropsType
