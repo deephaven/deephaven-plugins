@@ -23,7 +23,7 @@ def _render_child_item(
         item: The item to render.
         parent_context: The context of the parent to render the item in.
         index_key: The key of the item in the parent context if it is a list or tuple.
-        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree
+        is_dirty_render: Whether this pass should (re)render children (opening contexts / allowing new child contexts), versus a traversal pass that fetches existing child contexts and only re-renders dirty subtrees.
 
     Returns:
         The rendered item.
@@ -109,8 +109,8 @@ def _render_list_in_open_context(
 
     Args:
         item: The list to render.
-        context: The context to render the list in. This context should already be open.
-        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree.
+        context: The context to render the list in.
+        is_dirty_render: Whether this pass should (re)render children (opening contexts / allowing new child contexts), versus a traversal pass that fetches existing child contexts and only re-renders dirty subtrees.
     Returns:
         The rendered list.
     """
