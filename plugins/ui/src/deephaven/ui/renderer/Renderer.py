@@ -201,12 +201,16 @@ def _render_element(
         # First check if we can use the result from the cache
         prev_props, prev_rendered_element_props = context.cache
 
-        needs_render = is_dirty_render
-
         if isinstance(element, MemoizedElement):
-            needs_render = not element.are_props_equal(prev_props)
+            # Memoized elements only need a fresh render when their state changed
+            # or their props are no longer equal.
+            needs_render = context.is_dirty or not element.are_props_equal(prev_props)
+        else:
+            # Non-memoized elements re-render when the parent is doing a dirty
+            # render or when this element's context is dirty.
+            needs_render = is_dirty_render or context.is_dirty
 
-        if not needs_render and not context.is_dirty:
+        if not needs_render:
             # We can use the cached result without re-rendering this component.
             # A child component may still need to be re-rendered if its context is dirty (e.g. child has a state change),
             # but we can skip re-rendering this component if its props are the same and the context is not dirty.
