@@ -10,19 +10,7 @@
 
 ## First steps in every terminal
 
-Always activate the repository virtual environment before doing anything else:
-
-```bash
-source .venv/bin/activate
-```
-
-If `.venv` does not exist yet, create it from the repo root and install the repo requirements:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade -r requirements.txt
-```
+See [`AGENTS.md`](../AGENTS.md) for the required venv activation step, available skills, and a quick-reference command table.
 
 Node is managed from the repo root. The expected version is in `.nvmrc` (`v24.10.0`).
 
