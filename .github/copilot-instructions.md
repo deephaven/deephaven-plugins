@@ -3,7 +3,7 @@
 ## Repository overview
 
 - This repository is a mixed Python + JavaScript monorepo for Deephaven plugins.
-- Most plugin work happens under `/home/runner/work/deephaven-plugins/deephaven-plugins/plugins/<plugin>/`.
+- Most plugin work happens under `plugins/<plugin>/`.
 - JavaScript plugin packages live in `plugins/*/src/js/` and are managed from the repo root with npm workspaces.
 - Some plugins are Python-only, some are JS-only, and some have both.
 - Architecture details for server-plugin / JS-plugin interaction are documented in `ARCHITECTURE.md`.
@@ -37,7 +37,7 @@ Node is managed from the repo root. The expected version is in `.nvmrc` (`v24.10
 
 ## Fast path for common tasks
 
-Run commands from `/home/runner/work/deephaven-plugins/deephaven-plugins` unless a plugin-specific path is called out.
+Run commands from the repository root unless a plugin-specific path is called out.
 
 ### Python environment and linting
 
