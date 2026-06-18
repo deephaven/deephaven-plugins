@@ -133,7 +133,7 @@ Important doc notes:
 - Only plugins with `make_docs.py` support generated docs builds.
 - Built docs land in `plugins/<plugin>/docs/build/markdown/`.
 - Do **not** commit generated files from `docs/build/markdown/`.
-- For `plugins/ui` and `plugins/plotly-express`, prefer `dhautofunction`-based API reference docs instead of manually duplicating signatures.
+- For `plugins/ui` and `plugins/plotly-express`, prefer the project’s custom `dhautofunction` API reference directive instead of manually duplicating signatures.
 
 ## How CI is organized
 
