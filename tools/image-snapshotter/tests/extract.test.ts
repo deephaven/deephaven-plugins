@@ -51,8 +51,8 @@ describe('extractBlocks', () => {
     expect(blocks[0].skip).toBe(true);
   });
 
-  it('honors a `skip` flag in the info string', () => {
-    const md = ['```python skip', 'x = 1', '```'].join('\n');
+  it('honors a `skip-test` flag in the info string', () => {
+    const md = ['```python skip-test', 'x = 1', '```'].join('\n');
     const blocks = extractBlocks('demo.md', md);
     expect(blocks).toHaveLength(1);
     expect(blocks[0].skip).toBe(true);

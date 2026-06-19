@@ -83,6 +83,28 @@ export interface TvlFigureData {
   downsampleMeta?: Record<string, TvlDownsampleMeta>;
   /** Present when source tables are server-side auto-binned. Keyed by source-table ref ID. */
   autoBinMeta?: Record<string, TvlAutoBinMeta>;
+  /** Handler ids wired on the Python side (subset of ["press","doublePress"]). */
+  enabledHandlers?: string[];
+}
+
+/**
+ * Tracking-tooltip options, emitted by the Python API as
+ * ``chartOptions.tooltip``. The tooltip is a cursor-following overlay that
+ * shows a single focused series' title, value, and time. Colors are derived
+ * entirely from the active Deephaven theme (plus the focused series' own
+ * color for the title), so there are no color fields here.
+ */
+export interface TvlTooltipOptions {
+  /** Master switch. The block is only emitted when this is true. */
+  visible?: boolean;
+  /** Show the series title line (tinted with the series color). Default true. */
+  showTitle?: boolean;
+  /** Show the value line. Default true. */
+  showValue?: boolean;
+  /** Show the date/time line. Default true. */
+  showDate?: boolean;
+  /** Override decimal places for the value; unset = use the series price format. */
+  valuePrecision?: number;
 }
 
 export interface TvlSeriesConfig {

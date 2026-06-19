@@ -2022,6 +2022,133 @@ class TestByParameter(unittest.TestCase):
         self.assertEqual(combined.pane_stretch_factors, [3, 1])
 
 
+class TestColumnValidation(unittest.TestCase):
+    """Mapped data columns are validated against the table at build time."""
+
+    @staticmethod
+    def _table(*col_names):
+        """A mock table whose ``.columns`` expose the given names."""
+        cols = []
+        for n in col_names:
+            c = MagicMock()
+            c.name = n
+            cols.append(c)
+        t = MagicMock(name="table")
+        t.columns = cols
+        return t
+
+    def test_missing_value_column_raises(self):
+        t = self._table("Timestamp", "Value")
+        with self.assertRaises(ValueError) as ctx:
+            line(t, timestamp="Timestamp", value="Ema")
+        msg = str(ctx.exception)
+        self.assertIn("Ema", msg)
+        self.assertIn("Value", msg)  # available columns listed
+
+    def test_missing_timestamp_column_raises(self):
+        t = self._table("Timestamp", "Value")
+        with self.assertRaises(ValueError):
+            line(t, timestamp="Tstamp", value="Value")
+
+    def test_missing_color_column_raises(self):
+        t = self._table("Timestamp", "Value")
+        with self.assertRaises(ValueError):
+            line(t, timestamp="Timestamp", value="Value", color_column="Colr")
+
+    def test_valid_columns_ok(self):
+        t = self._table("Timestamp", "Value")
+        c = line(t, timestamp="Timestamp", value="Value")
+        self.assertEqual(len(c.series_list), 1)
+
+    def test_candlestick_missing_ohlc_column_raises(self):
+        t = self._table("Timestamp", "Open", "High", "Low", "Close")
+        with self.assertRaises(ValueError) as ctx:
+            candlestick(
+                t,
+                timestamp="Timestamp",
+                open="Open",
+                high="High",
+                low="Low",
+                close="Closee",
+            )
+        self.assertIn("Closee", str(ctx.exception))
+
+    def test_bare_series_spec_validated_in_chart(self):
+        """Bare SeriesSpec passed to chart() (internal-constructor path)."""
+        t = self._table("Timestamp", "Value")
+        spec = line_series(t, timestamp="Timestamp", value="Nope")
+        with self.assertRaises(ValueError):
+            chart(spec)
+
+    def test_mock_table_without_columns_skips_validation(self):
+        """Typeless mock tables (no real .columns) bypass validation."""
+        t = MagicMock(name="table")
+        type(t).columns = property(
+            lambda self: (_ for _ in ()).throw(TypeError("no columns"))
+        )
+        # Should not raise despite the nonexistent column.
+        line(t, timestamp="Timestamp", value="Whatever")
+
+    def test_missing_price_line_column_raises(self):
+        from deephaven.plot.tradingview_lightweight.markers import price_line
+
+        t = self._table("Timestamp", "Value")
+        with self.assertRaises(ValueError) as ctx:
+            line(
+                t,
+                timestamp="Timestamp",
+                value="Value",
+                price_lines=[price_line(column="Bogus")],
+            )
+        self.assertIn("Bogus", str(ctx.exception))
+
+    def test_valid_price_line_column_ok(self):
+        from deephaven.plot.tradingview_lightweight.markers import price_line
+
+        t = self._table("Timestamp", "Value")
+        line(
+            t,
+            timestamp="Timestamp",
+            value="Value",
+            price_lines=[price_line(column="Value")],
+        )
+
+    def test_static_price_line_not_validated(self):
+        from deephaven.plot.tradingview_lightweight.markers import price_line
+
+        t = self._table("Timestamp", "Value")
+        # A static price (no column) must not trip column validation.
+        line(
+            t,
+            timestamp="Timestamp",
+            value="Value",
+            price_lines=[price_line(price=100.0)],
+        )
+
+    def test_missing_marker_column_raises(self):
+        from deephaven.plot.tradingview_lightweight.markers import markers_from_table
+
+        series_tbl = self._table("Timestamp", "Value")
+        marker_tbl = self._table("Time", "Label")
+        spec = markers_from_table(marker_tbl, timestamp="Time", text_column="Nope")
+        with self.assertRaises(ValueError) as ctx:
+            line(
+                series_tbl,
+                timestamp="Timestamp",
+                value="Value",
+                marker_spec=spec,
+            )
+        self.assertIn("Nope", str(ctx.exception))
+
+    def test_valid_marker_columns_ok(self):
+        from deephaven.plot.tradingview_lightweight.markers import markers_from_table
+
+        series_tbl = self._table("Timestamp", "Value")
+        marker_tbl = self._table("Time", "Label")
+        spec = markers_from_table(marker_tbl, timestamp="Time", text_column="Label")
+        line(series_tbl, timestamp="Timestamp", value="Value", marker_spec=spec)
+
+
 class TestEnumMaps(unittest.TestCase):
     """Verify all enum maps contain correct JS integer values."""
 
@@ -2719,6 +2846,70 @@ class TestScrollScaleOptions(unittest.TestCase):
         self.assertIs(c.chart_options["handleScroll"], False)
         self.assertIs(c.chart_options["handleScale"], False)
         self.assertFalse(c.chart_options["kineticScroll"]["touch"])
+
+
+class TestTrackingTooltip(unittest.TestCase):
+    """Tests for the tracking-tooltip (``tooltip_*``) chart options."""
+
+    def setUp(self):
+        self.table = MagicMock(name="table")
+
+    def test_no_tooltip_by_default(self):
+        c = chart(line_series(self.table))
+        self.assertNotIn("tooltip", c.chart_options)
+
+    def test_visible_emits_block(self):
+        c = chart(line_series(self.table), tooltip_visible=True)
+        self.assertEqual(c.chart_options["tooltip"], {"visible": True})
+
+    def test_visible_false_omits_block(self):
+        c = chart(line_series(self.table), tooltip_visible=False)
+        self.assertNotIn("tooltip", c.chart_options)
+
+    def test_all_options(self):
+        c = chart(
+            line_series(self.table),
+            tooltip_visible=True,
+            tooltip_show_title=False,
+            tooltip_show_value=True,
+            tooltip_show_date=False,
+            tooltip_value_precision=3,
+        )
+        self.assertEqual(
+            c.chart_options["tooltip"],
+            {
+                "visible": True,
+                "showTitle": False,
+                "showValue": True,
+                "showDate": False,
+                "valuePrecision": 3,
+            },
+        )
+
+    def test_precision_zero_is_kept(self):
+        # 0 is falsy but a valid precision — must not be dropped by _filter_none.
+        c = chart(
+            line_series(self.table),
+            tooltip_visible=True,
+            tooltip_value_precision=0,
+        )
+        self.assertEqual(c.chart_options["tooltip"]["valuePrecision"], 0)
+
+    def test_details_without_visible_raise(self):
+        with self.assertRaises(ValueError) as ctx:
+            chart(line_series(self.table), tooltip_show_title=True)
+        self.assertIn("tooltip_visible=True", str(ctx.exception))
+
+    def test_details_without_visible_lists_offenders(self):
+        with self.assertRaises(ValueError) as ctx:
+            chart(
+                line_series(self.table),
+                tooltip_show_date=True,
+                tooltip_value_precision=2,
+            )
+        msg = str(ctx.exception)
+        self.assertIn("tooltip_show_date", msg)
+        self.assertIn("tooltip_value_precision", msg)
 
 
 if __name__ == "__main__":

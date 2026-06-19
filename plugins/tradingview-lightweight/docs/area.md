@@ -2,6 +2,8 @@
   markers -> markers.md
   price_lines -> price-lines.md
   marker_spec -> markers.md
+  on_press -> events.md
+  on_double_press -> events.md
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md

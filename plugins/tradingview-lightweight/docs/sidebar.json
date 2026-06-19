@@ -117,6 +117,19 @@
                 "path": "price-formats.md"
               }
             ]
+          },
+          {
+            "label": "Interact",
+            "items": [
+              {
+                "label": "Press events",
+                "path": "events.md"
+              },
+              {
+                "label": "Tracking tooltip",
+                "path": "tooltip.md"
+              }
+            ]
           }
         ]
       },

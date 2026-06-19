@@ -226,11 +226,43 @@ class TradingViewChartModel {
   }
 
   /**
-   * Set the timezone for time column conversion. Must be called before
-   * subscribing to tables (i.e. before init).
+   * Set the timezone used for time column conversion.
+   *
+   * Called once before init with the user's Deephaven timezone setting, and
+   * again whenever that setting changes. Before init (no live subscriptions)
+   * the value is simply stored and picked up when tables are first
+   * subscribed. After init, every active table is re-subscribed so its time
+   * columns re-convert through timeTranslator in the new timezone — mirroring
+   * PlotlyExpressChartModel.fireTimeZoneUpdated, which re-subscribes tables
+   * on a timezone change rather than tearing the whole chart down.
    */
   setTimeZone(tz: string): void {
-    this.timeZone = tz;
+    const next = tz ?? '';
+    if (next === this.timeZone) return;
+    this.timeZone = next;
+    if (this.tableSubscriptionMap.size === 0) return;
+    this.resubscribeForTimeZone();
+  }
+
+  /**
+   * Tear down and re-create every active table subscription so time columns
+   * are re-extracted through timeTranslator using the current timezone. Each
+   * table is flagged as a fresh data swap so the view replaces (rather than
+   * appends) its series data and can re-anchor the viewport. The currently
+   * subscribed table (original, downsampled, or auto-binned) is reused, so
+   * the existing downsample / auto-bin scope is preserved across the change.
+   */
+  private resubscribeForTimeZone(): void {
+    const tableIds = Array.from(this.tableSubscriptionMap.keys());
+    tableIds.forEach(tableId => {
+      const table = this.tables.get(tableId);
+      if (!table) return;
+      this.cleanupSubscriptions(tableId);
+      this.chartDataMap.delete(tableId);
+      this.tableDataMap.delete(tableId);
+      this.freshDownsampleTables.add(tableId);
+      this.subscribeTable(tableId, table);
+    });
   }
 
   /**
@@ -640,6 +672,19 @@ class TradingViewChartModel {
     if (this.isAutoBinned()) {
       this.performAutoBin(range, width);
     }
+  }
+
+  /**
+   * Send a user event (press / doublePress) back to Python via the widget
+   * channel. Fire-and-forget; the server produces no client response.
+   */
+  sendEvent(handler: string, payload: unknown): void {
+    this.sendWidgetMessage({ type: 'EVENT', handler, payload });
+  }
+
+  /** Handler ids advertised by the figure (subset of press / doublePress). */
+  getEnabledHandlers(): string[] {
+    return this.figureData?.enabledHandlers ?? [];
   }
 
   private sendWidgetMessage(msg: Record<string, unknown>): void {

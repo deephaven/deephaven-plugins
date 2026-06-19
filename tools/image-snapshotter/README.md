@@ -79,8 +79,8 @@ contract is documented at the top of `src/extract.ts` and pinned by
 Skip markers:
 
 - Put `# no-snapshot` on the **first line** of the block body, or
-- Add `skip` (or `no-snapshot`) to the info string:
-  ```` ```python order=helper skip ````
+- Add `skip-test` (or `no-snapshot`) to the info string:
+  ```` ```python order=helper skip-test ````
 
 ## Running locally (against a hand-started server)
 

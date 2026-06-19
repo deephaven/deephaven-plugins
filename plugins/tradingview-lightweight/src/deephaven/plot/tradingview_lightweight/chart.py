@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import Any, Optional
 
 from .series import SeriesSpec
 from .markers import Marker, MarkerSpec, PriceLine
+from .events import PressEventCallable, PRESS, DOUBLE_PRESS
 
 # Optional imports — unavailable in test environments without a Deephaven server
 try:
@@ -47,24 +49,58 @@ from ._colors import Color
 
 _YIELD_CURVE_SERIES_TYPES = {"Line", "Area"}
 
+# Per-type constructor kwargs that are chart-level (not series-factory args).
+# Excluded from the ``locals()`` dict forwarded to the ``*_series`` factory.
+_CHART_ONLY_KWARGS = {"by", "on_press", "on_double_press"}
+
 
 def _filter_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
 
-def _wrap_as_chart(spec: SeriesSpec, by: Optional[str], func_name: str) -> "TvlChart":
+def _wrap_as_chart(
+    spec: SeriesSpec,
+    by: Optional[str],
+    func_name: str,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
+) -> "TvlChart":
     """Build a default-styled TvlChart wrapping a single SeriesSpec.
 
     Used by the per-type unified constructors (``tvl.line``, ``tvl.area``,
     etc.). When ``by`` is set, the source table is partitioned and the
     resulting :class:`PartitionedTable` is stashed on the spec for the
-    JS partition-watcher.
+    JS partition-watcher. Press handlers are chart-level and forwarded to
+    the wrapping :class:`TvlChart` (they survive standalone display; when
+    the result is later passed to :func:`chart`, that call's handlers win).
     """
+    _validate_series_columns(spec, func_name)
     if by is not None:
         _validate_by_column(spec.table, by, func_name)
         spec.by = by
         spec.partitioned_table = spec.table.partition_by([by])
-    return TvlChart(series_list=[spec], chart_options={})
+    return TvlChart(
+        series_list=[spec],
+        chart_options={},
+        on_press=on_press,
+        on_double_press=on_double_press,
+    )
+
+
+def _table_column_names(table: Any) -> Optional[list[str]]:
+    """Column names of ``table``, or ``None`` if they can't be determined.
+
+    Mock/typeless tables used in unit tests don't expose a real ``.columns``;
+    a ``MagicMock`` iterates to an empty list rather than raising. Either way
+    we can't validate, so return ``None`` (an empty result is treated the same
+    as unreadable) and let callers skip validation rather than reject every
+    column. A real Deephaven table always has at least one column.
+    """
+    try:
+        names = [c.name for c in table.columns]
+    except Exception:
+        return None
+    return names or None
 
 
 def _validate_by_column(table: Any, by: str, func: str) -> None:
@@ -74,15 +110,60 @@ def _validate_by_column(table: Any, by: str, func: str) -> None:
     with a much less actionable error wrapped in a Java exception. Surface
     a Python-native error early so a typo in ``by="Symm"`` is obvious.
     """
-    try:
-        col_names = [c.name for c in table.columns]
-    except Exception:
-        # Tests may pass mock tables without `.columns`; skip validation.
+    col_names = _table_column_names(table)
+    if col_names is None:
         return
     if by not in col_names:
         raise ValueError(
             f"{func}(by={by!r}) — column not found on table. "
             f"Available columns: {col_names}"
+        )
+
+
+def _check_columns(table: Any, needed: Any, func: str, what: str) -> None:
+    """Raise ValueError if any name in ``needed`` is missing from ``table``.
+
+    ``what`` names the kind of column for the message (e.g. ``"column"``,
+    ``"price line column"``). Skips validation when the table's columns can't
+    be determined (mock/typeless tables — see :func:`_table_column_names`).
+    """
+    col_names = _table_column_names(table)
+    if col_names is None:
+        return
+    missing = sorted({c for c in needed if c not in col_names})
+    if missing:
+        raise ValueError(
+            f"{func} — {what}(s) not found on table: {missing}. "
+            f"Available columns: {col_names}"
+        )
+
+
+def _validate_series_columns(spec: SeriesSpec, func: str) -> None:
+    """Raise a clear ValueError if any column the series reads is missing.
+
+    Covers every prop that accepts a column name, so a typo like
+    ``value="Emaa"`` is surfaced as a Python-native error here — before the
+    figure is ever sent to the client — rather than silently rendering an
+    empty series (the unknown column is dropped client-side at subscribe time):
+
+    - the time / value / OHLC data channels and per-row color columns held in
+      ``column_mapping`` (validated against the series table);
+    - column-driven price lines (:attr:`PriceLine.column`, same table);
+    - table-driven markers (every column in :meth:`MarkerSpec.get_columns`,
+      validated against the marker spec's own table).
+    """
+    _check_columns(spec.table, spec.column_mapping.values(), func, "column")
+
+    if spec.price_lines:
+        pl_cols = [pl.column for pl in spec.price_lines if pl.column is not None]
+        _check_columns(spec.table, pl_cols, func, "price line column")
+
+    if spec.marker_spec is not None:
+        _check_columns(
+            spec.marker_spec.table,
+            spec.marker_spec.get_columns(),
+            func,
+            "marker column",
         )
 
 
@@ -122,12 +203,16 @@ class TvlChart:
         pane_stretch_factors: Optional[list[float]] = None,
         pane_preserve_empty: Optional[list[bool]] = None,
         chart_type: str = "standard",
+        on_press: Optional[PressEventCallable] = None,
+        on_double_press: Optional[PressEventCallable] = None,
     ):
         self._series_list = series_list
         self._chart_options = chart_options
         self._pane_stretch_factors = pane_stretch_factors
         self._pane_preserve_empty = pane_preserve_empty
         self._chart_type = chart_type
+        self._on_press = on_press
+        self._on_double_press = on_double_press
 
         # Liveness: manage refreshing tables so they survive GC
         self._liveness_scope = None
@@ -177,6 +262,28 @@ class TvlChart:
     @property
     def chart_type(self) -> str:
         return self._chart_type
+
+    @property
+    def on_press(self) -> Optional[PressEventCallable]:
+        return self._on_press
+
+    @property
+    def on_double_press(self) -> Optional[PressEventCallable]:
+        return self._on_double_press
+
+    def enabled_handlers(self) -> list[str]:
+        """Handler ids that are wired, in advertise order.
+
+        Mirrors the ``enabledHandlers`` array emitted in :meth:`to_dict`;
+        the listener uses this to build its dispatch registry so the two
+        never drift apart.
+        """
+        handlers: list[str] = []
+        if self._on_press is not None:
+            handlers.append(PRESS)
+        if self._on_double_press is not None:
+            handlers.append(DOUBLE_PRESS)
+        return handlers
 
     def get_tables(self) -> list[Any]:
         """Return all unique Deephaven tables referenced by this chart's
@@ -235,6 +342,9 @@ class TvlChart:
             result["paneStretchFactors"] = self._pane_stretch_factors
         if self._pane_preserve_empty is not None:
             result["panePreserveEmpty"] = self._pane_preserve_empty
+        enabled = self.enabled_handlers()
+        if enabled:
+            result["enabledHandlers"] = enabled
         return result
 
 
@@ -404,6 +514,15 @@ def chart(
     # Behavior / interaction
     tracking_mode_exit_mode: Optional[TrackingModeExitMode] = None,
     add_default_pane: Optional[bool] = None,
+    # Tracking tooltip (cursor-following overlay)
+    tooltip_visible: Optional[bool] = None,
+    tooltip_show_title: Optional[bool] = None,
+    tooltip_show_value: Optional[bool] = None,
+    tooltip_show_date: Optional[bool] = None,
+    tooltip_value_precision: Optional[int] = None,
+    # Event handlers
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Compose one or more series into a TradingView Lightweight chart.
 
@@ -728,6 +847,33 @@ def chart(
             chart creation (default ``True``).  Set ``False`` for
             advanced multi-pane setups that fully specify their own
             panes.
+        tooltip_visible (Optional[bool]): Enable the tracking tooltip — a
+            small overlay that follows the cursor and shows the focused
+            series' title, value, and time. This is the master switch; the
+            other ``tooltip_*`` options only take effect when it is ``True``.
+            In a multi-series chart the tooltip shows a single focused
+            series: the one under the cursor (LWC hit test), falling back to
+            the series whose value is nearest the cursor. Its colors come
+            entirely from the active Deephaven theme (the title line is
+            tinted with the focused series' own color); there are no color
+            options.
+        tooltip_show_title (Optional[bool]): Show the series title line
+            (the series ``title``, or its id when untitled), tinted with the
+            series color. Default ``True``.
+        tooltip_show_value (Optional[bool]): Show the series value at the
+            cursor, formatted with the series' price format. For OHLC series
+            the close is shown. Default ``True``.
+        tooltip_show_date (Optional[bool]): Show the time/date line, matching
+            the chart's time-axis formatting. Default ``True``.
+        tooltip_value_precision (Optional[int]): Override the number of
+            decimal places for the value line. When unset, the series' own
+            price format is used.
+        on_press (Optional[PressEventCallable]): Server-side callback
+            invoked when the user presses (clicks) on the chart. Receives
+            a ``TvlPressEvent`` dict (or no argument). See
+            :mod:`deephaven.plot.tradingview_lightweight.events`.
+        on_double_press (Optional[PressEventCallable]): Server-side
+            callback invoked when the user double-presses on the chart.
 
     Returns:
         TvlChart: A chart object that can be displayed in Deephaven.
@@ -764,8 +910,12 @@ def chart(
     series_list: list[SeriesSpec] = []
     for src in sources:
         if isinstance(src, TvlChart):
+            # Specs from tvl.line()/area()/etc. were validated in _wrap_as_chart.
             series_list.extend(src.series_list)
         elif isinstance(src, SeriesSpec):
+            # Bare specs reach chart() from yield_curve/options_chart/
+            # custom_numeric — validate their columns here.
+            _validate_series_columns(src, f"chart() {src.series_type} series")
             series_list.append(src)
         else:
             raise TypeError(
@@ -1193,12 +1343,41 @@ def chart(
     if default_visible_price_scale_id is not None:
         chart_options["defaultVisiblePriceScaleId"] = default_visible_price_scale_id
 
+    # --- Tracking tooltip ---
+    # tooltip_visible is the master switch; the detail options are meaningless
+    # without it, so reject them early (mirrors the watermark validation).
+    _tooltip_details = {
+        "tooltip_show_title": tooltip_show_title,
+        "tooltip_show_value": tooltip_show_value,
+        "tooltip_show_date": tooltip_show_date,
+        "tooltip_value_precision": tooltip_value_precision,
+    }
+    if not tooltip_visible:
+        set_details = [name for name, v in _tooltip_details.items() if v is not None]
+        if set_details:
+            raise ValueError(
+                f"{', '.join(set_details)} require tooltip_visible=True. "
+                f"Set tooltip_visible=True to enable the tracking tooltip."
+            )
+    else:
+        chart_options["tooltip"] = _filter_none(
+            {
+                "visible": True,
+                "showTitle": tooltip_show_title,
+                "showValue": tooltip_show_value,
+                "showDate": tooltip_show_date,
+                "valuePrecision": tooltip_value_precision,
+            }
+        )
+
     return TvlChart(
         series_list=series_list,
         chart_options=chart_options,
         pane_stretch_factors=pane_stretch_factors,
         pane_preserve_empty=pane_preserve_empty,
         chart_type=resolved_type,
+        on_press=on_press,
+        on_double_press=on_double_press,
     )
 
 
@@ -1269,6 +1448,8 @@ def candlestick(
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create a candlestick series.
 
@@ -1298,9 +1479,9 @@ def candlestick(
         >>> # Composed with other series:
         >>> c = tvl.chart(tvl.candlestick(ohlc), tvl.line(sma, "Timestamp", "Sma"))
     """
-    kwargs = {k: v for k, v in locals().items() if k not in ("by",)}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.candlestick_series(**kwargs)
-    return _wrap_as_chart(spec, by, "candlestick")
+    return _wrap_as_chart(spec, by, "candlestick", on_press, on_double_press)
 
 
 def line(
@@ -1354,6 +1535,8 @@ def line(
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create a line series.
 
@@ -1381,9 +1564,9 @@ def line(
         >>> tvl.line(t, "Timestamp", "Price")
         >>> tvl.chart(tvl.line(t, "Timestamp", "Price", by="Sym"))
     """
-    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.line_series(**kwargs)
-    return _wrap_as_chart(spec, by, "line")
+    return _wrap_as_chart(spec, by, "line", on_press, on_double_press)
 
 
 def area(
@@ -1443,6 +1626,8 @@ def area(
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create an area series.
 
@@ -1467,9 +1652,9 @@ def area(
         >>> tvl.area(t, "Timestamp", "Price")
         >>> tvl.chart(tvl.area(t, "Timestamp", "Price"), background_color="#111")
     """
-    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.area_series(**kwargs)
-    return _wrap_as_chart(spec, by, "area")
+    return _wrap_as_chart(spec, by, "area", on_press, on_double_press)
 
 
 def bar(
@@ -1520,6 +1705,8 @@ def bar(
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create a bar (OHLC) series.
 
@@ -1537,9 +1724,9 @@ def bar(
     Returns:
         TvlChart: A chart wrapping a single bar series.
     """
-    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.bar_series(**kwargs)
-    return _wrap_as_chart(spec, by, "bar")
+    return _wrap_as_chart(spec, by, "bar", on_press, on_double_press)
 
 
 def baseline(
@@ -1605,6 +1792,8 @@ def baseline(
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create a baseline series.
 
@@ -1620,9 +1809,9 @@ def baseline(
         by (Optional[str]): Partition column.
         Other parameters: full TVL Baseline series options surface.
     """
-    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.baseline_series(**kwargs)
-    return _wrap_as_chart(spec, by, "baseline")
+    return _wrap_as_chart(spec, by, "baseline", on_press, on_double_press)
 
 
 def histogram(
@@ -1669,6 +1858,8 @@ def histogram(
     bin_count: Optional[int] = None,
     agg: str = "sum",
     by: Optional[str] = None,
+    on_press: Optional[PressEventCallable] = None,
+    on_double_press: Optional[PressEventCallable] = None,
 ) -> TvlChart:
     """Create a histogram series.
 
@@ -1684,9 +1875,9 @@ def histogram(
         by (Optional[str]): Partition column.
         Other parameters: full TVL Histogram series options surface.
     """
-    kwargs = {k: v for k, v in locals().items() if k != "by"}
+    kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.histogram_series(**kwargs)
-    return _wrap_as_chart(spec, by, "histogram")
+    return _wrap_as_chart(spec, by, "histogram", on_press, on_double_press)
 
 
 # --- Non-standard chart type convenience functions ---
@@ -2023,7 +2214,11 @@ def _inherit_series_docstring(
     reused verbatim and a ``by`` entry is appended. The Returns line is
     rewritten to ``TvlChart`` since the unified constructor wraps the spec.
     """
-    factory_doc = factory_fn.__doc__ or ""
+    # Normalize indentation first: Python 3.13+ dedents docstrings at
+    # compile time, so the raw __doc__ indentation differs across
+    # versions. After cleandoc, sections sit at column 0 and Args
+    # entries at 4 regardless of interpreter.
+    factory_doc = inspect.cleandoc(factory_fn.__doc__ or "")
     lines = factory_doc.split("\n")
     # Find Args: and Returns: section boundaries
     args_idx = None
@@ -2037,12 +2232,20 @@ def _inherit_series_docstring(
     if args_idx is None or returns_idx is None:
         return  # factory has no Args/Returns; leave the existing terse doc
 
-    # Insert `by` entry as the last item in Args (before Returns).
+    # Insert `by` + event-handler entries as the last items in Args
+    # (before Returns). These params are added by the per-type constructor
+    # on top of the factory's signature, so they need explicit Args lines
+    # for the autodoc coverage check.
     by_doc = [
-        "        by (Optional[str]): Column name to partition the table by.",
-        "            When set, one runtime series is created per unique value;",
-        "            new partition keys discovered at runtime (ticking tables)",
-        "            add new series automatically.",
+        "    by (Optional[str]): Column name to partition the table by.",
+        "        When set, one runtime series is created per unique value;",
+        "        new partition keys discovered at runtime (ticking tables)",
+        "        add new series automatically.",
+        "    on_press (Optional[PressEventCallable]): Server-side callback",
+        "        invoked when the user presses (clicks) on the chart. Receives",
+        "        a TvlPressEvent dict, or no argument.",
+        "    on_double_press (Optional[PressEventCallable]): Server-side",
+        "        callback invoked when the user double-presses on the chart.",
     ]
     # Find the last non-blank line of the Args block.
     insert_at = returns_idx
@@ -2065,7 +2268,7 @@ def _inherit_series_docstring(
         if in_returns and not skipped_returns_body:
             # Replace the first description with our own.
             if ln.strip() and ln.startswith(" "):
-                out.append("        TvlChart: " + returns_desc)
+                out.append("    TvlChart: " + returns_desc)
                 skipped_returns_body = True
                 continue
             elif ln.strip() == "":
@@ -2085,9 +2288,9 @@ def _inherit_series_docstring(
 
     unified_fn.__doc__ = (
         summary
-        + "\n\n    The result is a single-series :class:`TvlChart` that can be displayed\n"
-        + "    directly OR passed to :func:`chart` to be combined with other series\n"
-        + "    under shared chart styling.\n\n"
+        + "\n\nThe result is a single-series :class:`TvlChart` that can be displayed\n"
+        + "directly OR passed to :func:`chart` to be combined with other series\n"
+        + "under shared chart styling.\n\n"
         + "\n".join(out[summary_end:])
     )
 

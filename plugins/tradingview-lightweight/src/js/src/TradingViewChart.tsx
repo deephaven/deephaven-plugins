@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useApi } from '@deephaven/jsapi-bootstrap';
+import { getTimeZone, type RootState } from '@deephaven/redux';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { WidgetComponentProps } from '@deephaven/plugin';
 import Log from '@deephaven/log';
+import type { MouseEventParams } from 'lightweight-charts';
 import TradingViewChartModel from './TradingViewChartModel';
 import TradingViewChartRenderer from './TradingViewChartRenderer';
+import { buildPressEventPayload } from './TradingViewEventPayload';
 import {
   useDHChartTheme,
   chartThemeToOptions,
@@ -16,6 +20,7 @@ import {
   deduplicateByTime,
   buildMarkersFromTableData,
   convertTime,
+  unconvertTime,
 } from './TradingViewUtils';
 import type {
   TvlChartType,
@@ -70,7 +75,17 @@ export interface TradingViewChartProps
 function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   const dh = useApi();
   const { fetch, onLoadingChange, onError } = props;
-  const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
+  // Source the timezone from the user's Deephaven setting so the chart
+  // re-renders when the user changes their timezone in Settings — matching
+  // the plotly-express plugin. NOTE: `@deephaven/redux` must be BUNDLED (it is
+  // intentionally absent from vite.config externals), not externalized — the
+  // DH client's plugin require shim does not provide it, so externalizing it
+  // breaks plugin loading. Falls back to the browser timezone when unset.
+  const settingsTimeZone = useSelector(getTimeZone<RootState>);
+  const timeZone =
+    settingsTimeZone != null && settingsTimeZone !== ''
+      ? settingsTimeZone
+      : Intl.DateTimeFormat().resolvedOptions().timeZone;
   const chartTheme = useDHChartTheme();
   const chartThemeRef = useRef(chartTheme);
   chartThemeRef.current = chartTheme;
@@ -153,6 +168,9 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
   /** Cleanup for downsample subscriptions. */
   const dsCleanupRef = useRef<(() => void) | null>(null);
+
+  /** Unsubscribe fns for user event handlers (press / doublePress). */
+  const eventUnsubsRef = useRef<Array<() => void>>([]);
 
   // ---- Debug helpers ----
 
@@ -639,6 +657,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (modelRef.current) {
         dsCleanupRef.current?.();
         dsCleanupRef.current = null;
+        eventUnsubsRef.current.forEach(unsub => unsub());
+        eventUnsubsRef.current = [];
         modelRef.current.close();
         modelRef.current = null;
       }
@@ -764,6 +784,80 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (!cancelled && model.isResampling()) {
         setupDownsampleSubscriptions(renderer, model);
       }
+
+      if (!cancelled) {
+        setupEventHandlers(renderer, model);
+      }
+
+      // Tracking tooltip (cursor-following overlay). Set up after series exist
+      // so the tooltip can read per-series colors. Cleanup is torn down with
+      // the other event subscriptions.
+      if (!cancelled && renderer.hasTooltip()) {
+        eventUnsubsRef.current.push(renderer.setupTooltip());
+      }
+    }
+
+    /**
+     * Wire user event handlers (press / doublePress) advertised by the figure.
+     * On fire, builds a JSON-safe payload, sends it to Python, and publishes
+     * it to the `data-tvl-last-event` DOM seam for Playwright assertions.
+     */
+    function setupEventHandlers(
+      renderer: TradingViewChartRenderer,
+      model: TradingViewChartModel
+    ) {
+      function onPress(
+        type: 'press' | 'doublePress',
+        params: MouseEventParams
+      ) {
+        const payload = buildPressEventPayload(
+          type,
+          params,
+          s => renderer.getSeriesIdForApi(s),
+          model.getTimeZone()
+        );
+        model.sendEvent(type, payload);
+        // Test seam: always publish the built payload to the DOM.
+        containerRef.current?.setAttribute(
+          'data-tvl-last-event',
+          JSON.stringify(payload)
+        );
+      }
+
+      const enabled = model.getEnabledHandlers();
+      enabled.forEach(id => {
+        if (id === 'press') {
+          eventUnsubsRef.current.push(
+            renderer.subscribeClick(params => onPress('press', params))
+          );
+        } else if (id === 'doublePress') {
+          eventUnsubsRef.current.push(
+            renderer.subscribeDblClick(params => onPress('doublePress', params))
+          );
+        }
+      });
+
+      // Test-only inversion-oracle hook: lets Playwright compute the exact
+      // click pixel for a (series, time, price) so its independently-derived
+      // coordinate can be checked against LWC's native hit test. Tiny and
+      // inert; only meaningful when a test reads it. Torn down with the chart.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
+      (window as any).__tvlTestHook = {
+        timeToCoordinate: (t: number) => renderer.timeToCoordinate(t),
+        // Convert a real UTC-seconds time through the same convertTime the
+        // data pipeline uses (applies the session-tz shift), then to an x
+        // coordinate — so a test can address a known data point regardless
+        // of the session timezone.
+        timeToCoordinateUtc: (utcSec: number) =>
+          renderer.timeToCoordinate(convertTime(utcSec, model.getTimeZone())),
+        priceToCoordinate: (seriesId: string, p: number) =>
+          renderer.priceToCoordinate(seriesId, p),
+        getSeriesIds: () => renderer.getSeriesIds(),
+      };
+      eventUnsubsRef.current.push(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
+        delete (window as any).__tvlTestHook;
+      });
     }
 
     async function init() {
@@ -1034,13 +1128,49 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current);
       dsCleanupRef.current?.();
       dsCleanupRef.current = null;
+      eventUnsubsRef.current.forEach(unsub => unsub());
+      eventUnsubsRef.current = [];
       modelRef.current?.close();
       modelRef.current = null;
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dh, fetch, timeZone]);
+  }, [dh, fetch]);
+
+  // Respond to client-side timezone changes without tearing down the
+  // model/renderer. The model re-subscribes its tables so time columns
+  // re-convert in the new timezone (see TradingViewChartModel.setTimeZone).
+  // If the user had zoomed/panned, re-anchor the viewport to the same
+  // wall-clock window by re-projecting the visible range through the old and
+  // new timezone shifts so the same data stays in view.
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    const model = modelRef.current;
+    if (!renderer || !model) return;
+
+    const oldTimeZone = model.getTimeZone();
+    if (oldTimeZone === timeZone) return;
+
+    if (userInteractedRef.current) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const vr = renderer.getChart().timeScale().getVisibleRange() as any;
+        if (vr != null) {
+          const remap = (shifted: number): number =>
+            convertTime(unconvertTime(shifted, oldTimeZone), timeZone);
+          restoreRangeRef.current = {
+            from: remap(vr.from as number),
+            to: remap(vr.to as number),
+          };
+        }
+      } catch {
+        // chart may not be ready — fall back to fitContent on data swap
+      }
+    }
+
+    model.setTimeZone(timeZone);
+  }, [timeZone]);
 
   // Apply theme changes without tearing down the model/renderer.
   useEffect(() => {

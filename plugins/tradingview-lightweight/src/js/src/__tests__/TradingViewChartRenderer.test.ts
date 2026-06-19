@@ -1403,4 +1403,86 @@ describe('TradingViewChartRenderer', () => {
       expect(opts.getChartType()).toBe('options');
     });
   });
+
+  describe('event subscriptions', () => {
+    it('getSeriesIdForApi reverse-looks-up the series id', () => {
+      const renderer = createRenderer();
+      const configs: TvlSeriesConfig[] = [
+        {
+          id: 'line-x',
+          type: 'Line',
+          options: {},
+          dataMapping: { tableId: 0, columns: { time: 'T', value: 'V' } },
+        },
+      ];
+      renderer.configureSeries(configs);
+
+      // mockSeriesInstance is what addSeries returns and what gets stored.
+      expect(renderer.getSeriesIdForApi(mockSeriesInstance)).toBe('line-x');
+    });
+
+    it('getSeriesIdForApi returns undefined for an unknown series', () => {
+      const renderer = createRenderer();
+      const other = { setData: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(renderer.getSeriesIdForApi(other as any)).toBeUndefined();
+    });
+
+    it('subscribeClick registers a handler and returns a working unsubscribe', () => {
+      const renderer = createRenderer();
+      const handler = jest.fn();
+      const unsub = renderer.subscribeClick(handler);
+
+      expect(mockChart.subscribeClick).toHaveBeenCalledWith(handler);
+      unsub();
+      expect(mockChart.unsubscribeClick).toHaveBeenCalledWith(handler);
+    });
+
+    it('subscribeDblClick registers a handler and returns a working unsubscribe', () => {
+      const renderer = createRenderer();
+      const handler = jest.fn();
+      const unsub = renderer.subscribeDblClick(handler);
+
+      expect(mockChart.subscribeDblClick).toHaveBeenCalledWith(handler);
+      unsub();
+      expect(mockChart.unsubscribeDblClick).toHaveBeenCalledWith(handler);
+    });
+  });
+
+  describe('tracking tooltip', () => {
+    // Regression: the figure's chartOptions (incl. `tooltip`) reach the
+    // renderer via applyOptions, NOT the constructor. hasTooltip() must read
+    // those merged options, else setupTooltip() is a no-op and the tooltip
+    // element is never created (caught originally only by the e2e suite).
+    it('hasTooltip reflects tooltip options applied via applyOptions', () => {
+      const renderer = createRenderer();
+      expect(renderer.hasTooltip()).toBe(false);
+      renderer.applyOptions({
+        tooltip: { visible: true },
+      } as never);
+      expect(renderer.hasTooltip()).toBe(true);
+    });
+
+    it('setupTooltip creates the tooltip element and subscribes to crosshair moves', () => {
+      const container = document.createElement('div');
+      const renderer = new TradingViewChartRenderer(container);
+      renderer.applyOptions({ tooltip: { visible: true } } as never);
+
+      const cleanup = renderer.setupTooltip();
+      expect(container.querySelector('.tvl-tooltip')).not.toBeNull();
+      expect(mockChart.subscribeCrosshairMove).toHaveBeenCalledTimes(1);
+
+      cleanup();
+      expect(container.querySelector('.tvl-tooltip')).toBeNull();
+      expect(mockChart.unsubscribeCrosshairMove).toHaveBeenCalledTimes(1);
+    });
+
+    it('setupTooltip is a no-op when no tooltip is configured', () => {
+      const container = document.createElement('div');
+      const renderer = new TradingViewChartRenderer(container);
+      renderer.setupTooltip();
+      expect(container.querySelector('.tvl-tooltip')).toBeNull();
+      expect(mockChart.subscribeCrosshairMove).not.toHaveBeenCalled();
+    });
+  });
 });

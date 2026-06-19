@@ -8,10 +8,14 @@ Use the root `tools/plugin_builder.py` to build the JS bundle + Python wheel
 and bring up a Deephaven server with the plugin installed. From the repo root:
 
 ```bash
-python tools/plugin_builder.py --plugin tradingview-lightweight
+python tools/plugin_builder.py --js --reinstall --server tradingview-lightweight
 ```
 
-After code changes, re-run the same command to rebuild and restart.
+The plugin name is a positional argument — there is no `--plugin` flag.
+`--js` builds the JS bundle, `--reinstall` rebuilds and force-reinstalls the
+wheel (needed when the version number hasn't changed), and `--server` (`-s`)
+starts the Deephaven server. After code changes, re-run the same command to
+rebuild and restart. Run `python tools/plugin_builder.py --help` for all flags.
 
 App.d fixtures for local dev/snapshot capture live under `app.d/` at the
 plugin root (`disconnect_test.py`, `downsample_compare.py`). Point the
@@ -121,7 +125,7 @@ View the screenshot with the `Read` tool on the image path. Always screenshot in
 
 ## How It Works
 
-`tools/plugin_builder.py --plugin tradingview-lightweight`:
+`tools/plugin_builder.py --js --reinstall --server tradingview-lightweight`:
 
 1. Builds the JS bundle via `npm run build` in `src/js/`.
 2. Builds the Python wheel and installs it into a Deephaven server venv.
@@ -161,11 +165,13 @@ TradingViewPlugin (plugin registration)
 | --------------------------------------------- | ----------------------------------------------------------------- |
 | `src/js/src/TradingViewChartPanel.tsx`        | WidgetPanel wrapper — session disconnect, loading overlay         |
 | `src/js/src/TradingViewChart.tsx`             | Main component — init, data updates, zoom/pan, downsample UX      |
-| `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, ZOOM/RESET          |
+| `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, autobin/EVENT       |
 | `src/js/src/TradingViewChartRenderer.ts`      | LWC wrapper — chart creation, series CRUD, markers, price lines   |
+| `src/js/src/TradingViewEventPayload.ts`       | Builds the press-event payload sent to Python (hit test, series)  |
 | `src/js/src/TradingViewChart.css`             | Downsample scrim/status bar styles (inlined via `?inline` import) |
-| `src/deephaven/.../downsample.py`             | Python-side downsample — v3 direct aggregation output             |
-| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/ZOOM/RESET                             |
+| `src/deephaven/.../auto_bin.py`               | Server-side time-bin aggregation for Histogram/Candlestick/Bar    |
+| `src/deephaven/.../events.py`                 | Press-event payloads + handler plumbing (`wrap_callable`)         |
+| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT        |
 
 ### CSS Injection
 
@@ -173,16 +179,26 @@ Plugin CSS files aren't loaded by the DH client. TVL uses Vite's `?inline` impor
 
 Z-index note: `.dh-tvl-panel > .fill-parent-absolute { z-index: 50 }` ensures WidgetPanel's LoadingOverlay renders above the chart's `position: relative` container.
 
-### Downsample Architecture
+### Downsample / Autobin Architecture
 
-**Python-side** (v3 direct aggregation output):
+There are two distinct density-reduction paths depending on series type:
 
-- `_downsample()` uses `agg_by` with `first`/`last`/`sorted_first`/`sorted_last` to capture all output columns directly from min/max rows per bin
-- No `ii`/`k`/`where_in` — works on ticking tables
-- Background (~1000 bins, full range) + Foreground (~4000 bins, zoom area) merged server-side
-- `compute_reset()` invalidates cached time range for ticking tables
+**Line / Area / Baseline — JS-side downsample** (`runChartDownsample`):
+min/max-per-bin reduction performed client-side over the data the model has
+already received.
 
-**JS-side** downsample UX:
+**Histogram / Candlestick / Bar — server-side autobin** (`auto_bin.py`):
+these can't be min/max downsampled, so the server time-bin aggregates them.
+
+- `build_histogram_view()` / `build_ohlc_view()` aggregate via
+  `update_view(["Bin = upperBin(time, w)"])` + `agg_by(..., by=["Bin"])`
+- Bin width is chosen from the visible range and snapped to a "nice" duration
+  (`nice_bin_width()`); target bin count derives from pixel width (`BAR_PX`)
+- On zoom, the listener handles `AUTOBIN_ZOOM` and swaps in a finer
+  aggregation; `AUTOBIN_RESET` returns to the full-range view
+- Works on ticking tables (no `ii`/`k`/`where_in`)
+
+**JS-side downsample UX:**
 
 - Progressive scrim: 200ms delay → scrim sweeps down (150ms CSS transition), 500ms → status bar with indeterminate animation
 - Scrim stays until `DATA_UPDATED` (not `DOWNSAMPLE_PENDING(false)` which fires before data arrives)
@@ -190,9 +206,56 @@ Z-index note: `.dh-tvl-panel > .fill-parent-absolute { z-index: 50 }` ensures Wi
 - Snap-to-live: auto-scrolls when right edge is within 1% of latest data point
 - Double-click resets both time scale (`fitContent`) and price scales (`setAutoScale(true)`)
 
+### Press Events
+
+A chart can call back into Python on press / double-press, following the
+deephaven.ui event convention (`on_press` / `on_double_press`, a plain Python
+callable receiving one camelCase-keyed event dict, or no argument).
+
+- Handlers are accepted on `tvl.chart(...)` and on every per-type constructor
+  (`line`, `area`, `candlestick`, `bar`, `baseline`, `histogram`)
+- **JS side** (`TradingViewEventPayload.ts`): on press, builds the payload —
+  time/price under the cursor, `seriesId` from LWC native hit testing, every
+  series' value at that time, pane, pixel point, and modifier keys — and sends
+  an `EVENT` message to the model
+- **Python side** (`events.py`): the listener dispatches the `EVENT` to the
+  registered handler. `wrap_callable` (ported from deephaven.ui) adapts the
+  handler so it can be called with one positional arg regardless of its arity;
+  `build_press_event` converts the client payload into a `TvlPressEvent`
+- Unresolved fields are omitted rather than set to `None` (e.g. a press on
+  empty area outside the data range omits `time`; between lines omits `seriesId`)
+- User-facing docs: `docs/events.md`
+
 ### Disconnect Handling
 
 Uses `WidgetPanel` from `@deephaven/dashboard-core-plugins` for session-level disconnect detection. Panel wrapper passes `onSessionClose`/`onSessionOpen` callbacks that set error state → WidgetPanel's LoadingOverlay shows "Chart disconnected". Model also listens for `Widget.EVENT_CLOSE` and `Table.EVENT_DISCONNECT/RECONNECT`.
+
+### Timezone Handling
+
+Lightweight-charts has no timezone support, so the model shifts every time
+value by the user's timezone offset (`convertTime` in `TradingViewUtils.ts`)
+before it reaches the chart; axis labels then read in the configured zone.
+
+The timezone comes from the user's Deephaven setting via Redux
+(`useSelector(getTimeZone)` in `TradingViewChart.tsx`), falling back to the
+browser's local zone — matching the plotly-express plugin.
+
+> **Build gotcha:** `@deephaven/redux` must be **bundled**, not externalized —
+> it is intentionally absent from `vite.config.ts` `external`. The DH client's
+> plugin require shim does not provide `@deephaven/redux`, so externalizing it
+> makes the plugin fail to load entirely (`Could not require '@deephaven/redux'`).
+> `react-redux`/`redux` ARE client-provided and stay externalized. plotly-express
+> does the same (bundles `@deephaven/redux`, externalizes `react-redux`).
+
+When the user
+changes their timezone in Settings, a dedicated effect calls
+`model.setTimeZone(tz)`, which re-subscribes every active table so its time
+columns re-convert in the new zone (mirrors plotly-express's
+`fireTimeZoneUpdated`) — no full teardown. The current downsample / auto-bin
+scope is preserved (the already-subscribed table is reused), and if the user
+had zoomed/panned the viewport is re-anchored to the same wall-clock window by
+re-projecting the visible range through the old and new offsets
+(`unconvertTime(old)` → `convertTime(new)`).
 
 ### Test Fixtures
 
@@ -277,3 +340,87 @@ npx jest --verbose
 cd src/js
 npx tsc --noEmit
 ```
+
+## End-to-End Tests (Playwright)
+
+The unit tests (jest + jsdom) simulate the DOM. The **e2e** suite under
+`src/js/e2e/` runs the real plugin in a real Deephaven IDE in Chromium via
+Playwright, so it catches wiring / serialization / render bugs the unit tests
+can't. It is self-booting: Playwright's `webServer` starts and tears down the
+Deephaven server for you.
+
+### One-time setup
+
+```bash
+cd src/js
+npm run test:e2e:setup           # provision a venv with deephaven-server + this plugin
+```
+
+`test:e2e:setup` runs `e2e/setup-venv.sh`: it `uv venv`s `<plugin>/.venv`,
+installs `deephaven-server` + `deephaven-plugin-utilities`, builds the JS
+bundle, and installs the plugin into that venv. Re-run it only when the
+**Python** deps change — after JS changes you don't need to (see below).
+
+**Browser.** The config resolves Chromium in this order: `TVL_E2E_CHROMIUM`
+env var → a system Chromium at `/usr/bin/chromium` → Playwright's bundled
+browser. So if a system Chromium is present (common in CI images and this
+sandbox) nothing extra is needed. Otherwise install the bundled browser once:
+
+```bash
+npx playwright install chromium chromium-headless-shell
+```
+
+> Browsers live in the shared `~/.cache/ms-playwright`. There is no separate
+> "plugin" vs "root" Playwright — both use the repo-root `@playwright/test`
+> and the same browser cache. `npx playwright install` prunes builds that
+> don't match the installed Playwright version, so install once and reuse.
+> Chromium runs with `--no-sandbox` (required as root).
+
+### Running
+
+```bash
+cd src/js
+npm run test:e2e                 # builds JS, boots a server, runs the specs, tears it down
+```
+
+`test:e2e` = `build` then `test:e2e:run` (Playwright). On each run
+`e2e/start-server.sh` **syncs the freshly built bundle into the installed
+package**, so the suite always exercises HEAD — you never reinstall the wheel
+after a JS change, just `npm run test:e2e` again. For fast iteration against a
+server you already have up, `reuseExistingServer` is on locally, so a running
+server on :10000 is reused instead of booting a new one.
+
+### How the server is launched (two load-bearing quirks)
+
+`e2e/start-server.sh` boots Deephaven with anonymous auth and
+`-Ddeephaven.application.dir=e2e/app.d` (which auto-opens the
+`tooltip_demo.py` chart as a panel). Two things are required in this sandbox
+and are easy to get wrong:
+
+1. **stdin must stay open.** The `deephaven` CLI prints "Press Control-C to
+   exit" and reads stdin; on stdin EOF (what a backgrounded/non-TTY process
+   gets) it aborts immediately with `Aborted!`. We feed it `tail -f /dev/null |`
+   so stdin never closes. (`< /dev/zero` does NOT work — that floods stdin with
+   bytes and the CLI exits.)
+2. **stdout must be a pipe, not a file.** We append `| cat`. Redirecting the
+   server's stdout to a file makes the JVM abort.
+
+Letting Playwright's `webServer` own the process handles teardown cleanly and
+sidesteps the sandbox rule that a hand-backgrounded JVM gets reaped.
+
+> **Never use shell `sleep` in this sandbox — it exits 144 and kills the
+> script.** Wait via Playwright's own APIs (`page.waitForSelector`,
+> `page.waitForTimeout`) or a `timeout … bash -c 'until curl -sf URL; do :; done'`
+> busy-loop, not `sleep`.
+
+### Writing e2e tests
+
+Add a `*.spec.ts` under `src/js/e2e/`. Assert against the DOM seams the
+components publish rather than screenshotting the canvas:
+
+- `.tvl-tooltip` + its `data-tvl-tooltip` attribute — the tracking tooltip's
+  rendered `title | value | date` (see `tooltip.spec.ts`).
+- `data-tvl-last-event` on the chart container — the last press-event payload.
+
+Hover the chart via `page.mouse.move(...)` over the `.dh-tvl-chart` bounding
+box; the tooltip follows the crosshair just like a real cursor.

@@ -2,6 +2,8 @@
   markers -> markers.md
   price_lines -> price-lines.md
   marker_spec -> markers.md
+  on_press -> events.md
+  on_double_press -> events.md
   auto_bin -> autobin.md
   bin_width -> autobin.md
   bin_count -> autobin.md

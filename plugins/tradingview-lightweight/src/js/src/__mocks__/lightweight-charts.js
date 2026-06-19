@@ -12,6 +12,9 @@ const mockSeriesInstance = {
   setData: jest.fn(),
   createPriceLine: jest.fn(() => mockPriceLine),
   priceScale: jest.fn(() => mockPriceScale),
+  options: jest.fn(() => ({})),
+  priceFormatter: jest.fn(() => ({ format: v => String(v) })),
+  priceToCoordinate: jest.fn(() => null),
 };
 
 const mockMarkersPlugin = {
@@ -46,6 +49,12 @@ const mockChart = {
   remove: jest.fn(),
   timeScale: jest.fn(() => mockTimeScale),
   panes: jest.fn(() => [mockPane, mockPane2]),
+  subscribeClick: jest.fn(),
+  unsubscribeClick: jest.fn(),
+  subscribeDblClick: jest.fn(),
+  unsubscribeDblClick: jest.fn(),
+  subscribeCrosshairMove: jest.fn(),
+  unsubscribeCrosshairMove: jest.fn(),
 };
 
 const createChart = jest.fn(() => mockChart);

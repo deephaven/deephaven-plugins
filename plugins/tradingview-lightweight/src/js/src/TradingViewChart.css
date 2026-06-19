@@ -3,6 +3,43 @@
   z-index: 50;
 }
 
+/* ---- Tracking tooltip (cursor-following overlay) ---- */
+
+.tvl-tooltip {
+  position: absolute;
+  display: none;
+  box-sizing: border-box;
+  top: 12px;
+  left: 12px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+  pointer-events: none;
+  /* Above the downsample scrim (10) and status bar (30); below the
+     WidgetPanel LoadingOverlay (50) so disconnect/error overlays win. */
+  z-index: 40;
+  background: var(--dh-color-content-bg, #2d2a2e);
+  color: var(--dh-color-fg, #f0f0ee);
+  border: 1px solid var(--dh-color-gray-500, #555);
+  border-radius: 2px;
+}
+
+.tvl-tooltip-title {
+  font-weight: 600;
+  /* Color is set inline to the focused series' color; falls back to `fg`. */
+}
+
+.tvl-tooltip-value {
+  font-size: 16px;
+  margin: 2px 0;
+}
+
+.tvl-tooltip-date {
+  color: var(--dh-color-gray-700, #888);
+}
+
 /* ---- Pending downsample scrim ---- */
 
 .tvl-pending-scrim {

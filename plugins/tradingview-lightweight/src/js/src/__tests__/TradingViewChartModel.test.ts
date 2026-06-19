@@ -402,3 +402,40 @@ describe('TradingViewChartModel auto-bin', () => {
     });
   });
 });
+
+describe('TradingViewChartModel timezone changes', () => {
+  it('re-subscribes active tables when the timezone changes after init', async () => {
+    const { model, table } = await initModelWithAutoBin(false);
+    // init subscribed exactly once
+    expect(table.subscribe).toHaveBeenCalledTimes(1);
+    const firstSub = table.subscribe.mock.results[0].value;
+
+    model.setTimeZone('America/New_York');
+
+    // Old subscription torn down, a fresh one created so time columns
+    // re-convert through timeTranslator in the new timezone.
+    expect(firstSub.close).toHaveBeenCalledTimes(1);
+    expect(table.subscribe).toHaveBeenCalledTimes(2);
+    expect(model.getTimeZone()).toBe('America/New_York');
+  });
+
+  it('does not re-subscribe when the timezone is unchanged', async () => {
+    const { model, table } = await initModelWithAutoBin(false);
+    expect(table.subscribe).toHaveBeenCalledTimes(1);
+
+    // initModelWithAutoBin sets the zone to 'UTC' before init
+    model.setTimeZone('UTC');
+
+    expect(table.subscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('stores the timezone before init without subscribing', () => {
+    const dh = makeMockDh();
+    const widget = makeMockWidget();
+    const model = new TradingViewChartModel(dh, widget as never);
+
+    model.setTimeZone('Europe/London');
+
+    expect(model.getTimeZone()).toBe('Europe/London');
+  });
+});

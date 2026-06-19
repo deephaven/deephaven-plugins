@@ -28,14 +28,17 @@ import type {
   ISeriesMarkersPluginApi,
   ITextWatermarkPluginApi,
   TextWatermarkOptions,
+  MouseEventParams,
 } from 'lightweight-charts';
 import Log from '@deephaven/log';
 import type {
   TvlChartType,
   TvlSeriesConfig,
   TvlMarkerData,
+  TvlTooltipOptions,
 } from './TradingViewTypes';
 import { resolveColor, resolveColorsDeep } from './TradingViewColors';
+import { TradingViewTooltip } from './TradingViewTooltip';
 
 const log = Log.module('TradingViewChartRenderer');
 
@@ -333,6 +336,12 @@ class TradingViewChartRenderer {
   private chartType: TvlChartType;
 
   private seriesMap: Map<string, ISeriesApi<SeriesType>> = new Map();
+
+  /** Resolved primary color per series id, used to tint the tracking tooltip. */
+  private seriesColors: Map<string, string> = new Map();
+
+  /** Active tracking tooltip, when enabled via chartOptions.tooltip.visible. */
+  private tooltip: TradingViewTooltip | null = null;
 
   private markersMap: Map<string, ISeriesMarkersPluginApi<Time>> = new Map();
 
@@ -637,6 +646,7 @@ class TradingViewChartRenderer {
       this.chart.removeSeries(series);
     });
     this.seriesMap.clear();
+    this.seriesColors.clear();
     this.dynamicPriceLines.clear();
 
     // Create scaffold FIRST so it occupies base time positions
@@ -731,6 +741,19 @@ class TradingViewChartRenderer {
       });
       if (series) {
         this.seriesMap.set(config.id, series);
+
+        // Record the resolved primary color for the tracking tooltip's title
+        // tint. OHLC types have no single line color, so use the up color.
+        const tooltipColorKey = OHLC_TYPES.has(config.type)
+          ? 'upColor'
+          : PRIMARY_COLOR_KEY[config.type as keyof typeof PRIMARY_COLOR_KEY];
+        const seriesColor =
+          tooltipColorKey != null
+            ? (options[tooltipColorKey] as string | undefined)
+            : undefined;
+        if (seriesColor != null && seriesColor !== '') {
+          this.seriesColors.set(config.id, seriesColor);
+        }
 
         // Apply per-series price scale options (autoScale, scaleMargins)
         if (config.priceScaleOptions) {
@@ -906,6 +929,11 @@ class TradingViewChartRenderer {
       this.gridColor = newGridColor;
     }
 
+    // Merge into the cached options so consumers that read resolvedChartOpts
+    // later (hasTooltip(), and setChartType's rebuild) see the figure's
+    // chartOptions — which arrive here via applyOptions, not the constructor.
+    this.resolvedChartOpts = { ...this.resolvedChartOpts, ...chartOpts };
+
     this.chart.applyOptions(chartOpts as DeepPartial<ChartOptions>);
     if (wmRaw != null) {
       this.applyWatermark(wmRaw as LegacyWatermarkOptions);
@@ -959,6 +987,32 @@ class TradingViewChartRenderer {
     return this.chart;
   }
 
+  /**
+   * Convert a TZ-shifted epoch-seconds time to an x coordinate (pane-relative
+   * pixels), or null if outside the visible range. Test-only: used by the
+   * Playwright inversion-oracle to compute deterministic clicks.
+   */
+  timeToCoordinate(timeSec: number): number | null {
+    return this.chart.timeScale().timeToCoordinate(timeSec as Time);
+  }
+
+  /**
+   * Convert a price on a series' scale to a y coordinate (pane-relative
+   * pixels), or null if the series is unknown. Test-only companion to
+   * {@link timeToCoordinate}.
+   */
+  priceToCoordinate(seriesId: string, price: number): number | null {
+    const series = this.seriesMap.get(seriesId);
+    if (!series) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return series.priceToCoordinate(price as any);
+  }
+
+  /** Current series ids (insertion order). Test-only. */
+  getSeriesIds(): string[] {
+    return Array.from(this.seriesMap.keys());
+  }
+
   /** Reset all price scales to auto-fit visible data. */
   resetPriceScales(): void {
     this.seriesMap.forEach(series => {
@@ -986,10 +1040,85 @@ class TradingViewChartRenderer {
     return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
   }
 
-  /** Subscribe to chart double-click (reset detection). */
-  subscribeDblClick(handler: () => void): () => void {
+  /** Subscribe to chart single-click (press detection). */
+  subscribeClick(handler: (params: MouseEventParams) => void): () => void {
+    this.chart.subscribeClick(handler);
+    return () => this.chart.unsubscribeClick(handler);
+  }
+
+  /**
+   * Subscribe to chart double-click. Accepts a handler taking the LWC
+   * MouseEventParams; a plain `() => void` (used by the internal reset
+   * subscriber) is assignable and remains backward compatible.
+   */
+  subscribeDblClick(handler: (params: MouseEventParams) => void): () => void {
     this.chart.subscribeDblClick(handler);
     return () => this.chart.unsubscribeDblClick(handler);
+  }
+
+  /** Resolved primary color for a series id (for the tracking tooltip). */
+  getSeriesColor(id: string): string | undefined {
+    return this.seriesColors.get(id);
+  }
+
+  /** Format a crosshair time the same way this chart's time axis does. */
+  private formatCrosshairTime(time: unknown): string {
+    switch (this.chartType) {
+      case 'yieldCurve':
+        return yieldCurveCrosshairFormatter(time);
+      case 'options':
+        return optionsCrosshairFormatter(time);
+      default:
+        return crosshairTimeFormatter(time);
+    }
+  }
+
+  /** True when the figure requested a tracking tooltip. */
+  hasTooltip(): boolean {
+    const tooltip = this.resolvedChartOpts.tooltip as
+      | TvlTooltipOptions
+      | undefined;
+    return tooltip?.visible === true;
+  }
+
+  /**
+   * Create the tracking tooltip and subscribe it to crosshair moves. Returns
+   * a cleanup that unsubscribes and removes the tooltip element. No-op (returns
+   * a no-op cleanup) when the figure did not request a tooltip. Must be called
+   * after :meth:`configureSeries` so series colors are known.
+   */
+  setupTooltip(): () => void {
+    if (!this.hasTooltip()) {
+      return () => undefined;
+    }
+    const options = this.resolvedChartOpts.tooltip as TvlTooltipOptions;
+    this.tooltip = new TradingViewTooltip({
+      container: this.container,
+      getSeriesId: s => this.getSeriesIdForApi(s),
+      getSeriesColor: id => this.getSeriesColor(id),
+      formatTime: time => this.formatCrosshairTime(time),
+      options,
+    });
+    const handler = (params: MouseEventParams): void => {
+      this.tooltip?.handleCrosshairMove(params);
+    };
+    this.chart.subscribeCrosshairMove(handler);
+    return () => {
+      this.chart.unsubscribeCrosshairMove(handler);
+      this.tooltip?.destroy();
+      this.tooltip = null;
+    };
+  }
+
+  /** Reverse lookup: find our series id for a given ISeriesApi. */
+  getSeriesIdForApi(series: ISeriesApi<SeriesType>): string | undefined {
+    let found: string | undefined;
+    this.seriesMap.forEach((value, id) => {
+      if (value === series) {
+        found = id;
+      }
+    });
+    return found;
   }
 
   /** Subscribe to chart size changes (resize detection). */
@@ -1048,6 +1177,11 @@ class TradingViewChartRenderer {
     this.markersMap.clear();
     this.dynamicPriceLines.clear();
     this.scaffoldSeries = null;
+    this.seriesColors.clear();
+    if (this.tooltip) {
+      this.tooltip.destroy();
+      this.tooltip = null;
+    }
     if (this.watermarkPlugin) {
       this.watermarkPlugin.detach();
       this.watermarkPlugin = null;

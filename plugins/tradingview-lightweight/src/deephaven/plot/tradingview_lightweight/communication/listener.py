@@ -11,7 +11,21 @@ from typing import Any, Optional
 from deephaven.plugin.object_type import MessageStream
 
 from ..chart import TvlChart
+from ..events import (
+    PRESS,
+    DOUBLE_PRESS,
+    build_press_event,
+    time_converter_for,
+    wrap_callable,
+)
 from .. import auto_bin
+
+# Liveness scope for handler dispatch. Optional so the module imports without
+# a server (unit tests); when absent, handlers run without a managed scope.
+try:
+    from deephaven.liveness_scope import liveness_scope
+except ImportError:  # pragma: no cover - exercised only without a server
+    liveness_scope = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +44,50 @@ AUTO_BIN_ELIGIBLE_TYPES = {"Histogram", "Candlestick", "Bar"}
 AUTO_BIN_THRESHOLD = int(
     os.environ.get("TVL_AUTO_BIN_THRESHOLD", str(2 * auto_bin.TARGET_BINS))
 )
+
+
+def _series_index(series_id: Any) -> Optional[int]:
+    """Extract the series index ``i`` from a wire id ``"series_{i}"``.
+
+    Partitioned (``by=``) series carry a key suffix (``"series_{i}_{key}"``);
+    the leading index still identifies the owning :class:`SeriesSpec`. Returns
+    ``None`` for anything that isn't a recognizable series id.
+    """
+    if not isinstance(series_id, str) or not series_id.startswith("series_"):
+        return None
+    head = series_id[len("series_") :].split("_", 1)[0]
+    return int(head) if head.isdigit() else None
+
+
+def _time_type_name(spec: Any) -> Optional[str]:
+    """Return a series' time-column ``DType.j_name``, or ``None`` if unknown.
+
+    Defensive against mock/typeless tables (tests) and missing columns: any
+    failure resolves to ``None`` so the event falls back to a ``datetime``.
+    """
+    time_col = (getattr(spec, "column_mapping", None) or {}).get("time")
+    table = getattr(spec, "table", None)
+    if not time_col or table is None:
+        return None
+    try:
+        for col in table.columns:
+            if col.name == time_col:
+                return getattr(col.data_type, "j_name", None)
+    except Exception:  # noqa: BLE001 - mock tables and odd schemas resolve to None
+        return None
+    return None
+
+
+def _common_time_type(types: list[Optional[str]]) -> Optional[str]:
+    """The single shared time type across all series, else ``None``.
+
+    Requires every series to resolve to the *same* non-``None`` type; a mix
+    (or any unresolved series) yields ``None`` so we don't mislabel a press
+    that named no series.
+    """
+    if not types or any(t is None for t in types):
+        return None
+    return types[0] if len(set(types)) == 1 else None
 
 
 @dataclass
@@ -61,13 +119,50 @@ class _AutoBinTableState:
 class TvlChartListener:
     """Listens to table changes and sends chart updates to the client."""
 
-    def __init__(self, chart: TvlChart, client_connection: MessageStream):
+    def __init__(
+        self,
+        chart: TvlChart,
+        client_connection: MessageStream,
+        exec_ctx: Any = None,
+    ):
         self._chart = chart
         self._client_connection = client_connection
+        self._exec_ctx = exec_ctx
         self._revision = 0
         self._table_id_map: dict[int, int] = {}
         # Auto-bin state, keyed by ref index of the source table.
         self._autobin_states: dict[int, _AutoBinTableState] = {}
+        # Handler id -> arity-wrapped callable, built from the chart's
+        # on_press / on_double_press. Mirrors the figure's enabledHandlers
+        # so JS only fires events we can dispatch.
+        self._handlers: dict[str, Any] = {}
+        on_press = getattr(chart, "on_press", None)
+        on_double_press = getattr(chart, "on_double_press", None)
+        if on_press is not None:
+            self._handlers[PRESS] = wrap_callable(on_press)
+        if on_double_press is not None:
+            self._handlers[DOUBLE_PRESS] = wrap_callable(on_double_press)
+        # Per-series time-column dtype names (DType.j_name) so a press event's
+        # ``time`` can mirror the source column type. Only resolved when a
+        # handler is wired, since that's the only consumer.
+        self._series_time_types: list[Optional[str]] = (
+            self._resolve_series_time_types() if self._handlers else []
+        )
+        # Type to use when the press names no series (e.g. a press between
+        # lines): the shared type when every series agrees, else None
+        # (datetime fallback) rather than guessing one series' type.
+        self._default_time_type = _common_time_type(self._series_time_types)
+
+    def _resolve_series_time_types(self) -> list[Optional[str]]:
+        """Map each series (by index) to its time column's ``DType.j_name``.
+
+        Resilient to mock/typeless tables used in tests: any series whose
+        time column or dtype can't be read resolves to ``None``.
+        """
+        return [
+            _time_type_name(spec)
+            for spec in getattr(self._chart, "series_list", []) or []
+        ]
 
     def process_message(
         self, payload: bytes, references: list[Any]
@@ -90,8 +185,55 @@ class TvlChartListener:
             return self._handle_autobin_zoom(message)
         if msg_type == "AUTOBIN_RESET":
             return self._handle_autobin_reset(message)
+        if msg_type == "EVENT":
+            return self._handle_event(message)
 
         return b"", []
+
+    # ---- EVENT (press / double-press) ----
+
+    def _handle_event(self, message: dict[str, Any]) -> tuple[bytes, list[Any]]:
+        """Dispatch a press / double-press event to its Python handler.
+
+        Fire-and-forget: handlers run under the captured execution context
+        and a fresh liveness scope so they may do real Deephaven work, and
+        any exception is logged and swallowed so a buggy handler cannot kill
+        the widget stream. No client response is produced.
+        """
+        handler_id = message.get("handler", "")
+        callback = self._handlers.get(handler_id)
+        if callback is None:
+            return b"", []
+
+        payload = message.get("payload") or {}
+        time_type = self._time_type_for_payload(payload)
+        converter = time_converter_for(time_type, payload.get("timeZone"))
+        event = build_press_event(handler_id, payload, converter)
+
+        try:
+            if self._exec_ctx is not None and liveness_scope is not None:
+                with self._exec_ctx, liveness_scope():
+                    callback(event)
+            else:
+                callback(event)
+        except Exception:  # noqa: BLE001 - a handler bug must not kill the stream
+            logger.exception("TVL %s handler raised", handler_id)
+
+        return b"", []
+
+    def _time_type_for_payload(self, payload: dict[str, Any]) -> Optional[str]:
+        """Resolve the source time-column type to mirror for this press.
+
+        Prefers the hit series (from ``seriesId``); falls back to the chart's
+        shared type when the press named no series or that series' type is
+        unknown.
+        """
+        idx = _series_index(payload.get("seriesId"))
+        if idx is not None and 0 <= idx < len(self._series_time_types):
+            hit = self._series_time_types[idx]
+            if hit is not None:
+                return hit
+        return self._default_time_type
 
     # ---- Eligibility ----
 

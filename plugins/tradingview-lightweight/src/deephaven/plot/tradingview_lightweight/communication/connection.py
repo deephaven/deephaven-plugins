@@ -10,6 +10,14 @@ from deephaven.plugin.object_type import MessageStream
 from ..chart import TvlChart
 from .listener import TvlChartListener
 
+# Capturing the execution context at connection-creation time lets press-event
+# handlers run real Deephaven work later (the EVENT arrives on a thread with no
+# ambient context). Optional so the module still imports without a server.
+try:
+    from deephaven.execution_context import get_exec_ctx
+except ImportError:  # pragma: no cover - exercised only without a server
+    get_exec_ctx = None  # type: ignore[assignment]
+
 
 class TvlChartConnection(MessageStream):
     """Connection for TvlChart.
@@ -21,8 +29,9 @@ class TvlChartConnection(MessageStream):
 
     def __init__(self, chart: TvlChart, client_connection: MessageStream):
         super().__init__()
+        exec_ctx = get_exec_ctx() if get_exec_ctx is not None else None
         self._listener: Optional[TvlChartListener] = TvlChartListener(
-            chart, client_connection
+            chart, client_connection, exec_ctx=exec_ctx
         )
         self._client_connection: Optional[MessageStream] = client_connection
 

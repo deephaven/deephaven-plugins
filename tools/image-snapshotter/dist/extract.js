@@ -29,7 +29,7 @@ export function codeMd5(code) {
     return createHash('md5').update(normalized, 'utf8').digest('hex').toLowerCase();
 }
 /**
- * Parse a fence info string of the form `order=a,b,c skip foo=bar`. The
+ * Parse a fence info string of the form `order=a,b,c skip-test foo=bar`. The
  * `lang` token (e.g. `python`) has already been stripped by the parser and
  * lives in `node.lang`; what arrives here is the `meta` field, which is the
  * trailing portion of the info string.
@@ -44,7 +44,7 @@ function parseMeta(meta) {
     let order = [];
     let skipFlag = false;
     for (const tok of tokens) {
-        if (tok === 'skip' || tok === 'no-snapshot') {
+        if (tok === 'skip-test' || tok === 'no-snapshot') {
             skipFlag = true;
         }
         else if (tok.startsWith('order=')) {
