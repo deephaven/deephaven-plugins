@@ -1,0 +1,134 @@
+{
+  "$schema": "./marketplace.schema.json",
+  "plugins": [
+    {
+      "name": "deephaven.ui",
+      "description": "A reactive Python UI framework for building real-time data apps and dashboards entirely in Python.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/ui",
+      "href": "/core/ui/docs",
+      "image": "/marketplace/images/deephaven-ui.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-ui",
+        "url": "https://pypi.org/project/deephaven-plugin-ui/"
+      },
+      "tags": ["ui", "dashboards", "python"],
+      "preInstalled": true
+    },
+    {
+      "name": "Plotly Express",
+      "description": "A Plotly Express wrapper that plots real-time, ticking Deephaven tables with automatic downsampling.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/plotly-express",
+      "href": "/core/plotly/docs",
+      "image": "/marketplace/images/plotly-express.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-plotly-express",
+        "url": "https://pypi.org/project/deephaven-plugin-plotly-express/"
+      },
+      "tags": ["plotting", "python"],
+      "preInstalled": true
+    },
+    {
+      "name": "Matplotlib",
+      "description": "Display Matplotlib and Seaborn figures in Deephaven, with support for live updates from ticking tables.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugin-matplotlib",
+      "image": "/marketplace/images/matplotlib.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-matplotlib",
+        "url": "https://pypi.org/project/deephaven-plugin-matplotlib/"
+      },
+      "tags": ["plotting", "python"]
+    },
+    {
+      "name": "AG Grid",
+      "description": "Display and interact with Deephaven tables using AG Grid.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/ag-grid",
+      "image": "/marketplace/images/ag-grid.png",
+      "tags": ["tables", "ui", "python"]
+    },
+    {
+      "name": "Theme Pack",
+      "description": "A pack of additional UI themes for customizing the look of the Deephaven web IDE.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/theme-pack",
+      "image": "/marketplace/images/theme-pack.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-theme-pack",
+        "url": "https://pypi.org/project/deephaven-plugin-theme-pack/"
+      },
+      "tags": ["themes"]
+    },
+    {
+      "name": "Python Remote File Source",
+      "description": "A bi-directional plugin that allows sourcing Python imports from a remote file source.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/python-remote-file-source",
+      "image": "/marketplace/images/python-remote-file-source.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-python-remote-file-source",
+        "url": "https://pypi.org/project/deephaven-plugin-python-remote-file-source/"
+      },
+      "tags": ["tooling", "python"]
+    },
+    {
+      "name": "Tones",
+      "description": "A deephaven.ui plugin that plays audio tones from events or table data by wrapping Tone.js in Python components.",
+      "author": "dsmmcken",
+      "repo": "https://github.com/dsmmcken/deephaven-plugin-tones",
+      "image": "/marketplace/images/tones.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-tones",
+        "url": "https://pypi.org/project/deephaven-plugin-tones/"
+      },
+      "tags": ["audio", "ui", "python"]
+    },
+    {
+      "name": "Microphone",
+      "description": "A plugin for using microphone input in Deephaven.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-microphone",
+      "image": "/marketplace/images/microphone.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-microphone",
+        "url": "https://pypi.org/project/deephaven-plugin-microphone/"
+      },
+      "tags": ["audio", "python"]
+    },
+    {
+      "name": "Voice Table",
+      "description": "A deephaven.ui plugin for controlling a table using voice input.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-voice-table",
+      "image": "/marketplace/images/voice-table.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-voice-table",
+        "url": "https://pypi.org/project/deephaven-plugin-voice-table/"
+      },
+      "tags": ["audio", "tables", "python"]
+    },
+    {
+      "name": "Notebook",
+      "description": "An experimental plugin that creates and embeds simple Jupyter notebooks within Deephaven.",
+      "author": "jnumainville",
+      "repo": "https://github.com/jnumainville/deephaven-plugin-notebook",
+      "image": "/marketplace/images/notebook.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-notebook",
+        "url": "https://pypi.org/project/deephaven-plugin-notebook/"
+      },
+      "tags": ["notebooks", "experimental", "python"]
+    }
+  ]
+}

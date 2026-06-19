@@ -1,0 +1,60 @@
+# Validates the plugin marketplace on every PR that touches it, and syncs
+# marketplace/ to S3 via salmon on merge to main.
+name: Marketplace
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'marketplace/**'
+      - 'tools/validate-marketplace.mjs'
+      - '.github/workflows/marketplace.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'marketplace/**'
+      - 'tools/validate-marketplace.mjs'
+      - '.github/workflows/marketplace.yml'
+
+jobs:
+  # Schema + link validation for marketplace.json.
+  marketplace-validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Validate marketplace.json
+        run: npm run validate-marketplace
+
+  # Publish to S3 only after a marketplace change lands on main.
+  marketplace-sync:
+    needs: marketplace-validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # Auth to AWS with OIDC
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sync marketplace to S3
+        uses: deephaven/salmon-sync@v1
+        with:
+          source: marketplace/
+          destination: deephaven/deephaven-plugins/marketplace/
+          production: true
+          temporary: false
+          aws-role: ${{ vars.DOCS_AWS_ROLE }}
