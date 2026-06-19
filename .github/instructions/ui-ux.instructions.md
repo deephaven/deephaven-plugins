@@ -1,5 +1,9 @@
 ---
-applyTo: "plugins/**/*.tsx, plugins/**/*.jsx, plugins/**/*.scss, plugins/**/*.css"
+applyTo:
+  - "plugins/**/*.tsx"
+  - "plugins/**/*.jsx"
+  - "plugins/**/*.scss"
+  - "plugins/**/*.css"
 ---
 
 # UI/UX review
