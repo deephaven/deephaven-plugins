@@ -8,6 +8,8 @@
 ## Code review workflow
 
 Treat code review as a multi-pass workflow and only comment when you find a concrete, actionable issue.
+These "passes" describe a review process (specialized lenses), not a hard requirement to spawn separate runtime agents for each pass.
+When a PR opens, execute this checklist in order within the review session: load `AGENTS.md`, map changed files to relevant instruction files, run only applicable passes, then publish consolidated high-signal findings.
 
 Run these specialist passes in order when they apply to the changed files:
 
