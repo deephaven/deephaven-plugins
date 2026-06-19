@@ -1,58 +1,46 @@
-# Validates the plugin marketplace on every PR (blocking), and syncs
+# Validates the plugin marketplace on every PR that touches it, and syncs
 # marketplace/ to S3 via salmon on merge to main.
-#
-# The workflow triggers on all PRs/pushes to main rather than using an
-# event-level `paths` filter, so the `validate` job always reports a status and
-# is safe to mark as a required check. (A path-filtered workflow is skipped on
-# unrelated PRs, leaving a required check stuck "pending" and blocking merge.)
-# Path filtering is done inside the jobs instead.
 name: Marketplace
 
 on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'marketplace/**'
+      - 'tools/validate-marketplace.mjs'
+      - '.github/workflows/marketplace.yml'
   push:
     branches:
       - main
+    paths:
+      - 'marketplace/**'
+      - 'tools/validate-marketplace.mjs'
+      - '.github/workflows/marketplace.yml'
 
 jobs:
-  # Schema + link validation. Always runs so it can be a required check; the
-  # actual validation only happens when marketplace files changed.
-  validate:
+  # Schema + link validation for marketplace.json.
+  marketplace-validate:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Filter paths
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            marketplace:
-              - marketplace/**
-              - tools/validate-marketplace.mjs
-              - .github/workflows/marketplace.yml
-
       - name: Setup Node
-        if: steps.filter.outputs.marketplace == 'true'
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
-        if: steps.filter.outputs.marketplace == 'true'
         run: npm ci --ignore-scripts
 
       - name: Validate marketplace.json
-        if: steps.filter.outputs.marketplace == 'true'
         run: npm run validate-marketplace
 
   # Publish to S3 only after a marketplace change lands on main.
-  sync:
-    needs: validate
+  marketplace-sync:
+    needs: marketplace-validate
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
@@ -62,16 +50,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Filter paths
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            marketplace:
-              - marketplace/**
-
       - name: Sync marketplace to S3
-        if: steps.filter.outputs.marketplace == 'true'
         uses: deephaven/salmon-sync@v1
         with:
           source: marketplace/
