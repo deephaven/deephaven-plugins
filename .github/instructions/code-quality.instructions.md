@@ -1,5 +1,5 @@
 ---
-applyTo: "plugins/**/*.{ts,tsx,js,jsx,py}"
+applyTo: "plugins/**/*.ts, plugins/**/*.tsx, plugins/**/*.js, plugins/**/*.jsx, plugins/**/*.py"
 ---
 
 # Code quality review

@@ -1,10 +1,23 @@
 ---
 applyTo:
-  - "plugins/**/*.{ts,tsx,js,jsx,py}"
-  - "plugins/**/*.{test,spec}.{ts,tsx,js,jsx}"
+  - "plugins/**/*.ts"
+  - "plugins/**/*.tsx"
+  - "plugins/**/*.js"
+  - "plugins/**/*.jsx"
+  - "plugins/**/*.py"
+  - "plugins/**/*.test.ts"
+  - "plugins/**/*.test.tsx"
+  - "plugins/**/*.test.js"
+  - "plugins/**/*.test.jsx"
+  - "plugins/**/*.spec.ts"
+  - "plugins/**/*.spec.tsx"
+  - "plugins/**/*.spec.js"
+  - "plugins/**/*.spec.jsx"
   - "plugins/**/test_*.py"
   - "tests/**/*"
-  - "jest*.{js,cjs,mjs}"
+  - "jest*.js"
+  - "jest*.cjs"
+  - "jest*.mjs"
   - "playwright*.config.ts"
 ---
 
