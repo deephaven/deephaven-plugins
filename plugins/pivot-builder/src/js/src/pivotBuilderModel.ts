@@ -580,7 +580,7 @@ export function augmentPivotBuilderModel(
 }
 
 /**
- * Spike-quality default config derived from the columns of the source
+ * Default config derived from the columns of the source
  * table. Picks the first non-numeric column as the row key, the second
  * non-numeric as the column key (if any), and aggregates all numeric
  * columns as `Sum`. Falls back to `Count` when no numeric columns exist.
