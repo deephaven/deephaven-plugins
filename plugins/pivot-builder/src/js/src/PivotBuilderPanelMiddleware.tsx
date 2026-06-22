@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { type IrisGridModel } from '@deephaven/iris-grid';
+import {
+  type IrisGridModel,
+  type IrisGridModelWidgetProps,
+  type IrisGridTableOptionsWidgetProps,
+  type IrisGridViewProps,
+} from '@deephaven/iris-grid';
+import * as JsapiBootstrap from '@deephaven/jsapi-bootstrap';
 import { useApi, useObjectFetcher } from '@deephaven/jsapi-bootstrap';
 import {
   isCorePlusDh,
@@ -11,8 +17,10 @@ import {
 import { usePersistentState } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { type WidgetPanelProps } from '@deephaven/plugin';
-import { createPanelMiddleware } from './createMiddleware';
+import {
+  createPanelMiddleware,
+  type WidgetPanelProps,
+} from '@deephaven/plugin';
 import {
   isPivotBuilderIrisGridModel,
   PIVOT_BUILDER_CONFIG_CHANGED,
@@ -25,15 +33,33 @@ import {
   PivotServiceContext,
   type PivotServiceStatus,
 } from './PivotServiceContext';
-import { type IrisGridTableOptionsWidgetProps } from './tableOptionsTypes';
 import {
-  type IrisGridModelWidgetProps,
-  type IrisGridViewProps,
-} from './modelTypes';
+  type VariableDefinitionFinder,
+  closePivotServiceWidget,
+  resolvePivotServiceDescriptor,
+} from './resolvePivotService';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/PivotBuilderPanelMiddleware'
 );
+
+/**
+ * The host's optional variable-finder hook. Resolved defensively at module load
+ * so the plugin runs on host versions that predate
+ * `useVariableDefinitionFinder`: on older hosts the fallback returns `null` and
+ * the PivotService is reported unavailable. The chosen function is stable for
+ * the module's lifetime, so calling it unconditionally each render keeps the
+ * hook order consistent.
+ */
+const useVariableFinderSafe: () => VariableDefinitionFinder | null =
+  typeof (JsapiBootstrap as { useVariableDefinitionFinder?: unknown })
+    .useVariableDefinitionFinder === 'function'
+    ? (
+        JsapiBootstrap as unknown as {
+          useVariableDefinitionFinder: () => VariableDefinitionFinder | null;
+        }
+      ).useVariableDefinitionFinder
+    : () => null;
 
 /**
  * Extra IrisGrid-aware props the chained panel host (`IrisGridPanel`, via the
@@ -41,7 +67,7 @@ const log = Log.module(
  * are added to `@deephaven/iris-grid` in web-client-ui; widen locally until
  * that version is published and installed.
  */
-type ChainedPanelProps = WidgetPanelProps &
+type ChainedPanelProps = WidgetPanelProps<DhType.Table> &
   IrisGridTableOptionsWidgetProps &
   IrisGridModelWidgetProps & {
     irisGridProps?: IrisGridViewProps;
@@ -61,9 +87,10 @@ type ChainedPanelProps = WidgetPanelProps &
  *
  * The CorePlus pivot service widget is fetched lazily on first `pivotConfig`
  * apply — that way the panel mounts identically on workers with and without
- * PSP. When CorePlus itself is unavailable (open-source DH) we simply omit
- * `transformModel`, so the host renders a plain table while the Create Pivot
- * page surfaces an error if opened.
+ * PSP. The proxy is installed on every worker (rollup and aggregate work on
+ * Legacy too); only the CorePlus-only pivot path is gated — the PSP
+ * availability probe disables the Pivot card, so the Create Pivot page renders
+ * but pivots can't be requested where PSP is absent.
  *
  * Built with `createPanelMiddleware`, which owns the `forwardRef` ceremony and
  * forwards the `ref` golden-layout injects on the registered panel to the next
@@ -74,7 +101,7 @@ type ChainedPanelProps = WidgetPanelProps &
  * a `wrap` that exposes the PSP status via context.
  */
 export const PivotBuilderPanelMiddleware = createPanelMiddleware<
-  unknown,
+  DhType.Table,
   ChainedPanelProps
 >(
   ({
@@ -86,6 +113,9 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     const dh = useApi();
     const corePlusAvailable = isCorePlusDh(dh) === true;
     const objectFetcher = useObjectFetcher();
+    // Host hook (when present) to find the PivotService variable by type, so
+    // the service may be published under any name.
+    const findField = useVariableFinderSafe();
 
     // Pivot overrides. Hooks must be unconditional. The renderer, mouse
     // handlers, metric-calculator factory, and theme are passed to the host as
@@ -145,18 +175,30 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     metadataRef.current = metadata;
     const objectFetcherRef = useRef(objectFetcher);
     objectFetcherRef.current = objectFetcher;
+    const findFieldRef = useRef(findField);
+    findFieldRef.current = findField;
 
     // Cache the resolved PSP widget from the eager probe so the Apply path
     // can reuse it without re-fetching.
     const pspWidgetRef = useRef<DhType.Widget | null>(null);
 
-    // Probe PSP availability eagerly via `objectFetcher`. Plugins have no
-    // host-agnostic API to inspect the worker's already-known field list
-    // (no useConnection / subscribeToFieldUpdates path that works in both
-    // DHC and DHE without a host change), so we fall back to a fetch and
-    // race it against a short timeout — if the worker has a PSP the fetch
-    // resolves quickly; if it doesn't, we surface `unavailable` instead of
-    // hanging the Create Pivot page.
+    // Close the cached PivotService widget when the middleware unmounts so the
+    // fetched service handle (and any objects it exported) is released
+    // server-side, honoring the `useWidget` ownership contract.
+    useEffect(
+      () => () => {
+        closePivotServiceWidget(pspWidgetRef.current);
+        pspWidgetRef.current = null;
+      },
+      []
+    );
+
+    // Probe PSP availability eagerly. Discovery is delegated to the host
+    // variable finder (`findField`), which locates the PivotService by `type`,
+    // honoring whatever name it was published under. The finder is
+    // authoritative: if it is absent or reports no PivotService, we surface
+    // `unavailable` so the Create Pivot page shows an error instead of
+    // attempting a doomed fetch.
     const [pivotServiceStatus, setPivotServiceStatus] =
       useState<PivotServiceStatus>(
         corePlusAvailable ? 'loading' : 'unavailable'
@@ -176,22 +218,29 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       }
       let cancelled = false;
       setPivotServiceStatus('loading');
-      const descriptor: DhType.ide.VariableDescriptor = {
-        ...metadata,
-        type: 'PivotService',
-        name: 'psp',
-      };
-      const PROBE_TIMEOUT_MS = 1500;
-      let timeoutId: ReturnType<typeof setTimeout> | undefined;
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error('PSP probe timed out')),
-          PROBE_TIMEOUT_MS
+      async function probe(): Promise<DhType.Widget> {
+        // `resolvePivotServiceDescriptor` consults the variable finder, which is
+        // authoritative: it returns `null` when no PivotService variable exists,
+        // so we never issue a doomed fetch. The resolved descriptor pins the
+        // PivotService name *after* the routing metadata (which carries
+        // querySerial for DHE worker targeting and the source name we override).
+        const descriptor = await resolvePivotServiceDescriptor(
+          metadata as DhType.ide.VariableDescriptor,
+          findField
         );
-      });
-      Promise.race([objectFetcher<DhType.Widget>(descriptor), timeoutPromise])
+        if (descriptor == null) {
+          throw new Error('PivotService not present on worker');
+        }
+        return objectFetcher<DhType.Widget>(descriptor);
+      }
+      probe()
         .then(widget => {
-          if (cancelled) return;
+          if (cancelled) {
+            // The fetch resolved after the effect was torn down; we own the
+            // widget, so close it rather than leak the orphaned handle.
+            closePivotServiceWidget(widget);
+            return;
+          }
           pspWidgetRef.current = widget;
           setPivotServiceStatus('ready');
         })
@@ -200,15 +249,11 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
           log.debug('PivotService not available', err);
           pspWidgetRef.current = null;
           setPivotServiceStatus('unavailable');
-        })
-        .finally(() => {
-          clearTimeout(timeoutId);
         });
       return () => {
         cancelled = true;
-        clearTimeout(timeoutId);
       };
-    }, [corePlusAvailable, metadata, objectFetcher, probeRetryKey]);
+    }, [corePlusAvailable, metadata, objectFetcher, findField, probeRetryKey]);
 
     // Re-probe when the host publishes a (re)built model and PSP was
     // previously unavailable. Worker restarts surface as a new model from
@@ -234,14 +279,27 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       if (md == null) {
         throw new Error('Cannot fetch PivotService: panel metadata is missing');
       }
-      const descriptor: DhType.ide.VariableDescriptor = {
-        ...md,
-        type: 'PivotService',
-        name: 'psp',
-      };
+      // Discover the PivotService descriptor from the host variable finder
+      // (matched by type, so the service may be published under any name).
+      const descriptor = await resolvePivotServiceDescriptor(
+        md as DhType.ide.VariableDescriptor,
+        findFieldRef.current
+      );
+      if (descriptor == null) {
+        throw new Error('PivotService not available on this worker');
+      }
       const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
       pspWidgetRef.current = widget;
       return widget;
+    }, []);
+
+    // Drop any cached PivotService widget so the next fetch re-resolves it,
+    // closing the stale handle first so it is released server-side. The
+    // transform calls this on model re-builds (worker/query restart) to avoid
+    // building the pivot against a widget bound to the dead worker.
+    const resetPspWidget = useCallback(() => {
+      closePivotServiceWidget(pspWidgetRef.current);
+      pspWidgetRef.current = null;
     }, []);
 
     // The model transform handed to the host panel. Augments the host-built
@@ -249,22 +307,29 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     // synchronously before the model is published. Stable across renders
     // (all inputs are stable) so the host does not rebuild the model — it is
     // applied once per (re)build, never on this prop's identity changing.
+    //
+    // Installed on every worker, not just CorePlus: rollup and aggregate
+    // (totals) are generic iris-grid features that operate on the source table
+    // and work on Legacy workers too. Only the pivot path requires CorePlus,
+    // and it's gated separately (the PSP availability probe disables the Pivot
+    // card, and `applyPivotConfig` guards the build). Gating the whole proxy on
+    // CorePlus would dead-end rollup/aggregate on Legacy (the sidebar's
+    // `applyPivotBuilderConfig` calls become no-ops without the proxy).
     const transformModel = useMemo(
       () =>
-        corePlusAvailable
-          ? makePivotModelTransform(
-              dh,
-              getPspWidget,
-              getPersistedConfig,
-              upstreamTransformModel
-            )
-          : upstreamTransformModel,
+        makePivotModelTransform(
+          dh,
+          getPspWidget,
+          getPersistedConfig,
+          upstreamTransformModel,
+          resetPspWidget
+        ),
       [
-        corePlusAvailable,
         dh,
         getPspWidget,
         getPersistedConfig,
         upstreamTransformModel,
+        resetPspWidget,
       ]
     );
 
@@ -304,14 +369,12 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       };
     }, [model, setPersistedConfig]);
 
-    // When CorePlus is unavailable `transformModel` falls back to the upstream
-    // transform (often `undefined`), so the host renders a plain table while the
-    // Create Pivot page surfaces an error if opened. This branch is deterministic
-    // from `dh`, so it never flips at runtime — no unmount/remount of the inner
-    // panel. The factory owns the `forwardRef` ceremony and forwards the ref
-    // golden-layout injects to the inner `IrisGridPanel`, so panel state (sorts,
-    // filters, column moves, etc.) persists; we only declare what to inject and a
-    // `wrap` that exposes the PSP status via context.
+    // `transformModel` is installed on every worker, so the host always gets a
+    // pivot-builder proxy (rollup/aggregate work on Legacy; the Pivot card is
+    // gated by the PSP probe). The factory owns the `forwardRef` ceremony and
+    // forwards the ref golden-layout injects to the inner `IrisGridPanel`, so
+    // panel state (sorts, filters, column moves, etc.) persists; we only declare
+    // what to inject and a `wrap` that exposes the PSP status via context.
     return {
       inject: {
         transformModel,

@@ -13,14 +13,6 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/pivotBuilderModel');
 
-// TEMPORARY: `IrisGridModel.EVENT.PENDING` (raises the grid loading scrim for
-// plugin-driven async updates) was added to `@deephaven/iris-grid` in
-// web-client-ui but the installed package version predates it, so it is missing
-// from the published types. The host runtime supplies the real value; reference
-// the literal event name (`'PENDING'`) here until a release that includes it is
-// installed, then replace usages with `IrisGridModel.EVENT.PENDING`.
-const IRIS_GRID_MODEL_EVENT_PENDING = 'PENDING';
-
 const NUMERIC_TYPES = new Set<string>([
   'int',
   'long',
@@ -185,10 +177,13 @@ export function augmentPivotBuilderModel(
   model: IrisGridModel,
   getPspWidget: () => Promise<DhType.Widget>
 ): PivotBuilderProxyModel {
-  if (!isCorePlusDh(dh)) {
-    throw new Error('CorePlus is not available; pivot builder requires DHE');
-  }
-  const corePlusDh = dh as typeof CorePlusDhType;
+  // CorePlus is NOT required to install the proxy: rollup and aggregate
+  // (totals) are generic iris-grid features that work on any worker (Legacy
+  // included) since they operate on the source table. Only the actual pivot
+  // path needs CorePlus, so that check is deferred into `applyPivotConfig`'s
+  // pivot branch (the single place that builds `PivotService` /
+  // `IrisGridPivotModel`). The Pivot card is independently gated on the PSP
+  // availability probe, so a pivot can't be requested on a worker without it.
 
   const proxy = model as IrisGridModel & {
     setNextModel: (promise: Promise<IrisGridModel>) => void;
@@ -268,6 +263,17 @@ export function augmentPivotBuilderModel(
 
     const promise = (async (): Promise<IrisGridModel> => {
       log.info('Creating pivot with config:', config);
+      // Pivot creation is the only CorePlus-gated path. The Pivot card is
+      // disabled unless the PSP availability probe reports `ready`, so this
+      // should never run on a non-CorePlus (e.g. Legacy) worker — but guard
+      // anyway so a stray pivot request fails loudly instead of casting a
+      // non-CorePlus `dh` and dereferencing `coreplus` undefined.
+      if (!isCorePlusDh(dh)) {
+        throw new Error(
+          'PivotService not available: CorePlus is required to create a pivot'
+        );
+      }
+      const corePlusDh = dh;
       const pspWidget = await getPspWidget();
       if (token !== pivotToken) throw new SupersededError();
       const pivotService =
@@ -286,7 +292,15 @@ export function augmentPivotBuilderModel(
         pivotTable.close?.();
         throw new SupersededError();
       }
-      return new IrisGridPivotModel(corePlusDh, pivotTable);
+      // TODO: fix this
+      // `IrisGridPivotModel` comes from the separately-versioned
+      // `@deephaven/js-plugin-pivot`, whose bundled `IrisGridModel` predates the
+      // `dispatchPending` member required by this plugin's `@deephaven/iris-grid`.
+      // Cast across that version skew.
+      return new IrisGridPivotModel(
+        corePlusDh,
+        pivotTable
+      ) as unknown as IrisGridModel;
     })();
     promise.catch(e => {
       if (e instanceof SupersededError) {
@@ -470,12 +484,15 @@ export function augmentPivotBuilderModel(
       // writes synchronously to the base model and produces no such event on
       // the proxy, so raising the scrim there would leave it stuck forever —
       // we must not raise it. Call this right before returning, after all
-      // mutations have had a chance to set `modelPromise`.
-      const raisePendingIfSwapping = (): void => {
+      // mutations have had a chance to set `modelPromise`. `text` labels the
+      // scrim for whichever operation queued the swap — the pivot branch and
+      // the rollup branch pass different wording so the message is accurate
+      // (e.g. on Legacy workers, where only rollup ever swaps the model).
+      const raisePendingIfSwapping = (text: string): void => {
         if (proxyAsAny.modelPromise != null) {
           proxy.dispatchEvent(
-            new EventShimCustomEvent(IRIS_GRID_MODEL_EVENT_PENDING, {
-              detail: { text: 'Updating pivot...' },
+            new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
+              detail: { text },
             })
           );
         }
@@ -506,7 +523,7 @@ export function augmentPivotBuilderModel(
         storedRollup = config.rollup;
         storedTotals = config.totals;
         lastIntent = config;
-        raisePendingIfSwapping();
+        raisePendingIfSwapping('Applying pivot...');
         proxy.dispatchEvent(
           new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
             detail: config,
@@ -546,7 +563,10 @@ export function augmentPivotBuilderModel(
       storedTotals = config.totals;
 
       lastIntent = config;
-      raisePendingIfSwapping();
+      // Only the rollup change queues a model swap here (a totals-only change
+      // writes synchronously and leaves `modelPromise` null), so the scrim,
+      // when raised, is always for rollup.
+      raisePendingIfSwapping('Applying rollup...');
       proxy.dispatchEvent(
         new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
           detail: config,

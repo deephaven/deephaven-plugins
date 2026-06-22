@@ -21,10 +21,9 @@ export default defineConfig(({ mode }) => ({
       // plugin loader). `fast-deep-equal` is not in DHE's resolve map,
       // so we let it bundle.
       //
-      // TODO: `@dnd-kit/*` and `@fortawesome/react-fontawesome` are bundled for
-      // now. Once a web-client-ui release re-exports them from
-      // `@deephaven/iris-grid` / `@deephaven/components`, switch the plugin
-      // to import from those packages and externalize them again.
+      // `@dnd-kit/*` and `@fortawesome/react-fontawesome` are consumed via the
+      // `@deephaven/iris-grid` (`DndKit*`) and `@deephaven/components`
+      // (`ReactFontAwesome`) re-exports.
       external: [
         'react',
         'react-dom',

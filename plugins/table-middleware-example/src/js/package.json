@@ -19,8 +19,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@deephaven/log": "^1.8.0",
-    "@deephaven/plugin": "^1.18.0"
+    "@deephaven/log": "1.22.2-alpha-pivot-builder.0",
+    "@deephaven/plugin": "1.22.2-alpha-pivot-builder.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",

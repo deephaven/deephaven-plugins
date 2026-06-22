@@ -15,13 +15,11 @@ export { PivotBuilderPanelMiddleware } from './PivotBuilderPanelMiddleware';
 export { PivotBuilderPlugin } from './PivotBuilderPlugin';
 export { makeCreatePivotTransform } from './makeCreatePivotTransform';
 export type {
+  IrisGridModelTransform,
+  IrisGridModelWidgetProps,
   IrisGridTableOptionsWidgetProps,
   OptionItem,
   TableOptionsTransform,
-} from './tableOptionsTypes';
-export type {
-  IrisGridModelTransform,
-  IrisGridModelWidgetProps,
-} from './modelTypes';
+} from '@deephaven/iris-grid';
 
 export default PivotBuilderPlugin;

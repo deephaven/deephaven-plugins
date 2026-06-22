@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { IrisGridModel } from '@deephaven/iris-grid';
+import {
+  IrisGridModel,
+  type IrisGridModelWidgetProps,
+  type IrisGridTableOptionsWidgetProps,
+  type IrisGridViewProps,
+} from '@deephaven/iris-grid';
+import * as JsapiBootstrap from '@deephaven/jsapi-bootstrap';
 import { useApi, useObjectFetcher } from '@deephaven/jsapi-bootstrap';
 import {
   isCorePlusDh,
@@ -10,20 +16,40 @@ import {
 } from '@deephaven/js-plugin-pivot';
 import Log from '@deephaven/log';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import type { WidgetComponentProps } from '@deephaven/plugin';
-import { createWidgetMiddleware } from './createMiddleware';
+import {
+  createWidgetMiddleware,
+  type WidgetComponentProps,
+} from '@deephaven/plugin';
 import { isPivotBuilderIrisGridModel } from './pivotBuilderModel';
 import { makeCreatePivotTransform } from './makeCreatePivotTransform';
 import { makePivotModelTransform } from './makePivotModelTransform';
-import { type IrisGridTableOptionsWidgetProps } from './tableOptionsTypes';
 import {
-  type IrisGridModelWidgetProps,
-  type IrisGridViewProps,
-} from './modelTypes';
+  type VariableDefinitionFinder,
+  closePivotServiceWidget,
+  resolvePivotServiceDescriptor,
+} from './resolvePivotService';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/PivotBuilderMiddleware'
 );
+
+/**
+ * The host's optional variable-finder hook. Resolved defensively at module load
+ * so the plugin runs on host versions that predate
+ * `useVariableDefinitionFinder`: on older hosts the fallback returns `null` and
+ * the PivotService is reported unavailable. The chosen function is stable for
+ * the module's lifetime, so calling it unconditionally each render keeps the
+ * hook order consistent.
+ */
+const useVariableFinderSafe: () => VariableDefinitionFinder | null =
+  typeof (JsapiBootstrap as { useVariableDefinitionFinder?: unknown })
+    .useVariableDefinitionFinder === 'function'
+    ? (
+        JsapiBootstrap as unknown as {
+          useVariableDefinitionFinder: () => VariableDefinitionFinder | null;
+        }
+      ).useVariableDefinitionFinder
+    : () => null;
 
 /**
  * Extra IrisGrid-aware props the chained widget host (`GridWidgetPlugin`)
@@ -65,6 +91,9 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     const dh = useApi();
     const corePlusAvailable = isCorePlusDh(dh) === true;
     const objectFetcher = useObjectFetcher();
+    // Host hook (when present) to find the PivotService variable by type, so
+    // the service may be published under any name.
+    const findField = useVariableFinderSafe();
 
     // Pivot overrides. Hooks must be unconditional. The renderer, mouse
     // handlers, metric-calculator factory, and theme are passed to the host as
@@ -90,7 +119,20 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     metadataRef.current = metadata;
     const objectFetcherRef = useRef(objectFetcher);
     objectFetcherRef.current = objectFetcher;
+    const findFieldRef = useRef(findField);
+    findFieldRef.current = findField;
     const pspWidgetRef = useRef<DhType.Widget | null>(null);
+
+    // Close the cached PivotService widget when the middleware unmounts so the
+    // fetched service handle (and any objects it exported) is released
+    // server-side, honoring the `useWidget` ownership contract.
+    useEffect(
+      () => () => {
+        closePivotServiceWidget(pspWidgetRef.current);
+        pspWidgetRef.current = null;
+      },
+      []
+    );
 
     const getPspWidget = useCallback(async (): Promise<DhType.Widget> => {
       if (pspWidgetRef.current != null) {
@@ -102,30 +144,45 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
           'Cannot fetch PivotService: widget metadata is missing'
         );
       }
-      const descriptor: DhType.ide.VariableDescriptor = {
-        ...md,
-        type: 'PivotService',
-        name: 'psp',
-      };
+      // Discover the PivotService descriptor from the host variable finder
+      // (matched by type, so the service may be published under any name).
+      const descriptor = await resolvePivotServiceDescriptor(
+        md as DhType.ide.VariableDescriptor,
+        findFieldRef.current
+      );
+      if (descriptor == null) {
+        throw new Error('PivotService not available on this worker');
+      }
       const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
       pspWidgetRef.current = widget;
       return widget;
     }, []);
 
+    // Drop any cached PivotService widget so the next fetch re-resolves it,
+    // closing the stale handle first so it is released server-side. The
+    // transform calls this on model re-builds (worker/query restart) to avoid
+    // building the pivot against a widget bound to the dead worker.
+    const resetPspWidget = useCallback(() => {
+      closePivotServiceWidget(pspWidgetRef.current);
+      pspWidgetRef.current = null;
+    }, []);
+
     // The model transform handed to the host. Augments the host-built proxy
     // into a pivot-builder model. Stable across renders so the host does not
-    // rebuild the model.
+    // rebuild the model. Installed on every worker (not just CorePlus): rollup
+    // and aggregate (totals) are generic iris-grid features that work on Legacy
+    // too. Only the pivot path requires CorePlus and is gated separately (the
+    // guard in `augmentPivotBuilderModel`'s `applyPivotConfig`).
     const transformModel = useMemo(
       () =>
-        corePlusAvailable
-          ? makePivotModelTransform(
-              dh,
-              getPspWidget,
-              undefined,
-              upstreamTransformModel
-            )
-          : upstreamTransformModel,
-      [corePlusAvailable, dh, getPspWidget, upstreamTransformModel]
+        makePivotModelTransform(
+          dh,
+          getPspWidget,
+          undefined,
+          upstreamTransformModel,
+          resetPspWidget
+        ),
+      [dh, getPspWidget, upstreamTransformModel, resetPspWidget]
     );
 
     // Track whether the proxy is currently in pivot mode (used to gate the

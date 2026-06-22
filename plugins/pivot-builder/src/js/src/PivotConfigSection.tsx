@@ -8,25 +8,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  type DragOverEvent,
-  DragOverlay,
-  type DragStartEvent,
-  MeasuringStrategy,
-  PointerSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import {
   ActionButton,
   Button,
   Checkbox,
@@ -36,6 +17,7 @@ import {
   Keyboard,
   MenuTrigger,
   Picker,
+  ReactFontAwesome,
   SearchInput,
   Section,
   Select,
@@ -50,13 +32,38 @@ import {
   vsKebabVertical,
   vsTrash,
 } from '@deephaven/icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   AggregationOperation,
   AggregationUtils,
+  DndKitCore,
+  DndKitSortable,
+  DndKitUtilities,
   type Aggregation,
   type AggregationSettings,
 } from '@deephaven/iris-grid';
+import { usePivotServiceStatus } from './PivotServiceContext';
+
+// `@dnd-kit` and FontAwesome are consumed via the namespaces
+// `@deephaven/iris-grid` / `@deephaven/components` re-export, so the plugin
+// shares the host app's single bundled copy. Destructure the values (and alias
+// the types) here to keep the rest of the file unchanged.
+const {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  MeasuringStrategy,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+} = DndKitCore;
+type DragEndEvent = DndKitCore.DragEndEvent;
+type DragOverEvent = DndKitCore.DragOverEvent;
+type DragStartEvent = DndKitCore.DragStartEvent;
+const { SortableContext, useSortable, verticalListSortingStrategy } =
+  DndKitSortable;
+const { CSS } = DndKitUtilities;
+const { FontAwesomeIcon } = ReactFontAwesome;
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
@@ -152,6 +159,10 @@ export type PivotConfigSectionProps = {
   onRollupRowsChange: (next: string[]) => void;
   rollupRowsOn: boolean;
   onRollupRowsOnChange: (next: boolean) => void;
+  /** When true, the Rollup rows card is greyed out and the toggle
+   *  cannot be flipped on. Used when the model can't be rolled up
+   *  (e.g. Select Distinct is applied). */
+  rollupRowsDisabled?: boolean;
 
   pivotColumns: string[];
   onPivotColumnsChange: (next: string[]) => void;
@@ -295,6 +306,25 @@ const popoverEmptyStyle: React.CSSProperties = {
   opacity: 0.6,
   fontStyle: 'italic',
 };
+
+/** Message displayed in the Pivot columns card when the service is unavailable. */
+function ServiceUnavailableMessage(): JSX.Element {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 60,
+        color: 'white',
+        textAlign: 'center',
+        padding: '8px',
+      }}
+    >
+      Pivot service not available
+    </div>
+  );
+}
 
 type PickerProps = {
   anchorRef: React.RefObject<HTMLElement>;
@@ -1249,6 +1279,7 @@ export function PivotConfigSection({
   onRollupRowsChange,
   rollupRowsOn,
   onRollupRowsOnChange,
+  rollupRowsDisabled,
   pivotColumns,
   onPivotColumnsChange,
   pivotColumnsOn,
@@ -1272,6 +1303,7 @@ export function PivotConfigSection({
   onRedo,
   onClearAll,
 }: PivotConfigSectionProps): JSX.Element {
+  const pivotServiceStatus = usePivotServiceStatus();
   const [rollupPickerOpen, setRollupPickerOpen] = useState(false);
   const [pivotPickerOpen, setPivotPickerOpen] = useState(false);
   // `null` = closed. `{ mode: 'add' }` = adding new. `{ mode: 'edit', index }`
@@ -1367,21 +1399,19 @@ export function PivotConfigSection({
       if (aggPickerState?.mode === 'edit') {
         aggregations[aggPickerState.index] = next;
       } else {
-        // Operations are unique per card: if an entry for this function
-        // already exists, merge the new columns into it (de-duped, order
-        // preserved) instead of pushing a duplicate entry.
+        // Operations are unique per card. The Add picker pre-loads the
+        // columns already selected for the chosen function (see
+        // `existingSelections`), so `next.selected` is the authoritative full
+        // set for that operation — replace the existing entry rather than
+        // merge, so un-checking a previously selected column removes it.
         const existingIndex = aggregations.findIndex(
           a => a.operation === next.operation
         );
         if (existingIndex >= 0) {
-          const existing = aggregations[existingIndex];
-          const selected = [...existing.selected];
-          next.selected.forEach(col => {
-            if (!selected.includes(col)) {
-              selected.push(col);
-            }
-          });
-          aggregations[existingIndex] = { ...existing, selected };
+          aggregations[existingIndex] = {
+            ...aggregations[existingIndex],
+            selected: next.selected,
+          };
         } else {
           aggregations.push(next);
         }
@@ -2222,9 +2252,10 @@ export function PivotConfigSection({
         {/* eslint-disable react/no-unstable-nested-components */}
         <ConfigCard
           title="Rollup rows"
-          on={rollupRowsOn}
+          on={rollupRowsOn && rollupRowsDisabled !== true}
           onToggle={onRollupRowsOnChange}
           onAdd={handleAddRollupRow}
+          disabled={rollupRowsDisabled === true}
           overflow={
             <OverflowMenu
               sections={rollupMenuSections}
@@ -2251,6 +2282,7 @@ export function PivotConfigSection({
             type="columns"
             itemIds={rollupItemIds}
             isEmpty={rollupRows.length === 0}
+            disabled={rollupRowsDisabled === true}
           >
             {withDropIndicator(
               rollupRows.map((name, i) => (
@@ -2294,27 +2326,32 @@ export function PivotConfigSection({
             ) : null
           }
         >
-          <DroppableList
-            id={PIVOT_COLUMNS_DROPPABLE}
-            type="columns"
-            itemIds={pivotItemIds}
-            isEmpty={pivotColumns.length === 0}
-            disabled={pivotColumnsDisabled === true}
-          >
-            {withDropIndicator(
-              pivotColumns.map((name, i) => (
-                <ColumnRow
-                  key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
-                  name={name}
-                  droppableId={PIVOT_COLUMNS_DROPPABLE}
-                  onDelete={() =>
-                    onPivotColumnsChange(removeAt(pivotColumns, i))
-                  }
-                />
-              )),
-              columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns)
-            )}
-          </DroppableList>
+          {pivotColumnsDisabled === true &&
+          pivotServiceStatus === 'unavailable' ? (
+            <ServiceUnavailableMessage />
+          ) : (
+            <DroppableList
+              id={PIVOT_COLUMNS_DROPPABLE}
+              type="columns"
+              itemIds={pivotItemIds}
+              isEmpty={pivotColumns.length === 0}
+              disabled={pivotColumnsDisabled === true}
+            >
+              {withDropIndicator(
+                pivotColumns.map((name, i) => (
+                  <ColumnRow
+                    key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
+                    name={name}
+                    droppableId={PIVOT_COLUMNS_DROPPABLE}
+                    onDelete={() =>
+                      onPivotColumnsChange(removeAt(pivotColumns, i))
+                    }
+                  />
+                )),
+                columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns)
+              )}
+            </DroppableList>
+          )}
         </ConfigCard>
 
         <ConfigCard

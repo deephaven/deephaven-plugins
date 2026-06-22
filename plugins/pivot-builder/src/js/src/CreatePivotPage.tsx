@@ -8,9 +8,10 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import {
-  type IrisGridModel,
+  IrisGridModel,
   IrisGridUtils,
   type AggregationSettings,
+  type IrisGridTableOptionsPageProps,
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
@@ -23,30 +24,6 @@ import {
 } from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
 import { usePivotServiceStatus } from './PivotServiceContext';
-
-// `IrisGridTableOptionsPageProps` is not yet in the installed
-// `@deephaven/iris-grid` typings (added in a newer host build), but is
-// emitted at runtime. Inline-type the prop until the dep bumps.
-type IrisGridTableOptionsPageProps = { model: IrisGridModel };
-
-// Statics added to IrisGridUtils after the installed v1.18.0 — present at
-// runtime via the host's workspace build. Cast to access until the
-// installed @deephaven/iris-grid typings are bumped.
-type IrisGridUtilsWithExtras = typeof IrisGridUtils & {
-  getModelTotalsConfig: (
-    columns: readonly { name: string }[],
-    rollupConfig:
-      | {
-          columns?: readonly string[];
-          showConstituents?: boolean;
-          showNonAggregatedColumns?: boolean;
-          includeDescriptions?: boolean;
-        }
-      | undefined,
-    aggregationSettings: AggregationSettings
-  ) => UITotalsTableConfig | null;
-};
-const IrisGridUtilsExt = IrisGridUtils as IrisGridUtilsWithExtras;
 
 const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
   aggregations: [],
@@ -147,6 +124,30 @@ export function CreatePivotPage({
   const isProxy = isPivotBuilderIrisGridModel(model);
   const pivotServiceStatus = usePivotServiceStatus();
   const pivotAvailable = pivotServiceStatus === 'ready';
+
+  // Whether the underlying model can be rolled up. `isRollupAvailable` is
+  // false when an incompatible operation is applied through the host proxy —
+  // most notably Select Distinct (rollup and select-distinct are mutually
+  // exclusive in `IrisGridProxyModel`). When false, both the Rollup rows and
+  // Pivot columns cards are disabled (a rollup/pivot write would silently
+  // no-op); the Aggregate values card stays enabled and falls back to a
+  // standalone totals row. `isRollupAvailable` is not an event-bearing
+  // property — it flips when the inner model swaps (e.g. toggling Select
+  // Distinct), which dispatches COLUMNS_CHANGED / MODEL_CHANGED — so we
+  // re-read it on those events to keep the disabled state live.
+  const [rollupAvailable, setRollupAvailable] = useState(
+    () => model.isRollupAvailable
+  );
+  useEffect(() => {
+    const sync = (): void => setRollupAvailable(model.isRollupAvailable);
+    sync();
+    model.addEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, sync);
+    model.addEventListener(IrisGridModel.EVENT.MODEL_CHANGED, sync);
+    return () => {
+      model.removeEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, sync);
+      model.removeEventListener(IrisGridModel.EVENT.MODEL_CHANGED, sync);
+    };
+  }, [model]);
 
   // Always source columns from the original (pre-pivot) table so the
   // selectors don't shift to pivot output columns after Apply.
@@ -359,7 +360,8 @@ export function CreatePivotPage({
       return;
     }
 
-    const rollupActive = rollupRowsOn && rollupRows.length > 0;
+    const rollupActive =
+      rollupAvailable && rollupRowsOn && rollupRows.length > 0;
     const aggsActive =
       aggregatesOn &&
       aggregationSettings.aggregations.some(
@@ -378,7 +380,10 @@ export function CreatePivotPage({
     // available on this worker; otherwise createPivotTable hangs and
     // the proxy times out after 10s.
     const pivotActive =
-      pivotAvailable && pivotColumnsOn && pivotColumns.length > 0;
+      pivotAvailable &&
+      rollupAvailable &&
+      pivotColumnsOn &&
+      pivotColumns.length > 0;
 
     let pivot: PivotConfig | null = null;
     let rollup: ReturnType<typeof IrisGridUtils.getModelRollupConfig> | null =
@@ -411,7 +416,7 @@ export function CreatePivotPage({
       );
     } else {
       // No pivot, no rollup — aggregations become a standalone totals row.
-      totals = IrisGridUtilsExt.getModelTotalsConfig(
+      totals = IrisGridUtils.getModelTotalsConfig(
         model.sourceTable.columns,
         undefined,
         effectiveAggregationSettings
@@ -451,7 +456,7 @@ export function CreatePivotPage({
     // All reconcile inputs are fields of `state`; depend on the snapshot
     // identity rather than listing each field individually.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model, state, pivotAvailable]);
+  }, [model, state, pivotAvailable, rollupAvailable]);
 
   // Transient undo/redo keyboard shortcuts, scoped to this panel via a normal
   // React `onKeyDown` (so they never fire for sibling pivot-builder panels and
@@ -523,11 +528,12 @@ export function CreatePivotPage({
           onRollupRowsChange={setRollupRows}
           rollupRowsOn={rollupRowsOn}
           onRollupRowsOnChange={setRollupRowsOn}
+          rollupRowsDisabled={!rollupAvailable}
           pivotColumns={pivotColumns}
           onPivotColumnsChange={setPivotColumns}
           pivotColumnsOn={pivotColumnsOn}
           onPivotColumnsOnChange={setPivotColumnsOn}
-          pivotColumnsDisabled={!pivotAvailable}
+          pivotColumnsDisabled={!pivotAvailable || !rollupAvailable}
           aggregationSettings={aggregationSettings}
           onAggregationSettingsChange={setAggregationSettings}
           aggregatesOn={aggregatesOn}

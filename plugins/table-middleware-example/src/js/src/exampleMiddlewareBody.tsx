@@ -24,7 +24,7 @@ const log = Log.module('ExampleMiddleware');
  * for us, keeping golden-layout state persistence intact.
  */
 export const exampleMiddlewareBody: MiddlewareBody<{
-  metadata?: { name?: string };
+  metadata?: unknown;
 }> = props => {
   log.debug('Middleware in chain. Incoming widget metadata:', props.metadata);
 

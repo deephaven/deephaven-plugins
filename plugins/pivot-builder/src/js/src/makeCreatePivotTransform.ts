@@ -1,10 +1,10 @@
 import { dhPivotTable } from '@deephaven/icons';
-import { CreatePivotPage } from './CreatePivotPage';
-import { CREATE_PIVOT_ITEM_TYPE } from './createPivotItemType';
 import {
   type OptionItem,
   type TableOptionsTransform,
-} from './tableOptionsTypes';
+} from '@deephaven/iris-grid';
+import { CreatePivotPage } from './CreatePivotPage';
+import { CREATE_PIVOT_ITEM_TYPE } from './createPivotItemType';
 
 /**
  * Built-in Table Options items superseded by the unified Create Pivot
