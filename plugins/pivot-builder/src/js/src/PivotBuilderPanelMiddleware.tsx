@@ -225,7 +225,14 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
         return undefined;
       }
       let cancelled = false;
-      setPivotServiceStatus('loading');
+      // Only flip to `loading` on the initial probe (status === 'loading' from
+      // the initial state). Retries from `unavailable` keep showing the
+      // disabled state until the probe resolves — flipping to `loading` and
+      // back to `unavailable` causes a visible flicker in the sidebar Pivot
+      // card on workers that don't have PSP.
+      if (pivotServiceStatusRef.current === 'loading') {
+        setPivotServiceStatus('loading');
+      }
       async function probe(): Promise<DhType.Widget> {
         // `resolvePivotServiceDescriptor` consults the variable finder, which is
         // authoritative: it returns `null` when no PivotService variable exists,

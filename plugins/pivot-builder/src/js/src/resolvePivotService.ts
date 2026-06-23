@@ -32,8 +32,19 @@ function withPivotServiceName(
   metadata: DhType.ide.VariableDescriptor,
   name: string
 ): DhType.ide.VariableDescriptor {
+  // Drop the source `id` and `name` so the fetch resolves the PivotService by
+  // its own `name` alone. Keeping the source `id` makes the server resolve the
+  // wrong object (the table being pivoted), which fails with
+  // "No ObjectType found, expected type 'PivotService'". The remaining routing
+  // keys (`sessionId` / `querySerial` / `query`) are preserved for DHE worker
+  // targeting.
+  const {
+    id: _id,
+    name: _sourceName,
+    ...routing
+  } = metadata as unknown as Record<string, unknown>;
   return {
-    ...metadata,
+    ...routing,
     type: PIVOT_SERVICE_TYPE,
     name,
   } as unknown as DhType.ide.VariableDescriptor;
