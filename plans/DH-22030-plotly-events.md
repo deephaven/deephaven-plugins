@@ -12,28 +12,37 @@ This plan adds event callback parameters to all plotly-express chart functions (
 
 All event callbacks default to `None` and are typed `ChartEventCallback | None`.
 
-| Python param             | Plotly event               | Description                                                                                                         | Applies to                                 |
-| ------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| `on_click`               | `plotly_click`             | Point click                                                                                                         | Non-hierarchical charts                    |
-| `on_press`               | `plotly_click`             | Alias for `on_click`                                                                                                | Non-hierarchical charts                    |
-| `on_double_click`        | `plotly_doubleclick`       | Double click on chart area. Only fires in zoom/pan mode. `on_deselect` is triggered on double-click in select mode. | Non-hierarchical charts                    |
-| `on_double_press`        | `plotly_doubleclick`       | Alias for `on_double_click`                                                                                         | Non-hierarchical charts                    |
-| `on_selected`            | `plotly_selected`          | Selection complete (box or lasso). See [Selection Modebar Buttons](#selection-modebar-buttons)                      | Non-hierarchical charts                    |
-| `on_deselect`            | `plotly_deselect`          | Selection cleared. Fires instead of `on_double_click` in select mode.                                               | Non-hierarchical charts                    |
-| `on_relayout`            | `plotly_relayout`          | Layout changed (pan, zoom, axis reset, dragmode switch, etc.)                                                       | Non-hierarchical charts                    |
-| `on_legend_click`        | `plotly_legendclick`       | Legend item clicked                                                                                                 | Charts with legends (i.e. multiple traces) |
-| `on_legend_double_click` | `plotly_legenddoubleclick` | Legend item double-clicked                                                                                          | Charts with legends (i.e. multiple traces) |
-| `on_click_annotation`    | `plotly_clickannotation`   | Annotation clicked                                                                                                  | Charts with annotations                    |
-| `on_sunburst_click`      | `plotly_sunburstclick`     | Segment clicked (drill-down)                                                                                        | `sunburst` only                            |
-| `on_treemap_click`       | `plotly_treemapclick`      | Node clicked (drill-down)                                                                                           | `treemap` only                             |
-| `on_icicle_click`        | `plotly_icicleclick`       | Node clicked (drill-down)                                                                                           | `icicle` only                              |
-| `on_web_gl_context_lost` | `plotly_webglcontextlost`  | WebGL context lost (GPU reclaims resources)                                                                         | WebGL-supporting plots only                |
+| Python param             | Plotly event               | Description                                                                                                         | Applies to                                                                  |
+| ------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `on_click`               | `plotly_click`             | Point click                                                                                                         | All charts                                                                  |
+| `on_press`               | `plotly_click`             | Alias for `on_click`                                                                                                | All charts                                                                  |
+| `on_double_click`        | `plotly_doubleclick`       | Double click on chart area. Only fires in zoom/pan mode. `on_deselect` is triggered on double-click in select mode. | Charts with axes (Cartesian, polar, ternary, 3D, geo)                       |
+| `on_double_press`        | `plotly_doubleclick`       | Alias for `on_double_click`                                                                                         | Charts with axes (Cartesian, polar, ternary, 3D, geo)                       |
+| `on_selected`            | `plotly_selected`          | Selection complete (box or lasso). See [Selection Modebar Buttons](#selection-modebar-buttons)                      | Charts with box/lasso select (Cartesian, polar, ternary)                    |
+| `on_deselect`            | `plotly_deselect`          | Selection cleared. Fires instead of `on_double_click` in select mode.                                               | Charts with box/lasso select (Cartesian, polar, ternary)                    |
+| `on_relayout`            | `plotly_relayout`          | Layout changed (pan, zoom, axis reset, dragmode switch, etc.)                                                       | Charts with interactive layout (Cartesian, polar, ternary, 3D, geo, mapbox) |
+| `on_legend_click`        | `plotly_legendclick`       | Legend item clicked                                                                                                 | Charts with legends (i.e. multiple traces)                                  |
+| `on_legend_double_click` | `plotly_legenddoubleclick` | Legend item double-clicked                                                                                          | Charts with legends (i.e. multiple traces)                                  |
+| `on_click_annotation`    | `plotly_clickannotation`   | Annotation clicked                                                                                                  | Charts with annotations                                                     |
+| `on_web_gl_context_lost` | `plotly_webglcontextlost`  | WebGL context lost (GPU reclaims resources)                                                                         | WebGL-supporting plots only                                                 |
 
 **Notes:**
 
-- **Non-hierarchical charts** = all chart types except `sunburst`, `treemap`, and `icicle`. Hierarchical charts don't have axes, pan/zoom, or selection — they have their own dedicated click events instead.
+- **`on_click`** fires on all chart types including hierarchical charts (`sunburst`, `treemap`, `icicle`) and pie. The point payload varies by chart type.
+- **`on_double_click`** requires the chart to be in zoom/pan dragmode. Charts without axes (pie, hierarchical) don't support dragmode.
+- **`on_selected` / `on_deselect`** require box/lasso selection support. This exists on Cartesian, polar, and ternary charts. 3D, geo, mapbox, pie, and hierarchical charts do not support box/lasso selection.
+- **`on_relayout`** fires from user-driven layout interactions (pan, zoom, scroll-zoom, double-click reset, dragmode change, 3D camera rotation, geo/mapbox viewport change). It does **not** fire on window resize, pie charts, or hierarchical charts.
 - **`on_web_gl_context_lost`** is only added to chart functions that support WebGL rendering (e.g. `scattergl`, `scatter3d`, or charts with `render_mode='webgl'`). Chrome limits WebGL context count, after which older contexts are silently lost.
-- **`on_relayout`** only fires from user-driven layout interactions (pan, zoom, scroll-zoom, double-click reset, dragmode change). It does **not** fire on window resize or on hierarchical charts.
+
+### `drill_down`
+
+Hierarchical chart functions (`sunburst`, `treemap`, `icicle`) now accept an additional non-callback parameter, based on the functionality enabled by returning false from `plotly_sunburstclick` / `plotly_treemapclick` / `plotly_icicleclick` handlers.
+
+```python
+drill_down: bool = True
+```
+
+When `False`, clicking a segment does **not** trigger the default drill-down animation. The `on_click` callback still fires with the clicked point data. This is implemented on the JS side by returning `false` from the underlying `plotly_sunburstclick` / `plotly_treemapclick` / `plotly_icicleclick` handler and is a replacement for that functionality being directly exposed.
 
 ---
 
@@ -102,7 +111,9 @@ def make_subplots(
 
 ## Event Data Schemas
 
-All point-bearing events include data-space values matching the column types from the source table (e.g. if `x` is a `long` column, `point["x"]` is an `int`; if it's a `double` column, it's a `float`). `pointIndex` is excluded as it refers to the rendered trace data and should not be used for server-side logic. `curveNumber`, on the other hand, is included to disambiguate points when multiple traces share the same `traceName`, although will need a note in the docs to be used with caution in case traces shift.
+All point-bearing events include data-space values matching the column types from the source table (e.g. if `x` is a `long` column, `point["x"]` is an `int`; if it's a `double` column, it's a `float`). `point_index` is excluded as it refers to the rendered trace data and should not be used for server-side logic. `curve_number`, on the other hand, is included to disambiguate points when multiple traces share the same `trace_name`, although will need a note in the docs to be used with caution in case traces shift.
+
+**Note:** The fields present in each point vary by chart type. The schema below shows a typical Cartesian chart. Other chart types include additional or different fields — for example, geo charts include `lat`/`lon`/`location`, polar charts include `r`/`theta`, OHLC/candlestick charts include `open`/`high`/`low`/`close`, and hierarchical charts include `label`/`parent`/`value`/`id`. The JS serializer includes all relevant data-space fields from the Plotly point object.
 
 All events that originate from a user interaction include a `modifiers` dict with keyboard state:
 
@@ -124,19 +135,22 @@ All events that originate from a user interaction include a `modifiers` dict wit
             "x": 5,  # Data-space value, matches column type
             "y": 0.479,  # Data-space value, matches column type
             "z": None,  # Only for 3D charts
-            "traceName": "DOG",  # The trace name (partition/by key value, or Plotly trace name)
-            "curveNumber": 0,  # Trace index, useful when multiple traces share the same traceName
+            "trace_name": "DOG",  # The trace name (partition/by key value, or Plotly trace name)
+            "trace_type": "scatter",  # The Plotly trace type (scatter, bar, sunburst, etc.)
+            "curve_number": 0,  # Trace index, useful when multiple traces share the same trace_name
         }
     ],
     # Only for on_selected with box select:
     "range": {"x": [0, 10], "y": [0.0, 5.0]},
     # Only for on_selected with lasso select:
-    "lassoPoints": {"x": [...], "y": [...]},
+    "lasso_points": {"x": [...], "y": [...]},
     "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
 }
 ```
 
-`traceName` is the Plotly trace name, which for Deephaven charts is the `by` column value (or partition key) that identifies the trace. If the chart has no `by`/partitioning, `traceName` is the default Plotly trace name.
+`trace_name` is the Plotly trace name, which for Deephaven charts is the `by` column value (or partition key) that identifies the trace. If the chart has no `by`/partitioning, `trace_name` is the default Plotly trace name.
+
+`trace_type` is the Plotly trace type string (e.g. `"scatter"`, `"bar"`, `"sunburst"`, `"scattergeo"`, `"ohlc"`), taken from `data[curveNumber].type`. This is included for convenience so consumers can branch on chart type without looking up the curve number in the figure data.
 
 ### Layout Events (`on_relayout`)
 
@@ -188,8 +202,8 @@ In addition to firing this event, `on_legend_click` toggles the visibility of th
 
 ```python
 {
-    "traceName": "DOG",  # The trace name of the legend item clicked
-    "curveNumber": 0,  # The index of the trace in the Plotly data array
+    "trace_name": "DOG",  # The trace name of the legend item clicked
+    "curve_number": 0,  # The index of the trace in the Plotly data array
     "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
 }
 ```
@@ -202,17 +216,6 @@ Although we don't directly support an API for annotations in `dx` charts, they a
 {
     "index": 0,
     "annotation": {"text": "Label", "x": 1.0, "y": 2.0},
-    "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
-}
-```
-
-### Hierarchical Click Events (`on_sunburst_click`, `on_treemap_click`, `on_icicle_click`)
-
-Similar to `on_click`, these events fire when a hierarchical chart element (sunburst, treemap, or icicle) is clicked. The event data contains the clicked points and any modifier keys pressed.
-
-```python
-{
-    "points": [{"label": "A", "parent": "", "value": 10, "id": "A", "curveNumber": 0}],
     "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
 }
 ```
@@ -262,7 +265,7 @@ dog_prices = stocks.where("Sym = `DOG`")
 
 def handle_click(event):
     point = event["points"][0]
-    print(f"Clicked: x={point['x']}, y={point['y']}, trace={point['traceName']}")
+    print(f"Clicked: x={point['x']}, y={point['y']}, trace={point['trace_name']}")
 
 
 fig = dx.scatter(dog_prices, x="Timestamp", y="Price", on_click=handle_click)
@@ -313,29 +316,6 @@ def handle_relayout(event):
 fig = dx.line(stocks, x="Timestamp", y="Price", by="Sym", on_relayout=handle_relayout)
 ```
 
-### `on_sunburst_click` — Hierarchical Click
-
-**Justification:** Drill into hierarchical data. Click a category to filter related tables to that branch, or navigate a `dh.ui` dashboard to a detail view for that subtree.
-
-#### Code
-
-```python
-import deephaven.plot.express as dx
-
-gapminder = dx.data.gapminder()
-pop_by_continent = gapminder.last_by("Country").sum_by(["Continent"])
-
-
-def handle_sunburst(event):
-    point = event["points"][0]
-    print(f"Clicked: {point['label']} (parent: {point['parent']})")
-
-
-fig = dx.sunburst(
-    pop_by_continent, names="Continent", values="Pop", on_sunburst_click=handle_sunburst
-)
-```
-
 ### `on_legend_click` — Legend Click
 
 **Justification:** Filter a related table to only show data for the categories currently visible on the chart. Since clicking a legend item toggles that trace's visibility, the callback can synchronize other components to match.
@@ -349,7 +329,7 @@ stocks = dx.data.stocks()
 
 
 def handle_legend_click(event):
-    print(f"Legend clicked: {event['traceName']} (curve {event['curveNumber']})")
+    print(f"Legend clicked: {event['trace_name']} (curve {event['curve_number']})")
 
 
 fig = dx.scatter(
@@ -370,7 +350,7 @@ stocks = dx.data.stocks()
 
 
 def handle_legend_double_click(event):
-    print(f"Isolated trace: {event['traceName']}")
+    print(f"Isolated trace: {event['trace_name']}")
 
 
 fig = dx.scatter(
@@ -404,6 +384,33 @@ def handle_annotation_click(event):
 
 fig = dx.line(
     dog_prices, x="Timestamp", y="Price", on_click_annotation=handle_annotation_click
+)
+```
+
+### `drill_down` — Disable Hierarchical Drill-Down
+
+Use `drill_down=False` to disable the default drill-down animation while still receiving click events.
+
+#### Code
+
+```python
+import deephaven.plot.express as dx
+
+gapminder = dx.data.gapminder()
+pop_by_continent = gapminder.last_by("Country").sum_by(["Continent"])
+
+
+def handle_sunburst(event):
+    point = event["points"][0]
+    print(f"Clicked: {point['label']} (parent: {point['parent']})")
+
+
+fig = dx.sunburst(
+    pop_by_continent,
+    names="Continent",
+    values="Pop",
+    on_click=handle_sunburst,
+    drill_down=False,
 )
 ```
 
@@ -463,9 +470,9 @@ The system mirrors the ui plugin's callback pattern (callback IDs, signature-ada
 
 ## Phase 3 — Event Parameters on Chart Functions
 
-9. Add all universal event params to every chart function in `plots/`. Add `on_sunburst_click` only to `sunburst()`, `on_treemap_click` only to `treemap()`, `on_icicle_click` only to `icicle()`. All default to `None`, typed `ChartEventCallback | None`.
-10. After building the `DeephavenFigure`, call `fig._register_callback(event_name, fn)` for each non-`None` callback kwarg.
-11. `layer()` and `make_subplots()` accept the full universal set (not chart-specific events like `on_sunburst_click`, `on_treemap_click`, `on_icicle_click`).
+9. Add all universal event params to every chart function in `plots/`. Add `drill_down: bool = True` only to `sunburst()`, `treemap()`, and `icicle()`. All event params default to `None`, typed `ChartEventCallback | None`.
+10. After building the `DeephavenFigure`, call `fig._register_callback(event_name, fn)` for each non-`None` callback kwarg. Store `drill_down` in `DeephavenFigure` metadata (included in `to_json()` under `deephaven.drill_down`).
+11. `layer()` and `make_subplots()` accept the full universal event param set.
 
 The architecture supports adding Deephaven-specific events later by simply adding new params to chart functions and firing callbacks at the appropriate points (server-side in `DeephavenFigureListener` or JS-side via `CALLABLE_EVENT`). No infrastructure changes needed.
 
@@ -533,10 +540,12 @@ The `select2d` and `lasso2d` modebar buttons are currently not included in `web-
 21. Accepts `(plotlyDiv: HTMLElement | null, callbackMap: Map<string, string>, onEvent: (id: string, args: unknown) => void, dataMappings: DataMapping[])`.
 22. Uses `useEffect` to attach Plotly native event listeners via `plotlyDiv.on('plotly_click', handler)` and return cleanup.
 23. Serializers per event group:
-    - **Strip Plotly internals**: `pointIndex`, `pointNumber`, `fullData`, `xaxis`, `yaxis` are not sent. `curveNumber` is kept to disambiguate traces that share the same `traceName`.
+    - **Strip Plotly internals**: `pointIndex`, `pointNumber`, `fullData`, `xaxis`, `yaxis` are not sent. `curve_number` is kept to disambiguate traces that share the same `trace_name`.
     - **Data-space values**: `x`, `y`, `z` are sent as-is from Plotly (these already match the column data since they come from the table subscription).
-    - **`traceName`**: Passed through directly from Plotly's `data.name` field. For Deephaven charts this is the partition/`by` key value.
+    - **`trace_name`**: Passed through directly from Plotly's `data.name` field. For Deephaven charts this is the partition/`by` key value.
+    - **`trace_type`**: Taken from `data[curveNumber].type`. Included for convenience so consumers can branch on chart type.
     - **`modifiers`**: Captured from the native DOM event (`event.shiftKey`, `event.ctrlKey`, `event.altKey`, `event.metaKey`) at the time the Plotly event fires. Attached to every user-interaction event.
+    - **`drill_down`**: For hierarchical charts, if `drill_down` is `False` in the figure metadata, the `plotly_sunburstclick` / `plotly_treemapclick` / `plotly_icicleclick` handler returns `false` to block drill-down. The `on_click` callback still fires normally via `plotly_click`.
 24. Constant lookup table maps Plotly event name → Python param name.
 
 **File:** [PlotlyExpressChart.tsx](../plugins/plotly-express/src/js/src/PlotlyExpressChart.tsx)
@@ -590,9 +599,10 @@ The `select2d` and `lasso2d` modebar buttons are currently not included in `web-
 - `scatter` with `on_selected`: box-select → callback fires with multiple points.
 - `layer(fig_a, fig_b, on_click=cb)`: direct kwarg fires on click.
 - `layer(fig_a_with_click, fig_b_with_click)`: last child's callback fires.
-- `sunburst` with `on_sunburst_click`: click a segment → callback fires.
-- `treemap` with `on_treemap_click`: click a node → callback fires.
-- `icicle` with `on_icicle_click`: click a node → callback fires.
+- `sunburst` with `on_click`: click a segment → callback fires with hierarchical point data.
+- `sunburst` with `drill_down=False`: click a segment → no drill-down animation, callback still fires.
+- `treemap` with `on_click`: click a node → callback fires.
+- `icicle` with `on_click`: click a node → callback fires.
 - `make_subplots` with `on_relayout`: pan a subplot → callback fires.
 
 ---
@@ -611,9 +621,9 @@ The following Plotly events are excluded from the initial implementation but can
 
 `plotly_framework` is an internal Plotly.js hook with no user-facing semantics.
 
-### Hierarchical Chart-Specific Events
+### Hierarchical Charts Use `on_click` + `drill_down`
 
-`on_sunburst_click`, `on_treemap_click`, and `on_icicle_click` are only on their respective chart functions. These events never fire for other chart types.
+Rather than dedicated `on_sunburst_click` / `on_treemap_click` / `on_icicle_click` events, hierarchical charts use the same `on_click` callback as all other charts (since `plotly_click` fires on hierarchical charts too). A separate `drill_down: bool = True` parameter on hierarchical chart functions controls whether clicking triggers the default drill-down animation. This is cleaner than requiring a callback with a return value, and conditional drill-down prevention is deferred as a future concern.
 
 ### Last-Wins Merging
 
