@@ -1,18 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 
-/**
- * Finds a single worker variable by predicate, optionally scoped by a routing
- * descriptor, resolving to the first match or `null` if none is present.
- * Declared structurally here (rather than imported from
- * `@deephaven/jsapi-bootstrap`) so the plugin type-checks against host versions
- * that predate the `useVariableDefinitionFinder` hook; the runtime value is
- * supplied by the host when available.
- */
-export type VariableDefinitionFinder = (
-  predicate: (definition: DhType.ide.VariableDefinition) => boolean,
-  descriptor?: DhType.ide.VariableDescriptor
-) => Promise<DhType.ide.VariableDefinition | null>;
-
 /** The variable type the CorePlus pivot service is published under. */
 export const PIVOT_SERVICE_TYPE = 'PivotService';
 
@@ -51,31 +38,17 @@ function withPivotServiceName(
 }
 
 /**
- * Resolve the descriptor used to fetch the worker's PivotService widget.
- *
- * Discovery is delegated entirely to the host variable finder (`findField`),
- * which locates a variable whose `type` is the PivotService, honoring whatever
- * name it was published under. The finder is authoritative: if it is absent
- * (the host predates variable finding) or reports no PivotService variable,
- * this returns `null` (definitively unavailable) so callers can avoid a doomed
- * fetch.
- *
- * @param metadata Panel routing metadata for the worker
- * @param findField Host variable finder, or `null` if unavailable
- * @returns A descriptor to fetch the PivotService widget, or `null` if no
- *          PivotService is available
+ * Pick the PivotService descriptor from a live worker variable list (the push
+ * snapshot exposed by `useWorkerVariables`). Locates the `PivotService` entry
+ * by `type` (honoring whatever name it was published under) and pins the
+ * resolved name onto the routing metadata. Returns `null` when the list
+ * contains no PivotService variable.
  */
-export async function resolvePivotServiceDescriptor(
+export function pickPivotServiceDescriptor(
   metadata: DhType.ide.VariableDescriptor,
-  findField: VariableDefinitionFinder | null
-): Promise<DhType.ide.VariableDescriptor | null> {
-  if (findField == null) {
-    return null;
-  }
-  const pspField = await findField(
-    field => field.type === PIVOT_SERVICE_TYPE,
-    metadata
-  );
+  variables: readonly DhType.ide.VariableDefinition[]
+): DhType.ide.VariableDescriptor | null {
+  const pspField = variables.find(v => v.type === PIVOT_SERVICE_TYPE);
   if (pspField == null) {
     return null;
   }

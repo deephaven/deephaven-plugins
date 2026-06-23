@@ -65,6 +65,14 @@ export interface PivotConfig {
  * model config in that case.
  */
 export interface PivotBuilderUiState {
+  /**
+   * Master switch above the cards. When false, every section is gated
+   * off (rollup/pivot/aggregations are not applied) while the cards
+   * themselves stay editable and per-card switches retain their saved
+   * positions. Flipping back to true restores the user's per-card
+   * choices unchanged.
+   */
+  globalOn: boolean;
   rollupRowsOn: boolean;
   rollupRows: string[];
   includeConstituents: boolean;

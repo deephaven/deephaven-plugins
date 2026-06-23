@@ -23,10 +23,7 @@ import {
   type PivotBuilderUiState,
 } from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
-import {
-  usePivotServiceRefresh,
-  usePivotServiceStatus,
-} from './PivotServiceContext';
+import { usePivotServiceStatus } from './PivotServiceContext';
 
 const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
   aggregations: [],
@@ -123,6 +120,7 @@ function aggregationsToPivot(
  */
 export function CreatePivotPage({
   model,
+  hiddenColumns,
 }: IrisGridTableOptionsPageProps): JSX.Element {
   const isProxy = isPivotBuilderIrisGridModel(model);
   const pivotServiceStatus = usePivotServiceStatus();
@@ -131,16 +129,6 @@ export function CreatePivotPage({
   // Ask the middleware to re-probe PSP on mount. Covers the common case where
   // the user runs a script that publishes the PivotService on an already-
   // running worker, then opens this page — the model hasn't rebuilt, so the
-  // middleware's model-change retry wouldn't fire. `refresh` is a no-op when
-  // status is not `unavailable`, so this can't flicker the ready path.
-  const refreshPivotService = usePivotServiceRefresh();
-  useEffect(() => {
-    refreshPivotService();
-  }, [refreshPivotService]);
-
-  // Whether the underlying model can be rolled up. `isRollupAvailable` is
-  // false when an incompatible operation is applied through the host proxy —
-  // most notably Select Distinct (rollup and select-distinct are mutually
   // exclusive in `IrisGridProxyModel`). When false, both the Rollup rows and
   // Pivot columns cards are disabled (a rollup/pivot write would silently
   // no-op); the Aggregate values card stays enabled and falls back to a
@@ -241,6 +229,7 @@ export function CreatePivotPage({
       return [];
     };
     return {
+      globalOn: uiIntent?.globalOn ?? true,
       rollupRowsOn: uiIntent?.rollupRowsOn ?? true,
       rollupRows: seedRollupRows(),
       includeConstituents:
@@ -282,6 +271,7 @@ export function CreatePivotPage({
   );
 
   const {
+    globalOn,
     rollupRowsOn,
     rollupRows,
     includeConstituents,
@@ -293,6 +283,11 @@ export function CreatePivotPage({
     filterableOn: placeholderFilterableOn,
     filterableColumns: placeholderFilterable,
   } = state;
+
+  const setGlobalOn = useCallback(
+    (next: boolean) => update({ globalOn: next }),
+    [update]
+  );
 
   const setRollupRows = useCallback(
     (next: string[]) => update({ rollupRows: next }),
@@ -373,9 +368,14 @@ export function CreatePivotPage({
       return;
     }
 
+    // Global toggle gates all three sections: when off, the reconcile
+    // computes pivot/rollup/totals as if every card were toggled off,
+    // which clears the modification from the model without disturbing
+    // the per-card switch states or card contents.
     const rollupActive =
-      rollupAvailable && rollupRowsOn && rollupRows.length > 0;
+      globalOn && rollupAvailable && rollupRowsOn && rollupRows.length > 0;
     const aggsActive =
+      globalOn &&
       aggregatesOn &&
       aggregationSettings.aggregations.some(
         a => a.selected.length > 0 || a.invert
@@ -393,6 +393,7 @@ export function CreatePivotPage({
     // available on this worker; otherwise createPivotTable hangs and
     // the proxy times out after 10s.
     const pivotActive =
+      globalOn &&
       pivotAvailable &&
       rollupAvailable &&
       pivotColumnsOn &&
@@ -451,6 +452,7 @@ export function CreatePivotPage({
         // empty" into the same value and so can't recover the switches (or a
         // toggled-off card's contents) on their own.
         ui: {
+          globalOn,
           rollupRowsOn,
           rollupRows,
           includeConstituents,
@@ -536,7 +538,10 @@ export function CreatePivotPage({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <PivotConfigSection
           availableColumns={allColumnNames}
+          hiddenColumns={hiddenColumns}
           columnTypes={columnTypes}
+          globalOn={globalOn}
+          onGlobalOnChange={setGlobalOn}
           rollupRows={rollupRows}
           onRollupRowsChange={setRollupRows}
           rollupRowsOn={rollupRowsOn}

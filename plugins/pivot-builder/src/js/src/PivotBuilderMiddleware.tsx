@@ -5,8 +5,11 @@ import {
   type IrisGridTableOptionsWidgetProps,
   type IrisGridViewProps,
 } from '@deephaven/iris-grid';
-import * as JsapiBootstrap from '@deephaven/jsapi-bootstrap';
-import { useApi, useObjectFetcher } from '@deephaven/jsapi-bootstrap';
+import {
+  useApi,
+  useObjectFetcher,
+  useWorkerVariables,
+} from '@deephaven/jsapi-bootstrap';
 import {
   isCorePlusDh,
   usePivotMouseHandlers,
@@ -24,32 +27,14 @@ import { isPivotBuilderIrisGridModel } from './pivotBuilderModel';
 import { makeCreatePivotTransform } from './makeCreatePivotTransform';
 import { makePivotModelTransform } from './makePivotModelTransform';
 import {
-  type VariableDefinitionFinder,
   closePivotServiceWidget,
-  resolvePivotServiceDescriptor,
+  pickPivotServiceDescriptor,
 } from './resolvePivotService';
+import { useWaitForWorkerVariables } from './useWaitForWorkerVariables';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/PivotBuilderMiddleware'
 );
-
-/**
- * The host's optional variable-finder hook. Resolved defensively at module load
- * so the plugin runs on host versions that predate
- * `useVariableDefinitionFinder`: on older hosts the fallback returns `null` and
- * the PivotService is reported unavailable. The chosen function is stable for
- * the module's lifetime, so calling it unconditionally each render keeps the
- * hook order consistent.
- */
-const useVariableFinderSafe: () => VariableDefinitionFinder | null =
-  typeof (JsapiBootstrap as { useVariableDefinitionFinder?: unknown })
-    .useVariableDefinitionFinder === 'function'
-    ? (
-        JsapiBootstrap as unknown as {
-          useVariableDefinitionFinder: () => VariableDefinitionFinder | null;
-        }
-      ).useVariableDefinitionFinder
-    : () => null;
 
 /**
  * Extra IrisGrid-aware props the chained widget host (`GridWidgetPlugin`)
@@ -91,9 +76,6 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     const dh = useApi();
     const corePlusAvailable = isCorePlusDh(dh) === true;
     const objectFetcher = useObjectFetcher();
-    // Host hook (when present) to find the PivotService variable by type, so
-    // the service may be published under any name.
-    const findField = useVariableFinderSafe();
 
     // Pivot overrides. Hooks must be unconditional. The renderer, mouse
     // handlers, metric-calculator factory, and theme are passed to the host as
@@ -119,9 +101,17 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     metadataRef.current = metadata;
     const objectFetcherRef = useRef(objectFetcher);
     objectFetcherRef.current = objectFetcher;
-    const findFieldRef = useRef(findField);
-    findFieldRef.current = findField;
     const pspWidgetRef = useRef<DhType.Widget | null>(null);
+
+    // Push-based PSP availability mirrors the panel-path middleware: subscribe
+    // to the worker's variable list via `useWorkerVariables` and wait for the
+    // first non-null snapshot before the lazy fetch picks the PivotService
+    // descriptor. The wait avoids racing the initial subscription when the
+    // user applies a pivot before the field-updates stream has flushed.
+    const workerVariables = useWorkerVariables(
+      metadata as DhType.ide.VariableDescriptor | null | undefined
+    );
+    const waitForWorkerVariables = useWaitForWorkerVariables(workerVariables);
 
     // Close the cached PivotService widget when the middleware unmounts so the
     // fetched service handle (and any objects it exported) is released
@@ -144,11 +134,10 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
           'Cannot fetch PivotService: widget metadata is missing'
         );
       }
-      // Discover the PivotService descriptor from the host variable finder
-      // (matched by type, so the service may be published under any name).
-      const descriptor = await resolvePivotServiceDescriptor(
+      const variables = await waitForWorkerVariables();
+      const descriptor = pickPivotServiceDescriptor(
         md as DhType.ide.VariableDescriptor,
-        findFieldRef.current
+        variables
       );
       if (descriptor == null) {
         throw new Error('PivotService not available on this worker');
@@ -156,7 +145,7 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
       const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
       pspWidgetRef.current = widget;
       return widget;
-    }, []);
+    }, [waitForWorkerVariables]);
 
     // Drop any cached PivotService widget so the next fetch re-resolves it,
     // closing the stale handle first so it is released server-side. The

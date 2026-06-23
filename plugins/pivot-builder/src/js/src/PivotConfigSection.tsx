@@ -8,6 +8,25 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
+  MeasuringStrategy,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   ActionButton,
   Button,
   Checkbox,
@@ -17,7 +36,6 @@ import {
   Keyboard,
   MenuTrigger,
   Picker,
-  ReactFontAwesome,
   SearchInput,
   Section,
   Select,
@@ -28,42 +46,20 @@ import {
 import {
   vsBlank,
   vsCheck,
+  vsDiscard,
   vsGripper,
   vsKebabVertical,
+  vsRedo,
   vsTrash,
 } from '@deephaven/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   AggregationOperation,
   AggregationUtils,
-  DndKitCore,
-  DndKitSortable,
-  DndKitUtilities,
   type Aggregation,
   type AggregationSettings,
 } from '@deephaven/iris-grid';
 import { usePivotServiceStatus } from './PivotServiceContext';
-
-// `@dnd-kit` and FontAwesome are consumed via the namespaces
-// `@deephaven/iris-grid` / `@deephaven/components` re-export, so the plugin
-// shares the host app's single bundled copy. Destructure the values (and alias
-// the types) here to keep the rest of the file unchanged.
-const {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-  MeasuringStrategy,
-  PointerSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} = DndKitCore;
-type DragEndEvent = DndKitCore.DragEndEvent;
-type DragOverEvent = DndKitCore.DragOverEvent;
-type DragStartEvent = DndKitCore.DragStartEvent;
-const { SortableContext, useSortable, verticalListSortingStrategy } =
-  DndKitSortable;
-const { CSS } = DndKitUtilities;
-const { FontAwesomeIcon } = ReactFontAwesome;
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
@@ -87,17 +83,30 @@ const PIVOT_DND_STYLES = `
   border-radius: 2px;
   transition: background-color 0.15s ease;
 }
+/* Empty drop zones collapse to zero footprint when idle so they don't
+ * leave dead space under the card title. While a drag of the matching
+ * type is active (see the is-dragging-* rules below) the empty zone
+ * promotes to position: absolute and overlays the whole card so the
+ * marching-ants trace the card edge and the entire card surface accepts
+ * the drop. pointer-events: none keeps the Switch/Add/Overflow controls
+ * in the header clickable; dnd-kit measures the droppable rect directly
+ * via MeasuringStrategy.Always (set on the DndContext for the duration
+ * of a drag) so the drop hit-area still includes the whole card. */
 .pivot-config-section .pivot-droppable-empty {
-  min-height: 20px;
-  margin: 1px 0;
-  padding: 2px;
-  border: dashed 1px transparent;
   border-radius: 2px;
 }
 /* Marching-ants on every active drop zone whose accepted source type
- * matches the current drag. is-dragging-columns is set on the root
- * while a column row (rollup/pivot) is being dragged;
- * is-dragging-aggregations while an aggregation is being dragged. */
+ * matches the current drag, plus the full-card overlay for empty zones.
+ * is-dragging-columns is set on the root while a column row
+ * (rollup/pivot) is being dragged; is-dragging-aggregations while an
+ * aggregation is being dragged. */
+.pivot-config-section.is-dragging-columns .pivot-droppable-empty.pivot-droppable-columns,
+.pivot-config-section.is-dragging-aggregations .pivot-droppable-empty.pivot-droppable-aggregations {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
 .pivot-config-section.is-dragging-columns .pivot-droppable-columns,
 .pivot-config-section.is-dragging-aggregations .pivot-droppable-aggregations {
   background-image:
@@ -113,6 +122,14 @@ const PIVOT_DND_STYLES = `
 .pivot-config-section .pivot-droppable.is-dragging-over,
 .pivot-config-section .pivot-droppable-empty.is-dragging-over {
   background-color: var(--dh-color-item-list-selected-hover-bg, rgba(255, 255, 255, 0.08));
+}
+/* Near-invisible divider between adjacent rows inside a card. The card
+ * fill is gray-300, so gray-400 is one palette step above — same
+ * separation as before and matches the outer card edge, keeping the
+ * chrome consistent. Excludes the cross-card DropIndicator so the
+ * drop-preview gap stays visually flush. */
+.pivot-config-section .pivot-droppable > *:not(.pivot-drop-indicator) + *:not(.pivot-drop-indicator) {
+  border-top: 1px solid var(--dh-color-gray-400);
 }
 /* Empty placeholder shown in a target card while dragging a column in from
  * another card. Same-card reordering opens a row-height gap via
@@ -151,6 +168,10 @@ const SELECTABLE_OPERATIONS: readonly AggregationOperation[] = [
 export type PivotConfigSectionProps = {
   /** Available source columns. */
   availableColumns: readonly string[];
+  /** Names of columns hidden in the host grid. Filtered out of the
+   *  Add-column pickers when the "Show hidden columns" overflow option
+   *  is off. Already-added entries in the cards are not touched. */
+  hiddenColumns?: readonly string[];
   /** Map of column name → column type (e.g. `'java.lang.String'`). Used
    *  to enable/disable columns per aggregation operation. */
   columnTypes: Readonly<Record<string, string>>;
@@ -159,10 +180,17 @@ export type PivotConfigSectionProps = {
   onRollupRowsChange: (next: string[]) => void;
   rollupRowsOn: boolean;
   onRollupRowsOnChange: (next: boolean) => void;
-  /** When true, the Rollup rows card is greyed out and the toggle
-   *  cannot be flipped on. Used when the model can't be rolled up
-   *  (e.g. Select Distinct is applied). */
-  rollupRowsDisabled?: boolean;
+
+  /**
+   * Master switch above the cards. When false, every card behaves as
+   * if its per-card toggle were off (Switch reads off, body dims,
+   * downstream pivot model is not modified) but the cards remain
+   * editable so the user can keep arranging columns. The per-card
+   * Switches are locked in that mode so their saved positions survive
+   * a global-off cycle unchanged.
+   */
+  globalOn: boolean;
+  onGlobalOnChange: (next: boolean) => void;
 
   pivotColumns: string[];
   onPivotColumnsChange: (next: string[]) => void;
@@ -203,17 +231,33 @@ export type PivotConfigSectionProps = {
 };
 
 const cardStyle: React.CSSProperties = {
-  border: '1px solid var(--dh-color-border-base, #444)',
+  // Card sits one elevation above the sidebar fill. The Code Studio
+  // sidebar uses --dh-color-surface-bg (gray-200), and no semantic token
+  // exists for "card on top of surface". gray-300 is the next palette
+  // step up, giving the slightly-lighter card fill from the spec mockup
+  // without inventing a new token.
+  position: 'relative',
+  border: '1px solid var(--dh-color-border)',
   borderRadius: 4,
   padding: '6px 8px',
-  background: 'var(--dh-color-bg-200, transparent)',
+  background: 'var(--dh-color-gray-300)',
 };
 
 const cardHeaderStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 0,
-  marginBottom: 2,
+};
+
+// Header variant used when the card has body content: a thin divider
+// separates the title row from the list below. Empty cards omit this so
+// they don't show a dangling line. Same border token as the outer card
+// edge to keep the chrome consistent.
+const cardHeaderWithBodyStyle: React.CSSProperties = {
+  ...cardHeaderStyle,
+  borderBottom: '1px solid var(--dh-color-border)',
+  paddingBottom: 4,
+  marginBottom: 4,
 };
 
 const cardTitleStyle: React.CSSProperties = {
@@ -600,6 +644,15 @@ type ConfigCardProps = {
   addDisabled?: boolean;
   /** When true, the whole card is greyed-out and non-interactive. */
   disabled?: boolean;
+  /**
+   * When true, only the per-card on/off Switch is locked; the rest of
+   * the card (Add, overflow menu, list edits, drag-and-drop) stays
+   * interactive. Used by the global "Toggle" so the user can keep
+   * arranging columns without flipping individual card states.
+   */
+  toggleLocked?: boolean;
+  /** When true, render a divider under the title to set off the body. */
+  hasBody?: boolean;
   /** Optional overflow (⋮) menu rendered after the Add button. */
   overflow?: React.ReactNode;
   picker?: (anchorRef: React.RefObject<HTMLElement>) => React.ReactNode;
@@ -613,6 +666,8 @@ function ConfigCard({
   onAdd,
   addDisabled,
   disabled,
+  toggleLocked,
+  hasBody,
   overflow,
   picker,
   children,
@@ -638,7 +693,7 @@ function ConfigCard({
   }
   return (
     <div style={rootCardStyle} aria-disabled={disabled === true}>
-      <div style={cardHeaderStyle}>
+      <div style={hasBody === true ? cardHeaderWithBodyStyle : cardHeaderStyle}>
         <span style={cardTitleStyle}>{title}</span>
         {/*
           Controlled Spectrum Switch. Guard onChange against echoes:
@@ -656,7 +711,7 @@ function ConfigCard({
               onToggle(next);
             }
           }}
-          isDisabled={disabled === true}
+          isDisabled={disabled === true || toggleLocked === true}
           aria-label={title}
         />
         <span ref={buttonRef} style={{ display: 'inline-flex' }}>
@@ -1274,12 +1329,14 @@ function AggregatePicker({
 
 export function PivotConfigSection({
   availableColumns,
+  hiddenColumns,
   columnTypes,
   rollupRows,
   onRollupRowsChange,
   rollupRowsOn,
   onRollupRowsOnChange,
-  rollupRowsDisabled,
+  globalOn,
+  onGlobalOnChange,
   pivotColumns,
   onPivotColumnsChange,
   pivotColumnsOn,
@@ -1319,10 +1376,28 @@ export function PivotConfigSection({
   // Drives the cross-card insertion indicator; null when idle.
   const [overId, setOverId] = useState<string | null>(null);
 
-  // Local toggle for the "Show hidden columns in menu" overflow item. There
-  // is no hidden-columns concept threaded through the plugin yet, so this
-  // simply tracks the checkmark state for now.
+  // When false (default), the Add-column pickers omit columns the host
+  // grid is hiding (via `hiddenColumns`). Card contents are unaffected
+  // — an already-added hidden column stays put; the picker just won't
+  // re-offer it.
   const [showHiddenColumns, setShowHiddenColumns] = useState(false);
+
+  // Source list for every Add-column picker (Rollup rows, Pivot columns,
+  // Aggregate values). When `showHiddenColumns` is on, or the host
+  // reports nothing hidden, this is just `availableColumns`; otherwise
+  // we drop entries listed in `hiddenColumns`. Order of `availableColumns`
+  // is preserved.
+  const visibleColumns = useMemo(() => {
+    if (
+      showHiddenColumns ||
+      hiddenColumns == null ||
+      hiddenColumns.length === 0
+    ) {
+      return availableColumns;
+    }
+    const hidden = new Set(hiddenColumns);
+    return availableColumns.filter(c => !hidden.has(c));
+  }, [availableColumns, hiddenColumns, showHiddenColumns]);
 
   // Only one popover (Add picker) may be open at a time across the cards.
   // Opening any Add picker or overflow menu dismisses the others.
@@ -1399,19 +1474,21 @@ export function PivotConfigSection({
       if (aggPickerState?.mode === 'edit') {
         aggregations[aggPickerState.index] = next;
       } else {
-        // Operations are unique per card. The Add picker pre-loads the
-        // columns already selected for the chosen function (see
-        // `existingSelections`), so `next.selected` is the authoritative full
-        // set for that operation — replace the existing entry rather than
-        // merge, so un-checking a previously selected column removes it.
+        // Operations are unique per card: if an entry for this function
+        // already exists, merge the new columns into it (de-duped, order
+        // preserved) instead of pushing a duplicate entry.
         const existingIndex = aggregations.findIndex(
           a => a.operation === next.operation
         );
         if (existingIndex >= 0) {
-          aggregations[existingIndex] = {
-            ...aggregations[existingIndex],
-            selected: next.selected,
-          };
+          const existing = aggregations[existingIndex];
+          const selected = [...existing.selected];
+          next.selected.forEach(col => {
+            if (!selected.includes(col)) {
+              selected.push(col);
+            }
+          });
+          aggregations[existingIndex] = { ...existing, selected };
         } else {
           aggregations.push(next);
         }
@@ -1918,10 +1995,9 @@ export function PivotConfigSection({
 
   // Items for the Rollup card overflow (⋮) menu. Memoized so the Spectrum
   // `Menu` keeps a stable `sections` reference across parent renders. Each
-  // section is separated by a divider. The leading sections are
-  // aggregate-wide actions/toggles; the final section holds the rollup-row
-  // toggles, which show a checkmark when enabled and are disabled while a
-  // pivot is active.
+  // section is separated by a divider. "Show hidden columns" and Undo/Redo
+  // live only in the global toolbar menu to keep per-card menus focused on
+  // card-specific actions.
   const rollupMenuSections = useMemo<OverflowMenuSection[]>(
     () => [
       {
@@ -1940,17 +2016,6 @@ export function PivotConfigSection({
         ],
       },
       {
-        key: 'showHiddenColumns',
-        items: [
-          {
-            key: 'showHiddenColumns',
-            label: 'Show hidden columns in menu',
-            isSelected: showHiddenColumns,
-          },
-        ],
-      },
-      undoRedoSection,
-      {
         key: 'clearAllRollupRows',
         items: [
           {
@@ -1964,25 +2029,17 @@ export function PivotConfigSection({
         ],
       },
     ],
-    [
-      showHiddenColumns,
-      includeConstituents,
-      nonAggregatedInRollup,
-      undoRedoSection,
-    ]
+    [includeConstituents, nonAggregatedInRollup]
   );
 
   const rollupMenuDisabledKeys = useMemo<string[]>(
-    () => [
-      ...(pivotActive ? ['includeConstituents', 'nonAggregatedInRollup'] : []),
-      ...undoRedoDisabledKeys,
-    ],
-    [pivotActive, undoRedoDisabledKeys]
+    () => (pivotActive ? ['includeConstituents', 'nonAggregatedInRollup'] : []),
+    [pivotActive]
   );
 
-  // Items for the Aggregate values card overflow (⋮) menu. Shares the three
-  // aggregate-wide actions/toggles with the Rollup menu, each in its own
-  // section so a divider is drawn between them.
+  // Items for the Aggregate values card overflow (⋮) menu. Shares the
+  // "Move totals to top" toggle with no other section; "Show hidden
+  // columns" and Undo/Redo live only in the global toolbar menu.
   const aggregateMenuSections = useMemo<OverflowMenuSection[]>(
     () => [
       {
@@ -1995,17 +2052,6 @@ export function PivotConfigSection({
           },
         ],
       },
-      {
-        key: 'showHiddenColumns',
-        items: [
-          {
-            key: 'showHiddenColumns',
-            label: 'Show hidden columns in menu',
-            isSelected: showHiddenColumns,
-          },
-        ],
-      },
-      undoRedoSection,
       {
         key: 'clearAllAggregations',
         items: [
@@ -2020,12 +2066,13 @@ export function PivotConfigSection({
         ],
       },
     ],
-    [aggregationSettings.showOnTop, showHiddenColumns, undoRedoSection]
+    [aggregationSettings.showOnTop]
   );
 
-  // Items for the Pivot columns card overflow (⋮) menu. Each item in its
-  // own section so a divider is drawn between them.
-  const pivotMenuSections = useMemo<OverflowMenuSection[]>(
+  // Items for the global toolbar overflow (⋮) menu above the cards.
+  // Mirrors the per-card menus' structure (show hidden columns → undo/redo
+  // → clear all) so toolbar and card menus look consistent.
+  const globalMenuSections = useMemo<OverflowMenuSection[]>(
     () => [
       {
         key: 'showHiddenColumns',
@@ -2038,6 +2085,23 @@ export function PivotConfigSection({
         ],
       },
       undoRedoSection,
+      {
+        key: 'clearAll',
+        items: [
+          {
+            key: 'clearAll',
+            label: 'Clear all',
+          },
+        ],
+      },
+    ],
+    [showHiddenColumns, undoRedoSection]
+  );
+
+  // Items for the Pivot columns card overflow (⋮) menu. "Show hidden
+  // columns" and Undo/Redo live only in the global toolbar menu.
+  const pivotMenuSections = useMemo<OverflowMenuSection[]>(
+    () => [
       {
         key: 'clearAllPivotColumns',
         items: [
@@ -2052,7 +2116,7 @@ export function PivotConfigSection({
         ],
       },
     ],
-    [showHiddenColumns, undoRedoSection]
+    []
   );
 
   const handleConfigMenuAction = useCallback(
@@ -2247,15 +2311,62 @@ export function PivotConfigSection({
         }`}
         style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '0 2px',
+          }}
+        >
+          <span>Toggle</span>
+          <Switch
+            isSelected={globalOn}
+            onChange={next => {
+              if (next !== globalOn) {
+                onGlobalOnChange(next);
+              }
+            }}
+            aria-label="Toggle"
+            margin={0}
+          />
+          <div style={{ flex: 1 }} />
+          <Button
+            kind="ghost"
+            icon={vsDiscard}
+            tooltip={`Undo (${GLOBAL_SHORTCUTS.UNDO.getDisplayText()})`}
+            disabled={!canUndo}
+            onClick={onUndo}
+            aria-label="Undo"
+            className="px-1"
+          />
+          <Button
+            kind="ghost"
+            icon={vsRedo}
+            tooltip={`Redo (${GLOBAL_SHORTCUTS.REDO.getDisplayText()})`}
+            disabled={!canRedo}
+            onClick={onRedo}
+            aria-label="Redo"
+            className="px-1"
+          />
+          <OverflowMenu
+            sections={globalMenuSections}
+            disabledKeys={undoRedoDisabledKeys}
+            tooltip="Pivot builder options"
+            onAction={handleConfigMenuAction}
+            onOpen={closeAllPickers}
+          />
+        </div>
         {/* The `picker` props below are intentional render props (they need
           the card's anchor ref); they are not unstable nested components. */}
         {/* eslint-disable react/no-unstable-nested-components */}
         <ConfigCard
           title="Rollup rows"
-          on={rollupRowsOn && rollupRowsDisabled !== true}
+          on={rollupRowsOn && globalOn}
           onToggle={onRollupRowsOnChange}
           onAdd={handleAddRollupRow}
-          disabled={rollupRowsDisabled === true}
+          toggleLocked={!globalOn}
+          hasBody={rollupRows.length > 0}
           overflow={
             <OverflowMenu
               sections={rollupMenuSections}
@@ -2269,7 +2380,7 @@ export function PivotConfigSection({
             rollupPickerOpen ? (
               <ColumnPicker
                 anchorRef={anchorRef}
-                available={availableColumns}
+                available={visibleColumns}
                 excluded={usedColumns}
                 onPick={handlePickRollupRow}
                 onClose={() => setRollupPickerOpen(false)}
@@ -2282,7 +2393,6 @@ export function PivotConfigSection({
             type="columns"
             itemIds={rollupItemIds}
             isEmpty={rollupRows.length === 0}
-            disabled={rollupRowsDisabled === true}
           >
             {withDropIndicator(
               rollupRows.map((name, i) => (
@@ -2300,15 +2410,20 @@ export function PivotConfigSection({
 
         <ConfigCard
           title="Pivot columns"
-          on={pivotColumnsOn && pivotColumnsDisabled !== true}
+          on={pivotColumnsOn && pivotColumnsDisabled !== true && globalOn}
           onToggle={onPivotColumnsOnChange}
           onAdd={handleAddPivotColumn}
           addDisabled={false}
           disabled={pivotColumnsDisabled === true}
+          toggleLocked={!globalOn}
+          hasBody={
+            pivotColumns.length > 0 ||
+            (pivotColumnsDisabled === true &&
+              pivotServiceStatus === 'unavailable')
+          }
           overflow={
             <OverflowMenu
               sections={pivotMenuSections}
-              disabledKeys={undoRedoDisabledKeys}
               tooltip="Pivot options"
               onAction={handleConfigMenuAction}
               onOpen={closeAllPickers}
@@ -2318,7 +2433,7 @@ export function PivotConfigSection({
             pivotPickerOpen ? (
               <ColumnPicker
                 anchorRef={anchorRef}
-                available={availableColumns}
+                available={visibleColumns}
                 excluded={usedColumns}
                 onPick={handlePickPivotColumn}
                 onClose={() => setPivotPickerOpen(false)}
@@ -2356,13 +2471,14 @@ export function PivotConfigSection({
 
         <ConfigCard
           title="Aggregate values"
-          on={aggregatesOn}
+          on={aggregatesOn && globalOn}
           onToggle={onAggregatesOnChange}
           onAdd={handleAddAggregate}
+          toggleLocked={!globalOn}
+          hasBody={aggregationSettings.aggregations.length > 0}
           overflow={
             <OverflowMenu
               sections={aggregateMenuSections}
-              disabledKeys={undoRedoDisabledKeys}
               tooltip="Aggregate options"
               onAction={handleConfigMenuAction}
               onOpen={closeAllPickers}
@@ -2372,7 +2488,7 @@ export function PivotConfigSection({
             aggPickerState != null ? (
               <AggregatePicker
                 anchorRef={anchorRef}
-                availableColumns={availableColumns}
+                availableColumns={visibleColumns}
                 columnTypes={columnTypes}
                 availableOperations={pickerAvailableOps}
                 initial={pickerInitial}

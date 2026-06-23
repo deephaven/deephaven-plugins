@@ -5,8 +5,11 @@ import {
   type IrisGridTableOptionsWidgetProps,
   type IrisGridViewProps,
 } from '@deephaven/iris-grid';
-import * as JsapiBootstrap from '@deephaven/jsapi-bootstrap';
-import { useApi, useObjectFetcher } from '@deephaven/jsapi-bootstrap';
+import {
+  useApi,
+  useObjectFetcher,
+  useWorkerVariables,
+} from '@deephaven/jsapi-bootstrap';
 import {
   isCorePlusDh,
   usePivotMouseHandlers,
@@ -34,32 +37,15 @@ import {
   type PivotServiceStatus,
 } from './PivotServiceContext';
 import {
-  type VariableDefinitionFinder,
+  PIVOT_SERVICE_TYPE,
   closePivotServiceWidget,
-  resolvePivotServiceDescriptor,
+  pickPivotServiceDescriptor,
 } from './resolvePivotService';
+import { useWaitForWorkerVariables } from './useWaitForWorkerVariables';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/PivotBuilderPanelMiddleware'
 );
-
-/**
- * The host's optional variable-finder hook. Resolved defensively at module load
- * so the plugin runs on host versions that predate
- * `useVariableDefinitionFinder`: on older hosts the fallback returns `null` and
- * the PivotService is reported unavailable. The chosen function is stable for
- * the module's lifetime, so calling it unconditionally each render keeps the
- * hook order consistent.
- */
-const useVariableFinderSafe: () => VariableDefinitionFinder | null =
-  typeof (JsapiBootstrap as { useVariableDefinitionFinder?: unknown })
-    .useVariableDefinitionFinder === 'function'
-    ? (
-        JsapiBootstrap as unknown as {
-          useVariableDefinitionFinder: () => VariableDefinitionFinder | null;
-        }
-      ).useVariableDefinitionFinder
-    : () => null;
 
 /**
  * Extra IrisGrid-aware props the chained panel host (`IrisGridPanel`, via the
@@ -113,9 +99,6 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     const dh = useApi();
     const corePlusAvailable = isCorePlusDh(dh) === true;
     const objectFetcher = useObjectFetcher();
-    // Host hook (when present) to find the PivotService variable by type, so
-    // the service may be published under any name.
-    const findField = useVariableFinderSafe();
 
     // Pivot overrides. Hooks must be unconditional. The renderer, mouse
     // handlers, metric-calculator factory, and theme are passed to the host as
@@ -175,8 +158,6 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     metadataRef.current = metadata;
     const objectFetcherRef = useRef(objectFetcher);
     objectFetcherRef.current = objectFetcher;
-    const findFieldRef = useRef(findField);
-    findFieldRef.current = findField;
 
     // Cache the resolved PSP widget from the eager probe so the Apply path
     // can reuse it without re-fetching.
@@ -193,118 +174,49 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       []
     );
 
-    // Probe PSP availability eagerly. Discovery is delegated to the host
-    // variable finder (`findField`), which locates the PivotService by `type`,
-    // honoring whatever name it was published under. The finder is
-    // authoritative: if it is absent or reports no PivotService, we surface
-    // `unavailable` so the Create Pivot page shows an error instead of
-    // attempting a doomed fetch.
-    const [pivotServiceStatus, setPivotServiceStatus] =
-      useState<PivotServiceStatus>(
-        corePlusAvailable ? 'loading' : 'unavailable'
-      );
+    // Push-based PSP availability. `useWorkerVariables` subscribes to
+    // `IdeConnection.subscribeToFieldUpdates` (via the host
+    // `WorkerVariablesContext` provider) and pushes the current variable list
+    // for the worker identified by `metadata`. When the list contains a
+    // PivotService variable we report `ready`; while the subscription is still
+    // resolving (or no provider is mounted) `useWorkerVariables` returns
+    // `null` and we report `loading`; otherwise we report `unavailable`. The
+    // same snapshot is the single source of truth for `getPspWidget` below —
+    // a discrepancy between "status says ready" and "fetch says unavailable"
+    // is impossible.
+    const workerVariables = useWorkerVariables(
+      metadata as DhType.ide.VariableDescriptor | null | undefined
+    );
+    const pivotServiceStatus: PivotServiceStatus = useMemo(() => {
+      if (!corePlusAvailable) return 'unavailable';
+      if (workerVariables == null) return 'loading';
+      return workerVariables.some(v => v.type === PIVOT_SERVICE_TYPE)
+        ? 'ready'
+        : 'unavailable';
+    }, [corePlusAvailable, workerVariables]);
 
-    // Bumped to retry the probe (e.g. after a worker restart surfaces a fresh
-    // model, or when the sidebar `CreatePivotPage` mounts after the user
-    // published PSP on the same worker). Adding this to the probe effect's
-    // deps re-runs it.
-    const [probeRetryKey, setProbeRetryKey] = useState(0);
-
-    // Keep latest status in a ref so the exposed `refresh` callback can gate
-    // itself without churning identity. Without the gate, a sidebar-driven
-    // refresh after PSP went `ready` would flicker the page back through
-    // `loading`.
-    const pivotServiceStatusRef = useRef<PivotServiceStatus>('loading');
-
+    // Drop the cached PSP widget whenever the host worker no longer publishes
+    // a PivotService variable (e.g. the query restarted onto a worker without
+    // PSP, or the user closed the service). The next Apply will re-fetch.
     useEffect(() => {
-      if (!corePlusAvailable) {
-        setPivotServiceStatus('unavailable');
-        return undefined;
+      if (pivotServiceStatus !== 'ready' && pspWidgetRef.current != null) {
+        closePivotServiceWidget(pspWidgetRef.current);
+        pspWidgetRef.current = null;
       }
-      if (metadata == null) {
-        return undefined;
-      }
-      let cancelled = false;
-      // Only flip to `loading` on the initial probe (status === 'loading' from
-      // the initial state). Retries from `unavailable` keep showing the
-      // disabled state until the probe resolves — flipping to `loading` and
-      // back to `unavailable` causes a visible flicker in the sidebar Pivot
-      // card on workers that don't have PSP.
-      if (pivotServiceStatusRef.current === 'loading') {
-        setPivotServiceStatus('loading');
-      }
-      async function probe(): Promise<DhType.Widget> {
-        // `resolvePivotServiceDescriptor` consults the variable finder, which is
-        // authoritative: it returns `null` when no PivotService variable exists,
-        // so we never issue a doomed fetch. The resolved descriptor pins the
-        // PivotService name *after* the routing metadata (which carries
-        // querySerial for DHE worker targeting and the source name we override).
-        const descriptor = await resolvePivotServiceDescriptor(
-          metadata as DhType.ide.VariableDescriptor,
-          findField
-        );
-        if (descriptor == null) {
-          throw new Error('PivotService not present on worker');
-        }
-        return objectFetcher<DhType.Widget>(descriptor);
-      }
-      probe()
-        .then(widget => {
-          if (cancelled) {
-            // The fetch resolved after the effect was torn down; we own the
-            // widget, so close it rather than leak the orphaned handle.
-            closePivotServiceWidget(widget);
-            return;
-          }
-          pspWidgetRef.current = widget;
-          setPivotServiceStatus('ready');
-        })
-        .catch(err => {
-          if (cancelled) return;
-          log.debug('PivotService not available', err);
-          pspWidgetRef.current = null;
-          setPivotServiceStatus('unavailable');
-        });
-      return () => {
-        cancelled = true;
-      };
-    }, [corePlusAvailable, metadata, objectFetcher, findField, probeRetryKey]);
+    }, [pivotServiceStatus]);
 
-    // Re-probe when the host publishes a (re)built model and PSP was
-    // previously unavailable. Worker restarts surface as a new model from
-    // `IrisGridPanel`; if the fresh worker has PSP we want the panel to
-    // recognize it without the user reloading. We deliberately skip
-    // re-probing once status is `ready` so the happy path doesn't flicker
-    // through `loading` on every model swap (we assume PSP doesn't
-    // disappear mid-session).
-    useEffect(() => {
-      if (model != null && pivotServiceStatus === 'unavailable') {
-        setProbeRetryKey(k => k + 1);
-      }
-      // Intentionally only react to `model` changes; `pivotServiceStatus` is
-      // read as a snapshot to gate the retry, not to drive it.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [model]);
-
-    pivotServiceStatusRef.current = pivotServiceStatus;
-    // Exposed via context to the sidebar. Stable identity so a mount-effect
-    // can list it in deps without re-firing on every parent render. Guards
-    // itself against bumping the retry key while PSP is already known so the
-    // ready path can't flicker back to `loading`.
-    const refreshPivotService = useCallback(() => {
-      if (pivotServiceStatusRef.current === 'unavailable') {
-        setProbeRetryKey(k => k + 1);
-      }
-    }, []);
+    // Bridge the push snapshot into an awaitable for the lazy fetcher: the
+    // model transform runs as the panel opens (especially when restoring a
+    // persisted pivot config), often before `workerVariables` has flushed its
+    // first delta. The hook drains queued resolvers when a non-null snapshot
+    // arrives, so `getPspWidget` no longer races the variable list.
+    const waitForWorkerVariables = useWaitForWorkerVariables(workerVariables);
 
     const pivotServiceContextValue = useMemo(
       () => ({
-        status: corePlusAvailable
-          ? pivotServiceStatus
-          : ('unavailable' as PivotServiceStatus),
-        refresh: refreshPivotService,
+        status: pivotServiceStatus,
       }),
-      [corePlusAvailable, pivotServiceStatus, refreshPivotService]
+      [pivotServiceStatus]
     );
 
     const getPspWidget = useCallback(async (): Promise<DhType.Widget> => {
@@ -315,11 +227,10 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       if (md == null) {
         throw new Error('Cannot fetch PivotService: panel metadata is missing');
       }
-      // Discover the PivotService descriptor from the host variable finder
-      // (matched by type, so the service may be published under any name).
-      const descriptor = await resolvePivotServiceDescriptor(
+      const variables = await waitForWorkerVariables();
+      const descriptor = pickPivotServiceDescriptor(
         md as DhType.ide.VariableDescriptor,
-        findFieldRef.current
+        variables
       );
       if (descriptor == null) {
         throw new Error('PivotService not available on this worker');
@@ -327,7 +238,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
       pspWidgetRef.current = widget;
       return widget;
-    }, []);
+    }, [waitForWorkerVariables]);
 
     // Drop any cached PivotService widget so the next fetch re-resolves it,
     // closing the stale handle first so it is released server-side. The
