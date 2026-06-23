@@ -1,0 +1,1 @@
+{"file":"hooks/use_context.md","objects":{"default_price":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"__main__.price_label","props":{"children":{"__dhElemName":"deephaven.ui.components.Text","props":{"children":["USD 9.99"],"slot":"text"}}}},"state":"{}"}}}}

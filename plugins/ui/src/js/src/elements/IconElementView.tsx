@@ -1,6 +1,6 @@
 import { Icon } from '@deephaven/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { getIcon, IconElementNode } from './utils/IconElementUtils';
+import { getIcon, type IconElementNode } from './utils/IconElementUtils';
 import { ELEMENT_KEY } from './utils/ElementUtils';
 
 export type IconElementViewProps = {

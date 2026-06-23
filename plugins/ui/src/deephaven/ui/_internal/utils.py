@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
@@ -835,15 +834,15 @@ def convert_date_for_labeled_value(
     Returns:
         Nanoseconds since epoch as an int or a local date as a str, and timezone identifier as a str if input is a ZonedDateTime.
     """
-    if isinstance(date, DTypeInstant.j_type):
+    if isinstance(date, DTypeInstant.j_type):  # type: ignore[attr-defined]
         return _convert_instant_to_nanos(date)
 
-    if isinstance(date, DTypeZonedDateTime.j_type):
+    if isinstance(date, DTypeZonedDateTime.j_type):  # type: ignore[attr-defined]
         tz = date.getZone()  # type: ignore
         instant = date.toInstant()  # type: ignore
         return (_convert_instant_to_nanos(instant), str(tz) if tz else None)
 
-    if isinstance(date, DTypeLocalDate.j_type):
+    if isinstance(date, DTypeLocalDate.j_type):  # type: ignore[attr-defined]
         return str(date)
 
 

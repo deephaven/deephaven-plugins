@@ -1,13 +1,13 @@
 import { useSelector } from 'react-redux';
 import { isElementOfType } from '@deephaven/react-hooks';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import { ListView as DHListView } from '@deephaven/components';
 import { ListView as DHListViewJSApi } from '@deephaven/jsapi-components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
 import { assertNotNull } from '@deephaven/utils';
 import {
-  SerializedListViewProps,
+  type SerializedListViewProps,
   useListViewProps,
 } from './hooks/useListViewProps';
 import ObjectView from './ObjectView';

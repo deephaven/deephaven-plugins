@@ -1,4 +1,4 @@
-import { ToastQueue, ToastOptions } from '@deephaven/components';
+import { ToastQueue, type ToastOptions } from '@deephaven/components';
 
 export const TOAST_EVENT = 'toast.event';
 

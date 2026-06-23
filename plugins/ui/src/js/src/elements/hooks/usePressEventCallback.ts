@@ -1,4 +1,4 @@
-import { PressEvent } from '@deephaven/components';
+import { type PressEvent } from '@deephaven/components';
 import { getTargetName } from '../utils';
 import useConditionalCallback from './useConditionalCallback';
 

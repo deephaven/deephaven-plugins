@@ -138,6 +138,7 @@ def build_documents() -> int:
         f"cp -r docs/_assets {BUILT_DOCS}/_assets",
         f"[ -d docs/snapshots ] && cp -r docs/snapshots {BUILT_DOCS}/snapshots",
         f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json",
+        f"[ -f CHANGELOG.md ] && cp CHANGELOG.md {BUILT_DOCS}/changelog.md || true",
     ]
 
     code = attempt_command_sequence(commands)

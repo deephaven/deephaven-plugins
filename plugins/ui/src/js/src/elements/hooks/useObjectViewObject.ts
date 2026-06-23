@@ -1,10 +1,12 @@
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import type { dh } from '@deephaven/jsapi-types';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { type WidgetTypes } from '@deephaven/jsapi-bootstrap';
 import ObjectView from '../ObjectView';
 import UriObjectView from '../UriObjectView';
-import useExportedObject, { ResolvedExportedObject } from './useExportedObject';
+import useExportedObject, {
+  type ResolvedExportedObject,
+} from './useExportedObject';
 import UriExportedObject from '../../widget/UriExportedObject';
 
 /**

@@ -1,39 +1,29 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { nanoid } from 'nanoid';
 import {
-  DashboardPluginComponentProps,
+  type DashboardPluginComponentProps,
   LayoutManagerContext,
   LayoutUtils,
   PanelEvent,
   useListener,
   useDashboardPluginData,
-  emitCreateDashboard,
-  WidgetDescriptor,
-  PanelOpenEventDetail,
+  type WidgetDescriptor,
   DEFAULT_DASHBOARD_ID,
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
-import { dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
-import styles from './styles.scss?inline';
 import {
-  ReadonlyWidgetData,
-  WidgetDataUpdate,
-  WidgetId,
+  type ReadonlyWidgetData,
+  type WidgetDataUpdate,
+  type WidgetId,
 } from './widget/WidgetTypes';
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
-import {
-  getPreservedData,
-  DASHBOARD_ELEMENT,
-  WIDGET_ELEMENT,
-} from './widget/WidgetUtils';
-
-const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
+import { usePanelId } from './layout/ReactPanelContext';
+import { DASHBOARD_PLUGIN_NAME } from './UIWidgetPlugin';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
 
@@ -62,13 +52,20 @@ interface WidgetWrapper {
   data?: ReadonlyWidgetData;
 }
 
-export function DashboardPlugin(
+/**
+ * Handle legacy behaviour of an open widget being saved with the dashboard.
+ *
+ * Now UIWidgetPlugin is responsible for opening widgets in the dashboard.
+ * @param props Dashboard plugin props
+ * @returns Dashboard plugin content, which is responsible for handling legacy behaviour of an open widget being saved with the dashboard
+ */
+function InnerDashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
   const { id, layout } = props;
   const [pluginData, setPluginData] = useDashboardPluginData(
     id,
-    PLUGIN_NAME
+    DASHBOARD_PLUGIN_NAME
   ) as unknown as [DashboardPluginData, (data: DashboardPluginData) => void];
   const [initialPluginData] = useState(pluginData);
 
@@ -76,66 +73,6 @@ export function DashboardPlugin(
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<WidgetId, WidgetWrapper>
   >(new Map());
-
-  const handleWidgetOpen = useCallback(
-    ({ widgetId, widget }: { widgetId: string; widget: WidgetDescriptor }) => {
-      log.debug('Opening widget with ID', widgetId, widget);
-      setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map(prevWidgetMap);
-        const oldWidget = newWidgetMap.get(widgetId);
-        newWidgetMap.set(widgetId, {
-          id: widgetId,
-          widget,
-          data: getPreservedData(oldWidget?.data),
-        });
-        return newWidgetMap;
-      });
-    },
-    []
-  );
-
-  const handleDashboardOpen = useCallback(
-    ({
-      widget,
-      dashboardId,
-    }: {
-      widget: WidgetDescriptor;
-      dashboardId: string;
-    }) => {
-      const { name: title } = widget;
-      log.debug('Emitting create dashboard event for', dashboardId, widget);
-      emitCreateDashboard(layout.eventHub, {
-        pluginId: PLUGIN_NAME,
-        title: title ?? 'Untitled',
-        data: { openWidgets: { [dashboardId]: { descriptor: widget } } },
-      });
-    },
-    [layout.eventHub]
-  );
-
-  const handlePanelOpen = useCallback(
-    ({
-      panelId: widgetId = nanoid(),
-      widget,
-    }: PanelOpenEventDetail<dh.Widget>) => {
-      const { type } = widget;
-
-      switch (type) {
-        case WIDGET_ELEMENT: {
-          handleWidgetOpen({ widgetId, widget });
-          break;
-        }
-        case DASHBOARD_ELEMENT: {
-          handleDashboardOpen({ widget, dashboardId: widgetId });
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    },
-    [handleDashboardOpen, handleWidgetOpen]
-  );
 
   useEffect(
     function loadInitialPluginData() {
@@ -202,17 +139,6 @@ export function DashboardPlugin(
     });
   }, []);
 
-  useDashboardPanel({
-    dashboardProps: props,
-    componentName: PortalPanel.displayName,
-    component: PortalPanel,
-
-    // We don't want these panels to be triggered by a widget opening, we want to control how it is opened later
-    supportedTypes: [],
-  });
-
-  // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
-  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const sendPluginDataUpdate = useCallback(
@@ -290,10 +216,41 @@ export function DashboardPlugin(
 
   return (
     <LayoutManagerContext.Provider value={layout}>
-      <style>{styles}</style>
       <PortalPanelManager>{widgetHandlers}</PortalPanelManager>
     </LayoutManagerContext.Provider>
   );
+}
+
+/**
+ * Dashboard plugin that registers the PortalPanel type for deephaven.ui
+ *
+ * It's also responsible for handling legacy behaviour, for old dashboards that may have opened a deephaven.ui widget previously.
+ * @param props Dashboard plugin props
+ * @returns Dashboard plugin
+ */
+export function DashboardPlugin(
+  props: DashboardPluginComponentProps
+): JSX.Element | null {
+  useDashboardPanel({
+    dashboardProps: props,
+    componentName: PortalPanel.displayName,
+    component: PortalPanel,
+
+    // We don't want these panels to be triggered by a widget opening, we want to control how it is opened later
+    supportedTypes: [],
+  });
+
+  const contextPanelId = usePanelId();
+  const isNested = contextPanelId != null;
+  if (isNested) {
+    // We don't want the InnerDashboardPlugin to render in nested dashboards, as we don't want to fetch the dashboard data/handle panel opens in that scenario
+    // It's all already handled by rendering the children.
+    // We just need to register the PortalPanel component in that Dashboard.
+    return null;
+  }
+
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <InnerDashboardPlugin {...props} />;
 }
 
 export default DashboardPlugin;

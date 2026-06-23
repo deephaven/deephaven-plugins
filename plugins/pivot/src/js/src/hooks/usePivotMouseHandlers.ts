@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { MouseHandlersProp } from '@deephaven/iris-grid';
 import PivotColumnGroupMouseHandler from '../PivotColumnGroupMouseHandler';
+import PivotContextMenuHandler from '../PivotContextMenuHandler';
 import PivotSortMouseHandler from '../PivotSortMouseHandler';
 import PivotFilterMouseHandler from '../PivotFilterMouseHandler';
 
@@ -12,6 +13,7 @@ export function usePivotMouseHandlers(): MouseHandlersProp {
   return useMemo(
     () => [
       irisGrid => new PivotColumnGroupMouseHandler(irisGrid),
+      irisGrid => new PivotContextMenuHandler(irisGrid),
       // Filter handler should consume events before sort
       irisGrid => new PivotFilterMouseHandler(irisGrid),
       irisGrid => new PivotSortMouseHandler(irisGrid),

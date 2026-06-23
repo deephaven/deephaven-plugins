@@ -1,9 +1,9 @@
 import {
-  CellClassParams,
-  CellStyle,
-  DataTypeDefinition,
+  type CellClassParams,
+  type CellStyle,
+  type DataTypeDefinition,
 } from 'ag-grid-community';
-import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
+import { type Formatter, TableUtils } from '@deephaven/jsapi-utils';
 import { AgGridCellColors } from './AgGridColors';
 
 export class AgGridFormatter {

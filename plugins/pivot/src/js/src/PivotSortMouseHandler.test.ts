@@ -1,6 +1,6 @@
 import { TestUtils } from '@deephaven/test-utils';
-import { Grid, GridPoint } from '@deephaven/grid';
-import { IrisGridType as IrisGrid } from '@deephaven/iris-grid';
+import { type Grid, type GridPoint } from '@deephaven/grid';
+import { type IrisGridType as IrisGrid } from '@deephaven/iris-grid';
 import PivotSortMouseHandler from './PivotSortMouseHandler';
 import type IrisGridPivotModel from './IrisGridPivotModel';
 import * as IrisGridPivotModelModule from './IrisGridPivotModel';

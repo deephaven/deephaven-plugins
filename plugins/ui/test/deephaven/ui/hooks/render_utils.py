@@ -2,6 +2,8 @@ from __future__ import annotations
 from queue import Queue
 from typing import Any, Callable, TypedDict, Union
 
+from ..test_utils_root import TestRoot
+
 
 class RenderHookResult(TypedDict):
     context: object
@@ -35,7 +37,7 @@ def render_hook(
     if queue is None:
         queue = Queue()
 
-    context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
+    context = RenderContext(TestRoot(queue.put, queue.put))
 
     def _rerender(*args: Any, **kwargs: Any) -> Any:
         while not queue.empty():

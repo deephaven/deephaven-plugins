@@ -1,6 +1,6 @@
 import {
   ColorEditor as DHCColorEditor,
-  ColorEditorProps as DHCColorEditorProps,
+  type ColorEditorProps as DHCColorEditorProps,
 } from '@deephaven/components';
 
 export function ColorEditor(props: DHCColorEditorProps): JSX.Element {

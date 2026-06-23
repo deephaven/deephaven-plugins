@@ -116,6 +116,21 @@ def _table_data(
     return data if is_sentinel or data is None else data.to_dict(orient="list")
 
 
+def first_column_table(table: Table) -> Table:
+    """
+    Filter the table to only have the first column.
+
+    Args:
+        table: The table to filter.
+    Returns:
+        The filtered table.
+    """
+    try:
+        return table.view([table.column_names[0]])
+    except IndexError:
+        raise IndexError("Cannot get table data from a table with no columns")
+
+
 def use_table_data(
     table: Table | None,
     sentinel: Sentinel = None,

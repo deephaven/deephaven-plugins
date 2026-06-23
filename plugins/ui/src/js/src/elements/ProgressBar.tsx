@@ -1,6 +1,6 @@
 import {
   ProgressBar as DHCProgressBar,
-  ProgressBarProps as DHCProgressBarProps,
+  type ProgressBarProps as DHCProgressBarProps,
 } from '@deephaven/components';
 
 export function ProgressBar(props: DHCProgressBarProps): JSX.Element | null {

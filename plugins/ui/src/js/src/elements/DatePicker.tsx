@@ -2,14 +2,18 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DatePicker as DHCDatePicker,
-  DatePickerProps as DHCDatePickerProps,
+  type DatePickerProps as DHCDatePickerProps,
 } from '@deephaven/components';
 import { usePrevious } from '@deephaven/react-hooks';
-import { getSettings, RootState } from '@deephaven/redux';
-import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
+import { getSettings, type RootState } from '@deephaven/redux';
+import {
+  type DateValue,
+  toTimeZone,
+  ZonedDateTime,
+} from '@internationalized/date';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
-  SerializedDateComponentProps,
+  type SerializedDateComponentProps,
   useDateComponentProps,
 } from './hooks/useDateComponentProps';
 import { isStringInstant } from './utils/DateTimeUtils';

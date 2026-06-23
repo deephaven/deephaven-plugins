@@ -1,12 +1,13 @@
-import { ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import {
-  ListViewProps as DHListViewProps,
-  SelectionMode,
+  type ListViewProps as DHListViewProps,
+  type SelectionMode,
 } from '@deephaven/components';
-import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
-import ObjectView, { ObjectViewProps } from '../ObjectView';
+import { type ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
+import { type ObjectViewProps } from '../ObjectView';
+import type ObjectView from '../ObjectView';
 import {
-  SerializedSelectionProps,
+  type SerializedSelectionProps,
   useSelectionProps,
 } from './useSelectionProps';
 

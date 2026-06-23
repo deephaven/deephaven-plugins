@@ -3,7 +3,7 @@ import {
   CalendarDateTime,
   ZonedDateTime,
 } from '@internationalized/date';
-import { WorkspaceSettings } from '@deephaven/redux';
+import { type WorkspaceSettings } from '@deephaven/redux';
 import {
   parseDateValue,
   parseNullableDateValue,

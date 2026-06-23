@@ -1,6 +1,6 @@
 import {
   Image as DHCImage,
-  ImageProps as DHCImageProps,
+  type ImageProps as DHCImageProps,
 } from '@deephaven/components';
 
 type SerializedImageProps = Omit<DHCImageProps, 'onLoad' | 'onError'> & {

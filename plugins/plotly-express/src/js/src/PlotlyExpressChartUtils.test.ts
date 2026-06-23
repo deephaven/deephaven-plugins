@@ -1,7 +1,8 @@
 import { ChartUtils } from '@deephaven/chart';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Formatter } from '@deephaven/jsapi-utils';
-import Plotly, { type Delta } from 'plotly.js';
+import type Plotly from 'plotly.js';
+import { type Delta } from 'plotly.js';
 import { TestUtils } from '@deephaven/test-utils';
 import {
   getPathParts,
@@ -11,7 +12,7 @@ import {
   areSameAxisRange,
   removeColorsFromData,
   getDataMappings,
-  PlotlyChartWidgetData,
+  type PlotlyChartWidgetData,
   getReplaceableWebGlTraceIndices,
   hasUnreplaceableWebGlTraces,
   setWebGlTraceType,
@@ -20,7 +21,7 @@ import {
   replaceValueFormat,
   FORMAT_PREFIX,
   getDataTypeMap,
-  PlotlyChartDeephavenData,
+  type PlotlyChartDeephavenData,
   setDefaultValueFormat,
   convertToPlotlyNumberFormat,
   setRangebreaksFromCalendar,

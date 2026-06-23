@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { useSelector } from 'react-redux';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import {
-  CustomDateFormatOptions,
+  type CustomDateFormatOptions,
   getFormattedDate,
   isCustomDateFormatOptions,
 } from '../utils';
-import { RangeValue } from './useDateRangePickerProps';
+import { type RangeValue } from './useDateRangePickerProps';
 
 export interface SerializedLabeledValuePropsInterface {
   value: number | string | string[] | RangeValue<number> | CustomDateRangeValue;

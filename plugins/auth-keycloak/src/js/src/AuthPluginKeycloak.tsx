@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import Keycloak from 'keycloak-js';
 import {
-  AuthPlugin,
+  type AuthPlugin,
   AuthPluginBase,
-  AuthPluginProps,
+  type AuthPluginProps,
 } from '@deephaven/auth-plugins';
 import { useBroadcastLoginListener } from '@deephaven/jsapi-components';
 import Log from '@deephaven/log';

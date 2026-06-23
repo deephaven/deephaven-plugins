@@ -23,9 +23,10 @@ from ..renderer import NodeEncoder, Renderer, RenderedNode
 from ..renderer.NodeEncoder import CALLABLE_KEY
 from .._internal import (
     RenderContext,
-    StateUpdateCallable,
     ExportedRenderState,
     EventContext,
+    RootRenderContextProtocol,
+    StateUpdateCallable,
 )
 from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
@@ -54,7 +55,7 @@ class _RenderState(Enum):
     """
 
 
-class ElementMessageStream(MessageStream):
+class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     _manager: JSONRPCResponseManager
     """
     Handle incoming requests from the client.
@@ -169,6 +170,9 @@ class ElementMessageStream(MessageStream):
     The last document sent to the client. Used to generate a patch for the next document
     """
 
+    _url: str
+    """The full URL."""
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -185,7 +189,8 @@ class ElementMessageStream(MessageStream):
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder()
         self._event_encoder = EventEncoder(self._serialize_callables)
-        self._context = RenderContext(self._queue_state_update, self._queue_callable)
+        self._url = ""
+        self._context = RenderContext(self)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
         self._update_queue = Queue()
@@ -274,7 +279,7 @@ class ElementMessageStream(MessageStream):
                 self._render_state = _RenderState.QUEUED
                 submit_task("concurrent", self._process_callable_queue)
 
-    def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
+    def on_change(self, state_update: StateUpdateCallable) -> None:
         """
         Queue a state update to be resolved on the next render.
 
@@ -289,7 +294,7 @@ class ElementMessageStream(MessageStream):
         self._update_queue.put(state_update)
         self._mark_dirty()
 
-    def _queue_callable(self, callable: Callable[[], None]) -> None:
+    def on_queue_render(self, callable: StateUpdateCallable) -> None:
         """
         Queue a callable to put on the render queue.
 
@@ -298,6 +303,21 @@ class ElementMessageStream(MessageStream):
         """
         self._callable_queue.put(callable)
         self._queue_render()
+
+    def get_url(self) -> str:
+        """
+        Get the full URL.
+        """
+        return self._url
+
+    def set_url(self, url: str) -> None:
+        """
+        Set the full URL.
+
+        Args:
+            url: The URL to set
+        """
+        self._url = url
 
     def start(self) -> None:
         """
@@ -338,7 +358,7 @@ class ElementMessageStream(MessageStream):
             self._connection.on_data(response_payload.encode(), [])
 
         # Queue up handling of all incoming messages from the client onto the render thread
-        self._queue_callable(handle_message)
+        self.on_queue_render(handle_message)
 
     def _get_next_message_id(self) -> int:
         """
@@ -382,19 +402,40 @@ class ElementMessageStream(MessageStream):
     def _make_dispatcher(self) -> Dispatcher:
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
+        dispatcher["setUrlState"] = self._set_url_state
         dispatcher["callCallable"] = self._call_callable
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
 
-    def _set_state(self, state: ExportedRenderState) -> None:
+    def _set_state(
+        self, state: ExportedRenderState, app_state: dict[str, Any] | None = None
+    ) -> None:
         """
         Set the state of the element. This is called by the client on initial load.
 
         Args:
-            state: The state to set
+            state: The component state to set.
+            app_state: Application-level state (e.g. url). Sent atomically with
+                component state to prevent inconsistencies on initialization.
         """
-        logger.debug("Setting state: %s", state)
+        logger.debug("Setting state: %s, app_state: %s", state, app_state)
+        if app_state is not None:
+            url = app_state.get("url")
+            if url is not None:
+                self.set_url(url)
         self._context.import_state(state)
+        self._mark_dirty()
+
+    def _set_url_state(self, url: str) -> None:
+        """
+        Update the URL state. Called by the client after a client-side
+        navigation so that the component re-renders with updated URL state.
+
+        Args:
+            url: The full URL string.
+        """
+        logger.debug("Setting URL state: %s", url)
+        self.set_url(url)
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:

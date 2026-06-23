@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   deephaven-plugins:
     container_name: deephaven-plugins
@@ -27,6 +25,7 @@ services:
     volumes:
       - ../tests:/work/tests
       - ../test-results:/work/test-results
+      - ../blob-report:/work/blob-report
       - ../playwright-report:/work/playwright-report
       - ../plugins:/work/plugins
     entrypoint: 'npx playwright test --config=playwright-docker.config.ts'

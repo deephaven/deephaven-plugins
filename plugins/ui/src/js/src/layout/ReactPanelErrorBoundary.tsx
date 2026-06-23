@@ -1,5 +1,5 @@
 import Log from '@deephaven/log';
-import React, { Component, ReactNode } from 'react';
+import React, { Component, type ReactNode } from 'react';
 import memoizee from 'memoizee';
 import WidgetErrorView from '../widget/WidgetErrorView';
 import { type WidgetError } from '../widget/WidgetTypes';

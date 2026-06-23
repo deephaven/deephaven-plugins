@@ -1,9 +1,9 @@
 import {
   ActionGroup as DHActionGroup,
-  ActionGroupProps as DHActionGroupProps,
+  type ActionGroupProps as DHActionGroupProps,
 } from '@deephaven/components';
 import {
-  SerializedSelectionProps,
+  type SerializedSelectionProps,
   useSelectionProps,
 } from './hooks/useSelectionProps';
 

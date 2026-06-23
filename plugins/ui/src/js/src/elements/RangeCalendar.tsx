@@ -1,14 +1,14 @@
 import React from 'react';
 import {
   RangeCalendar as DHCRangeCalendar,
-  RangeCalendarProps as DHCRangeCalendarProps,
+  type RangeCalendarProps as DHCRangeCalendarProps,
 } from '@deephaven/components';
-import { DateValue } from '@internationalized/date';
+import { type DateValue } from '@internationalized/date';
 import {
-  SerializedRangeCalendarProps,
+  type SerializedRangeCalendarProps,
   useRangeCalendarProps,
 } from './hooks/useRangeCalendarProps';
-import { RangeValue } from './hooks';
+import { type RangeValue } from './hooks';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 
 const EMPTY_FUNCTION = () => undefined;

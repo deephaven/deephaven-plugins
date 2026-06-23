@@ -1,9 +1,9 @@
 import {
-  DateValue,
-  CalendarDate,
+  type DateValue,
+  type CalendarDate,
   CalendarDateTime,
-  ZonedDateTime,
-  Time,
+  type ZonedDateTime,
+  type Time,
   parseDate,
   parseDateTime,
   parseZonedDateTime,
@@ -11,7 +11,7 @@ import {
   toTimeZone,
 } from '@internationalized/date';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { WorkspaceSettings } from '@deephaven/redux';
+import { type WorkspaceSettings } from '@deephaven/redux';
 
 export type MappedDateValue<T> = T extends ZonedDateTime
   ? ZonedDateTime

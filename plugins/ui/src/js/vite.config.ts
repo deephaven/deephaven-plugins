@@ -31,7 +31,10 @@ export default defineConfig(({ mode }) => ({
       ],
     },
   },
-  define:
-    mode === 'production' ? { 'process.env.NODE_ENV': '"production"' } : {},
+  define: {
+    ...(mode === 'production'
+      ? { 'process.env.NODE_ENV': '"production"' }
+      : {}),
+  },
   plugins: [react()],
 }));

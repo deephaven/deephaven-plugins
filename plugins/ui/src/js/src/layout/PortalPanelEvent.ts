@@ -1,4 +1,4 @@
-import { DashboardPanelProps } from '@deephaven/dashboard';
+import { type DashboardPanelProps } from '@deephaven/dashboard';
 import { useEffect } from 'react';
 
 /**

@@ -20,11 +20,11 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 
 def logic_button(
-    *children: Any,
+    *children: NodeType,
     variant: str | None = None,
     is_disabled: bool | None = None,
     auto_focus: bool | None = None,

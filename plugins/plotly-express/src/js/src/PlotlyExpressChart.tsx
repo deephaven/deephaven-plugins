@@ -46,7 +46,6 @@ export function PlotlyExpressChart(
       containerRef={containerRef}
       model={model}
       settings={settings}
-      // @ts-expect-error https://github.com/DefinitelyTyped/DefinitelyTyped/discussions/72099
       Plotly={Plotly}
     />
   ) : null;

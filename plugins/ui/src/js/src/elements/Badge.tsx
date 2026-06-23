@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Badge as DHCBadge,
-  BadgeProps as DHCBadgeProps,
+  type BadgeProps as DHCBadgeProps,
 } from '@deephaven/components';
 import { wrapTextChildren } from './utils';
 

@@ -359,6 +359,10 @@
                 "path": "components/range_slider.md"
               },
               {
+                "label": "route",
+                "path": "components/router.md"
+              },
+              {
                 "label": "search_field",
                 "path": "components/search_field.md"
               },
@@ -440,6 +444,10 @@
                 "path": "hooks/use_column_data.md"
               },
               {
+                "label": "use_context",
+                "path": "hooks/use_context.md"
+              },
+              {
                 "label": "use_effect",
                 "path": "hooks/use_effect.md"
               },
@@ -450,6 +458,26 @@
               {
                 "label": "use_memo",
                 "path": "hooks/use_memo.md"
+              },
+              {
+                "label": "use_navigate",
+                "path": "hooks/use_navigate.md"
+              },
+              {
+                "label": "use_params",
+                "path": "hooks/use_params.md"
+              },
+              {
+                "label": "use_path",
+                "path": "hooks/use_path.md"
+              },
+              {
+                "label": "use_query_param",
+                "path": "hooks/use_query_param.md"
+              },
+              {
+                "label": "use_query_params",
+                "path": "hooks/use_query_params.md"
               },
               {
                 "label": "use_ref",
@@ -468,6 +496,10 @@
                 "path": "hooks/use_row_list.md"
               },
               {
+                "label": "use_set_query_param",
+                "path": "hooks/use_set_query_param.md"
+              },
+              {
                 "label": "use_state",
                 "path": "hooks/use_state.md"
               },
@@ -478,10 +510,18 @@
               {
                 "label": "use_table_listener",
                 "path": "hooks/use_table_listener.md"
+              },
+              {
+                "label": "use_url_components",
+                "path": "hooks/use_url_components.md"
               }
             ]
           }
         ]
+      },
+      {
+        "label": "Changelog",
+        "path": "changelog.md"
       }
     ]
   }

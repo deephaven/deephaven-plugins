@@ -7,7 +7,7 @@ import {
   ELEMENT_PREFIX,
 } from '../elements/model/ElementConstants';
 import {
-  ElementNode,
+  type ElementNode,
   ELEMENT_KEY,
   CALLABLE_KEY,
 } from '../elements/utils/ElementUtils';

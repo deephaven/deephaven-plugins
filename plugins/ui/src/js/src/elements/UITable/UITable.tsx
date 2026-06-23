@@ -8,14 +8,14 @@ import React, {
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
-  DehydratedQuickFilter,
+  type DehydratedQuickFilter,
   IrisGrid,
   type IrisGridType,
   type IrisGridContextMenuData,
-  IrisGridProps,
+  type IrisGridProps,
   IrisGridUtils,
   IrisGridCacheUtils,
-  IrisGridState,
+  type IrisGridState,
   type DehydratedIrisGridState,
   type DehydratedGridState,
 } from '@deephaven/iris-grid';
@@ -34,28 +34,35 @@ import {
   useGridLinker,
   useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
-import { useLayoutManager, useListener } from '@deephaven/dashboard';
+import {
+  useLayoutManager,
+  useListener,
+  usePersistentState,
+} from '@deephaven/dashboard';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler, GridRange, GridState } from '@deephaven/grid';
+import { getSettings, type RootState } from '@deephaven/redux';
+import {
+  type GridMouseHandler,
+  type GridRange,
+  type GridState,
+} from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
-import { usePersistentState } from '@deephaven/plugin';
 import {
-  DatabarConfig,
-  FormattingRule,
+  type FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
-  UITableProps,
+  type UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
-  ResolvableUIContextItem,
+  type ResolvableUIContextItem,
   wrapContextActions,
 } from './UITableContextMenuHandler';
-import UITableModel, { makeUiTableModel } from './UITableModel';
-import { UITableLayoutHints } from './JsTableProxy';
+import type UITableModel from './UITableModel';
+import { makeUiTableModel } from './UITableModel';
+import { type UITableLayoutHints } from './JsTableProxy';
 import { useExportedObject } from '../hooks';
 import WidgetErrorView from '../../widget/WidgetErrorView';
 
@@ -91,15 +98,13 @@ function useThrowError(): [
 
 function useUITableModel({
   dh,
-  databars,
   table,
   layoutHints,
   format,
   columnDisplayNames,
 }: {
   dh: typeof DhType | null;
-  databars: DatabarConfig[];
-  table: DhType.Table | null;
+  table: DhType.Table | DhType.TreeTable | null;
   layoutHints: UITableLayoutHints;
   format: FormattingRule[];
   columnDisplayNames: Record<string, string>;
@@ -118,7 +123,6 @@ function useUITableModel({
         const newModel = await makeUiTableModel(
           dh,
           table,
-          databars,
           layoutHints,
           format,
           columnDisplayNames
@@ -142,7 +146,6 @@ function useUITableModel({
       isCancelled = true;
     };
   }, [
-    databars,
     dh,
     table,
     layoutHints,
@@ -186,8 +189,6 @@ export function UITable({
   density,
   contextMenu = EMPTY_ARRAY as unknown as ResolvableUIContextItem[],
   contextHeaderMenu,
-  // TODO: #981 move databars to format and rewire for databar support
-  databars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
@@ -232,7 +233,7 @@ export function UITable({
     api: dh,
     isLoading,
     error,
-  } = useExportedObject<DhType.Table>(exportedTable);
+  } = useExportedObject<DhType.Table | DhType.TreeTable>(exportedTable);
 
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
@@ -254,27 +255,46 @@ export function UITable({
   );
 
   const colorMap = useMemo(() => {
-    log.debug('Theme changed, updating databar color map', theme);
+    log.debug('Theme changed, updating color map', theme);
     const colorSet = new Set<string>();
-    databars?.forEach(databar => {
-      const { color, markers } = databar;
-      if (color != null) {
-        if (typeof color === 'string' || Array.isArray(color)) {
-          [color].flat().forEach(c => colorSet.add(c));
-        } else {
-          if (color.positive != null) {
-            [color.positive].flat().forEach(c => colorSet.add(c));
-          }
 
-          if (color.negative != null) {
-            [color.negative].flat().forEach(c => colorSet.add(c));
+    format.forEach(rule => {
+      const { mode } = rule;
+      if (mode?.type === 'dataBar') {
+        const { color, markers } = mode;
+        if (color != null) {
+          if (typeof color === 'string' || Array.isArray(color)) {
+            [color].flat().forEach(c => colorSet.add(c));
+          } else {
+            if (color.positive != null) {
+              [color.positive].flat().forEach(c => colorSet.add(c));
+            }
+
+            if (color.negative != null) {
+              [color.negative].flat().forEach(c => colorSet.add(c));
+            }
           }
         }
+
+        markers?.forEach(marker => {
+          if (marker.color != null) {
+            colorSet.add(marker.color);
+          }
+        });
       }
 
-      markers?.forEach(marker => {
-        if (marker.color != null) {
-          colorSet.add(marker.color);
+      [rule.color, rule.background_color].forEach(config => {
+        if (
+          config != null &&
+          typeof config !== 'string' &&
+          config.type === 'heatmap'
+        ) {
+          const { gradient } = config;
+          if (Array.isArray(gradient)) {
+            gradient.forEach(c => {
+              colorSet.add(typeof c === 'string' ? c : c[1]);
+            });
+          }
         }
       });
     });
@@ -293,11 +313,10 @@ export function UITable({
       newColorMap.set(key, value);
     });
     return newColorMap;
-  }, [theme, databars]);
+  }, [theme, format]);
 
   const model = useUITableModel({
     dh,
-    databars,
     table,
     layoutHints,
     format,

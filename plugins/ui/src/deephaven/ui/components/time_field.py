@@ -27,7 +27,7 @@ from .._internal.utils import (
 )
 from ..types import Time, TimeGranularity, Undefined, UndefinedType
 from .basic import component_element
-from .make_component import make_component
+from .component import component
 
 TimeFieldElement = Element
 
@@ -70,7 +70,7 @@ def _convert_time_field_props(
     return props
 
 
-@make_component
+@component
 def time_field(
     placeholder_value: Time | None = None,
     value: Time | None | UndefinedType = Undefined,

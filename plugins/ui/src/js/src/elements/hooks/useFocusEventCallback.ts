@@ -1,4 +1,4 @@
-import { FocusEvent } from 'react';
+import { type FocusEvent } from 'react';
 import { getTargetName } from '../utils';
 import useConditionalCallback from './useConditionalCallback';
 
@@ -6,10 +6,16 @@ export function serializeFocusEvent(event: FocusEvent): SerializedFocusEvent {
   const { relatedTarget, target, type } = event;
   const targetName = getTargetName(target);
   const relatedTargetName = getTargetName(relatedTarget);
+  // For form controls, expose the current value of the input element so the
+  // server can read what the user has typed when focus/blur fires.
+  const valueTarget = target as Partial<HTMLInputElement> | null;
+  const value =
+    typeof valueTarget?.value === 'string' ? valueTarget.value : undefined;
   return {
     type,
     target: targetName ?? undefined,
     relatedTarget: relatedTargetName ?? undefined,
+    value,
   };
 }
 
@@ -21,6 +27,11 @@ export type SerializedFocusEvent = {
   target?: string;
   relatedTarget?: string;
   type: string;
+  /**
+   * The current `value` of the underlying input element, when available
+   * (e.g. for text fields, text areas, search fields, number fields).
+   */
+  value?: string;
 };
 
 export type SerializedFocusEventCallback = (

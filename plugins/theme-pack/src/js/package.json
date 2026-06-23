@@ -11,7 +11,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/plugin": "^1.6.0"
+    "@deephaven/plugin": "^1.18.0"
   },
   "publishConfig": {
     "access": "public"

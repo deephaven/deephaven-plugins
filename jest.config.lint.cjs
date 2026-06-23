@@ -1,4 +1,5 @@
 module.exports = {
+  maxWorkers: '50%',
   watchPlugins: ['jest-runner-eslint/watch-fix'],
   projects: [
     {

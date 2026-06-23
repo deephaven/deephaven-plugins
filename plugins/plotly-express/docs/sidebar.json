@@ -180,6 +180,10 @@
       {
         "label": "Example Data",
         "path": "example-data.md"
+      },
+      {
+        "label": "Changelog",
+        "path": "changelog.md"
       }
     ]
   }

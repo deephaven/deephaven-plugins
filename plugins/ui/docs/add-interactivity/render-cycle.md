@@ -64,7 +64,7 @@ After you trigger a render, `deephaven.ui` runs the component functions and then
 
 This process is recursive: if the updated component returns some other component, `deephaven.ui` will render that component next, and if that component also returns something, it will render that component next, and so on. The process will continue until there are no more nested components.
 
-> [!Note]
+> [!NOTE]
 > In the current implementation, when any state changes in a component tree, **all components re-render from the root down to the leaf nodes**. This means if a child component's state updates, the parent and all siblings will also re-render. While this ensures consistency, it's important to use `ui.use_memo` for expensive calculations to avoid re-computing values unnecessarily on every render.
 
 Rendering must always be a [pure](../describing/pure_components.md) calculation:

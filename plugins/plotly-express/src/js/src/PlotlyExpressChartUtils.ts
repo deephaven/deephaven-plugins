@@ -9,7 +9,7 @@ import {
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
-import { Formatter } from '@deephaven/jsapi-utils';
+import { type Formatter } from '@deephaven/jsapi-utils';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.

@@ -48,7 +48,7 @@ from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .list_view import list_view
 from .logic_button import logic_button
-from .make_component import make_component as component
+from .component import component
 from .markdown import markdown
 from .menu import menu
 from .menu_trigger import menu_trigger
@@ -72,7 +72,7 @@ from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
-from .table import table, TableAgg, TableDatabar, TableFormat
+from .table import table, TableAgg, TableDatabar, TableFormat, TableHeatmap
 from .tabs import tabs
 from .tag_group import tag_group
 from .text import text
@@ -82,6 +82,8 @@ from .time_field import time_field
 from .toast import toast
 from .toggle_button import toggle_button
 from .view import view
+from .route import route
+from .router import router
 
 from . import html
 
@@ -150,6 +152,8 @@ __all__ = [
     "radio_group",
     "range_calendar",
     "range_slider",
+    "route",
+    "router",
     "row",
     "search_field",
     "section",
@@ -161,6 +165,7 @@ __all__ = [
     "TableAgg",
     "TableDatabar",
     "TableFormat",
+    "TableHeatmap",
     "tab_list",
     "tab_panels",
     "tabs",

@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { vsRefresh } from '@deephaven/icons';
 import Log from '@deephaven/log';
-import { WidgetComponentProps } from '@deephaven/plugin';
+import { type WidgetComponentProps } from '@deephaven/plugin';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   ActionButton,

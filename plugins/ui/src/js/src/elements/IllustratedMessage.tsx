@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   IllustratedMessage as DHCIllustratedMessage,
-  IllustratedMessageProps as DHCIllustratedMessageProps,
+  type IllustratedMessageProps as DHCIllustratedMessageProps,
   Icon,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';

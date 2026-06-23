@@ -6,14 +6,17 @@ import type {
 } from '@deephaven/golden-layout';
 import {
   ELEMENT_KEY,
-  ElementNode,
+  type ElementNode,
   isElementNode,
 } from '../elements/utils/ElementUtils';
 import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import { ElementName, ELEMENT_NAME } from '../elements/model/ElementConstants';
+import {
+  type ElementName,
+  ELEMENT_NAME,
+} from '../elements/model/ElementConstants';
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
@@ -118,6 +121,13 @@ export type DashboardElementProps = React.PropsWithChildren<
 >;
 
 /**
+ * Elements rendered via deephaven.ui will have a unique element assigned to them.
+ */
+export type ElementIdProps = {
+  __dhId?: string;
+};
+
+/**
  * Describes a dashboard element that can be rendered in the UI.
  */
 export type DashboardElementNode = ElementNode<
@@ -153,6 +163,10 @@ export function isDashboardElementNode(
 export function normalizeDashboardChildren(
   children: React.ReactNode
 ): React.ReactNode {
+  if (children == null) {
+    return null;
+  }
+
   const needsWrapper = Children.count(children) > 1;
   const hasRows = Children.toArray(children).some(
     child => isValidElement(child) && child.type === Row

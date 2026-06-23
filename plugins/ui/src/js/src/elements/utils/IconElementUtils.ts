@@ -1,6 +1,6 @@
 import * as icons from '@deephaven/icons';
-import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
+import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
+import { ELEMENT_KEY, type ElementNode, isElementNode } from './ElementUtils';
 
 /**
  * Describes an icon element that can be rendered in the UI.

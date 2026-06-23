@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Dialog as DHCDialog,
-  DialogProps as DHCDialogProps,
+  type DialogProps as DHCDialogProps,
 } from '@deephaven/components';
 import useConditionalCallback from './hooks/useConditionalCallback';
 

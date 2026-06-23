@@ -1,7 +1,7 @@
-import React from 'react';
-import { SerializedFocusEventCallback } from '../hooks/useFocusEventCallback';
-import { SerializedKeyboardEventCallback } from '../hooks/useKeyboardEventCallback';
-import { SerializedPressEventCallback } from '../hooks/usePressEventCallback';
+import type React from 'react';
+import { type SerializedFocusEventCallback } from '../hooks/useFocusEventCallback';
+import { type SerializedKeyboardEventCallback } from '../hooks/useKeyboardEventCallback';
+import { type SerializedPressEventCallback } from '../hooks/usePressEventCallback';
 
 export type SerializedFocusEventProps<T> = Omit<T, 'onFocus' | 'onBlur'> & {
   /** Handler that is called when the element receives focus. */

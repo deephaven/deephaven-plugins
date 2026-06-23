@@ -5,6 +5,7 @@ import pandas as pd
 
 from deephaven.table import Table
 
+from .use_memo import use_memo
 from .use_table_data import use_table_data
 from ..types import Sentinel
 
@@ -33,7 +34,7 @@ def use_row_list(
     table: Table | None, sentinel: Sentinel = None
 ) -> list[Any] | Sentinel | None:
     """
-    Return the first row of the table as a list. The table should already be filtered to only have a single row.
+    Return the first row of the table as a list. The first row of the table will be returned as a list.
 
     Args:
         table: The table to extract the row from.
@@ -42,4 +43,5 @@ def use_row_list(
     Returns:
         The first row of the table as a list or the sentinel value.
     """
-    return use_table_data(table, sentinel, _row_list)
+    filtered_table = use_memo(lambda: None if table is None else table.head(1), [table])
+    return use_table_data(filtered_table, sentinel, _row_list)

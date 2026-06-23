@@ -1,15 +1,18 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import { createFormatterFromSettings, Settings } from '@deephaven/jsapi-utils';
 import {
-  ColDef,
-  GridReadyEvent,
-  GridApi,
-  GridSizeChangedEvent,
-  FirstDataRenderedEvent,
-  GetRowIdParams,
+  createFormatterFromSettings,
+  type Settings,
+} from '@deephaven/jsapi-utils';
+import {
+  type ColDef,
+  type GridReadyEvent,
+  type GridApi,
+  type GridSizeChangedEvent,
+  type FirstDataRenderedEvent,
+  type GetRowIdParams,
 } from 'ag-grid-community';
-import { AgGridReact, AgGridReactProps } from 'ag-grid-react';
+import { AgGridReact, type AgGridReactProps } from 'ag-grid-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AgGridFormatter,
@@ -20,10 +23,10 @@ import {
   isTable,
   toGroupKeyString,
   TREE_NODE_KEY,
-  TreeNode,
+  type TreeNode,
 } from '../utils';
 import { DeephavenViewportDatasource } from '../datasources';
-import { AgGridTableType } from '../types';
+import { type AgGridTableType } from '../types';
 
 export type AgGridViewProps = {
   /** Table to be displayed */

@@ -1,9 +1,9 @@
 import {
   RadioGroup as DHRadioGroup,
-  RadioGroupProps as DHRadioGroupProps,
-  Orientation,
+  type RadioGroupProps as DHRadioGroupProps,
+  type Orientation,
 } from '@deephaven/components';
-import { SerializedFocusEventProps } from './model/SerializedPropTypes';
+import { type SerializedFocusEventProps } from './model/SerializedPropTypes';
 import { useFocusEventCallback } from './hooks/useFocusEventCallback';
 
 export type SerializedRadioGroupProps = Omit<

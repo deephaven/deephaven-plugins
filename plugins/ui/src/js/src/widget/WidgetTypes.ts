@@ -14,7 +14,7 @@ export type WidgetFetch = (takeOwnership?: boolean) => Promise<dh.Widget>;
 
 export type WidgetData = {
   /** Panel IDs that are opened by this widget */
-  panelIds?: string[];
+  panelIds?: readonly string[];
 
   /** State of the widget on the Python side */
   state?: Record<string, unknown>;

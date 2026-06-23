@@ -1,6 +1,7 @@
 export * from './DateTimeUtils';
 export * from './ElementUtils';
 export * from './EventUtils';
+export * from './HeatmapUtils';
 export * from './HTMLElementUtils';
 export * from './IconElementUtils';
 export * from '../UITable/UITableMouseHandler';

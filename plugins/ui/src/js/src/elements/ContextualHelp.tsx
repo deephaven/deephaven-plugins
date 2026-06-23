@@ -1,12 +1,12 @@
 import {
   ContextualHelp as DHCContextualHelp,
-  ContextualHelpProps as DHCContextualHelpProps,
+  type ContextualHelpProps as DHCContextualHelpProps,
   Heading,
   Content,
   Footer,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 export type SerializedContextualHelpProps = Omit<
   DHCContextualHelpProps,

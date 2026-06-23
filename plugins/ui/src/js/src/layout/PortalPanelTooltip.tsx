@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardPanelProps } from '@deephaven/dashboard';
+import { type DashboardPanelProps } from '@deephaven/dashboard';
 import { WidgetPanelTooltip } from '@deephaven/dashboard-core-plugins';
 
 type PortalPanelTooltipProps = {

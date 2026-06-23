@@ -1,6 +1,6 @@
 import {
   ProgressCircle as DHCProgressCircle,
-  ProgressCircleProps as DHCProgressCircleProps,
+  type ProgressCircleProps as DHCProgressCircleProps,
 } from '@deephaven/components';
 
 export function ProgressCircle(

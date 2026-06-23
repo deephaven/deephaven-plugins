@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## pivot-v0.4.0 - 2026-04-10
+#### Bug Fixes
+- DH-21744: Fix Advanced Filters in Pivots (#1308) - (64fb83a) - vbabich
+#### Features
+- DH-21183: Add Context Menu on Pivot ColumnBy sources (#1327) - (f53e40c) - vbabich
+
+- - -
+
+## pivot-v0.3.2 - 2026-03-03
+#### Bug Fixes
+- DH-21746: Fix ExpandAll/CollapseAll CCE (#1310) - (aa87e2d) - vbabich
+
+- - -
+
+## pivot-v0.3.1 - 2026-02-19
+#### Bug Fixes
+- DH-21704: Fix formatting for mixed key types in the Group column (#1306) - (6d70c5c) - vbabich
+
+- - -
+
 ## pivot-v0.3.0 - 2026-02-06
 #### Features
 - Pivot filter UI (#1278) - (3a22a9b) - vbabich

@@ -67,6 +67,11 @@
       "prefixItems": [{ "type": "object" }],
       "items": false
     },
+    "setUrlStateParams": {
+      "type": "array",
+      "prefixItems": [{ "type": "object" }],
+      "items": false
+    },
     "callCallableParams": {
       "type": "array",
       "prefixItems": [{ "type": "string" }, { "type": "array" }],
@@ -88,6 +93,7 @@
             "documentUpdated",
             "documentError",
             "setState",
+            "setUrlState",
             "callCallable",
             "closeCallable"
           ]
@@ -128,6 +134,18 @@
         "then": {
           "properties": {
             "params": { "$ref": "#/defs/setStateParams" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "method": { "const": "setUrlState" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": { "$ref": "#/defs/setUrlStateParams" }
           }
         }
       },

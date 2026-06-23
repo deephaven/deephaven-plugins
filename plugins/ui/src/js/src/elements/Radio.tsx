@@ -1,10 +1,10 @@
 import {
   Radio as DHRadio,
-  RadioProps as DHRadioProps,
+  type RadioProps as DHRadioProps,
 } from '@deephaven/components';
 import {
-  SerializedFocusEventProps,
-  SerializedKeyboardEventProps,
+  type SerializedFocusEventProps,
+  type SerializedKeyboardEventProps,
 } from './model/SerializedPropTypes';
 import { useFocusEventCallback } from './hooks/useFocusEventCallback';
 import { useKeyboardEventCallback } from './hooks/useKeyboardEventCallback';

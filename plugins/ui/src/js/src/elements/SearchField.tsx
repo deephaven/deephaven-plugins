@@ -1,6 +1,7 @@
+import { type FocusEvent, useCallback, useState } from 'react';
 import {
   SearchField as DHCSearchField,
-  SearchFieldProps as DHCSearchFieldProps,
+  type SearchFieldProps as DHCSearchFieldProps,
 } from '@deephaven/components';
 import {
   useConditionalCallback,
@@ -8,7 +9,7 @@ import {
   useKeyboardEventCallback,
 } from './hooks';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
-import { SerializedTextInputEventProps } from './model';
+import { type SerializedTextInputEventProps } from './model';
 
 export function SearchField(
   props: SerializedTextInputEventProps<DHCSearchFieldProps, string> & {
@@ -54,13 +55,31 @@ export function SearchField(
     [propOnFocusChange]
   );
 
-  const [value, onChange] = useDebouncedOnChange(
-    propValue ?? defaultValue,
-    propOnChange
+  // Track focus locally so we can avoid replacing the value out from under the
+  // user while they are typing (see useDebouncedOnChange).
+  const [isFocused, setIsFocused] = useState(false);
+  const serializedOnFocus = useFocusEventCallback(propOnFocus);
+  const serializedOnBlur = useFocusEventCallback(propOnBlur);
+  const onFocus = useCallback(
+    (e: FocusEvent) => {
+      setIsFocused(true);
+      serializedOnFocus?.(e);
+    },
+    [serializedOnFocus]
+  );
+  const onBlur = useCallback(
+    (e: FocusEvent) => {
+      setIsFocused(false);
+      serializedOnBlur?.(e);
+    },
+    [serializedOnBlur]
   );
 
-  const onFocus = useFocusEventCallback(propOnFocus);
-  const onBlur = useFocusEventCallback(propOnBlur);
+  const [value, onChange] = useDebouncedOnChange(
+    propValue ?? defaultValue,
+    propOnChange,
+    isFocused
+  );
 
   const onKeyDown = useKeyboardEventCallback(propOnKeyDown);
   const onKeyUp = useKeyboardEventCallback(propOnKeyUp);

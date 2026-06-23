@@ -1,20 +1,20 @@
 import { useSelector } from 'react-redux';
 import {
   ComboBox as DHComboBox,
-  ComboBoxProps as DHComboBoxProps,
+  type ComboBoxProps as DHComboBoxProps,
 } from '@deephaven/components';
 import {
   ComboBox as DHComboBoxJSApi,
-  ComboBoxProps as DHComboBoxJSApiProps,
+  type ComboBoxProps as DHComboBoxJSApiProps,
 } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import {
-  SerializedPickerProps,
+  type SerializedPickerProps,
   usePickerProps,
-  WrappedDHPickerJSApiProps,
+  type WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
 import { useObjectViewObject } from './hooks/useObjectViewObject';

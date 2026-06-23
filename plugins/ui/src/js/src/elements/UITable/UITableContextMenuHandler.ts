@@ -1,20 +1,24 @@
-import { GridPoint, ModelIndex } from '@deephaven/grid';
+import { type GridPoint, type ModelIndex } from '@deephaven/grid';
 import type {
   ContextAction,
   ResolvableContextAction,
 } from '@deephaven/components';
 import {
   type IrisGridContextMenuData,
-  IrisGridModel,
-  IrisGridType,
+  type IrisGridModel,
+  type IrisGridType,
   IrisGridContextMenuHandler,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
 import { ensureArray } from '@deephaven/utils';
-import { getRowDataMap, RowDataMap, type UITableProps } from './UITableUtils';
+import {
+  getRowDataMap,
+  type RowDataMap,
+  type UITableProps,
+} from './UITableUtils';
 import { getIcon } from '../utils/IconElementUtils';
-import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
+import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
 
 interface UIContextItemParams {
   value: unknown;

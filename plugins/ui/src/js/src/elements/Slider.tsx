@@ -1,9 +1,9 @@
 import {
   Slider as DHCSlider,
-  SliderProps as DHCSliderProps,
+  type SliderProps as DHCSliderProps,
 } from '@deephaven/components';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
-import { SerializedInputElementProps } from './model';
+import { type SerializedInputElementProps } from './model';
 
 export type SerializedSliderProps = SerializedInputElementProps<
   DHCSliderProps,

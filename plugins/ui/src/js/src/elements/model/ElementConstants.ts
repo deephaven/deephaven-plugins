@@ -1,4 +1,4 @@
-import { ReactHTML } from 'react';
+import { type ReactHTML } from 'react';
 import type * as icons from '@deephaven/icons';
 
 /** Namespaces */

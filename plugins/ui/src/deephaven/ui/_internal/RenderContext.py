@@ -21,19 +21,14 @@ from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
 from .NoContextException import NoContextException
+from .RootRenderContextProtocol import RootRenderContextProtocol, StateUpdateCallable
 
 logger = logging.getLogger(__name__)
-
-StateUpdateCallable = Callable[[], None]
-"""
-A callable that updates the state. Used to queue up state changes.
-"""
 
 OnChangeCallable = Callable[[StateUpdateCallable], None]
 """
 Callable that is called when there is a change in the context (setting the state).
 """
-
 
 StateKey = int
 """
@@ -112,7 +107,7 @@ def _value_or_call(
     return ValueWithLiveness(value=value, liveness_scope=None)
 
 
-def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
+def _should_retain_value(value: ValueWithLiveness[Any]) -> bool:
     """
     Determine if the given value should be retained by the current context.
 
@@ -126,6 +121,36 @@ def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
 
 
 _local_data = threading.local()
+
+
+def _get_context_stacks() -> dict:
+    """
+    Get the thread-local dictionary mapping Context objects to their value stacks.
+
+    Returns:
+        A dict mapping Context instances to their list of pushed values.
+    """
+    try:
+        return _local_data.context_stacks
+    except AttributeError:
+        _local_data.context_stacks = {}
+        return _local_data.context_stacks
+
+
+def _get_context_stack(ctx: object) -> list:
+    """
+    Get or create the value stack for a specific Context on the current thread.
+
+    Args:
+        ctx: The Context instance whose stack to retrieve.
+
+    Returns:
+        The list used as the value stack for *ctx* on this thread.
+    """
+    stacks = _get_context_stacks()
+    if ctx not in stacks:
+        stacks[ctx] = []
+    return stacks[ctx]
 
 
 def get_context() -> RenderContext:
@@ -181,9 +206,9 @@ class RenderContext:
     The child contexts for this context. 
     """
 
-    _on_change: OnChangeCallable
+    _root: RootRenderContextProtocol
     """
-    The on_change callback to call when the context changes.
+    The root render context protocol that provides access to shared context callbacks and variables. Passed down to all child contexts.
     """
 
     _top_level_scope: LivenessScope | None
@@ -216,30 +241,36 @@ class RenderContext:
     representing the new rendered state.
     """
 
+    _open_context_cleanups: List[Callable[[], None]]
+    """
+    Cleanup callbacks registered during the current open() call. Executed in reverse order
+    after the yield (after children have rendered) but before restoring the old context.
+    Used by ContextProviderElement to pop context values after child rendering.
+    """
+
     _is_mounted: bool
     """
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
-    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
+    def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
 
         Args:
-            on_change: The callback to call when the state in the context has changes.
-            on_queue_render: The callback to call when work is being requested for the render loop.
+            root: The root protocol that provides access to shared context callbacks and variables.
         """
 
         self._hook_index = _READY_TO_OPEN
         self._hook_count = -1
         self._state = {}
         self._children_context = {}
-        self._on_change = on_change
-        self._on_queue_render = on_queue_render
+        self._root = root
         self._collected_scopes = set()
         self._collected_effects = []
         self._collected_unmount_listeners = []
         self._collected_contexts = []
+        self._open_context_cleanups = []
         self._top_level_scope = None
         self._is_mounted = True
 
@@ -297,6 +328,11 @@ class RenderContext:
         try:
             with self._top_level_scope.open():
                 yield self
+
+                # Run open context cleanups in reverse order (e.g. pop context values)
+                for cleanup in reversed(self._open_context_cleanups):
+                    cleanup()
+                self._open_context_cleanups = []
 
                 # Release all child contexts that are no longer referenced
                 for context_key in old_contexts:
@@ -378,6 +414,22 @@ class RenderContext:
                 "RenderContext method called when RenderContext is unmounted"
             )
 
+    def get_url(self) -> str:
+        """
+        Get the full URL received from the frontend.
+        Returns:
+            The full URL.
+        """
+        return self._root.get_url()
+
+    def set_url(self, url: str) -> None:
+        """
+        Set the full URL on the root.
+        Args:
+            url: The URL to set.
+        """
+        self._root.set_url(url)
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -440,7 +492,7 @@ class RenderContext:
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
-        self._on_change(update_state)
+        self._root.on_change(update_state)
 
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
@@ -448,7 +500,7 @@ class RenderContext:
         """
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            child_context = RenderContext(self._on_change, self._on_queue_render)
+            child_context = RenderContext(self._root)
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
@@ -473,14 +525,14 @@ class RenderContext:
         self._hook_index += 1
         return self._hook_index
 
-    def queue_render(self, update: Callable[[], None]) -> None:
+    def queue_render(self, update: StateUpdateCallable) -> None:
         """
         Queue up a state update. Needed in multi-threading scenarios.
 
         Args:
             update: The update to queue up.
         """
-        self._on_queue_render(update)
+        self._root.on_queue_render(update)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
         """
@@ -491,6 +543,20 @@ class RenderContext:
         """
         self._assert_active()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
+
+    def add_open_cleanup(self, callback: Callable[[], None]) -> None:
+        """
+        Register a cleanup callback to run after the current open() yield completes
+        (after children have rendered) but before restoring the previous context.
+        Cleanups are executed in reverse registration order.
+
+        This RenderContext must be open to call this method.
+
+        Args:
+            callback: The cleanup function to run.
+        """
+        self._assert_active()
+        self._open_context_cleanups.append(callback)
 
     def add_effect(self, cleanup: RenderCleanup, effect: RenderEffect) -> None:
         """
@@ -551,6 +617,7 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
+
         if "state" in state:
             for key, value in state["state"].items():
                 # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.

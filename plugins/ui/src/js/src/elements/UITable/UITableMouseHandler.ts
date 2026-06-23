@@ -1,10 +1,10 @@
 import {
-  EventHandlerResult,
+  type EventHandlerResult,
   GridMouseHandler,
-  GridPoint,
+  type GridPoint,
 } from '@deephaven/grid';
-import { IrisGridModel, type IrisGridType } from '@deephaven/iris-grid';
-import { getCellData, getRowDataMap, UITableProps } from './UITableUtils';
+import { type IrisGridModel, type IrisGridType } from '@deephaven/iris-grid';
+import { getCellData, getRowDataMap, type UITableProps } from './UITableUtils';
 
 /**
  * Mouse handler for UITable. Will call the appropriate callbacks when a cell, row, or column is clicked or double clicked with the data structure expected.

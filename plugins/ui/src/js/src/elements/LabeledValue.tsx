@@ -1,10 +1,10 @@
 import {
   LabeledValue as DHCLabeledValue,
-  LabeledValueProps as DHCLabeledValueProps,
+  type LabeledValueProps as DHCLabeledValueProps,
 } from '@deephaven/components';
-import { RangeValue } from './hooks';
+import { type RangeValue } from './hooks';
 import {
-  SerializedLabeledValueProps,
+  type SerializedLabeledValueProps,
   useLabeledValueProps,
 } from './hooks/useLabeledValueProps';
 

@@ -1,5 +1,5 @@
 import { useContextOrThrow } from '@deephaven/react-hooks';
-import { WidgetStatus, WidgetStatusContext } from './WidgetStatusContext';
+import { type WidgetStatus, WidgetStatusContext } from './WidgetStatusContext';
 
 /**
  * Gets the widget status from the closest WidgetStatusContext.

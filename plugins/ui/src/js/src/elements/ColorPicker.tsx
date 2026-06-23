@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import {
   ColorPicker as DHCColorPicker,
-  ColorPickerProps,
+  type ColorPickerProps,
   ColorEditor as DHCColorEditor,
 } from '@deephaven/components';
 import { EMPTY_FUNCTION } from '@deephaven/utils';

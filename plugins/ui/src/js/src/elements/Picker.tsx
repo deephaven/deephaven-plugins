@@ -1,20 +1,20 @@
 import { useSelector } from 'react-redux';
 import {
   Picker as DHPicker,
-  PickerProps as DHPickerProps,
+  type PickerProps as DHPickerProps,
 } from '@deephaven/components';
 import {
   Picker as DHPickerJSApi,
-  PickerProps as DHPickerJSApiProps,
+  type PickerProps as DHPickerJSApiProps,
 } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import type { dh } from '@deephaven/jsapi-types';
 import { ApiContext } from '@deephaven/jsapi-bootstrap';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import {
-  SerializedPickerProps,
+  type SerializedPickerProps,
   usePickerProps,
-  WrappedDHPickerJSApiProps,
+  type WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
 import { useObjectViewObject } from './hooks/useObjectViewObject';

@@ -1,13 +1,13 @@
 import type { Layout } from 'plotly.js';
-import { dh as DhType } from '@deephaven/jsapi-types';
+import { type dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { ChartModel } from '@deephaven/chart';
 import { Formatter } from '@deephaven/jsapi-utils';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import {
-  FilterColumns,
+  type FilterColumns,
   getWidgetData,
-  PlotlyChartWidgetData,
+  type PlotlyChartWidgetData,
   setDefaultValueFormat,
 } from './PlotlyExpressChartUtils';
 

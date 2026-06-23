@@ -12,13 +12,13 @@ from .types import (
 )
 from ..types import Color
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 HEADING_NAME = "Heading"
 
 
 def heading(
-    *children: Any,
+    *children: NodeType,
     level: HeadingLevel = 3,
     color: Color | None = None,
     flex: LayoutFlex | None = None,

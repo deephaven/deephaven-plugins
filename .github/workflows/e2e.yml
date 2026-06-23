@@ -11,25 +11,43 @@ on:
       - 'release/**'
 
 jobs:
-  e2e-test:
+  e2e-tests:
     runs-on: ubuntu-24.04
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.ref }}-e2e-tests-${{ matrix.config }}
       cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [chromium-1-2, chromium-2-2, firefox-1-2, firefox-2-2, webkit-1-2, webkit-2-2]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Extract browser and shard config
+        id: config
+        env:
+          MATRIX_CONFIG: ${{ matrix.config }}
+        run: |
+          IFS='-' read -r browser shard shard_total <<< "$MATRIX_CONFIG"
+          echo "browser=$browser" >> "$GITHUB_OUTPUT"
+          echo "shard=$shard" >> "$GITHUB_OUTPUT"
+          echo "shard_total=$shard_total" >> "$GITHUB_OUTPUT"
 
       - name: Run tests
-        run: './tools/run_docker.sh ./tests/docker-compose.yml e2e-tests'
+        run: |
+          ./tools/run_docker.sh ./tests/docker-compose.yml e2e-tests \
+            --reporter=blob \
+            --project=${{ steps.config.outputs.browser }} \
+            --shard=${{ steps.config.outputs.shard }}/${{ steps.config.outputs.shard_total }}
 
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+      - name: Upload Playwright blob report
+        uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 90
+          name: playwright-report-blob-${{ matrix.config }}
+          path: blob-report/
+          retention-days: 1
 
       - name: Dump server logs
         if: failure()
@@ -37,7 +55,59 @@ jobs:
 
       - name: Upload server logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: server-logs
+          name: server-logs-${{ matrix.config }}
           path: /tmp/server-log.txt
+
+  merge-reports:
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    needs: [e2e-tests]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: playwright-report-blob-*
+
+      - name: Merge into HTML report
+        run: |
+          mkdir -p all-blob-reports
+          for dir in playwright-report-blob-*; do
+            [ -d "$dir" ] || continue
+            zip_file=$(find "$dir" -type f -name '*.zip' | head -n 1)
+            [ -n "$zip_file" ] || continue
+            shard_name=${dir#playwright-report-blob-}
+            cp "$zip_file" "all-blob-reports/${shard_name}.zip"
+          done
+
+          if ! find all-blob-reports -type f -name '*.zip' | grep -q .; then
+            echo "No blob report zip files were found after download."
+            exit 1
+          fi
+
+          npx -y playwright@1.44.1 merge-reports --reporter html,github ./all-blob-reports
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  e2e-test:
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    needs: [e2e-tests, merge-reports]
+    steps:
+      - name: Fail if any tests failed or cancelled
+        run: exit 1
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}

@@ -6,7 +6,7 @@ import {
   getErrorStack,
   getErrorAction,
 } from './WidgetErrorUtils';
-import { WidgetError } from './WidgetTypes';
+import { type WidgetError } from './WidgetTypes';
 
 const longMessage =
   'This is a test error message\nWith a really long message\nThat spans multiple lines';

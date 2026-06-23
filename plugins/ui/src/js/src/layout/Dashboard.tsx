@@ -1,20 +1,29 @@
 import React from 'react';
-import {
-  normalizeDashboardChildren,
-  type DashboardElementProps,
-} from './LayoutUtils';
-import { ParentItemContext, useParentItem } from './ParentItemContext';
+import { usePanelId as useLayoutPanelId } from '@deephaven/dashboard';
+import { type ElementIdProps, type DashboardElementProps } from './LayoutUtils';
+import { usePanelId as useReactPanelId } from './ReactPanelContext';
+import NestedDashboard from './NestedDashboard';
+import DashboardContent from './DashboardContent';
 
-function Dashboard({ children }: DashboardElementProps): JSX.Element | null {
-  const parent = useParentItem();
+/**
+ * Dashboard component that can work at top-level or nested inside a panel.
+ *
+ * When top-level: Uses the existing layout manager's root (current behavior)
+ * When nested: Delegates to NestedDashboard which creates its own GoldenLayout
+ */
+function Dashboard({
+  children,
+  ...otherProps
+}: DashboardElementProps & ElementIdProps): JSX.Element | null {
+  const contextPanelId = useLayoutPanelId();
+  const reactPanelId = useReactPanelId();
+  const isNested = contextPanelId != null || reactPanelId != null;
+  if (isNested) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <NestedDashboard {...otherProps}>{children}</NestedDashboard>;
+  }
 
-  const normalizedChildren = normalizeDashboardChildren(children);
-
-  return (
-    <ParentItemContext.Provider value={parent}>
-      {normalizedChildren}
-    </ParentItemContext.Provider>
-  );
+  return <DashboardContent>{children}</DashboardContent>;
 }
 
 export default Dashboard;

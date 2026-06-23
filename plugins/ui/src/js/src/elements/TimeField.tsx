@@ -2,17 +2,17 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TimeField as DHCTimeField,
-  TimeFieldProps as DHCTimeFieldProps,
+  type TimeFieldProps as DHCTimeFieldProps,
 } from '@deephaven/components';
 import { usePrevious } from '@deephaven/react-hooks';
-import { getSettings, RootState } from '@deephaven/redux';
+import { getSettings, type RootState } from '@deephaven/redux';
 import { toTimeZone, ZonedDateTime } from '@internationalized/date';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
-  SerializedTimeComponentProps,
+  type SerializedTimeComponentProps,
   useTimeComponentProps,
 } from './hooks/useTimeComponentProps';
-import { TimeValue, isStringInstant } from './utils/DateTimeUtils';
+import { type TimeValue, isStringInstant } from './utils/DateTimeUtils';
 
 const EMPTY_FUNCTION = () => undefined;
 

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
+import type PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 
 export function useHandleSceneTicks(
   model: PlotlyExpressChartModel | undefined,

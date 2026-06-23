@@ -3,7 +3,7 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import Log from '@deephaven/log';
 import { useEffect, useState } from 'react';
 import { isCorePlusDhType } from '../utils/CorePlusUtils';
-import { AgGridTableType } from '../types';
+import { type AgGridTableType } from '../types';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/hooks/useWidgetFetch');
 
