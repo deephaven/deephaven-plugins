@@ -205,8 +205,16 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       );
 
     // Bumped to retry the probe (e.g. after a worker restart surfaces a fresh
-    // model). Adding this to the probe effect's deps re-runs it.
+    // model, or when the sidebar `CreatePivotPage` mounts after the user
+    // published PSP on the same worker). Adding this to the probe effect's
+    // deps re-runs it.
     const [probeRetryKey, setProbeRetryKey] = useState(0);
+
+    // Keep latest status in a ref so the exposed `refresh` callback can gate
+    // itself without churning identity. Without the gate, a sidebar-driven
+    // refresh after PSP went `ready` would flicker the page back through
+    // `loading`.
+    const pivotServiceStatusRef = useRef<PivotServiceStatus>('loading');
 
     useEffect(() => {
       if (!corePlusAvailable) {
@@ -270,6 +278,27 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       // read as a snapshot to gate the retry, not to drive it.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [model]);
+
+    pivotServiceStatusRef.current = pivotServiceStatus;
+    // Exposed via context to the sidebar. Stable identity so a mount-effect
+    // can list it in deps without re-firing on every parent render. Guards
+    // itself against bumping the retry key while PSP is already known so the
+    // ready path can't flicker back to `loading`.
+    const refreshPivotService = useCallback(() => {
+      if (pivotServiceStatusRef.current === 'unavailable') {
+        setProbeRetryKey(k => k + 1);
+      }
+    }, []);
+
+    const pivotServiceContextValue = useMemo(
+      () => ({
+        status: corePlusAvailable
+          ? pivotServiceStatus
+          : ('unavailable' as PivotServiceStatus),
+        refresh: refreshPivotService,
+      }),
+      [corePlusAvailable, pivotServiceStatus, refreshPivotService]
+    );
 
     const getPspWidget = useCallback(async (): Promise<DhType.Widget> => {
       if (pspWidgetRef.current != null) {
@@ -390,9 +419,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
         onModelChanged: setModel,
       },
       wrap: child => (
-        <PivotServiceContext.Provider
-          value={corePlusAvailable ? pivotServiceStatus : 'unavailable'}
-        >
+        <PivotServiceContext.Provider value={pivotServiceContextValue}>
           {child}
         </PivotServiceContext.Provider>
       ),

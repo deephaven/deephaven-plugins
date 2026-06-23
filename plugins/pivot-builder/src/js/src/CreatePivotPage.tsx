@@ -23,7 +23,10 @@ import {
   type PivotBuilderUiState,
 } from './pivotBuilderModel';
 import { PivotConfigSection } from './PivotConfigSection';
-import { usePivotServiceStatus } from './PivotServiceContext';
+import {
+  usePivotServiceRefresh,
+  usePivotServiceStatus,
+} from './PivotServiceContext';
 
 const EMPTY_AGGREGATION_SETTINGS: AggregationSettings = {
   aggregations: [],
@@ -124,6 +127,16 @@ export function CreatePivotPage({
   const isProxy = isPivotBuilderIrisGridModel(model);
   const pivotServiceStatus = usePivotServiceStatus();
   const pivotAvailable = pivotServiceStatus === 'ready';
+
+  // Ask the middleware to re-probe PSP on mount. Covers the common case where
+  // the user runs a script that publishes the PivotService on an already-
+  // running worker, then opens this page — the model hasn't rebuilt, so the
+  // middleware's model-change retry wouldn't fire. `refresh` is a no-op when
+  // status is not `unavailable`, so this can't flicker the ready path.
+  const refreshPivotService = usePivotServiceRefresh();
+  useEffect(() => {
+    refreshPivotService();
+  }, [refreshPivotService]);
 
   // Whether the underlying model can be rolled up. `isRollupAvailable` is
   // false when an incompatible operation is applied through the host proxy —

@@ -8,8 +8,28 @@ import { createContext, useContext } from 'react';
  */
 export type PivotServiceStatus = 'loading' | 'ready' | 'unavailable';
 
-export const PivotServiceContext = createContext<PivotServiceStatus>('loading');
+export type PivotServiceContextValue = {
+  status: PivotServiceStatus;
+  /**
+   * Ask the middleware to re-probe PSP availability. The probe is a no-op
+   * unless status is currently `'unavailable'`, so consumers may call this
+   * unconditionally (e.g. on mount) without causing the ready path to flicker
+   * through `'loading'`.
+   */
+  refresh: () => void;
+};
+
+const noop = (): void => undefined;
+
+export const PivotServiceContext = createContext<PivotServiceContextValue>({
+  status: 'loading',
+  refresh: noop,
+});
 
 export function usePivotServiceStatus(): PivotServiceStatus {
-  return useContext(PivotServiceContext);
+  return useContext(PivotServiceContext).status;
+}
+
+export function usePivotServiceRefresh(): () => void {
+  return useContext(PivotServiceContext).refresh;
 }
