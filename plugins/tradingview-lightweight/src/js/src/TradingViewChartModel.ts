@@ -19,6 +19,8 @@ import {
 
 const log = Log.module('TradingViewChartModel');
 
+const DOWNSAMPLE_THRESHOLD = 1000;
+
 /**
  * Manages the data flow between Deephaven tables and the chart renderer.
  * Uses table.subscribe() and ChartData for efficient delta-based updates,
@@ -319,13 +321,23 @@ class TradingViewChartModel {
       });
     }
 
-    // Collect partition refIndex'es so we don't try to .fetch() them
-    // as regular tables — PartitionedTables are fetched separately by
-    // setupPartitionWatcher.
+    // Collect partition refs and source table refs used only by partition
+    // templates. A large `by=` chart should not subscribe/downsample the raw
+    // source table directly; it only needs per-key constituent tables.
     const partitionRefIndices = new Set<number>();
+    const partitionTemplateTableIds = new Set<number>();
+    const directSeriesTableIds = new Set<number>();
     this.figureData.series.forEach(s => {
       if (s.partition?.refIndex != null) {
         partitionRefIndices.add(s.partition.refIndex);
+      }
+      if (s.partition != null) {
+        partitionTemplateTableIds.add(s.dataMapping.tableId);
+      } else {
+        directSeriesTableIds.add(s.dataMapping.tableId);
+      }
+      if (s.markerSpec?.tableId != null) {
+        directSeriesTableIds.add(s.markerSpec.tableId);
       }
     });
 
@@ -333,6 +345,13 @@ class TradingViewChartModel {
     const tablePromises: Promise<void>[] = [];
     message.new_references.forEach(refIdx => {
       if (partitionRefIndices.has(refIdx)) return; // handled below
+      if (
+        partitionTemplateTableIds.has(refIdx) &&
+        !directSeriesTableIds.has(refIdx) &&
+        this.downsampleMeta[String(refIdx)] != null
+      ) {
+        return;
+      }
       if (refIdx < exportedObjects.length) {
         const exported = exportedObjects[refIdx];
         tablePromises.push(
@@ -839,7 +858,74 @@ class TradingViewChartModel {
       );
     }
 
-    this.subscribeTable(newTableId, table as DhType.Table);
+    if (this.shouldDownsamplePartitionTable(template, table as DhType.Table)) {
+      this.addPartitionDownsampleMeta(
+        newTableId,
+        template,
+        table as DhType.Table
+      );
+      try {
+        await this.downsampleTable(newTableId);
+      } catch (err) {
+        log.warn(
+          'Initial partition downsample failed for table',
+          newTableId,
+          err
+        );
+        this.removePartitionDownsampleMeta(newTableId);
+        this.tables.set(newTableId, table as DhType.Table);
+        this.subscribeTable(newTableId, table as DhType.Table);
+      }
+    } else {
+      this.subscribeTable(newTableId, table as DhType.Table);
+    }
+  }
+
+  private shouldDownsamplePartitionTable(
+    template: TvlSeriesConfig,
+    table: DhType.Table
+  ): boolean {
+    if (this.downsampleMeta[String(template.dataMapping.tableId)] == null) {
+      return false;
+    }
+    const size =
+      typeof table.size === 'number'
+        ? table.size
+        : this.downsampleMeta[String(template.dataMapping.tableId)].tableSize;
+    return size > DOWNSAMPLE_THRESHOLD;
+  }
+
+  private addPartitionDownsampleMeta(
+    tableId: number,
+    template: TvlSeriesConfig,
+    table: DhType.Table
+  ): void {
+    const sourceMeta =
+      this.downsampleMeta[String(template.dataMapping.tableId)];
+    if (sourceMeta == null) return;
+    const meta = {
+      ...sourceMeta,
+      tableSize:
+        typeof table.size === 'number' ? table.size : sourceMeta.tableSize,
+    };
+    this.downsampleMeta[String(tableId)] = meta;
+    if (this.figureData != null) {
+      this.figureData.downsampleMeta = {
+        ...(this.figureData.downsampleMeta ?? {}),
+        [String(tableId)]: meta,
+      };
+    }
+    this.originalTableMap.set(tableId, table);
+    this.jsDownsampledTableIds.add(tableId);
+  }
+
+  private removePartitionDownsampleMeta(tableId: number): void {
+    this.jsDownsampledTableIds.delete(tableId);
+    this.originalTableMap.delete(tableId);
+    delete this.downsampleMeta[String(tableId)];
+    if (this.figureData?.downsampleMeta) {
+      delete this.figureData.downsampleMeta[String(tableId)];
+    }
   }
 
   /**
@@ -1181,33 +1267,33 @@ class TradingViewChartModel {
    *
    * For non-partitioned charts this becomes true on the first DATA_UPDATED
    * after model.init. For ``by``-partitioned charts it additionally
-   * requires at least one partition key to have been discovered (otherwise
-   * ``figureData.series`` is empty and the chart would be a blank canvas).
+   * requires at least one runtime partition series to have been discovered.
    * The image-snapshotter polls this signal to know when to take a stable
    * screenshot without resorting to hard-coded waits.
    */
   isReady(): boolean {
-    if (!this.figureData) return false;
+    if (this.figureData == null) return false;
     // A partitioned chart with no keys discovered yet should NOT be
     // considered ready — there's nothing to render.
-    if (this.figureData.series.length === 0) return false;
-    for (const series of this.figureData.series) {
-      const tableId = series.dataMapping.tableId;
+    const renderableSeries = this.figureData.series.filter(
+      series => series.partition == null
+    );
+    if (renderableSeries.length === 0) return false;
+    return renderableSeries.every(series => {
+      const { tableId } = series.dataMapping;
       const tableData = this.tableDataMap.get(tableId);
       if (!tableData) return false;
-      const timeColName = series.dataMapping.columns.time;
+      const { time: timeColName } = series.dataMapping.columns;
       const timeCol = tableData[timeColName];
-      if (timeCol && timeCol.length > 0) continue;
+      if (timeCol != null && timeCol.length > 0) return true;
       // No rows arrived yet. Distinguish "still waiting for first data"
       // from "source table is intentionally empty" (e.g. a `where(...)`
       // that filters everything out — used by the pane_preserve_empty
       // docs example). An empty source reports size === 0 immediately
       // after fetch, so treat that as ready instead of hanging forever.
       const table = this.tables.get(tableId);
-      if (table != null && table.size === 0) continue;
-      return false;
-    }
-    return true;
+      return table != null && table.size === 0;
+    });
   }
 
   getFigureData(): TvlFigureData | null {

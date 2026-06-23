@@ -5,12 +5,12 @@
  *  - performResample dispatches across both paths
  */
 import TradingViewChartModel from '../TradingViewChartModel';
-import type { TvlFigureData } from '../TradingViewTypes';
+import type { TvlFigureData, TvlSeriesConfig } from '../TradingViewTypes';
 
 type Listener = (event: { detail: unknown }) => void;
 
 class MockTable {
-  size = 100;
+  size: number;
 
   columns: { name: string; type: string }[] = [
     { name: 'Timestamp', type: 'io.deephaven.time.DateTime' },
@@ -49,6 +49,27 @@ class MockTable {
   close = jest.fn(() => {
     this.closed = true;
   });
+
+  constructor(size = 100) {
+    this.size = size;
+  }
+}
+
+function makeMockPartitionedTable(tables: Map<unknown, MockTable>) {
+  const listenerMap: Map<string, Set<Listener>> = new Map();
+  return {
+    listenerMap,
+    addEventListener: jest.fn((event: string, l: Listener) => {
+      if (!listenerMap.has(event)) listenerMap.set(event, new Set());
+      listenerMap.get(event)!.add(l);
+      return () => listenerMap.get(event)?.delete(l);
+    }),
+    getKeys: jest.fn(() => new Set(tables.keys())),
+    getTable: jest.fn((key: unknown) =>
+      Promise.resolve(tables.get(key) ?? null)
+    ),
+    close: jest.fn(),
+  };
 }
 
 function makeFigure(autoBin: boolean): TvlFigureData {
@@ -124,6 +145,63 @@ function makeMockWidget() {
       if (ls) ls.forEach(l => l({ detail }));
     },
   };
+}
+
+function makePartitionFigure(): TvlFigureData {
+  return {
+    chartOptions: {},
+    series: [
+      {
+        id: 'series_0',
+        type: 'Area',
+        options: {},
+        dataMapping: {
+          tableId: 0,
+          columns: { time: 'Timestamp', value: 'Value' },
+        },
+        partition: { byColumn: 'Sym', refIndex: 1 },
+      },
+    ],
+    deephaven: { mappings: [] },
+    downsampleMeta: {
+      '0': {
+        tableSize: 10_000_000,
+        timeCol: 'Timestamp',
+        valueCols: ['Value'],
+        seriesTypes: ['Area'],
+      },
+    },
+  };
+}
+
+function runDownsampleMock(
+  dh: ReturnType<typeof makeMockDh>
+): jest.MockedFunction<
+  (
+    table: unknown,
+    timeCol: string,
+    valueCols: string[],
+    targetWidth: number,
+    range?: unknown
+  ) => Promise<MockTable>
+> {
+  return (
+    dh as unknown as {
+      plot: {
+        Downsample: {
+          runChartDownsample: jest.MockedFunction<
+            (
+              table: unknown,
+              timeCol: string,
+              valueCols: string[],
+              targetWidth: number,
+              range?: unknown
+            ) => Promise<MockTable>
+          >;
+        };
+      };
+    }
+  ).plot.Downsample.runChartDownsample;
 }
 
 async function initModelWithAutoBin(autoBin: boolean): Promise<{
@@ -400,6 +478,121 @@ describe('TradingViewChartModel auto-bin', () => {
       model.performResample([0, 100], 1024);
       expect(widget.sendMessage).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('TradingViewChartModel partition downsampling', () => {
+  it('downsamples large partition constituents without fetching the raw source table', async () => {
+    const dh = makeMockDh();
+    const widget = makeMockWidget();
+    const model = new TradingViewChartModel(dh, widget as never);
+
+    const sourceTable = new MockTable(10_000_000);
+    const partitionSourceTable = new MockTable(5_000);
+    const downsampledTable = new MockTable(250);
+    const partitionedTable = makeMockPartitionedTable(
+      new Map([['aaa', partitionSourceTable]])
+    );
+
+    const runDownsample = runDownsampleMock(dh);
+    runDownsample.mockResolvedValue(downsampledTable);
+
+    const sourceExport = {
+      fetch: jest.fn().mockResolvedValue(sourceTable),
+    };
+    const partitionExport = {
+      fetch: jest.fn().mockResolvedValue(partitionedTable),
+    };
+
+    await model.init(
+      [sourceExport, partitionExport] as never,
+      JSON.stringify({
+        type: 'NEW_FIGURE',
+        figure: makePartitionFigure(),
+        revision: 1,
+        new_references: [0, 1],
+        removed_references: [],
+      })
+    );
+
+    expect(sourceExport.fetch).not.toHaveBeenCalled();
+    expect(partitionExport.fetch).toHaveBeenCalledTimes(1);
+    expect(partitionedTable.getTable).toHaveBeenCalledWith('aaa');
+    expect(runDownsample).toHaveBeenCalledWith(
+      partitionSourceTable,
+      'Timestamp',
+      ['Value'],
+      1000,
+      undefined
+    );
+    expect(partitionSourceTable.subscribe).not.toHaveBeenCalled();
+    expect(downsampledTable.subscribe).toHaveBeenCalledTimes(1);
+    expect(model.getDownsampledTableIds().has(2)).toBe(true);
+    expect(model.getDownsampleMeta()['2']).toMatchObject({
+      tableSize: 5_000,
+      timeCol: 'Timestamp',
+      valueCols: ['Value'],
+    });
+  });
+
+  it('subscribes small partition constituents directly', async () => {
+    const dh = makeMockDh();
+    const widget = makeMockWidget();
+    const model = new TradingViewChartModel(dh, widget as never);
+
+    const sourceTable = new MockTable(10_000_000);
+    const partitionSourceTable = new MockTable(10);
+    const partitionedTable = makeMockPartitionedTable(
+      new Map([['aaa', partitionSourceTable]])
+    );
+    const runDownsample = runDownsampleMock(dh);
+
+    await model.init(
+      [
+        { fetch: jest.fn().mockResolvedValue(sourceTable) },
+        { fetch: jest.fn().mockResolvedValue(partitionedTable) },
+      ] as never,
+      JSON.stringify({
+        type: 'NEW_FIGURE',
+        figure: makePartitionFigure(),
+        revision: 1,
+        new_references: [0, 1],
+        removed_references: [],
+      })
+    );
+
+    expect(runDownsample).not.toHaveBeenCalled();
+    expect(partitionSourceTable.subscribe).toHaveBeenCalledTimes(1);
+    expect(model.getDownsampledTableIds().has(2)).toBe(false);
+  });
+
+  it('isReady ignores partition templates once runtime series has data', () => {
+    const dh = makeMockDh();
+    const widget = makeMockWidget();
+    const model = new TradingViewChartModel(dh, widget as never);
+    const template = makePartitionFigure().series[0];
+    const runtimeSeries: TvlSeriesConfig = {
+      id: 'series_0_aaa',
+      type: 'Area',
+      options: { title: 'aaa' },
+      dataMapping: {
+        tableId: 2,
+        columns: { time: 'Timestamp', value: 'Value' },
+      },
+    };
+    const state = model as unknown as {
+      figureData: TvlFigureData;
+      tableDataMap: Map<number, Record<string, unknown[]>>;
+      tables: Map<number, MockTable>;
+    };
+    state.figureData = {
+      ...makePartitionFigure(),
+      series: [template, runtimeSeries],
+    };
+    state.tableDataMap.set(2, { Timestamp: [1], Value: [2] });
+    state.tables.set(2, new MockTable(1));
+
+    expect(model.isReady()).toBe(true);
   });
 });
 

@@ -524,6 +524,21 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
       const ct = renderer.getChartType();
       const chart = renderer.getChart();
+      let dragRange: { from: number; to: number } | null = null;
+      if (draggingRef.current) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const vr = chart.timeScale().getVisibleRange() as any;
+          if (vr != null) {
+            dragRange = {
+              from: vr.from as number,
+              to: vr.to as number,
+            };
+          }
+        } catch {
+          // chart may not be ready
+        }
+      }
 
       // isDownsampleSwap = first data from a fresh runChartDownsample call.
       // Only suppress range events for actual data swaps, NOT for ticks.
@@ -591,20 +606,23 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (
         isResetView === true ||
         isInitialLoad === true ||
-        !userInteractedRef.current
+        (!userInteractedRef.current && !draggingRef.current)
       ) {
         // Reset, initial load, or pre-interaction tick / late-arriving table:
         // keep the visible range glued to the full data extent. Once the user
         // zooms or pans, userInteractedRef flips and we stop re-fitting.
         restoreRangeRef.current = null;
         renderer.fitContent();
-      } else if (isDownsampleSwap && restoreRangeRef.current) {
+      } else if (isDownsampleSwap) {
         // Zoom/pan data swap: restore the exact visible range the user had
+        const rangeToRestore = dragRange ?? restoreRangeRef.current;
         try {
-          chart.timeScale().setVisibleRange({
-            from: restoreRangeRef.current.from,
-            to: restoreRangeRef.current.to,
-          } as never);
+          if (rangeToRestore != null) {
+            chart.timeScale().setVisibleRange({
+              from: rangeToRestore.from,
+              to: rangeToRestore.to,
+            } as never);
+          }
         } catch {
           // chart may not be ready
         }
@@ -955,6 +973,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       };
       container.addEventListener('pointerdown', onDown, true);
       window.addEventListener('pointerup', onUp, true);
+      window.addEventListener('pointercancel', onUp, true);
 
       /**
        * Core logic: compare current visible range against baseline.
@@ -1039,6 +1058,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       const unsubRange = renderer.subscribeVisibleLogicalRangeChange(() => {
         if (!settled || suppressRef.current) return;
         if (draggingRef.current) {
+          userInteractedRef.current = true;
           needsProcessAfterDrag = true;
           return;
         }
@@ -1118,6 +1138,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         if (debounceTimer) clearTimeout(debounceTimer);
         container.removeEventListener('pointerdown', onDown, true);
         window.removeEventListener('pointerup', onUp, true);
+        window.removeEventListener('pointercancel', onUp, true);
       };
     }
 
