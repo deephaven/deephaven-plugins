@@ -1,10 +1,11 @@
 from __future__ import annotations
 import functools
 from typing import Any, Callable, overload
+
 from .._internal import (
-    is_iterable,
     get_component_qualname,
     dict_shallow_equal,
+    shallow_equal,
     iterable_shallow_equal,
 )
 from ..elements import Element, FunctionElement, MemoizedElement, PropsType
@@ -31,14 +32,14 @@ def _default_are_props_equal(prev_props: PropsType, next_props: PropsType) -> bo
         prev_children = prev_props.get("children")
         next_children = next_props.get("children")
 
-        # Compare iterable children element-wise using shallow semantics.
-        if is_iterable(prev_children) and is_iterable(next_children):
+        # For list/tuple children, compare element-wise with shallow semantics.
+        if isinstance(prev_children, (list, tuple)) and isinstance(
+            next_children, (list, tuple)
+        ):
             if not iterable_shallow_equal(prev_children, next_children):
                 return False
-        else:
-            # For non-iterables, compare by value.
-            if prev_children != next_children:
-                return False
+        elif not shallow_equal(prev_children, next_children):
+            return False
 
     prev_props_without_children = dict(prev_props)
     prev_props_without_children.pop("children", None)
