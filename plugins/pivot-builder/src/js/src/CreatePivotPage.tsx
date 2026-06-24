@@ -120,7 +120,7 @@ function aggregationsToPivot(
  */
 export function CreatePivotPage({
   model,
-  hiddenColumns,
+  viewState,
 }: IrisGridTableOptionsPageProps): JSX.Element {
   const isProxy = isPivotBuilderIrisGridModel(model);
   const pivotServiceStatus = usePivotServiceStatus();
@@ -538,7 +538,7 @@ export function CreatePivotPage({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <PivotConfigSection
           availableColumns={allColumnNames}
-          hiddenColumns={hiddenColumns}
+          hiddenColumns={viewState.hiddenColumns}
           columnTypes={columnTypes}
           globalOn={globalOn}
           onGlobalOnChange={setGlobalOn}
