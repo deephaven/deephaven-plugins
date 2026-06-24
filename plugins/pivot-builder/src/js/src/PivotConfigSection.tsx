@@ -8,24 +8,10 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  type DragOverEvent,
-  DragOverlay,
-  type DragStartEvent,
-  MeasuringStrategy,
-  PointerSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+  DndKitCore,
+  DndKitSortable,
+  DndKitUtilities,
+} from '@deephaven/iris-grid';
 import {
   ActionButton,
   Button,
@@ -42,6 +28,7 @@ import {
   SpectrumMenu,
   Switch,
   Text,
+  ReactFontAwesome,
 } from '@deephaven/components';
 import {
   vsBlank,
@@ -52,7 +39,6 @@ import {
   vsRedo,
   vsTrash,
 } from '@deephaven/icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   AggregationOperation,
   AggregationUtils,
@@ -60,6 +46,22 @@ import {
   type AggregationSettings,
 } from '@deephaven/iris-grid';
 import { usePivotServiceStatus } from './PivotServiceContext';
+
+const {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  MeasuringStrategy,
+  PointerSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+} = DndKitCore;
+const { SortableContext, useSortable, verticalListSortingStrategy } =
+  DndKitSortable;
+const { CSS } = DndKitUtilities;
+
+const { FontAwesomeIcon } = ReactFontAwesome;
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
@@ -180,6 +182,9 @@ export type PivotConfigSectionProps = {
   onRollupRowsChange: (next: string[]) => void;
   rollupRowsOn: boolean;
   onRollupRowsOnChange: (next: boolean) => void;
+  /** When true, the Rollup rows card is greyed out and the toggle
+   *  cannot be flipped on. Used when the host model can't apply rollups. */
+  rollupRowsDisabled?: boolean;
 
   /**
    * Master switch above the cards. When false, every card behaves as
@@ -1335,6 +1340,7 @@ export function PivotConfigSection({
   onRollupRowsChange,
   rollupRowsOn,
   onRollupRowsOnChange,
+  rollupRowsDisabled,
   globalOn,
   onGlobalOnChange,
   pivotColumns,
@@ -1666,18 +1672,24 @@ export function PivotConfigSection({
   // overlay can still tell what kind of item it just released while it plays
   // its drop animation. Reset only on the next drag start.
   const activeContainerRef = useRef<string | null>(null);
-  const handleDragStart = useCallback((event: DragStartEvent): void => {
-    const container = String(event.active.data.current?.container ?? '');
-    activeContainerRef.current = container === '' ? null : container;
-    setDragSource(container === '' ? null : container);
-    setActiveId(String(event.active.id));
-    setOverId(null);
-  }, []);
+  const handleDragStart = useCallback(
+    (event: DndKitCore.DragStartEvent): void => {
+      const container = String(event.active.data.current?.container ?? '');
+      activeContainerRef.current = container === '' ? null : container;
+      setDragSource(container === '' ? null : container);
+      setActiveId(String(event.active.id));
+      setOverId(null);
+    },
+    []
+  );
 
-  const handleDragOver = useCallback((event: DragOverEvent): void => {
-    const { over } = event;
-    setOverId(over == null ? null : String(over.id));
-  }, []);
+  const handleDragOver = useCallback(
+    (event: DndKitCore.DragOverEvent): void => {
+      const { over } = event;
+      setOverId(over == null ? null : String(over.id));
+    },
+    []
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
@@ -1719,7 +1731,7 @@ export function PivotConfigSection({
   }, []);
 
   const handleDragEnd = useCallback(
-    (event: DragEndEvent): void => {
+    (event: DndKitCore.DragEndEvent): void => {
       setDragSource(null);
       setActiveId(null);
       setOverId(null);
@@ -2362,9 +2374,10 @@ export function PivotConfigSection({
         {/* eslint-disable react/no-unstable-nested-components */}
         <ConfigCard
           title="Rollup rows"
-          on={rollupRowsOn && globalOn}
+          on={rollupRowsOn && rollupRowsDisabled !== true && globalOn}
           onToggle={onRollupRowsOnChange}
           onAdd={handleAddRollupRow}
+          disabled={rollupRowsDisabled === true}
           toggleLocked={!globalOn}
           hasBody={rollupRows.length > 0}
           overflow={
@@ -2393,6 +2406,7 @@ export function PivotConfigSection({
             type="columns"
             itemIds={rollupItemIds}
             isEmpty={rollupRows.length === 0}
+            disabled={rollupRowsDisabled === true}
           >
             {withDropIndicator(
               rollupRows.map((name, i) => (

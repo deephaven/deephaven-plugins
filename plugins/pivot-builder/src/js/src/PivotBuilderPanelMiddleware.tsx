@@ -18,7 +18,6 @@ import {
   usePivotTheme,
 } from '@deephaven/js-plugin-pivot';
 import { usePersistentState } from '@deephaven/dashboard';
-import Log from '@deephaven/log';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   createPanelMiddleware,
@@ -42,10 +41,6 @@ import {
   pickPivotServiceDescriptor,
 } from './resolvePivotService';
 import { useWaitForWorkerVariables } from './useWaitForWorkerVariables';
-
-const log = Log.module(
-  '@deephaven/js-plugin-pivot-builder/PivotBuilderPanelMiddleware'
-);
 
 /**
  * Extra IrisGrid-aware props the chained panel host (`IrisGridPanel`, via the
@@ -174,16 +169,6 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       []
     );
 
-    // Push-based PSP availability. `useWorkerVariables` subscribes to
-    // `IdeConnection.subscribeToFieldUpdates` (via the host
-    // `WorkerVariablesContext` provider) and pushes the current variable list
-    // for the worker identified by `metadata`. When the list contains a
-    // PivotService variable we report `ready`; while the subscription is still
-    // resolving (or no provider is mounted) `useWorkerVariables` returns
-    // `null` and we report `loading`; otherwise we report `unavailable`. The
-    // same snapshot is the single source of truth for `getPspWidget` below —
-    // a discrepancy between "status says ready" and "fetch says unavailable"
-    // is impossible.
     const workerVariables = useWorkerVariables(
       metadata as DhType.ide.VariableDescriptor | null | undefined
     );
