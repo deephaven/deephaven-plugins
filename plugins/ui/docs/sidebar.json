@@ -255,6 +255,10 @@
                 "path": "components/divider.md"
               },
               {
+                "label": "error_boundary",
+                "path": "components/error_boundary.md"
+              },
+              {
                 "label": "flex",
                 "path": "components/flex.md"
               },

@@ -45,6 +45,32 @@ def ui_boom_counter_component():
 
 
 @ui.component
+def ui_error_boundary_component():
+    # Tracks the message reported to the on_error callback on the server
+    error_message, set_error_message = ui.use_state(None)
+
+    return ui.flex(
+        # Sibling outside the boundary should still render even if the boundary errors
+        ui.text("Outside boundary"),
+        ui.error_boundary(
+            # Duplicate tab keys trigger a client-side render error
+            ui.tabs(
+                ui.tab("Tab content A", title="A", key="dup"),
+                ui.tab("Tab content B", title="B", key="dup"),
+            ),
+            fallback=ui.text("Fallback content"),
+            on_error=lambda error: set_error_message(error["message"]),
+        ),
+        ui.text(
+            f"Error caught: {error_message}"
+            if error_message is not None
+            else "No error yet"
+        ),
+        direction="column",
+    )
+
+
+@ui.component
 def ui_cell(label: str = "Cell"):
     text, set_text = ui.use_state("")
 
@@ -87,6 +113,7 @@ ui_component = ui_basic_component()
 ui_multi_panel = ui_multi_panel_component()
 ui_boom = ui_boom_component()
 ui_boom_counter = ui_boom_counter_component()
+ui_error_boundary = ui_error_boundary_component()
 ui_cells = ui_cells_component()
 
 ui_dashboard = ui.dashboard(

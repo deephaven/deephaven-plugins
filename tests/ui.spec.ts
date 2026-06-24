@@ -130,6 +130,30 @@ test('boom counter component shows error overlay after clicking the button twice
   await expect(panelLocator.getByText('BOOM! Value too big.')).toBeVisible();
 });
 
+test('error_boundary contains render errors and calls on_error', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    'ui_error_boundary',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const panelLocator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  // The sibling outside the boundary should still render despite the error
+  await expect(panelLocator.getByText('Outside boundary')).toBeVisible();
+
+  // The fallback should be rendered in place of the erroring children
+  await expect(panelLocator.getByText('Fallback content')).toBeVisible();
+
+  // The on_error callback should have fired on the server with the error message
+  await expect(
+    panelLocator.getByText('Error caught: Duplicate keys found in Tab items.')
+  ).toBeVisible();
+});
+
 test('Using keys for lists works', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'ui_cells', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);

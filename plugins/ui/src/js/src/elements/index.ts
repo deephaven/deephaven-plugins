@@ -13,6 +13,7 @@ export * from './DatePicker';
 export * from './DateRangePicker';
 export * from './Dialog';
 export * from './Disclosure';
+export * from './ErrorBoundary';
 export * from './Flex';
 export * from './Form';
 export * from './Grid';

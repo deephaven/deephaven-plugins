@@ -30,6 +30,7 @@ from .disclosure import disclosure
 from .disclosure_title import disclosure_title
 from .disclosure_panel import disclosure_panel
 from .divider import divider
+from .error_boundary import error_boundary
 from .flex import flex
 from .form import form
 from .footer import footer
@@ -120,6 +121,7 @@ __all__ = [
     "disclosure_title",
     "disclosure_panel",
     "divider",
+    "error_boundary",
     "flex",
     "form",
     "footer",

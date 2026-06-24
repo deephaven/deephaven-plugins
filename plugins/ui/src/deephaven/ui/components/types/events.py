@@ -115,6 +115,32 @@ class SliderChange(TypedDict):
     """
 
 
+class ErrorInfo(TypedDict):
+    """
+    Information about an error caught by an error_boundary component.
+    """
+
+    message: str
+    """
+    The error message.
+    """
+
+    name: str
+    """
+    The name/type of the error.
+    """
+
+    stack: str | None
+    """
+    The stack trace of the error, if available.
+    """
+
+    componentStack: str | None
+    """
+    The React component stack where the error occurred, if available.
+    """
+
+
 SliderChangeCallable = Callable[[SliderChange], None]
 
 PointerType = Literal["mouse", "touch", "pen", "keyboard", "virtual"]
@@ -133,3 +159,4 @@ Orientation = Literal["horizontal", "vertical"]
 FocusEventCallable = Callable[[FocusEvent], None]
 KeyboardEventCallable = Callable[[KeyboardEvent], None]
 PressEventCallable = Callable[[PressEvent], None]
+ErrorInfoCallable = Callable[[ErrorInfo], None]

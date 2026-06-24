@@ -51,6 +51,7 @@ export const ELEMENT_NAME = {
   disclosureTitle: uiComponentName('DisclosureTitle'),
   disclosurePanel: uiComponentName('DisclosurePanel'),
   divider: uiComponentName('Divider'),
+  errorBoundary: uiComponentName('ErrorBoundary'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
   footer: uiComponentName('Footer'),
