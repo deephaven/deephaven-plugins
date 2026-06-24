@@ -1,6 +1,6 @@
 # Plotting
 
-In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real-time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real time and react to changes in the UI.
+In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/overview) as an excellent way to visualize real-time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real time and react to changes in the UI.
 
 The `deephaven.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that update based on user input.
 
