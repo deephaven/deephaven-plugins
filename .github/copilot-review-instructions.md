@@ -17,6 +17,7 @@ Run these specialist passes in order when they apply to the changed files:
 2. **UI/UX reviewer**: for UI changes, check labels, colour variables, accessibility, and SCSS token usage.
 3. **Code quality reviewer**: check maintainability, consistency with nearby patterns, error handling, and clean scoping.
 4. **Test reviewer**: for behaviour changes, verify that the right unit and/or e2e coverage exists and that CI checks pass.
+5. **Documentation reviewer**: when Python API surface changes or docs files are modified, verify that docs exist and follow the established style.
 
 Skip passes that do not apply to the touched files rather than forcing generic feedback.
 Prefer a few high-signal findings over many style comments.
@@ -27,3 +28,4 @@ Use the path-specific instruction files in `.github/instructions/` to deepen eac
 - `ui-ux.instructions.md`
 - `code-quality.instructions.md`
 - `tests.instructions.md`
+- `docs.instructions.md`
