@@ -258,6 +258,36 @@ export function augmentPivotBuilderModel(
   // that flip config several times before the first build resolves).
   let pivotToken = 0;
 
+  // `PivotService.getInstance` returns a NEW service wrapper on every call,
+  // and every service created from the same psp widget multiplexes over that
+  // widget's single bidi message stream. dh-core fans each response out to
+  // ALL services on the stream, so a stale service left over from a previous
+  // config edit receives responses for ids it never issued and logs
+  // "No handler for response: N" via console.error — once per stale service,
+  // so the noise grows with every edit. The service is documented as a
+  // per-worker singleton ("The initial call for a given worker must be either
+  // a PivotTable or a PivotService"), so cache one service per psp widget and
+  // reuse it across edits to keep a single consumer on the stream. The cache
+  // is keyed on widget identity: when the middleware re-resolves the psp
+  // widget (closing the old one and its stream), the next build rebuilds the
+  // service against the new widget.
+  let cachedPspWidget: DhType.Widget | null = null;
+  let cachedPivotServicePromise: Promise<CorePlusDhType.coreplus.pivot.PivotService> | null =
+    null;
+
+  const getPivotService = (
+    corePlusDh: typeof CorePlusDhType,
+    pspWidget: DhType.Widget
+  ): Promise<CorePlusDhType.coreplus.pivot.PivotService> => {
+    if (cachedPivotServicePromise != null && cachedPspWidget === pspWidget) {
+      return cachedPivotServicePromise;
+    }
+    cachedPspWidget = pspWidget;
+    cachedPivotServicePromise =
+      corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
+    return cachedPivotServicePromise;
+  };
+
   const applyPivotConfig = (config: PivotConfig | null): void => {
     if (deepEqual(current, config)) return;
     current = config;
@@ -284,8 +314,7 @@ export function augmentPivotBuilderModel(
       const corePlusDh = dh;
       const pspWidget = await getPspWidget();
       if (token !== pivotToken) throw new SupersededError();
-      const pivotService =
-        await corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
+      const pivotService = await getPivotService(corePlusDh, pspWidget);
       if (token !== pivotToken) throw new SupersededError();
       const pivotTable = await pivotService.createPivotTable({
         source: table as unknown as CorePlusDhType.Table,
