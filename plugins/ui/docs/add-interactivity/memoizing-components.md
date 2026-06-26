@@ -50,7 +50,7 @@ The render cycle with memoization:
 
 ## When to Use `memo`
 
-Treat `memo` as a performance optimization, not as a requirement for correctness. Most components do not need it.
+Treat `memo` as a performance optimization, not as a requirement for correctness. Most components do not need it. Keep in mind that memoization itself has overhead—comparing props on every render takes time, so it only helps when the cost of skipping a re-render is greater than the cost of the comparison.
 
 Use `memo=True` when:
 
@@ -147,7 +147,7 @@ def my_component_custom(prop):
 By default, `memo=True` uses shallow equality to compare props. You can provide a custom comparison function by passing it directly to `memo`:
 
 > [!WARNING]
-> Custom comparison functions are rare. Prefer reducing prop changes first by passing simpler props or stabilizing objects and callbacks with [`use_memo`](../hooks/use_memo.md) and `use_callback`. If you do write a custom comparator, compare every prop that affects rendering or behavior.
+> Custom comparison functions are rarely necessary. Prefer reducing prop changes first by passing simpler props or stabilizing objects and callbacks with [`use_memo`](../hooks/use_memo.md) and `use_callback`. If you do write a custom comparator, compare every prop that affects rendering or behavior.
 
 ```python
 from deephaven import ui
