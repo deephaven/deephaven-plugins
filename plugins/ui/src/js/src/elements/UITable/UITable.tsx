@@ -8,8 +8,10 @@ import React, {
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
+  type ChartBuilderSettings,
   type DehydratedQuickFilter,
   IrisGrid,
+  type IrisGridModel,
   type IrisGridType,
   type IrisGridContextMenuData,
   type IrisGridProps,
@@ -18,6 +20,7 @@ import {
   type IrisGridState,
   type DehydratedIrisGridState,
   type DehydratedGridState,
+  isIrisGridTableModelTemplate,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -30,11 +33,13 @@ import {
 } from '@deephaven/components';
 import {
   InputFilterEvent,
+  IrisGridEvent,
   useDashboardColumnFilters,
   useGridLinker,
   useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
 import {
+  useDhId,
   useLayoutManager,
   useListener,
   usePersistentState,
@@ -666,6 +671,37 @@ export function UITable({
     model?.table
   );
 
+  const sourcePanelId = useDhId();
+
+  const handleCreateChart = useCallback(
+    (
+      chartBuilderSettings: ChartBuilderSettings,
+      irisGridModel: IrisGridModel
+    ) => {
+      const tableSettings = dehydratedState
+        ? {
+            quickFilters: dehydratedState.quickFilters,
+            advancedFilters: dehydratedState.advancedFilters,
+            sorts: dehydratedState.sorts,
+            inputFilters,
+          }
+        : {};
+
+      eventHub.emit(IrisGridEvent.CREATE_CHART, {
+        metadata: {
+          settings: chartBuilderSettings,
+          sourcePanelId,
+          table: irisGridModel.description || 'Table',
+          tableSettings,
+        },
+        table: isIrisGridTableModelTemplate(irisGridModel)
+          ? irisGridModel.table
+          : undefined,
+      });
+    },
+    [eventHub, sourcePanelId, dehydratedState, inputFilters]
+  );
+
   const handleClearAllFilters = useCallback(() => {
     if (irisGrid == null) {
       return;
@@ -691,6 +727,7 @@ export function UITable({
         <IrisGrid
           ref={ref => setIrisGrid(ref)}
           model={model}
+          onCreateChart={handleCreateChart}
           onStateChange={onStateChange}
           onSelectionChanged={debouncedHandleSelectionChanged}
           columnSelectionValidator={columnSelectionValidator}
