@@ -35,6 +35,7 @@ class Element(ABC):
     def render(self) -> PropsType:
         """
         Renders this element, and returns the result as a dictionary of props for the element.
+        These props are then passed in to the client to render the `Element` with this `name`.
         If you just want to render children, pass back a dict with children only, e.g. { "children": ... }
 
         Returns:

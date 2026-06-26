@@ -82,6 +82,10 @@
                 "path": "add-interactivity/render-cycle.md"
               },
               {
+                "label": "Memoizing Components",
+                "path": "add-interactivity/memoizing-components.md"
+              },
+              {
                 "label": "State as a Snapshot",
                 "path": "add-interactivity/state-as-a-snapshot.md"
               },
