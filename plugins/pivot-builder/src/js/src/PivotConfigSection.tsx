@@ -1704,6 +1704,16 @@ export function PivotConfigSection({
     [aggregationSettings.showOnTop]
   );
 
+  // Disable "Move totals to top" when not in aggregation-only mode — i.e.
+  // whenever a pivot or rollup is configured.
+  const aggregateMenuDisabledKeys = useMemo<string[]>(
+    () =>
+      pivotActive || (rollupRowsOn && rollupRows.length > 0)
+        ? ['moveTotalsToTop']
+        : [],
+    [pivotActive, rollupRowsOn, rollupRows]
+  );
+
   // Items for the global toolbar overflow (⋮) menu above the cards.
   // Mirrors the per-card menus' structure (show hidden columns → undo/redo
   // → clear all) so toolbar and card menus look consistent.
@@ -2041,6 +2051,7 @@ export function PivotConfigSection({
               tooltip="Aggregate options"
               onAction={handleConfigMenuAction}
               onOpen={closeAllPickers}
+              disabledKeys={aggregateMenuDisabledKeys}
             />
           }
           picker={anchorRef =>

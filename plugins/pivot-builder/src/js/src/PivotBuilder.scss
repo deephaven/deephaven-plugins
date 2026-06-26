@@ -328,10 +328,16 @@
   // function picker. Each aggregation entry's first line is the function
   // picker; any following lines are its column labels — `:not(:last-child)`
   // skips the rule for column-less entries so a lone function isn't underlined.
+  // Pull the picker control up a touch so the divider tucks under the function
+  // text rather than floating at the bottom of the (taller) quiet picker.
   .pivot-droppable-aggregations
     .pivot-row
     > .pivot-agg-row-line:first-child:not(:last-child) {
     border-bottom: 1px solid var(--dh-color-gray-400);
+
+    .pivot-agg-row-picker {
+      margin-bottom: -4px;
+    }
   }
 
   // Empty placeholder shown in a target card while dragging a column in from
