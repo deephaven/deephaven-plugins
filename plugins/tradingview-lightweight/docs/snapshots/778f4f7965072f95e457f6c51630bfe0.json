@@ -1,0 +1,119 @@
+{
+  "file": "yield-curve.md",
+  "objects": {
+    "data": {
+      "type": "Table",
+      "data": {
+        "columns": [
+          {
+            "name": "Tenor",
+            "type": "double"
+          },
+          {
+            "name": "Yield",
+            "type": "double"
+          }
+        ],
+        "rows": [
+          [
+            {
+              "value": "3.0000"
+            },
+            {
+              "value": "2.2870"
+            }
+          ],
+          [
+            {
+              "value": "6.0000"
+            },
+            {
+              "value": "2.5500"
+            }
+          ],
+          [
+            {
+              "value": "12.0000"
+            },
+            {
+              "value": "2.9620"
+            }
+          ],
+          [
+            {
+              "value": "24.0000"
+            },
+            {
+              "value": "3.4720"
+            }
+          ],
+          [
+            {
+              "value": "36.0000"
+            },
+            {
+              "value": "3.7360"
+            }
+          ],
+          [
+            {
+              "value": "60.0000"
+            },
+            {
+              "value": "3.9470"
+            }
+          ],
+          [
+            {
+              "value": "84.0000"
+            },
+            {
+              "value": "4.0070"
+            }
+          ],
+          [
+            {
+              "value": "120.0000"
+            },
+            {
+              "value": "4.0290"
+            }
+          ],
+          [
+            {
+              "value": "240.0000"
+            },
+            {
+              "value": "4.0390"
+            }
+          ],
+          [
+            {
+              "value": "360.0000"
+            },
+            {
+              "value": "4.0420"
+            }
+          ],
+          [
+            {
+              "value": "480.0000"
+            },
+            {
+              "value": "4.0430"
+            }
+          ]
+        ]
+      }
+    },
+    "yield_curve": {
+      "type": "deephaven.plot.tradingview_lightweight.TvlChart",
+      "data": {
+        "image": "assets/f498fccb4ddf4d905f98c5e964d8e532f5fbbf66b5179a57200b118faeb27b23.png",
+        "width": 860,
+        "height": 573,
+        "alt": "yield_curve"
+      }
+    }
+  }
+}

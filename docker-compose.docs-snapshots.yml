@@ -8,15 +8,17 @@ services:
       [
         'sh',
         '-c',
-        'node extract.cjs --directory /extract/plotly-express --output /results/plotly-express; node extract.cjs --directory /extract/ui --output /results/ui',
+        'node extract.cjs --directory /extract/plotly-express --output /results/plotly-express; node extract.cjs --directory /extract/ui --output /results/ui; node extract.cjs --directory /extract/tradingview-lightweight --output /results/tradingview-lightweight',
       ]
     volumes:
       - ./plugins/ui/docs:/extract/ui
       - ./plugins/plotly-express/docs:/extract/plotly-express
+      - ./plugins/tradingview-lightweight/docs:/extract/tradingview-lightweight
       # exclude doc build directories by overriding with empty volumes
       # We could extract from the build directories, but we need to output the snapshots to the build directory itself for Salmon to pick up...
       - /extract/plotly-express/build/
       - /extract/ui/build/
+      - /extract/tradingview-lightweight/build/
       - test-sets:/results
 
   # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
@@ -33,7 +35,7 @@ services:
       [
         'sh',
         '-c',
-        'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express --errors /errors/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui --errors /errors/ui',
+        'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express --errors /errors/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui --errors /errors/ui; node snapshot.cjs --directory /test-sets/tradingview-lightweight --output /results/tradingview-lightweight --errors /errors/tradingview-lightweight',
       ]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # Allows the snapshotter to start its own docker containers for the test server
@@ -42,7 +44,109 @@ services:
       # Map all the results back to the snapshots directory for those docs
       - ./plugins/ui/docs/snapshots:/results/ui
       - ./plugins/plotly-express/docs/snapshots:/results/plotly-express
+      - ./plugins/tradingview-lightweight/docs/snapshots:/results/tradingview-lightweight
       - ./snapshot-results/errors:/errors
+
+  # Pass 2: capture widget PNGs for the tradingview-lightweight docs. Runs
+  # AFTER salmon's Pass 1 snapshotter has finished and torn its server down.
+  # Brings up its own python-snapshotter compose via the mounted docker
+  # socket so it can join the shared snapshot network. The image-snapshotter
+  # tool itself is plugin-agnostic; per-plugin settings come from
+  # SNAPSHOTTER_* env vars below.
+  deephaven-plugins-docs-image-snapshotter-tvl:
+    build:
+      context: ./tools/image-snapshotter
+    container_name: deephaven-plugins-docs-image-snapshotter-tvl
+    depends_on:
+      deephaven-plugins-docs-snapshotter:
+        condition: service_completed_successfully
+    environment:
+      SNAPSHOTTER_BASE_URL: 'http://server:10000/ide/'
+      SNAPSHOTTER_PLUGIN_ROOT: '/work'
+      SNAPSHOTTER_PLUGIN: 'tradingview-lightweight'
+      SNAPSHOTTER_TARGET_SELECTOR: '.dh-tvl-chart'
+      SNAPSHOTTER_WIDGET_TYPE: 'deephaven.plot.tradingview_lightweight.TvlChart'
+      SNAPSHOTTER_APP_ID: 'tvl.docs.examples'
+      SNAPSHOTTER_APP_NAME: 'TVL Docs Examples'
+      SNAPSHOTTER_COMPOSE_FILE: '/workspace/docker/python-snapshotter/docker-compose.yml'
+      SNAPSHOTTER_SERVER_CONTAINER: 'tvl-snapshotter-server'
+      # Pass through the host's SNAPSHOTTER_FORCE so callers can opt in to
+      # cache-busting recapture without editing this file.
+      SNAPSHOTTER_FORCE: ${SNAPSHOTTER_FORCE:-}
+      CI: 'true'
+      # The Pass 2 entrypoint brings up the python-snapshotter test server
+      # via the mounted docker socket. That compose file bind-mounts the
+      # generated app.d, which is interpreted against the HOST filesystem
+      # (the socket is the host's). `${PWD}` is evaluated by compose at
+      # compose-up time against the user's shell, so HOST_PWD inside the
+      # container always carries the host's working directory.
+      HOST_PWD: ${PWD}
+    volumes:
+      # Allows the snapshotter to start its own server container alongside us.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # docker/python-snapshotter/docker-compose.yml is resolved from the
+      # host's view of the socket — mount the repo at a stable path inside
+      # the container so SNAPSHOTTER_COMPOSE_FILE resolves correctly.
+      - ${PWD}:/workspace
+      # The spec walks docs/*.md (read-only) and writes PNGs + JSON envelopes
+      # into docs/snapshots. PLUGIN_ROOT resolves to /work, so /work/docs is
+      # the docs tree and /work/docs/snapshots is the output dir.
+      - ./plugins/tradingview-lightweight/docs:/work/docs:ro
+      - ./plugins/tradingview-lightweight/docs/snapshots:/work/docs/snapshots
+
+  # Surface snapshot errors to the user. Compose's `depends_on` conditions
+  # only fire on success (`service_completed_successfully`); there's no
+  # "completed-with-any-exit" condition. And dependency stdout doesn't
+  # stream to the terminal when you `docker compose run <target>` — only
+  # the target's own stdout does. So the salmon snapshotter's errors were
+  # silently written to /errors and never shown.
+  #
+  # Workaround: this service has no depends_on. The npm `update-doc-snapshots`
+  # script invokes it as its own `compose run` target right after the main
+  # chain — so its stdout streams to the user, regardless of whether the
+  # snapshotter passed or failed. Bind-mounts the same errors dir the
+  # snapshotter writes to. Exits non-zero if any errors are present.
+  # Also acts as the post-run chown step. The salmon snapshotter and the
+  # Pass-2 image-snapshotter both run as root, so the PNGs + JSON envelopes
+  # they write into docs/snapshots land owned by root and the host user
+  # can't edit them. Bind-mounting those dirs here (rw) and chowning them
+  # to SNAPSHOT_UID:SNAPSHOT_GID (exported by tools/run_docker.sh) makes
+  # them editable on the host. Runs whether or not snapshots succeeded.
+  deephaven-plugins-docs-error-reporter:
+    image: alpine:3.20
+    environment:
+      SNAPSHOT_UID: ${SNAPSHOT_UID:-0}
+      SNAPSHOT_GID: ${SNAPSHOT_GID:-0}
+    volumes:
+      - ./snapshot-results/errors:/errors
+      - ./plugins/ui/docs/snapshots:/snapshots/ui
+      - ./plugins/plotly-express/docs/snapshots:/snapshots/plotly-express
+      - ./plugins/tradingview-lightweight/docs/snapshots:/snapshots/tradingview-lightweight
+    command:
+      - sh
+      - -c
+      - |
+        if [ "$$SNAPSHOT_UID" != "0" ]; then
+          chown -R "$$SNAPSHOT_UID:$$SNAPSHOT_GID" /errors /snapshots 2>/dev/null || true
+        fi
+        had=0
+        for plugin in plotly-express ui tradingview-lightweight; do
+          f="/errors/$$plugin/errors.txt"
+          if [ -s "$$f" ]; then
+            had=1
+            echo ""
+            echo "==================== $$plugin ($$f) ===================="
+            head -n 200 "$$f"
+            n=$$(wc -l < "$$f")
+            if [ "$$n" -gt 200 ]; then
+              echo "... ($$n total lines; full file at snapshot-results/errors/$$plugin/errors.txt)"
+            fi
+          fi
+        done
+        if [ "$$had" -eq 0 ]; then
+          echo "[error-reporter] no snapshot errors recorded."
+        fi
+        exit $$had
 
   # Validate MDX and the snapshots that were written are valid
   deephaven-plugins-docs-validator:
@@ -51,6 +155,7 @@ services:
     volumes:
       - ./plugins/ui/docs/build/markdown:/validate/ui
       - ./plugins/plotly-express/docs/build/markdown:/validate/plotly-express
+      - ./plugins/tradingview-lightweight/docs/build/markdown:/validate/tradingview-lightweight
       - ./docker/build/validator-results:/results
 
 volumes:
