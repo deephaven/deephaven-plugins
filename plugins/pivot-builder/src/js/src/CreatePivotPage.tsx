@@ -19,6 +19,7 @@ import { GLOBAL_SHORTCUTS } from '@deephaven/components';
 import { useUndoRedo } from '@deephaven/react-hooks';
 import {
   isPivotBuilderIrisGridModel,
+  type PivotAggregation,
   type PivotConfig,
   type PivotBuilderUiState,
 } from './pivotBuilderModel';
@@ -98,14 +99,31 @@ function seedAggregationSettings(
 
 function aggregationsToPivot(
   settings: AggregationSettings
-): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  settings.aggregations.forEach(agg => {
-    if (agg.selected.length === 0) return;
-    const op = String(agg.operation);
-    out[op] = [...(out[op] ?? []), ...agg.selected];
-  });
-  return out;
+): PivotAggregation[] {
+  return settings.aggregations
+    .filter(agg => agg.selected.length > 0)
+    .map(agg => ({
+      operation: String(agg.operation),
+      columns: [...agg.selected],
+    }));
+}
+
+/**
+ * Convert a `PivotConfig`'s ordered aggregation array back into the host's
+ * `AggregationSettings.aggregations`. Inverse of `aggregationsToPivot`; the
+ * `invert` flag is not carried on `PivotConfig` and defaults to `false`.
+ */
+function aggregationsFromPivot(
+  aggregations: readonly PivotAggregation[]
+): AggregationSettings['aggregations'] {
+  return aggregations
+    .filter(agg => agg.columns.length > 0)
+    .map(agg => ({
+      operation:
+        agg.operation as AggregationSettings['aggregations'][number]['operation'],
+      selected: [...agg.columns],
+      invert: false,
+    }));
 }
 
 /**
@@ -217,7 +235,7 @@ export function CreatePivotPage({
       if (uiIntent != null) return uiIntent.aggregations;
       if (pivotIntent != null) {
         return {
-          aggregations: aggregationsFromOpMap(pivotIntent.aggregations),
+          aggregations: aggregationsFromPivot(pivotIntent.aggregations),
           showOnTop: false,
         };
       }
@@ -527,15 +545,34 @@ export function CreatePivotPage({
       ref={containerRef}
       className="iris-grid-plugin-sidebar-page"
       // `height: 100%` so the empty area below the cards still belongs to this
-      // focusable container - clicking it focuses us (tabIndex=0) and keeps the
-      // undo/redo shortcuts working, rather than focusing an ancestor.
+      // focusable container - clicking it focuses us and keeps the undo/redo
+      // shortcuts working, rather than focusing an ancestor.
+      //
+      // `tabIndex={-1}` makes the container focusable via click and our
+      // programmatic `focus()` (see `handleBlur`) without inserting it into the
+      // keyboard Tab sequence. A Tab stop on the whole panel isn't useful (the
+      // inner controls are individually tabbable and `handleKeyDown` also fires
+      // for keydowns bubbling up from them), and as a keyboard-focused element
+      // its `:focus-visible` outline wraps the entire scrolling region and gets
+      // clipped into a broken shape by the sidebar's scroll container.
       style={{ padding: 12, height: '100%', boxSizing: 'border-box' }}
       role="menu"
-      tabIndex={0}
+      tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div
+        // `height: 100%` on the container above means its `padding` sits at the
+        // bottom of the fixed-height box rather than below the overflowing
+        // content, so the last card butts up against the scroll bottom. Add
+        // bottom padding to the scrolling content flow so a gap remains.
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          paddingBottom: 12,
+        }}
+      >
         <PivotConfigSection
           availableColumns={allColumnNames}
           hiddenColumns={viewState.hiddenColumns}

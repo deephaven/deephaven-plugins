@@ -267,7 +267,7 @@ const cardHeaderWithBodyStyle: React.CSSProperties = {
 
 const cardTitleStyle: React.CSSProperties = {
   flex: 1,
-  fontWeight: 600,
+  fontWeight: 'var(--spectrum-global-font-weight-medium)',
 };
 
 const rowStyle: React.CSSProperties = {
@@ -282,6 +282,12 @@ const rowLabelStyle: React.CSSProperties = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+};
+
+/** Like {@link rowLabelStyle} but bolded for column-name labels. */
+const columnNameStyle: React.CSSProperties = {
+  ...rowLabelStyle,
+  fontWeight: 'var(--spectrum-global-font-weight-medium)',
 };
 
 // Style applied to a row while it is being dragged. Mirrors iris-grid's
@@ -850,7 +856,7 @@ function ColumnRow({
   };
   return (
     <div ref={setNodeRef} style={style}>
-      <span style={rowLabelStyle}>{name}</span>
+      <span style={columnNameStyle}>{name}</span>
       <Button
         kind="ghost"
         className="btn-small pivot-row-btn"
@@ -877,7 +883,7 @@ function ColumnRow({
 function ColumnRowPreview({ name }: { name: string }): JSX.Element {
   return (
     <div style={{ ...rowStyle, ...draggingRowStyle }}>
-      <span style={rowLabelStyle}>{name}</span>
+      <span style={columnNameStyle}>{name}</span>
       <Button
         kind="ghost"
         className="btn-small pivot-row-btn"
@@ -899,6 +905,14 @@ type AggregateSelectRowProps = {
   availableOperations: readonly string[];
   onOperationChange: (operation: string) => void;
   onDelete: () => void;
+  /**
+   * When provided, each column label renders with its own remove button so a
+   * single column can be dropped from the function's selection. Used by the
+   * grouped (non-pivot) layout where one row lists all of a function's
+   * columns; omitted in the ungrouped layout where each function/column pair
+   * is already its own deletable row.
+   */
+  onDeleteColumn?: (column: string) => void;
   /**
    * When true the aggregate function is rendered as plain read-only text
    * (just the operation name) instead of an editable picker, and the column
@@ -965,6 +979,7 @@ function AggregateSelectRow({
   availableOperations,
   onOperationChange,
   onDelete,
+  onDeleteColumn,
   staticOperation = false,
 }: AggregateSelectRowProps): JSX.Element {
   const {
@@ -1037,11 +1052,36 @@ function AggregateSelectRow({
       </div>
       {staticOperation
         ? null
-        : columnLabels.map(label => (
-            <span key={label} style={rowLabelStyle}>
-              {label}
-            </span>
-          ))}
+        : columnLabels.map(label =>
+            onDeleteColumn != null ? (
+              <div
+                key={label}
+                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <span style={columnNameStyle}>{label}</span>
+                <Button
+                  kind="ghost"
+                  className="btn-small pivot-row-btn"
+                  icon={vsTrash}
+                  tooltip="Remove column"
+                  onClick={() => onDeleteColumn(label)}
+                />
+                {/* Invisible spacer matching the grip handle on the function
+                  line so the column remove buttons align with the
+                  function's. */}
+                <span
+                  style={{ ...gripHandleStyle, visibility: 'hidden' }}
+                  aria-hidden
+                >
+                  <GripIcon />
+                </span>
+              </div>
+            ) : (
+              <span key={label} style={columnNameStyle}>
+                {label}
+              </span>
+            )
+          )}
     </div>
   );
 }
@@ -1551,19 +1591,29 @@ export function PivotConfigSection({
           aggregations = aggregations.filter(a => a !== source);
         }
       } else {
-        source.selected = source.selected.filter(c => c !== column);
         const dest = aggregations.find(a => a.operation === nextOp);
-        if (dest == null) {
-          aggregations.push({
-            operation: nextOp as AggregationOperation,
-            selected: [column],
-            invert: false,
-          });
-        } else if (!dest.selected.includes(column)) {
-          dest.selected.push(column);
-        }
-        if (source.selected.length === 0) {
-          aggregations = aggregations.filter(a => a !== source);
+        if (dest == null && source.selected.length === 1) {
+          // This is the function's only column and the target function isn't
+          // used yet: relabel the entry in place so the row keeps its
+          // position instead of jumping to the bottom of the list.
+          source.operation = nextOp as AggregationOperation;
+        } else {
+          source.selected = source.selected.filter(c => c !== column);
+          if (dest == null) {
+            // Insert the new entry where the source sits (rather than
+            // appending) so the moved row stays near its original spot.
+            const insertIndex = aggregations.indexOf(source);
+            aggregations.splice(insertIndex, 0, {
+              operation: nextOp as AggregationOperation,
+              selected: [column],
+              invert: false,
+            });
+          } else if (!dest.selected.includes(column)) {
+            dest.selected.push(column);
+          }
+          if (source.selected.length === 0) {
+            aggregations = aggregations.filter(a => a !== source);
+          }
         }
       }
       onAggregationSettingsChange({ ...aggregationSettings, aggregations });
@@ -1609,6 +1659,30 @@ export function PivotConfigSection({
           ? { mode: 'edit', index: curr.index - 1 }
           : curr;
       });
+    },
+    [aggregationSettings, onAggregationSettingsChange]
+  );
+
+  // Grouped layout (no pivot/rollup): remove a single column from an
+  // aggregate function's selection, dropping the whole entry if it was the
+  // last column. Mirrors `handleDeleteAggregatePair` but keyed by the entry
+  // index since the grouped layout lists all of a function's columns in one
+  // row.
+  const handleDeleteAggregateColumn = useCallback(
+    (index: number, column: string) => {
+      let aggregations = aggregationSettings.aggregations.map(a => ({
+        ...a,
+        selected: a.selected.slice(),
+      }));
+      const entry = aggregations[index];
+      if (entry == null) {
+        return;
+      }
+      entry.selected = entry.selected.filter(c => c !== column);
+      if (entry.selected.length === 0) {
+        aggregations = aggregations.filter((_, i) => i !== index);
+      }
+      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
     },
     [aggregationSettings, onAggregationSettingsChange]
   );
@@ -2534,6 +2608,9 @@ export function PivotConfigSection({
                       handleChangeAggregateOperation(i, op)
                     }
                     onDelete={() => handleDeleteAggregate(i)}
+                    onDeleteColumn={column =>
+                      handleDeleteAggregateColumn(i, column)
+                    }
                   />
                 ))
               : aggregatePairs.map(pair => (
@@ -2543,7 +2620,6 @@ export function PivotConfigSection({
                     operation={pair.operation}
                     columnLabels={pair.column === '' ? [] : [pair.column]}
                     availableOperations={selectableOperations}
-                    staticOperation={isCountOperation(pair.operation)}
                     onOperationChange={op =>
                       handleChangeAggregatePairOperation(
                         pair.entryIndex,

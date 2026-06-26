@@ -44,14 +44,28 @@ export const PIVOT_BUILDER_CONFIG_CHANGED =
   '@deephaven/js-plugin-pivot-builder/PIVOT_BUILDER_CONFIG_CHANGED';
 
 /**
- * User-configured pivot settings. Shape mirrors the request payload accepted
- * by `coreplus.pivot.PivotService#createPivotTable`.
+ * A single aggregation entry: an operation applied to one or more columns.
+ * The array of these on `PivotConfig` is ORDER-SENSITIVE — reordering entries
+ * is a meaningful config change (unlike the order-insensitive
+ * `Record<operation, columns[]>` the pivot service ultimately receives).
+ */
+export interface PivotAggregation {
+  operation: string;
+  columns: string[];
+}
+
+/**
+ * User-configured pivot settings. The `aggregations` array is collapsed into
+ * the `Record<operation, columns[]>` payload accepted by
+ * `coreplus.pivot.PivotService#createPivotTable` at the build boundary
+ * (`withFallbackAggregations`); we keep the ordered array form here so the UI
+ * and intent diffing can detect operation reordering.
  */
 export interface PivotConfig {
   rowKeys: string[];
   columnKeys: string[];
-  /** e.g. `{ Sum: ['price', 'qty'] }`. */
-  aggregations: Record<string, string[]>;
+  /** Ordered, e.g. `[{ operation: 'Sum', columns: ['price', 'qty'] }]`. */
+  aggregations: PivotAggregation[];
 }
 
 /**
@@ -227,11 +241,14 @@ export function augmentPivotBuilderModel(
   const withFallbackAggregations = (
     config: PivotConfig
   ): Record<string, string[]> => {
-    const sanitized = Object.fromEntries(
-      Object.entries(config.aggregations).filter(
-        ([, columns]) => columns.length > 0
-      )
-    );
+    // Collapse the ordered array into the order-insensitive
+    // `operation → columns` map the pivot service expects, merging columns
+    // for any operation that appears in more than one entry.
+    const sanitized: Record<string, string[]> = {};
+    config.aggregations.forEach(({ operation, columns }) => {
+      if (columns.length === 0) return;
+      sanitized[operation] = [...(sanitized[operation] ?? []), ...columns];
+    });
 
     if (Object.keys(sanitized).length > 0) {
       return sanitized;
@@ -641,7 +658,9 @@ export function makeDefaultPivotConfig(
     rowKeys = [columns[0].name];
   }
   const columnKeys = nonNumeric.length > 1 ? nonNumeric.slice(1, 2) : [];
-  const aggregations: Record<string, string[]> =
-    numeric.length > 0 ? { Sum: numeric } : { Count: [] };
+  const aggregations: PivotAggregation[] =
+    numeric.length > 0
+      ? [{ operation: 'Sum', columns: numeric }]
+      : [{ operation: 'Count', columns: [] }];
   return { rowKeys, columnKeys, aggregations };
 }
