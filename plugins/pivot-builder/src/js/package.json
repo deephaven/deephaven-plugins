@@ -1,0 +1,59 @@
+{
+  "name": "@deephaven/js-plugin-pivot-builder",
+  "version": "0.0.0",
+  "description": "Deephaven Plugin that adds a Create Pivot item to the IrisGrid Table Options sidebar",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "pivot",
+    "table-options",
+    "middleware"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "plugin": {
+    "dependencies": [
+      "@deephaven/js-plugin-pivot"
+    ]
+  },
+  "files": [
+    "dist/index.js"
+  ],
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@deephaven/components": "1.22.1",
+    "@deephaven/dashboard": "1.23.0",
+    "@deephaven/dashboard-core-plugins": "1.23.0",
+    "@deephaven/icons": "1.2.0",
+    "@deephaven/iris-grid": "1.23.0",
+    "@deephaven/js-plugin-pivot": "^0.4.0-0",
+    "@deephaven/jsapi-bootstrap": "1.23.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
+    "@deephaven/jsapi-utils": "1.23.0",
+    "@deephaven/log": "1.8.0",
+    "@deephaven/plugin": "1.23.0",
+    "@deephaven/react-hooks": "1.21.1",
+    "@deephaven/utils": "1.10.0",
+    "fast-deep-equal": "^3.1.3"
+  },
+  "devDependencies": {
+    "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false
+  }
+}

@@ -34,7 +34,14 @@
     {
       "name": "pivot",
       "version": "0.0.0",
-      "main": "src/js/dist/index.js"
+      "main": "src/js/dist/index.js",
+      "package": "@deephaven/js-plugin-pivot"
+    },
+    {
+      "name": "pivot-builder",
+      "version": "0.0.0",
+      "main": "src/js/dist/index.js",
+      "dependencies": ["@deephaven/js-plugin-pivot"]
     }
   ]
 }

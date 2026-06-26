@@ -568,12 +568,19 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       return undefined;
     }
 
+    // Walk up the parent chain until we reach the requested depth. Guard
+    // against cycles/self-references in the parent map (which can occur when
+    // the column header groups are momentarily out of sync with the columns
+    // array): a finite acyclic chain always terminates, so revisiting a name
+    // means there is a cycle and we should bail rather than loop forever.
+    const visited = new Set<string>([group.name]);
     let currentDepth = group.depth;
     while (currentDepth < depth) {
       group = this.columnHeaderParentMap.get(group.name);
-      if (!group) {
+      if (!group || visited.has(group.name)) {
         return undefined;
       }
+      visited.add(group.name);
       currentDepth = group.depth;
     }
 
@@ -859,8 +866,7 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
   }
 
   truncationCharForCell(x: ModelIndex): '#' | undefined {
-    const column = this.columns[x];
-    const { type } = column;
+    const type = this.columns[x]?.type;
 
     if (
       TableUtils.isNumberType(type) &&
@@ -887,12 +893,14 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       // Fallback to formatting based on the value/type of the cell
       if (value != null) {
         const column = this.sourceColumn(x, y);
-        return IrisGridUtils.colorForValue(
-          theme,
-          column.type,
-          column.name,
-          value
-        );
+        if (column != null) {
+          return IrisGridUtils.colorForValue(
+            theme,
+            column.type,
+            column.name,
+            value
+          );
+        }
       }
     }
 
@@ -909,6 +917,9 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
 
   textAlignForCell(x: ModelIndex, y: ModelIndex): CanvasTextAlign {
     const column = this.sourceColumn(x, y);
+    if (column == null) {
+      return 'left';
+    }
 
     return IrisGridUtils.textAlignForValue(column.type, column.name);
   }
@@ -1203,6 +1214,14 @@ class IrisGridPivotModel<R extends UIPivotRow = UIPivotRow>
       }
 
       const column = this.columns[x];
+
+      // The grid can momentarily request a cell for a column index that is
+      // beyond the current columns array (e.g. metrics computed against a
+      // previous, wider column set before the model catches up). Treat a
+      // missing column as "not available yet" rather than throwing.
+      if (column == null) {
+        return undefined;
+      }
 
       // Determine the source column type for formatting
       // Group column displays key values - use the appropriate key column's type
