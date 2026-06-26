@@ -74,82 +74,6 @@ const { FontAwesomeIcon } = ReactFontAwesome;
 // web-client-ui/packages/iris-grid/src/sidebar/aggregations/AggregationUtils.ts.
 // Inlined because that constant is not re-exported from the package's
 // public surface.
-// Marching-ants drop-zone styling, mirroring the `ants-base` mixin used by
-// iris-grid's RollupRows.scss. Injected as a <style> tag so the plugin
-// bundle stays a single JS file (no separate CSS asset). The `march`
-// keyframes are already defined globally by the host's @deephaven/components
-// BaseStyleSheet, so we only emit the layered backgrounds + animation.
-const PIVOT_DND_STYLES = `
-.pivot-config-section .pivot-droppable {
-  min-height: 2px;
-  border-radius: 2px;
-  transition: background-color 0.15s ease;
-}
-/* Empty drop zones collapse to zero footprint when idle so they don't
- * leave dead space under the card title. While a drag of the matching
- * type is active (see the is-dragging-* rules below) the empty zone
- * promotes to position: absolute and overlays the whole card so the
- * marching-ants trace the card edge and the entire card surface accepts
- * the drop. pointer-events: none keeps the Switch/Add/Overflow controls
- * in the header clickable; dnd-kit measures the droppable rect directly
- * via MeasuringStrategy.Always (set on the DndContext for the duration
- * of a drag) so the drop hit-area still includes the whole card. */
-.pivot-config-section .pivot-droppable-empty {
-  border-radius: 2px;
-}
-/* Marching-ants on every active drop zone whose accepted source type
- * matches the current drag, plus the full-card overlay for empty zones.
- * is-dragging-columns is set on the root while a column row
- * (rollup/pivot) is being dragged; is-dragging-aggregations while an
- * aggregation is being dragged. */
-.pivot-config-section.is-dragging-columns .pivot-droppable-empty.pivot-droppable-columns,
-.pivot-config-section.is-dragging-aggregations .pivot-droppable-empty.pivot-droppable-aggregations {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-.pivot-config-section.is-dragging-columns .pivot-droppable-columns,
-.pivot-config-section.is-dragging-aggregations .pivot-droppable-aggregations {
-  background-image:
-    linear-gradient(to right, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%),
-    linear-gradient(to right, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%),
-    linear-gradient(to bottom, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%),
-    linear-gradient(to bottom, var(--dh-color-bg-200, #1a1a1a) 50%, var(--dh-color-fg, #f0f0ee) 50%);
-  background-size: 8px 1px, 8px 1px, 1px 8px, 1px 8px;
-  background-position: 0 top, 0 bottom, left 0, right 0;
-  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
-  animation: march 0.5s linear infinite;
-}
-.pivot-config-section .pivot-droppable.is-dragging-over,
-.pivot-config-section .pivot-droppable-empty.is-dragging-over {
-  background-color: var(--dh-color-item-list-selected-hover-bg, rgba(255, 255, 255, 0.08));
-}
-/* Near-invisible divider between adjacent rows inside a card. The card
- * fill is gray-300, so gray-400 is one palette step above — same
- * separation as before and matches the outer card edge, keeping the
- * chrome consistent. Excludes the cross-card DropIndicator so the
- * drop-preview gap stays visually flush. */
-.pivot-config-section .pivot-droppable > *:not(.pivot-drop-indicator) + *:not(.pivot-drop-indicator) {
-  border-top: 1px solid var(--dh-color-gray-400);
-}
-/* Empty placeholder shown in a target card while dragging a column in from
- * another card. Same-card reordering opens a row-height gap via
- * SortableContext (the dragged row goes transparent and the rest shift);
- * this mirrors that look for cross-card drags so the drop position reads as
- * the same blank space, just in the other card. */
-.pivot-config-section .pivot-drop-indicator {
-  height: 28px;
-  margin: 1px 0;
-}
-/* Compact row buttons: the base .btn has a 32px height; shrink the
- * inline row action buttons (e.g. Remove) to keep list rows dense. */
-.pivot-config-section .btn.pivot-row-btn {
-  height: 28px;
-  min-height: 28px;
-}
-`;
-
 const SELECTABLE_OPERATIONS: readonly AggregationOperation[] = [
   AggregationOperation.SUM,
   AggregationOperation.ABS_SUM,
@@ -235,149 +159,15 @@ export type PivotConfigSectionProps = {
   onClearAll: () => void;
 };
 
-const cardStyle: React.CSSProperties = {
-  // Card sits one elevation above the sidebar fill. The Code Studio
-  // sidebar uses --dh-color-surface-bg (gray-200), and no semantic token
-  // exists for "card on top of surface". gray-300 is the next palette
-  // step up, giving the slightly-lighter card fill from the spec mockup
-  // without inventing a new token.
-  position: 'relative',
-  border: '1px solid var(--dh-color-border)',
-  borderRadius: 4,
-  padding: '6px 8px',
-  background: 'var(--dh-color-gray-300)',
-};
-
-const cardHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 0,
-};
-
-// Header variant used when the card has body content: a thin divider
-// separates the title row from the list below. Empty cards omit this so
-// they don't show a dangling line. Same border token as the outer card
-// edge to keep the chrome consistent.
-const cardHeaderWithBodyStyle: React.CSSProperties = {
-  ...cardHeaderStyle,
-  borderBottom: '1px solid var(--dh-color-border)',
-  paddingBottom: 4,
-  marginBottom: 4,
-};
-
-const cardTitleStyle: React.CSSProperties = {
-  flex: 1,
-  fontWeight: 'var(--spectrum-global-font-weight-medium)',
-};
-
-const rowStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 4,
-  padding: '0 2px',
-};
-
-const rowLabelStyle: React.CSSProperties = {
-  flex: 1,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-};
-
-/** Like {@link rowLabelStyle} but bolded for column-name labels. */
-const columnNameStyle: React.CSSProperties = {
-  ...rowLabelStyle,
-  fontWeight: 'var(--spectrum-global-font-weight-medium)',
-};
-
-// Style applied to a row while it is being dragged. Mirrors iris-grid's
-// `.draggable-item-list-dragging-item .item-list-item-content` rule:
-// primary-colored chip with shadow and contrast text.
-const draggingRowStyle: React.CSSProperties = {
-  backgroundColor: 'var(--dh-color-accent, #4878ea)',
-  color: 'var(--dh-color-accent-contrast, #fff)',
-  boxShadow: 'var(--dh-shadow-base, 0 2px 6px rgba(0, 0, 0, 0.4))',
-  borderRadius: 4,
-  padding: '4px 8px',
-};
-
-const gripHandleStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'grab',
-  padding: '0 4px',
-  color: 'var(--dh-color-fg-200, #888)',
-};
-
 /** Drag-handle grip icon. */
 function GripIcon(): JSX.Element {
   return <FontAwesomeIcon icon={vsGripper} />;
 }
 
-// Body styling for a card toggled "off". The card is visually de-emphasised
-// (reduced opacity) but stays interactive so its list can still be edited
-// (add / remove / reorder). Hard-disabled cards (see ConfigCard `disabled`)
-// block interaction at the card root instead.
-const disabledBodyStyle: React.CSSProperties = {
-  opacity: 0.4,
-};
-
-const popoverStyle: React.CSSProperties = {
-  position: 'absolute',
-  zIndex: 1000,
-  top: 'calc(100% + 4px)',
-  right: 0,
-  width: 240,
-  maxHeight: 320,
-  display: 'flex',
-  flexDirection: 'column',
-  background: 'var(--dh-color-bg-200, #1f1f1f)',
-  border: '1px solid var(--dh-color-border-base, #444)',
-  borderRadius: 8,
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
-  overflow: 'hidden',
-};
-
-const popoverSearchStyle: React.CSSProperties = {
-  padding: 8,
-};
-
-const popoverListStyle: React.CSSProperties = {
-  overflowY: 'auto',
-  flex: 1,
-};
-
-const popoverItemStyle: React.CSSProperties = {
-  padding: '6px 12px',
-  cursor: 'pointer',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
-
-const popoverEmptyStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  opacity: 0.6,
-  fontStyle: 'italic',
-};
-
 /** Message displayed in the Pivot columns card when the service is unavailable. */
 function ServiceUnavailableMessage(): JSX.Element {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 60,
-        color: 'white',
-        textAlign: 'center',
-        padding: '8px',
-      }}
-    >
-      Pivot service not available
-    </div>
+    <div className="pivot-service-unavailable">Pivot service not available</div>
   );
 }
 
@@ -497,8 +287,8 @@ function ColumnPicker({
   return createPortal(
     <div
       ref={containerRef}
+      className="pivot-popover"
       style={{
-        ...popoverStyle,
         position: 'fixed',
         top: pos?.top ?? -9999,
         right: pos?.right ?? 0,
@@ -506,7 +296,7 @@ function ColumnPicker({
       }}
       role="dialog"
     >
-      <div style={popoverSearchStyle}>
+      <div className="pivot-popover-search">
         <SearchInput
           ref={searchRef}
           value={query}
@@ -515,9 +305,9 @@ function ColumnPicker({
           onKeyDown={handleKeyDown}
         />
       </div>
-      <div style={popoverListStyle} role="listbox">
+      <div className="pivot-popover-list" role="listbox">
         {filtered.length === 0 ? (
-          <div style={popoverEmptyStyle}>No options</div>
+          <div className="pivot-popover-empty">No options</div>
         ) : (
           filtered.map((name, i) => (
             // eslint-disable-next-line jsx-a11y/interactive-supports-focus
@@ -525,13 +315,9 @@ function ColumnPicker({
               key={name}
               role="option"
               aria-selected={i === activeIndex}
-              style={{
-                ...popoverItemStyle,
-                background:
-                  i === activeIndex
-                    ? 'var(--dh-color-bg-300, #333)'
-                    : 'transparent',
-              }}
+              className={`pivot-popover-item${
+                i === activeIndex ? ' pivot-popover-item--active' : ''
+              }`}
               onMouseEnter={() => setActiveIndex(i)}
               onMouseDown={e => {
                 e.preventDefault();
@@ -688,24 +474,23 @@ function ConfigCard({
   // border so it reads as inactive while its boundary stays clearly visible.
   // Hard-disabled cards additionally fade out and block all interaction;
   // a merely "off" card stays interactive so its list can still be edited.
-  let rootCardStyle: React.CSSProperties = cardStyle;
+  let cardModifier = '';
   if (disabled === true) {
-    rootCardStyle = {
-      ...cardStyle,
-      border: '1px solid var(--dh-color-bg, #000)',
-      opacity: 0.5,
-      pointerEvents: 'none',
-    };
+    cardModifier = ' pivot-card--disabled';
   } else if (!on) {
-    rootCardStyle = {
-      ...cardStyle,
-      border: '1px solid var(--dh-color-bg, #000)',
-    };
+    cardModifier = ' pivot-card--off';
   }
   return (
-    <div style={rootCardStyle} aria-disabled={disabled === true}>
-      <div style={hasBody === true ? cardHeaderWithBodyStyle : cardHeaderStyle}>
-        <span style={cardTitleStyle}>{title}</span>
+    <div
+      className={`pivot-card${cardModifier}`}
+      aria-disabled={disabled === true}
+    >
+      <div
+        className={`pivot-card-header${
+          hasBody === true ? ' pivot-card-header--with-body' : ''
+        }`}
+      >
+        <span className="pivot-card-title">{title}</span>
         {/*
           Controlled Spectrum Switch. Guard onChange against echoes:
           react-spectrum can fire onChange during prop-driven internal
@@ -725,7 +510,7 @@ function ConfigCard({
           isDisabled={disabled === true || toggleLocked === true}
           aria-label={title}
         />
-        <span ref={buttonRef} style={{ display: 'inline-flex' }}>
+        <span ref={buttonRef} className="pivot-add-anchor">
           <ActionButton
             onPress={onAdd}
             isDisabled={addDisabled === true || disabled === true}
@@ -736,7 +521,10 @@ function ConfigCard({
         {overflow}
         {picker?.(buttonRef)}
       </div>
-      <div style={on ? undefined : disabledBodyStyle} aria-disabled={!on}>
+      <div
+        className={on ? undefined : 'pivot-card-body--off'}
+        aria-disabled={!on}
+      >
         {children}
       </div>
     </div>
@@ -849,14 +637,13 @@ function ColumnRow({
     isDragging,
   } = useSortable({ id, data: { type: 'column', container: droppableId } });
   const style: React.CSSProperties = {
-    ...rowStyle,
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style}>
-      <span style={columnNameStyle}>{name}</span>
+    <div ref={setNodeRef} className="pivot-row" style={style}>
+      <span className="pivot-row-label pivot-column-name">{name}</span>
       <Button
         kind="ghost"
         className="btn-small pivot-row-btn"
@@ -866,7 +653,7 @@ function ColumnRow({
       />
       <span
         ref={setActivatorNodeRef}
-        style={gripHandleStyle}
+        className="pivot-grip"
         aria-label="Drag to re-order"
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...attributes}
@@ -882,8 +669,8 @@ function ColumnRow({
 /** Static (non-dnd) rendering of a column row for use inside DragOverlay. */
 function ColumnRowPreview({ name }: { name: string }): JSX.Element {
   return (
-    <div style={{ ...rowStyle, ...draggingRowStyle }}>
-      <span style={columnNameStyle}>{name}</span>
+    <div className="pivot-row pivot-row--dragging">
+      <span className="pivot-row-label pivot-column-name">{name}</span>
       <Button
         kind="ghost"
         className="btn-small pivot-row-btn"
@@ -891,7 +678,7 @@ function ColumnRowPreview({ name }: { name: string }): JSX.Element {
         tooltip="Remove"
         onClick={() => undefined}
       />
-      <span style={gripHandleStyle} aria-hidden>
+      <span className="pivot-grip" aria-hidden>
         <GripIcon />
       </span>
     </div>
@@ -995,7 +782,6 @@ function AggregateSelectRow({
     data: { type: 'aggregation', container: AGGREGATIONS_DROPPABLE },
   });
   const style: React.CSSProperties = {
-    ...rowStyle,
     // Stack the function/columns vertically so the delete + drag icons can
     // sit on the same centered line as the aggregate-function picker (the
     // column labels flow underneath).
@@ -1007,11 +793,11 @@ function AggregateSelectRow({
     opacity: isDragging ? 0 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+    <div ref={setNodeRef} className="pivot-row" style={style}>
+      <div className="pivot-agg-row-line">
+        <div className="pivot-agg-row-picker">
           {staticOperation ? (
-            <span style={rowLabelStyle}>{operation}</span>
+            <span className="pivot-row-label">{operation}</span>
           ) : (
             <Picker
               isQuiet
@@ -1040,7 +826,7 @@ function AggregateSelectRow({
         />
         <span
           ref={setActivatorNodeRef}
-          style={gripHandleStyle}
+          className="pivot-grip"
           aria-label="Drag to re-order"
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...attributes}
@@ -1054,11 +840,10 @@ function AggregateSelectRow({
         ? null
         : columnLabels.map(label =>
             onDeleteColumn != null ? (
-              <div
-                key={label}
-                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-              >
-                <span style={columnNameStyle}>{label}</span>
+              <div key={label} className="pivot-agg-row-line">
+                <span className="pivot-row-label pivot-column-name">
+                  {label}
+                </span>
                 <Button
                   kind="ghost"
                   className="btn-small pivot-row-btn"
@@ -1069,15 +854,12 @@ function AggregateSelectRow({
                 {/* Invisible spacer matching the grip handle on the function
                   line so the column remove buttons align with the
                   function's. */}
-                <span
-                  style={{ ...gripHandleStyle, visibility: 'hidden' }}
-                  aria-hidden
-                >
+                <span className="pivot-grip pivot-grip--hidden" aria-hidden>
                   <GripIcon />
                 </span>
               </div>
             ) : (
-              <span key={label} style={columnNameStyle}>
+              <span key={label} className="pivot-row-label pivot-column-name">
                 {label}
               </span>
             )
@@ -1094,8 +876,8 @@ function AggregateRowPreview({
   label?: string;
 }): JSX.Element {
   return (
-    <div style={{ ...rowStyle, ...draggingRowStyle }}>
-      <span style={rowLabelStyle}>{label ?? formatAggLabel(entry)}</span>
+    <div className="pivot-row pivot-row--dragging">
+      <span className="pivot-row-label">{label ?? formatAggLabel(entry)}</span>
       <Button
         kind="ghost"
         className="btn-small pivot-row-btn"
@@ -1103,45 +885,12 @@ function AggregateRowPreview({
         tooltip="Remove"
         onClick={() => undefined}
       />
-      <span style={gripHandleStyle} aria-hidden>
+      <span className="pivot-grip" aria-hidden>
         <GripIcon />
       </span>
     </div>
   );
 }
-
-const aggregatePopoverStyle: React.CSSProperties = {
-  ...popoverStyle,
-  width: 280,
-  maxHeight: 'min(420px, calc(100vh - 32px))',
-  padding: 12,
-  gap: 8,
-};
-
-const aggregateFieldLabelStyle: React.CSSProperties = {
-  fontSize: 12,
-  marginBottom: 4,
-};
-
-const aggregateColumnListStyle: React.CSSProperties = {
-  flex: 1,
-  overflowY: 'auto',
-  border: '1px solid var(--dh-color-border-base, #444)',
-  borderRadius: 4,
-  padding: '4px 8px',
-  minHeight: 120,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 2,
-};
-
-const aggregateFooterStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  marginTop: 4,
-  flexShrink: 0,
-};
 
 type AggregatePickerProps = {
   anchorRef: React.RefObject<HTMLElement>;
@@ -1286,8 +1035,8 @@ function AggregatePicker({
   return createPortal(
     <div
       ref={containerRef}
+      className="pivot-popover pivot-agg-popover"
       style={{
-        ...aggregatePopoverStyle,
         position: 'fixed',
         top: pos?.top ?? -9999,
         right: pos?.right ?? 0,
@@ -1296,7 +1045,7 @@ function AggregatePicker({
       role="dialog"
     >
       <div>
-        <div style={aggregateFieldLabelStyle}>Select aggregation</div>
+        <div className="pivot-agg-field-label">Select aggregation</div>
         <Select
           ref={selectRef}
           value={operation}
@@ -1310,30 +1059,19 @@ function AggregatePicker({
           ))}
         </Select>
       </div>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-          flex: 1,
-          // Allow this flex child to shrink below its content size so
-          // the inner column list's `overflowY: auto` kicks in and the
-          // footer stays inside the popover's bounded maxHeight.
-          minHeight: 0,
-        }}
-      >
-        <div style={aggregateFieldLabelStyle}>
+      <div className="pivot-agg-column-group">
+        <div className="pivot-agg-field-label">
           Select column(s)
-          <span style={{ color: 'var(--dh-color-negative, #f55)' }}>*</span>
+          <span className="pivot-agg-required">*</span>
         </div>
         <SearchInput
           value={query}
           placeholder="Find column..."
           onChange={e => setQuery(e.target.value)}
         />
-        <div style={aggregateColumnListStyle}>
+        <div className="pivot-agg-column-list">
           {filteredColumns.length === 0 ? (
-            <div style={popoverEmptyStyle}>No columns</div>
+            <div className="pivot-popover-empty">No columns</div>
           ) : (
             filteredColumns.map(name => {
               const valid = isColumnValid(name);
@@ -1351,14 +1089,14 @@ function AggregatePicker({
           )}
         </div>
       </div>
-      <div style={aggregateFooterStyle}>
+      <div className="pivot-agg-footer">
         <Button kind="ghost" onClick={handleSelectAll}>
           Select All
         </Button>
         <Button kind="ghost" onClick={handleClear}>
           Clear
         </Button>
-        <span style={{ flex: 1 }} />
+        <span className="pivot-spacer" />
         <Button
           kind="primary"
           onClick={handleCommit}
@@ -2381,7 +2119,6 @@ export function PivotConfigSection({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <style>{PIVOT_DND_STYLES}</style>
       <div
         className={`pivot-config-section${
           dragSource != null ? ' is-dragging' : ''
@@ -2395,16 +2132,8 @@ export function PivotConfigSection({
             ? ' is-dragging-aggregations'
             : ''
         }`}
-        style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '0 2px',
-          }}
-        >
+        <div className="pivot-toolbar">
           <span>Toggle</span>
           <Switch
             isSelected={globalOn}
@@ -2416,7 +2145,7 @@ export function PivotConfigSection({
             aria-label="Toggle"
             margin={0}
           />
-          <div style={{ flex: 1 }} />
+          <div className="pivot-spacer" />
           <Button
             kind="ghost"
             icon={vsDiscard}

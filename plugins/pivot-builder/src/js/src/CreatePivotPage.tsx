@@ -152,7 +152,7 @@ export function CreatePivotPage({
   // no-op); the Aggregate values card stays enabled and falls back to a
   // standalone totals row. `isRollupAvailable` is not an event-bearing
   // property — it flips when the inner model swaps (e.g. toggling Select
-  // Distinct), which dispatches COLUMNS_CHANGED / MODEL_CHANGED — so we
+  // Distinct), which dispatches COLUMNS_CHANGED / SCHEMA_CHANGED — so we
   // re-read it on those events to keep the disabled state live.
   const [rollupAvailable, setRollupAvailable] = useState(
     () => model.isRollupAvailable
@@ -161,10 +161,10 @@ export function CreatePivotPage({
     const sync = (): void => setRollupAvailable(model.isRollupAvailable);
     sync();
     model.addEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, sync);
-    model.addEventListener(IrisGridModel.EVENT.MODEL_CHANGED, sync);
+    model.addEventListener(IrisGridModel.EVENT.SCHEMA_CHANGED, sync);
     return () => {
       model.removeEventListener(IrisGridModel.EVENT.COLUMNS_CHANGED, sync);
-      model.removeEventListener(IrisGridModel.EVENT.MODEL_CHANGED, sync);
+      model.removeEventListener(IrisGridModel.EVENT.SCHEMA_CHANGED, sync);
     };
   }, [model]);
 
@@ -543,10 +543,10 @@ export function CreatePivotPage({
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       ref={containerRef}
-      className="iris-grid-plugin-sidebar-page"
-      // `height: 100%` so the empty area below the cards still belongs to this
-      // focusable container - clicking it focuses us and keeps the undo/redo
-      // shortcuts working, rather than focusing an ancestor.
+      // `pivot-create-page` sets `height: 100%` so the empty area below the
+      // cards still belongs to this focusable container - clicking it focuses
+      // us and keeps the undo/redo shortcuts working, rather than focusing an
+      // ancestor.
       //
       // `tabIndex={-1}` makes the container focusable via click and our
       // programmatic `focus()` (see `handleBlur`) without inserting it into the
@@ -555,7 +555,7 @@ export function CreatePivotPage({
       // for keydowns bubbling up from them), and as a keyboard-focused element
       // its `:focus-visible` outline wraps the entire scrolling region and gets
       // clipped into a broken shape by the sidebar's scroll container.
-      style={{ padding: 12, height: '100%', boxSizing: 'border-box' }}
+      className="iris-grid-plugin-sidebar-page pivot-create-page"
       role="menu"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
@@ -564,14 +564,10 @@ export function CreatePivotPage({
       <div
         // `height: 100%` on the container above means its `padding` sits at the
         // bottom of the fixed-height box rather than below the overflowing
-        // content, so the last card butts up against the scroll bottom. Add
-        // bottom padding to the scrolling content flow so a gap remains.
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          paddingBottom: 12,
-        }}
+        // content, so the last card butts up against the scroll bottom. The
+        // `pivot-create-page-content` class adds bottom padding to the
+        // scrolling content flow so a gap remains.
+        className="pivot-create-page-content"
       >
         <PivotConfigSection
           availableColumns={allColumnNames}

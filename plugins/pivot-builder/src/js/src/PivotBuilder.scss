@@ -1,0 +1,335 @@
+@import '@deephaven/components/scss/custom.scss';
+
+// Pivot builder styles. Injected once as a <style> tag from index.ts so the
+// plugin ships a single JS bundle (no separate CSS asset). All colors come
+// from the design-system theme tokens (imported via custom.scss) so the UI
+// tracks light / dark / custom themes; the marching-ants drop-zone decoration
+// reuses the shared `ants-base` mixin, matching iris-grid's RollupRows.
+//
+// "Content" classes (cards, rows, popovers) are declared at the top level
+// because some of them render through React portals to `document.body` (the
+// column / aggregation pickers and the drag overlay preview) and so fall
+// outside the `.pivot-config-section` root.
+
+.pivot-card {
+  // Card sits one elevation above the sidebar fill. The Code Studio sidebar
+  // uses --dh-color-surface-bg (gray-200); gray-300 is the next palette step
+  // up, giving the slightly-lighter card fill from the spec mockup. `position:
+  // relative` provides the positioning context for the full-card drop-zone
+  // overlay (see .pivot-droppable-empty below).
+  position: relative;
+  border: 1px solid var(--dh-color-border);
+  border-radius: $border-radius;
+  padding: 6px 8px;
+  background: var(--dh-color-gray-300);
+}
+
+// A card toggled "off" (still editable) or hard-disabled gets a dark,
+// disabled-state border so it reads as inactive while its boundary stays
+// visible. Hard-disabled cards additionally fade out and block interaction.
+.pivot-card--off {
+  border-color: var(--dh-color-bg);
+}
+
+.pivot-card--disabled {
+  border-color: var(--dh-color-bg);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pivot-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+// Header variant used when the card has body content: a thin divider sets the
+// title row off from the list below. Empty cards omit this so they don't show
+// a dangling line.
+.pivot-card-header--with-body {
+  border-bottom: 1px solid var(--dh-color-border);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.pivot-card-title {
+  flex: 1;
+  font-weight: var(--spectrum-global-font-weight-medium);
+}
+
+// Body of a card toggled "off": de-emphasised but still interactive so its
+// list can be edited.
+.pivot-card-body--off {
+  opacity: 0.4;
+}
+
+// Inline-flex anchor wrapping the header "Add" button (the popover anchors to
+// this element's ref).
+.pivot-add-anchor {
+  display: inline-flex;
+}
+
+.pivot-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+}
+
+// Applied to a row while it is being dragged (and to the drag-overlay
+// preview). Mirrors iris-grid's dragging-item chip: accent fill with shadow
+// and contrast text.
+.pivot-row--dragging {
+  background-color: var(--dh-color-accent);
+  color: var(--dh-color-accent-contrast);
+  box-shadow: $box-shadow;
+  border-radius: $border-radius;
+  padding: 4px 8px;
+}
+
+.pivot-row-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Bolder treatment for column-name labels; composed alongside .pivot-row-label.
+.pivot-column-name {
+  font-weight: var(--spectrum-global-font-weight-medium);
+}
+
+.pivot-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  padding: 0 4px;
+  color: var(--dh-color-icon-fg);
+}
+
+// Invisible spacer matching the grip handle so column remove buttons align
+// with the function-line controls.
+.pivot-grip--hidden {
+  visibility: hidden;
+}
+
+// Flexible spacer that pushes trailing controls to the right.
+.pivot-spacer {
+  flex: 1;
+}
+
+// Message shown in the Pivot columns card when the service is unavailable.
+.pivot-service-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  color: var(--dh-color-fg);
+  text-align: center;
+  padding: 8px;
+}
+
+// Toolbar row above the cards (global Toggle + undo/redo + overflow).
+.pivot-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+}
+
+// Sidebar page wrapper. `height: 100%` keeps the empty area below the cards
+// part of the focusable container (see CreatePivotPage's focus handling).
+.pivot-create-page {
+  padding: 12px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+// Scrolling content flow inside the page. The bottom padding keeps a gap below
+// the last card instead of letting it butt against the scroll bottom (the
+// page's `height: 100%` would otherwise put its padding at the box bottom
+// rather than below the overflowing content).
+.pivot-create-page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+// === Popovers (column picker, aggregation picker) — portaled to body ===
+
+.pivot-popover {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 240px;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--dh-color-popover-bg);
+  border: 1px solid var(--dh-color-border);
+  border-radius: 8px;
+  box-shadow: $box-shadow;
+  overflow: hidden;
+}
+
+.pivot-popover-search {
+  padding: 8px;
+}
+
+.pivot-popover-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pivot-popover-item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pivot-popover-item--active {
+  background: var(--dh-color-item-list-hover-bg);
+}
+
+.pivot-popover-empty {
+  padding: 8px 12px;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+// Aggregation picker is a wider popover with its own padding/gap.
+.pivot-agg-popover {
+  width: 280px;
+  max-height: min(420px, calc(100vh - 32px));
+  padding: 12px;
+  gap: 8px;
+}
+
+.pivot-agg-field-label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.pivot-agg-required {
+  color: var(--dh-color-negative);
+}
+
+// Wrapper around the column search + list so the list can scroll while the
+// footer stays pinned inside the popover's bounded height.
+.pivot-agg-column-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+.pivot-agg-column-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--dh-color-border);
+  border-radius: $border-radius;
+  padding: 4px 8px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pivot-agg-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+// A single horizontal line inside an aggregate row (function picker + actions,
+// or a column label + its remove button).
+.pivot-agg-row-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pivot-agg-row-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+// === Drag-and-drop drop zones (scoped to the section root) ===
+
+.pivot-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .pivot-droppable {
+    min-height: 2px;
+    border-radius: 2px;
+    transition: background-color 0.15s ease;
+  }
+
+  // Empty drop zones collapse to zero footprint when idle. While a drag of the
+  // matching type is active the empty zone promotes to position: absolute and
+  // overlays the whole card (see below) so the marching ants trace the card
+  // edge and the entire surface accepts the drop.
+  .pivot-droppable-empty {
+    border-radius: 2px;
+  }
+
+  // Full-card overlay for empty zones whose accepted source type matches the
+  // current drag. pointer-events: none keeps the header controls clickable;
+  // dnd-kit measures the droppable rect directly (MeasuringStrategy.Always) so
+  // the hit-area still covers the whole card.
+  &.is-dragging-columns .pivot-droppable-empty.pivot-droppable-columns,
+  &.is-dragging-aggregations
+    .pivot-droppable-empty.pivot-droppable-aggregations {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  // Marching ants on every active drop zone whose accepted source type matches
+  // the current drag. Reuses the shared mixin so the look matches iris-grid;
+  // `march` keyframes are defined globally by the host's BaseStyleSheet.
+  &.is-dragging-columns .pivot-droppable-columns,
+  &.is-dragging-aggregations .pivot-droppable-aggregations {
+    @include ants-base($foreground, $background);
+  }
+
+  .pivot-droppable.is-dragging-over,
+  .pivot-droppable-empty.is-dragging-over {
+    background-color: var(--dh-color-item-list-selected-hover-bg);
+  }
+
+  // Near-invisible divider between adjacent rows inside a card. The card fill
+  // is gray-300, so gray-400 is one palette step above — the same separation
+  // as the outer card edge. Excludes the cross-card DropIndicator so the
+  // drop-preview gap stays visually flush.
+  .pivot-droppable
+    > *:not(.pivot-drop-indicator)
+    + *:not(.pivot-drop-indicator) {
+    border-top: 1px solid var(--dh-color-gray-400);
+  }
+
+  // Empty placeholder shown in a target card while dragging a column in from
+  // another card, mirroring the row-height gap a same-card reorder opens.
+  .pivot-drop-indicator {
+    height: 28px;
+    margin: 1px 0;
+  }
+
+  // Compact row buttons: the base .btn is 32px tall; shrink inline row action
+  // buttons (e.g. Remove) to keep list rows dense.
+  .btn.pivot-row-btn {
+    height: 28px;
+    min-height: 28px;
+  }
+}

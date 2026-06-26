@@ -81,7 +81,7 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     // handlers, metric-calculator factory, and theme are passed to the host as
     // plain props (gated on `isPivot`); the host guards the renderer and mouse
     // handlers against a transient model mismatch, and resets moved columns on
-    // the proxy's `MODEL_CHANGED` event, so a one-frame prop lag is cosmetic.
+    // the proxy's `SCHEMA_CHANGED` event, so a one-frame prop lag is cosmetic.
     const pivotMouseHandlers = usePivotMouseHandlers();
     const pivotRenderer = usePivotRenderer();
     const pivotMetricCalculator = usePivotMetricCalculatorFactory();

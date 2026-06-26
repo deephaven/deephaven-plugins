@@ -99,7 +99,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     // handlers, metric-calculator factory, and theme are passed to the host as
     // plain props (gated on `isPivot`); the host guards the renderer and mouse
     // handlers against a transient model mismatch, and resets moved columns on
-    // the proxy's `MODEL_CHANGED` event, so a one-frame prop lag is cosmetic.
+    // the proxy's `SCHEMA_CHANGED` event, so a one-frame prop lag is cosmetic.
     const pivotMouseHandlers = usePivotMouseHandlers();
     const pivotRenderer = usePivotRenderer();
     const pivotMetricCalculator = usePivotMetricCalculatorFactory();
@@ -270,7 +270,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
     // as props. These tolerate this `isPivot` snapshot lagging the model swap by
     // a frame because the host guards the renderer/mouse handlers against a
     // transient model mismatch and resets moved columns on the proxy's
-    // `MODEL_CHANGED` event.
+    // `SCHEMA_CHANGED` event.
     // Also persists the current builder config on every change so reloads
     // restore the user's view. The model is received via `onModelChanged`.
     useEffect(() => {
