@@ -92,13 +92,13 @@ def _render_list(
     logger.debug("_render_list %s", item)
     if not is_dirty_render:
         # Don't open the context
-        return _render_list_in_open_context(item, context, is_dirty_render)
+        return _render_list_contents(item, context, is_dirty_render)
 
     with context.open():
-        return _render_list_in_open_context(item, context, is_dirty_render)
+        return _render_list_contents(item, context, is_dirty_render)
 
 
-def _render_list_in_open_context(
+def _render_list_contents(
     item: Union[list[Any], map[Any], tuple[Any, ...]],
     context: RenderContext,
     is_dirty_render: bool,
@@ -139,13 +139,13 @@ def _render_dict(
 
     if not is_dirty_render:
         # Don't open the context
-        return _render_dict_in_open_context(item, context, is_dirty_render)
+        return _render_dict_contents(item, context, is_dirty_render)
 
     with context.open():
-        return _render_dict_in_open_context(item, context, is_dirty_render)
+        return _render_dict_contents(item, context, is_dirty_render)
 
 
-def _render_dict_in_open_context(
+def _render_dict_contents(
     item: PropsType, context: RenderContext, is_dirty_render: bool
 ) -> PropsType:
     """
@@ -215,7 +215,7 @@ def _render_element(
             # A child component may still need to be re-rendered if its context is dirty (e.g. child has a state change),
             # but we can skip re-rendering this component if its props are the same and the context is not dirty.
             logger.debug("Returning cached element %s", element.name)
-            rendered_props = _render_dict_in_open_context(
+            rendered_props = _render_dict_contents(
                 prev_rendered_element_props, context, False
             )
             return RenderedNode(element.name, rendered_props)
@@ -228,9 +228,7 @@ def _render_element(
         context.cache = (element_props, rendered_element_props)
 
         # We also need to render any elements that are passed in as props (including `children`)
-        rendered_props = _render_dict_in_open_context(
-            rendered_element_props, context, True
-        )
+        rendered_props = _render_dict_contents(rendered_element_props, context, True)
 
     return RenderedNode(element.name, rendered_props)
 
