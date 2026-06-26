@@ -71,7 +71,7 @@ Don't use `memo` when:
 from deephaven import ui
 
 
-# Good candidate: large rendered subtree with stable props
+# Good candidate: large rendered subtree with stable props (especially if entries contains many items)
 @ui.component(memo=True)
 def activity_feed(entries):
     return ui.flex(
@@ -209,7 +209,7 @@ Return `True` to skip re-rendering (props are "equal"), or `False` to re-render.
 
 When writing a custom comparison function:
 
-- Compare every prop that affects output or behavior, including callback props
+- Compare every prop, including callback props
 - Only use custom comparison for data with a known, limited shape
 - Measure whether the comparison is actually cheaper than re-rendering
 - Avoid generic deep equality checks on unknown or deeply nested structures
