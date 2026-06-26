@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import nullcontext
 from dataclasses import fields, is_dataclass
 import logging
 from typing import Any, Union
@@ -84,17 +85,14 @@ def _render_list(
     Args:
         item: The list to render.
         context: The context to render the list in.
-        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree.
+        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree. For a dirty render, we need to open this context for a render cycle.
 
     Returns:
         The rendered list.
     """
     logger.debug("_render_list %s", item)
-    if not is_dirty_render:
-        # Don't open the context
-        return _render_list_contents(item, context, is_dirty_render)
 
-    with context.open():
+    with context.open() if is_dirty_render else nullcontext():
         return _render_list_contents(item, context, is_dirty_render)
 
 
@@ -130,18 +128,13 @@ def _render_dict(
     Args:
         item: The dictionary to render.
         context: The context to render the dictionary in.
-        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree.
+        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree. For a dirty render, we need to open this context for a render cycle.
 
     Returns:
         The rendered dictionary.
     """
     logger.debug("_render_dict %s", item)
-
-    if not is_dirty_render:
-        # Don't open the context
-        return _render_dict_contents(item, context, is_dirty_render)
-
-    with context.open():
+    with context.open() if is_dirty_render else nullcontext():
         return _render_dict_contents(item, context, is_dirty_render)
 
 
