@@ -379,43 +379,35 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Initial sorts are captured once at mount so later re-renders never push
-  // a new `sorts` reference into IrisGrid (which would call updateSorts and
-  // clobber the user's interactive sort changes).
-  const initialSortsRef = useRef(sorts);
-
-  // Lock the initial hydrated state to a stable value the first time model+utils
-  // are available. Recomputing it would change the `sorts` (and other) prop
-  // identities and cause IrisGrid to overwrite user changes on every re-render.
-  const lockedInitialHydratedStateRef = useRef<
-    Partial<IrisGridProps> | undefined
-  >(undefined);
-  const initialHydratedStateComputedRef = useRef(false);
-  if (
-    !initialHydratedStateComputedRef.current &&
-    model != null &&
-    utils != null
-  ) {
-    initialHydratedStateComputedRef.current = true;
-    const persisted =
-      initialState.current != null
-        ? {
-            ...utils.hydrateIrisGridState(model, initialState.current),
-            ...IrisGridUtils.hydrateGridState(model, initialState.current),
-          }
-        : undefined;
-    const initialSorts = initialSortsRef.current;
-    const seededSorts =
-      persisted == null && initialSorts !== undefined && columns !== undefined
-        ? utils.hydrateSort(columns, initialSorts)
-        : undefined;
-    if (persisted != null) {
-      lockedInitialHydratedStateRef.current = persisted;
-    } else if (seededSorts !== undefined) {
-      lockedInitialHydratedStateRef.current = { sorts: seededSorts };
+  const initialHydratedState = useMemo(() => {
+    if (model && utils && initialState.current != null) {
+      return {
+        ...utils.hydrateIrisGridState(model, initialState.current),
+        ...IrisGridUtils.hydrateGridState(model, initialState.current),
+      };
     }
+  }, [model, utils]);
+
+  // Hydrate the programmatic `sorts` once and keep a stable reference for the
+  // lifetime of the component. Unlike `quickFilters` (which IrisGrid only reads
+  // as initial state), IrisGrid re-applies the `sorts` prop whenever its
+  // reference changes (see its componentDidUpdate). Passing a freshly hydrated
+  // array on every server re-render would call updateSorts and clobber the
+  // user's interactive sort changes. By locking the reference we apply the
+  // sorts once on load and then let the user (and persisted state) control them.
+  const hydratedSortsRef = useRef<IrisGridProps['sorts'] | undefined>(
+    undefined
+  );
+  if (
+    hydratedSortsRef.current === undefined &&
+    utils != null &&
+    sorts !== undefined &&
+    columns.length > 0
+  ) {
+    log.debug('Hydrating sorts', sorts);
+    hydratedSortsRef.current = utils.hydrateSort(columns, sorts);
   }
-  const initialHydratedState = lockedInitialHydratedStateRef.current;
+  const hydratedSorts = hydratedSortsRef.current;
 
   const hydratedQuickFilters = useMemo(() => {
     if (
@@ -561,6 +553,7 @@ export function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
+      sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
       reverse,
@@ -610,6 +603,7 @@ export function UITable({
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
+    hydratedSorts,
     hydratedQuickFilters,
     reverse,
     density,
@@ -652,19 +646,19 @@ export function UITable({
    * Otherwise, we have received changes from the server and we should use those over client state.
    * In the future we may want to do a smarter merge of these.
    */
-  const mergedIrisGridProps = useMemo(
-    () =>
-      initialIrisGridServerProps.current === irisGridServerProps
-        ? {
-            ...irisGridServerProps,
-            ...(initialHydratedState ?? {}),
-          }
-        : {
-            ...(initialHydratedState ?? {}),
-            ...irisGridServerProps,
-          },
-    [irisGridServerProps, initialHydratedState]
-  );
+  const mergedIrisGridProps = useMemo(() => {
+    if (initialIrisGridServerProps.current === irisGridServerProps) {
+      return {
+        ...irisGridServerProps,
+        ...initialHydratedState,
+      };
+    }
+
+    return {
+      ...initialHydratedState,
+      ...irisGridServerProps,
+    };
+  }, [irisGridServerProps, initialHydratedState]);
 
   const inputFilters = useDashboardColumnFilters(
     model?.columns ?? null,
