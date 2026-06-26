@@ -19,6 +19,7 @@ import { GLOBAL_SHORTCUTS } from '@deephaven/components';
 import { useUndoRedo } from '@deephaven/react-hooks';
 import {
   isPivotBuilderIrisGridModel,
+  toPivotAggregations,
   type PivotAggregation,
   type PivotConfig,
   type PivotBuilderUiState,
@@ -114,9 +115,9 @@ function aggregationsToPivot(
  * `invert` flag is not carried on `PivotConfig` and defaults to `false`.
  */
 function aggregationsFromPivot(
-  aggregations: readonly PivotAggregation[]
+  aggregations: PivotAggregation[] | Record<string, string[]>
 ): AggregationSettings['aggregations'] {
-  return aggregations
+  return toPivotAggregations(aggregations)
     .filter(agg => agg.columns.length > 0)
     .map(agg => ({
       operation:

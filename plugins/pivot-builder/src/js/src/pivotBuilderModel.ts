@@ -55,6 +55,23 @@ export interface PivotAggregation {
 }
 
 /**
+ * Normalize a `PivotConfig.aggregations` value into the ordered array form.
+ * Tolerates the legacy `Record<operation, columns[]>` shape that may still
+ * live in persisted layout state from before the array shape existed.
+ */
+export function toPivotAggregations(
+  aggregations: PivotAggregation[] | Record<string, string[]>
+): PivotAggregation[] {
+  if (Array.isArray(aggregations)) {
+    return aggregations;
+  }
+  return Object.entries(aggregations).map(([operation, columns]) => ({
+    operation,
+    columns: [...columns],
+  }));
+}
+
+/**
  * User-configured pivot settings. The `aggregations` array is collapsed into
  * the `Record<operation, columns[]>` payload accepted by
  * `coreplus.pivot.PivotService#createPivotTable` at the build boundary
@@ -245,10 +262,12 @@ export function augmentPivotBuilderModel(
     // `operation → columns` map the pivot service expects, merging columns
     // for any operation that appears in more than one entry.
     const sanitized: Record<string, string[]> = {};
-    config.aggregations.forEach(({ operation, columns }) => {
-      if (columns.length === 0) return;
-      sanitized[operation] = [...(sanitized[operation] ?? []), ...columns];
-    });
+    toPivotAggregations(config.aggregations).forEach(
+      ({ operation, columns }) => {
+        if (columns.length === 0) return;
+        sanitized[operation] = [...(sanitized[operation] ?? []), ...columns];
+      }
+    );
 
     if (Object.keys(sanitized).length > 0) {
       return sanitized;

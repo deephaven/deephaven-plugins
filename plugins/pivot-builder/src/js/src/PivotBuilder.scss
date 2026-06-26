@@ -45,10 +45,12 @@
 
 // Header variant used when the card has body content: a thin divider sets the
 // title row off from the list below. Empty cards omit this so they don't show
-// a dangling line.
+// a dangling line. The padding-bottom matches the card's top padding (6px) so
+// the "Add" button keeps equal space above and below it, the same as in an
+// empty card (where the button sits between the card's 6px top/bottom padding).
 .pivot-card-header--with-body {
   border-bottom: 1px solid var(--dh-color-border);
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   margin-bottom: 4px;
 }
 
@@ -312,11 +314,24 @@
   // Near-invisible divider between adjacent rows inside a card. The card fill
   // is gray-300, so gray-400 is one palette step above — the same separation
   // as the outer card edge. Excludes the cross-card DropIndicator so the
-  // drop-preview gap stays visually flush.
-  .pivot-droppable
+  // drop-preview gap stays visually flush. The aggregations list is handled
+  // separately below (its divider sits under each function picker, not above
+  // it), so exclude it here.
+  .pivot-droppable:not(.pivot-droppable-aggregations)
     > *:not(.pivot-drop-indicator)
     + *:not(.pivot-drop-indicator) {
     border-top: 1px solid var(--dh-color-gray-400);
+  }
+
+  // In the aggregations list the divider sits directly below the function
+  // picker line (above that entry's column labels) instead of above the
+  // function picker. Each aggregation entry's first line is the function
+  // picker; any following lines are its column labels — `:not(:last-child)`
+  // skips the rule for column-less entries so a lone function isn't underlined.
+  .pivot-droppable-aggregations
+    .pivot-row
+    > .pivot-agg-row-line:first-child:not(:last-child) {
+    border-bottom: 1px solid var(--dh-color-gray-400);
   }
 
   // Empty placeholder shown in a target card while dragging a column in from

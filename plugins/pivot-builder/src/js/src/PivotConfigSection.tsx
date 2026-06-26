@@ -720,32 +720,6 @@ function aggregationRowId(operation: string): string {
   return `${AGGREGATIONS_DROPPABLE}:${operation}`;
 }
 
-/**
- * Stable sortable id for a single function/column pair (used by the ungrouped
- * aggregate layout). Keyed by the operation + column content (separated by a
- * NUL so it never collides with a column name) rather than positional indices,
- * for the same reorder-animation reason as `aggregationRowId`. The container
- * still resolves on the first `:`.
- */
-function aggregationPairId(operation: string, column: string): string {
-  return `${AGGREGATIONS_DROPPABLE}:${operation}\u0000${column}`;
-}
-
-/**
- * The Count aggregation is a special case: it counts rows in each group
- * rather than aggregating a specific column. In the ungrouped (pivot) layout
- * all Count selections collapse into a single read-only "Count" row (no
- * column, no function picker). This is a display-only treatment — the
- * underlying `AggregationSettings` keeps the original Count entry untouched so
- * the grouped (non-pivot) layout still shows its columns and switching between
- * the two display modes is lossless.
- */
-const COUNT_OPERATION: string = AggregationOperation.COUNT;
-
-function isCountOperation(operation: string): boolean {
-  return operation === COUNT_OPERATION;
-}
-
 function formatAggLabel(entry: Aggregation): string {
   return entry.selected.length > 0
     ? `${entry.operation} (${entry.selected.join(', ')})`
@@ -1304,86 +1278,6 @@ export function PivotConfigSection({
     [aggregationSettings, onAggregationSettingsChange]
   );
 
-  // Ungrouped layout (pivot/rollup present): change the function of a
-  // single function/column pair. Moves the column out of its current entry
-  // into the entry for the target function (creating one if needed). The
-  // underlying model keeps one entry per operation, so the column merges
-  // into any existing entry for `nextOp`.
-  const handleChangeAggregatePairOperation = useCallback(
-    (entryIndex: number, column: string, nextOp: string) => {
-      let aggregations = aggregationSettings.aggregations.map(a => ({
-        ...a,
-        selected: a.selected.slice(),
-      }));
-      const source = aggregations[entryIndex];
-      if (source == null || source.operation === nextOp) {
-        return;
-      }
-      if (column === '') {
-        // Empty placeholder entry: relabel it, or drop it if the target
-        // already exists.
-        const dest = aggregations.find(a => a.operation === nextOp);
-        if (dest == null) {
-          source.operation = nextOp as AggregationOperation;
-        } else {
-          aggregations = aggregations.filter(a => a !== source);
-        }
-      } else {
-        const dest = aggregations.find(a => a.operation === nextOp);
-        if (dest == null && source.selected.length === 1) {
-          // This is the function's only column and the target function isn't
-          // used yet: relabel the entry in place so the row keeps its
-          // position instead of jumping to the bottom of the list.
-          source.operation = nextOp as AggregationOperation;
-        } else {
-          source.selected = source.selected.filter(c => c !== column);
-          if (dest == null) {
-            // Insert the new entry where the source sits (rather than
-            // appending) so the moved row stays near its original spot.
-            const insertIndex = aggregations.indexOf(source);
-            aggregations.splice(insertIndex, 0, {
-              operation: nextOp as AggregationOperation,
-              selected: [column],
-              invert: false,
-            });
-          } else if (!dest.selected.includes(column)) {
-            dest.selected.push(column);
-          }
-          if (source.selected.length === 0) {
-            aggregations = aggregations.filter(a => a !== source);
-          }
-        }
-      }
-      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
-    },
-    [aggregationSettings, onAggregationSettingsChange]
-  );
-
-  // Ungrouped layout: remove a single function/column pair. Removes the
-  // column from its entry, dropping the entry if it becomes empty.
-  const handleDeleteAggregatePair = useCallback(
-    (entryIndex: number, column: string) => {
-      let aggregations = aggregationSettings.aggregations.map(a => ({
-        ...a,
-        selected: a.selected.slice(),
-      }));
-      const source = aggregations[entryIndex];
-      if (source == null) {
-        return;
-      }
-      if (column === '') {
-        aggregations = aggregations.filter(a => a !== source);
-      } else {
-        source.selected = source.selected.filter(c => c !== column);
-        if (source.selected.length === 0) {
-          aggregations = aggregations.filter(a => a !== source);
-        }
-      }
-      onAggregationSettingsChange({ ...aggregationSettings, aggregations });
-    },
-    [aggregationSettings, onAggregationSettingsChange]
-  );
-
   const handleDeleteAggregate = useCallback(
     (index: number) => {
       const aggregations = aggregationSettings.aggregations.filter(
@@ -1401,11 +1295,9 @@ export function PivotConfigSection({
     [aggregationSettings, onAggregationSettingsChange]
   );
 
-  // Grouped layout (no pivot/rollup): remove a single column from an
-  // aggregate function's selection, dropping the whole entry if it was the
-  // last column. Mirrors `handleDeleteAggregatePair` but keyed by the entry
-  // index since the grouped layout lists all of a function's columns in one
-  // row.
+  // Remove a single column from an aggregate function's selection, dropping
+  // the whole entry if it was the last column. Keyed by the entry index
+  // since each row lists all of a function's columns together.
   const handleDeleteAggregateColumn = useCallback(
     (index: number, column: string) => {
       let aggregations = aggregationSettings.aggregations.map(a => ({
@@ -1560,8 +1452,8 @@ export function PivotConfigSection({
       if (fromId === AGGREGATIONS_DROPPABLE) {
         if (toId !== AGGREGATIONS_DROPPABLE) return;
 
-        // Grouped layout (no pivot/rollup): ids are `aggregations:<operation>`
-        // and each row is a whole entry — reorder the entries directly.
+        // Aggregation row ids are `aggregations:<operation>` and each row is
+        // a whole entry — reorder the entries directly.
         const groupedFromIdx = aggregationSettings.aggregations.findIndex(
           entry => aggregationRowId(entry.operation as string) === activeIdStr
         );
@@ -1584,86 +1476,6 @@ export function PivotConfigSection({
           });
           return;
         }
-
-        // Ungrouped layout (pivot/rollup active): ids are
-        // `aggregations:<operation>\u0000<column>`, one row per function/column
-        // pair. Reorder the flat list of pairs, then rebuild one entry per
-        // operation (in order of first appearance). The model can't represent
-        // interleaved operations, so a column dropped between two columns of a
-        // different operation regroups under its own entry.
-        const pairs: { operation: string; column: string }[] = [];
-        const pairIds: string[] = [];
-        aggregationSettings.aggregations.forEach(entry => {
-          // Count is collapsed into a single column-less row in this layout,
-          // so it reorders as one unit (matching the rendered row id).
-          if (
-            entry.selected.length === 0 ||
-            isCountOperation(entry.operation as string)
-          ) {
-            pairs.push({ operation: entry.operation as string, column: '' });
-            pairIds.push(aggregationPairId(entry.operation as string, ''));
-          } else {
-            entry.selected.forEach(column => {
-              pairs.push({ operation: entry.operation as string, column });
-              pairIds.push(
-                aggregationPairId(entry.operation as string, column)
-              );
-            });
-          }
-        });
-        const fromIdx = pairIds.indexOf(activeIdStr);
-        if (fromIdx < 0) return;
-        const toIdx =
-          overIdStr === AGGREGATIONS_DROPPABLE
-            ? pairIds.length - 1
-            : pairIds.indexOf(overIdStr);
-        if (toIdx < 0 || fromIdx === toIdx) return;
-
-        const reordered = moveItem(pairs, fromIdx, toIdx);
-
-        const invertByOp = new Map<string, boolean>();
-        // Count collapses to a column-less pair above, so its columns are not
-        // carried in `reordered`; preserve the original selection so the
-        // reorder stays display-only and the data round-trips.
-        const selectedByOp = new Map<string, string[]>();
-        aggregationSettings.aggregations.forEach(entry => {
-          invertByOp.set(entry.operation as string, entry.invert);
-          selectedByOp.set(entry.operation as string, entry.selected.slice());
-        });
-        const byOp = new Map<string, { selected: string[]; invert: boolean }>();
-        reordered.forEach(({ operation, column }) => {
-          let entry = byOp.get(operation);
-          if (entry == null) {
-            entry = {
-              selected: [],
-              invert: invertByOp.get(operation) ?? false,
-            };
-            byOp.set(operation, entry);
-          }
-          if (column !== '') {
-            entry.selected.push(column);
-          }
-        });
-        // Restore Count's original columns (it contributes a column-less pair).
-        byOp.forEach((entry, operation) => {
-          if (isCountOperation(operation)) {
-            const original = selectedByOp.get(operation);
-            if (original != null) {
-              entry.selected.push(...original);
-            }
-          }
-        });
-        onAggregationSettingsChange({
-          ...aggregationSettings,
-          aggregations: Array.from(byOp.entries()).map(
-            ([operation, { selected, invert }]) => ({
-              operation: operation as AggregationOperation,
-              selected,
-              invert,
-            })
-          ),
-        });
-        return;
       }
       // Columns can never land in the aggregations list.
       if (toId === AGGREGATIONS_DROPPABLE) return;
@@ -1788,7 +1600,6 @@ export function PivotConfigSection({
 
   const pivotActive =
     pivotColumnsOn && pivotColumns.length > 0 && pivotColumnsDisabled !== true;
-  const rollupActive = rollupRowsOn && rollupRows.length > 0;
 
   // Transient undo/redo, surfaced in every card's overflow (⋮) menu just
   // before the Clear items. Shared section + disabled keys so all three
@@ -1988,57 +1799,12 @@ export function PivotConfigSection({
     ]
   );
 
-  // With neither a pivot nor a rollup configured, the aggregate card groups
-  // columns by function (one row per function). When a pivot or rollup is
-  // present we keep the same two-line picker layout but list every
-  // function/column pair separately (ungrouped).
-  const onlyAggregates = !pivotActive && !rollupActive;
-
-  // Flattened function/column pairs for the ungrouped layout. Entries with
-  // no columns yet are surfaced as a single placeholder pair so the row
-  // still renders.
-  const aggregatePairs = useMemo(() => {
-    const pairs: {
-      operation: string;
-      column: string;
-      entryIndex: number;
-      columnIndex: number;
-    }[] = [];
-    aggregationSettings.aggregations.forEach((entry, entryIndex) => {
-      // Count collapses into a single column-less row regardless of how many
-      // columns it has selected (display-only; the entry keeps its columns).
-      if (
-        entry.selected.length === 0 ||
-        isCountOperation(entry.operation as string)
-      ) {
-        pairs.push({
-          operation: entry.operation as string,
-          column: '',
-          entryIndex,
-          columnIndex: -1,
-        });
-      } else {
-        entry.selected.forEach((column, columnIndex) => {
-          pairs.push({
-            operation: entry.operation as string,
-            column,
-            entryIndex,
-            columnIndex,
-          });
-        });
-      }
-    });
-    return pairs;
-  }, [aggregationSettings.aggregations]);
-
   const aggItemIds = useMemo(
     () =>
-      onlyAggregates
-        ? aggregationSettings.aggregations.map(entry =>
-            aggregationRowId(entry.operation as string)
-          )
-        : aggregatePairs.map(p => aggregationPairId(p.operation, p.column)),
-    [onlyAggregates, aggregationSettings.aggregations, aggregatePairs]
+      aggregationSettings.aggregations.map(entry =>
+        aggregationRowId(entry.operation as string)
+      ),
+    [aggregationSettings.aggregations]
   );
 
   // Resolve the preview for DragOverlay.
@@ -2068,26 +1834,12 @@ export function PivotConfigSection({
     if (colonIdx === -1) {
       return null;
     }
-    // Grouped layout ids are `AGGREGATIONS:<operation>`; ungrouped
-    // (function/column pair) ids are `AGGREGATIONS:<operation>\u0000<column>`.
-    const suffix = activeId.slice(colonIdx + 1);
-    const sepIdx = suffix.indexOf('\u0000');
-    if (sepIdx === -1) {
-      return (
-        aggregationSettings.aggregations.find(a => a.operation === suffix) ??
-        null
-      );
-    }
-    const operation = suffix.slice(0, sepIdx);
-    const column = suffix.slice(sepIdx + 1);
-    const entry = aggregationSettings.aggregations.find(
-      a => a.operation === operation
+    // Aggregation row ids are `AGGREGATIONS:<operation>`.
+    const operation = activeId.slice(colonIdx + 1);
+    return (
+      aggregationSettings.aggregations.find(a => a.operation === operation) ??
+      null
     );
-    if (entry == null) {
-      return null;
-    }
-    // Preview just the single dragged column so the overlay matches the row.
-    return column === '' ? entry : { ...entry, selected: [column] };
   })();
 
   // Drag overlay contents: a column preview, an aggregation preview, or
@@ -2096,17 +1848,7 @@ export function PivotConfigSection({
   if (activeColumnName != null) {
     dragOverlayPreview = <ColumnRowPreview name={activeColumnName} />;
   } else if (activeAggregation != null) {
-    dragOverlayPreview = (
-      <AggregateRowPreview
-        entry={activeAggregation}
-        label={
-          !onlyAggregates &&
-          isCountOperation(activeAggregation.operation as string)
-            ? COUNT_OPERATION
-            : undefined
-        }
-      />
-    );
+    dragOverlayPreview = <AggregateRowPreview entry={activeAggregation} />;
   }
 
   return (
@@ -2322,45 +2064,22 @@ export function PivotConfigSection({
             itemIds={aggItemIds}
             isEmpty={aggregationSettings.aggregations.length === 0}
           >
-            {onlyAggregates
-              ? aggregationSettings.aggregations.map((entry, i) => (
-                  <AggregateSelectRow
-                    key={aggregationRowId(entry.operation as string)}
-                    id={aggregationRowId(entry.operation as string)}
-                    operation={entry.operation}
-                    columnLabels={entry.selected}
-                    availableOperations={selectableOperations.filter(
-                      op =>
-                        op === entry.operation || !usedOperations.includes(op)
-                    )}
-                    onOperationChange={op =>
-                      handleChangeAggregateOperation(i, op)
-                    }
-                    onDelete={() => handleDeleteAggregate(i)}
-                    onDeleteColumn={column =>
-                      handleDeleteAggregateColumn(i, column)
-                    }
-                  />
-                ))
-              : aggregatePairs.map(pair => (
-                  <AggregateSelectRow
-                    key={aggregationPairId(pair.operation, pair.column)}
-                    id={aggregationPairId(pair.operation, pair.column)}
-                    operation={pair.operation}
-                    columnLabels={pair.column === '' ? [] : [pair.column]}
-                    availableOperations={selectableOperations}
-                    onOperationChange={op =>
-                      handleChangeAggregatePairOperation(
-                        pair.entryIndex,
-                        pair.column,
-                        op
-                      )
-                    }
-                    onDelete={() =>
-                      handleDeleteAggregatePair(pair.entryIndex, pair.column)
-                    }
-                  />
-                ))}
+            {aggregationSettings.aggregations.map((entry, i) => (
+              <AggregateSelectRow
+                key={aggregationRowId(entry.operation as string)}
+                id={aggregationRowId(entry.operation as string)}
+                operation={entry.operation}
+                columnLabels={entry.selected}
+                availableOperations={selectableOperations.filter(
+                  op => op === entry.operation || !usedOperations.includes(op)
+                )}
+                onOperationChange={op => handleChangeAggregateOperation(i, op)}
+                onDelete={() => handleDeleteAggregate(i)}
+                onDeleteColumn={column =>
+                  handleDeleteAggregateColumn(i, column)
+                }
+              />
+            ))}
           </DroppableList>
         </ConfigCard>
 
