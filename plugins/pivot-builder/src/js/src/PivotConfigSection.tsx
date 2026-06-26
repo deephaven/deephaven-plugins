@@ -1264,15 +1264,28 @@ export function PivotConfigSection({
       if (current == null || current.operation === nextOp) {
         return;
       }
-      // Operations are unique per card; ignore a change that collides with
-      // an operation already used by another entry.
-      if (aggregations.some((a, i) => i !== index && a.operation === nextOp)) {
-        return;
+      // Operations are unique per card. If the target function already has an
+      // entry, merge this entry's columns into it (de-duped, order preserved)
+      // and drop this row so the two functions collapse into one group.
+      const existingIndex = aggregations.findIndex(
+        (a, i) => i !== index && a.operation === nextOp
+      );
+      if (existingIndex >= 0) {
+        const existing = aggregations[existingIndex];
+        const selected = [...existing.selected];
+        current.selected.forEach(col => {
+          if (!selected.includes(col)) {
+            selected.push(col);
+          }
+        });
+        aggregations[existingIndex] = { ...existing, selected };
+        aggregations.splice(index, 1);
+      } else {
+        aggregations[index] = {
+          ...current,
+          operation: nextOp as AggregationOperation,
+        };
       }
-      aggregations[index] = {
-        ...current,
-        operation: nextOp as AggregationOperation,
-      };
       onAggregationSettingsChange({ ...aggregationSettings, aggregations });
     },
     [aggregationSettings, onAggregationSettingsChange]
@@ -2081,9 +2094,7 @@ export function PivotConfigSection({
                 id={aggregationRowId(entry.operation as string)}
                 operation={entry.operation}
                 columnLabels={entry.selected}
-                availableOperations={selectableOperations.filter(
-                  op => op === entry.operation || !usedOperations.includes(op)
-                )}
+                availableOperations={selectableOperations}
                 onOperationChange={op => handleChangeAggregateOperation(i, op)}
                 onDelete={() => handleDeleteAggregate(i)}
                 onDeleteColumn={column =>
