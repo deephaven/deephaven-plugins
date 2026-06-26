@@ -1,6 +1,6 @@
 # Deephaven TradingView Lightweight Charts
 
-Deephaven TradingView Lightweight Charts is a high-performance Python plotting plugin for Deephaven built on the [TradingView lightweight-charts](https://tradingview.github.io/lightweight-charts/) library. It is less general-purpose than `deephaven.plot.express`, with a deliberate focus on financial charts and the kinds of layouts traders expect — candlesticks, bars, area / baseline / line series, histograms, multi-pane stacks, and yield curves — paired with viewport-aware downsampling and server-side autobinning to keep render-time low on multi-million-row tables.
+Deephaven TradingView Lightweight Charts is a Python plotting plugin for Deephaven built on the [TradingView lightweight-charts](https://tradingview.github.io/lightweight-charts/) library. It is less general-purpose than `deephaven.plot.express`. The focus is financial charts and the layouts traders expect: candlesticks, bars, area / baseline / line series, histograms, multi-pane stacks, and yield curves. Viewport-aware downsampling and server-side autobinning keep render-time low on multi-million-row tables.
 
 ## Quickstart
 
@@ -55,10 +55,10 @@ chart = tvl.chart(
 The documentation for Deephaven TradingView Lightweight Charts routinely uses some common terms to help clarify how charts are intended to be composed:
 
 - **Pane**: A horizontally stretched section of the chart that shares the same time scale as every other pane but has its own price scale. A common layout is a price pane on top and a volume pane below; `pane_index` selects which pane a series renders into.
-- **Series**: A single drawn element on the chart — a candlestick, line, area, bar, baseline, or histogram series. A chart can contain many series across one or more panes.
+- **Series**: A single drawn element on the chart: a candlestick, line, area, bar, baseline, or histogram series. A chart can contain many series across one or more panes.
 - **Price scale**: The vertical axis a series is drawn against. Each pane has a left and right price scale, plus optional overlay scales identified by `price_scale_id`.
 - **Price line**: A horizontal line drawn at a specific price level, optionally labeled. Useful for marking last close, breakeven, stop-loss, etc.
-- **Marker**: An annotation pinned to a specific time on a specific series — an arrow, circle, or labeled shape used to highlight events such as trades, news, or signals.
+- **Marker**: An annotation pinned to a specific time on a specific series: an arrow, circle, or labeled shape used to highlight events such as trades, news, or signals.
 - **Watermark**: Static text or an image drawn behind the chart, typically used for branding or to label the instrument being shown.
 - **Time scale**: The horizontal time axis shared by all panes. Tick mark density and business-day handling are configured here.
 - **Downsampling**: The viewport-aware reduction of plotted points so that the displayed series never contains more visually distinguishable points than the chart has horizontal pixels. Lossless at the visible resolution.

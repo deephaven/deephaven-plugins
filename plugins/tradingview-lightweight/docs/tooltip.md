@@ -17,9 +17,9 @@ The tooltip box appears near the cursor as you move across the chart, showing th
 
 ## A single focused series
 
-The tooltip always shows exactly one series — the one in focus. In a single-series chart that is simply the series you plotted. In a multi-series chart the focused series is whichever line is vertically nearest the cursor within the time slice under it: the chart reads each series' value at that time and picks the one closest to the cursor's height. As you move the cursor up and down between overlaid lines, the tooltip switches to track whichever line is nearest.
+The tooltip always shows exactly one series: the one in focus. In a single-series chart that is the series you plotted. In a multi-series chart the focused series is whichever line is vertically nearest the cursor within the time slice under it: the chart reads each series' value at that time and picks the one closest to the cursor's height. As you move the cursor up and down between overlaid lines, the tooltip switches to track whichever line is nearest.
 
-This keeps the tooltip readable no matter how many series you overlay: it is a single, compact box, not a growing legend. The title line is tinted with the focused series' own color, so you can tell at a glance which series the value belongs to.
+This keeps the tooltip readable no matter how many series you overlay: it is a single, compact box, not a growing legend. The title line is tinted with the focused series' own color, so you can tell which series the value belongs to.
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
@@ -66,7 +66,7 @@ The tooltip has no color options. Its background, text, and border are drawn fro
 
 ## Tooltip and crosshair
 
-The tooltip tracks the chart's crosshair, so it pairs naturally with `crosshair_mode`. With the default magnet crosshair the reported value snaps to the nearest data point; with `crosshair_mode="normal"` it follows the cursor freely. The tooltip works with any crosshair mode — the mode only changes which point the value is read from.
+The tooltip tracks the chart's crosshair, so it works together with `crosshair_mode`. With the default magnet crosshair the reported value snaps to the nearest data point; with `crosshair_mode="normal"` it follows the cursor freely. The tooltip works with any crosshair mode; the mode only changes which point the value is read from.
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl

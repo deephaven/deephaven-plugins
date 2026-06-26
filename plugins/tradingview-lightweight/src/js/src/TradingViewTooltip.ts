@@ -5,6 +5,10 @@ import type {
   Time,
 } from 'lightweight-charts';
 import type { TvlTooltipOptions } from './TradingViewTypes';
+import {
+  resolveFocusedSeriesPoint,
+  type FocusedSeriesPoint,
+} from './TradingViewSeriesFocus';
 
 /** Gap in pixels between the cursor and the tooltip box (from the LWC tutorial). */
 const TOOLTIP_MARGIN = 15;
@@ -24,57 +28,6 @@ export interface TradingViewTooltipDeps {
   formatTime: (time: Time) => string;
   /** Tooltip options as emitted by the Python API. */
   options: TvlTooltipOptions;
-}
-
-/** A series plus its numeric value at the crosshair, after extraction. */
-interface FocusedSeries {
-  series: ISeriesApi<SeriesType>;
-  value: number;
-}
-
-/**
- * Pull a single comparable number out of a crosshair data item. Line / Area /
- * Baseline / Histogram carry ``value``; OHLC (Candlestick / Bar) carry the
- * close. Returns undefined for whitespace / malformed items.
- */
-function extractValue(dataItem: unknown): number | undefined {
-  if (dataItem == null || typeof dataItem !== 'object') return undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const item = dataItem as any;
-  if (typeof item.value === 'number') return item.value;
-  if (typeof item.close === 'number') return item.close;
-  return undefined;
-}
-
-/**
- * Choose the one series to display: within the crosshair's time slice, the
- * series whose value sits vertically nearest the cursor. As the cursor moves
- * up and down within a slice the focused series switches to whichever line is
- * closest to the cursor's y — independent of which series LWC's native hit
- * test considers "hovered". (The press-event hit test in
- * TradingViewEventPayload still uses the hovered series, since a click targets
- * the line it lands on; the two intentionally differ.)
- */
-function resolveFocusedSeries(
-  params: MouseEventParams
-): FocusedSeries | undefined {
-  const { seriesData, point } = params;
-
-  let best: FocusedSeries | undefined;
-  let bestDist = Infinity;
-  seriesData.forEach((dataItem, series) => {
-    const value = extractValue(dataItem);
-    if (value == null) return;
-    const y = series.priceToCoordinate(value);
-    // No coordinate (e.g. value off-scale): treat distance as 0 so a series
-    // can still show (matters for the single-series case).
-    const dist = y == null || point == null ? 0 : Math.abs(y - point.y);
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = { series, value };
-    }
-  });
-  return best;
 }
 
 /**
@@ -142,7 +95,7 @@ export class TradingViewTooltip {
       return;
     }
 
-    const focused = resolveFocusedSeries(params);
+    const focused = resolveFocusedSeriesPoint(params);
     if (focused == null) {
       this.hide();
       return;
@@ -161,9 +114,9 @@ export class TradingViewTooltip {
     this.el.style.display = 'none';
   }
 
-  private render(focused: FocusedSeries, time: Time): void {
+  private render(focused: FocusedSeriesPoint, time: Time): void {
     const { getSeriesId, getSeriesColor, formatTime, options } = this.deps;
-    const { series, value } = focused;
+    const { series, price } = focused;
     const id = getSeriesId(series);
 
     if (options.showTitle !== false) {
@@ -184,7 +137,7 @@ export class TradingViewTooltip {
     }
 
     if (options.showValue !== false) {
-      this.valueEl.textContent = this.formatValue(series, value);
+      this.valueEl.textContent = this.formatValue(series, price);
     }
 
     if (options.showDate !== false) {

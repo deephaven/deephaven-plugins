@@ -6,9 +6,9 @@
 
 # Autobinning
 
-Autobinning is TVL's server-side time-bucket aggregation for histograms, candlesticks, and bars. Unlike the min/max downsampling used by Line / Area / Baseline (see [downsampling](downsampling.md)), OHLC and histogram series can't be thinned out by dropping points — they need true aggregation. Autobinning runs that aggregation in the Deephaven query engine: `update_view` to compute a bin column, `agg_by` to reduce, snap the result back to the original time column name, and ship it to the chart.
+Autobinning is TVL's server-side time-bucket aggregation for histograms, candlesticks, and bars. Unlike the min/max downsampling used by Line / Area / Baseline (see [downsampling](downsampling.md)), OHLC and histogram series can't be thinned out by dropping points; they need true aggregation. Autobinning runs that aggregation in the Deephaven query engine: `update_view` to compute a bin column, `agg_by` to reduce, snap the result back to the original time column name, and ship it to the chart.
 
-Use this page when you have a high-rate tick stream and want a histogram or candlestick chart over an automatically-chosen bin width — or when you want to override the chosen bin width manually.
+Use this page when you have a high-rate tick stream and want a histogram or candlestick chart over an automatically-chosen bin width, or when you want to override the chosen bin width manually.
 
 ## What is autobinning useful for?
 
@@ -19,7 +19,7 @@ Use this page when you have a high-rate tick stream and want a histogram or cand
 
 ## API surface
 
-Every aggregating series — `histogram`, `histogram`, `candlestick`, `candlestick`, `bar`, `bar` — accepts three parameters:
+Every aggregating series (`histogram`, `candlestick`, `bar`) accepts three parameters:
 
 | param | meaning |
 |---|---|
@@ -34,9 +34,9 @@ Default policy: when `auto_bin is None`, the chart auto-enables binning if the i
 
 The source of truth is `src/deephaven/plot/tradingview_lightweight/auto_bin.py`. The pipeline is:
 
-1. **`target_bins_for_width(width_px, actual_width_px)`** — compute the number of bins the chart can usefully show, based on the chart's pixel width and a target bar-pixel-width of `BAR_PX = 8`. Defaults to `TARGET_BINS = DEFAULT_WIDTH_PX // BAR_PX = 2000 // 8 = 250` when the width isn't known. Clamps by `actual_width_px / MIN_BAR_PX (=5)` so each bar stays above 5px even when the cached pixel-width-bucket overshoots.
-2. **`nice_bin_width(range_ns, target_bins)`** — divide the time range by the target bin count, then snap the result up to the next "nice" duration from `NICE_BIN_WIDTHS_NS` (1ns, 100ns, 1µs, 100µs, 1ms, 10ms, 100ms, 1s, 5s, 15s, 30s, 1m, 5m, 15m, 30m, 1h, 4h, 12h, 1d, 7d, 30d, 90d, 365d).
-3. **`build_histogram_view` / `build_ohlc_view`** — apply `upperBin(time, bin_width)` then `agg_by` over each bin, restore the time column name, sort by time. When the visible window is strictly inside the data range, the view is built as `head_anchor + body + tail_anchor` so `fix_left_edge` / `fix_right_edge` have something to clamp to.
+1. **`target_bins_for_width(width_px, actual_width_px)`**: compute the number of bins the chart can usefully show, based on the chart's pixel width and a target bar-pixel-width of `BAR_PX = 8`. Defaults to `TARGET_BINS = DEFAULT_WIDTH_PX // BAR_PX = 2000 // 8 = 250` when the width isn't known. Clamps by `actual_width_px / MIN_BAR_PX (=5)` so each bar stays above 5px even when the cached pixel-width-bucket overshoots.
+2. **`nice_bin_width(range_ns, target_bins)`**: divide the time range by the target bin count, then snap the result up to the next "nice" duration from `NICE_BIN_WIDTHS_NS` (1ns, 100ns, 1µs, 100µs, 1ms, 10ms, 100ms, 1s, 5s, 15s, 30s, 1m, 5m, 15m, 30m, 1h, 4h, 12h, 1d, 7d, 30d, 90d, 365d).
+3. **`build_histogram_view` / `build_ohlc_view`**: apply `upperBin(time, bin_width)` then `agg_by` over each bin, restore the time column name, sort by time. When the visible window is strictly inside the data range, the view is built as `head_anchor + body + tail_anchor` so `fix_left_edge` / `fix_right_edge` have something to clamp to.
 
 The visible range listener triggers a re-aggregation when the bin count drifts outside the range `[MIN_VISIBLE_BINS=80, target_bins * MAX_VISIBLE_BINS_RATIO=2x]`.
 
@@ -75,7 +75,7 @@ chart = tvl.histogram(
 )
 ```
 
-Valid duration patterns: `PnD`, `PTnHnMnS` — e.g. `"PT1S"`, `"PT5M"`, `"PT1H"`, `"P1D"`.
+Valid duration patterns: `PnD`, `PTnHnMnS`, e.g. `"PT1S"`, `"PT5M"`, `"PT1H"`, `"P1D"`.
 
 ### Override the bin count
 
@@ -96,7 +96,7 @@ chart = tvl.histogram(
 )
 ```
 
-`bin_count` and `bin_width` are mutually exclusive in effect — if both are set, `bin_width` wins.
+`bin_count` and `bin_width` are mutually exclusive in effect. If both are set, `bin_width` wins.
 
 ### Pick an aggregation reduction
 
@@ -117,7 +117,7 @@ Use `"sum"` for volume bars; `"count"` for trade counts; `"avg"` for mid-price b
 
 ### Aggregating OHLC bars
 
-Candlestick and bar charts use a fixed reduction — `first(open)`, `max(high)`, `min(low)`, `last(close)` per bin. The `agg` parameter doesn't exist here. Use `auto_bin=True` and `bin_width=` to control the cadence.
+Candlestick and bar charts use a fixed reduction. `first(open)`, `max(high)`, `min(low)`, `last(close)` per bin. The `agg` parameter doesn't exist here. Use `auto_bin=True` and `bin_width=` to control the cadence.
 
 ```python order=chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -127,11 +127,11 @@ ohlc = tvl.data.ohlc()
 chart = tvl.candlestick(ohlc, auto_bin=True, bin_width="P1D")
 ```
 
-For high-rate tick input, this is the canonical way to render a candle chart at a user-selected cadence.
+For high-rate tick input, this is the usual way to render a candle chart at a user-selected cadence.
 
 ### Opt out of autobinning
 
-`auto_bin=False` disables the path entirely — the chart consumes the input table as-is. Use this when you've already aggregated upstream (e.g. via a Deephaven `time_window` view) and don't want the chart to re-aggregate.
+`auto_bin=False` disables the path entirely. The chart consumes the input table as-is. Use this when you've already aggregated upstream (e.g. via a Deephaven `time_window` view) and don't want the chart to re-aggregate.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -152,7 +152,7 @@ Be aware: with `auto_bin=False` on a large raw tick table, the browser receives 
 - **`width` on `chart()`** indirectly controls `target_bins_for_width`, since the client passes the chart's pixel width to the server's `target_bins` computation.
 - **`bin_count`** overrides the computed target.
 - **`bin_width`** bypasses the snapping logic and uses the user's duration directly.
-- **`fix_left_edge` / `fix_right_edge`** are honored — the head/tail anchor rows give them something to clamp to even when the visible window is inside the data range.
+- **`fix_left_edge` / `fix_right_edge`** are honored: the head/tail anchor rows give them something to clamp to even when the visible window is inside the data range.
 
 For the cost trade-offs (server-side aggregation vs. client-side rendering), see [large-data](large-data.md).
 

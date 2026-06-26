@@ -1,6 +1,6 @@
 # Price Lines
 
-A price line is a horizontal line drawn across a series at a specific price — the visual equivalent of "draw a line at $100 across the chart". Reach for price lines when you need to annotate fixed levels (entry, stop, target, strike) or track a live, table-driven value such as a moving threshold.
+A price line is a horizontal line drawn across a series at a specific price, the visual equivalent of "draw a line at $100 across the chart". Use price lines when you need to annotate fixed levels (entry, stop, target, strike) or track a live, table-driven value such as a moving threshold.
 
 There are two ways to build a price line. Use [`tvl.price_line()`](#api-reference) for a static level (`price=100`) or for a Deephaven-extension column-driven level (`column="ThresholdCol"`) where the line tracks the last row of a named column as the table ticks. The returned `PriceLine` object goes onto a series via the `price_lines=` argument.
 
@@ -8,8 +8,8 @@ There are two ways to build a price line. Use [`tvl.price_line()`](#api-referenc
 
 - **Marking levels**: Entry, stop, and target levels on a trade can be drawn as static price lines so they sit alongside the candlestick body.
 - **Showing thresholds**: A risk threshold or alert level becomes a single horizontal line on the chart pane.
-- **Following live values**: A column-driven price line tracks the most recent row of a table — perfect for "current best bid" or "current VWAP" on a ticking stream.
-- **Annotating with labels**: Each price line carries a `title` (drawn on the pane) and an axis label (with its own colors), making the level self-describing.
+- **Following live values**: A column-driven price line tracks the most recent row of a table, which works well for "current best bid" or "current VWAP" on a ticking stream.
+- **Annotating with labels**: Each price line carries a `title` (drawn on the pane) and an axis label with its own colors, so the level can describe itself.
 
 ## Examples
 
@@ -24,8 +24,7 @@ ohlc = tvl.data.ohlc()
 
 target = tvl.price_line(price=104.0, color="#2e7d32")
 
-price = tvl.candlestick(ohlc, price_lines=[target])
-simple_line = tvl.chart(price)
+simple_line = tvl.candlestick(ohlc, price_lines=[target])
 ```
 
 A green horizontal line sits at 104.0 across the entire chart.
@@ -48,8 +47,7 @@ styled = tvl.price_line(
     id="stop-loss",
 )
 
-price = tvl.candlestick(ohlc, price_lines=[styled])
-styled_line = tvl.chart(price)
+styled_line = tvl.candlestick(ohlc, price_lines=[styled])
 ```
 
 A dashed red line at 104.0, three pixels wide.
@@ -74,8 +72,7 @@ labeled = tvl.price_line(
     axis_label_text_color="#ffffff",
 )
 
-price = tvl.candlestick(ohlc, price_lines=[labeled])
-labeled_line = tvl.chart(price)
+labeled_line = tvl.candlestick(ohlc, price_lines=[labeled])
 ```
 
 The line is labeled `Support` on the chart and `98.00` on the axis (with a blue background).
@@ -100,15 +97,14 @@ ladder = [
     ]
 ]
 
-price = tvl.candlestick(ohlc, price_lines=ladder)
-ladder_chart = tvl.chart(price)
+ladder_chart = tvl.candlestick(ohlc, price_lines=ladder)
 ```
 
 Five horizontal lines, each using a different `LineStyle` value, label the trading ladder. Notice the loop covers all five styles in `LineStyle`.
 
 ### Hide the line, keep the axis label
 
-`line_visible=False` removes the horizontal stroke from the pane but keeps the axis label on the price scale — useful when you want a value annotation without cluttering the chart body.
+`line_visible=False` removes the horizontal stroke from the pane but keeps the axis label on the price scale. This is useful when you want a value annotation without cluttering the chart body.
 
 ```python order=labelonly_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -125,15 +121,14 @@ invisible = tvl.price_line(
     id="par-level",
 )
 
-price = tvl.candlestick(ohlc, price_lines=[invisible])
-labelonly_chart = tvl.chart(price)
+labelonly_chart = tvl.candlestick(ohlc, price_lines=[invisible])
 ```
 
 The chart shows the axis tag for 100.00 with no line drawn through the pane.
 
 ### Track a live column value
 
-The Deephaven extension to `price_line()`: pass `column=` instead of `price=` and the line tracks the last row of that column. When the source table ticks, the price line moves automatically.
+This is the Deephaven extension to `price_line()`. Pass `column=` instead of `price=` and the line tracks the last row of that column. When the source table ticks, the price line moves automatically.
 
 ```python order=live_line,ohlc_w_avg,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -150,8 +145,7 @@ live = tvl.price_line(
     title="avg(Close)",
 )
 
-price = tvl.candlestick(ohlc_w_avg, price_lines=[live])
-live_line = tvl.chart(price)
+live_line = tvl.candlestick(ohlc_w_avg, price_lines=[live])
 ```
 
 The orange line tracks the running mean of `Close`. It is mutually exclusive with `price=`; setting both, or neither, raises `ValueError`.

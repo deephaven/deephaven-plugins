@@ -10,11 +10,41 @@
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md
+  visible -> titles-legends.md
+  last_value_visible -> titles-legends.md
+  price_scale_id -> price-scale.md
+  price_format -> price-formats.md
+  price_line_visible -> price-lines.md
+  price_line_source -> price-lines.md
+  price_line_width -> price-lines.md
+  price_line_color -> price-lines.md
+  price_line_style -> price-lines.md
+  base_line_visible -> price-scale.md
+  base_line_color -> price-scale.md
+  base_line_width -> price-scale.md
+  base_line_style -> price-scale.md
+  auto_scale -> price-scale.md
+  scale_margin_top -> price-scale.md
+  scale_margin_bottom -> price-scale.md
+  scale_mode -> price-scale.md
+  scale_invert -> price-scale.md
+  scale_align_labels -> price-scale.md
+  scale_border_visible -> price-scale.md
+  scale_border_color -> price-scale.md
+  scale_text_color -> price-scale.md
+  scale_entire_text_only -> price-scale.md
+  scale_visible -> price-scale.md
+  scale_ticks_visible -> price-scale.md
+  scale_minimum_width -> price-scale.md
+  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  color_column -> histogram.md
+  pane -> multi-pane.md
+  by -> multi-series.md
 -->
 
 # Bar (OHLC) Chart
 
-A bar chart renders each OHLC interval as a vertical range bar with a short tick on the left for the open and a short tick on the right for the close. Use it when you want the readability of OHLC data but prefer a thinner, less ink-heavy rendering than candlesticks — especially for very dense intraday charts or when you plan to layer markers on top.
+A bar chart renders each OHLC interval as a vertical range bar with a short tick on the left for the open and a short tick on the right for the close. Use it when you want the readability of OHLC data but prefer a thinner, less ink-heavy rendering than candlesticks. It works well for very dense intraday charts, and when you plan to layer markers on top.
 
 Like candlesticks, bars are color-coded by direction: an up bar has the close above the open, a down bar has the close below the open. Because the body is just two ticks instead of a filled rectangle, you can fit many more bars in the same horizontal space.
 
@@ -23,7 +53,7 @@ Like candlesticks, bars are color-coded by direction: an up bar has the close ab
 - **Dense intraday charts**: Bars take less horizontal pixel space than candles, so a 1-minute chart over a full session stays readable.
 - **Overlays and annotations**: A thinner price track leaves room for markers, price lines, and secondary series without visual conflict.
 - **Western technical analysis**: Many classical Western (vs. Japanese) chart conventions assume OHLC bars and read them more naturally than candles.
-- **Volatility scans**: Long vertical bars with ticks close together flag wide-range, indecisive periods at a glance.
+- **Volatility scans**: Long vertical bars with ticks close together flag wide-range, indecisive periods.
 
 ## Examples
 
@@ -42,7 +72,7 @@ Each row in `data` becomes one vertical bar with an open tick on the left and a 
 
 ### Map non-default OHLC column names
 
-When your table uses different column names — say `Ts`/`O`/`H`/`L`/`C` from a custom upstream join — pass them as kwargs. The chart only reads the columns you point at.
+When your table uses different column names (say `Ts`/`O`/`H`/`L`/`C` from a custom upstream join), pass them as kwargs. The chart only reads the columns you point at.
 
 ```python order=bar,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -77,7 +107,7 @@ Both `up_color` and `down_color` accept a Deephaven theme color (e.g. `"seafoam-
 
 ### Set a chart title
 
-`title` is the series legend label — visible on hover and in the legend area. Use it whenever the chart will be embedded next to other content where the column names are not self-explanatory.
+`title` is the series legend label. Visible on hover and in the legend area. Use it whenever the chart will be embedded next to other content where the column names are not self-explanatory.
 
 ```python order=bar,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -99,11 +129,11 @@ data = tvl.data.ohlc()
 bar = tvl.bar(data, auto_bin=True, bin_width="P7D")
 ```
 
-See [autobin](autobin.md) for the full autobin surface — ISO-8601 duration grammar, when each `auto_bin` value is the right pick, and how the path interacts with the downsampler.
+See [autobin](autobin.md) for the full autobin surface: ISO-8601 duration grammar, when each `auto_bin` value is the right pick, and how the path interacts with the downsampler.
 
 ### Thin bars and hidden open ticks
 
-Two bar-specific styling options trim the visual weight of each bar. `thin_bars=True` renders each bar with a narrower body, which is useful on very dense intraday charts; `open_visible=False` hides the short left "open" tick so each bar shows only the range line plus the right "close" tick — a cleaner look when the open price is not the focus.
+Two bar-specific styling options trim the visual weight of each bar. `thin_bars=True` renders each bar with a narrower body, which is useful on very dense intraday charts; `open_visible=False` hides the short left "open" tick so each bar shows only the range line plus the right "close" tick, a cleaner look when the open price is not the focus.
 
 ```python order=bar,data
 import deephaven.plot.tradingview_lightweight as tvl

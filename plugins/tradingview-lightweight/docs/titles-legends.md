@@ -13,15 +13,15 @@
 
 # Titles, Legends, and Watermarks
 
-TVL doesn't have a separate "title" widget the way Plotly does — instead, the chart title lives on the watermark and per-series titles drive the in-chart legend that appears in the top-left corner. This page covers the title + legend surface and gives a brief tour of the watermark options; for the full watermark treatment (multi-line, image watermarks, alignment) see [watermark](watermark.md).
+TVL doesn't have a separate "title" widget the way Plotly does. Instead, the chart title lives on the watermark, and per-series titles drive the in-chart legend that appears in the top-left corner. This page covers titles and legends and gives a brief tour of the watermark options; for the full watermark treatment (multi-line, image watermarks, alignment) see [watermark](watermark.md).
 
 Use this page when you want to label a chart for a dashboard tile, show or hide the legend on individual series, or pick a corner for a single-line watermark.
 
 ## What are titles and legends useful for?
 
-- **Identifying a chart in a dashboard**: A watermark title tells viewers at a glance what they're looking at — symbol, instrument, scenario.
+- **Identifying a chart in a dashboard**: A watermark title tells viewers what they're looking at: symbol, instrument, or scenario.
 - **Per-series labels**: Each series can carry a `title=`, which appears in the chart's legend overlay along with the live last-value readout.
-- **Brand and context**: Watermarks can include disclaimers, environment names ("staging"), or "as of" timestamps without taking screen real estate.
+- **Brand and context**: Watermarks can include disclaimers, environment names ("staging"), or "as of" timestamps without taking up screen space.
 - **Selective legend**: Hide the last-value badge on noisy overlay series with `last_value_visible=False` while keeping the title.
 
 ## Examples
@@ -44,7 +44,7 @@ chart = tvl.chart(
 )
 ```
 
-The watermark sits centered behind the data by default — see [watermark](watermark.md) for alignment options.
+The watermark sits centered behind the data by default. See [watermark](watermark.md) for alignment options.
 
 ### Position the watermark in a corner
 
@@ -70,7 +70,7 @@ For a "title bar" effect, anchor top-left and increase the color opacity.
 
 ### Show series titles in the legend
 
-Each series factory accepts a `title=` parameter — the value appears in the legend overlay in the top-left of the chart. Setting `title` on multiple series gives each a labeled badge.
+Each series factory accepts a `title=` parameter, and the value appears in the legend overlay in the top-left of the chart. Setting `title` on multiple series gives each a labeled badge.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -84,7 +84,7 @@ chart = tvl.chart(
 )
 ```
 
-Without `title`, the series shows a colored marker with the live value but no name — fine for single-series charts, awkward when you have several overlays.
+Without `title`, the series shows a colored marker with the live value but no name. That's fine for single-series charts, but awkward when you have several overlays.
 
 ### Hide the last-value badge on noisy series
 
@@ -113,7 +113,7 @@ The series remains in the legend overlay; only the right-edge price label disapp
 
 ### Toggle series visibility from the start
 
-`visible=False` starts the series hidden — useful for "click to enable" legend interactions handled outside Python, or for setting up a chart where most series are off by default.
+`visible=False` starts the series hidden. Useful for "click to enable" legend interactions handled outside Python, or for setting up a chart where most series are off by default.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -136,7 +136,7 @@ The legend entry still shows; the line doesn't render until something toggles `v
 
 ### Multi-line watermark for richer titles
 
-For a two-line title (instrument + tagline, "as of" timestamps, etc.) pass a list of `WatermarkLine` dataclasses to `watermark_lines`. Each line can carry its own color, font size, line height, and font style. See [watermark](watermark.md) for the deep dive.
+For a two-line title (instrument + tagline, "as of" timestamps, etc.) pass a list of `WatermarkLine` dataclasses to `watermark_lines`. Each line can carry its own color, font size, line height, and font style. See [watermark](watermark.md) for details.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -164,11 +164,11 @@ chart = tvl.chart(
 )
 ```
 
-Single-line shortcuts (`watermark_text` / `watermark_color` / `watermark_font_*`) and `watermark_lines` are mutually exclusive — pick one path.
+Single-line shortcuts (`watermark_text` / `watermark_color` / `watermark_font_*`) and `watermark_lines` are mutually exclusive, so pick one path.
 
 ### Image watermark as a "brand mark"
 
-`watermark_image_url` is the third watermark path — render a logo or seal in the chart. Combine with `watermark_image_alpha` for a subtle background mark.
+`watermark_image_url` is the third watermark path, rendering a logo or seal in the chart. Combine with `watermark_image_alpha` for a subtle background mark.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -209,7 +209,7 @@ chart = tvl.chart(
 )
 ```
 
-This is the recommended pattern for tiled overview screens — title in the corner, data filling the rest.
+This works well for tiled overview screens: title in the corner, data filling the rest.
 
 ## API Reference
 

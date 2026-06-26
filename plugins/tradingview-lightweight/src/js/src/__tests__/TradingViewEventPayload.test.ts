@@ -5,11 +5,10 @@ import type {
 } from 'lightweight-charts';
 import { buildPressEventPayload } from '../TradingViewEventPayload';
 
-// Lightweight fake ISeriesApi objects. The payload builder only ever uses
-// them as Map keys / identity references plus coordinateToPrice, so plain
-// objects with an optional coordinateToPrice fn are sufficient.
+// Lightweight fake ISeriesApi objects. The payload builder only uses them as
+// identity keys for the id/title resolvers.
 type FakeSeries = {
-  coordinateToPrice?: (y: number) => number | null;
+  title?: string;
 };
 
 function asSeries(s: FakeSeries): ISeriesApi<SeriesType> {
@@ -25,76 +24,36 @@ function makeResolver(
     map.get(s as unknown as FakeSeries) ?? undefined;
 }
 
+function makeTitleResolver(): (
+  s: ISeriesApi<SeriesType>
+) => string | undefined {
+  return (s: ISeriesApi<SeriesType>) =>
+    (s as unknown as FakeSeries).title ?? undefined;
+}
+
+function buildPayload(
+  type: 'press' | 'doublePress',
+  params: MouseEventParams,
+  getSeriesId: (s: ISeriesApi<SeriesType>) => string | undefined,
+  timeZone = 'UTC'
+) {
+  return buildPressEventPayload(
+    type,
+    params,
+    getSeriesId,
+    makeTitleResolver(),
+    timeZone
+  );
+}
+
+/** An empty resolver (resolves nothing). */
+function resolver0(): (s: ISeriesApi<SeriesType>) => string | undefined {
+  return () => undefined;
+}
+
 describe('buildPressEventPayload', () => {
-  describe('seriesId from hoveredInfo', () => {
-    it('resolves seriesId when sourceKind === "series" and series set', () => {
-      const seriesA: FakeSeries = {};
-      const resolver = makeResolver([[seriesA, 'series-a']]);
-      const params = {
-        seriesData: new Map(),
-        hoveredInfo: {
-          sourceKind: 'series',
-          objectKind: 'series',
-          series: asSeries(seriesA),
-        },
-      } as unknown as MouseEventParams;
-
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
-      expect(payload.seriesId).toBe('series-a');
-    });
-
-    it('resolves seriesId for a series-owned price line (objectKind custom-price-line)', () => {
-      // A flat line coincides with its last-value price line, so the native
-      // hit reports objectKind 'custom-price-line' but sourceKind 'series'.
-      // It still means "this series was pressed".
-      const seriesA: FakeSeries = {};
-      const resolver = makeResolver([[seriesA, 'series-a']]);
-      const params = {
-        seriesData: new Map(),
-        hoveredInfo: {
-          sourceKind: 'series',
-          objectKind: 'custom-price-line',
-          series: asSeries(seriesA),
-        },
-      } as unknown as MouseEventParams;
-
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
-      expect(payload.seriesId).toBe('series-a');
-    });
-
-    it('omits seriesId when sourceKind is not "series"', () => {
-      const seriesA: FakeSeries = {};
-      const resolver = makeResolver([[seriesA, 'series-a']]);
-      const params = {
-        seriesData: new Map(),
-        hoveredInfo: {
-          sourceKind: 'pane-primitive',
-          objectKind: 'primitive',
-          series: asSeries(seriesA),
-        },
-      } as unknown as MouseEventParams;
-
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
-      expect(payload.seriesId).toBeUndefined();
-    });
-
-    it('omits seriesId when no hoveredInfo present', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.seriesId).toBeUndefined();
-    });
-  });
-
-  describe('seriesData reverse-map', () => {
-    it('maps line value to a number and OHLC to an object, skips unknown', () => {
+  describe('seriesData', () => {
+    it('maps line value to { value } and OHLC to an object, skips unknown', () => {
       const seriesLine: FakeSeries = {};
       const seriesOhlc: FakeSeries = {};
       const seriesUnknown: FakeSeries = {};
@@ -103,91 +62,147 @@ describe('buildPressEventPayload', () => {
         [seriesOhlc, 'ohlc-1'],
         // seriesUnknown intentionally not registered
       ]);
-
       const seriesData = new Map<ISeriesApi<SeriesType>, unknown>([
         [asSeries(seriesLine), { value: 42.5 }],
         [asSeries(seriesOhlc), { open: 1, high: 4, low: 0.5, close: 3 }],
         [asSeries(seriesUnknown), { value: 99 }],
       ]);
+      const params = { seriesData } as unknown as MouseEventParams;
 
-      const params = {
-        seriesData,
-      } as unknown as MouseEventParams;
-
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
+      const payload = buildPayload('press', params, resolver);
       expect(payload.seriesData).toEqual({
-        'line-1': 42.5,
+        'line-1': { value: 42.5 },
         'ohlc-1': { open: 1, high: 4, low: 0.5, close: 3 },
       });
     });
 
-    it('skips data items with neither value nor OHLC (whitespace)', () => {
-      const seriesA: FakeSeries = {};
-      const resolver = makeResolver([[seriesA, 'a']]);
+    it('keys seriesData by the series title when present', () => {
+      const series: FakeSeries = { title: 'AAA' };
+      const resolver = makeResolver([[series, 'series_0_AAA']]);
       const seriesData = new Map<ISeriesApi<SeriesType>, unknown>([
-        [asSeries(seriesA), { time: 123 }],
+        [asSeries(series), { value: 7 }],
       ]);
       const params = { seriesData } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
+
+      const payload = buildPayload('press', params, resolver);
+      expect(payload.seriesData).toEqual({ AAA: { value: 7 } });
+    });
+
+    it('skips whitespace items with neither value nor OHLC', () => {
+      const series: FakeSeries = {};
+      const resolver = makeResolver([[series, 'a']]);
+      const seriesData = new Map<ISeriesApi<SeriesType>, unknown>([
+        [asSeries(series), { time: 123 }],
+      ]);
+      const params = { seriesData } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver);
       expect(payload.seriesData).toEqual({});
     });
   });
 
+  describe('hovered series', () => {
+    it('emits friendly id and stable id from hoveredInfo.series', () => {
+      const series: FakeSeries = { title: 'AAA' };
+      const resolver = makeResolver([[series, 'series_0_AAA']]);
+      const params = {
+        seriesData: new Map(),
+        hoveredInfo: { series: asSeries(series) },
+      } as unknown as MouseEventParams;
+
+      const payload = buildPayload('press', params, resolver);
+      expect(payload.hoveredSeries).toBe('AAA');
+      expect(payload.hoveredSeriesId).toBe('series_0_AAA');
+    });
+
+    it('falls back to the stable id as the friendly key when no title', () => {
+      const series: FakeSeries = {};
+      const resolver = makeResolver([[series, 'series_0']]);
+      const params = {
+        seriesData: new Map(),
+        hoveredInfo: { series: asSeries(series) },
+      } as unknown as MouseEventParams;
+
+      const payload = buildPayload('press', params, resolver);
+      expect(payload.hoveredSeries).toBe('series_0');
+      expect(payload.hoveredSeriesId).toBe('series_0');
+    });
+
+    it('omits hovered fields when no series is hovered', () => {
+      const params = {
+        seriesData: new Map(),
+      } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
+      expect('hoveredSeries' in payload).toBe(false);
+      expect('hoveredSeriesId' in payload).toBe(false);
+    });
+  });
+
+  describe('point / logical / paneIndex', () => {
+    it('passes through point coordinates', () => {
+      const params = {
+        seriesData: new Map(),
+        point: { x: 100, y: 50 },
+      } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
+      expect(payload.point).toEqual({ x: 100, y: 50 });
+    });
+
+    it('omits point when outside the chart', () => {
+      const params = { seriesData: new Map() } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
+      expect('point' in payload).toBe(false);
+    });
+
+    it('passes through logical index', () => {
+      const params = {
+        seriesData: new Map(),
+        logical: 1234,
+      } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
+      expect(payload.logical).toBe(1234);
+    });
+
+    it('uses params.paneIndex, then hoveredInfo.paneIndex', () => {
+      const a = {
+        seriesData: new Map(),
+        paneIndex: 2,
+      } as unknown as MouseEventParams;
+      expect(buildPayload('press', a, resolver0()).paneIndex).toBe(2);
+
+      const b = {
+        seriesData: new Map(),
+        hoveredInfo: { paneIndex: 1 },
+      } as unknown as MouseEventParams;
+      expect(buildPayload('press', b, resolver0()).paneIndex).toBe(1);
+    });
+  });
+
   describe('time conversion', () => {
-    it('converts UTC seconds to nanoseconds with timeZone=UTC', () => {
+    it('converts the crosshair time (UTC seconds) to nanoseconds', () => {
       const params = {
         seriesData: new Map(),
         time: 1700000000,
       } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
+      const payload = buildPayload('press', params, resolver0());
       expect(payload.timeNs).toBe(1700000000 * 1e9);
     });
 
     it('reverses TZ shift for a non-UTC zone', () => {
-      // New York is UTC-5 (no DST) in winter. The chart stores a TZ-shifted
-      // value (real UTC + offset). unconvertTime removes the offset, then we
-      // scale to nanoseconds. We assert the field is a finite multiple of 1e9
-      // and differs from the naive UTC interpretation by the NY offset.
-      const tzShifted = 1700000000; // chart seconds
-      const utcParams = {
+      const params = {
         seriesData: new Map(),
-        time: tzShifted,
+        time: 1700000000,
       } as unknown as MouseEventParams;
-      const ny = buildPressEventPayload(
-        'press',
-        utcParams,
-        resolver0(),
-        'America/New_York'
-      );
-      const utc = buildPressEventPayload(
-        'press',
-        utcParams,
-        resolver0(),
-        'UTC'
-      );
-      // NY in winter is 5h behind UTC => unconvertTime subtracts -5h*3600
-      const expectedDiffSec = 5 * 3600;
+      const ny = buildPayload('press', params, resolver0(), 'America/New_York');
+      const utc = buildPayload('press', params, resolver0(), 'UTC');
+      const expectedDiffSec = 5 * 3600; // NY is UTC-5 in winter
       expect((utc.timeNs as number) - (ny.timeNs as number)).toBe(
         -expectedDiffSec * 1e9
       );
     });
 
-    it('omits timeNs when time is undefined (empty area)', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.timeNs).toBeUndefined();
+    it('omits timeNs when time is undefined (outside data range)', () => {
+      const params = { seriesData: new Map() } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
       expect('timeNs' in payload).toBe(false);
     });
 
@@ -196,7 +211,7 @@ describe('buildPressEventPayload', () => {
         seriesData: new Map(),
         time: 1700000000,
       } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
+      const payload = buildPayload(
         'press',
         params,
         resolver0(),
@@ -210,20 +225,7 @@ describe('buildPressEventPayload', () => {
         seriesData: new Map(),
         time: 1700000000,
       } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload('press', params, resolver0(), '');
-      expect('timeZone' in payload).toBe(false);
-    });
-
-    it('omits timeZone on empty-area press (no time)', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'America/New_York'
-      );
+      const payload = buildPayload('press', params, resolver0(), '');
       expect('timeZone' in payload).toBe(false);
     });
   });
@@ -239,12 +241,7 @@ describe('buildPressEventPayload', () => {
           altKey: false,
         },
       } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
+      const payload = buildPayload('press', params, resolver0());
       expect(payload.shiftKey).toBe(true);
       expect(payload.ctrlKey).toBe(false);
       expect(payload.metaKey).toBe(true);
@@ -252,15 +249,8 @@ describe('buildPressEventPayload', () => {
     });
 
     it('defaults all modifiers to false when sourceEvent missing', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
+      const params = { seriesData: new Map() } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
       expect(payload.shiftKey).toBe(false);
       expect(payload.ctrlKey).toBe(false);
       expect(payload.metaKey).toBe(false);
@@ -268,109 +258,10 @@ describe('buildPressEventPayload', () => {
     });
   });
 
-  describe('point and price', () => {
-    it('includes point and price from coordinateToPrice when hovered', () => {
-      const seriesA: FakeSeries = {
-        coordinateToPrice: (y: number) => y * 2,
-      };
-      const resolver = makeResolver([[seriesA, 'a']]);
-      const params = {
-        seriesData: new Map(),
-        point: { x: 100, y: 50 },
-        hoveredInfo: {
-          sourceKind: 'series',
-          objectKind: 'series',
-          series: asSeries(seriesA),
-        },
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload('press', params, resolver, 'UTC');
-      expect(payload.point).toEqual({ x: 100, y: 50 });
-      expect(payload.price).toBe(100);
-    });
-
-    it('omits price when no hovered series even if point present', () => {
-      const params = {
-        seriesData: new Map(),
-        point: { x: 10, y: 20 },
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.point).toEqual({ x: 10, y: 20 });
-      expect(payload.price).toBeUndefined();
-    });
-
-    it('omits point when point is undefined', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.point).toBeUndefined();
-    });
-  });
-
-  describe('paneIndex', () => {
-    it('uses params.paneIndex when set', () => {
-      const params = {
-        seriesData: new Map(),
-        paneIndex: 2,
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.paneIndex).toBe(2);
-    });
-
-    it('falls back to hoveredInfo.paneIndex', () => {
-      const params = {
-        seriesData: new Map(),
-        hoveredInfo: { objectKind: 'series', paneIndex: 1 },
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.paneIndex).toBe(1);
-    });
-
-    it('omits paneIndex when neither present', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
-      expect(payload.paneIndex).toBeUndefined();
-    });
-  });
-
   describe('empty-area press', () => {
-    it('produces a minimal shape with type + modifiers only', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'press',
-        params,
-        resolver0(),
-        'UTC'
-      );
+    it('produces a minimal shape with type, empty seriesData + modifiers', () => {
+      const params = { seriesData: new Map() } as unknown as MouseEventParams;
+      const payload = buildPayload('press', params, resolver0());
       expect(payload).toEqual({
         type: 'press',
         seriesData: {},
@@ -384,21 +275,9 @@ describe('buildPressEventPayload', () => {
 
   describe('type passthrough', () => {
     it('carries doublePress through', () => {
-      const params = {
-        seriesData: new Map(),
-      } as unknown as MouseEventParams;
-      const payload = buildPressEventPayload(
-        'doublePress',
-        params,
-        resolver0(),
-        'UTC'
-      );
+      const params = { seriesData: new Map() } as unknown as MouseEventParams;
+      const payload = buildPayload('doublePress', params, resolver0());
       expect(payload.type).toBe('doublePress');
     });
   });
 });
-
-/** An empty resolver (resolves nothing). */
-function resolver0(): (s: ISeriesApi<SeriesType>) => string | undefined {
-  return () => undefined;
-}

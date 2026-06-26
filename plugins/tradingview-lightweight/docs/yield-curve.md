@@ -1,17 +1,19 @@
 <!-- coverage-seen-elsewhere:
   crosshair_mode -> styling.md
   watermark_text -> watermark.md
+  background_color -> styling.md
+  text_color -> styling.md
 -->
 
 # Yield Curve Chart
 
-A yield-curve chart plots yield against maturity (in months) rather than against time. It uses TVL's `createYieldCurveChart` renderer, which puts a numeric maturity axis on the horizontal — so the x-coordinates are *durations*, not timestamps. Reach for it whenever the x-axis is "how far out" rather than "when".
+A yield-curve chart plots yield against maturity (in months) rather than against time. It uses TVL's `createYieldCurveChart` renderer, which puts a numeric maturity axis on the horizontal, so the x-coordinates are *durations*, not timestamps. Use it when the x-axis is "how far out" rather than "when".
 
-The chart supports two series shapes: `"line"` (default) and `"area"`. Other series types are rejected at construction time — pass `"histogram"` or anything else and you get a `ValueError`.
+The chart supports two series shapes: `"line"` (default) and `"area"`. Other series types are rejected at construction time, so passing `"histogram"` or anything else raises a `ValueError`.
 
 ## What are yield-curve charts useful for?
 
-- **Treasury / sovereign curves**: The canonical use — render the on-the-run curve and watch its shape evolve from a normal upward slope to inversion.
+- **Treasury / sovereign curves**: The canonical use. Render the on-the-run curve and watch its shape evolve from a normal upward slope to inversion.
 - **Swap and forward curves**: Any term structure indexed by maturity rather than time fits naturally on this chart.
 - **Volatility term structure**: Implied vol by tenor reads the same way as yield by tenor.
 - **Cross-section snapshots**: Anything indexed by "horizon" (forward returns, expected payout) where comparing across maturities matters more than time evolution.
@@ -20,7 +22,7 @@ The chart supports two series shapes: `"line"` (default) and `"area"`. Other ser
 
 ### A basic yield curve
 
-`tvl.data.yields()` is an 11-tenor snapshot with columns `Tenor` and `Yield`. `Tenor` is the maturity **in months** (3, 6, 12, 24, ... 480) — the unit LWC's yield-curve axis expects. Pass `maturity="Tenor"` and `value="Yield"`, and set `start_time_range=480` so the initial viewport actually contains the long-end tenors (the LWC default is 120 months, which would clip everything past 10y to the right margin).
+`tvl.data.yields()` is an 11-tenor snapshot with columns `Tenor` and `Yield`. `Tenor` is the maturity **in months** (3, 6, 12, 24, ... 480), the unit LWC's yield-curve axis expects. Pass `maturity="Tenor"` and `value="Yield"`, and set `start_time_range=480` so the initial viewport actually contains the long-end tenors (the LWC default is 120 months, which would clip everything past 10y to the right margin).
 
 ```python order=yield_curve,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -83,9 +85,9 @@ The line is now red, one pixel wide, with a custom legend entry.
 
 Three integer parameters control the maturity axis. They are all expressed in *months*, regardless of how your `maturity` column is labeled.
 
-- `base_resolution` — the number of months represented by one base unit on the axis. Increase it to widen tick spacing on long-dated curves.
-- `minimum_time_range` — the smallest axis span the chart will ever zoom to (in months). Stops zoom from going below this.
-- `start_time_range` — the initial visible span in months.
+- `base_resolution`: the number of months represented by one base unit on the axis. Increase it to widen tick spacing on long-dated curves.
+- `minimum_time_range`: the smallest axis span the chart will ever zoom to (in months). Stops zoom from going below this.
+- `start_time_range`: the initial visible span in months.
 
 ```python order=yield_curve,data
 import deephaven.plot.tradingview_lightweight as tvl

@@ -7,7 +7,11 @@ from typing import Any, Optional
 
 from .series import SeriesSpec
 from .markers import Marker, MarkerSpec, PriceLine
-from .events import PressEventCallable, PRESS, DOUBLE_PRESS
+from .events import (
+    PressEventCallable,
+    PRESS,
+    DOUBLE_PRESS,
+)
 
 # Optional imports — unavailable in test environments without a Deephaven server
 try:
@@ -51,7 +55,11 @@ _YIELD_CURVE_SERIES_TYPES = {"Line", "Area"}
 
 # Per-type constructor kwargs that are chart-level (not series-factory args).
 # Excluded from the ``locals()`` dict forwarded to the ``*_series`` factory.
-_CHART_ONLY_KWARGS = {"by", "on_press", "on_double_press"}
+_CHART_ONLY_KWARGS = {
+    "by",
+    "on_press",
+    "on_double_press",
+}
 
 
 def _filter_none(d: dict) -> dict:

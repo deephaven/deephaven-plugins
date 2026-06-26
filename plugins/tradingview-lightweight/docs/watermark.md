@@ -1,6 +1,6 @@
 # Watermark
 
-A watermark is a faint label drawn behind the data of a chart — typically the ticker symbol, the dataset name, or the title of the chart. Reach for a watermark when you want chart context that doesn't compete with the price action for attention.
+A watermark is a faint label drawn behind the data of a chart, typically the ticker symbol, the dataset name, or the chart title. Use one when you want chart context that doesn't compete with the price action for attention.
 
 There are two ways to add a watermark. The single-line shortcut uses `tvl.chart(watermark_text=..., watermark_color=..., ...)`. The multi-line form takes a list of [`tvl.watermark_line(...)`](#api-reference) entries via `watermark_lines=[...]`, one per row of text, each with its own color, font size, line height, and font style.
 
@@ -12,7 +12,7 @@ There are two ways to add a watermark. The single-line shortcut uses `tvl.chart(
 ## What watermarks are useful for?
 
 - **Branding the chart**: A ticker symbol or dataset name in the background tells the viewer what they're looking at without occupying a corner.
-- **Stating context**: A two-line watermark can show e.g. `AAPL` above and `Daily` below — instrument plus timeframe.
+- **Stating context**: A two-line watermark can show, for example, `AAPL` above and `Daily` below: instrument plus timeframe.
 - **Styling for theme**: Adjusting color and font-style lets a watermark blend with light or dark themes.
 - **Positioning to taste**: `watermark_horz_align` and `watermark_vert_align` cover the nine canonical anchor points on the chart.
 
@@ -59,7 +59,7 @@ The watermark is now a large, semi-transparent, italicized blue label.
 
 ### Multi-line watermark
 
-For two or more lines, switch to `watermark_lines=[...]`. Each entry is built with `tvl.watermark_line(...)` and renders as its own line of text with optional per-line styling — color, font size, line height, and font style.
+For two or more lines, switch to `watermark_lines=[...]`. Each entry is built with `tvl.watermark_line(...)` and renders as its own line of text with optional per-line styling: color, font size, line height, and font style.
 
 ```python order=multi_watermark,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -87,7 +87,7 @@ lines = [
 multi_watermark = tvl.chart(price, watermark_lines=lines)
 ```
 
-Two lines, two styles. The single-line shortcut and `watermark_lines` are mutually exclusive — pick one.
+Two lines, two styles. The single-line shortcut and `watermark_lines` are mutually exclusive, so pick one.
 
 ### Position the watermark
 
@@ -166,7 +166,7 @@ The Deephaven logo appears behind the data at 20% opacity.
 
 ## API Reference
 
-The watermark options live on `tvl.chart()` (single-line shortcut + image options) — see the [Chart container](chart.md) page for the full `tvl.chart` API. `tvl.watermark_line(...)` builds each entry of the multi-line form.
+The watermark options live on `tvl.chart()` (single-line shortcut + image options). See the [Chart container](chart.md) page for the full `tvl.chart` API. `tvl.watermark_line(...)` builds each entry of the multi-line form.
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.watermark_line

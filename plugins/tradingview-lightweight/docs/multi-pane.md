@@ -1,6 +1,6 @@
 # Multi-Pane Charts
 
-A multi-pane chart stacks several panes vertically inside one chart frame — each pane has its own price scale, but they share the time axis along the bottom. Reach for panes when two series have incompatible value ranges (e.g. price in dollars vs. RSI in 0-100) or when you simply want to separate "price action" from "indicators".
+A multi-pane chart stacks several panes vertically inside one chart frame. Each pane has its own price scale, but they share the time axis along the bottom. Use panes when two series have incompatible value ranges (e.g. price in dollars vs. RSI in 0-100) or when you want to separate price action from indicators.
 
 The pane that a series lives in is set per series via the `pane` argument on every per-type constructor (or on the [convenience chart functions](#api-reference) like `tvl.line()`, `tvl.histogram()`). Per-chart options control how panes stretch, whether they survive when emptied, and what the separator between them looks like.
 
@@ -71,7 +71,7 @@ The three panes stack top-to-bottom in the same order as their `pane` indices.
 
 ### Customize height ratios
 
-`pane_stretch_factors` is a list of weights — one per pane — that controls how vertical space is distributed. Default is equal weighting; bumping the price pane's factor gives it more room.
+`pane_stretch_factors` is a list of weights (one per pane) that controls how vertical space is distributed. Default is equal weighting; bumping the price pane's factor gives it more room.
 
 ```python order=stretched_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -92,7 +92,7 @@ A `[3, 1]` ratio makes the price pane three times as tall as the volume pane, re
 
 ### Preserve a pane when it's empty
 
-`pane_preserve_empty` is a list of booleans — one per pane — controlling whether a pane remains visible when its data is empty (no rows yet, or filtered away). Useful when a downstream table hasn't ticked yet but the layout should still allocate space.
+`pane_preserve_empty` is a list of booleans (one per pane) controlling whether a pane remains visible when its data is empty (no rows yet, or filtered away). Useful when a downstream table hasn't ticked yet but the layout should still allocate space.
 
 ```python order=preserve_chart,ohlc_filter,ohlc
 import deephaven.plot.tradingview_lightweight as tvl

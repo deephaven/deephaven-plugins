@@ -7,7 +7,7 @@
 
 # Downsampling
 
-Downsampling is what makes TVL feel fluid on multi-million-row tables. The Line, Area, and Baseline series automatically thin out points as the user pans and zooms so the renderer never tries to draw more bars than the chart has pixels — yet the visible curve still includes every local minimum and maximum, so spikes and dips never disappear.
+Downsampling is what keeps TVL responsive on multi-million-row tables. The Line, Area, and Baseline series automatically thin out points as the user pans and zooms, so the renderer never tries to draw more bars than the chart has pixels. The visible curve still includes every local minimum and maximum, so spikes and dips never disappear.
 
 This page is the conceptual reference: what downsampling is, when it kicks in, how to tune it, and (briefly) when to turn it off.
 
@@ -15,17 +15,17 @@ This page is the conceptual reference: what downsampling is, when it kicks in, h
 
 - **Smooth interaction on big tables**: A 1M-row line is unplayable if every pan ships 1M points to the browser; downsampling brings it down to ~viewport-width points and keeps interaction snappy.
 - **Faithful min/max preservation**: The downsampler picks the highest and lowest point in each pixel column, so a tall single-row spike survives even when nine of its neighbors are dropped.
-- **Zero authoring cost**: There's no separate "downsampled chart" mode — write `tvl.line(table, ...)` against a 1M-row table and it Just Works.
-- **Whitespace fills**: Recent commits (`62c568ea`, `f45886bb`) add whitespace-aware aggregation so leading/trailing gaps don't compress the visible region.
+- **Zero authoring cost**: There's no separate "downsampled chart" mode. Write `tvl.line(table, ...)` against a 1M-row table and it works.
+- **Whitespace fills**: Whitespace-aware aggregation means leading and trailing gaps don't compress the visible region.
 
 ## How it activates
 
 TVL has two server-side / client-side cooperating paths:
 
 1. **JS-side viewport downsampling** (Line / Area / Baseline). When a series has more points than the viewport has bars, the client requests a downsampled view from the server, asking for "give me the min and the max for each pixel column in the visible time range." The aggregation runs in the Deephaven query engine via `agg_by` with `first` / `last` / `sorted_first` / `sorted_last` reductions per bucket. On pan and zoom the client re-requests with the new range; on data ticks the buckets refresh.
-2. **Server-side autobinning** (Candlestick / Bar / Histogram). OHLC and histogram series can't be downsampled by min/max — they need a true aggregation. See [autobin](autobin.md) for that path.
+2. **Server-side autobinning** (Candlestick / Bar / Histogram). OHLC and histogram series can't be downsampled by min/max: they need a true aggregation. See [autobin](autobin.md) for that path.
 
-> **Numeric-axis charts don't downsample.** Viewport downsampling is gated to `chart_type == "standard"` and reads a hard-coded `time` column. `tvl.custom_numeric`, `tvl.options_chart`, and `tvl.yield_curve` therefore ship raw rows to the client — keep their input tables modest (tens of thousands of rows) or pre-aggregate server-side.
+> **Numeric-axis charts don't downsample.** Viewport downsampling is gated to `chart_type == "standard"` and reads a hard-coded `time` column. `tvl.custom_numeric`, `tvl.options_chart`, and `tvl.yield_curve` therefore ship raw rows to the client. Keep their input tables modest (tens of thousands of rows) or pre-aggregate server-side.
 
 ### What activates it
 
@@ -38,16 +38,16 @@ TVL has two server-side / client-side cooperating paths:
 For Line / Area / Baseline series, each bucket reduces to (at most) four points: first time, last time, sorted-first value, sorted-last value. That guarantees:
 
 - **The min and the max of every bucket survive.** Spikes are not averaged away.
-- **The bucket boundaries are real data points**, not interpolated midpoints — so hovering still shows actual timestamps and values.
+- **The bucket boundaries are real data points**, not interpolated midpoints: so hovering still shows actual timestamps and values.
 - **Vertical order is preserved within each bucket** by drawing the four points in time order, so the rendered polyline respects the rise/fall of the underlying data.
 
-For OHLC and histogram series, downsampling reduces each bucket via `first(open)`, `max(high)`, `min(low)`, `last(close)` (candlestick / bar) or `sum` / `count` / `avg` / `last` (histogram) — see [autobin](autobin.md).
+For OHLC and histogram series, downsampling reduces each bucket via `first(open)`, `max(high)`, `min(low)`, `last(close)` (candlestick / bar) or `sum` / `count` / `avg` / `last` (histogram). See [autobin](autobin.md).
 
 ## Examples
 
 ### A 1M-row line chart
 
-The `tvl.data.large_prices()` fixture is a 1,000,000-row intraday price series. Plotting it with `tvl.line()` works exactly like plotting a 100-row table — TVL handles the downsampling transparently.
+The `tvl.data.large_prices()` fixture is a 1,000,000-row intraday price series. Plotting it with `tvl.line()` works exactly like plotting a 100-row table. TVL handles the downsampling transparently.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -73,11 +73,11 @@ small_chart = tvl.line(values, timestamp="Timestamp", value="Value")
 large_chart = tvl.line(large, timestamp="Timestamp", value="Price")
 ```
 
-The threshold matters but is rarely the thing you tune — chart width drives it more than row count, and the chart sizes to its container automatically.
+The threshold is rarely the thing you tune. Chart width drives it more than row count, and the chart sizes to its container automatically.
 
 ### Combine downsampling with multiple overlays
 
-Multiple series each downsample independently — overlaying a fine-grained line and a coarse moving average doesn't push either off the optimal path. Each series' bucket budget is its own.
+Each series downsamples independently. Overlaying a fine-grained line and a coarse moving average doesn't degrade either, since each series gets its own bucket budget.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -114,27 +114,27 @@ chart = tvl.chart(
 )
 ```
 
-These knobs matter most when the rendered bars start dropping below a single pixel — bump `min_bar_spacing` to keep them visible.
+These knobs matter most when the rendered bars start dropping below a single pixel. Bump `min_bar_spacing` to keep them visible.
 
 ## Turning it off (and why you probably shouldn't)
 
 There is no chart-level "disable downsampling" boolean for Line / Area / Baseline series. The reason is that disabling it is almost always wrong:
 
 - **Browsers can't render 1M points in a polyline at 60fps.** Even on fast hardware, building and laying out the SVG / canvas path is bottlenecked on point count.
-- **The downsampled view is faithful.** Min and max per bucket survive — the only thing you lose is rendering every individual point, which the chart couldn't show anyway because each one is sub-pixel.
+- **The downsampled view is faithful.** Min and max per bucket survive: the only thing you lose is rendering every individual point, which the chart couldn't show anyway because each one is sub-pixel.
 
-If you have a table that's small enough that downsampling wouldn't help and you don't want to pay the round-trip overhead, just plot the table directly — TVL only activates the downsampling path when the chart pixel budget is smaller than the row count.
+If you have a table that's small enough that downsampling wouldn't help and you don't want to pay the round-trip overhead, just plot the table directly. TVL only activates the downsampling path when the chart pixel budget is smaller than the row count.
 
-For OHLC and histogram series, the equivalent toggle exists (`auto_bin=False`) — see [autobin](autobin.md). The same advice applies: disable it only when the table is already small.
+For OHLC and histogram series, the equivalent toggle exists (`auto_bin=False`). See [autobin](autobin.md). The same advice applies: disable it only when the table is already small.
 
 ## Tunables
 
 The downsampler is mostly automatic, but a few knobs on `chart()` and the series factories influence it:
 
-- **`width` / `height` on `chart()`** — pin the pixel budget, which sets the bucket target.
-- **`bar_spacing` / `min_bar_spacing` / `max_bar_spacing`** — pixels per bar, which drives the bucket count.
-- **`auto_bin` / `bin_width` / `bin_count`** (Candlestick / Bar / Histogram) — see [autobin](autobin.md).
-- **`fix_left_edge` / `fix_right_edge`** — anchor the visible range to the data edges. The downsampler emits single-row anchors at the head and tail when the visible window is strictly inside the data range so these clamps work.
+- **`width` / `height` on `chart()`**: pin the pixel budget, which sets the bucket target.
+- **`bar_spacing` / `min_bar_spacing` / `max_bar_spacing`**: pixels per bar, which drives the bucket count.
+- **`auto_bin` / `bin_width` / `bin_count`** (Candlestick / Bar / Histogram): see [autobin](autobin.md).
+- **`fix_left_edge` / `fix_right_edge`**: anchor the visible range to the data edges. The downsampler emits single-row anchors at the head and tail when the visible window is strictly inside the data range so these clamps work.
 
 For benchmarking comparisons (server-side autobin vs. client-side rendering cost), see [large-data](large-data.md).
 

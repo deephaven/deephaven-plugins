@@ -29,39 +29,60 @@ PressEventType = Literal["press", "doublePress"]
 class TvlPressEvent(TypedDict, total=False):
     """A press (or double-press) on a rendered TVL chart.
 
-    Keys are camelCase to mirror deephaven.ui's ``events.py``. The event is a
-    plain ``dict`` at runtime, so handlers read fields with ``e["seriesId"]``.
+    This mirrors lightweight-charts' ``MouseEventParams`` — the data of every
+    series at the event location, the hovered series, the pixel point, the
+    logical index, the pane, and the modifier keys — rather than a bespoke
+    model. Keys are camelCase to match both that upstream type and
+    deephaven.ui's ``events.py`` (whose ``PressEvent`` uses ``shiftKey`` etc.).
+    The event is a plain ``dict`` at runtime, so handlers read fields with
+    ``e["seriesData"]``.
+
+    Two deliberate deviations from the raw ``MouseEventParams``: the hovered
+    ``ISeriesApi`` object becomes a string id (``hoveredSeries`` /
+    ``hoveredSeriesId``), and ``time`` becomes a Deephaven ``timestamp``.
 
     Fields that cannot be resolved for a given press are omitted rather than
     set to ``None`` (e.g. pressing empty area outside the data range omits
-    ``time``; pressing between lines omits ``seriesId``).
+    ``timestamp`` and ``hoveredSeries``).
     """
 
     type: PressEventType
     """``"press"`` or ``"doublePress"``."""
 
-    time: Any
-    """The pressed time, mirroring the source series' time-column type: a
-    Deephaven ``Instant`` for an ``Instant`` column, a ``ZonedDateTime`` (in
-    the chart's displayed zone) for a ``ZonedDateTime`` column, and a
-    timezone-aware UTC ``datetime`` as the fallback. Absent when the press is
-    on empty area outside the data range."""
+    timestamp: Any
+    """Time of the data at the event location (``MouseEventParams.time``),
+    mirroring the hovered series' time-column type: a Deephaven ``Instant`` for
+    an ``Instant`` column, a ``ZonedDateTime`` (in the chart's displayed zone)
+    for a ``ZonedDateTime`` column, and a timezone-aware UTC ``datetime`` as the
+    fallback. Absent when the event is outside the data range."""
 
-    seriesId: str
-    """The id of the series under the cursor (from LWC native hit testing),
-    absent when the press lands between lines."""
+    hoveredSeries: str
+    """Friendly id of the series under the cursor. Uses the rendered series
+    title when present (``by=`` charts use the partition key as the runtime
+    title), falling back to TVL's generated ``series_<n>`` id only when no
+    title/key exists. Omitted when no series is hovered. This is the key into
+    :attr:`seriesData`."""
 
-    price: float
-    """Value at the cursor on the cursor pane's price scale, when available."""
+    hoveredSeriesId: str
+    """TVL's generated ``series_<n>`` id for the hovered series — a stable
+    handle that does not change with title/key, for unambiguous server-side
+    lookup. Omitted when no series is hovered."""
 
     seriesData: dict
-    """Every series' value/OHLC at the pressed time, keyed by series id."""
+    """Data of every series at the event location, keyed by friendly series id
+    (matching :attr:`hoveredSeries`). Each value mirrors the series' data
+    shape: ``{"value": ...}`` for line / area / baseline / histogram, or
+    ``{"open", "high", "low", "close"}`` for candlestick / bar."""
 
     point: dict
-    """``{"x": int, "y": int}`` — cursor location in chart pixels."""
+    """Pixel location of the event as ``{"x": ..., "y": ...}``
+    (``MouseEventParams.point``). Omitted when outside the chart."""
+
+    logical: int
+    """Logical index at the event location (``MouseEventParams.logical``)."""
 
     paneIndex: int
-    """Index of the pane the press landed in, when available."""
+    """Index of the pane the event occurred in, when available."""
 
     shiftKey: bool
     ctrlKey: bool
@@ -119,7 +140,7 @@ def ns_to_zoned_date_time(time_ns: int, time_zone: Optional[str] = None) -> Any:
 
 
 # Fully-qualified Java class names of the source time column's dtype
-# (``DType.j_name``) that we mirror onto the event ``time``.
+# (``DType.j_name``) that we mirror onto the event ``timestamp``.
 _INSTANT_JNAME = "java.time.Instant"
 _ZONED_DATE_TIME_JNAME = "java.time.ZonedDateTime"
 
@@ -145,6 +166,17 @@ def time_converter_for(
 
 _MODIFIER_KEYS = ("shiftKey", "ctrlKey", "metaKey", "altKey")
 
+# Optional fields copied through verbatim when present (camelCase, mirroring
+# the wire payload and deephaven.ui's event convention).
+_PASSTHROUGH_KEYS = (
+    "hoveredSeries",
+    "hoveredSeriesId",
+    "seriesData",
+    "point",
+    "logical",
+    "paneIndex",
+)
+
 
 def build_press_event(
     handler_id: str,
@@ -153,37 +185,34 @@ def build_press_event(
 ) -> "TvlPressEvent":
     """Build a :class:`TvlPressEvent` from the client EVENT payload.
 
+    The client payload mirrors lightweight-charts' ``MouseEventParams`` and is
+    already camelCase, matching the event dict handlers consume.
+
     ``handler_id`` is ``"press"`` or ``"doublePress"`` and becomes the
-    event ``type``. Optional fields (``seriesId``, ``price``, ``point``,
-    ``paneIndex``) are copied through only when present; ``timeNs`` is
-    converted to ``time`` via ``time_converter`` (omitted when the press was
-    on empty area, where the client sends no ``timeNs``). Modifier keys
-    always resolve to a bool.
+    event ``type``. Optional fields (``hoveredSeries``, ``hoveredSeriesId``,
+    ``seriesData``, ``point``, ``logical``, ``paneIndex``) are copied through
+    only when present; ``timeNs`` is converted to ``timestamp`` via
+    ``time_converter`` (omitted when the event was outside the data range,
+    where the client sends no ``timeNs``). Modifier keys always resolve to a
+    bool.
 
     ``time_converter`` lets the caller mirror the source time-column type
     (see :func:`time_converter_for`); it defaults to a UTC ``datetime``. A
     failing converter (e.g. a transient JVM error) degrades to ``datetime``
-    rather than raising, so a press always carries a usable ``time``.
+    rather than raising, so a press always carries a usable ``timestamp``.
     """
     event: TvlPressEvent = {"type": cast(PressEventType, handler_id)}
     for key in _MODIFIER_KEYS:
         event[key] = bool(payload.get(key, False))  # type: ignore[literal-required]
-    if payload.get("seriesId") is not None:
-        event["seriesId"] = payload["seriesId"]
-    if payload.get("price") is not None:
-        event["price"] = payload["price"]
-    if payload.get("seriesData") is not None:
-        event["seriesData"] = payload["seriesData"]
-    if payload.get("point") is not None:
-        event["point"] = payload["point"]
-    if payload.get("paneIndex") is not None:
-        event["paneIndex"] = payload["paneIndex"]
+    for key in _PASSTHROUGH_KEYS:
+        if payload.get(key) is not None:
+            event[key] = payload[key]  # type: ignore[literal-required]
     time_ns = payload.get("timeNs")
     if time_ns is not None:
         try:
-            event["time"] = time_converter(time_ns)
+            event["timestamp"] = time_converter(time_ns)
         except Exception:  # noqa: BLE001 - never lose the press over a bad convert
-            event["time"] = ns_to_datetime(time_ns)
+            event["timestamp"] = ns_to_datetime(time_ns)
     return event
 
 

@@ -5,13 +5,13 @@
 
 # Price Formats
 
-Price formatters control how numeric values appear on price-axis tick labels, crosshair labels, and last-value labels. TVL ships five typed surfaces — `PriceFormat` (per-series), and four chart-level named-preset enums (`PriceFormatter`, `TickmarksPriceFormatter`, `PercentageFormatter`, `TickmarksPercentageFormatter`) — that cover the common currency, percent, volume, and scientific notation cases without writing a JavaScript formatter.
+Price formatters control how numeric values appear on price-axis tick labels, crosshair labels, and last-value labels. TVL provides five typed surfaces: `PriceFormat` (per-series), and four chart-level named-preset enums (`PriceFormatter`, `TickmarksPriceFormatter`, `PercentageFormatter`, `TickmarksPercentageFormatter`). They cover the common currency, percent, volume, and scientific notation cases without writing a JavaScript formatter.
 
 Reach for `PriceFormat` when you need precision-level control on one series; reach for the chart-level named presets when you want every label across the chart to share a single format.
 
 ## What are price formats useful for?
 
-- **Matching market conventions**: USD equities want two decimals, JPY pairs want zero, FX wants four — pick the right preset and the crosshair label looks like the venue you trade on.
+- **Matching market conventions**: USD equities want two decimals, JPY pairs want zero, FX wants four. Pick the right preset and the crosshair label matches the venue you trade on.
 - **Volume formatting**: Render volume axes as `1.2M` instead of `1,234,567` by using `type="volume"` on the histogram series.
 - **Percent overlays**: A percentage-mode price scale needs a percent formatter; pair it with `scale_mode="percentage"` for relative-return overlays.
 - **Tick density and label width**: A compact formatter (`"compact"`) keeps long-number axes from pushing the plot area narrow.
@@ -20,20 +20,18 @@ Reach for `PriceFormat` when you need precision-level control on one series; rea
 
 ### Set per-series price format with `PriceFormat`
 
-`PriceFormat` is a `TypedDict` you build inline and pass to the `price_format=` parameter of any series factory. `type` selects the kind (`"price"`, `"volume"`, `"percent"`), `precision` is the number of decimal places, and `minMove` is the smallest representable step (note the camelCase — it's a passthrough to the JS layer).
+`PriceFormat` is a `TypedDict` you build inline and pass to the `price_format=` parameter of any series factory. `type` selects the kind (`"price"`, `"volume"`, `"percent"`), `precision` is the number of decimal places, and `minMove` is the smallest representable step (note the camelCase; it's a passthrough to the JS layer).
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
 
 values = tvl.data.values()
 
-chart = tvl.chart(
-    tvl.line(
-        values,
-        timestamp="Timestamp",
-        value="Value",
-        price_format={"type": "price", "precision": 4, "minMove": 0.0001},
-    ),
+chart = tvl.line(
+    values,
+    timestamp="Timestamp",
+    value="Value",
+    price_format={"type": "price", "precision": 4, "minMove": 0.0001},
 )
 ```
 
@@ -48,13 +46,11 @@ import deephaven.plot.tradingview_lightweight as tvl
 
 volume = tvl.data.volume()
 
-chart = tvl.chart(
-    tvl.histogram(
-        volume,
-        timestamp="Timestamp",
-        value="Volume",
-        price_format={"type": "volume", "precision": 0},
-    ),
+chart = tvl.histogram(
+    volume,
+    timestamp="Timestamp",
+    value="Volume",
+    price_format={"type": "volume", "precision": 0},
 )
 ```
 
@@ -70,17 +66,15 @@ import deephaven.plot.tradingview_lightweight as tvl
 values = tvl.data.values()
 returns = values.update_view(["Value = (Value - 100.0) / 100.0 * 100.0"])
 
-chart = tvl.chart(
-    tvl.line(
-        returns,
-        timestamp="Timestamp",
-        value="Value",
-        price_format={"type": "percent", "precision": 2},
-    ),
+chart = tvl.line(
+    returns,
+    timestamp="Timestamp",
+    value="Value",
+    price_format={"type": "percent", "precision": 2},
 )
 ```
 
-If you actually want the price scale to be in percent mode (not just the labels), pair this with `scale_mode="percentage"` on the series — see [price-scale](price-scale.md).
+If you actually want the price scale to be in percent mode (not just the labels), pair this with `scale_mode="percentage"` on the series; see [price-scale](price-scale.md).
 
 ### Pick a named price formatter for crosshair labels
 
@@ -151,7 +145,7 @@ If you need a different decimal count, drop down to `PriceFormat` and set `preci
 
 ### Use the compact preset for high-volume axes
 
-`"compact"` renders 1234 as `1.23K`, 12,345,678 as `12.35M`, etc. — useful for axes that span many orders of magnitude.
+`"compact"` renders 1234 as `1.23K`, 12,345,678 as `12.35M`, and so on. Useful for axes that span many orders of magnitude.
 
 ```python order=chart,volume
 import deephaven.plot.tradingview_lightweight as tvl
@@ -185,7 +179,7 @@ chart = tvl.chart(
 
 ### Format axis tick labels separately
 
-`TickmarksPriceFormatter` controls the *tick label* on the price axis, while `PriceFormatter` controls the *crosshair* label. The enum values are identical but the two parameters are independent — you can render `$1,234.56` on the crosshair while showing a compact `1.2K` on the axis ticks.
+`TickmarksPriceFormatter` controls the *tick label* on the price axis, while `PriceFormatter` controls the *crosshair* label. The enum values are identical but the two parameters are independent: you can render `$1,234.56` on the crosshair while showing a compact `1.2K` on the axis ticks.
 
 ```python order=chart,volume
 import deephaven.plot.tradingview_lightweight as tvl
@@ -253,17 +247,15 @@ import deephaven.plot.tradingview_lightweight as tvl
 values = tvl.data.values()
 fx = values.update_view(["Value = Value * 0.0001"])
 
-chart = tvl.chart(
-    tvl.line(
-        fx,
-        timestamp="Timestamp",
-        value="Value",
-        price_format={"type": "price", "precision": 5, "minMove": 0.00001},
-    ),
+chart = tvl.line(
+    fx,
+    timestamp="Timestamp",
+    value="Value",
+    price_format={"type": "price", "precision": 5, "minMove": 0.00001},
 )
 ```
 
-The JS API supports a `'custom'` `type` for arbitrary formatter callbacks — that's not available from Python, since it requires a JavaScript function. Stick with the built-in `"price"`, `"volume"`, and `"percent"` types or use the chart-level named presets.
+The JS API supports a `'custom'` `type` for arbitrary formatter callbacks, but that's not available from Python, since it requires a JavaScript function. Stick with the built-in `"price"`, `"volume"`, and `"percent"` types or use the chart-level named presets.
 
 ## API Reference
 

@@ -1121,6 +1121,18 @@ class TradingViewChartRenderer {
     return found;
   }
 
+  /** User-facing title for a series API, when set. */
+  getSeriesTitleForApi(series: ISeriesApi<SeriesType>): string | undefined {
+    if (this.getSeriesIdForApi(series) == null) return undefined;
+    try {
+      const opts = series.options() as { title?: string };
+      const title = opts?.title;
+      return title != null && title !== '' ? title : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   /** Subscribe to chart size changes (resize detection). */
   subscribeSizeChange(handler: () => void): () => void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -214,16 +214,24 @@ callable receiving one camelCase-keyed event dict, or no argument).
 
 - Handlers are accepted on `tvl.chart(...)` and on every per-type constructor
   (`line`, `area`, `candlestick`, `bar`, `baseline`, `histogram`)
-- **JS side** (`TradingViewEventPayload.ts`): on press, builds the payload —
-  time/price under the cursor, `seriesId` from LWC native hit testing, every
-  series' value at that time, pane, pixel point, and modifier keys — and sends
-  an `EVENT` message to the model
+- **JS side** (`TradingViewEventPayload.ts`): on press, builds a payload that
+  mirrors lightweight-charts' `MouseEventParams` — `time` under the cursor,
+  `point`, `logical`, `paneIndex`, `seriesData` (every series' data at the
+  location, keyed by friendly id), the hovered series as `hoveredSeries`
+  (friendly id) + `hoveredSeriesId` (stable `series_<n>`), and the modifier
+  keys — and sends an `EVENT` message to the model. Two deviations from raw
+  `MouseEventParams`: the hovered `ISeriesApi` becomes a string id, and `time`
+  becomes a Deephaven timestamp server-side.
 - **Python side** (`events.py`): the listener dispatches the `EVENT` to the
   registered handler. `wrap_callable` (ported from deephaven.ui) adapts the
   handler so it can be called with one positional arg regardless of its arity;
-  `build_press_event` converts the client payload into a `TvlPressEvent`
-- Unresolved fields are omitted rather than set to `None` (e.g. a press on
-  empty area outside the data range omits `time`; between lines omits `seriesId`)
+  `build_press_event` converts the client payload into a `TvlPressEvent`. Event
+  keys are **camelCase**, matching `MouseEventParams` and deephaven.ui's own
+  event payloads (its `PressEvent` uses `shiftKey` etc.), so the wire → event
+  copy is verbatim. The `timestamp` mirrors the hovered series' time-column
+  dtype (resolved via `hoveredSeriesId`).
+- Unresolved fields are omitted rather than set to `None` (e.g. a press outside
+  the data range omits `timestamp`; not over a series omits `hoveredSeries`)
 - User-facing docs: `docs/events.md`
 
 ### Disconnect Handling

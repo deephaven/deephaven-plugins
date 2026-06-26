@@ -10,20 +10,49 @@
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md
+  visible -> titles-legends.md
+  last_value_visible -> titles-legends.md
+  price_scale_id -> price-scale.md
+  price_format -> price-formats.md
+  price_line_visible -> price-lines.md
+  price_line_source -> price-lines.md
+  price_line_width -> price-lines.md
+  price_line_color -> price-lines.md
+  price_line_style -> price-lines.md
+  base_line_visible -> price-scale.md
+  base_line_color -> price-scale.md
+  base_line_width -> price-scale.md
+  base_line_style -> price-scale.md
+  auto_scale -> price-scale.md
+  scale_margin_top -> price-scale.md
+  scale_margin_bottom -> price-scale.md
+  scale_mode -> price-scale.md
+  scale_invert -> price-scale.md
+  scale_align_labels -> price-scale.md
+  scale_border_visible -> price-scale.md
+  scale_border_color -> price-scale.md
+  scale_text_color -> price-scale.md
+  scale_entire_text_only -> price-scale.md
+  scale_visible -> price-scale.md
+  scale_ticks_visible -> price-scale.md
+  scale_minimum_width -> price-scale.md
+  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  pane -> multi-pane.md
+  by -> multi-series.md
 -->
 
 # Candlestick Chart
 
-A candlestick chart visualizes the open, high, low, and close (OHLC) of a price series as a stack of rectangular bodies with thin "wick" lines, giving traders a compact view of where price ranged within each interval. Reach for it whenever you have time-bucketed OHLC bars and need to read direction, range, and conviction at a glance.
+A candlestick chart shows the open, high, low, and close (OHLC) of a price series as a stack of rectangular bodies with thin "wick" lines, giving a compact view of where price ranged within each interval. Use it when you have time-bucketed OHLC bars and need to read direction and range at a glance.
 
 In a bullish (up) candle the close sits above the open and the body is typically rendered green; in a bearish (down) candle the close sits below the open and the body is typically red. The wick (or "shadow") extends from the body to the period's high and low, so wick length communicates intra-bar volatility.
 
 ## What are candlestick charts useful for?
 
-- **Reading short-term price action**: Bodies and wicks make direction and intra-bar range readable at a glance, which is why candlesticks dominate technical-analysis screens.
-- **Spotting reversal and continuation patterns**: Many classical patterns (engulfings, hammers, dojis) rely on the relative size of body and wicks — candlesticks are the only chart type that surfaces both.
-- **Comparing volatility regimes**: Long wicks with small bodies signal indecision; tall bodies with short wicks signal momentum. Switching between regimes is obvious visually.
-- **Confirming aggregations**: Because TVL aggregates OHLC server-side when the table is large, a candlestick chart is also a quick sanity check that your binning matches what you expected.
+- **Reading short-term price action**: Bodies and wicks make direction and intra-bar range readable at a glance, which is why candlesticks are common on technical-analysis screens.
+- **Spotting reversal and continuation patterns**: Many classical patterns (engulfings, hammers, dojis) rely on the relative size of body and wicks, and candlesticks are the only chart type that surfaces both.
+- **Comparing volatility regimes**: Long wicks with small bodies signal indecision; tall bodies with short wicks signal momentum. Switching between regimes is easy to see.
+- **Confirming aggregations**: Because TVL aggregates OHLC server-side when the table is large, a candlestick chart is also a quick check that your binning matches what you expected.
 
 ## Examples
 
@@ -38,13 +67,13 @@ data = tvl.data.ohlc()
 candlestick = tvl.candlestick(data)
 ```
 
-Each candle covers one row in `data`; green bodies are up days and red bodies are down days. `tvl.candlestick()` doesn't carry the last-price pulse animation that line / area / baseline series do — see [line](line.md) and [styling](styling.md) for the `LastPriceAnimationMode` examples.
+Each candle covers one row in `data`; green bodies are up days and red bodies are down days. `tvl.candlestick()` doesn't carry the last-price pulse animation that line / area / baseline series do. See [line](line.md) and [styling](styling.md) for the `LastPriceAnimationMode` examples.
 
-When `up_color` / `down_color` are not provided, the chart adapts to the active theme automatically — light and dark themes both render correctly without code changes.
+When `up_color` / `down_color` are not provided, the chart adapts to the active theme automatically. Light and dark themes both render correctly without code changes.
 
 ### Map non-default OHLC column names
 
-If your table uses different column names — for example, lowercase columns coming from a feed, or a different timestamp column — pass them explicitly. Every column kwarg is just a string column name.
+If your table uses different column names, for example lowercase columns coming from a feed or a different timestamp column, pass them explicitly. Every column kwarg is just a string column name.
 
 ```python order=candlestick,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -115,7 +144,7 @@ Both wicks are now grey; the bodies keep their defaults.
 
 ### Set the chart title
 
-`title` is the legend label for the series — it appears on hover and in the chart toolbar. Use it whenever you have more than one series on a chart, or when the chart will be embedded somewhere a column name (`Open`/`Close`) is too generic.
+`title` is the legend label for the series. It appears on hover and in the chart toolbar. Use it whenever you have more than one series on a chart, or when the chart will be embedded somewhere a column name (`Open`/`Close`) is too generic.
 
 ```python order=candlestick,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -137,7 +166,42 @@ data = tvl.data.ohlc()
 candlestick = tvl.candlestick(data, auto_bin=True, bin_width="P7D")
 ```
 
-See [autobin](autobin.md) for the full autobin surface — ISO-8601 duration grammar, when each `auto_bin` value is the right pick, and how the path interacts with the downsampler.
+See [autobin](autobin.md) for the full autobin surface: ISO-8601 duration grammar, when each `auto_bin` value is the right pick, and how the path interacts with the downsampler.
+
+### Single border / wick colors and toggles
+
+`border_color` and `wick_color` set one color for both up and down candles, shorthand for setting the `*_up_color` / `*_down_color` pair to the same value. `border_visible` and `wick_visible` toggle the outline and wick rendering entirely.
+
+```python order=candlestick,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.ohlc()
+
+candlestick = tvl.candlestick(
+    data,
+    border_visible=True,
+    border_color="gray-500",
+    wick_visible=True,
+    wick_color="gray-400",
+)
+```
+
+### Per-bar colors from a column
+
+Drive each candle's color from a table column with `color_column` (body), `border_color_column` (outline), and `wick_color_column` (wick). Each names a column holding a CSS/theme color string per row. Here we color each bar by whether it closed up or down.
+
+```python order=candlestick,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.ohlc().update_view(
+    ["BarColor = Close >= Open ? `#26a69a` : `#ef5350`"]
+)
+
+candlestick = tvl.candlestick(
+    data,
+    color_column="BarColor",
+    border_color_column="BarColor",
+    wick_color_column="BarColor",
+)
+```
 
 ## API Reference
 

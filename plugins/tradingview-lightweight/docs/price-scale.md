@@ -7,9 +7,9 @@
 
 # Price Scale
 
-The price scale is the vertical axis. Most charts have one — the right scale, by default — but TVL also supports a left scale, an unlimited number of overlay scales, and per-series scale binding. Each scale has its own mode (`"normal"`, `"logarithmic"`, `"percentage"`, `"indexed_to_100"`), auto-scale toggle, margins, and tick density.
+The price scale is the vertical axis. Most charts have one, the right scale by default, but TVL also supports a left scale, any number of overlay scales, and per-series scale binding. Each scale has its own mode (`"normal"`, `"logarithmic"`, `"percentage"`, `"indexed_to_100"`), auto-scale toggle, margins, and tick density.
 
-Reach for this page when you want to plot two series with different units, render returns instead of prices, leave room at the top of the chart for annotations, or just hide a scale.
+Use this page when you want to plot two series with different units, render returns instead of prices, leave room at the top of the chart for annotations, or just hide a scale.
 
 ## What are the price-scale options useful for?
 
@@ -20,7 +20,7 @@ Reach for this page when you want to plot two series with different units, rende
 
 ## Examples
 
-### Pick a scale mode — all four `PriceScaleMode` values
+### Pick a scale mode: all four `PriceScaleMode` values
 
 `PriceScaleMode` accepts `"normal"`, `"logarithmic"`, `"percentage"`, and `"indexed_to_100"`. `"normal"` is linear; `"logarithmic"` plots log of the value; `"percentage"` renders each point as a percent change from the first visible value; `"indexed_to_100"` renormalizes so the first visible point is exactly 100.
 
@@ -50,7 +50,7 @@ indexed_to_100 = tvl.chart(
 )
 ```
 
-`"percentage"` and `"indexed_to_100"` are visible-window-relative — pan the chart and the reference point updates.
+`"percentage"` and `"indexed_to_100"` are relative to the visible window: pan the chart and the reference point updates.
 
 ### Set margins to leave headroom
 
@@ -108,7 +108,7 @@ For multi-axis layouts where some series have explicit `price_scale_id` and othe
 
 ### Style the left price scale independently
 
-Every `right_price_scale_*` parameter has a `left_price_scale_*` twin. Style each axis independently — different text colors, borders, tick visibility.
+Every `right_price_scale_*` parameter has a `left_price_scale_*` twin. Style each axis independently, with its own text colors, borders, and tick visibility.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -135,7 +135,7 @@ chart = tvl.chart(
 
 ### Tune tick-mark density
 
-`right_price_scale_tick_mark_density` controls how many ticks the scale tries to render — higher values mean more ticks. The default is around 2.5. The same parameter exists for `left_price_scale_*` and `overlay_price_scale_*`.
+`right_price_scale_tick_mark_density` controls how many ticks the scale tries to render; higher values mean more ticks. The default is around 2.5. The same parameter exists for `left_price_scale_*` and `overlay_price_scale_*`.
 
 ```python order=sparse,dense,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -157,7 +157,7 @@ Use sparse density on narrow dashboard tiles, dense on full-screen analytical ch
 
 ### Apply overlay-scale defaults
 
-When a series binds to a numeric overlay scale (e.g. `price_scale_id="vol"`), TVL falls back to the `overlay_price_scale_*` defaults — these set styling that applies to every overlay scale unless the series overrides it.
+When a series binds to a numeric overlay scale (e.g. `price_scale_id="vol"`), TVL falls back to the `overlay_price_scale_*` defaults. These set styling that applies to every overlay scale unless the series overrides it.
 
 ```python order=chart,volume
 import deephaven.plot.tradingview_lightweight as tvl
@@ -183,7 +183,7 @@ chart = tvl.chart(
 )
 ```
 
-This is the canonical "price + volume" pattern where the histogram lives on a stub overlay scale at the bottom.
+This is the standard "price + volume" pattern, where the histogram lives on a stub overlay scale at the bottom.
 
 ### Invert the price scale
 
@@ -202,7 +202,39 @@ chart = tvl.chart(
 
 ### Per-series scale options vs. chart-level
 
-Each per-type constructor also accepts `scale_margin_top`, `scale_margin_bottom`, `scale_mode`, `scale_invert`, etc. Series-level options take precedence over chart-level for the scale that series binds to — useful when you want one overlay scale styled differently from another.
+Each per-type constructor also accepts `scale_margin_top`, `scale_margin_bottom`, `scale_mode`, `scale_invert`, etc. Series-level options take precedence over chart-level for the scale that series binds to, which helps when you want one overlay scale styled differently from another.
+
+```python order=chart,values
+import deephaven.plot.tradingview_lightweight as tvl
+
+values = tvl.data.values()
+
+chart = tvl.line(
+    values,
+    timestamp="Timestamp",
+    value="Value",
+    scale_mode="logarithmic",
+    scale_margin_top=0.25,
+    scale_margin_bottom=0.15,
+    auto_scale=True,
+    scale_invert=False,
+    scale_align_labels=True,
+    scale_border_visible=True,
+    scale_border_color="#888",
+    scale_text_color="#444",
+    scale_entire_text_only=True,
+    scale_visible=True,
+    scale_ticks_visible=True,
+    scale_minimum_width=60,
+    scale_ensure_edge_tick_marks_visible=True,
+)
+```
+
+If you set `scale_mode` per-series and `right_price_scale_mode` at the chart, the per-series mode wins. The remaining `scale_*` options mirror their `right_price_scale_*` twins but bind to whichever scale the series uses.
+
+### Style the baseline reference line
+
+In `"percentage"` and `"indexed_to_100"` modes the scale draws a horizontal reference line at the base value. `base_line_visible`, `base_line_color`, `base_line_width`, and `base_line_style` style that line (these are per-series options).
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -214,15 +246,14 @@ chart = tvl.chart(
         values,
         timestamp="Timestamp",
         value="Value",
-        scale_mode="logarithmic",
-        scale_margin_top=0.25,
-        scale_margin_bottom=0.15,
-        auto_scale=True,
+        base_line_visible=True,
+        base_line_color="#888",
+        base_line_width=2,
+        base_line_style="dashed",
     ),
+    right_price_scale_mode="indexed_to_100",
 )
 ```
-
-If you set `scale_mode` per-series and `right_price_scale_mode` at the chart, the per-series mode wins.
 
 ## API Reference
 

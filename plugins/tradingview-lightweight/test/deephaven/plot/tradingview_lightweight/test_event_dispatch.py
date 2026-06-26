@@ -21,7 +21,7 @@ sys.modules.setdefault("deephaven.plugin", MagicMock())
 sys.modules.setdefault("deephaven.plugin.object_type", MagicMock())
 sys.modules.setdefault("deephaven.plugin.utilities", MagicMock())
 
-from deephaven.plot.tradingview_lightweight.chart import TvlChart, line  # noqa: E402
+from deephaven.plot.tradingview_lightweight.chart import TvlChart  # noqa: E402
 from deephaven.plot.tradingview_lightweight.series import line_series  # noqa: E402
 from deephaven.plot.tradingview_lightweight import events as events_module  # noqa: E402
 from deephaven.plot.tradingview_lightweight.events import (  # noqa: E402
@@ -84,10 +84,11 @@ class TestBuildPressEvent(unittest.TestCase):
         evt = build_press_event(
             "press",
             {
-                "seriesId": "series_0",
-                "price": 10.5,
-                "seriesData": {"series_0": 10.5},
-                "point": {"x": 100, "y": 200},
+                "hoveredSeries": "aaa",
+                "hoveredSeriesId": "series_0",
+                "seriesData": {"aaa": {"value": 10.5}},
+                "point": {"x": 10, "y": 20},
+                "logical": 5,
                 "paneIndex": 0,
                 "timeNs": 1_609_459_200 * 1_000_000_000,
                 "shiftKey": True,
@@ -97,18 +98,44 @@ class TestBuildPressEvent(unittest.TestCase):
             },
         )
         self.assertEqual(evt["type"], "press")
-        self.assertEqual(evt["seriesId"], "series_0")
-        self.assertEqual(evt["price"], 10.5)
-        self.assertEqual(evt["point"], {"x": 100, "y": 200})
+        self.assertEqual(evt["hoveredSeries"], "aaa")
+        self.assertEqual(evt["hoveredSeriesId"], "series_0")
+        self.assertEqual(evt["seriesData"], {"aaa": {"value": 10.5}})
+        self.assertEqual(evt["point"], {"x": 10, "y": 20})
+        self.assertEqual(evt["logical"], 5)
         self.assertEqual(evt["paneIndex"], 0)
         self.assertTrue(evt["shiftKey"])
-        self.assertEqual(evt["time"], datetime(2021, 1, 1, tzinfo=timezone.utc))
+        self.assertEqual(evt["timestamp"], datetime(2021, 1, 1, tzinfo=timezone.utc))
+
+    def test_series_data_passthrough_keeps_ohlc_shape(self):
+        evt = build_press_event(
+            "press",
+            {
+                "hoveredSeries": "Price",
+                "hoveredSeriesId": "series_0",
+                "seriesData": {
+                    "Price": {
+                        "open": 100.0,
+                        "high": 105.0,
+                        "low": 99.0,
+                        "close": 103.0,
+                    },
+                },
+            },
+        )
+        self.assertEqual(evt["hoveredSeries"], "Price")
+        self.assertEqual(evt["hoveredSeriesId"], "series_0")
+        self.assertEqual(
+            evt["seriesData"]["Price"],
+            {"open": 100.0, "high": 105.0, "low": 99.0, "close": 103.0},
+        )
 
     def test_empty_area_omits_time_and_series(self):
         evt = build_press_event("press", {})
-        self.assertNotIn("time", evt)
-        self.assertNotIn("seriesId", evt)
-        self.assertNotIn("price", evt)
+        self.assertNotIn("timestamp", evt)
+        self.assertNotIn("hoveredSeries", evt)
+        self.assertNotIn("hoveredSeriesId", evt)
+        self.assertNotIn("seriesData", evt)
         # modifiers always present
         self.assertEqual(evt["shiftKey"], False)
         self.assertEqual(evt["altKey"], False)
@@ -123,7 +150,7 @@ class TestBuildPressEvent(unittest.TestCase):
             {"timeNs": 42},
             time_converter=lambda ns: ("converted", ns),
         )
-        self.assertEqual(evt["time"], ("converted", 42))
+        self.assertEqual(evt["timestamp"], ("converted", 42))
 
     def test_bad_converter_falls_back_to_datetime(self):
         def boom(_ns):
@@ -133,7 +160,7 @@ class TestBuildPressEvent(unittest.TestCase):
             "press", {"timeNs": 1_609_459_200 * 1_000_000_000}, time_converter=boom
         )
         # A failing converter must not lose the press; degrade to datetime.
-        self.assertEqual(evt["time"], datetime(2021, 1, 1, tzinfo=timezone.utc))
+        self.assertEqual(evt["timestamp"], datetime(2021, 1, 1, tzinfo=timezone.utc))
 
 
 class TestTimeConverterFor(unittest.TestCase):
@@ -230,6 +257,17 @@ class TestListenerTimeTypeResolution(unittest.TestCase):
         # Press between lines (no seriesId) → chart default (homogeneous here).
         self.assertEqual(listener._time_type_for_payload({}), "java.time.ZonedDateTime")
 
+    def test_hovered_series_id_drives_type_when_friendly_key_is_title(self):
+        listener = self._listener(
+            _table_with_time_type("java.time.ZonedDateTime"), on_press=lambda e: None
+        )
+        self.assertEqual(
+            listener._time_type_for_payload(
+                {"hoveredSeries": "Readable Title", "hoveredSeriesId": "series_0"}
+            ),
+            "java.time.ZonedDateTime",
+        )
+
     def test_no_handlers_skips_resolution(self):
         listener = self._listener(_table_with_time_type("java.time.Instant"))
         self.assertEqual(listener._series_time_types, [])
@@ -258,10 +296,10 @@ class TestDispatch(unittest.TestCase):
             on_press=lambda e: press_calls.append(e),
             on_double_press=lambda e: dbl_calls.append(e),
         )
-        listener.process_message(_event_message("press", seriesId="series_0"), [])
+        listener.process_message(_event_message("press", hoveredSeries="aaa"), [])
         self.assertEqual(len(press_calls), 1)
         self.assertEqual(len(dbl_calls), 0)
-        self.assertEqual(press_calls[0]["seriesId"], "series_0")
+        self.assertEqual(press_calls[0]["hoveredSeries"], "aaa")
 
         listener.process_message(_event_message("doublePress"), [])
         self.assertEqual(len(dbl_calls), 1)
@@ -276,9 +314,14 @@ class TestDispatch(unittest.TestCase):
         seen = []
         listener = self._listener(on_press=lambda e: seen.append(e))
         listener.process_message(
-            _event_message("press", price=42.0, seriesId="series_0"), []
+            _event_message(
+                "press",
+                hoveredSeries="aaa",
+                seriesData={"aaa": {"value": 42.0}},
+            ),
+            [],
         )
-        self.assertEqual(seen[0]["price"], 42.0)
+        self.assertEqual(seen[0]["seriesData"], {"aaa": {"value": 42.0}})
 
     def test_unknown_handler_is_noop(self):
         listener = self._listener(on_press=lambda e: None)

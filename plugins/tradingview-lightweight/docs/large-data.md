@@ -7,16 +7,16 @@
 
 # Large Data
 
-TVL is designed to chart tables that don't fit in the browser. This page is the orientation guide for working with multi-million-row tables: where the performance crossover lies, what costs each path adds, and how to pick between the two server-side strategies (min/max downsampling and aggregation autobinning).
+TVL is designed to chart tables that don't fit in the browser. This page covers multi-million-row tables: where the performance crossover lies, what each path costs, and how to pick between the two server-side strategies (min/max downsampling and aggregation autobinning).
 
 The short version: for **Line / Area / Baseline series**, use the automatic min/max [downsampling](downsampling.md) path. For **Histogram / Candlestick / Bar series**, use [autobinning](autobin.md). Both run in the Deephaven query engine and ship only the post-aggregation buckets to the browser.
 
 ## What does "large" mean here?
 
-- **Small (no downsampling needed):** Roughly the chart's pixel width × 1 row per pixel. For an 1800-pixel-wide chart, that's a few thousand rows. Below this, the renderer can draw every point without breaking a sweat.
+- **Small (no downsampling needed):** Roughly the chart's pixel width × 1 row per pixel. For an 1800-pixel-wide chart, that's a few thousand rows. Below this, the renderer can draw every point.
 - **Medium:** Tens of thousands to ~100k rows. Downsampling activates, but the cost is dominated by network ship time. Interactive performance is good.
-- **Large:** 100k to several million rows. Both paths shine here — server-side aggregation reduces to ~viewport-width buckets, which is the actual data the renderer needs.
-- **Huge:** 10M+ rows. Aggregations are still fast (Deephaven's engine is column-oriented and parallel), but you want to think about query-engine cost as well as render cost.
+- **Large:** 100k to several million rows. Server-side aggregation reduces to ~viewport-width buckets, which is the actual data the renderer needs.
+- **Huge:** 10M+ rows. Aggregations are still fast (Deephaven's engine is column-oriented and parallel), but at this size query-engine cost matters as much as render cost.
 
 ## What are the costs?
 
@@ -27,7 +27,7 @@ The short version: for **Line / Area / Baseline series**, use the automatic min/
 | Client-side rendering      | Browser, lightweight-charts          | Bin count, viewport pixel width, animation frame rate  |
 | Re-aggregation on pan/zoom | Engine + wire                        | Bin count budget, range listener thresholds            |
 
-The big win of the server-side paths is that **serialization and rendering cost scale with bin count, not row count**. A 10M-row table downsampled to a 2000-pixel-wide chart serializes ~2000 buckets — the same size as a 2000-row table without downsampling.
+The big win of the server-side paths is that **serialization and rendering cost scale with bin count, not row count**. A 10M-row table downsampled to a 2000-pixel-wide chart serializes ~2000 buckets. The same size as a 2000-row table without downsampling.
 
 ## Downsampling vs. autobinning: when to use which
 
@@ -37,13 +37,13 @@ The big win of the server-side paths is that **serialization and rendering cost 
 | Candlestick, Bar | Autobinning (OHLC reduction) | OHLC requires first/max/min/last per bin |
 | Histogram | Autobinning (sum/count/avg/last) | Bars need a true reduction; min/max would lose meaning |
 
-You don't usually have to pick — `tvl.line()` uses downsampling, `tvl.histogram()` uses autobinning, etc. The choice is determined by the chart type.
+You don't usually have to pick. `tvl.line()` uses downsampling, `tvl.histogram()` uses autobinning, etc. The choice is determined by the chart type.
 
 ## Examples
 
 ### Plot a 1M-row line with one call
 
-`tvl.data.large_prices()` is a 1M-row intraday price fixture. The chart needs no special configuration — downsampling activates automatically.
+`tvl.data.large_prices()` is a 1M-row intraday price fixture. The chart needs no special configuration. Downsampling activates automatically.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -95,7 +95,7 @@ chart = tvl.histogram(
 )
 ```
 
-Daily bins on a 1M-row, 10-year intraday series give ~3650 bars — well above the viewport budget but still cheap to ship and render.
+Daily bins on a 1M-row, 10-year intraday series give ~3650 bars. Well above the viewport budget but still cheap to ship and render.
 
 ### OHLC autobinning on raw ticks
 
@@ -129,7 +129,7 @@ OHLC reduction is fixed; the only choice is the cadence.
 
 ### Multiple downsampled series on one chart
 
-Each series downsamples independently — overlaying two 1M-row series costs roughly twice as much wire bandwidth, not 1M × 1M. Bucket budgets are per-series.
+Each series downsamples independently. Overlaying two 1M-row series costs roughly twice as much wire bandwidth, not 1M × 1M. Bucket budgets are per-series.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -183,7 +183,7 @@ blocking_chart = tvl.chart(
 
 The `AGENTS.md` in this plugin has a "Downsample Benchmarking" section describing how to run isolated `dh exec` benchmarks. The headline finding: each approach must run in its own process, because JVM warmup biases later runs. The reference fixture in those benchmarks is 10M rows with three value columns (`Price`, `Volume`, `Spread`), aggregated to 1000 bins.
 
-The benchmark approach lets you compare alternatives — for example, `update_view` + `agg_by` (what TVL uses) against a hand-rolled `where` + `view` chain. For most users, the built-in path is what you want; the benchmarks are there for when you're tuning the engine layer.
+The benchmark approach lets you compare alternatives. For example, `update_view` + `agg_by` (what TVL uses) against a hand-rolled `where` + `view` chain. For most users, the built-in path is what you want; the benchmarks are there for when you're tuning the engine layer.
 
 To run them: write each candidate as a standalone script under `notes/`, then invoke with `dh exec notes/bench_<name>.py 2>&1 | grep "^RESULT:"`. The `notes/bench_isolated.sh` script automates the run-each-in-its-own-process pattern.
 
@@ -199,7 +199,7 @@ A few rules of thumb:
 
 The per-type pages carry the full signature for each chart type that participates in large-data paths:
 
-- [`tvl.line`](line.md#api-reference) — client-side downsampling.
-- [`tvl.histogram`](histogram.md#api-reference), [`tvl.candlestick`](candlestick.md#api-reference), [`tvl.bar`](bar.md#api-reference) — server-side autobin.
+- [`tvl.line`](line.md#api-reference). Client-side downsampling.
+- [`tvl.histogram`](histogram.md#api-reference), [`tvl.candlestick`](candlestick.md#api-reference), [`tvl.bar`](bar.md#api-reference). Server-side autobin.
 
 The chart-level options that govern downsampling live on [`tvl.chart`](chart.md#api-reference).

@@ -20,7 +20,7 @@
 
 # Styling and Layout
 
-The TVL chart accepts dozens of chart-level keyword arguments that control how the chart looks before any series is drawn — background colors, grid lines, crosshair behavior, fonts, and pane separators. Reach for this page whenever you want to match a brand palette, build a light/dark theme, or restyle the cursor and grid for a denser dashboard.
+The TVL chart accepts dozens of chart-level keyword arguments that control how the chart looks before any series is drawn: background colors, grid lines, crosshair behavior, fonts, and pane separators. Use this page when you want to match a brand palette, build a light/dark theme, or restyle the cursor and grid for a denser dashboard.
 
 All styling kwargs in this guide live on `chart()` and on every convenience factory (`candlestick()`, `line()`, etc.). The chart wrapper accepts a compact subset of the styling parameters (background, text color, crosshair, watermark); the full surface lives on `chart()`.
 
@@ -35,7 +35,7 @@ All styling kwargs in this guide live on `chart()` and on every convenience fact
 
 ### Apply a dark theme
 
-The simplest theme switch is three colors: background, text, and grid. Pass them to `chart()` and the entire surface re-renders against the new palette. The grid uses the `vert_lines_*` / `horz_lines_*` families so you can color and style the two axes independently.
+The simplest theme switch is three colors: background, text, and grid. Pass them to `chart()` and the whole surface re-renders against the new palette. The grid uses the `vert_lines_*` / `horz_lines_*` families so you can color and style the two axes independently.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -54,7 +54,7 @@ Pair `background_color` with `text_color` so axis labels stay legible against th
 
 ### Build a vertical gradient background
 
-For a richer look, swap `background_color` for the `background_top_color` / `background_bottom_color` pair. TVL renders a vertical gradient between the two stops. The two arguments must be used together — supplying only one falls back to the solid background path.
+To render a gradient, swap `background_color` for the `background_top_color` / `background_bottom_color` pair. TVL renders a vertical gradient between the two stops. The two arguments must be used together; supplying only one falls back to the solid background path.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -70,7 +70,7 @@ chart = tvl.chart(
 )
 ```
 
-The `ColorType` enum values (`"solid"`, `"gradient"`) are inferred from which background arguments you set — there is no explicit `color_type` kwarg. Conceptually, the example above selects the gradient path:
+The `ColorType` enum values (`"solid"`, `"gradient"`) are inferred from which background arguments you set; there is no explicit `color_type` kwarg. The example above selects the gradient path:
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -87,7 +87,7 @@ chart = tvl.chart(
 
 ### Customize grid lines
 
-The grid is two independent sets of lines — vertical (time-axis grid) and horizontal (price-axis grid). Each has visibility, color, and `LineStyle` controls. Use `horz_lines_visible=False` to hide one set while keeping the other.
+The grid is two independent sets of lines: vertical (time-axis grid) and horizontal (price-axis grid). Each has visibility, color, and `LineStyle` controls. Use `horz_lines_visible=False` to hide one set while keeping the other.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -106,7 +106,7 @@ chart = tvl.chart(
 
 `LineStyle` accepts `"solid"`, `"dotted"`, `"dashed"`, `"large_dashed"`, and `"sparse_dotted"`.
 
-### Switch crosshair mode — normal vs. magnet vs. hidden
+### Switch crosshair mode: normal, magnet, or hidden
 
 The `CrosshairMode` enum controls how the cursor crosshair behaves on hover. `"normal"` follows the pointer freely; `"magnet"` snaps to the nearest data point; `"hidden"` removes the crosshair entirely. The fourth value, `"magnet_ohlc"`, snaps to the nearest OHLC point on candlestick / bar charts.
 
@@ -162,7 +162,7 @@ chart = tvl.chart(
 )
 ```
 
-This pairs naturally with crosshair `"magnet"` mode — the snapped-to series moves to the top automatically.
+This pairs well with crosshair `"magnet"` mode, since the snapped-to series moves to the top automatically.
 
 ### Set the chart font
 
@@ -181,9 +181,9 @@ chart = tvl.chart(
 
 Increase `font_size` for dashboard tiles viewed from a distance, or shrink it to fit dense small-multiples layouts.
 
-### Hide the TradingView attribution logo
+### TradingView attribution logo
 
-The lightweight-charts library renders a small TradingView attribution mark in the corner. Set `attribution_logo=False` to remove it — note that the upstream license requires retaining the attribution in public-facing deployments.
+This plugin hides the lightweight-charts attribution logo by default. Upstream says users should include the NOTICE attribution and a TradingView link on a page available to users; the built-in logo is one way to satisfy the link requirement. Set `attribution_logo=True` to show it.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -191,11 +191,9 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    attribution_logo=False,
+    attribution_logo=True,
 )
 ```
-
-Check the TradingView terms before disabling this in a production build.
 
 ### Pick a wide-gamut color space
 
@@ -223,7 +221,7 @@ The two `ColorSpace` enum values are `"srgb"` and `"display-p3"`.
 
 ### Control scroll and zoom interactions
 
-The `handle_scroll_*` and `handle_scale_*` families enable or disable specific input gestures — mouse wheel zoom, touch drag, double-click reset. The top-level `handle_scroll` and `handle_scale` booleans short-circuit all sub-options.
+The `handle_scroll_*` and `handle_scale_*` families enable or disable specific input gestures, such as mouse wheel zoom, touch drag, and double-click reset. The top-level `handle_scroll` and `handle_scale` booleans short-circuit all sub-options.
 
 ```python order=chart,tap_exit,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -252,25 +250,19 @@ tap_exit = tvl.chart(
 
 `LastPriceAnimationMode` controls the pulse animation on the last-price marker for line / area / baseline series (candlestick / bar / histogram don't have it). Use `"disabled"` for static snapshots, `"continuous"` to make the marker pulse continuously while the chart is visible, and `"on_data_update"` to pulse only when new data arrives.
 
-The kwarg lives on the series factory, not on the chart-styling wrapper, so reach for `tvl.chart` + `tvl.line` (or `area` / `baseline`):
+The kwarg lives on the series factory, not on the chart-styling wrapper, so set it directly on `tvl.line` (or `area` / `baseline`):
 
 ```python order=disabled_chart,pulsing_chart,on_update_chart,values
 import deephaven.plot.tradingview_lightweight as tvl
 
 values = tvl.data.values()
 
-disabled_chart = tvl.chart(
-    tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="disabled"),
-)
-pulsing_chart = tvl.chart(
-    tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="continuous"),
-)
-on_update_chart = tvl.chart(
-    tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="on_data_update"),
-)
+disabled_chart = tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="disabled")
+pulsing_chart = tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="continuous")
+on_update_chart = tvl.line(values, timestamp="Timestamp", value="Value", last_price_animation="on_data_update")
 ```
 
-The three values map directly to the `LastPriceAnimationMode` Literal alias. Use `"disabled"` everywhere snapshot determinism matters — the other two introduce time-dependent rendering.
+The three values map directly to the `LastPriceAnimationMode` Literal alias. Use `"disabled"` wherever snapshot determinism matters; the other two introduce time-dependent rendering.
 
 ## API Reference
 

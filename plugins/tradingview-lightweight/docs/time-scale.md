@@ -6,7 +6,7 @@
 
 # Time Scale
 
-The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through a family of `chart()` kwargs. This page covers the most common ones and the helper types — `BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()` — for when you need to escape the timestamp world entirely.
+The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through a family of `chart()` kwargs. This page covers the most common ones, plus the helper types (`BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()`) for when you need to work outside numeric timestamps.
 
 Use this page when you want to hide weekends and holidays, push the most recent bar away from the right edge to make room for annotations, hide seconds, or stop tick labels from overlapping on a narrow chart.
 
@@ -35,7 +35,7 @@ chart = tvl.chart(
 )
 ```
 
-When `time_visible=False`, the axis shows only the date — useful for daily-bar charts.
+When `time_visible=False`, the axis shows only the date, which suits daily-bar charts.
 
 ### Hide the time scale entirely
 
@@ -74,7 +74,7 @@ chart = tvl.chart(
 
 ### Pin the visible range edges
 
-`fix_left_edge` and `fix_right_edge` lock the visible range to the data boundaries — scrolling stops at the first and last bar respectively. `lock_visible_time_range_on_resize` keeps the same logical window when the widget is resized, and `right_bar_stays_on_scroll` keeps the latest bar parked at the right.
+`fix_left_edge` and `fix_right_edge` lock the visible range to the data boundaries, so scrolling stops at the first and last bar respectively. `lock_visible_time_range_on_resize` keeps the same logical window when the widget is resized, and `right_bar_stays_on_scroll` keeps the latest bar parked at the right.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -116,7 +116,7 @@ chart = tvl.chart(
 
 ### Style the time-scale border
 
-The border between the time scale and the plot area is its own layer — toggle visibility with `time_scale_border_visible` and color with `time_scale_border_color`.
+The border between the time scale and the plot area is its own layer. Toggle visibility with `time_scale_border_visible` and color with `time_scale_border_color`.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -132,9 +132,9 @@ chart = tvl.chart(
 
 Hide the border for borderless dashboard tiles.
 
-### Tick mark types — what TVL labels at each boundary
+### Tick mark types: what TVL labels at each boundary
 
-The `TickMarkType` enum (`"year"`, `"month"`, `"day_of_month"`, `"time"`, `"time_with_seconds"`) is the set of label kinds the time scale renders at different zoom levels. TVL picks the right type per tick automatically based on the visible range — the enum is exposed for parity with the upstream JS API but has no current Python consumer (it would require a JavaScript `tickMarkFormatter` callback, which TVL does not allow).
+The `TickMarkType` enum (`"year"`, `"month"`, `"day_of_month"`, `"time"`, `"time_with_seconds"`) is the set of label kinds the time scale renders at different zoom levels. TVL picks the right type per tick automatically based on the visible range. The enum is exposed for parity with the upstream JS API but has no current Python consumer (it would require a JavaScript `tickMarkFormatter` callback, which TVL does not allow).
 
 | `TickMarkType` value | rendered at |
 |---|---|
@@ -164,7 +164,7 @@ assert tick_kinds == [
 
 ### Business-day timestamps for trading-hours charts
 
-The `BusinessDay` TypedDict lets you label points without weekends and holidays — the time scale plots business days as equally-spaced ticks regardless of calendar gaps. Use `business_day(year, month, day)` to construct them.
+The `BusinessDay` TypedDict lets you label points without weekends and holidays; the time scale plots business days as equally-spaced ticks regardless of calendar gaps. Use `business_day(year, month, day)` to construct them.
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl
@@ -177,7 +177,7 @@ b3 = tvl.business_day(2024, 1, 4)  # Thursday
 print(b1)  # {'year': 2024, 'month': 1, 'day': 2}
 ```
 
-`BusinessDay` instances are dicts, so they round-trip cleanly through tables and JSON. The companion type-guard helpers — `is_business_day()` and `is_utc_timestamp()` — let you discriminate between business-day points and numeric UTC timestamps:
+`BusinessDay` instances are dicts, so they round-trip cleanly through tables and JSON. The companion type-guard helpers, `is_business_day()` and `is_utc_timestamp()`, let you tell business-day points apart from numeric UTC timestamps:
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl
@@ -195,7 +195,7 @@ The two predicates mirror the JS API's `isBusinessDay()` / `isUTCTimestamp()` ty
 
 ### UTC vs. local timestamps
 
-TVL's underlying renderer treats numeric time values as **seconds since the Unix epoch, UTC**. Deephaven `Instant` columns are encoded with nanosecond precision; the plugin converts them to UTC seconds when serializing. Use `is_utc_timestamp()` to discriminate raw numeric times from `BusinessDay` dicts when writing helpers that accept either.
+TVL's underlying renderer treats numeric time values as **seconds since the Unix epoch, UTC**. Deephaven `Instant` columns are encoded with nanosecond precision; the plugin converts them to UTC seconds when serializing. Use `is_utc_timestamp()` to tell raw numeric times apart from `BusinessDay` dicts when writing helpers that accept either.
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl
@@ -214,7 +214,7 @@ print(label_kind(1_704_153_600))  # utc_timestamp
 print(label_kind("2024-01-02"))  # other
 ```
 
-Display timezone is a UI concern — the chart will render the same UTC second the same way regardless of the viewer's locale; for "show in NY time" use a chart-level locale or pre-shift the data.
+Display timezone is a UI concern: the chart renders the same UTC second the same way regardless of the viewer's locale. For "show in NY time", use a chart-level locale or pre-shift the data.
 
 ## API Reference
 

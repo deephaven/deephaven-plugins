@@ -1,6 +1,6 @@
 # Markers
 
-Markers are small annotations — circles, squares, or arrows — attached to a series at specific points in time. Reach for markers when you need to flag individual events (a fill, a signal, a regime change) directly on the chart without disrupting the underlying price curve.
+Markers are small annotations (circles, squares, or arrows) attached to a series at specific points in time. Use them to flag individual events (a fill, a signal, a regime change) directly on the chart without disrupting the underlying price curve.
 
 There are three ways to put markers on a chart. Use [`tvl.marker()`](#api-reference) for static, code-defined markers; [`tvl.markers_from_table()`](#api-reference) when each row of a Deephaven table should become one marker (and tick live as the table updates); and [`tvl.up_down_markers()`](#api-reference) as a convenience for the common "buys are up arrows, sells are down arrows" pattern.
 
@@ -13,7 +13,7 @@ There are three ways to put markers on a chart. Use [`tvl.marker()`](#api-refere
 - **Annotating fills**: Mark every executed order on the price line so traders can see where positions changed hands.
 - **Highlighting signals**: A strategy that generates buy/sell signals can render them as up/down arrows directly on the candlestick.
 - **Flagging events**: News releases, earnings announcements, or system events can be pinned to their timestamps as labeled circles.
-- **Picking out levels**: Price-based positions (`at_price_top`, `at_price_middle`, `at_price_bottom`) let a marker float independent of the bar — useful for marking option strikes or support/resistance touches.
+- **Picking out levels**: Price-based positions (`at_price_top`, `at_price_middle`, `at_price_bottom`) let a marker float independent of the bar: useful for marking option strikes or support/resistance touches.
 
 ## Examples
 
@@ -36,8 +36,7 @@ m = tvl.marker(
     id="m1",
 )
 
-price = tvl.candlestick(ohlc, markers=[m])
-single_marker_chart = tvl.chart(price)
+single_marker_chart = tvl.candlestick(ohlc, markers=[m])
 ```
 
 The single marker hovers above the bar for 2024-01-15 with a downward red arrow.
@@ -58,15 +57,14 @@ shapes = [
     tvl.marker(time="2024-02-05", shape="arrow_down", color="#c62828", text="down"),
 ]
 
-price = tvl.line(ohlc, timestamp="Timestamp", value="Close", markers=shapes)
-shapes_chart = tvl.chart(price)
+shapes_chart = tvl.line(ohlc, timestamp="Timestamp", value="Close", markers=shapes)
 ```
 
 The four markers march across the chart, one shape per timestamp.
 
 ### Show every marker position
 
-`MarkerPosition` has six values. The three bar-relative positions — `"above_bar"`, `"below_bar"`, `"in_bar"` — anchor to the bar at the given time. The three price-relative positions — `"at_price_top"`, `"at_price_bottom"`, `"at_price_middle"` — float at a specific `price` regardless of the bar.
+`MarkerPosition` has six values. The three bar-relative positions (`"above_bar"`, `"below_bar"`, `"in_bar"`) anchor to the bar at the given time. The three price-relative positions (`"at_price_top"`, `"at_price_bottom"`, `"at_price_middle"`) float at a specific `price` regardless of the bar.
 
 ```python order=positions_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -89,11 +87,10 @@ positions = [
                shape="square", price=90.0, text="at_price_bottom"),
 ]
 
-price = tvl.candlestick(ohlc, markers=positions)
-positions_chart = tvl.chart(price)
+positions_chart = tvl.candlestick(ohlc, markers=positions)
 ```
 
-All six positions render together — the bar-relative ones move with the candle, the price-relative ones lock to their `price`.
+All six positions render together. The bar-relative ones move with the candle, the price-relative ones lock to their `price`.
 
 ### Drive markers from a Deephaven table
 
@@ -123,15 +120,14 @@ spec = tvl.markers_from_table(
     id_column="Side",
 )
 
-price = tvl.candlestick(ohlc, marker_spec=spec)
-table_markers_chart = tvl.chart(price)
+table_markers_chart = tvl.candlestick(ohlc, marker_spec=spec)
 ```
 
 Pass the spec via the series' `marker_spec=` argument. As the source table ticks, new markers appear automatically.
 
 ### Use fixed defaults with markers_from_table
 
-If every marker shares the same shape and color, omit the per-row column and set the fixed default directly. Mix-and-match is fine — fixed values fill in for any property without a `*_column`.
+If every marker shares the same shape and color, omit the per-row column and set the fixed default directly. Mix-and-match is fine. Fixed values fill in for any property without a `*_column`.
 
 ```python order=fixed_marker_chart,events,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -148,8 +144,7 @@ spec = tvl.markers_from_table(
     size=2,                 # fixed
 )
 
-price = tvl.candlestick(ohlc, marker_spec=spec)
-fixed_marker_chart = tvl.chart(price)
+fixed_marker_chart = tvl.candlestick(ohlc, marker_spec=spec)
 ```
 
 The chart shows one blue circle per event, each labeled with its row's `Note`.
@@ -176,8 +171,7 @@ spec = tvl.markers_from_table(
     size_column=None,
 )
 
-price = tvl.candlestick(ohlc, marker_spec=spec)
-price_marker_chart = tvl.chart(price)
+price_marker_chart = tvl.candlestick(ohlc, marker_spec=spec)
 ```
 
 The orange squares float at `Level`, independent of the candle's `High`/`Low`.
@@ -205,15 +199,14 @@ markers = tvl.up_down_markers(
     down_size=2,
 )
 
-price = tvl.candlestick(ohlc, markers=markers)
-updown_chart = tvl.chart(price)
+updown_chart = tvl.candlestick(ohlc, markers=markers)
 ```
 
 The helper returns a `list[Marker]` that drops straight into the series' `markers=` argument. The library sorts markers by time, so the order of `up_times` and `down_times` doesn't matter.
 
 ### Type aliases: `MarkerSign` and `MismatchDirection`
 
-Two Literal aliases live alongside the marker API for completeness. `MarkerSign` annotates a marker's polarity (`"negative"`, `"neutral"`, `"positive"`); it threads through to the JS `SeriesMarker.sign` field and is mainly consumed by JS-side renderer hooks. `MismatchDirection` (`"nearest_left"`, `"none"`, `"nearest_right"`) selects the lookup behavior of `ISeriesApi.dataByIndex()` / `barsInLogicalRange()` on the JS runtime — it is exported for type-hint completeness and isn't accepted as a Python kwarg today.
+Two Literal aliases live alongside the marker API for completeness. `MarkerSign` annotates a marker's polarity (`"negative"`, `"neutral"`, `"positive"`); it threads through to the JS `SeriesMarker.sign` field and is mainly consumed by JS-side renderer hooks. `MismatchDirection` (`"nearest_left"`, `"none"`, `"nearest_right"`) selects the lookup behavior of `ISeriesApi.dataByIndex()` / `barsInLogicalRange()` on the JS runtime. It is exported for type-hint completeness and isn't accepted as a Python kwarg today.
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl

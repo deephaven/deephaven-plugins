@@ -4,36 +4,55 @@ import type {
   SeriesType,
 } from 'lightweight-charts';
 import { unconvertTime } from './TradingViewUtils';
+import { extractSeriesPoint } from './TradingViewSeriesFocus';
 
 /**
- * JSON-safe payload for a press / double-press chart event. This is the exact
- * wire shape sent to Python via the EVENT widget message. No DOM or native
- * objects cross the wire.
+ * Per-series data at the event location, mirroring the shape of the
+ * lightweight-charts data the series was given: `{ value }` for
+ * line / area / baseline / histogram, OHLC for candlestick / bar.
+ */
+export type TvlWireSeriesData =
+  | { value: number }
+  | { open: number; high: number; low: number; close: number };
+
+/**
+ * JSON-safe payload for a press / double-press chart event. This intentionally
+ * mirrors lightweight-charts' `MouseEventParams` (time, point, logical,
+ * paneIndex, seriesData, the hovered series, and the source event's modifier
+ * keys) rather than inventing a chart model of its own. Two deliberate
+ * deviations, because a DOM/native object cannot cross the wire:
+ *
+ * - the hovered `ISeriesApi` is replaced by our string series identity
+ *   (`hoveredSeries` friendly key + `hoveredSeriesId` stable id), and
+ *   `seriesData` is keyed by the friendly id;
+ * - `time` travels as `timeNs` and is rebuilt server-side as a Deephaven
+ *   timestamp matching the source column type.
  */
 export interface TvlPressEventPayload {
   /** Event kind. */
   type: 'press' | 'doublePress';
-  /** UTC time of the press in nanoseconds. Omitted for empty-area presses. */
-  timeNs?: number;
-  /** Series id of the hovered series (LWC native hit test). Omitted if none. */
-  seriesId?: string;
-  /** Per-series value/OHLC at the pressed location, keyed by series id. */
-  seriesData: Record<
-    string,
-    number | { open: number; high: number; low: number; close: number }
-  >;
-  /** Price under the cursor on the hovered series' scale. Omitted if no series. */
-  price?: number;
-  /** Cursor location in chart pixels. Omitted if outside the chart. */
-  point?: { x: number; y: number };
-  /** Pane index where the press occurred. Omitted if unknown. */
-  paneIndex?: number;
   /**
-   * IANA timezone the chart is rendering in (from user settings). Lets the
-   * server reconstruct a ZonedDateTime in the displayed zone when the source
-   * time column is zoned. Omitted when unknown (chart defaults to UTC).
+   * Time of the data at the event location, in UTC nanoseconds. Mirrors
+   * `MouseEventParams.time`; omitted when the event is outside the data range.
+   */
+  timeNs?: number;
+  /**
+   * IANA timezone the chart is rendering in, so the server can rebuild a
+   * `ZonedDateTime` in the displayed zone. Omitted when unknown.
    */
   timeZone?: string;
+  /** Pixel location of the event in the chart. Omitted if outside the chart. */
+  point?: { x: number; y: number };
+  /** Logical index at the event location (`MouseEventParams.logical`). */
+  logical?: number;
+  /** Index of the pane the event occurred in. */
+  paneIndex?: number;
+  /** Friendly id of the hovered series (title / by-key, falling back to the stable id). */
+  hoveredSeries?: string;
+  /** Stable internal id (`series_<n>`) of the hovered series, for server-side lookup. */
+  hoveredSeriesId?: string;
+  /** Data of every series at the event location, keyed by friendly series id. */
+  seriesData: Record<string, TvlWireSeriesData>;
   shiftKey: boolean;
   ctrlKey: boolean;
   metaKey: boolean;
@@ -46,13 +65,15 @@ export interface TvlPressEventPayload {
  *
  * @param type        'press' or 'doublePress'
  * @param params      LWC mouse event params
- * @param getSeriesId reverse lookup from ISeriesApi to our series id
+ * @param getSeriesId reverse lookup from ISeriesApi to our stable series id
+ * @param getSeriesTitle user-facing title lookup from ISeriesApi
  * @param timeZone    IANA timezone used to undo the chart's TZ shift on time
  */
 export function buildPressEventPayload(
   type: 'press' | 'doublePress',
   params: MouseEventParams,
   getSeriesId: (s: ISeriesApi<SeriesType>) => string | undefined,
+  getSeriesTitle: (s: ISeriesApi<SeriesType>) => string | undefined,
   timeZone: string
 ): TvlPressEventPayload {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,73 +87,57 @@ export function buildPressEventPayload(
     altKey: source?.altKey ?? false,
   };
 
-  // Time: chart stores TZ-shifted epoch seconds. Undo the shift to get real
-  // UTC seconds, then scale to integer nanoseconds. Omit for empty area.
-  if (params.time != null) {
-    const utcSec = unconvertTime(params.time as number, timeZone);
+  // seriesData: every series' data at the event location, keyed by friendly id.
+  params.seriesData.forEach((dataItem, seriesApi) => {
+    const label = resolveSeriesLabel(seriesApi, getSeriesId, getSeriesTitle);
+    const extracted = extractSeriesPoint(dataItem);
+    if (label == null || extracted == null) return;
+    payload.seriesData[label] =
+      typeof extracted.data === 'number'
+        ? { value: extracted.data }
+        : extracted.data;
+  });
+
+  // Hovered series: LWC's own hit-test result, mapped to our string identity.
+  const hovered = params.hoveredInfo?.series;
+  if (hovered != null) {
+    const label = resolveSeriesLabel(hovered, getSeriesId, getSeriesTitle);
+    const internalId = getSeriesId(hovered);
+    if (label != null) payload.hoveredSeries = label;
+    if (internalId != null) payload.hoveredSeriesId = internalId;
+  }
+
+  if (params.point != null) {
+    payload.point = { x: params.point.x, y: params.point.y };
+  }
+  if (params.logical != null) {
+    payload.logical = params.logical as number;
+  }
+  const paneIndex = params.paneIndex ?? params.hoveredInfo?.paneIndex;
+  if (paneIndex != null) {
+    payload.paneIndex = paneIndex;
+  }
+
+  // Time: the crosshair time at the event. Chart stores TZ-shifted epoch
+  // seconds; undo the shift before sending UTC nanoseconds.
+  const { time } = params;
+  if (time != null && typeof time === 'number') {
+    const utcSec = unconvertTime(time, timeZone);
     payload.timeNs = Math.round(utcSec * 1e9);
-    // Carry the display zone so the server can mirror a zoned time column.
     if (timeZone) {
       payload.timeZone = timeZone;
     }
   }
 
-  // Hovered series: take the owning series of whatever was hit, as long as
-  // that target is owned by a series (sourceKind === 'series'). This covers a
-  // hit on the series line itself (objectKind 'series'), on one of its markers
-  // ('series-marker'), or on its last-value/custom price line
-  // ('custom-price-line') — all of which mean "this series was pressed".
-  // A press between lines reports no hoveredInfo, so seriesId stays unset.
-  // Deprecated aliases hoveredSeries / hoveredObjectId are intentionally unused.
-  const hovered = params.hoveredInfo;
-  let hoveredSeries: ISeriesApi<SeriesType> | undefined;
-  if (hovered?.sourceKind === 'series' && hovered.series != null) {
-    hoveredSeries = hovered.series;
-    const id = getSeriesId(hoveredSeries);
-    if (id != null) {
-      payload.seriesId = id;
-    }
-  }
-
-  // Per-series values: reverse-map the seriesData Map keyed by ISeriesApi.
-  params.seriesData.forEach((dataItem, seriesApi) => {
-    const id = getSeriesId(seriesApi);
-    if (id == null) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const item = dataItem as any;
-    if (typeof item.value === 'number') {
-      payload.seriesData[id] = item.value;
-    } else if (
-      typeof item.open === 'number' &&
-      typeof item.high === 'number' &&
-      typeof item.low === 'number' &&
-      typeof item.close === 'number'
-    ) {
-      payload.seriesData[id] = {
-        open: item.open,
-        high: item.high,
-        low: item.low,
-        close: item.close,
-      };
-    }
-  });
-
-  // Point + price (price only meaningful with a hovered series).
-  if (params.point != null) {
-    payload.point = { x: params.point.x, y: params.point.y };
-    if (hoveredSeries != null) {
-      const price = hoveredSeries.coordinateToPrice(params.point.y);
-      if (price != null) {
-        payload.price = price;
-      }
-    }
-  }
-
-  // Pane index.
-  const paneIndex = params.paneIndex ?? hovered?.paneIndex;
-  if (paneIndex != null) {
-    payload.paneIndex = paneIndex;
-  }
-
   return payload;
+}
+
+function resolveSeriesLabel(
+  series: ISeriesApi<SeriesType>,
+  getSeriesId: (s: ISeriesApi<SeriesType>) => string | undefined,
+  getSeriesTitle: (s: ISeriesApi<SeriesType>) => string | undefined
+): string | undefined {
+  const title = getSeriesTitle(series);
+  if (title != null && title !== '') return title;
+  return getSeriesId(series);
 }

@@ -7,20 +7,49 @@
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md
+  last_value_visible -> titles-legends.md
+  visible -> titles-legends.md
+  price_scale_id -> price-scale.md
+  price_format -> price-formats.md
+  price_line_visible -> price-lines.md
+  price_line_source -> price-lines.md
+  price_line_width -> price-lines.md
+  price_line_color -> price-lines.md
+  price_line_style -> price-lines.md
+  base_line_visible -> price-scale.md
+  base_line_color -> price-scale.md
+  base_line_width -> price-scale.md
+  base_line_style -> price-scale.md
+  auto_scale -> price-scale.md
+  scale_margin_top -> price-scale.md
+  scale_margin_bottom -> price-scale.md
+  scale_mode -> price-scale.md
+  scale_invert -> price-scale.md
+  scale_align_labels -> price-scale.md
+  scale_border_visible -> price-scale.md
+  scale_border_color -> price-scale.md
+  scale_text_color -> price-scale.md
+  scale_entire_text_only -> price-scale.md
+  scale_visible -> price-scale.md
+  scale_ticks_visible -> price-scale.md
+  scale_minimum_width -> price-scale.md
+  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  color_column -> histogram.md
+  pane -> multi-pane.md
 -->
 
 # Line Chart
 
-A line chart draws a single continuous line through `(timestamp, value)` points, the simplest and most readable way to show how one number changes over time. Reach for it whenever the response variable is a continuous quantity (price, yield, latency, count) sampled at ordered time stamps.
+A line chart draws a single continuous line through `(timestamp, value)` points to show how one number changes over time. Use it when the value is a continuous quantity (price, yield, latency, count) sampled at ordered timestamps.
 
-Line charts pair well with TVL's `by` argument, which partitions one input table into one line per unique value — a clean way to overlay several symbols, exchanges, or strategies on the same axis without manually splitting the table.
+Line charts work well with TVL's `by` argument, which partitions one input table into one line per unique value. That lets you overlay several symbols or strategies on the same axis without manually splitting the table.
 
 ## What are line charts useful for?
 
 - **Showing trend over time**: A single line strips away everything but the trajectory, which is what you usually want for a quick "is it going up or down" read.
 - **Comparing multiple series**: With `by` you can overlay several groups on the same axis and visually compare their levels and slopes.
 - **Highlighting state changes**: With `line_type="with_steps"` you can render a series of discrete state data (regimes, flags, tiers) as a clean staircase.
-- **Annotating with markers and price lines**: A thin line is the perfect substrate to layer event markers and level lines on top — see [markers](markers.md) and [price-lines](price-lines.md).
+- **Annotating with markers and price lines**: A thin line leaves room to layer event markers and level lines on top. See [markers](markers.md) and [price-lines](price-lines.md).
 
 ## Examples
 
@@ -94,9 +123,9 @@ All five styles render on the same chart, vertically offset.
 
 `line_type` controls how the line is drawn *between* points. The three options are:
 
-- `"simple"` — straight segments (the default).
-- `"with_steps"` — horizontal segment then a vertical jump at each new point, useful for state data that hold constant between samples.
-- `"curved"` — monotone-cubic interpolation for a smoothed look.
+- `"simple"`: straight segments (the default).
+- `"with_steps"`: horizontal segment then a vertical jump at each new point, useful for state data that hold constant between samples.
+- `"curved"`: monotone-cubic interpolation for a smoothed look.
 
 ```python order=line_types
 import deephaven.plot.tradingview_lightweight as tvl
@@ -122,7 +151,7 @@ line_types = tvl.chart(
 )
 ```
 
-All three types render on the same chart, vertically offset — `with_steps` is the right choice for non-interpolated discrete-state data; `curved` is purely cosmetic.
+All three types render on the same chart, vertically offset. `with_steps` is the right choice for non-interpolated discrete-state data; `curved` is purely cosmetic.
 
 ### One line per group with `by`
 
@@ -144,7 +173,7 @@ line = tvl.line(
 
 ### Point markers on every data point
 
-`point_markers_visible=True` draws a small dot at each `(timestamp, value)` sample so individual points stand out from the connecting line. `point_markers_radius` (in pixels) sizes them — useful when the sample rate is low enough that the points themselves carry information, not just the line through them.
+`point_markers_visible=True` draws a small dot at each `(timestamp, value)` sample so individual points stand out from the connecting line. `point_markers_radius` (in pixels) sizes them. Useful when the sample rate is low enough that the points themselves carry information, not just the line through them.
 
 ```python order=line,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -163,7 +192,7 @@ Each daily sample is now marked with a small filled circle on top of the line.
 
 ### Pulse the last point with `last_price_animation`
 
-`last_price_animation` controls the pulse effect on the last-price marker — `"disabled"` (the default) leaves it static, `"continuous"` pulses while the chart is visible, and `"on_data_update"` pulses only when new data arrives. Reach for it on live tickers where the most recent point should draw the eye.
+`last_price_animation` controls the pulse effect on the last-price marker. `"disabled"` (the default) leaves it static, `"continuous"` pulses while the chart is visible, and `"on_data_update"` pulses only when new data arrives. Reach for it on live tickers where the most recent point should draw the eye.
 
 ```python order=line,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -177,7 +206,30 @@ line = tvl.line(
 )
 ```
 
-The last-price marker now pulses continuously. Use `"disabled"` whenever snapshot determinism matters — the other two modes introduce time-dependent rendering.
+The last-price marker now pulses continuously. Use `"disabled"` whenever snapshot determinism matters. The other two modes introduce time-dependent rendering.
+
+### Crosshair marker and line visibility
+
+When the user hovers, LWC draws a marker where the crosshair meets the line. `crosshair_marker_visible` toggles it, `crosshair_marker_radius` sizes it (pixels), and `crosshair_marker_border_color` / `crosshair_marker_background_color` / `crosshair_marker_border_width` style it. `line_visible=False` hides the connecting line itself, handy when you only want the point markers or the crosshair dot.
+
+```python order=line,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.values()
+
+line = tvl.line(
+    data,
+    timestamp="Timestamp",
+    value="Value",
+    line_visible=True,
+    crosshair_marker_visible=True,
+    crosshair_marker_radius=6,
+    crosshair_marker_border_color="accent-400",
+    crosshair_marker_background_color="accent-200",
+    crosshair_marker_border_width=2,
+)
+```
+
+These crosshair-marker options apply to `area` and `baseline` series too.
 
 ## API Reference
 

@@ -14,6 +14,7 @@ from ..chart import TvlChart
 from ..events import (
     PRESS,
     DOUBLE_PRESS,
+    TvlPressEvent,
     build_press_event,
     time_converter_for,
     wrap_callable,
@@ -143,7 +144,7 @@ class TvlChartListener:
         if on_double_press is not None:
             self._handlers[DOUBLE_PRESS] = wrap_callable(on_double_press)
         # Per-series time-column dtype names (DType.j_name) so a press event's
-        # ``time`` can mirror the source column type. Only resolved when a
+        # ``timestamp`` can mirror the source column type. Only resolved when a
         # handler is wired, since that's the only consumer.
         self._series_time_types: list[Optional[str]] = (
             self._resolve_series_time_types() if self._handlers else []
@@ -206,9 +207,7 @@ class TvlChartListener:
             return b"", []
 
         payload = message.get("payload") or {}
-        time_type = self._time_type_for_payload(payload)
-        converter = time_converter_for(time_type, payload.get("timeZone"))
-        event = build_press_event(handler_id, payload, converter)
+        event = self._build_event(handler_id, payload)
 
         try:
             if self._exec_ctx is not None and liveness_scope is not None:
@@ -221,14 +220,24 @@ class TvlChartListener:
 
         return b"", []
 
+    def _build_event(self, handler_id: str, payload: dict[str, Any]) -> TvlPressEvent:
+        """Build the event dict for ``handler_id`` from the wire payload.
+
+        Press / double-press mirror ``MouseEventParams`` (time mirrored from the
+        hovered series' column type).
+        """
+        time_type = self._time_type_for_payload(payload)
+        converter = time_converter_for(time_type, payload.get("timeZone"))
+        return build_press_event(handler_id, payload, converter)
+
     def _time_type_for_payload(self, payload: dict[str, Any]) -> Optional[str]:
         """Resolve the source time-column type to mirror for this press.
 
-        Prefers the hit series (from ``seriesId``); falls back to the chart's
-        shared type when the press named no series or that series' type is
-        unknown.
+        Prefers the hovered series (from its stable ``hoveredSeriesId``);
+        falls back to the chart's shared type when the press hovered no series
+        or that series' type is unknown.
         """
-        idx = _series_index(payload.get("seriesId"))
+        idx = _series_index(payload.get("hoveredSeriesId"))
         if idx is not None and 0 <= idx < len(self._series_time_types):
             hit = self._series_time_types[idx]
             if hit is not None:

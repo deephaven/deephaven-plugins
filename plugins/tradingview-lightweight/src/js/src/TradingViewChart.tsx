@@ -90,6 +90,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   const chartThemeRef = useRef(chartTheme);
   chartThemeRef.current = chartTheme;
   const containerRef = useRef<HTMLDivElement>(null);
+  // lightweight-charts mounts here, NOT on `containerRef`. This host is
+  // `position: absolute` (out of normal flow), so the chart's own element —
+  // which LWC keeps explicitly sized via `autoSize` — never contributes to
+  // the outer flex item's content-based min-height. Without it, the chart's
+  // pixel height pins the flex item open and it refuses to shrink when the
+  // panel/sibling shrinks (mirrors how plotly's inner containers and
+  // iris-grid's canvas are taken out of flow for the same reason).
+  const chartHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<TradingViewChartRenderer | null>(null);
   const modelRef = useRef<TradingViewChartModel | null>(null);
   const [error, setErrorState] = useState<string | null>(null);
@@ -832,6 +840,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           type,
           params,
           s => renderer.getSeriesIdForApi(s),
+          s => renderer.getSeriesTitleForApi(s),
           model.getTimeZone()
         );
         model.sendEvent(type, payload);
@@ -879,12 +888,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     }
 
     async function init() {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !chartHostRef.current) return;
 
       const themeOptions = chartThemeToOptions(chartThemeRef.current);
       const ct = chartTypeRef.current;
       const renderer = new TradingViewChartRenderer(
-        containerRef.current,
+        chartHostRef.current,
         themeOptions as Record<string, unknown>,
         ct
       );
@@ -1232,22 +1241,38 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   return (
     <div
       ref={containerRef}
-      className="dh-tvl-chart"
+      // `chart-wrapper` is the class plotly-express's chart root uses, which
+      // deephaven.ui targets (e.g. styles.scss strips panel padding when a
+      // `.chart-wrapper` is a panel's only child). Carrying it lets the tvl
+      // chart get the same host-side treatment. `dh-tvl-chart` stays first —
+      // the plugin's own CSS and the e2e/unit selectors key on it.
+      className="dh-tvl-chart chart-wrapper"
       data-snapshot-ready="false"
       style={{
+        // Match the plotly-express chart root (`h-100 w-100`): a plain
+        // 100%-of-parent box with no flex-item overrides. lightweight-charts
+        // has no intrinsic size and paints exactly its container's measured
+        // box, so the earlier `flex-basis:0` + `min-height:0`/`min-width:0`
+        // let the element collapse to zero when used as a bare `ui.flex`
+        // child (plotly papers over this by self-sizing to a default height;
+        // lightweight-charts does not). Sizing like dx keeps it visible both
+        // inline and inside the standalone panel.
         width: '100%',
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
-        minHeight: 0,
-        minWidth: 0,
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 0,
       }}
     >
       {/* eslint-disable-next-line react/no-danger */}
       <style dangerouslySetInnerHTML={{ __html: tvlStyles }} />
+      {/* lightweight-charts mounts into this absolutely-positioned host so its
+          explicitly-sized element stays out of the outer flex item's flow —
+          see chartHostRef. */}
+      <div
+        ref={chartHostRef}
+        className="dh-tvl-chart-host"
+        style={{ position: 'absolute', inset: 0 }}
+      />
       {pendingDs && (
         <>
           <div className={`tvl-pending-scrim${showScrim ? ' show' : ''}`} />

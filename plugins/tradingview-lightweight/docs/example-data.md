@@ -2,7 +2,7 @@
 
 The Deephaven TradingView Lightweight package includes several built-in, deterministically generated tables for testing and example code. Each function returns a fresh `deephaven.table.Table` whose values are produced by closed-form expressions (no random data), so snapshot tests stay stable across runs.
 
-Import the module under the `tvl` alias and call any of the functions below — every chart-type page in this documentation builds its examples on these fixtures.
+Import the module under the `tvl` alias and call any of the functions below. Every chart-type page in this documentation builds its examples on these fixtures.
 
 ## ohlc
 
@@ -48,7 +48,7 @@ volume = tvl.data.volume()
 
 ## yields
 
-An 11-point yield-curve snapshot. Tenors follow the canonical Treasury set (3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y, 40Y) and are emitted in months (3, 6, 12, 24, 36, 60, 84, 120, 240, 360, 480) — the unit LWC's yield-curve axis expects. The `Yield` column follows a smooth concave curve that rises quickly at the short end, peaks in the belly, and tapers off. Designed for the `yield_curve` chart examples.
+An 11-point yield-curve snapshot. Tenors follow the canonical Treasury set (3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y, 40Y) and are emitted in months (3, 6, 12, 24, 36, 60, 84, 120, 240, 360, 480). The unit LWC's yield-curve axis expects. The `Yield` column follows a smooth concave curve that rises quickly at the short end, peaks in the belly, and tapers off. Designed for the `yield_curve` chart examples.
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl

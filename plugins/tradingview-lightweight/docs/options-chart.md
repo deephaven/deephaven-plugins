@@ -1,18 +1,20 @@
 <!-- coverage-seen-elsewhere:
   crosshair_mode -> styling.md
   watermark_text -> watermark.md
+  background_color -> styling.md
+  text_color -> styling.md
 -->
 
 # Options Chart
 
-An options chart plots a quantity against *strike price* on a numeric horizontal axis — not against time. The renderer is TVL's `createOptionsChart`, which is designed for cross-sectional snapshots indexed by strike: option bid/ask curves, implied-vol smiles, open-interest profiles, gamma exposure.
+An options chart plots a quantity against *strike price* on a numeric horizontal axis, not against time. The renderer is TVL's `createOptionsChart`, which is designed for cross-sectional snapshots indexed by strike: option bid/ask curves, implied-vol smiles, open-interest profiles, and gamma exposure.
 
-`tvl.options_chart` supports three series types: `"line"` (default), `"area"`, and `"histogram"`. They share the same axis behavior — only the rendering changes.
+`tvl.options_chart` supports three series types: `"line"` (default), `"area"`, and `"histogram"`. They share the same axis behavior; only the rendering changes.
 
 ## What are options charts useful for?
 
 - **Option price curves**: Plot CallBid/CallAsk across strikes to see the price structure across the chain.
-- **Volatility smiles**: Implied vol vs. strike is the canonical "smile" or "skew" chart — exactly what this rendering is for.
+- **Volatility smiles**: Implied vol vs. strike is the "smile" or "skew" chart this rendering is built for.
 - **Open interest / volume profiles**: Histogram mode turns the same chart into a strike-indexed bar chart of open interest or daily volume.
 - **Gamma exposure**: Net gamma by strike (positive bars above zero, negative below) reads cleanly as a histogram or signed line.
 
@@ -93,7 +95,7 @@ The line is green, two pixels wide, with a custom legend entry.
 
 ### Plot a different value column
 
-The y-axis can be any numeric column. Swap `CallBid` for `PutAsk` (or implied vol, open interest, gamma — whatever your table has) without touching the rest of the call.
+The y-axis can be any numeric column. Swap `CallBid` for `PutAsk` (or implied vol, open interest, gamma, whatever your table has) without touching the rest of the call.
 
 ```python order=options_chart,data
 import deephaven.plot.tradingview_lightweight as tvl

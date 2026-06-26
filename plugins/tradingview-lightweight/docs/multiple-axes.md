@@ -1,8 +1,8 @@
 # Multiple Price Scales
 
-A multiple-axes chart hosts more than one price scale inside a single pane. Reach for this when two series share a time axis but their value ranges are too different to share one price scale — for example a stock price (10-200) and trade volume (1,000-2,000,000) layered in the same pane.
+A multiple-axes chart hosts more than one price scale inside a single pane. Use it when two series share a time axis but their value ranges are too different to share one price scale, for example a stock price (10-200) and trade volume (1,000-2,000,000) layered in the same pane.
 
-The mechanism is the `price_scale_id` parameter on every per-type constructor. Lightweight Charts provides two built-in scales — `"left"` and `"right"` — and treats any other string as an **overlay** scale that floats on top of the chart with no axis labels by default. The chart-level `default_visible_price_scale_id` option picks which built-in scale unbound series fall back to.
+The mechanism is the `price_scale_id` parameter on every per-type constructor. Lightweight Charts provides two built-in scales, `"left"` and `"right"`, and treats any other string as an **overlay** scale that floats on top of the chart with no axis labels by default. The chart-level `default_visible_price_scale_id` option picks which built-in scale unbound series fall back to.
 
 <!-- coverage-seen-elsewhere:
   pane / pane_stretch_factors / pane_preserve_empty -> multi-pane.md
@@ -16,14 +16,14 @@ The mechanism is the `price_scale_id` parameter on every per-type constructor. L
 
 - **Mixing magnitudes**: Price in dollars and volume in millions don't share a range. Two scales keep each readable.
 - **Comparing returns**: A `"percentage"` price scale lets you compare two instruments by relative change rather than absolute price.
-- **Hiding clutter**: Overlay scales render a series with no visible axis labels — useful for background indicators that exist to be read on hover, not on the axis.
+- **Hiding clutter**: Overlay scales render a series with no visible axis labels, which suits background indicators that exist to be read on hover, not on the axis.
 - **Per-scale tick density**: `*_tick_mark_density` lets a busy price scale stay readable when the chart is short.
 
 ## Examples
 
 ### Put one series on the left, one on the right
 
-The simplest case: two series, two built-in scales. Set `price_scale_id="left"` to draw the axis on the left, and `"right"` (the default) for the right.
+Two series, two built-in scales. Set `price_scale_id="left"` to draw the axis on the left, and `"right"` (the default) for the right.
 
 ```python order=lr_chart,stocks,aaa,bbb
 import deephaven.plot.tradingview_lightweight as tvl
@@ -48,11 +48,11 @@ lr_chart = tvl.chart(
 )
 ```
 
-The chart shows two axes — AAA's scale on the left, BBB's on the right.
+The chart shows two axes: AAA's scale on the left, BBB's on the right.
 
 ### Use an overlay scale to layer a series on top
 
-An overlay scale is any `price_scale_id` other than `"left"` or `"right"`. The series renders against its own y-range without taking up axis space. This is the standard "volume on top of price" pattern.
+An overlay scale is any `price_scale_id` other than `"left"` or `"right"`. The series renders against its own y-range without taking up axis space. This is the "volume on top of price" pattern.
 
 ```python order=overlay_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -166,7 +166,7 @@ The right scale gets more tick labels; the left gets fewer. Use this to balance 
 
 ### Auto-scale and invert per scale
 
-Each scale exposes `*_auto_scale` and `*_invert_scale` for fine control. Invert flips the axis upside-down — useful for bid-spread or option-greek charts where lower values are "higher" conceptually.
+Each scale exposes `*_auto_scale` and `*_invert_scale` for fine control. Invert flips the axis upside-down, which helps with bid-spread or option-greek charts where lower values are "higher" conceptually.
 
 ```python order=invert_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl

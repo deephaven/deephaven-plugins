@@ -1,8 +1,8 @@
 # Multi-Series Charts
 
-A multi-series TradingView Lightweight chart is a single chart that hosts two or more independent series — for example a candlestick price series with a moving-average line drawn on top. Reach for this when you need to overlay related data on shared axes rather than stacking it into separate panes.
+A multi-series TradingView Lightweight chart is a single chart that hosts two or more independent series, for example a candlestick price series with a moving-average line drawn on top. Use it to overlay related data on shared axes rather than stacking it into separate panes.
 
-The composition pattern is always the same: call one per-type constructor per series to build a single-series TvlChart and pass them positionally to [`tvl.chart()`](#api-reference). There is no `add_series()` method on `TvlChart`; series are immutable once the chart is constructed.
+There are two ways to end up with multiple series. The explicit pattern, used for most of this page, is to call one per-type constructor per series to build a single-series TvlChart and pass them positionally to [`tvl.chart()`](#api-reference); use this when you mix series *types* or pull series from different tables. The shortcut, when the series share a type and a single table and differ only by a partition column, is to pass `by="Column"` to one constructor and let the chart fan it out into one series per key (see [Create one series per group with `by`](#create-one-series-per-group-with-by) below). Either way there is no `add_series()` method on `TvlChart`; series are immutable once the chart is constructed.
 
 <!-- coverage-seen-elsewhere:
   pane_index -> multi-pane.md
@@ -31,7 +31,7 @@ The composition pattern is always the same: call one per-type constructor per se
 
 ### Pick the chart-type backend explicitly
 
-`tvl.chart()` accepts a `chart_type` kwarg, typed as the `ChartType` literal alias. The default value is `"standard"`, which is what every example below relies on. The other three values — `"yield_curve"`, `"options"`, and `"custom_numeric"` — are already used by the convenience factories `tvl.yield_curve()`, `tvl.options_chart()`, and `tvl.custom_numeric()`, so you rarely call `chart()` with them directly; mostly you set `chart_type="standard"` explicitly when you want to lock the backend against future default changes.
+`tvl.chart()` accepts a `chart_type` kwarg, typed as the `ChartType` literal alias. The default value is `"standard"`, which is what every example below relies on. The other three values (`"yield_curve"`, `"options"`, and `"custom_numeric"`) are already used by the convenience factories `tvl.yield_curve()`, `tvl.options_chart()`, and `tvl.custom_numeric()`, so you rarely call `chart()` with them directly; mostly you set `chart_type="standard"` explicitly when you want to lock the backend against future default changes.
 
 ```python order=chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -66,11 +66,11 @@ volume = tvl.histogram(
 multi_chart = tvl.chart(price, volume)
 ```
 
-Notice that both series share one chart — they sit on the same time axis and the same price axis by default. Push the volume to a separate pane or scale using `pane` or `price_scale_id` (see [multi-pane](multi-pane.md) and [multiple-axes](multiple-axes.md)).
+Both series share one chart: they sit on the same time axis and the same price axis by default. Push the volume to a separate pane or scale using `pane` or `price_scale_id` (see [multi-pane](multi-pane.md) and [multiple-axes](multiple-axes.md)).
 
 ### Overlay a moving-average line on a candlestick
 
-The classic "price + indicator" pattern: a candlestick series for the bars and a line series for a derived signal. The line is computed in a Deephaven `update_view` so it ticks in lockstep with the source table.
+The "price + indicator" pattern: a candlestick series for the bars and a line series for a derived signal. The line is computed in a Deephaven `update_view` so it ticks along with the source table.
 
 ```python order=overlay_chart,ohlc_with_sma,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -132,38 +132,22 @@ mix_chart = tvl.chart(closes, vols)
 
 The histogram lives on an overlay scale (`price_scale_id="vol"`) so its magnitudes don't crush the line's price range. See [multiple-axes](multiple-axes.md) for the full pattern.
 
-### Use bar, area, baseline
+### Create one series per group with `by`
 
-Each remaining per-type constructor returns a TvlChart that drops into `tvl.chart()` exactly the same way as the line and candlestick examples above. Demonstrate the three less common factories side by side.
+The comparisons above build each series by hand, one constructor call per symbol. When the series differ only by a partition key in a single table, set `by` to that column instead and the chart draws one series per unique value, auto-assigning each a distinct color from the user's theme palette. New keys that show up at runtime (in a ticking table) add new series on the fly.
 
-```python order=bar_chart,area_chart,baseline_chart,ohlc,values
+`by` is accepted by every per-type constructor (`tvl.line`, `tvl.area`, `tvl.baseline`, `tvl.candlestick`, `tvl.bar`, `tvl.histogram`), so this single-table-to-many-series shortcut works regardless of series type.
+
+```python order=by_chart,stocks
 import deephaven.plot.tradingview_lightweight as tvl
 
-ohlc = tvl.data.ohlc()
-values = tvl.data.values()
+stocks = tvl.data.stocks()
 
-# OHLC bars
-bars_only = tvl.bar(ohlc, thin_bars=True, open_visible=True)
-bar_chart = tvl.chart(bars_only)
-
-# Area: filled region below a line
-area_only = tvl.area(
-    values, timestamp="Timestamp", value="Value",
-    line_color="#1976d2",
-    top_color="rgba(25,118,210,0.4)", bottom_color="rgba(25,118,210,0.0)",
-)
-area_chart = tvl.chart(area_only)
-
-# Baseline: two-color split around a reference value
-base_only = tvl.baseline(
-    values, timestamp="Timestamp", value="Value",
-    base_value=100.0,
-    top_line_color="#2e7d32", bottom_line_color="#c62828",
-)
-baseline_chart = tvl.chart(base_only)
+# One line per symbol, colored automatically — no per-series construction.
+by_chart = tvl.line(stocks, timestamp="Timestamp", value="Price", by="Sym")
 ```
 
-Each factory takes its own type-specific arguments (`thin_bars` for bars, gradient colors for area, `base_value` for baseline). The construction pattern — factory call → `tvl.chart()` — is identical.
+`tvl.data.stocks()` is a three-symbol (`AAA`, `BBB`, `CCC`) walk, so this single `tvl.line` call yields three independently colored series on one axis, the same result as the [two-line comparison](#compare-two-line-series-on-one-axis) above, but driven by the data rather than spelled out series by series. For per-type notes on `by`, see [line](line.md#one-line-per-group-with-by) and [area](area.md#one-area-per-group-with-by).
 
 ## API Reference
 
