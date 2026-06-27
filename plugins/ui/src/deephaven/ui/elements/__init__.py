@@ -3,6 +3,7 @@ from .BaseElement import BaseElement
 from .ContextProviderElement import ContextProviderElement, Context, create_context
 from .DashboardElement import DashboardElement
 from .FunctionElement import FunctionElement
+from .MemoizedElement import MemoizedElement
 from .UriElement import resolve
 
 __all__ = [
@@ -12,6 +13,8 @@ __all__ = [
     "DashboardElement",
     "Element",
     "FunctionElement",
+    "MemoizedElement",
+    "NodeType",
     "PropsType",
     "resolve",
 ]

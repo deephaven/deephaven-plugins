@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 from typing import Any, Callable, Dict, List
+from deephaven.ui._internal import RootRenderContextProtocol
+from deephaven.ui.types import QueryParams
 from .BaseTest import BaseTestCase
 
 
-class _TestRoot:
+class _TestRoot(RootRenderContextProtocol):
     """Minimal RootRenderContextProtocol implementation for tests."""
 
     def __init__(self, on_change_fn, on_queue_fn):
@@ -25,6 +27,14 @@ class _TestRoot:
     def set_url(self, url: str) -> None:
         self._url = url
 
+    def get_query_params(self) -> QueryParams:
+        """Get the current URL query parameters."""
+        return dict()
+
+    def set_query_params(self, query_params: QueryParams) -> None:
+        """Update the URL query parameters."""
+        pass
+
 
 class UITableTestCase(BaseTestCase):
     def setUp(self) -> None:
@@ -38,7 +48,7 @@ class UITableTestCase(BaseTestCase):
         on_change = Mock()
         on_queue = Mock()
         context = RenderContext(_TestRoot(on_change, on_queue))
-        result = ui_table.render(context)
+        result = ui_table.render()
 
         self.assertDictEqual(result, result | expected_props)
 
@@ -145,6 +155,136 @@ class UITableTestCase(BaseTestCase):
             {
                 "showQuickFilters": False,
             },
+        )
+
+    def test_sorts(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, sorts="X")
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    }
+                ]
+            },
+        )
+
+        t = ui.table(self.source, sorts=ui.TableSort(column="X"))
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    }
+                ]
+            },
+        )
+
+        t = ui.table(
+            self.source,
+            sorts=ui.TableSort(column="X", direction="DESC", is_abs=True),
+        )
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {
+                        "column": "X",
+                        "direction": "DESC",
+                        "isAbs": True,
+                    }
+                ]
+            },
+        )
+
+    def test_sorts_list(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, sorts=["X", "Y"])
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    },
+                    {
+                        "column": "Y",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    },
+                ]
+            },
+        )
+
+        t = ui.table(
+            self.source,
+            sorts=[
+                "X",
+                ui.TableSort(column="X", direction="DESC", is_abs=True),
+                ui.TableSort(column="Y", direction="ASC", is_abs=False),
+            ],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    },
+                    {
+                        "column": "X",
+                        "direction": "DESC",
+                        "isAbs": True,
+                    },
+                    {
+                        "column": "Y",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    },
+                ]
+            },
+        )
+
+    def test_sorts_invalid_direction(self):
+        import deephaven.ui as ui
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(
+                self.source,
+                sorts=ui.TableSort(column="X", direction="UP"),
+            ),
+        )
+
+    def test_sorts_invalid_type(self):
+        import deephaven.ui as ui
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(self.source, sorts=1),
+        )
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(self.source, sorts=["X", 1]),
         )
 
     def test_show_search(self):

@@ -8,7 +8,7 @@ import { type SerializedTextInputEventProps } from './model';
 export function TextField(
   props: SerializedTextInputEventProps<DHCTextFieldProps, string>
 ): JSX.Element {
-  const textFieldProps = useTextInputProps(props);
+  const textFieldProps = useTextInputProps(props, '');
 
   // eslint-disable-next-line react/jsx-props-no-spreading
   return <DHCTextField {...textFieldProps} />;

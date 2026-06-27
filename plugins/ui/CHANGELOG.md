@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.39.0 - 2026-06-26
+
+#### Features
+
+- DH-21756: Add ui.component memoization and selective re-rendering ([#1296](https://github.com/deephaven/deephaven-plugins/pull/1296)) - (bc1a3d2) - mofojed
+- DH-21841: Add a way to set table sort state from `ui.table`. ([#1358](https://github.com/deephaven/deephaven-plugins/pull/1358)) - (45d9922) - Simon
+
+#### Bug Fixes
+
+- DH-18770: Chart builder support for ui.table ([#1356](https://github.com/deephaven/deephaven-plugins/pull/1356)) - (a36b309) - jnumainville
+- DOC-1404: update link to dynamic plots overview ([#1374](https://github.com/deephaven/deephaven-plugins/pull/1374)) - (a30f1c6) - margaretkennedy
+- DH-21257: Check if panel parent is in root when opening ([#1366](https://github.com/deephaven/deephaven-plugins/pull/1366)) - (3ac48fb) - dgodinez-dh
+
+- - -
+
+
+## ui-v0.38.0 - 2026-06-10
+
+#### Features
+
+- DH-19717: Add per-user persistence for dashboards ([#1352](https://github.com/deephaven/deephaven-plugins/pull/1352)) - (8730542) - mofojed
+
+#### Bug Fixes
+
+- **(ui)** DH-22743: check for existing panels from the layout root instead of the parent stack ([#1359](https://github.com/deephaven/deephaven-plugins/pull/1359)) - (7878751) - mofojed
+- DH-22684: text input fields preserve user input while focused ([#1350](https://github.com/deephaven/deephaven-plugins/pull/1350)) - (0b40d46) - mofojed
+
+- - -
+
+
 ## ui-v0.37.0 - 2026-05-20
 
 #### Features

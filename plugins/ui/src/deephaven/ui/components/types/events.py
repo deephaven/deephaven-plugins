@@ -18,6 +18,12 @@ class FocusEvent(TypedDict):
     The name of the related target element of the focus event.
     """
 
+    value: str | None
+    """
+    The current `value` of the underlying input element, when available
+    (e.g. for text fields, text areas, search fields, number fields).
+    """
+
 
 class KeyboardEvent(TypedDict):
     code: str

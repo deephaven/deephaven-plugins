@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, cast
 
 from deephaven.table import Table
 
 from .item_table_source import ItemTableSource
-from ..elements import Element
+from ..elements import Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
 from .basic import component_element
 from .item import Item
@@ -182,4 +182,9 @@ def list_view(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("ListView", *children, **props)
+    # Table and ItemTableSource children are not valid React node types, but are
+    # passed through here because the JS side has special handling for these
+    # table types. Cast to the expected child type.
+    return component_element(
+        "ListView", *cast("tuple[NodeType, ...]", children), **props
+    )

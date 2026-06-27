@@ -82,8 +82,36 @@ def nested_dashboard_with_state_component():
     )
 
 
+@ui.component
+def buggy_drag_panel():
+    """
+    DH-22743: A panel that can be dragged to a new stack, then updated to test for drag-related bugs.
+    In the bug described, it would duplicate the panel in the original location and the moved panel would go blank.
+    """
+    title, set_title = ui.use_state("title")
+
+    # Return it in a nested dashboard so it's easier to test
+    return ui.panel(
+        ui.dashboard(
+            ui.stack(
+                ui.panel(
+                    ui.text_field(
+                        default_value=title, on_change=set_title, label="Title"
+                    ),
+                    title="Input",
+                ),
+                ui.panel(
+                    ui.text("Drag this panel to a new stack, then change the value"),
+                    title=f"Drag me: {title}",
+                ),
+            )
+        )
+    )
+
+
 # Export the test components
 ui_nested_dashboard = nested_dashboard_component()
 ui_nested_dashboard_interactive = nested_dashboard_interactive_component()
 ui_deeply_nested_dashboard = deeply_nested_dashboard_component()
 ui_nested_dashboard_with_state = nested_dashboard_with_state_component()
+ui_buggy_drag_panel = buggy_drag_panel()

@@ -30,6 +30,7 @@ export * from './Markdown';
 export * from './Menu';
 export * from './Meter';
 export * from './model';
+export * from './NumberField';
 export * from './ObjectView';
 export * from './Picker';
 export * from './ProgressBar';

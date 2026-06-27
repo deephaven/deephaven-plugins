@@ -27,6 +27,7 @@
     "e2e:update-snapshots": "./tools/run_docker.sh ./tests/docker-compose.yml update-snapshots",
     "update-dh-packages": "lerna run --concurrency 1 update-dh-packages",
     "update-dh-packages:ui": "npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui --",
+    "validate-marketplace": "node tools/validate-marketplace.mjs",
     "update-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-snapshotter",
     "validate-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-validator"
   },
@@ -45,6 +46,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@vitejs/plugin-react-swc": "^3.7.0",
+    "ajv": "^8.20.0",
     "conventional-changelog-conventionalcommits": "^7.0.0",
     "eslint": "^8.37.0",
     "identity-obj-proxy": "^3.0.0",

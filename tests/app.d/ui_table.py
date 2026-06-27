@@ -1,5 +1,6 @@
 from deephaven import ui
-from deephaven import empty_table
+from deephaven import empty_table, new_table
+from deephaven.column import int_col, string_col
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
@@ -406,6 +407,47 @@ t_heatmap_databar_mixed = ui.table(
             mode=ui.TableDatabar(color="info", axis="middle"),
         ),
     ],
+)
+
+_programmatic_sort_data = new_table(
+    [
+        string_col("Name", [f"R{i:02d}" for i in range(1, 21)]),
+        int_col(
+            "SepalLength",
+            [
+                51,
+                -49,
+                64,
+                58,
+                -32,
+                47,
+                53,
+                -41,
+                60,
+                55,
+                -28,
+                62,
+                44,
+                -36,
+                57,
+                50,
+                -22,
+                59,
+                46,
+                -30,
+            ],
+        ),
+    ]
+)
+
+t_programmatic_sort_asc = ui.table(
+    _programmatic_sort_data,
+    sorts=ui.TableSort(column="SepalLength", direction="ASC"),
+)
+
+t_programmatic_sort_abs_desc = ui.table(
+    _programmatic_sort_data,
+    sorts=ui.TableSort(column="Name", direction="DESC", is_abs=True),
 )
 
 from deephaven import agg
