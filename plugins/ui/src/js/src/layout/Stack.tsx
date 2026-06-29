@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
-import { normalizeStackChildren, type StackElementProps } from './LayoutUtils';
+import {
+  normalizeStackChildren,
+  wrapBareChildrenInPanel,
+  type StackElementProps,
+} from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
 
@@ -52,10 +56,11 @@ function Stack(props: StackElementProps): JSX.Element | null {
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a stack here, or normalize the children which might add a stack unnecessarily.
-    // Just render the children as they are, and the initial layout config should already have the panels mapped out.
+    // The persisted layout already has the stacks mapped out, but bare content children
+    // still need a panel wrapper so they portal into their persisted panel.
     const { children } = props;
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <>{wrapBareChildrenInPanel(children)}</>;
   }
 
   // eslint-disable-next-line react/jsx-props-no-spreading

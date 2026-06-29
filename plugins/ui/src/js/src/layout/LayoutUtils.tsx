@@ -273,3 +273,37 @@ export function normalizeStackChildren(
     return child;
   });
 }
+
+/**
+ * Wraps any "bare" content children (elements that are neither layout elements -
+ * Row/Column/Stack - nor an explicit ReactPanel) in a ReactPanel.
+ *
+ * This is used when rehydrating from a persisted layout. In that case we skip
+ * re-creating the Row/Column/Stack golden-layout containers (they are restored
+ * from the saved config), but a bare content element (e.g. from
+ * `ui.dashboard(ui.heading(...))`) still needs a ReactPanel wrapper so it is
+ * portaled into its persisted PortalPanel. Without it, the element renders
+ * outside the layout and ends up off-screen / blank. See DH-22995.
+ *
+ * Layout elements and existing panels are passed through untouched so the
+ * persisted layout structure is preserved.
+ *
+ * @param children Children to wrap
+ * @returns Children with bare content elements wrapped in a ReactPanel
+ */
+export function wrapBareChildrenInPanel(
+  children: React.ReactNode
+): React.ReactNode {
+  return Children.map(children, child => {
+    if (
+      isValidElement(child) &&
+      child.type !== Row &&
+      child.type !== Column &&
+      child.type !== Stack &&
+      child.type !== ReactPanel
+    ) {
+      return <ReactPanel title="Untitled">{child}</ReactPanel>;
+    }
+    return child;
+  });
+}
