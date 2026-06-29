@@ -436,6 +436,9 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         """
         logger.debug("Setting URL state: %s", url)
         self.set_url(url)
+        # The URL is not tracked as component state, so mark the root context dirty
+        # to ensure components that read the URL (e.g. use_path) are re-rendered.
+        self._context.mark_dirty()
         self._mark_dirty()
 
     def _serialize_callables(self, node: Any) -> Any:
