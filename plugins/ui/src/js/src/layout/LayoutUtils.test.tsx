@@ -11,6 +11,7 @@ import {
   normalizeColumnChildren,
   normalizeRowChildren,
   normalizeStackChildren,
+  wrapBareChildrenInPanel,
 } from './LayoutUtils';
 import Row from './Row';
 import Stack from './Stack';
@@ -230,5 +231,51 @@ describe('normalizeStackChildren', () => {
         <Row />
       </ReactPanel>,
     ]);
+  });
+});
+
+describe('wrapBareChildrenInPanel', () => {
+  test('passes through layout elements unchanged', () => {
+    compareReactNodes(wrapBareChildrenInPanel(<Row />), [<Row />]);
+    compareReactNodes(wrapBareChildrenInPanel(<Column />), [<Column />]);
+    compareReactNodes(wrapBareChildrenInPanel(<Stack />), [<Stack />]);
+    compareReactNodes(wrapBareChildrenInPanel(<ReactPanel />), [
+      <ReactPanel />,
+    ]);
+  });
+
+  test('passes through multiple layout elements unchanged', () => {
+    compareReactNodes(
+      wrapBareChildrenInPanel([<Row />, <Column />, <Stack />, <ReactPanel />]),
+      [<Row />, <Column />, <Stack />, <ReactPanel />]
+    );
+  });
+
+  test('wraps bare content elements in a ReactPanel', () => {
+    const heading = <div>Heading</div>;
+    compareReactNodes(wrapBareChildrenInPanel(heading), [
+      <ReactPanel>{heading}</ReactPanel>,
+    ]);
+  });
+
+  test('wraps multiple bare content elements each in their own ReactPanel', () => {
+    const a = <div>A</div>;
+    const b = <span>B</span>;
+    compareReactNodes(wrapBareChildrenInPanel([a, b]), [
+      <ReactPanel>{a}</ReactPanel>,
+      <ReactPanel>{b}</ReactPanel>,
+    ]);
+  });
+
+  test('wraps bare elements but leaves layout elements and panels untouched in mixed children', () => {
+    const bare = <div>Content</div>;
+    compareReactNodes(
+      wrapBareChildrenInPanel([<Row />, bare, <ReactPanel />, <Column />]),
+      [<Row />, <ReactPanel>{bare}</ReactPanel>, <ReactPanel />, <Column />]
+    );
+  });
+
+  test('returns null for null children', () => {
+    expect(wrapBareChildrenInPanel(null)).toBeNull();
   });
 });
