@@ -25,6 +25,10 @@ from .utils import (
     dict_to_camel_case,
     dict_to_react_props,
     remove_empty_keys,
+    dict_shallow_equal,
+    iterable_shallow_equal,
+    is_iterable,
+    shallow_equal,
     wrap_callable,
 )
 from .RootRenderContextProtocol import (

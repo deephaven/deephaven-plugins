@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.39.0 - 2026-06-26
+
+#### Features
+
+- DH-21756: Add ui.component memoization and selective re-rendering ([#1296](https://github.com/deephaven/deephaven-plugins/pull/1296)) - (bc1a3d2) - mofojed
+- DH-21841: Add a way to set table sort state from `ui.table`. ([#1358](https://github.com/deephaven/deephaven-plugins/pull/1358)) - (45d9922) - Simon
+
+#### Bug Fixes
+
+- DH-18770: Chart builder support for ui.table ([#1356](https://github.com/deephaven/deephaven-plugins/pull/1356)) - (a36b309) - jnumainville
+- DOC-1404: update link to dynamic plots overview ([#1374](https://github.com/deephaven/deephaven-plugins/pull/1374)) - (a30f1c6) - margaretkennedy
+- DH-21257: Check if panel parent is in root when opening ([#1366](https://github.com/deephaven/deephaven-plugins/pull/1366)) - (3ac48fb) - dgodinez-dh
+
+- - -
+
+
 ## ui-v0.38.0 - 2026-06-10
 
 #### Features
