@@ -239,7 +239,9 @@ describe('wrapBareChildrenInPanel', () => {
     compareReactNodes(wrapBareChildrenInPanel(<Row />), [<Row />]);
     compareReactNodes(wrapBareChildrenInPanel(<Column />), [<Column />]);
     compareReactNodes(wrapBareChildrenInPanel(<Stack />), [<Stack />]);
-    compareReactNodes(wrapBareChildrenInPanel(<ReactPanel />), [<ReactPanel />]);
+    compareReactNodes(wrapBareChildrenInPanel(<ReactPanel />), [
+      <ReactPanel />,
+    ]);
   });
 
   test('passes through multiple layout elements unchanged', () => {
@@ -269,12 +271,7 @@ describe('wrapBareChildrenInPanel', () => {
     const bare = <div>Content</div>;
     compareReactNodes(
       wrapBareChildrenInPanel([<Row />, bare, <ReactPanel />, <Column />]),
-      [
-        <Row />,
-        <ReactPanel>{bare}</ReactPanel>,
-        <ReactPanel />,
-        <Column />,
-      ]
+      [<Row />, <ReactPanel>{bare}</ReactPanel>, <ReactPanel />, <Column />]
     );
   });
 
