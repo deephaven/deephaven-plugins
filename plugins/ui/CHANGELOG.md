@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.38.0 - 2026-06-10
+
+#### Features
+
+- DH-19717: Add per-user persistence for dashboards ([#1352](https://github.com/deephaven/deephaven-plugins/pull/1352)) - (8730542) - mofojed
+
+#### Bug Fixes
+
+- **(ui)** DH-22743: check for existing panels from the layout root instead of the parent stack ([#1359](https://github.com/deephaven/deephaven-plugins/pull/1359)) - (7878751) - mofojed
+- DH-22684: text input fields preserve user input while focused ([#1350](https://github.com/deephaven/deephaven-plugins/pull/1350)) - (0b40d46) - mofojed
+
+- - -
+
+
 ## ui-v0.37.0 - 2026-05-20
 
 #### Features

@@ -31,6 +31,7 @@ export * from './Menu';
 export * from './Meter';
 export * from './MultiSelect';
 export * from './model';
+export * from './NumberField';
 export * from './ObjectView';
 export * from './Picker';
 export * from './ProgressBar';

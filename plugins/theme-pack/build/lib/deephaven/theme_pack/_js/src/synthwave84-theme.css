@@ -1,0 +1,318 @@
+/* SynthWave '84 Theme for Deephaven */
+/* Retro synthwave aesthetic with neon colors on dark purple backgrounds */
+/* Source: VS Code SynthWave '84 theme */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Background (#262335) at gray-100, Foreground (#ffffff) at gray-900 */
+  /* Multi-anchor: activityBar (#171520) at 50, sideBar (#241b2f) at 75, editor (#262335) at 100 */
+  --dh-color-gray-50: #171520;
+  --dh-color-gray-75: #241b2f;
+  --dh-color-gray-100: #262335;
+  --dh-color-gray-200: #34294f;
+  --dh-color-gray-300: #463564;
+  --dh-color-gray-400: #5a4578;
+  --dh-color-gray-500: #70588c;
+  --dh-color-gray-600: #886da0;
+  --dh-color-gray-700: #a185b4;
+  --dh-color-gray-800: #bca0c8;
+  --dh-color-gray-900: #ffffff;
+
+  /* ============ RED PALETTE ============ */
+  /* SynthWave red (#fe4450) anchored at 600 - used for errors, types */
+  --dh-color-red-100: #4a0a0e;
+  --dh-color-red-200: #5e0f14;
+  --dh-color-red-300: #73141a;
+  --dh-color-red-400: #8f1c22;
+  --dh-color-red-500: #b22a30;
+  --dh-color-red-600: #fe4450;
+  --dh-color-red-700: #ff6a74;
+  --dh-color-red-800: #ff8f97;
+  --dh-color-red-900: #ffb3b8;
+  --dh-color-red-1000: #ffcdd0;
+  --dh-color-red-1100: #ffe2e4;
+  --dh-color-red-1200: #ffeeef;
+  --dh-color-red-1300: #fff5f6;
+  --dh-color-red-1400: #fffafa;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* SynthWave coral (#f97e72) anchored at 700 - used for constants */
+  --dh-color-orange-100: #3d1a0f;
+  --dh-color-orange-200: #4e2214;
+  --dh-color-orange-300: #612b1a;
+  --dh-color-orange-400: #7a3822;
+  --dh-color-orange-500: #97482d;
+  --dh-color-orange-600: #b85c3c;
+  --dh-color-orange-700: #f97e72;
+  --dh-color-orange-800: #ff9b8f;
+  --dh-color-orange-900: #ffb8af;
+  --dh-color-orange-1000: #ffd0ca;
+  --dh-color-orange-1100: #ffe4e0;
+  --dh-color-orange-1200: #fff0ee;
+  --dh-color-orange-1300: #fff7f5;
+  --dh-color-orange-1400: #fffbfa;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* SynthWave yellow (#fede5d) anchored at 1000 - used for keywords */
+  --dh-color-yellow-100: #3a3006;
+  --dh-color-yellow-200: #4a3d08;
+  --dh-color-yellow-300: #5c4b0a;
+  --dh-color-yellow-400: #735f0d;
+  --dh-color-yellow-500: #8d7512;
+  --dh-color-yellow-600: #a98d1a;
+  --dh-color-yellow-700: #c5a624;
+  --dh-color-yellow-800: #e0c032;
+  --dh-color-yellow-900: #f2d546;
+  --dh-color-yellow-1000: #fede5d;
+  --dh-color-yellow-1100: #fee87d;
+  --dh-color-yellow-1200: #fef0a0;
+  --dh-color-yellow-1300: #fef6c2;
+  --dh-color-yellow-1400: #fefae0;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Derived between yellow and green */
+  --dh-color-chartreuse-100: #1a2a06;
+  --dh-color-chartreuse-200: #223608;
+  --dh-color-chartreuse-300: #2b440a;
+  --dh-color-chartreuse-400: #38580d;
+  --dh-color-chartreuse-500: #477012;
+  --dh-color-chartreuse-600: #588918;
+  --dh-color-chartreuse-700: #6aa320;
+  --dh-color-chartreuse-800: #7dbe2a;
+  --dh-color-chartreuse-900: #92d837;
+  --dh-color-chartreuse-1000: #a8ed4a;
+  --dh-color-chartreuse-1100: #bff56c;
+  --dh-color-chartreuse-1200: #d4fa92;
+  --dh-color-chartreuse-1300: #e6fcb8;
+  --dh-color-chartreuse-1400: #f3fed8;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived yellowish green */
+  --dh-color-celery-100: #142608;
+  --dh-color-celery-200: #1a310a;
+  --dh-color-celery-300: #213d0d;
+  --dh-color-celery-400: #2b4f11;
+  --dh-color-celery-500: #376516;
+  --dh-color-celery-600: #457c1c;
+  --dh-color-celery-700: #549524;
+  --dh-color-celery-800: #64af2d;
+  --dh-color-celery-900: #76c938;
+  --dh-color-celery-1000: #8ae045;
+  --dh-color-celery-1100: #a2f060;
+  --dh-color-celery-1200: #bcf882;
+  --dh-color-celery-1300: #d5fcaa;
+  --dh-color-celery-1400: #eafed0;
+
+  /* ============ GREEN PALETTE ============ */
+  /* SynthWave mint green (#72f1b8) anchored at 900 - used for tags */
+  --dh-color-green-100: #062e20;
+  --dh-color-green-200: #0a3c29;
+  --dh-color-green-300: #0e4b33;
+  --dh-color-green-400: #145f42;
+  --dh-color-green-500: #1c7754;
+  --dh-color-green-600: #269068;
+  --dh-color-green-700: #33aa7e;
+  --dh-color-green-800: #48c596;
+  --dh-color-green-900: #72f1b8;
+  --dh-color-green-1000: #8ff5c7;
+  --dh-color-green-1100: #acf8d6;
+  --dh-color-green-1200: #c8fbe4;
+  --dh-color-green-1300: #e0fdef;
+  --dh-color-green-1400: #f0fef6;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Derived between green and cyan */
+  --dh-color-seafoam-100: #042b25;
+  --dh-color-seafoam-200: #07382f;
+  --dh-color-seafoam-300: #0a463a;
+  --dh-color-seafoam-400: #0f5a4a;
+  --dh-color-seafoam-500: #15715d;
+  --dh-color-seafoam-600: #1d8972;
+  --dh-color-seafoam-700: #28a388;
+  --dh-color-seafoam-800: #38bea0;
+  --dh-color-seafoam-900: #52dab8;
+  --dh-color-seafoam-1000: #6eeecb;
+  --dh-color-seafoam-1100: #8ff7da;
+  --dh-color-seafoam-1200: #b2fbe7;
+  --dh-color-seafoam-1300: #d2fdf1;
+  --dh-color-seafoam-1400: #ebfef8;
+
+  /* ============ CYAN PALETTE ============ */
+  /* SynthWave cyan (#36f9f6) anchored at 800 - used for functions */
+  --dh-color-cyan-100: #052c2c;
+  --dh-color-cyan-200: #083939;
+  --dh-color-cyan-300: #0b4747;
+  --dh-color-cyan-400: #105b5a;
+  --dh-color-cyan-500: #167271;
+  --dh-color-cyan-600: #1e8b8a;
+  --dh-color-cyan-700: #28a6a4;
+  --dh-color-cyan-800: #36f9f6;
+  --dh-color-cyan-900: #5bfaf8;
+  --dh-color-cyan-1000: #7ffcfa;
+  --dh-color-cyan-1100: #a2fdfc;
+  --dh-color-cyan-1200: #c4fefd;
+  --dh-color-cyan-1300: #dffffe;
+  --dh-color-cyan-1400: #f0fffe;
+
+  /* ============ BLUE PALETTE ============ */
+  /* SynthWave blue (#495495) anchored at 600 - used for borders */
+  --dh-color-blue-100: #0e1127;
+  --dh-color-blue-200: #141832;
+  --dh-color-blue-300: #1b203e;
+  --dh-color-blue-400: #262b50;
+  --dh-color-blue-500: #343a66;
+  --dh-color-blue-600: #495495;
+  --dh-color-blue-700: #5e6ab0;
+  --dh-color-blue-800: #7682c7;
+  --dh-color-blue-900: #909bda;
+  --dh-color-blue-1000: #aab3e8;
+  --dh-color-blue-1100: #c4caf2;
+  --dh-color-blue-1200: #dcdff8;
+  --dh-color-blue-1300: #eceefb;
+  --dh-color-blue-1400: #f6f7fd;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Derived between blue and purple */
+  --dh-color-indigo-100: #140e28;
+  --dh-color-indigo-200: #1b1434;
+  --dh-color-indigo-300: #231b42;
+  --dh-color-indigo-400: #2e2555;
+  --dh-color-indigo-500: #3c326c;
+  --dh-color-indigo-600: #4c4085;
+  --dh-color-indigo-700: #5e509f;
+  --dh-color-indigo-800: #7262b8;
+  --dh-color-indigo-900: #8877ce;
+  --dh-color-indigo-1000: #9f8edf;
+  --dh-color-indigo-1100: #b7a7ec;
+  --dh-color-indigo-1200: #cfc2f5;
+  --dh-color-indigo-1300: #e4dcfa;
+  --dh-color-indigo-1400: #f3f0fd;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* SynthWave purple (#614d85) anchored at 600 - used for buttons/accent */
+  --dh-color-purple-100: #1a1228;
+  --dh-color-purple-200: #231834;
+  --dh-color-purple-300: #2d1f42;
+  --dh-color-purple-400: #3b2a56;
+  --dh-color-purple-500: #4c386d;
+  --dh-color-purple-600: #614d85;
+  --dh-color-purple-700: #7863a0;
+  --dh-color-purple-800: #917bb8;
+  --dh-color-purple-900: #ab95cf;
+  --dh-color-purple-1000: #c4b0e2;
+  --dh-color-purple-1100: #dccbf0;
+  --dh-color-purple-1200: #ece2f7;
+  --dh-color-purple-1300: #f5f0fb;
+  --dh-color-purple-1400: #faf8fd;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* SynthWave pink (#ff7edb) anchored at 800 - used for variables */
+  --dh-color-fuchsia-100: #2e0825;
+  --dh-color-fuchsia-200: #3d0c31;
+  --dh-color-fuchsia-300: #4d103e;
+  --dh-color-fuchsia-400: #631650;
+  --dh-color-fuchsia-500: #7e1f66;
+  --dh-color-fuchsia-600: #9b2b7e;
+  --dh-color-fuchsia-700: #ba3a98;
+  --dh-color-fuchsia-800: #ff7edb;
+  --dh-color-fuchsia-900: #ff98e3;
+  --dh-color-fuchsia-1000: #ffb2eb;
+  --dh-color-fuchsia-1100: #ffcaf1;
+  --dh-color-fuchsia-1200: #ffdef6;
+  --dh-color-fuchsia-1300: #ffeffb;
+  --dh-color-fuchsia-1400: #fff7fd;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* Derived purple-magenta */
+  --dh-color-magenta-100: #280820;
+  --dh-color-magenta-200: #350c2a;
+  --dh-color-magenta-300: #441035;
+  --dh-color-magenta-400: #581644;
+  --dh-color-magenta-500: #701e58;
+  --dh-color-magenta-600: #8a286e;
+  --dh-color-magenta-700: #a63486;
+  --dh-color-magenta-800: #c2449f;
+  --dh-color-magenta-900: #dd5ab8;
+  --dh-color-magenta-1000: #ee74cc;
+  --dh-color-magenta-1100: #f892db;
+  --dh-color-magenta-1200: #fdb2e8;
+  --dh-color-magenta-1300: #ffd0f2;
+  --dh-color-magenta-1400: #ffe8f9;
+
+  /* ============ SEMANTIC - ACCENT (Purple) ============ */
+  --dh-color-accent-100: var(--dh-color-purple-100);
+  --dh-color-accent-200: var(--dh-color-purple-200);
+  --dh-color-accent-300: var(--dh-color-purple-300);
+  --dh-color-accent-400: var(--dh-color-purple-400);
+  --dh-color-accent-500: var(--dh-color-purple-500);
+  --dh-color-accent-600: var(--dh-color-purple-600);
+  --dh-color-accent-700: var(--dh-color-purple-700);
+  --dh-color-accent-800: var(--dh-color-purple-800);
+  --dh-color-accent-900: var(--dh-color-purple-900);
+  --dh-color-accent-1000: var(--dh-color-purple-1000);
+  --dh-color-accent-1100: var(--dh-color-purple-1100);
+  --dh-color-accent-1200: var(--dh-color-purple-1200);
+  --dh-color-accent-1300: var(--dh-color-purple-1300);
+  --dh-color-accent-1400: var(--dh-color-purple-1400);
+
+  /* ============ SEMANTIC - POSITIVE (Green) ============ */
+  --dh-color-visual-positive: var(--dh-color-green-900);
+
+  /* ============ SEMANTIC - NEGATIVE (Red) ============ */
+  --dh-color-negative: var(--dh-color-red-600);
+  --dh-color-negative-bg: var(--dh-color-negative);
+  --dh-color-negative-hover-bg: var(--dh-color-red-500);
+  --dh-color-negative-down-bg: var(--dh-color-red-400);
+  --dh-color-negative-key-focus-bg: var(--dh-color-red-500);
+  --dh-color-visual-negative: var(--dh-color-red-600);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using SynthWave background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-200);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
+
+  /* Chart colorway using SynthWave neon colors */
+  --dh-color-chart-colorway: var(--dh-color-fuchsia-800) var(--dh-color-cyan-800)
+    var(--dh-color-green-900) var(--dh-color-yellow-1000)
+    var(--dh-color-orange-700) var(--dh-color-purple-700)
+    var(--dh-color-red-600) var(--dh-color-blue-700) var(--dh-color-magenta-800)
+    var(--dh-color-indigo-700);
+
+  /* ============ EDITOR SEMANTIC - SYNTHWAVE SYNTAX ============ */
+  /* Based on SynthWave '84 token colors */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-100);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-200);
+  --dh-color-editor-selection-bg: var(--dh-color-gray-300);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
+
+  /* Code syntax highlighting per SynthWave spec */
+  --dh-color-editor-comment: var(--dh-color-blue-700); /* Comments - #848BBD (bluish gray) */
+  --dh-color-editor-keyword: var(--dh-color-yellow-1000); /* Keywords - Yellow #FEDE5D */
+  --dh-color-editor-storage: var(--dh-color-yellow-1000); /* Storage types - Yellow */
+  --dh-color-editor-number: var(--dh-color-orange-700); /* Numbers, constants - Coral #F97E72 */
+  --dh-color-editor-string: var(--dh-color-orange-700); /* Strings - Orange #FF8B39 */
+  --dh-color-editor-string-delim: var(--dh-color-orange-700); /* String delimiters */
+  --dh-color-editor-identifier: var(--dh-color-fuchsia-800); /* Variables - Pink #FF7EDB */
+  --dh-color-editor-identifier-js: var(--dh-color-fuchsia-800); /* JS Variables - Pink */
+  --dh-color-editor-identifier-namespace: var(--dh-color-red-600); /* Types, classes - Red #FE4450 */
+  --dh-color-editor-predefined: var(--dh-color-cyan-800); /* Functions - Cyan #36F9F6 */
+  --dh-color-editor-operator: var(--dh-color-yellow-1000); /* Operators - Yellow */
+  --dh-color-editor-delimiter: var(--dh-color-gray-800); /* Delimiters */
+  --dh-color-editor-error-fg: var(--dh-color-red-600); /* Errors - Red #FE4450 */
+
+  /* Bracket colors - SynthWave style cycling through neon colors */
+  --dh-color-editor-bracket-fg1: var(--dh-color-fuchsia-800); /* Pink */
+  --dh-color-editor-bracket-fg2: var(--dh-color-cyan-800); /* Cyan */
+  --dh-color-editor-bracket-fg3: var(--dh-color-yellow-1000); /* Yellow */
+  --dh-color-editor-bracket-fg4: var(--dh-color-green-900); /* Green */
+  --dh-color-editor-bracket-fg5: var(--dh-color-orange-700); /* Orange */
+  --dh-color-editor-bracket-fg6: var(--dh-color-purple-800); /* Purple */
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-600); /* Red */
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-600);
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-900);
+}

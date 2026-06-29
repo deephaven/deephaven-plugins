@@ -39,7 +39,7 @@ function DocumentHandler({
   onDataChange,
   onClose,
 }: DocumentHandlerProps): JSX.Element {
-  log.debug('Rendering document', widget);
+  log.debug('Rendering document', widget, initialData);
 
   // We can tell if we're opened by the DashboardPlugin or the WidgetPlugin or nested by checking the context ID
   const contextPanelId = usePanelId();

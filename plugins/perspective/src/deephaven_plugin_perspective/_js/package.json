@@ -1,0 +1,39 @@
+{
+  "name": "deephaven-plugin-perspective",
+  "version": "0.0.1",
+  "description": "Deephaven plugin for FINOS Perspective",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@deephaven/tsconfig": "^0.72.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "react": "^18.0.0",
+    "typescript": "^5.9.3",
+    "vite": "~4.1.4",
+    "vite-plugin-top-level-await": "^1.4.0",
+    "vite-plugin-wasm": "^3.3.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@deephaven/components": "^1.17.0",
+    "@deephaven/jsapi-bootstrap": "^1.17.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
+    "@deephaven/log": "^1.8.0",
+    "@deephaven/plugin": "^1.18.0",
+    "@finos/perspective": "^3.1.0",
+    "@finos/perspective-viewer": "^3.1.0",
+    "@finos/perspective-viewer-d3fc": "^3.1.0",
+    "@finos/perspective-viewer-datagrid": "^3.1.0"
+  },
+  "files": [
+    "dist/index.js"
+  ]
+}

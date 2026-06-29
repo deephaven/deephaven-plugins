@@ -27,7 +27,7 @@ from .._internal.utils import (
 )
 from ..types import Date, Granularity, Undefined, UndefinedType
 from .basic import component_element
-from .make_component import make_component
+from .component import component
 from deephaven.time import dh_now
 
 DateFieldElement = Element
@@ -75,7 +75,7 @@ def _convert_date_field_props(
     return props
 
 
-@make_component
+@component
 def date_field(
     placeholder_value: Date | None = dh_now(),
     value: Date | None | UndefinedType = Undefined,

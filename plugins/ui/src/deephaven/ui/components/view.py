@@ -12,12 +12,12 @@ from .types import (
     Position,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 from ..types import Color
 
 
 def view(
-    *children: Any,
+    *children: NodeType,
     element_type: ElementTypes | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,

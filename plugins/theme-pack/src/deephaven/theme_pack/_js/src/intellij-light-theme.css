@@ -1,0 +1,354 @@
+/* IntelliJ Light Theme for Deephaven */
+/* Generated from JetBrains IntelliJ IDEA Light theme colors */
+:root {
+  /* ============ GRAY PALETTE ============ */
+  /* Light theme: gray-50 (#ffffff) is lightest, gray-900 (#000000) is darkest */
+  /* Anchors: editor.background #ffffff, sideBar.background #f7f8fa, foreground #000000 */
+  --dh-color-gray-50: #ffffff;
+  --dh-color-gray-75: #fcfcfd;
+  --dh-color-gray-100: #f7f8fa; /* IntelliJ sidebar/panel background */
+  --dh-color-gray-200: #ebecf0; /* IntelliJ borders */
+  --dh-color-gray-300: #d9dbe0;
+  --dh-color-gray-400: #b9beca;
+  --dh-color-gray-500: #aeb3c2;
+  --dh-color-gray-600: #8e939f;
+  --dh-color-gray-700: #767a8a; /* Line numbers active */
+  --dh-color-gray-800: #4a4d57;
+  --dh-color-gray-900: #000000; /* IntelliJ foreground */
+
+  /* ============ RED PALETTE ============ */
+  /* IntelliJ Red (#d70000) - errors, terminal red anchored at 800 */
+  --dh-color-red-100: #fff0f0;
+  --dh-color-red-200: #ffe2e2;
+  --dh-color-red-300: #ffcdcd;
+  --dh-color-red-400: #ffb0b0;
+  --dh-color-red-500: #ff8888;
+  --dh-color-red-600: #ff5555;
+  --dh-color-red-700: #f02828;
+  --dh-color-red-800: #d70000; /* Terminal red */
+  --dh-color-red-900: #b50000;
+  --dh-color-red-1000: #960000;
+  --dh-color-red-1100: #780000;
+  --dh-color-red-1200: #5c0000;
+  --dh-color-red-1300: #420000;
+  --dh-color-red-1400: #2a0000;
+
+  /* ============ ORANGE PALETTE ============ */
+  /* IntelliJ Orange/Brown (#AB6526) - constants, numbers anchored at 700 */
+  --dh-color-orange-100: #fff5eb;
+  --dh-color-orange-200: #ffebd8;
+  --dh-color-orange-300: #ffdcbf;
+  --dh-color-orange-400: #ffc89f;
+  --dh-color-orange-500: #e9a872;
+  --dh-color-orange-600: #cf8a4c;
+  --dh-color-orange-700: #ab6526; /* Constants/numbers */
+  --dh-color-orange-800: #8f4f12;
+  --dh-color-orange-900: #763c00;
+  --dh-color-orange-1000: #5f2e00;
+  --dh-color-orange-1100: #492200;
+  --dh-color-orange-1200: #361700;
+  --dh-color-orange-1300: #250f00;
+  --dh-color-orange-1400: #160800;
+
+  /* ============ YELLOW PALETTE ============ */
+  /* IntelliJ Yellow (#af8700) - terminal yellow anchored at 700 */
+  --dh-color-yellow-100: #fff9e5;
+  --dh-color-yellow-200: #fff3cc;
+  --dh-color-yellow-300: #ffe8a8;
+  --dh-color-yellow-400: #ffd97f;
+  --dh-color-yellow-500: #e8be50;
+  --dh-color-yellow-600: #cca228;
+  --dh-color-yellow-700: #af8700; /* Terminal yellow */
+  --dh-color-yellow-800: #926e00;
+  --dh-color-yellow-900: #785800;
+  --dh-color-yellow-1000: #604500;
+  --dh-color-yellow-1100: #4a3400;
+  --dh-color-yellow-1200: #372600;
+  --dh-color-yellow-1300: #261a00;
+  --dh-color-yellow-1400: #170f00;
+
+  /* ============ CHARTREUSE PALETTE ============ */
+  /* Derived - between yellow and green anchored at 700 */
+  --dh-color-chartreuse-100: #f3fce6;
+  --dh-color-chartreuse-200: #e6f8cc;
+  --dh-color-chartreuse-300: #d4f0a8;
+  --dh-color-chartreuse-400: #bee47f;
+  --dh-color-chartreuse-500: #a4d352;
+  --dh-color-chartreuse-600: #87be28;
+  --dh-color-chartreuse-700: #6ba800;
+  --dh-color-chartreuse-800: #568c00;
+  --dh-color-chartreuse-900: #447200;
+  --dh-color-chartreuse-1000: #345a00;
+  --dh-color-chartreuse-1100: #264400;
+  --dh-color-chartreuse-1200: #1b3200;
+  --dh-color-chartreuse-1300: #122200;
+  --dh-color-chartreuse-1400: #0a1300;
+
+  /* ============ CELERY PALETTE ============ */
+  /* Derived - between chartreuse and green anchored at 700 */
+  --dh-color-celery-100: #f1fce6;
+  --dh-color-celery-200: #e3f9cc;
+  --dh-color-celery-300: #cff1a8;
+  --dh-color-celery-400: #b7e57f;
+  --dh-color-celery-500: #9bd552;
+  --dh-color-celery-600: #7cc028;
+  --dh-color-celery-700: #5fa800;
+  --dh-color-celery-800: #4c8c00;
+  --dh-color-celery-900: #3c7200;
+  --dh-color-celery-1000: #2e5a00;
+  --dh-color-celery-1100: #224400;
+  --dh-color-celery-1200: #183200;
+  --dh-color-celery-1300: #102200;
+  --dh-color-celery-1400: #081300;
+
+  /* ============ GREEN PALETTE ============ */
+  /* IntelliJ Green (#008800) - strings anchored at 700 */
+  --dh-color-green-100: #e8fee8;
+  --dh-color-green-200: #d0fdd0;
+  --dh-color-green-300: #b0f8b0;
+  --dh-color-green-400: #88ef88;
+  --dh-color-green-500: #58e058;
+  --dh-color-green-600: #2cc82c;
+  --dh-color-green-700: #008800; /* String green */
+  --dh-color-green-800: #007000;
+  --dh-color-green-900: #005a00;
+  --dh-color-green-1000: #004800;
+  --dh-color-green-1100: #003600;
+  --dh-color-green-1200: #002700;
+  --dh-color-green-1300: #001a00;
+  --dh-color-green-1400: #000f00;
+
+  /* ============ SEAFOAM PALETTE ============ */
+  /* Derived - between green and cyan anchored at 700 */
+  --dh-color-seafoam-100: #e6fef5;
+  --dh-color-seafoam-200: #ccfdea;
+  --dh-color-seafoam-300: #a8f8da;
+  --dh-color-seafoam-400: #7fefca;
+  --dh-color-seafoam-500: #52e2b5;
+  --dh-color-seafoam-600: #28d0a0;
+  --dh-color-seafoam-700: #00b888;
+  --dh-color-seafoam-800: #009a70;
+  --dh-color-seafoam-900: #007e5a;
+  --dh-color-seafoam-1000: #006448;
+  --dh-color-seafoam-1100: #004c36;
+  --dh-color-seafoam-1200: #003828;
+  --dh-color-seafoam-1300: #00261a;
+  --dh-color-seafoam-1400: #00160f;
+
+  /* ============ CYAN PALETTE ============ */
+  /* IntelliJ Cyan (#00afaf) - terminal cyan anchored at 700 */
+  --dh-color-cyan-100: #e5fefe;
+  --dh-color-cyan-200: #ccfcfc;
+  --dh-color-cyan-300: #a8f6f6;
+  --dh-color-cyan-400: #7fedec;
+  --dh-color-cyan-500: #52e0de;
+  --dh-color-cyan-600: #28ceca;
+  --dh-color-cyan-700: #00afaf; /* Terminal cyan */
+  --dh-color-cyan-800: #009292;
+  --dh-color-cyan-900: #007878;
+  --dh-color-cyan-1000: #006060;
+  --dh-color-cyan-1100: #004a4a;
+  --dh-color-cyan-1200: #003636;
+  --dh-color-cyan-1300: #002525;
+  --dh-color-cyan-1400: #001616;
+
+  /* ============ BLUE PALETTE ============ */
+  /* IntelliJ Blue (#3369d6) - accent, links anchored at 700 */
+  --dh-color-blue-100: #e8f0ff;
+  --dh-color-blue-200: #d2e2ff;
+  --dh-color-blue-300: #b5cfff;
+  --dh-color-blue-400: #94b8ff;
+  --dh-color-blue-500: #6e9cf5;
+  --dh-color-blue-600: #4d82e8;
+  --dh-color-blue-700: #3369d6; /* Accent blue */
+  --dh-color-blue-800: #1c53b8;
+  --dh-color-blue-900: #0a4098;
+  --dh-color-blue-1000: #00307c;
+  --dh-color-blue-1100: #002262;
+  --dh-color-blue-1200: #00164a;
+  --dh-color-blue-1300: #000d34;
+  --dh-color-blue-1400: #000620;
+
+  /* ============ INDIGO PALETTE ============ */
+  /* Derived - between blue and purple, used for tags (#1C4C8F) anchored at 800 */
+  --dh-color-indigo-100: #ebeeff;
+  --dh-color-indigo-200: #d7dfff;
+  --dh-color-indigo-300: #c0ccff;
+  --dh-color-indigo-400: #a4b6f8;
+  --dh-color-indigo-500: #869dee;
+  --dh-color-indigo-600: #6882df;
+  --dh-color-indigo-700: #4a68cc;
+  --dh-color-indigo-800: #1c4c8f; /* HTML tags */
+  --dh-color-indigo-900: #0a3a75;
+  --dh-color-indigo-1000: #002a5e;
+  --dh-color-indigo-1100: #001d48;
+  --dh-color-indigo-1200: #001335;
+  --dh-color-indigo-1300: #000b24;
+  --dh-color-indigo-1400: #000515;
+
+  /* ============ PURPLE PALETTE ============ */
+  /* IntelliJ Purple (#880088) - variables anchored at 700 */
+  --dh-color-purple-100: #fee8fe;
+  --dh-color-purple-200: #fcd0fc;
+  --dh-color-purple-300: #f7b0f7;
+  --dh-color-purple-400: #ef88ef;
+  --dh-color-purple-500: #e358e3;
+  --dh-color-purple-600: #d22cd2;
+  --dh-color-purple-700: #880088; /* Variables */
+  --dh-color-purple-800: #700070;
+  --dh-color-purple-900: #5a005a;
+  --dh-color-purple-1000: #480048;
+  --dh-color-purple-1100: #360036;
+  --dh-color-purple-1200: #270027;
+  --dh-color-purple-1300: #1a001a;
+  --dh-color-purple-1400: #0f000f;
+
+  /* ============ FUCHSIA PALETTE ============ */
+  /* Derived - CSS selectors (#7A3E9D) anchored at 700 */
+  --dh-color-fuchsia-100: #f8e8ff;
+  --dh-color-fuchsia-200: #f0d0ff;
+  --dh-color-fuchsia-300: #e4b2ff;
+  --dh-color-fuchsia-400: #d590f8;
+  --dh-color-fuchsia-500: #c26aeb;
+  --dh-color-fuchsia-600: #ab48d8;
+  --dh-color-fuchsia-700: #7a3e9d; /* CSS selectors */
+  --dh-color-fuchsia-800: #622c82;
+  --dh-color-fuchsia-900: #4d1d6a;
+  --dh-color-fuchsia-1000: #3b1055;
+  --dh-color-fuchsia-1100: #2b0741;
+  --dh-color-fuchsia-1200: #1e0230;
+  --dh-color-fuchsia-1300: #130020;
+  --dh-color-fuchsia-1400: #0a0012;
+
+  /* ============ MAGENTA PALETTE ============ */
+  /* IntelliJ Magenta (#af005f) - terminal magenta anchored at 700 */
+  --dh-color-magenta-100: #ffe8f2;
+  --dh-color-magenta-200: #ffd0e5;
+  --dh-color-magenta-300: #ffb0d2;
+  --dh-color-magenta-400: #ff88bb;
+  --dh-color-magenta-500: #f55899;
+  --dh-color-magenta-600: #e02878;
+  --dh-color-magenta-700: #af005f; /* Terminal magenta */
+  --dh-color-magenta-800: #92004d;
+  --dh-color-magenta-900: #78003d;
+  --dh-color-magenta-1000: #600030;
+  --dh-color-magenta-1100: #4a0024;
+  --dh-color-magenta-1200: #36001a;
+  --dh-color-magenta-1300: #250011;
+  --dh-color-magenta-1400: #16000a;
+
+  /* ============ SEMANTIC - ACCENT (Blue) ============ */
+  /* IntelliJ uses blue as primary accent */
+  --dh-color-accent-100: var(--dh-color-blue-100);
+  --dh-color-accent-200: var(--dh-color-blue-200);
+  --dh-color-accent-300: var(--dh-color-blue-300);
+  --dh-color-accent-400: var(--dh-color-blue-400);
+  --dh-color-accent-500: var(--dh-color-blue-500);
+  --dh-color-accent-600: var(--dh-color-blue-600);
+  --dh-color-accent-700: var(--dh-color-blue-700);
+  --dh-color-accent-800: var(--dh-color-blue-800);
+  --dh-color-accent-900: var(--dh-color-blue-900);
+  --dh-color-accent-1000: var(--dh-color-blue-1000);
+  --dh-color-accent-1100: var(--dh-color-blue-1100);
+  --dh-color-accent-1200: var(--dh-color-blue-1200);
+  --dh-color-accent-1300: var(--dh-color-blue-1300);
+  --dh-color-accent-1400: var(--dh-color-blue-1400);
+
+  /* Accent semantic - adjusted for blue-700 as primary accent */
+  --dh-color-accent: var(--dh-color-blue-700);
+  --dh-color-accent-bg: var(--dh-color-blue-700);
+  --dh-color-accent-hover-bg: var(--dh-color-blue-800);
+  --dh-color-accent-down-bg: var(--dh-color-blue-600);
+  --dh-color-accent-key-focus-bg: var(--dh-color-blue-800);
+  --dh-color-accent-contrast: var(--dh-color-gray-50);
+
+  /* ============ SEMANTIC - VISUAL COLORS ============ */
+  --dh-color-visual-positive: var(--dh-color-green-700);
+  --dh-color-visual-negative: var(--dh-color-red-800);
+  --dh-color-visual-yellow: var(--dh-color-yellow-700);
+  --dh-color-visual-orange: var(--dh-color-orange-700);
+  --dh-color-visual-green: var(--dh-color-green-700);
+  --dh-color-visual-cyan: var(--dh-color-cyan-700);
+  --dh-color-visual-blue: var(--dh-color-blue-700);
+  --dh-color-visual-purple: var(--dh-color-purple-700);
+  --dh-color-visual-red: var(--dh-color-red-800);
+
+  /* ============ COMPONENT OVERRIDES ============ */
+  /* Grid styling using IntelliJ Light background tones */
+  --dh-color-grid-header-bg: var(--dh-color-gray-200);
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-50);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
+
+  /* Chart colorway using IntelliJ palette colors */
+  --dh-color-chart-colorway: var(--dh-color-blue-700) var(--dh-color-orange-700)
+    var(--dh-color-green-700) var(--dh-color-cyan-700)
+    var(--dh-color-purple-700) var(--dh-color-yellow-700)
+    var(--dh-color-red-800) var(--dh-color-fuchsia-700)
+    var(--dh-color-indigo-700) var(--dh-color-seafoam-700);
+
+  /* ============ EDITOR SEMANTIC - INTELLIJ LIGHT SYNTAX ============ */
+  /* Based on IntelliJ IDEA Light theme token colors */
+
+  /* Editor background and text */
+  --dh-color-editor-bg: var(--dh-color-gray-50);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-blue-100);
+  --dh-color-editor-selection-bg: var(--dh-color-blue-200);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-blue-100);
+
+  /* Code syntax highlighting per IntelliJ Light spec */
+  --dh-color-editor-comment: var(
+    --dh-color-gray-500
+  ); /* Comments - #AAAAAA grayish */
+  --dh-color-editor-keyword: var(
+    --dh-color-indigo-1100
+  ); /* Keywords - #000088 dark blue (bold) */
+  --dh-color-editor-storage: var(
+    --dh-color-indigo-1000
+  ); /* Storage types - dark blue */
+  --dh-color-editor-number: var(
+    --dh-color-orange-700
+  ); /* Numbers - #AB6526 orange/brown */
+  --dh-color-editor-string: var(
+    --dh-color-green-800
+  ); /* Strings - #008800 green (bold) */
+  --dh-color-editor-string-delim: var(
+    --dh-color-green-700
+  ); /* String delimiters - green */
+  --dh-color-editor-identifier: var(
+    --dh-color-gray-900
+  ); /* Default identifiers - black */
+  --dh-color-editor-identifier-js: var(
+    --dh-color-fuchsia-700
+  ); /* Functions - #862F95 purple */
+  --dh-color-editor-identifier-namespace: var(
+    --dh-color-gray-900
+  ); /* Classes - black */
+  --dh-color-editor-predefined: var(
+    --dh-color-gray-900
+  ); /* Predefined/support - black */
+  --dh-color-editor-operator: var(
+    --dh-color-gray-700
+  ); /* Operators - #777777 gray */
+  --dh-color-editor-delimiter: var(
+    --dh-color-gray-700
+  ); /* Delimiters - #777777 gray */
+  --dh-color-editor-error-fg: var(
+    --dh-color-red-700
+  ); /* Errors - #FF0000 red */
+
+  /* Bracket colors - IntelliJ Light style */
+  --dh-color-editor-bracket-fg1: var(--dh-color-indigo-800); /* Dark blue */
+  --dh-color-editor-bracket-fg2: var(--dh-color-green-800); /* Dark green */
+  --dh-color-editor-bracket-fg3: var(--dh-color-orange-800); /* Brown */
+  --dh-color-editor-bracket-fg4: var(--dh-color-indigo-800); /* Dark blue */
+  --dh-color-editor-bracket-fg5: var(--dh-color-green-800); /* Dark green */
+  --dh-color-editor-bracket-fg6: var(--dh-color-orange-800); /* Brown */
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-700); /* Red */
+
+  /* Line numbers */
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-400); /* #b9beca dim */
+  --dh-color-editor-line-number-active-fg: var(
+    --dh-color-gray-700
+  ); /* #767a8a active */
+}

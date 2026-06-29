@@ -139,18 +139,18 @@ function ReactPanel({
       'ui.panel must be a top-level component or used within a dashboard layout.'
     );
   }
-  const { eventHub } = layoutManager;
+  const { eventHub, root } = layoutManager;
 
   useEffect(
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
-        LayoutUtils.closeComponent(parent, { id: panelId });
+        LayoutUtils.closeComponent(root, { id: panelId });
         isPanelOpenRef.current = false;
         onClose();
       }
     },
-    [parent, onClose, panelId]
+    [onClose, panelId, root]
   );
 
   const handlePanelClosed = useCallback(
@@ -178,7 +178,10 @@ function ReactPanel({
      */
     function openIfNecessary() {
       const itemConfig = { id: panelId };
-      const existingStack = LayoutUtils.getStackForConfig(parent, itemConfig);
+      // We check if we have an existing stack with this panel ID. Check from the root though,
+      // as the user may have moved the panel to a different stack, and we want to find it regardless
+      // of where it is in the layout.
+      const existingStack = LayoutUtils.getStackForConfig(root, itemConfig);
       if (existingStack == null) {
         const config = {
           type: 'react-component' as const,
@@ -189,6 +192,23 @@ function ReactPanel({
           isClosable,
         };
 
+        // If we didn't find it, we still want to open it in the same place in the layout as before (parent stack) instead of opening at the root.
+        // Walk up from parent, tracking the topmost item seen, to determine in one pass whether the parent
+        // is detached and, if so, which ancestor to re-add. Re-adding the topmost detached ancestor (e.g. a
+        // row containing multiple stacks) better preserves the layout and ensures stack headers are rendered.
+        let topDetached: typeof parent = parent;
+        let currentParent: typeof parent | null = parent.parent;
+        while (currentParent != null && currentParent !== root) {
+          topDetached = currentParent;
+          currentParent = currentParent.parent;
+        }
+        if (currentParent === null) {
+          // currentParent reached null without hitting root, so the parent is detached.
+          // Root can only have one direct child (a row/column container), so add to that instead.
+          const rootChild =
+            root.contentItems.length > 0 ? root.contentItems[0] : root;
+          rootChild.addChild(topDetached);
+        }
         LayoutUtils.openComponent({ root: parent, config });
         log.debug('Opened panel', panelId, config);
       } else if (openedMetadataRef.current !== metadata) {
@@ -210,10 +230,10 @@ function ReactPanel({
 
       if (prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
-        LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
+        LayoutUtils.renameComponent(root, itemConfig, panelTitle);
       }
     },
-    [isClosable, parent, metadata, onOpen, panelId, panelTitle]
+    [isClosable, parent, metadata, onOpen, panelId, panelTitle, root]
   );
   const widgetStatus = useWidgetStatus();
 

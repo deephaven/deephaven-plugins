@@ -1,0 +1,6 @@
+deephaven-core>=0.37.0
+deephaven-plugin>=0.6.0
+deephaven-plugin-utilities>=0.0.2
+
+[:python_version < "3.11"]
+typing_extensions
