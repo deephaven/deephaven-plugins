@@ -768,7 +768,7 @@ my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_exa
 
 ## How to create a multi-select component
 
-It's recommended to use [`multi_select`](multi_select.md) for `multi-select` use cases, but if you want the `combo_box` separate from the tags you can also use a `tag_group` to show selected items, and use the `on_input_change` and `on_change` events to manage the state between them.
+It is recommended to use [`multi_select`](multi_select.md) for `multi-select` use cases, but if you want the `combo_box` separate from the tags, you can also use a `tag_group` to show selected items, and use the `on_input_change` and `on_change` events to manage the state between them.
 
 ```python
 from deephaven import ui

@@ -46,7 +46,7 @@ Recommendations for creating clear and effective multi selects:
 
 ## Data sources
 
-For multi selects, we can use a Deephaven table or [URI](uri.md) as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a multi select data source.
+For multi selects, we can use a Deephaven table or [URI](uri.md) as a data source to populate the options. When using a table, the first column automatically is used as both the key and the label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a multi select data source.
 
 ```python order=my_multi_select_table_source_example,countries
 from deephaven import ui
@@ -90,7 +90,7 @@ my_multi_select_item_table_source_example = ui.multi_select(
 
 ## Custom Value
 
-By default, when a multi select loses focus, it resets its input value. To allow users to enter custom values as tags, use the `allows_custom_value` prop. Pressing Enter when no item is focused adds the typed text as a custom tag. If the typed text matches an existing item's label, that item's key is used instead.
+By default, when a multi select loses focus, it resets its input value. To allow users to enter custom values as tags, use the `allows_custom_value` prop. Pressing **Enter** when no item is focused adds the typed text as a custom tag. If the typed text matches an existing item's label, that item's key is used instead.
 
 ```python
 from deephaven import ui
@@ -147,7 +147,7 @@ my_multi_select_form_example = ui_multi_select_form_example()
 
 ## Labeling
 
-The multi select can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
+Use the `label` prop to label a multi select. If no label is provided, you must use an `aria_label` to identify the control for accessibility purposes.
 
 ```python
 from deephaven import ui
@@ -184,9 +184,9 @@ def ui_multi_select_label_examples():
 my_multi_select_label_examples = ui_multi_select_label_examples()
 ```
 
-The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the multi select is required or optional.
+Use the `is_required` prop and the `necessity_indicator` props to show whether selecting an option in the multi-select is required or optional.
 
-When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
+When the `necessity_indicator` prop is set to "label", a localized string for "(required)" or "(optional)" will automatically be generated.
 
 ```python
 from deephaven import ui
@@ -242,7 +242,7 @@ my_multi_select_required_examples = ui_multi_select_required_examples()
 
 Use `selected_keys` or `default_selected_keys` to set the selected options.
 
-`default_selected_keys` is useful for simpler scenarios where you don't need to control the state externally. `selected_keys` is used for scenarios where the state should be managed by the parent component, providing control and flexibility over the selection of the multi select.
+`default_selected_keys` is useful for simpler scenarios where you don't need to control the state externally. Use `selected_keys`for scenarios where the state should be managed by the parent component, providing control and flexibility over the selection of the multi select.
 
 ```python
 from deephaven import ui
@@ -287,11 +287,12 @@ my_multi_select_selected_keys_examples = ui_multi_select_selected_keys_examples(
 
 ## Sections
 
-Multi selects support sections to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
+Multi selects support sections to group options. Sections can be used by wrapping groups of items in a `section` element. Each Section takes a title and key prop.
 
 Note that, when searching for options, searching by section will not result in the respective options within that section appearing.
 
-Also, sections can only be used directly, not from a table data source.
+> [!CAUTION]
+> Sections can only be used directly, not from a table data source.
 
 ```python
 from deephaven import ui
@@ -328,9 +329,10 @@ my_multi_select_section_example = ui.multi_select(
 
 Multi selects support selection via mouse, keyboard, and touch. You can handle all these via the `on_change` prop. Additionally, multi selects accept an `on_input_change` prop, which is triggered whenever the search value is edited by the user, whether through typing or option selection.
 
-Each interaction done in the multi select will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
+Each interaction within the multi select will trigger its associated event handler. For instance, typing in the input field triggers the `on_input_change`, not the `on_change`.
 
-Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
+> [!NOTE]
+> This is not the case for selections: when a selection is made, both the `on_change` and `on_input_change` are triggered.
 
 ```python
 from deephaven import ui
@@ -399,7 +401,7 @@ my_multi_select_complex_items_example = ui.multi_select(
 
 The `is_required` prop ensures that the user selects an option. The related `validation_behaviour` prop allows the user to specify aria or native verification.
 
-When the prop is set to "native", the validation errors block form submission and are displayed as help text automatically.
+When the prop is set to "native", validation errors block form submission and are displayed automatically as help text.
 
 ```python
 from deephaven import ui
@@ -424,7 +426,7 @@ my_multi_select_validation_behaviour_example = (
 
 ## Trigger Options
 
-By default, the multi select's menu opens when the user types into the input field ("input"). This behavior can be changed to open on focus ("focus") or only when the field button is clicked ("manual") using the `menu_trigger` prop.
+By default, the multi select's menu opens when the user types into the input field (`"input"`). This behavior can be changed to open on focus (`"focus"`) or only when the field button is clicked (`"manual"`) using the `menu_trigger` prop.
 
 ```python
 from deephaven import ui
@@ -479,7 +481,7 @@ my_multi_select_trigger_option_examples = ui_multi_select_trigger_option_example
 
 ## Label position
 
-By default, the position of a multi select's label is above the multi select, but it can be moved to the side using the `label_position` prop.
+By default, the label is positioned above the multi select, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
