@@ -10,7 +10,6 @@ import NestedDashboard from './NestedDashboard';
 import Row from './Row';
 import Column from './Column';
 import Stack from './Stack';
-import ReactPanel from './ReactPanel';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import {
   ReactPanelManagerContext,
