@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Any, Sequence
+from typing import Callable, Any, Sequence, cast
 
 from .types import (
     FocusEventCallable,
@@ -252,6 +252,6 @@ def multi_select(
 
     return component_element(
         "MultiSelect",
-        *children,
+        *cast("tuple[NodeType, ...]", children),
         **props,
     )
