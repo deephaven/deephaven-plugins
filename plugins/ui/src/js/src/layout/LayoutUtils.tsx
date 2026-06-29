@@ -302,7 +302,7 @@ export function wrapBareChildrenInPanel(
       child.type !== Stack &&
       child.type !== ReactPanel
     ) {
-      return <ReactPanel title="Untitled">{child}</ReactPanel>;
+      return <ReactPanel>{child}</ReactPanel>;
     }
     return child;
   });
