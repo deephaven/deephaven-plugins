@@ -71,8 +71,9 @@ class DeephavenFigureListener:
             listen_func = partial(self._on_update, node)
             # if a table is not refreshing, it will never update, so no need to listen
             if table.is_refreshing:
-                # do_replay=True replays the current snapshot to make sure no data was
-                # missed before the listener was registered.
+                # do_replay=True atomically replays existing state and registers
+                # for future updates under the UG lock, preventing a race where
+                # partitions that appear before registration are missed entirely.
                 handle = listen(table, listen_func, do_replay=True)
                 self._handles.append(handle)
                 self._liveness_scope.manage(handle)
@@ -97,14 +98,14 @@ class DeephavenFigureListener:
             node: The node to update. Changes will propagate up from this node.
             update: Not used. Required for the listener.
             is_replay: Whether this update is a replay of the table's initial
-                snapshot. Replays only update the cached figure.
+                snapshot. Replays only update the cached figure to make sure nothing is
+                missed. It's assumed the retrieve message sends the figure later.
         """
         if self._connection:
             revision = self._revision_manager.get_revision()
             node.recreate_figure()
-            # On replay we only refresh the cached figure. The initial figure is
-            # sent to the client by the retrieve message, so sending here would
-            # push an update before the client has been initialized.
+            # Replays only update the cached figure to make sure nothing is
+            # missed. It's assumed the retrieve message sends the figure later.
             if is_replay:
                 return
             figure = self._get_figure()
