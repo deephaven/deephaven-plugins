@@ -10,6 +10,7 @@ import NestedDashboard from './NestedDashboard';
 import Row from './Row';
 import Column from './Column';
 import Stack from './Stack';
+import ReactPanel from './ReactPanel';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import {
   ReactPanelManagerContext,
@@ -29,6 +30,21 @@ jest.mock('./LayoutUtils', () => ({
   normalizeRowChildren: (children: React.ReactNode) => children,
   normalizeColumnChildren: (children: React.ReactNode) => children,
   normalizeStackChildren: (children: React.ReactNode) => children,
+  wrapBareChildrenInPanel: (children: React.ReactNode) => children,
+}));
+
+// Mock ReactPanel to a simple passthrough. These tests verify Row/Column/Stack
+// content-item behavior, not the panel's GoldenLayout interaction (which the
+// mock layout manager can't fully satisfy).
+jest.mock('./ReactPanel', () => ({
+  __esModule: true,
+  default: function MockReactPanel({
+    children,
+  }: {
+    children: React.ReactNode;
+  }): React.ReactNode {
+    return children;
+  },
 }));
 
 // Mock usePersistentState which requires FiberProvider context
