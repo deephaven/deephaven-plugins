@@ -286,10 +286,22 @@ class table(Element):
             The callback is invoked with the selected rows with data from the columns in `always_fetch_columns`.
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
-        quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
-        sorts: The sorts to apply to the table.
+        quick_filters: The quick filters to apply to the table. Server-owned:
+            updating this value re-applies it and replaces any quick filters the
+            user has changed in the UI. Dictionary of column name to filter value.
+        default_quick_filters: The initial quick filters to apply to the table.
+            User-owned: this sets the initial value, then the user owns it from
+            there, and their changes are persisted and restored on reload.
+            Ignored if `quick_filters` is provided.
+            Dictionary of column name to filter value.
+        sorts: The sorts to apply to the table. Server-owned: updating this value
+            re-applies it and replaces any sorts the user has changed in the UI.
             These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
-            User changes to the sort state are persisted and restored on reload.
+            Accepts a column name, TableSort, or list containing column names and TableSort instances.
+        default_sorts: The initial sorts to apply to the table. User-owned: this
+            sets the initial value, then the user owns it from there, and their
+            changes are persisted and restored on reload.
+            Ignored if `sorts` is provided.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
@@ -376,7 +388,9 @@ class table(Element):
         on_selection_change: SelectionChangeCallback | None = None,
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
+        default_quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         sorts: TableSortLike | list[TableSortLike] | None = None,
+        default_sorts: TableSortLike | list[TableSortLike] | None = None,
         show_quick_filters: bool = False,
         aggregations: TableAgg | list[TableAgg] | None = None,
         aggregations_position: Literal["top", "bottom"] | None = None,
@@ -446,6 +460,9 @@ class table(Element):
 
         if sorts is not None:
             props["sorts"] = _normalize_table_sorts(sorts)
+
+        if default_sorts is not None:
+            props["default_sorts"] = _normalize_table_sorts(default_sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]

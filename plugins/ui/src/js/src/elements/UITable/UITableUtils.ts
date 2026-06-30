@@ -100,7 +100,9 @@ export type UITableProps = StyleProps & {
   onSelectionChange?: (selectedRows: RowDataMap[]) => void;
   alwaysFetchColumns?: string | string[] | boolean;
   quickFilters?: Record<string, string>;
+  defaultQuickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
+  defaultSorts?: DehydratedSort[];
   aggregations?: UIAggregation | UIAggregation[];
   aggregationsPosition?: 'top' | 'bottom';
   showSearch: boolean;
