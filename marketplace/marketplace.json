@@ -129,6 +129,19 @@
         "url": "https://pypi.org/project/deephaven-plugin-notebook/"
       },
       "tags": ["notebooks", "experimental", "python"]
+    },
+    {
+      "name": "Pyinstrument",
+      "description": "Deephaven plugin for displaying pyinstrument profiling reports.",
+      "author": "gzh2003",
+      "repo": "https://github.com/gzh2003/pyinstrument-plugin",
+      "image": "/marketplace/images/pyinstrument.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-pyinstrument",
+        "url": "https://pypi.org/project/deephaven-plugin-pyinstrument/"
+      },
+      "tags": ["python"]
     }
   ]
 }
