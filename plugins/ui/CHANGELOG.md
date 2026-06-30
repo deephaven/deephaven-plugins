@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.39.1 - 2026-06-29
+
+#### Bug Fixes
+
+- **(ui)** DH-22995: wrap bare dashboard children in a panel on rehydration ([#1379](https://github.com/deephaven/deephaven-plugins/pull/1379)) - (ef050b7) - mofojed
+
+- - -
+
+
 ## ui-v0.39.0 - 2026-06-26
 
 #### Features
