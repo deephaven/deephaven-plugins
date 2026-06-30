@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@deephaven/log": "^1.8.0",
-    "@deephaven/plugin": "^1.18.0"
+    "@deephaven/plugin": "^1.23.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
