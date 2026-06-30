@@ -53,7 +53,8 @@ import {
   type GridState,
 } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
-import { useDebouncedCallback } from '@deephaven/react-hooks';
+import { useDebouncedCallback, useIsEqualMemo } from '@deephaven/react-hooks';
+import deepEqual from 'fast-deep-equal';
 import {
   type FormattingRule,
   getAggregationOperation,
@@ -166,6 +167,32 @@ function useUITableModel({
   return model;
 }
 
+/**
+ * Hydrate the `quick_filters` dict from the server into the quick filter map
+ * IrisGrid expects. Returns undefined if the filters or grid are not ready.
+ */
+function hydrateUITableQuickFilters(
+  quickFilters: Record<string, string> | undefined,
+  model: UITableModel | undefined,
+  columns: readonly DhType.Column[],
+  utils: IrisGridUtils | null
+): ReturnType<IrisGridUtils['hydrateQuickFilters']> | undefined {
+  if (quickFilters === undefined || utils == null || model == null) {
+    return undefined;
+  }
+  log.debug('Hydrating filters', quickFilters);
+
+  const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
+  Object.entries(quickFilters).forEach(([columnName, filter]) => {
+    const columnIndex = model.getColumnIndexByName(columnName);
+    if (columnIndex !== undefined) {
+      dehydratedQuickFilters.push([columnIndex, { text: filter }]);
+    }
+  });
+
+  return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
+}
+
 export function UITable({
   format_: formatProp = EMPTY_ARRAY as unknown as FormattingRule[],
   onCellPress,
@@ -176,7 +203,9 @@ export function UITable({
   onRowDoublePress,
   onSelectionChange,
   quickFilters,
+  defaultQuickFilters,
   sorts,
+  defaultSorts,
   aggregations,
   aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
@@ -379,23 +408,58 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Hydrate `sorts` once into a stable reference. We seed it as initial grid
-  // state (below) rather than passing it as a live IrisGrid prop, because
-  // IrisGrid re-applies the `sorts` prop on every reference change, which would
-  // clobber sorts the user changes in the UI.
-  const hydratedSortsRef = useRef<IrisGridProps['sorts'] | undefined>(
+  // Controlled `sorts`/`quickFilters` are applied as live IrisGrid props and
+  // re-applied whenever their value changes. We stabilize them by content so an
+  // unrelated re-render (new reference, identical content) does not re-apply and
+  // clobber changes the user made in the UI.
+  const stableSorts = useIsEqualMemo(sorts, deepEqual);
+  const hydratedSorts = useMemo(() => {
+    if (stableSorts === undefined || utils == null || columns.length === 0) {
+      return undefined;
+    }
+    log.debug('Hydrating sorts', stableSorts);
+    return utils.hydrateSort(columns, stableSorts);
+  }, [stableSorts, utils, columns]);
+
+  const stableQuickFilters = useIsEqualMemo(quickFilters, deepEqual);
+  const hydratedQuickFilters = useMemo(
+    () => hydrateUITableQuickFilters(stableQuickFilters, model, columns, utils),
+    [stableQuickFilters, model, columns, utils]
+  );
+
+  // Uncontrolled `defaultSorts`/`defaultQuickFilters` are hydrated once (after
+  // the columns load) and seeded as the initial grid state. Changes the user
+  // makes afterwards are kept by IrisGrid and persisted via onStateChange.
+  const hydratedDefaultSortsRef = useRef<IrisGridProps['sorts'] | undefined>(
     undefined
   );
   if (
-    hydratedSortsRef.current === undefined &&
+    hydratedDefaultSortsRef.current === undefined &&
     utils != null &&
-    sorts !== undefined &&
+    defaultSorts !== undefined &&
     columns.length > 0
   ) {
-    log.debug('Hydrating sorts', sorts);
-    hydratedSortsRef.current = utils.hydrateSort(columns, sorts);
+    hydratedDefaultSortsRef.current = utils.hydrateSort(columns, defaultSorts);
   }
-  const hydratedSorts = hydratedSortsRef.current;
+  const hydratedDefaultSorts = hydratedDefaultSortsRef.current;
+
+  const hydratedDefaultQuickFiltersRef = useRef<
+    ReturnType<IrisGridUtils['hydrateQuickFilters']> | undefined
+  >(undefined);
+  if (
+    hydratedDefaultQuickFiltersRef.current === undefined &&
+    defaultQuickFilters !== undefined &&
+    model != null &&
+    columns.length > 0
+  ) {
+    hydratedDefaultQuickFiltersRef.current = hydrateUITableQuickFilters(
+      defaultQuickFilters,
+      model,
+      columns,
+      utils
+    );
+  }
+  const hydratedDefaultQuickFilters = hydratedDefaultQuickFiltersRef.current;
 
   const initialHydratedState = useMemo(() => {
     if (model && utils && initialState.current != null) {
@@ -404,36 +468,25 @@ export function UITable({
         ...IrisGridUtils.hydrateGridState(model, initialState.current),
       };
     }
-    // No persisted client state: seed the server-provided sorts as the initial
+    // No persisted client state: seed the uncontrolled defaults as the initial
     // grid state so they apply once on load. Changes the user makes afterwards
     // are kept in IrisGrid's own state and persisted via onStateChange.
-    if (model && utils && hydratedSorts !== undefined) {
-      return { sorts: hydratedSorts };
-    }
-  }, [model, utils, hydratedSorts]);
-
-  const hydratedQuickFilters = useMemo(() => {
     if (
-      quickFilters !== undefined &&
+      model &&
       utils &&
-      model !== undefined &&
-      columns !== undefined
+      (hydratedDefaultSorts !== undefined ||
+        hydratedDefaultQuickFilters !== undefined)
     ) {
-      log.debug('Hydrating filters', quickFilters);
-
-      const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
-
-      Object.entries(quickFilters).forEach(([columnName, filter]) => {
-        const columnIndex = model.getColumnIndexByName(columnName);
-        if (columnIndex !== undefined) {
-          dehydratedQuickFilters.push([columnIndex, { text: filter }]);
-        }
-      });
-
-      return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
+      return {
+        ...(hydratedDefaultSorts !== undefined
+          ? { sorts: hydratedDefaultSorts }
+          : {}),
+        ...(hydratedDefaultQuickFilters !== undefined
+          ? { quickFilters: hydratedDefaultQuickFilters }
+          : {}),
+      };
     }
-    return undefined;
-  }, [quickFilters, model, columns, utils]);
+  }, [model, utils, hydratedDefaultSorts, hydratedDefaultQuickFilters]);
 
   // Get any format values that match column names
   // Assume the format value is derived from the column
@@ -556,6 +609,7 @@ export function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
+      sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
       reverse,
@@ -605,6 +659,7 @@ export function UITable({
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
+    hydratedSorts,
     hydratedQuickFilters,
     reverse,
     density,
