@@ -286,18 +286,21 @@ class table(Element):
             The callback is invoked with the selected rows with data from the columns in `always_fetch_columns`.
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
-        quick_filters: The quick filters to apply to the table (controlled).
-            Dictionary of column name to filter value. Updating this value overrides
-            any quick filters the user has changed in the UI.
-        default_quick_filters: The initial quick filters to apply to the table (uncontrolled).
-            Dictionary of column name to filter value. User changes are persisted
-            and restored on reload. Ignored if `quick_filters` is provided.
-        sorts: The sorts to apply to the table (controlled).
+        quick_filters: The quick filters to apply to the table. Server-owned:
+            updating this value re-applies it and replaces any quick filters the
+            user has changed in the UI. Dictionary of column name to filter value.
+        default_quick_filters: The initial quick filters to apply to the table.
+            User-owned: this sets the initial value, then the user owns it from
+            there, and their changes are persisted and restored on reload.
+            Ignored if `quick_filters` is provided.
+            Dictionary of column name to filter value.
+        sorts: The sorts to apply to the table. Server-owned: updating this value
+            re-applies it and replaces any sorts the user has changed in the UI.
             These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
-            Updating this value overrides any sorts the user has changed in the UI.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
-        default_sorts: The initial sorts to apply to the table (uncontrolled).
-            User changes to the sort state are persisted and restored on reload.
+        default_sorts: The initial sorts to apply to the table. User-owned: this
+            sets the initial value, then the user owns it from there, and their
+            changes are persisted and restored on reload.
             Ignored if `sorts` is provided.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
         show_quick_filters: Whether to show the quick filter bar by default.

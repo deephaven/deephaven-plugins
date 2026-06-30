@@ -408,10 +408,10 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Controlled `sorts`/`quickFilters` are applied as live IrisGrid props and
+  // Server-owned `sorts`/`quickFilters` are applied as live IrisGrid props and
   // re-applied whenever their value changes. We stabilize them by content so an
   // unrelated re-render (new reference, identical content) does not re-apply and
-  // clobber changes the user made in the UI.
+  // replace changes the user made in the UI.
   const stableSorts = useIsEqualMemo(sorts, deepEqual);
   const hydratedSorts = useMemo(() => {
     if (stableSorts === undefined || utils == null || columns.length === 0) {
@@ -427,9 +427,9 @@ export function UITable({
     [stableQuickFilters, model, columns, utils]
   );
 
-  // Uncontrolled `defaultSorts`/`defaultQuickFilters` are hydrated once (after
-  // the columns load) and seeded as the initial grid state. Changes the user
-  // makes afterwards are kept by IrisGrid and persisted via onStateChange.
+  // User-owned `defaultSorts`/`defaultQuickFilters` are hydrated once (after the
+  // columns load) and used as the initial grid state. Changes the user makes
+  // afterwards are kept by IrisGrid and persisted via onStateChange.
   const hydratedDefaultSortsRef = useRef<IrisGridProps['sorts'] | undefined>(
     undefined
   );
@@ -468,7 +468,7 @@ export function UITable({
         ...IrisGridUtils.hydrateGridState(model, initialState.current),
       };
     }
-    // No persisted client state: seed the uncontrolled defaults as the initial
+    // No persisted client state: use the user-owned defaults as the initial
     // grid state so they apply once on load. Changes the user makes afterwards
     // are kept in IrisGrid's own state and persisted via onStateChange.
     if (
