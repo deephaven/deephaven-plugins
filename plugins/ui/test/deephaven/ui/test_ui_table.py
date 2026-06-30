@@ -117,6 +117,27 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
+    def test_default_quick_filters(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, default_quick_filters={"X": "X > 1"})
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1"},
+            },
+        )
+
+        t = ui.table(self.source, default_quick_filters={"X": "X > 1", "Y": "Y < 2"})
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1", "Y": "Y < 2"},
+            },
+        )
+
     def test_show_quick_filters(self):
         import deephaven.ui as ui
 
@@ -248,6 +269,50 @@ class UITableTestCase(BaseTestCase):
                         "column": "Y",
                         "direction": "ASC",
                         "isAbs": False,
+                    },
+                ]
+            },
+        )
+
+    def test_default_sorts(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, default_sorts="X")
+
+        self.expect_render(
+            t,
+            {
+                "defaultSorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    }
+                ]
+            },
+        )
+
+        t = ui.table(
+            self.source,
+            default_sorts=[
+                "X",
+                ui.TableSort(column="Y", direction="DESC", is_abs=True),
+            ],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "defaultSorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    },
+                    {
+                        "column": "Y",
+                        "direction": "DESC",
+                        "isAbs": True,
                     },
                 ]
             },
