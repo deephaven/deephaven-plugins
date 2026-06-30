@@ -379,18 +379,10 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  const initialHydratedState = useMemo(() => {
-    if (model && utils && initialState.current != null) {
-      return {
-        ...utils.hydrateIrisGridState(model, initialState.current),
-        ...IrisGridUtils.hydrateGridState(model, initialState.current),
-      };
-    }
-  }, [model, utils]);
-
-  // Hydrate `sorts` once into a stable reference so IrisGrid applies it as
-  // initial state without re-applying it (and clobbering user changes) on
-  // later re-renders.
+  // Hydrate `sorts` once into a stable reference. We seed it as initial grid
+  // state (below) rather than passing it as a live IrisGrid prop, because
+  // IrisGrid re-applies the `sorts` prop on every reference change, which would
+  // clobber sorts the user changes in the UI.
   const hydratedSortsRef = useRef<IrisGridProps['sorts'] | undefined>(
     undefined
   );
@@ -404,6 +396,21 @@ export function UITable({
     hydratedSortsRef.current = utils.hydrateSort(columns, sorts);
   }
   const hydratedSorts = hydratedSortsRef.current;
+
+  const initialHydratedState = useMemo(() => {
+    if (model && utils && initialState.current != null) {
+      return {
+        ...utils.hydrateIrisGridState(model, initialState.current),
+        ...IrisGridUtils.hydrateGridState(model, initialState.current),
+      };
+    }
+    // No persisted client state: seed the server-provided sorts as the initial
+    // grid state so they apply once on load. Changes the user makes afterwards
+    // are kept in IrisGrid's own state and persisted via onStateChange.
+    if (model && utils && hydratedSorts !== undefined) {
+      return { sorts: hydratedSorts };
+    }
+  }, [model, utils, hydratedSorts]);
 
   const hydratedQuickFilters = useMemo(() => {
     if (
@@ -549,7 +556,6 @@ export function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
       reverse,
@@ -599,7 +605,6 @@ export function UITable({
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
-    hydratedSorts,
     hydratedQuickFilters,
     reverse,
     density,
