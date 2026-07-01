@@ -4,6 +4,7 @@ import type { RowOrColumn } from '@deephaven/golden-layout';
 import { Flex } from '@deephaven/components';
 import {
   normalizeColumnChildren,
+  wrapBareChildrenInPanel,
   type ColumnElementProps,
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
@@ -52,9 +53,10 @@ function Column({ children, width }: ColumnElementProps): JSX.Element {
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a column here, or normalize the children which might add a stack unnecessarily.
-    // Just render the children as they are, and the initial layout config should already have the panels mapped out.
+    // The persisted layout already has the rows/columns/stacks mapped out, but bare
+    // content children still need a panel wrapper so they portal into their persisted panel.
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <>{wrapBareChildrenInPanel(children)}</>;
   }
 
   if (panelId == null) {
