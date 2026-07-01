@@ -89,6 +89,14 @@
   padding: 4px 8px;
 }
 
+// Drag-overlay treatment when a column is hovering an aggregate function that
+// rejects its type. Signals the drop will snap back instead of taking.
+.pivot-row--dragging.pivot-drag-invalid {
+  background-color: var(--dh-color-action-disabled-bg);
+  color: var(--dh-color-text-disabled);
+  cursor: not-allowed;
+}
+
 .pivot-row-label {
   flex: 1;
   overflow: hidden;
@@ -110,8 +118,8 @@
   color: var(--dh-color-icon-fg);
 }
 
-// Invisible spacer matching the grip handle so column remove buttons align
-// with the function-line controls.
+// Invisible spacer matching the grip handle so non-draggable column remove
+// buttons (aggregation-only view) align with the function-line controls.
 .pivot-grip--hidden {
   visibility: hidden;
 }
@@ -338,6 +346,12 @@
     .pivot-agg-row-picker {
       margin-bottom: -4px;
     }
+  }
+
+  // Small gap above each function picker so adjacent aggregate entries are
+  // visually separated, skipping the first entry (no gap above the top row).
+  .pivot-droppable-aggregations > .pivot-row:not(:first-child) {
+    margin-top: 6px;
   }
 
   // Empty placeholder shown in a target card while dragging a column in from

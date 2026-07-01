@@ -2,6 +2,7 @@ import deepEqual from 'fast-deep-equal';
 import {
   IrisGridModel,
   AggregationOperation,
+  AggregationUtils,
   type AggregationSettings,
   type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
@@ -44,6 +45,31 @@ export const PIVOT_BUILDER_CONFIG_CHANGED =
   '@deephaven/js-plugin-pivot-builder/PIVOT_BUILDER_CONFIG_CHANGED';
 
 /**
+ * Event dispatched on the proxy when a pivot build fails recoverably and the
+ * model reverts to a safe config. Distinct from the host
+ * `IrisGridModel.EVENT.REQUEST_FAILED` ON PURPOSE: that host event drives
+ * iris-grid's `rollback()` / fatal-`onError` path, which can't rebuild a
+ * pivot. This pivot-builder-specific event lets the sidebar surface a
+ * non-fatal, domain-specific notice instead, while the model has already
+ * contained the failure (resolved to the flat source) and re-applied a safe
+ * config. The host never sees a rejected model promise for these failures.
+ */
+export const PIVOT_BUILDER_ERROR =
+  '@deephaven/js-plugin-pivot-builder/PIVOT_BUILDER_ERROR';
+
+/**
+ * `detail` payload of a {@link PIVOT_BUILDER_ERROR} event.
+ */
+export interface PivotBuilderErrorDetail {
+  /** The error the pivot service (or build) rejected with. */
+  error: unknown;
+  /** The builder config whose build failed, if known. */
+  failedConfig: PivotBuilderConfig | null;
+  /** The safe config the model reverted to (last good, or empty). */
+  revertedTo: PivotBuilderConfig;
+}
+
+/**
  * A single aggregation entry: an operation applied to one or more columns.
  * The array of these on `PivotConfig` is ORDER-SENSITIVE — reordering entries
  * is a meaningful config change (unlike the order-insensitive
@@ -69,6 +95,86 @@ export function toPivotAggregations(
     operation,
     columns: [...columns],
   }));
+}
+
+/**
+ * Collapse a `PivotConfig` into the order-insensitive
+ * `Record<operation, columns[]>` payload accepted by
+ * `coreplus.pivot.PivotService#createPivotTable`, sanitizing it against the
+ * current source schema.
+ *
+ * Every column reference is validated against `columns`: references to
+ * columns that no longer exist (schema drift) or whose type is invalid for
+ * the operation (e.g. a persisted `Sum` over a string column — only
+ * reachable via hydration of a config baked against a different schema, since
+ * the sidebar editor filters these live with the same
+ * `AggregationUtils.isValidOperation` rule) are dropped. This mirrors
+ * iris-grid, which silently discards now-invalid aggregations at hydration
+ * rather than failing the whole model.
+ *
+ * Aggregations left with no valid columns are dropped. If the result is
+ * empty, a `Count` over a single source column (the first not used as a
+ * row/column key, falling back to the first column overall) is synthesized so
+ * a pivot with keys but no usable values still renders meaningful counts. The
+ * fallback is a BUILD-TIME detail only — it is NOT folded back into the
+ * persisted `builderConfig`/intent.
+ */
+export function buildPivotAggregationsMap(
+  config: PivotConfig,
+  columns: readonly DhType.Column[]
+): Record<string, string[]> {
+  // Column name → type, used to validate each aggregation's columns against
+  // the current source schema.
+  const columnTypes = new Map(
+    columns.map(column => [column.name, column.type])
+  );
+  const sanitized: Record<string, string[]> = {};
+  toPivotAggregations(config.aggregations).forEach(
+    ({ operation, columns: cols }) => {
+      const validColumns = cols.filter(name => {
+        const type = columnTypes.get(name);
+        if (type == null) {
+          log.debug2(
+            'Dropping aggregation column missing from source table',
+            operation,
+            name
+          );
+          return false;
+        }
+        if (
+          !AggregationUtils.isValidOperation(
+            operation as AggregationOperation,
+            type
+          )
+        ) {
+          log.debug2(
+            'Dropping aggregation column invalid for operation',
+            operation,
+            name,
+            type
+          );
+          return false;
+        }
+        return true;
+      });
+      if (validColumns.length === 0) return;
+      sanitized[operation] = [...(sanitized[operation] ?? []), ...validColumns];
+    }
+  );
+
+  if (Object.keys(sanitized).length > 0) {
+    return sanitized;
+  }
+
+  const usedKeys = new Set([...config.rowKeys, ...config.columnKeys]);
+  const fallbackColumn =
+    columns.find(column => !usedKeys.has(column.name)) ?? columns[0];
+
+  if (fallbackColumn == null) {
+    return sanitized;
+  }
+
+  return { [AggregationOperation.COUNT]: [fallbackColumn.name] };
 }
 
 /**
@@ -135,10 +241,71 @@ export interface PivotBuilderConfig {
 }
 
 /**
- * An `IrisGridProxyModel` (the host's own proxy) augmented with a
- * `pivotConfig` accessor that swaps its inner model between the flat
- * `IrisGridTableModel` and an `IrisGridPivotModel`.
+ * Mutable recovery state consulted when a pivot build fails. See
+ * {@link chooseRecoveryTarget}.
  */
+export interface PivotRecoveryState {
+  /** Last successfully-built pivot config, or `null` if none. */
+  lastGoodBuilderConfig: PivotBuilderConfig | null;
+  /** True while a recovery apply is already in flight. */
+  isRecoveringPivot: boolean;
+}
+
+/**
+ * Result of {@link chooseRecoveryTarget}: the safe config to revert to plus
+ * the next recovery state.
+ */
+export interface PivotRecoveryDecision {
+  /** The config to apply to recover from the failed build. */
+  target: PivotBuilderConfig;
+  /** `lastGoodBuilderConfig` to keep after this decision. */
+  nextLastGoodBuilderConfig: PivotBuilderConfig | null;
+  /** `isRecoveringPivot` to keep after this decision. */
+  nextIsRecoveringPivot: boolean;
+}
+
+/** The empty builder config — flat source, cannot fail at the pivot service. */
+const EMPTY_BUILDER_CONFIG: PivotBuilderConfig = {
+  pivot: null,
+  rollup: null,
+  totals: null,
+};
+
+/**
+ * Pure decision for recovering from a failed pivot build.
+ *
+ * Reverts to the last successfully-built pivot when there is a distinct one
+ * and we are not already mid-recovery; otherwise drops to the empty config
+ * (flat source), which cannot fail at the pivot service. Returning to the
+ * empty config also clears `lastGoodBuilderConfig` so a now-known-bad target
+ * is never re-selected on a later failure.
+ *
+ * @param failedBuilderConfig the config whose build failed, if known
+ * @param state current recovery state
+ * @returns the target to apply plus the next recovery state
+ */
+export function chooseRecoveryTarget(
+  failedBuilderConfig: PivotBuilderConfig | null,
+  state: PivotRecoveryState
+): PivotRecoveryDecision {
+  if (
+    !state.isRecoveringPivot &&
+    state.lastGoodBuilderConfig != null &&
+    !deepEqual(state.lastGoodBuilderConfig, failedBuilderConfig)
+  ) {
+    return {
+      target: state.lastGoodBuilderConfig,
+      nextLastGoodBuilderConfig: state.lastGoodBuilderConfig,
+      nextIsRecoveringPivot: true,
+    };
+  }
+  return {
+    target: { ...EMPTY_BUILDER_CONFIG },
+    nextLastGoodBuilderConfig: null,
+    nextIsRecoveringPivot: state.isRecoveringPivot,
+  };
+}
+
 export interface PivotBuilderProxyModel extends IrisGridModel {
   pivotConfig: PivotConfig | null;
   /** The original (pre-pivot) source table. */
@@ -237,53 +404,14 @@ export function augmentPivotBuilderModel(
   // regardless of the proxy's current inner model.
   const { table } = proxy.originalModel as unknown as { table: DhType.Table };
 
-  // The pivot service hangs the worker on an aggregation that targets no
-  // columns the same way it rejects an empty aggregations map — e.g. a
-  // degenerate `{ Count: [] }` (Count over zero columns). Such an entry can
-  // arrive from a stale persisted `builderConfig` baked by an earlier build
-  // and is re-applied on every reload, so we sanitize it here at the single
-  // `createPivotTable` choke point rather than trust the incoming map.
-  //
-  // We first drop every aggregation whose column list is empty. If the user
-  // has pivot columns selected but no (valid) aggregations — i.e. the
-  // Aggregate values card is off or empty — a column-less pivot would render
-  // only key columns with no values, which is rarely what's wanted. So when
-  // the sanitized map is empty we synthesize a `Count` over a single source
-  // column (the first column not already used as a row/column key, falling
-  // back to the first column overall). This produces a meaningful count
-  // pivot. The fallback is a BUILD-TIME detail only: it is NOT folded into
-  // the persisted `builderConfig`/intent and never surfaces in the Aggregate
-  // values card — the persisted config keeps the user's actual (empty)
-  // aggregations.
+  // Sanitize + collapse the config's aggregations into the pivot service's
+  // `Record<operation, columns[]>` payload at this single `createPivotTable`
+  // choke point — dropping schema-invalid columns and synthesizing a `Count`
+  // fallback for an otherwise-empty map. See `buildPivotAggregationsMap`.
   const withFallbackAggregations = (
     config: PivotConfig
-  ): Record<string, string[]> => {
-    // Collapse the ordered array into the order-insensitive
-    // `operation → columns` map the pivot service expects, merging columns
-    // for any operation that appears in more than one entry.
-    const sanitized: Record<string, string[]> = {};
-    toPivotAggregations(config.aggregations).forEach(
-      ({ operation, columns }) => {
-        if (columns.length === 0) return;
-        sanitized[operation] = [...(sanitized[operation] ?? []), ...columns];
-      }
-    );
-
-    if (Object.keys(sanitized).length > 0) {
-      return sanitized;
-    }
-
-    const usedKeys = new Set([...config.rowKeys, ...config.columnKeys]);
-    const fallbackColumn =
-      table.columns.find(column => !usedKeys.has(column.name)) ??
-      table.columns[0];
-
-    if (fallbackColumn == null) {
-      return sanitized;
-    }
-
-    return { [AggregationOperation.COUNT]: [fallbackColumn.name] };
-  };
+  ): Record<string, string[]> =>
+    buildPivotAggregationsMap(config, table.columns);
 
   let current: PivotConfig | null = null;
   // Monotonic token for in-flight pivot creations. Every `pivotConfig` write
@@ -293,6 +421,55 @@ export function augmentPivotBuilderModel(
   // makes `pivotConfig` writes safe under rapid succession (e.g. drag flows
   // that flip config several times before the first build resolves).
   let pivotToken = 0;
+
+  // --- Layer 2: revert-to-last-good recovery for failed pivot builds ---
+  //
+  // A persisted/legacy pivot config can be rejected by the pivot service at
+  // `createPivotTable` (e.g. an aggregation that's invalid for the current
+  // schema and survived Layer 1's column sanitization). Rather than let that
+  // rejection propagate out of `setNextModel` — which the host turns into a
+  // `REQUEST_FAILED` event and a fatal panel error (its `rollback()` only
+  // restores host state, which can't rebuild a pivot) — we catch the failure
+  // INSIDE the build closure, resolve to the flat source model, and re-apply
+  // the last successfully-built pivot (or, failing that, the empty config).
+  // The host therefore never sees a rejected model promise for a recoverable
+  // pivot failure, so iris-grid's `REQUEST_FAILED`/`rollback()` path is not
+  // engaged and there's a single recovery authority (this model).
+  //
+  // Only a successfully-built PIVOT is recorded as the last-good target.
+  // Rollup/totals views are deliberately NOT recorded: reverting to them
+  // routes through the host rollup setter and could itself raise
+  // `REQUEST_FAILED`, re-entangling the host recovery path. Reverting a
+  // failed pivot therefore goes to the previous good pivot, else the empty
+  // config (flat source) — which cannot fail at the pivot service.
+  let lastGoodBuilderConfig: PivotBuilderConfig | null = null;
+  // The builder config that triggered the in-flight pivot build, captured so
+  // the failure handler knows which intent failed. A single slot is safe:
+  // any newer apply bumps `pivotToken`, superseding the older build before it
+  // can reach the (token-guarded) failure path.
+  let pendingPivotBuilderConfig: PivotBuilderConfig | null = null;
+  // Guards against an infinite revert loop: set while a recovery apply is in
+  // flight so that if the recovery target ALSO fails we collapse straight to
+  // the empty config instead of retrying it. Cleared whenever a build settles
+  // onto a model (pivot success, or the flat-source swap from a null config).
+  let isRecoveringPivot = false;
+
+  const recoverFromPivotFailure = (
+    failedBuilderConfig: PivotBuilderConfig | null
+  ): PivotBuilderConfig => {
+    const proxyWithApply = proxy as unknown as PivotBuilderProxyModel;
+    const decision = chooseRecoveryTarget(failedBuilderConfig, {
+      lastGoodBuilderConfig,
+      isRecoveringPivot,
+    });
+    lastGoodBuilderConfig = decision.nextLastGoodBuilderConfig;
+    isRecoveringPivot = decision.nextIsRecoveringPivot;
+    log.debug('Reverting pivot builder to safe config', decision.target);
+    proxyWithApply
+      .applyPivotBuilderConfig(decision.target)
+      .catch(() => undefined);
+    return decision.target;
+  };
 
   // `PivotService.getInstance` returns a NEW service wrapper on every call,
   // and every service created from the same psp widget multiplexes over that
@@ -331,6 +508,8 @@ export function augmentPivotBuilderModel(
     const token = pivotToken;
 
     if (config == null) {
+      // Flat-source swap always succeeds — clear any in-flight recovery guard.
+      isRecoveringPivot = false;
       proxy.setNextModel(Promise.resolve(proxy.originalModel));
       return;
     }
@@ -352,12 +531,50 @@ export function augmentPivotBuilderModel(
       if (token !== pivotToken) throw new SupersededError();
       const pivotService = await getPivotService(corePlusDh, pspWidget);
       if (token !== pivotToken) throw new SupersededError();
-      const pivotTable = await pivotService.createPivotTable({
-        source: table as unknown as CorePlusDhType.Table,
-        rowKeys: config.rowKeys,
-        columnKeys: config.columnKeys,
-        aggregations: withFallbackAggregations(config),
-      });
+      let pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
+      try {
+        pivotTable = await pivotService.createPivotTable({
+          source: table as unknown as CorePlusDhType.Table,
+          rowKeys: config.rowKeys,
+          columnKeys: config.columnKeys,
+          aggregations: withFallbackAggregations(config),
+        });
+      } catch (e) {
+        // A newer apply superseded this build mid-request — treat as a cancel
+        // (rethrow so the host swallows it) rather than a real failure.
+        if (token !== pivotToken) throw new SupersededError();
+        // Genuine, current-token failure: the pivot service rejected this
+        // config (e.g. a hydrated aggregation invalid for the live schema).
+        // Recover by resolving to the flat source model — so the host does
+        // NOT see a rejected promise and its `REQUEST_FAILED`/`rollback()`
+        // path stays out of it — then re-apply the last good config (or the
+        // empty config) on a microtask, after this swap settles. The sidebar
+        // is notified via `PIVOT_BUILDER_ERROR` (NOT the host's
+        // `REQUEST_FAILED`) so it can surface a non-fatal, domain-specific
+        // notice while the model handles the actual recovery.
+        log.debug(
+          'createPivotTable failed; reverting pivot builder',
+          config,
+          e
+        );
+        const failedBuilderConfig = pendingPivotBuilderConfig;
+        Promise.resolve()
+          .then(() => {
+            // Skip if a newer apply already took over (it's authoritative).
+            if (token !== pivotToken) return;
+            const revertedTo = recoverFromPivotFailure(failedBuilderConfig);
+            const detail: PivotBuilderErrorDetail = {
+              error: e,
+              failedConfig: failedBuilderConfig,
+              revertedTo,
+            };
+            proxy.dispatchEvent(
+              new EventShimCustomEvent(PIVOT_BUILDER_ERROR, { detail })
+            );
+          })
+          .catch(() => undefined);
+        return proxy.originalModel;
+      }
       if (token !== pivotToken) {
         // Build resolved after a newer request superseded it. Close the
         // orphan table directly — the host's cancel handler won't run on a
@@ -365,6 +582,12 @@ export function augmentPivotBuilderModel(
         pivotTable.close?.();
         throw new SupersededError();
       }
+      // Build succeeded and is current: record this pivot as the last-good
+      // revert target and clear any in-flight recovery guard.
+      if (pendingPivotBuilderConfig != null) {
+        lastGoodBuilderConfig = pendingPivotBuilderConfig;
+      }
+      isRecoveringPivot = false;
       // TODO: fix this
       // `IrisGridPivotModel` comes from the separately-versioned
       // `@deephaven/js-plugin-pivot`, whose bundled `IrisGridModel` predates the
@@ -380,7 +603,12 @@ export function augmentPivotBuilderModel(
         log.debug2('pivot build superseded', config);
         return;
       }
-      log.error('createPivotTable failed for config', config, e);
+      // Recoverable `createPivotTable` failures are handled inside the
+      // closure (resolve-to-flat-source + revert), so anything that still
+      // rejects here is unrecoverable — e.g. a missing CorePlus runtime or a
+      // pivot service that could not be acquired. Let it reach the host's
+      // `REQUEST_FAILED` path (fatal panel error) deliberately.
+      log.error('pivot build failed (unrecoverable)', config, e);
     });
 
     proxy.setNextModel(promise);
@@ -590,6 +818,9 @@ export function augmentPivotBuilderModel(
         }
         if (!deepEqual(config.pivot, lastIntent.pivot)) {
           log.debug('Applying pivotConfig', config.pivot);
+          // Remember the full intent driving this build so a build failure
+          // can identify what failed and revert to the last good config.
+          pendingPivotBuilderConfig = config;
           proxyWithPivot.pivotConfig = config.pivot;
         }
         // Mirror intent into proxy storage so dehydration is correct.

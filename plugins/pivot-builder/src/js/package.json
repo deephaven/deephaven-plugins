@@ -13,7 +13,7 @@
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
   "main": "dist/index.js",
-  "plugin": {
+  "loader": {
     "dependencies": [
       "@deephaven/js-plugin-pivot"
     ]

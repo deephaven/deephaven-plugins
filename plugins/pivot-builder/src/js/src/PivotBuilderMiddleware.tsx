@@ -17,13 +17,18 @@ import {
   usePivotMetricCalculatorFactory,
   usePivotTheme,
 } from '@deephaven/js-plugin-pivot';
+import { ToastQueue } from '@deephaven/components';
 import Log from '@deephaven/log';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   createWidgetMiddleware,
   type WidgetComponentProps,
 } from '@deephaven/plugin';
-import { isPivotBuilderIrisGridModel } from './pivotBuilderModel';
+import {
+  isPivotBuilderIrisGridModel,
+  PIVOT_BUILDER_ERROR,
+  type PivotBuilderErrorDetail,
+} from './pivotBuilderModel';
 import { makeCreatePivotTransform } from './makeCreatePivotTransform';
 import { makePivotModelTransform } from './makePivotModelTransform';
 import {
@@ -199,6 +204,37 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
           IrisGridModel.EVENT.COLUMNS_CHANGED,
           handler
         );
+      };
+    }, [model]);
+
+    // Surface recoverable pivot build failures as a non-fatal toast. The
+    // model has already contained the failure (reverted to a safe config) and
+    // dispatches `PIVOT_BUILDER_ERROR` instead of the host's `REQUEST_FAILED`,
+    // so the panel stays usable and we only need to notify the user.
+    useEffect(() => {
+      if (model == null) {
+        return undefined;
+      }
+      const target = model as unknown as {
+        addEventListener: (
+          type: string,
+          fn: (e: CustomEvent<PivotBuilderErrorDetail>) => void
+        ) => void;
+        removeEventListener: (
+          type: string,
+          fn: (e: CustomEvent<PivotBuilderErrorDetail>) => void
+        ) => void;
+      };
+      const handler = (e: CustomEvent<PivotBuilderErrorDetail>): void => {
+        log.warn('Pivot build failed; reverted to a safe config', e.detail);
+        ToastQueue.negative(
+          'The saved pivot could not be applied and was reverted.',
+          { timeout: 5000 }
+        );
+      };
+      target.addEventListener(PIVOT_BUILDER_ERROR, handler);
+      return () => {
+        target.removeEventListener(PIVOT_BUILDER_ERROR, handler);
       };
     }, [model]);
 

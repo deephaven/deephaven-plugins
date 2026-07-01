@@ -667,9 +667,19 @@ function ColumnRow({
 }
 
 /** Static (non-dnd) rendering of a column row for use inside DragOverlay. */
-function ColumnRowPreview({ name }: { name: string }): JSX.Element {
+function ColumnRowPreview({
+  name,
+  invalid = false,
+}: {
+  name: string;
+  invalid?: boolean;
+}): JSX.Element {
   return (
-    <div className="pivot-row pivot-row--dragging">
+    <div
+      className={`pivot-row pivot-row--dragging${
+        invalid ? ' pivot-drag-invalid' : ''
+      }`}
+    >
       <span className="pivot-row-label pivot-column-name">{name}</span>
       <Button
         kind="ghost"
@@ -690,6 +700,12 @@ type AggregateSelectRowProps = {
   operation: string;
   columnLabels: readonly string[];
   availableOperations: readonly string[];
+  /**
+   * Column name -> Deephaven column type for every column in the table. Used
+   * to disable aggregate functions in the picker that aren't valid for the
+   * group's columns (e.g. Sum on a String column).
+   */
+  columnTypes: Readonly<Record<string, string>>;
   onOperationChange: (operation: string) => void;
   onDelete: () => void;
   /**
@@ -700,6 +716,12 @@ type AggregateSelectRowProps = {
    * is already its own deletable row.
    */
   onDeleteColumn?: (column: string) => void;
+  /**
+   * When false, a function's columns render as removable rows but are not
+   * draggable — only whole function groups can be reordered. Used by the
+   * aggregation-only view where per-column drag/reassignment is disabled.
+   */
+  columnsDraggable?: boolean;
   /**
    * When true the aggregate function is rendered as plain read-only text
    * (just the operation name) instead of an editable picker, and the column
@@ -720,6 +742,99 @@ function aggregationRowId(operation: string): string {
   return `${AGGREGATIONS_DROPPABLE}:${operation}`;
 }
 
+/**
+ * Stable sortable id for a single column inside an aggregate function group.
+ * Shares the `aggregations:` prefix with {@link aggregationRowId} so
+ * `resolveContainerOfId` still resolves both to the aggregations container
+ * (it splits on the first `:`). The operation and column are joined with a
+ * NUL so the column name can contain any printable character.
+ */
+function aggregationColumnId(operation: string, column: string): string {
+  return `${AGGREGATIONS_DROPPABLE}:${operation}\u0000${column}`;
+}
+
+/**
+ * Decompose an aggregation row or column id back into its operation and
+ * (for column ids) column. Returns null for ids that aren't in the
+ * aggregations container. Row ids yield `column: null`.
+ */
+function parseAggregationId(
+  id: string
+): { operation: string; column: string | null } | null {
+  const prefix = `${AGGREGATIONS_DROPPABLE}:`;
+  if (!id.startsWith(prefix)) {
+    return null;
+  }
+  const rest = id.slice(prefix.length);
+  const nul = rest.indexOf('\u0000');
+  return nul === -1
+    ? { operation: rest, column: null }
+    : { operation: rest.slice(0, nul), column: rest.slice(nul + 1) };
+}
+
+/**
+ * A single draggable column line inside an aggregate function group. Columns
+ * can be reordered within their function or dragged onto another function to
+ * reassign them; the drag-end handler validates the target function against
+ * the column's type and snaps back on an invalid drop.
+ */
+function AggregateColumnRow({
+  operation,
+  column,
+  onDelete,
+}: {
+  operation: string;
+  column: string;
+  onDelete: () => void;
+}): JSX.Element {
+  const id = aggregationColumnId(operation, column);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id,
+    data: {
+      type: 'aggregation-column',
+      container: AGGREGATIONS_DROPPABLE,
+      operation,
+      column,
+    },
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : 1,
+  };
+  return (
+    <div ref={setNodeRef} className="pivot-agg-row-line" style={style}>
+      <span className="pivot-row-label pivot-column-name">{column}</span>
+      <Button
+        kind="ghost"
+        className="btn-small pivot-row-btn"
+        icon={vsTrash}
+        tooltip="Remove column"
+        onClick={onDelete}
+      />
+      <span
+        ref={setActivatorNodeRef}
+        className="pivot-grip"
+        aria-label="Drag to re-order"
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...attributes}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...listeners}
+      >
+        <GripIcon />
+      </span>
+    </div>
+  );
+}
+
 function formatAggLabel(entry: Aggregation): string {
   return entry.selected.length > 0
     ? `${entry.operation} (${entry.selected.join(', ')})`
@@ -738,9 +853,11 @@ function AggregateSelectRow({
   operation,
   columnLabels,
   availableOperations,
+  columnTypes,
   onOperationChange,
   onDelete,
   onDeleteColumn,
+  columnsDraggable = true,
   staticOperation = false,
 }: AggregateSelectRowProps): JSX.Element {
   const {
@@ -766,6 +883,69 @@ function AggregateSelectRow({
     transition,
     opacity: isDragging ? 0 : 1,
   };
+  const columnItemIds = columnLabels.map(label =>
+    aggregationColumnId(operation, label)
+  );
+  // Disable any aggregate function that isn't valid for every column in this
+  // group (the function applies to all of them). Columns with an unknown type
+  // are skipped so a missing type doesn't over-restrict the picker.
+  const disabledOperationKeys = useMemo(() => {
+    const types = columnLabels
+      .map(label => columnTypes[label])
+      .filter((t): t is string => t != null);
+    if (types.length === 0) {
+      return undefined;
+    }
+    return availableOperations.filter(
+      op =>
+        !types.every(type =>
+          AggregationUtils.isValidOperation(op as AggregationOperation, type)
+        )
+    );
+  }, [availableOperations, columnLabels, columnTypes]);
+  let columnsContent: React.ReactNode = null;
+  if (!staticOperation) {
+    if (onDeleteColumn != null && columnsDraggable) {
+      columnsContent = (
+        <SortableContext
+          items={columnItemIds}
+          strategy={verticalListSortingStrategy}
+        >
+          {columnLabels.map(label => (
+            <AggregateColumnRow
+              key={label}
+              operation={operation}
+              column={label}
+              onDelete={() => onDeleteColumn(label)}
+            />
+          ))}
+        </SortableContext>
+      );
+    } else if (onDeleteColumn != null) {
+      // Aggregation-only view: columns are removable but not draggable; only
+      // whole function groups reorder. A hidden grip spacer keeps the remove
+      // buttons aligned with the draggable function line above.
+      columnsContent = columnLabels.map(label => (
+        <div key={label} className="pivot-agg-row-line">
+          <span className="pivot-row-label pivot-column-name">{label}</span>
+          <Button
+            kind="ghost"
+            className="btn-small pivot-row-btn"
+            icon={vsTrash}
+            tooltip="Remove column"
+            onClick={() => onDeleteColumn(label)}
+          />
+          <span className="pivot-grip pivot-grip--hidden" aria-hidden />
+        </div>
+      ));
+    } else {
+      columnsContent = columnLabels.map(label => (
+        <span key={label} className="pivot-row-label pivot-column-name">
+          {label}
+        </span>
+      ));
+    }
+  }
   return (
     <div ref={setNodeRef} className="pivot-row" style={style}>
       <div className="pivot-agg-row-line">
@@ -777,6 +957,7 @@ function AggregateSelectRow({
               isQuiet
               aria-label="Aggregation function"
               selectedKey={operation}
+              disabledKeys={disabledOperationKeys}
               onChange={key => {
                 if (key != null) {
                   onOperationChange(String(key));
@@ -810,34 +991,7 @@ function AggregateSelectRow({
           <GripIcon />
         </span>
       </div>
-      {staticOperation
-        ? null
-        : columnLabels.map(label =>
-            onDeleteColumn != null ? (
-              <div key={label} className="pivot-agg-row-line">
-                <span className="pivot-row-label pivot-column-name">
-                  {label}
-                </span>
-                <Button
-                  kind="ghost"
-                  className="btn-small pivot-row-btn"
-                  icon={vsTrash}
-                  tooltip="Remove column"
-                  onClick={() => onDeleteColumn(label)}
-                />
-                {/* Invisible spacer matching the grip handle on the function
-                  line so the column remove buttons align with the
-                  function's. */}
-                <span className="pivot-grip pivot-grip--hidden" aria-hidden>
-                  <GripIcon />
-                </span>
-              </div>
-            ) : (
-              <span key={label} className="pivot-row-label pivot-column-name">
-                {label}
-              </span>
-            )
-          )}
+      {columnsContent}
     </div>
   );
 }
@@ -1389,6 +1543,9 @@ export function PivotConfigSection({
   // overlay can still tell what kind of item it just released while it plays
   // its drop animation. Reset only on the next drag start.
   const activeContainerRef = useRef<string | null>(null);
+  // True while an aggregation-column drag is hovering a function that rejects
+  // the column's type. Drives the "not allowed" tint on the drag overlay.
+  const [dropInvalid, setDropInvalid] = useState(false);
   const handleDragStart = useCallback(
     (event: DndKitCore.DragStartEvent): void => {
       const container = String(event.active.data.current?.container ?? '');
@@ -1396,16 +1553,39 @@ export function PivotConfigSection({
       setDragSource(container === '' ? null : container);
       setActiveId(String(event.active.id));
       setOverId(null);
+      setDropInvalid(false);
     },
     []
   );
 
   const handleDragOver = useCallback(
     (event: DndKitCore.DragOverEvent): void => {
-      const { over } = event;
-      setOverId(over == null ? null : String(over.id));
+      const { active, over } = event;
+      const overIdStr = over == null ? null : String(over.id);
+      setOverId(overIdStr);
+
+      // Live validity feedback for a single-column aggregation drag: flag the
+      // drop as invalid when the hovered function rejects the column's type.
+      const activeParsed = parseAggregationId(String(active.id));
+      if (activeParsed?.column == null || overIdStr == null) {
+        setDropInvalid(false);
+        return;
+      }
+      const overParsed =
+        overIdStr === AGGREGATIONS_DROPPABLE
+          ? null
+          : parseAggregationId(overIdStr);
+      const targetOp = overParsed?.operation ?? activeParsed.operation;
+      const type = columnTypes[activeParsed.column];
+      setDropInvalid(
+        type != null &&
+          !AggregationUtils.isValidOperation(
+            targetOp as AggregationOperation,
+            type
+          )
+      );
     },
-    []
+    [columnTypes]
   );
 
   const sensors = useSensors(
@@ -1452,6 +1632,7 @@ export function PivotConfigSection({
       setDragSource(null);
       setActiveId(null);
       setOverId(null);
+      setDropInvalid(false);
       const { active, over } = event;
       if (over == null) return;
 
@@ -1461,36 +1642,126 @@ export function PivotConfigSection({
       const toId = resolveContainerOfId(overIdStr);
       if (fromId == null || toId == null) return;
 
-      // Aggregations are a separate scope — reorder only.
+      // Aggregations are a separate scope. Whole-function rows reorder among
+      // themselves; an individual column can also be reassigned to another
+      // function, provided that function accepts the column's type.
       if (fromId === AGGREGATIONS_DROPPABLE) {
         if (toId !== AGGREGATIONS_DROPPABLE) return;
 
-        // Aggregation row ids are `aggregations:<operation>` and each row is
-        // a whole entry — reorder the entries directly.
-        const groupedFromIdx = aggregationSettings.aggregations.findIndex(
-          entry => aggregationRowId(entry.operation as string) === activeIdStr
-        );
-        if (groupedFromIdx >= 0) {
+        const { aggregations } = aggregationSettings;
+        const activeParsed = parseAggregationId(activeIdStr);
+        if (activeParsed == null) return;
+        const overParsed =
+          overIdStr === AGGREGATIONS_DROPPABLE
+            ? null
+            : parseAggregationId(overIdStr);
+
+        // Whole-function row drag: reorder the entries. Tolerates an `over`
+        // that resolves to a column row by mapping it back to its function.
+        if (activeParsed.column == null) {
+          const fromIdx = aggregations.findIndex(
+            entry => entry.operation === activeParsed.operation
+          );
+          if (fromIdx < 0) return;
           const toIdx =
-            overIdStr === AGGREGATIONS_DROPPABLE
-              ? aggregationSettings.aggregations.length - 1
-              : aggregationSettings.aggregations.findIndex(
-                  entry =>
-                    aggregationRowId(entry.operation as string) === overIdStr
+            overParsed == null
+              ? aggregations.length - 1
+              : aggregations.findIndex(
+                  entry => entry.operation === overParsed.operation
                 );
-          if (toIdx < 0 || groupedFromIdx === toIdx) return;
+          if (toIdx < 0 || fromIdx === toIdx) return;
           onAggregationSettingsChange({
             ...aggregationSettings,
-            aggregations: moveItem(
-              aggregationSettings.aggregations,
-              groupedFromIdx,
-              toIdx
-            ),
+            aggregations: moveItem(aggregations, fromIdx, toIdx),
           });
           return;
         }
+
+        // Single-column drag: reorder within a function or reassign it.
+        const sourceOp = activeParsed.operation;
+        const { column } = activeParsed;
+        const sourceIdx = aggregations.findIndex(
+          entry => entry.operation === sourceOp
+        );
+        if (sourceIdx < 0) return;
+
+        // Hovering the card background keeps the column in its own function.
+        const targetOp = overParsed?.operation ?? sourceOp;
+        const targetIdx = aggregations.findIndex(
+          entry => entry.operation === targetOp
+        );
+        if (targetIdx < 0) return;
+
+        // Type validation: snap back if the target function rejects the
+        // column's type (e.g. Sum of a String column).
+        const type = columnTypes[column];
+        if (
+          type != null &&
+          !AggregationUtils.isValidOperation(
+            targetOp as AggregationOperation,
+            type
+          )
+        ) {
+          return;
+        }
+
+        if (sourceOp === targetOp) {
+          // Reorder within the function's own column list.
+          const entry = aggregations[sourceIdx];
+          const fromColIdx = entry.selected.indexOf(column);
+          if (fromColIdx < 0) return;
+          const overColIdx =
+            overParsed?.column == null
+              ? -1
+              : entry.selected.indexOf(overParsed.column);
+          const toColIdx =
+            overColIdx < 0 ? entry.selected.length - 1 : overColIdx;
+          if (fromColIdx === toColIdx) return;
+          const next = aggregations.slice();
+          next[sourceIdx] = {
+            ...entry,
+            selected: moveItem(entry.selected, fromColIdx, toColIdx),
+          };
+          onAggregationSettingsChange({
+            ...aggregationSettings,
+            aggregations: next,
+          });
+          return;
+        }
+
+        // Cross-function move. Splice the column into the target function
+        // (de-duped, at the hovered slot or the end) and drop it from the
+        // source, removing the source function if it loses its last column.
+        const targetSelected = aggregations[targetIdx].selected;
+        const overColIdx =
+          overParsed?.column == null
+            ? -1
+            : targetSelected.indexOf(overParsed.column);
+        const insertAt = overColIdx < 0 ? targetSelected.length : overColIdx;
+        let next = aggregations.map(entry => ({
+          ...entry,
+          selected: entry.selected.slice(),
+        }));
+        next[sourceIdx].selected = next[sourceIdx].selected.filter(
+          c => c !== column
+        );
+        if (!next[targetIdx].selected.includes(column)) {
+          next[targetIdx].selected.splice(
+            Math.min(insertAt, next[targetIdx].selected.length),
+            0,
+            column
+          );
+        }
+        if (next[sourceIdx].selected.length === 0) {
+          next = next.filter((_, i) => i !== sourceIdx);
+        }
+        onAggregationSettingsChange({
+          ...aggregationSettings,
+          aggregations: next,
+        });
+        return;
       }
-      // Columns can never land in the aggregations list.
+      // Columns from the rollup/pivot cards can never land in aggregations.
       if (toId === AGGREGATIONS_DROPPABLE) return;
 
       const lists: Record<
@@ -1546,6 +1817,7 @@ export function PivotConfigSection({
     },
     [
       aggregationSettings,
+      columnTypes,
       onAggregationSettingsChange,
       onPivotColumnsChange,
       onRollupRowsChange,
@@ -1559,6 +1831,7 @@ export function PivotConfigSection({
     setDragSource(null);
     setActiveId(null);
     setOverId(null);
+    setDropInvalid(false);
   }, []);
 
   // Index at which a cross-card insertion indicator should render in the
@@ -1613,6 +1886,12 @@ export function PivotConfigSection({
 
   const pivotActive =
     pivotColumnsOn && pivotColumns.length > 0 && pivotColumnsDisabled !== true;
+
+  // Aggregation-only view: no pivot and no rollup configured. In this mode a
+  // function's columns are removable but not draggable — only whole function
+  // groups reorder.
+  const aggregatesOnly =
+    !pivotActive && !(rollupRowsOn && rollupRows.length > 0);
 
   // Transient undo/redo, surfaced in every card's overflow (⋮) menu just
   // before the Clear items. Shared section + disabled keys so all three
@@ -1864,12 +2143,27 @@ export function PivotConfigSection({
       null
     );
   })();
+  // The column being dragged when a single aggregate column (not a whole
+  // function row) is in flight.
+  const activeAggregationColumn = (() => {
+    if (activeId == null) {
+      return null;
+    }
+    if (resolveContainerOfId(activeId) !== AGGREGATIONS_DROPPABLE) {
+      return null;
+    }
+    return parseAggregationId(activeId)?.column ?? null;
+  })();
 
   // Drag overlay contents: a column preview, an aggregation preview, or
   // nothing, depending on what (if anything) is currently being dragged.
   let dragOverlayPreview: React.ReactNode = null;
   if (activeColumnName != null) {
     dragOverlayPreview = <ColumnRowPreview name={activeColumnName} />;
+  } else if (activeAggregationColumn != null) {
+    dragOverlayPreview = (
+      <ColumnRowPreview name={activeAggregationColumn} invalid={dropInvalid} />
+    );
   } else if (activeAggregation != null) {
     dragOverlayPreview = <AggregateRowPreview entry={activeAggregation} />;
   }
@@ -1899,7 +2193,7 @@ export function PivotConfigSection({
         }`}
       >
         <div className="pivot-toolbar">
-          <span>Toggle</span>
+          <span>Enable</span>
           <Switch
             isSelected={globalOn}
             onChange={next => {
@@ -1907,7 +2201,7 @@ export function PivotConfigSection({
                 onGlobalOnChange(next);
               }
             }}
-            aria-label="Toggle"
+            aria-label="Enable"
             margin={0}
           />
           <div className="pivot-spacer" />
@@ -2095,11 +2389,13 @@ export function PivotConfigSection({
                 operation={entry.operation}
                 columnLabels={entry.selected}
                 availableOperations={selectableOperations}
+                columnTypes={columnTypes}
                 onOperationChange={op => handleChangeAggregateOperation(i, op)}
                 onDelete={() => handleDeleteAggregate(i)}
                 onDeleteColumn={column =>
                   handleDeleteAggregateColumn(i, column)
                 }
+                columnsDraggable={!aggregatesOnly}
               />
             ))}
           </DroppableList>
