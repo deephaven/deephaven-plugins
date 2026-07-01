@@ -38,9 +38,7 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...listViewProps}
           renderEmptyState={() => <WidgetErrorView error={error} />}
-        >
-          {[]}
-        </DHListView>
+        />
       );
     }
     if (isLoading || table == null || api == null) {
@@ -49,9 +47,7 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...listViewProps}
           loadingState="loading"
-        >
-          {[]}
-        </DHListView>
+        />
       );
     }
     return (
