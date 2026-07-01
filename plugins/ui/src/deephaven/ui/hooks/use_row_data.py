@@ -4,8 +4,9 @@ import pandas as pd
 
 from deephaven.table import Table
 
+from ._transform import transform
 from .use_memo import use_memo
-from .use_table_data import use_table_data
+from .use_table_data import _use_table_data_without_ticket_transform
 from ..types import Sentinel, RowData
 
 
@@ -42,5 +43,7 @@ def use_row_data(
     Returns:
         The first row of the table as a dictionary or the sentinel value.
     """
-    filtered_table = use_memo(lambda: None if table is None else table.head(1), [table])
-    return use_table_data(filtered_table, sentinel, _row_data)
+    filtered_table = use_memo(
+        lambda: None if table is None else transform(table).head(1), [table]
+    )
+    return _use_table_data_without_ticket_transform(filtered_table, sentinel, _row_data)
