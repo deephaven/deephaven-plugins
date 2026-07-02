@@ -1,4 +1,11 @@
-from typing import Any, TypeGuard
+import sys
+
+if sys.version_info < (3, 10):
+    from typing_extensions import TypeGuard
+else:
+    from typing import TypeGuard
+
+from typing import Any
 import uuid
 from .types import JsonRpcRequest, JsonRpcResponse
 
