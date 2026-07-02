@@ -199,3 +199,43 @@ export async function clickGridRow(
     position: { x, y },
   });
 }
+
+/**
+ * Clicks a column header in the grid to sort by that column.
+ * Repeated clicks cycle the sort direction (ascending, descending, none).
+ * @param gridContainer The Playwright Locator of the grid container
+ * @param x The horizontal pixel offset of the column header to click
+ */
+export async function clickGridColumnHeader(
+  gridContainer: Locator,
+  x: number
+): Promise<void> {
+  // Coordinates are relative to the grid canvas wrapper, not the outer
+  // `.iris-grid` element which also contains toolbars above the grid.
+  await gridContainer.locator('.grid-wrapper').click({
+    position: { x, y: COLUMN_HEADER_HEIGHT / 2 },
+  });
+}
+
+/**
+ * Types a quick filter into the quick filter bar for a column and applies it.
+ * Assumes the quick filter bar is shown (e.g. `show_quick_filters=True`).
+ * @param gridContainer The Playwright Locator of the grid container
+ * @param x The horizontal pixel offset of the column's filter cell to click
+ * @param text The filter expression to type
+ */
+export async function setGridQuickFilter(
+  gridContainer: Locator,
+  x: number,
+  text: string
+): Promise<void> {
+  // The quick filter bar renders directly below the column headers. Coordinates
+  // are relative to the grid canvas wrapper. Clicking the filter cell focuses
+  // it, then the value is typed directly via the keyboard (the grid renders its
+  // cell input on a canvas overlay, so we type rather than fill an element).
+  await gridContainer.locator('.grid-wrapper').click({
+    position: { x, y: COLUMN_HEADER_HEIGHT + ROW_HEIGHT / 2 },
+  });
+  await gridContainer.page().keyboard.type(text);
+  await gridContainer.page().keyboard.press('Enter');
+}
