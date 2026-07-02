@@ -450,6 +450,46 @@ t_programmatic_sort_abs_desc = ui.table(
     sorts=ui.TableSort(column="SepalLength", direction="DESC", is_abs=True),
 )
 
+
+@ui.component
+def t_controlled_component():
+    # Server-owned `sorts`/`quick_filters`: changing the values re-applies them
+    # to the grid (programmatic update).
+    sort_direction, set_sort_direction = ui.use_state("ASC")
+    sym, set_sym = ui.use_state("CAT")
+    return [
+        ui.button(
+            "Update sort and filter",
+            on_press=lambda _: (set_sort_direction("DESC"), set_sym("DOG")),
+        ),
+        ui.table(
+            _stocks,
+            sorts=ui.TableSort(column="Size", direction=sort_direction),
+            quick_filters={"Sym": sym},
+            show_quick_filters=True,
+        ),
+    ]
+
+
+t_controlled = t_controlled_component()
+
+# User-owned `default_sorts`/`default_quick_filters`: set the initial value, then
+# the user owns it. Their changes are persisted and restored on reload. Uses an
+# explicit table so `Sym` is the first column, giving the e2e test a deterministic
+# column position to click for sorting and quick filtering.
+_persist_table = new_table(
+    [
+        string_col("Sym", ["CAT", "DOG", "BEAR", "FISH", "CAT", "DOG", "BEAR"]),
+        int_col("Size", [10, 20, 30, 40, 50, 60, 70]),
+    ]
+)
+t_default = ui.table(
+    _persist_table,
+    default_sorts=ui.TableSort(column="Size", direction="ASC"),
+    default_quick_filters={"Sym": "CAT"},
+    show_quick_filters=True,
+)
+
 from deephaven import agg
 
 _rollup_source = empty_table(100).update(
