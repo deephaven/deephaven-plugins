@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+
+## python-remote-file-source-v0.1.4 - 2026-07-03
+
+#### Tests
+
+- DH-21320: Fixing 3.9 test failures ([#1382](https://github.com/deephaven/deephaven-plugins/pull/1382)) - (784a49e) - bmingles
+
+- - -
+
 ## python-remote-file-source-v0.1.3 - 2026-05-06
 #### Bug Fixes
 - DH-21221: Fixed a bug with remote file source cache eviction (#1332) - (8812358) - bmingles
