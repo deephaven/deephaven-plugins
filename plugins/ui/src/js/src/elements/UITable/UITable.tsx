@@ -53,8 +53,7 @@ import {
   type GridState,
 } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
-import { useDebouncedCallback, useIsEqualMemo } from '@deephaven/react-hooks';
-import deepEqual from 'fast-deep-equal';
+import { useDebouncedCallback } from '@deephaven/react-hooks';
 import {
   type FormattingRule,
   getAggregationOperation,
@@ -409,22 +408,18 @@ export function UITable({
   );
 
   // Server-owned `sorts`/`quickFilters` are applied as live IrisGrid props and
-  // re-applied whenever their value changes. We stabilize them by content so an
-  // unrelated re-render (new reference, identical content) does not re-apply and
-  // replace changes the user made in the UI.
-  const stableSorts = useIsEqualMemo(sorts, deepEqual);
+  // re-applied whenever their value changes.
   const hydratedSorts = useMemo(() => {
-    if (stableSorts === undefined || utils == null || columns.length === 0) {
+    if (sorts === undefined || utils == null || columns.length === 0) {
       return undefined;
     }
-    log.debug('Hydrating sorts', stableSorts);
-    return utils.hydrateSort(columns, stableSorts);
-  }, [stableSorts, utils, columns]);
+    log.debug('Hydrating sorts', sorts);
+    return utils.hydrateSort(columns, sorts);
+  }, [sorts, utils, columns]);
 
-  const stableQuickFilters = useIsEqualMemo(quickFilters, deepEqual);
   const hydratedQuickFilters = useMemo(
-    () => hydrateUITableQuickFilters(stableQuickFilters, model, columns, utils),
-    [stableQuickFilters, model, columns, utils]
+    () => hydrateUITableQuickFilters(quickFilters, model, columns, utils),
+    [quickFilters, model, columns, utils]
   );
 
   // User-owned `defaultSorts`/`defaultQuickFilters` are hydrated once (after the
