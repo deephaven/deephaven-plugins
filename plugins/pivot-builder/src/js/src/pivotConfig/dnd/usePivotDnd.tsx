@@ -23,8 +23,8 @@ import {
   resolveContainerOfId,
 } from './dndIds';
 import { applyPivotDragEnd } from './applyPivotDragEnd';
-import { ColumnRowPreview } from './columnRows';
-import { AggregateRowPreview } from './aggregateRows';
+import { ColumnRowPreview } from '../rows/columnRows';
+import { AggregateRowPreview } from '../rows/aggregateRows';
 
 const { MeasuringStrategy, PointerSensor, useSensor, useSensors } = DndKitCore;
 

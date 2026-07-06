@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { DndKitCore, DndKitSortable } from '@deephaven/iris-grid';
-import { columnRowId } from './dndIds';
-import { sortableRowStyle } from './dndStyles';
+import { columnRowId } from '../dnd/dndIds';
+import { sortableRowStyle } from '../dnd/dndStyles';
 import {
   DragGrip,
   DropGhost,

@@ -2,7 +2,7 @@ import { Button } from '@deephaven/components';
 import { vsTrash } from '@deephaven/icons';
 import { DndKitSortable } from '@deephaven/iris-grid';
 import GripIcon from './GripIcon';
-import { useGrowInStyle } from './dndStyles';
+import { useGrowInStyle } from '../dnd/dndStyles';
 
 const { useSortable } = DndKitSortable;
 type UseSortableReturn = ReturnType<typeof useSortable>;

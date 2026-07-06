@@ -7,8 +7,8 @@ import {
   type Aggregation,
   type AggregationOperation,
 } from '@deephaven/iris-grid';
-import { AGGREGATIONS_DROPPABLE, aggregationColumnId } from './dndIds';
-import { sortableRowStyle } from './dndStyles';
+import { AGGREGATIONS_DROPPABLE, aggregationColumnId } from '../dnd/dndIds';
+import { sortableRowStyle } from '../dnd/dndStyles';
 import {
   DragGrip,
   DropGhost,

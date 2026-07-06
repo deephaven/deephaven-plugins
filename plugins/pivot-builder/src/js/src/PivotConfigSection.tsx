@@ -16,27 +16,27 @@ import {
   ROLLUP_ROWS_DROPPABLE,
   aggregationRowId,
   columnRowId,
-} from './pivotConfig/dndIds';
+} from './pivotConfig/dnd/dndIds';
 import {
   COLUMN_DROP_ANIMATION,
   DRAG_OVERLAY_STYLE,
-} from './pivotConfig/dndStyles';
-import pivotCollisionDetection from './pivotConfig/pivotCollisionDetection';
-import { removeAt } from './pivotConfig/arrayUtils';
+} from './pivotConfig/dnd/dndStyles';
+import pivotCollisionDetection from './pivotConfig/dnd/pivotCollisionDetection';
+import { removeAt } from './pivotConfig/dnd/arrayUtils';
 import {
   ColumnRow,
   DroppableList,
   withDropIndicator,
-} from './pivotConfig/columnRows';
-import { AggregateSelectRow } from './pivotConfig/aggregateRows';
-import { usePivotDnd } from './pivotConfig/usePivotDnd';
-import ServiceUnavailableMessage from './pivotConfig/ServiceUnavailableMessage';
-import ColumnPicker from './pivotConfig/ColumnPicker';
-import AggregatePicker from './pivotConfig/AggregatePicker';
-import ConfigCard from './pivotConfig/ConfigCard';
+} from './pivotConfig/rows/columnRows';
+import { AggregateSelectRow } from './pivotConfig/rows/aggregateRows';
+import { usePivotDnd } from './pivotConfig/dnd/usePivotDnd';
+import ServiceUnavailableMessage from './pivotConfig/controls/ServiceUnavailableMessage';
+import ColumnPicker from './pivotConfig/controls/ColumnPicker';
+import AggregatePicker from './pivotConfig/controls/AggregatePicker';
+import ConfigCard from './pivotConfig/controls/ConfigCard';
 import OverflowMenu, {
   type OverflowMenuSection,
-} from './pivotConfig/OverflowMenu';
+} from './pivotConfig/controls/OverflowMenu';
 
 const { DndContext, DragOverlay } = DndKitCore;
 
