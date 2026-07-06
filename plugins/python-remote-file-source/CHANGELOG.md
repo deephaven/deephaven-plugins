@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## python-remote-file-source-v0.1.5 - 2026-07-06
+
+#### Tests
+
+- Fix up python-remote-file-source tests, actions ([#1383](https://github.com/deephaven/deephaven-plugins/pull/1383)) - (ef8e335) - mofojed
+
+- - -
+
+
 ## python-remote-file-source-v0.1.4 - 2026-07-03
 
 #### Tests
