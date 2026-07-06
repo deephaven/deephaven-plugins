@@ -5,7 +5,7 @@ class JsonRpcRequest(TypedDict):
     jsonrpc: Literal["2.0"]
     id: str
     method: str
-    params: dict | list
+    params: Union[dict, list]
 
 
 class JsonRpcSuccess(TypedDict):

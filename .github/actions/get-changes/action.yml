@@ -40,3 +40,6 @@ runs:
           pivot:
             - plugins/pivot/**
             - .github/workflows/test-*.yml
+          python-remote-file-source:
+            - plugins/python-remote-file-source/**
+            - .github/workflows/test-*.yml
