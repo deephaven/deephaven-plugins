@@ -1,57 +1,23 @@
 /* eslint-disable react-refresh/only-export-components */
-import { Button } from '@deephaven/components';
-import { vsTrash } from '@deephaven/icons';
-import {
-  DndKitCore,
-  DndKitSortable,
-  DndKitUtilities,
-} from '@deephaven/iris-grid';
-import GripIcon from './GripIcon';
+import { DndKitCore, DndKitSortable } from '@deephaven/iris-grid';
 import { columnRowId } from './dndIds';
+import { sortableRowStyle } from './dndStyles';
 import {
-  COLLAPSING_SOURCE_STYLE,
-  ROW_MAX_HEIGHT,
-  useGrowInStyle,
-} from './dndStyles';
+  DragGrip,
+  DropGhost,
+  RemoveButton,
+  RowLabel,
+  StaticGrip,
+} from './rowParts';
 
 const { useDroppable } = DndKitCore;
 const { SortableContext, useSortable, verticalListSortingStrategy } =
   DndKitSortable;
-const { CSS } = DndKitUtilities;
 
 /**
- * Ghosted preview of the dragged column at the spot where a cross-card drop
- * will land. Mirrors the faded in-place row a same-card sortable reorder
- * shows, so cross-card drags read the same way (an item-shaped ghost, not a
- * blank gap).
- */
-function DropIndicator({ label }: { label: string }): JSX.Element {
-  const growStyle = useGrowInStyle(0.5);
-  return (
-    <div
-      className="pivot-row pivot-drop-indicator"
-      aria-hidden
-      style={growStyle}
-    >
-      <span className="pivot-row-label pivot-column-name">{label}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
-    </div>
-  );
-}
-
-/**
- * Splice a {@link DropIndicator} into a list of rendered rows at `index`
- * (clamped to the row count). Returns the rows unchanged when `index` is
- * null.
+ * Splice a cross-card {@link DropGhost} into a list of rendered rows at
+ * `index` (clamped to the row count). Returns the rows unchanged when `index`
+ * is null.
  */
 export function withDropIndicator(
   rows: JSX.Element[],
@@ -67,7 +33,11 @@ export function withDropIndicator(
   const clamped = Math.max(0, Math.min(index, rows.length));
   return [
     ...rows.slice(0, clamped),
-    <DropIndicator key="pivot-drop-indicator" label={label} />,
+    <DropGhost
+      key="pivot-drop-indicator"
+      className="pivot-row"
+      label={label}
+    />,
     ...rows.slice(clamped),
   ];
 }
@@ -146,42 +116,23 @@ export function ColumnRow({
     transition,
     isDragging,
   } = useSortable({ id, data: { type: 'column', container: droppableId } });
-  const style: React.CSSProperties = collapsed
-    ? COLLAPSING_SOURCE_STYLE
-    : {
-        transform: CSS.Transform.toString(transform),
-        transition:
-          transition == null
-            ? 'max-height 150ms ease'
-            : `${transition}, max-height 150ms ease`,
-        // Fade the source row in place while dragging (its overlay clone
-        // follows the cursor), matching Organize Columns' ghost treatment.
-        opacity: isDragging ? 0.5 : 1,
-        // Explicit origin so a cross-card collapse can animate (see
-        // COLLAPSING_SOURCE_STYLE).
-        maxHeight: ROW_MAX_HEIGHT,
-      };
+  const style = sortableRowStyle({
+    collapsed,
+    transform,
+    transition,
+    isDragging,
+    // Chain dnd-kit's own transform transition so a same-card reorder slides.
+    draggingTransition: `${transition}, max-height 150ms ease`,
+  });
   return (
     <div ref={setNodeRef} className="pivot-row" style={style}>
-      <span className="pivot-row-label pivot-column-name">{name}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={onDelete}
+      <RowLabel>{name}</RowLabel>
+      <RemoveButton onClick={onDelete} />
+      <DragGrip
+        activatorRef={setActivatorNodeRef}
+        attributes={attributes}
+        listeners={listeners}
       />
-      <span
-        ref={setActivatorNodeRef}
-        className="pivot-grip"
-        aria-label="Drag to re-order"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...listeners}
-      >
-        <GripIcon />
-      </span>
     </div>
   );
 }
@@ -200,17 +151,9 @@ export function ColumnRowPreview({
         invalid ? ' pivot-drag-invalid' : ''
       }`}
     >
-      <span className="pivot-row-label pivot-column-name">{name}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
+      <RowLabel>{name}</RowLabel>
+      <RemoveButton />
+      <StaticGrip />
     </div>
   );
 }

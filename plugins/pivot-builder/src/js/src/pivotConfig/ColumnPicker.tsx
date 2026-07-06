@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { SearchInput } from '@deephaven/components';
-import usePortalAnchorPosition from './usePortalAnchorPosition';
+import PivotPopover from './PivotPopover';
 
 type PickerProps = {
   anchorRef: React.RefObject<HTMLElement>;
@@ -22,10 +21,8 @@ export default function ColumnPicker({
 }: PickerProps): JSX.Element {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<SearchInput>(null);
   const excludedSet = useMemo(() => new Set(excluded), [excluded]);
-  const pos = usePortalAnchorPosition(anchorRef, containerRef);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => searchRef.current?.focus());
@@ -42,27 +39,6 @@ export default function ColumnPicker({
   useEffect(() => {
     setActiveIndex(0);
   }, [query, filtered.length]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent): void {
-      if (
-        containerRef.current != null &&
-        e.target instanceof Node &&
-        !containerRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    }
-    function handleKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [onClose]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -81,18 +57,8 @@ export default function ColumnPicker({
     [activeIndex, filtered, onPick]
   );
 
-  return createPortal(
-    <div
-      ref={containerRef}
-      className="pivot-popover"
-      style={{
-        position: 'fixed',
-        top: pos?.top ?? -9999,
-        right: pos?.right ?? 0,
-        visibility: pos == null ? 'hidden' : 'visible',
-      }}
-      role="dialog"
-    >
+  return (
+    <PivotPopover anchorRef={anchorRef} onClose={onClose}>
       <div className="pivot-popover-search">
         <SearchInput
           ref={searchRef}
@@ -126,7 +92,6 @@ export default function ColumnPicker({
           ))
         )}
       </div>
-    </div>,
-    document.body
+    </PivotPopover>
   );
 }

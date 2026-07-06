@@ -1,20 +1,22 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useMemo } from 'react';
-import { Button, Item, Picker } from '@deephaven/components';
-import { vsTrash } from '@deephaven/icons';
+import { Item, Picker } from '@deephaven/components';
 import { DndKitSortable, DndKitUtilities } from '@deephaven/iris-grid';
 import {
   AggregationUtils,
   type Aggregation,
   type AggregationOperation,
 } from '@deephaven/iris-grid';
-import GripIcon from './GripIcon';
 import { AGGREGATIONS_DROPPABLE, aggregationColumnId } from './dndIds';
+import { sortableRowStyle } from './dndStyles';
 import {
-  COLLAPSING_SOURCE_STYLE,
-  ROW_MAX_HEIGHT,
-  useGrowInStyle,
-} from './dndStyles';
+  DragGrip,
+  DropGhost,
+  HiddenGrip,
+  RemoveButton,
+  RowLabel,
+  StaticGrip,
+} from './rowParts';
 
 const { SortableContext, useSortable, verticalListSortingStrategy } =
   DndKitSortable;
@@ -111,49 +113,26 @@ function AggregateColumnRow({
       column,
     },
   });
-  const style: React.CSSProperties = collapsed
-    ? COLLAPSING_SOURCE_STYLE
-    : {
-        transform: CSS.Transform.toString(transform),
-        // In this nested SortableContext dnd-kit hands the *displaced* sibling
-        // rows a 0-duration (`transform linear`) transition, so they snap to
-        // their new slot instead of sliding (the active row and the
-        // single-level column cards get `transform 200ms`). Normalize any
-        // active transition to a smooth transform tween so a same-group
-        // reorder animates like the other cards; leave it unset when idle so
-        // the initial pickup isn't animated. Include max-height so a
-        // cross-group collapse can animate (see COLLAPSING_SOURCE_STYLE).
-        transition:
-          transition == null
-            ? 'max-height 150ms ease'
-            : 'transform 200ms ease, max-height 150ms ease',
-        // Fade the source column in place while dragging (its overlay clone
-        // follows the cursor), matching ColumnRow / AggregateSelectRow so a
-        // same-group reorder shows a ghost instead of a blank gap.
-        opacity: isDragging ? 0.5 : 1,
-        maxHeight: ROW_MAX_HEIGHT,
-      };
+  const style = sortableRowStyle({
+    collapsed,
+    transform,
+    transition,
+    isDragging,
+    // In this nested SortableContext dnd-kit hands the *displaced* sibling
+    // rows a 0-duration (`transform linear`) transition, so they snap to their
+    // new slot instead of sliding. Normalize any active transition to a smooth
+    // transform tween so a same-group reorder animates like the other cards.
+    draggingTransition: 'transform 200ms ease, max-height 150ms ease',
+  });
   return (
     <div ref={setNodeRef} className="pivot-agg-row-line" style={style}>
-      <span className="pivot-row-label pivot-column-name">{column}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove column"
-        onClick={onDelete}
+      <RowLabel>{column}</RowLabel>
+      <RemoveButton tooltip="Remove column" onClick={onDelete} />
+      <DragGrip
+        activatorRef={setActivatorNodeRef}
+        attributes={attributes}
+        listeners={listeners}
       />
-      <span
-        ref={setActivatorNodeRef}
-        className="pivot-grip"
-        aria-label="Drag to re-order"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...listeners}
-      >
-        <GripIcon />
-      </span>
     </div>
   );
 }
@@ -162,34 +141,6 @@ export function formatAggLabel(entry: Aggregation): string {
   return entry.selected.length > 0
     ? `${entry.operation} (${entry.selected.join(', ')})`
     : entry.operation;
-}
-
-/**
- * Ghost preview of a column dragged in from another group, shown at the drop
- * slot in the target group's column list. Grows in on mount so it slides open
- * as the source row collapses shut.
- */
-function AggregateColumnGhost({ label }: { label: string }): JSX.Element {
-  const growStyle = useGrowInStyle(0.5);
-  return (
-    <div
-      className="pivot-agg-row-line pivot-drop-indicator"
-      aria-hidden
-      style={growStyle}
-    >
-      <span className="pivot-row-label pivot-column-name">{label}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove column"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
-    </div>
-  );
 }
 
 /**
@@ -282,9 +233,11 @@ export function AggregateSelectRow({
         );
         columnChildren = [
           ...columnRows.slice(0, clamped),
-          <AggregateColumnGhost
+          <DropGhost
             key="agg-column-drop-ghost"
+            className="pivot-agg-row-line"
             label={columnDropLabel}
+            tooltip="Remove column"
           />,
           ...columnRows.slice(clamped),
         ];
@@ -303,22 +256,17 @@ export function AggregateSelectRow({
       // buttons aligned with the draggable function line above.
       columnsContent = columnLabels.map(label => (
         <div key={label} className="pivot-agg-row-line">
-          <span className="pivot-row-label pivot-column-name">{label}</span>
-          <Button
-            kind="ghost"
-            className="btn-small pivot-row-btn"
-            icon={vsTrash}
+          <RowLabel>{label}</RowLabel>
+          <RemoveButton
             tooltip="Remove column"
             onClick={() => onDeleteColumn(label)}
           />
-          <span className="pivot-grip pivot-grip--hidden" aria-hidden />
+          <HiddenGrip />
         </div>
       ));
     } else {
       columnsContent = columnLabels.map(label => (
-        <span key={label} className="pivot-row-label pivot-column-name">
-          {label}
-        </span>
+        <RowLabel key={label}>{label}</RowLabel>
       ));
     }
   }
@@ -332,7 +280,7 @@ export function AggregateSelectRow({
       <div className="pivot-agg-row-line">
         <div className="pivot-agg-row-picker">
           {staticOperation ? (
-            <span className="pivot-row-label">{operation}</span>
+            <RowLabel columnName={false}>{operation}</RowLabel>
           ) : (
             <Picker
               isQuiet
@@ -353,24 +301,12 @@ export function AggregateSelectRow({
             </Picker>
           )}
         </div>
-        <Button
-          kind="ghost"
-          className="btn-small pivot-row-btn"
-          icon={vsTrash}
-          tooltip="Remove"
-          onClick={onDelete}
+        <RemoveButton onClick={onDelete} />
+        <DragGrip
+          activatorRef={setActivatorNodeRef}
+          attributes={attributes}
+          listeners={listeners}
         />
-        <span
-          ref={setActivatorNodeRef}
-          className="pivot-grip"
-          aria-label="Drag to re-order"
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...attributes}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...listeners}
-        >
-          <GripIcon />
-        </span>
       </div>
       {columnsContent}
     </div>
@@ -386,17 +322,9 @@ export function AggregateRowPreview({
 }): JSX.Element {
   return (
     <div className="pivot-row pivot-row--dragging">
-      <span className="pivot-row-label">{label ?? formatAggLabel(entry)}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
+      <RowLabel columnName={false}>{label ?? formatAggLabel(entry)}</RowLabel>
+      <RemoveButton />
+      <StaticGrip />
     </div>
   );
 }

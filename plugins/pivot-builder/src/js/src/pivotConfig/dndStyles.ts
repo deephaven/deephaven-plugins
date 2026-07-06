@@ -68,3 +68,37 @@ export function useGrowInStyle(targetOpacity: number): React.CSSProperties {
     transition: 'max-height 150ms ease, opacity 150ms ease',
   };
 }
+
+/**
+ * Style for a sortable single-line row (a rollup/pivot column or an aggregate
+ * column). Collapses to {@link COLLAPSING_SOURCE_STYLE} when the row is the
+ * source of a cross-group move; otherwise applies the live drag transform, a
+ * fade while dragging (its overlay clone follows the cursor), and the capped
+ * `max-height` so a collapse can animate. `draggingTransition` is the
+ * transition applied once dnd-kit assigns one — it differs between the flat
+ * column list and the nested aggregate-column list, so callers pass their own.
+ */
+export function sortableRowStyle({
+  collapsed,
+  transform,
+  transition,
+  isDragging,
+  draggingTransition,
+}: {
+  collapsed: boolean;
+  transform: Parameters<typeof CSS.Transform.toString>[0];
+  transition: string | undefined;
+  isDragging: boolean;
+  draggingTransition: string;
+}): React.CSSProperties {
+  if (collapsed) {
+    return COLLAPSING_SOURCE_STYLE;
+  }
+  return {
+    transform: CSS.Transform.toString(transform),
+    transition:
+      transition == null ? 'max-height 150ms ease' : draggingTransition,
+    opacity: isDragging ? 0.5 : 1,
+    maxHeight: ROW_MAX_HEIGHT,
+  };
+}

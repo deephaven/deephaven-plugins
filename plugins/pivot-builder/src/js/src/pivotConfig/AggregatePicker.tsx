@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Button, Checkbox, SearchInput, Select } from '@deephaven/components';
 import {
   AggregationUtils,
   type Aggregation,
   type AggregationOperation,
 } from '@deephaven/iris-grid';
-import usePortalAnchorPosition from './usePortalAnchorPosition';
+import PivotPopover from './PivotPopover';
 
 type AggregatePickerProps = {
   anchorRef: React.RefObject<HTMLElement>;
@@ -31,14 +30,12 @@ export default function AggregatePicker({
   onCommit,
   onClose,
 }: AggregatePickerProps): JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
   const [operation, setOperation] = useState<string>(initial.operation);
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(existingSelections[initial.operation] ?? initial.selected)
   );
   const [query, setQuery] = useState('');
-  const pos = usePortalAnchorPosition(anchorRef, containerRef);
 
   // When the function changes, load the columns already selected for that
   // function so the multi-select reflects the current card state. Guarded
@@ -91,27 +88,6 @@ export default function AggregatePicker({
       : availableColumns.filter(c => c.toLowerCase().includes(q));
   }, [availableColumns, query]);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent): void {
-      if (
-        containerRef.current != null &&
-        e.target instanceof Node &&
-        !containerRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    }
-    function handleKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [onClose]);
-
   const toggleColumn = useCallback(
     (name: string) => {
       if (!isColumnValid(name)) return;
@@ -148,17 +124,11 @@ export default function AggregatePicker({
     });
   }, [operation, selected, availableColumns, onCommit]);
 
-  return createPortal(
-    <div
-      ref={containerRef}
-      className="pivot-popover pivot-agg-popover"
-      style={{
-        position: 'fixed',
-        top: pos?.top ?? -9999,
-        right: pos?.right ?? 0,
-        visibility: pos == null ? 'hidden' : 'visible',
-      }}
-      role="dialog"
+  return (
+    <PivotPopover
+      anchorRef={anchorRef}
+      onClose={onClose}
+      className="pivot-agg-popover"
     >
       <div>
         <div className="pivot-agg-field-label">Select aggregation</div>
@@ -221,7 +191,6 @@ export default function AggregatePicker({
           Aggregate
         </Button>
       </div>
-    </div>,
-    document.body
+    </PivotPopover>
   );
 }
