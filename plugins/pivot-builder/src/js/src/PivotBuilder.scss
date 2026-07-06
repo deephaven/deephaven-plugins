@@ -278,6 +278,16 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  // Labels, card titles, and row text are not meant to be selected (they're
+  // drag handles / controls), and stray selection during a drag looks broken.
+  // Re-enable selection for editable fields below.
+  user-select: none;
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    user-select: text;
+  }
 
   .pivot-droppable {
     min-height: 2px;
@@ -354,11 +364,25 @@
     margin-top: 6px;
   }
 
-  // Empty placeholder shown in a target card while dragging a column in from
-  // another card, mirroring the row-height gap a same-card reorder opens.
+  // Ghosted row-shaped preview shown in a target card while dragging a column
+  // in from another card. Mirrors the faded in-place row a same-card reorder
+  // shows (opacity 0.5), so cross-card drags read the same way instead of as a
+  // blank gap.
   .pivot-drop-indicator {
-    height: 28px;
-    margin: 1px 0;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  // While dragging, the DragOverlay is `pointer-events: none`, so the row
+  // directly under the cursor still receives hover — which pops the remove
+  // button's tooltip mid-drag. Suppress pointer events on the interactive row
+  // controls for the duration of the drag. Drop detection is rect-based, so
+  // this doesn't affect DnD.
+  &.is-dragging {
+    .pivot-row-btn,
+    .pivot-grip {
+      pointer-events: none;
+    }
   }
 
   // Compact row buttons: the base .btn is 32px tall; shrink inline row action

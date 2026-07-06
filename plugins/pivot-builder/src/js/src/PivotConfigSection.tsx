@@ -1,44 +1,8 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  DndKitCore,
-  DndKitSortable,
-  DndKitUtilities,
-} from '@deephaven/iris-grid';
-import {
-  ActionButton,
-  Button,
-  Checkbox,
-  GLOBAL_SHORTCUTS,
-  Icon,
-  Item,
-  Keyboard,
-  MenuTrigger,
-  Picker,
-  SearchInput,
-  Section,
-  Select,
-  SpectrumMenu,
-  Switch,
-  Text,
-  ReactFontAwesome,
-} from '@deephaven/components';
-import {
-  vsBlank,
-  vsCheck,
-  vsDiscard,
-  vsGripper,
-  vsKebabVertical,
-  vsRedo,
-  vsTrash,
-} from '@deephaven/icons';
+import { DndKitCore } from '@deephaven/iris-grid';
+import { Button, GLOBAL_SHORTCUTS, Switch } from '@deephaven/components';
+import { vsDiscard, vsRedo } from '@deephaven/icons';
 import {
   AggregationOperation,
   AggregationUtils,
@@ -46,22 +10,35 @@ import {
   type AggregationSettings,
 } from '@deephaven/iris-grid';
 import { usePivotServiceStatus } from './PivotServiceContext';
+import {
+  AGGREGATIONS_DROPPABLE,
+  PIVOT_COLUMNS_DROPPABLE,
+  ROLLUP_ROWS_DROPPABLE,
+  aggregationRowId,
+  columnRowId,
+} from './pivotConfig/dndIds';
+import {
+  COLUMN_DROP_ANIMATION,
+  DRAG_OVERLAY_STYLE,
+} from './pivotConfig/dndStyles';
+import pivotCollisionDetection from './pivotConfig/pivotCollisionDetection';
+import { removeAt } from './pivotConfig/arrayUtils';
+import {
+  ColumnRow,
+  DroppableList,
+  withDropIndicator,
+} from './pivotConfig/columnRows';
+import { AggregateSelectRow } from './pivotConfig/aggregateRows';
+import { usePivotDnd } from './pivotConfig/usePivotDnd';
+import ServiceUnavailableMessage from './pivotConfig/ServiceUnavailableMessage';
+import ColumnPicker from './pivotConfig/ColumnPicker';
+import AggregatePicker from './pivotConfig/AggregatePicker';
+import ConfigCard from './pivotConfig/ConfigCard';
+import OverflowMenu, {
+  type OverflowMenuSection,
+} from './pivotConfig/OverflowMenu';
 
-const {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-  MeasuringStrategy,
-  PointerSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} = DndKitCore;
-const { SortableContext, useSortable, verticalListSortingStrategy } =
-  DndKitSortable;
-const { CSS } = DndKitUtilities;
-
-const { FontAwesomeIcon } = ReactFontAwesome;
+const { DndContext, DragOverlay } = DndKitCore;
 
 /**
  * Mock-data UI section that previews the eventual replacement for the
@@ -159,1085 +136,6 @@ export type PivotConfigSectionProps = {
   onClearAll: () => void;
 };
 
-/** Drag-handle grip icon. */
-function GripIcon(): JSX.Element {
-  return <FontAwesomeIcon icon={vsGripper} />;
-}
-
-/** Message displayed in the Pivot columns card when the service is unavailable. */
-function ServiceUnavailableMessage(): JSX.Element {
-  return (
-    <div className="pivot-service-unavailable">Pivot service not available</div>
-  );
-}
-
-type PickerProps = {
-  anchorRef: React.RefObject<HTMLElement>;
-  available: readonly string[];
-  excluded: readonly string[];
-  placeholder?: string;
-  onPick: (name: string) => void;
-  onClose: () => void;
-};
-
-/**
- * Position a fixed-position popover so its top-right corner is anchored
- * just below the anchor element. Flips above the anchor when the
- * preferred placement would fall off the bottom of the viewport.
- */
-function usePortalAnchorPosition(
-  anchorRef: React.RefObject<HTMLElement>,
-  popoverRef: React.RefObject<HTMLElement>
-): { top: number; right: number } | null {
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
-  useLayoutEffect(() => {
-    const a = anchorRef.current;
-    const p = popoverRef.current;
-    if (a == null) return undefined;
-    const compute = (): void => {
-      const r = a.getBoundingClientRect();
-      const ph = p?.getBoundingClientRect().height ?? 0;
-      const gap = 4;
-      const wantTop = r.bottom + gap;
-      const overflowsBottom = wantTop + ph > window.innerHeight - 8;
-      const top = overflowsBottom ? Math.max(8, r.top - gap - ph) : wantTop;
-      const right = window.innerWidth - r.right;
-      setPos({ top, right });
-    };
-    compute();
-    window.addEventListener('resize', compute);
-    window.addEventListener('scroll', compute, true);
-    return () => {
-      window.removeEventListener('resize', compute);
-      window.removeEventListener('scroll', compute, true);
-    };
-  }, [anchorRef, popoverRef]);
-  return pos;
-}
-
-function ColumnPicker({
-  anchorRef,
-  available,
-  excluded,
-  placeholder = 'Find column...',
-  onPick,
-  onClose,
-}: PickerProps): JSX.Element {
-  const [query, setQuery] = useState('');
-  const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<SearchInput>(null);
-  const excludedSet = useMemo(() => new Set(excluded), [excluded]);
-  const pos = usePortalAnchorPosition(anchorRef, containerRef);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => searchRef.current?.focus());
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return available.filter(
-      c => !excludedSet.has(c) && (q === '' || c.toLowerCase().includes(q))
-    );
-  }, [available, excludedSet, query]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query, filtered.length]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent): void {
-      if (
-        containerRef.current != null &&
-        e.target instanceof Node &&
-        !containerRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    }
-    function handleKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [onClose]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setActiveIndex(i => Math.min(filtered.length - 1, i + 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setActiveIndex(i => Math.max(0, i - 1));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const pick = filtered[activeIndex];
-        if (pick != null) onPick(pick);
-      }
-    },
-    [activeIndex, filtered, onPick]
-  );
-
-  return createPortal(
-    <div
-      ref={containerRef}
-      className="pivot-popover"
-      style={{
-        position: 'fixed',
-        top: pos?.top ?? -9999,
-        right: pos?.right ?? 0,
-        visibility: pos == null ? 'hidden' : 'visible',
-      }}
-      role="dialog"
-    >
-      <div className="pivot-popover-search">
-        <SearchInput
-          ref={searchRef}
-          value={query}
-          placeholder={placeholder}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-      </div>
-      <div className="pivot-popover-list" role="listbox">
-        {filtered.length === 0 ? (
-          <div className="pivot-popover-empty">No options</div>
-        ) : (
-          filtered.map((name, i) => (
-            // eslint-disable-next-line jsx-a11y/interactive-supports-focus
-            <div
-              key={name}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={`pivot-popover-item${
-                i === activeIndex ? ' pivot-popover-item--active' : ''
-              }`}
-              onMouseEnter={() => setActiveIndex(i)}
-              onMouseDown={e => {
-                e.preventDefault();
-                onPick(name);
-              }}
-            >
-              {name}
-            </div>
-          ))
-        )}
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-type OverflowMenuItem = {
-  /** Stable key identifying the item; passed back to `onAction`. */
-  key: string;
-  /** Visible label. */
-  label: string;
-  /**
-   * Toggle state. When `true` the item shows a leading checkmark; when `false`
-   * the checkmark column is blank. When `undefined` the item is a plain action
-   * (also blank), so toggles and actions can be mixed in the same menu. Every
-   * item reserves the leading icon column so labels stay aligned.
-   */
-  isSelected?: boolean;
-  /**
-   * Optional keyboard-shortcut hint, shown right-aligned in the menu row via
-   * Spectrum's `Keyboard` element (matching the Organize Columns menu).
-   */
-  shortcut?: string;
-};
-
-/**
- * A group of {@link OverflowMenuItem}s. Spectrum draws a divider before every
- * section after the first, so each section boundary renders a separator —
- * mirroring the grouped "Organize Columns" overflow menu in
- * `@deephaven/iris-grid`.
- */
-type OverflowMenuSection = {
-  /** Stable key identifying the section. */
-  key: string;
-  /** Items rendered within the section. */
-  items: OverflowMenuItem[];
-};
-
-type OverflowMenuProps = {
-  /**
-   * Sections rendered in the menu, with a separator drawn between each.
-   * Memoize for a stable reference.
-   */
-  sections: OverflowMenuSection[];
-  /** Keys of items rendered as disabled. */
-  disabledKeys?: Iterable<string>;
-  /** Accessible label / tooltip for the kebab (⋮) trigger. */
-  tooltip: string;
-  /** Invoked with the key of the activated item. */
-  onAction: (key: string) => void;
-  /** Invoked when the menu opens (e.g. to dismiss other open popovers). */
-  onOpen?: () => void;
-};
-
-/**
- * A kebab (⋮) button that opens a Spectrum `Menu`, mirroring the Organize
- * Columns overflow menu in `@deephaven/iris-grid`. `MenuTrigger` owns the
- * open/close state. Items may be plain actions or checkable toggles
- * (`isSelected` defined): a toggle's leading checkmark is swapped between
- * `vsCheck` and `vsBlank` via `FontAwesomeIcon`, exactly like the
- * "Show hidden columns" item there.
- */
-function OverflowMenu({
-  sections,
-  disabledKeys,
-  tooltip,
-  onAction,
-  onOpen,
-}: OverflowMenuProps): JSX.Element {
-  return (
-    <MenuTrigger
-      closeOnSelect
-      onOpenChange={isOpen => {
-        if (isOpen) {
-          onOpen?.();
-        }
-      }}
-    >
-      <ActionButton isQuiet aria-label={tooltip}>
-        <FontAwesomeIcon icon={vsKebabVertical} />
-      </ActionButton>
-      <SpectrumMenu
-        disabledKeys={disabledKeys}
-        onAction={key => onAction(String(key))}
-      >
-        {sections.map(section => (
-          <Section key={section.key}>
-            {section.items.map(item => (
-              <Item key={item.key} textValue={item.label}>
-                <Icon>
-                  <FontAwesomeIcon
-                    icon={item.isSelected === true ? vsCheck : vsBlank}
-                  />
-                </Icon>
-                <Text>{item.label}</Text>
-                {item.shortcut != null && <Keyboard>{item.shortcut}</Keyboard>}
-              </Item>
-            ))}
-          </Section>
-        ))}
-      </SpectrumMenu>
-    </MenuTrigger>
-  );
-}
-
-type ConfigCardProps = {
-  title: string;
-  on: boolean;
-  onToggle: (next: boolean) => void;
-  onAdd: () => void;
-  addDisabled?: boolean;
-  /** When true, the whole card is greyed-out and non-interactive. */
-  disabled?: boolean;
-  /**
-   * When true, only the per-card on/off Switch is locked; the rest of
-   * the card (Add, overflow menu, list edits, drag-and-drop) stays
-   * interactive. Used by the global "Toggle" so the user can keep
-   * arranging columns without flipping individual card states.
-   */
-  toggleLocked?: boolean;
-  /** When true, render a divider under the title to set off the body. */
-  hasBody?: boolean;
-  /** Optional overflow (⋮) menu rendered after the Add button. */
-  overflow?: React.ReactNode;
-  picker?: (anchorRef: React.RefObject<HTMLElement>) => React.ReactNode;
-  children: React.ReactNode;
-};
-
-function ConfigCard({
-  title,
-  on,
-  onToggle,
-  onAdd,
-  addDisabled,
-  disabled,
-  toggleLocked,
-  hasBody,
-  overflow,
-  picker,
-  children,
-}: ConfigCardProps): JSX.Element {
-  const buttonRef = useRef<HTMLSpanElement>(null);
-  // A card toggled "off" (or hard-disabled) gets a dark, disabled-state
-  // border so it reads as inactive while its boundary stays clearly visible.
-  // Hard-disabled cards additionally fade out and block all interaction;
-  // a merely "off" card stays interactive so its list can still be edited.
-  let cardModifier = '';
-  if (disabled === true) {
-    cardModifier = ' pivot-card--disabled';
-  } else if (!on) {
-    cardModifier = ' pivot-card--off';
-  }
-  return (
-    <div
-      className={`pivot-card${cardModifier}`}
-      aria-disabled={disabled === true}
-    >
-      <div
-        className={`pivot-card-header${
-          hasBody === true ? ' pivot-card-header--with-body' : ''
-        }`}
-      >
-        <span className="pivot-card-title">{title}</span>
-        {/*
-          Controlled Spectrum Switch. Guard onChange against echoes:
-          react-spectrum can fire onChange during prop-driven internal
-          state sync, which — if blindly forwarded — would re-set the
-          parent's on/off state to the same value and, in some
-          re-render orderings, oscillate the switch. Forwarding only
-          when the value actually flips makes the toggle a pure
-          user-driven event.
-        */}
-        <Switch
-          isSelected={on}
-          onChange={next => {
-            if (next !== on) {
-              onToggle(next);
-            }
-          }}
-          isDisabled={disabled === true || toggleLocked === true}
-          aria-label={title}
-        />
-        <span ref={buttonRef} className="pivot-add-anchor">
-          <ActionButton
-            onPress={onAdd}
-            isDisabled={addDisabled === true || disabled === true}
-          >
-            Add
-          </ActionButton>
-        </span>
-        {overflow}
-        {picker?.(buttonRef)}
-      </div>
-      <div
-        className={on ? undefined : 'pivot-card-body--off'}
-        aria-disabled={!on}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Droppable ids used by the drag-and-drop context. Columns may be
- * dragged between `rollup-rows` and `pivot-columns`; aggregations are
- * a separate scope and only reorder within themselves.
- */
-const ROLLUP_ROWS_DROPPABLE = 'rollup-rows';
-const PIVOT_COLUMNS_DROPPABLE = 'pivot-columns';
-const AGGREGATIONS_DROPPABLE = 'aggregations';
-
-/** Empty row-height placeholder marking where a cross-card drag will drop. */
-function DropIndicator(): JSX.Element {
-  return <div className="pivot-drop-indicator" aria-hidden />;
-}
-
-/**
- * Splice a {@link DropIndicator} into a list of rendered rows at `index`
- * (clamped to the row count). Returns the rows unchanged when `index` is
- * null.
- */
-function withDropIndicator(
-  rows: JSX.Element[],
-  index: number | null
-): React.ReactNode {
-  if (index == null) {
-    return rows;
-  }
-  const clamped = Math.max(0, Math.min(index, rows.length));
-  return [
-    ...rows.slice(0, clamped),
-    <DropIndicator key="pivot-drop-indicator" />,
-    ...rows.slice(clamped),
-  ];
-}
-
-type DroppableListProps = {
-  id: string;
-  type: 'columns' | 'aggregations';
-  itemIds: string[];
-  isEmpty: boolean;
-  disabled?: boolean;
-  children: React.ReactNode;
-};
-
-/**
- * A SortableContext-wrapped container that also registers as a
- * droppable so empty lists can accept drops. `type` controls the CSS
- * class so the marching-ants decoration toggles based on the active
- * drag's source (set on the section root).
- */
-function DroppableList({
-  id,
-  type,
-  itemIds,
-  isEmpty,
-  disabled,
-  children,
-}: DroppableListProps): JSX.Element {
-  const { setNodeRef, isOver } = useDroppable({
-    id,
-    data: { container: id },
-    disabled: disabled === true,
-  });
-  const baseClass =
-    type === 'columns'
-      ? 'pivot-droppable-columns'
-      : 'pivot-droppable-aggregations';
-  const stateClass = isEmpty ? 'pivot-droppable-empty' : 'pivot-droppable';
-  const overClass = isOver ? ' is-dragging-over' : '';
-  return (
-    <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-      <div
-        ref={setNodeRef}
-        className={`${baseClass} ${stateClass}${overClass}`}
-      >
-        {children}
-      </div>
-    </SortableContext>
-  );
-}
-
-type ColumnRowProps = {
-  name: string;
-  droppableId: string;
-  onDelete: () => void;
-};
-
-function columnRowId(droppableId: string, name: string): string {
-  return `${droppableId}:${name}`;
-}
-
-function ColumnRow({
-  name,
-  droppableId,
-  onDelete,
-}: ColumnRowProps): JSX.Element {
-  const id = columnRowId(droppableId, name);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id, data: { type: 'column', container: droppableId } });
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-  };
-  return (
-    <div ref={setNodeRef} className="pivot-row" style={style}>
-      <span className="pivot-row-label pivot-column-name">{name}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={onDelete}
-      />
-      <span
-        ref={setActivatorNodeRef}
-        className="pivot-grip"
-        aria-label="Drag to re-order"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...listeners}
-      >
-        <GripIcon />
-      </span>
-    </div>
-  );
-}
-
-/** Static (non-dnd) rendering of a column row for use inside DragOverlay. */
-function ColumnRowPreview({
-  name,
-  invalid = false,
-}: {
-  name: string;
-  invalid?: boolean;
-}): JSX.Element {
-  return (
-    <div
-      className={`pivot-row pivot-row--dragging${
-        invalid ? ' pivot-drag-invalid' : ''
-      }`}
-    >
-      <span className="pivot-row-label pivot-column-name">{name}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
-    </div>
-  );
-}
-
-type AggregateSelectRowProps = {
-  id: string;
-  operation: string;
-  columnLabels: readonly string[];
-  availableOperations: readonly string[];
-  /**
-   * Column name -> Deephaven column type for every column in the table. Used
-   * to disable aggregate functions in the picker that aren't valid for the
-   * group's columns (e.g. Sum on a String column).
-   */
-  columnTypes: Readonly<Record<string, string>>;
-  onOperationChange: (operation: string) => void;
-  onDelete: () => void;
-  /**
-   * When provided, each column label renders with its own remove button so a
-   * single column can be dropped from the function's selection. Used by the
-   * grouped (non-pivot) layout where one row lists all of a function's
-   * columns; omitted in the ungrouped layout where each function/column pair
-   * is already its own deletable row.
-   */
-  onDeleteColumn?: (column: string) => void;
-  /**
-   * When false, a function's columns render as removable rows but are not
-   * draggable — only whole function groups can be reordered. Used by the
-   * aggregation-only view where per-column drag/reassignment is disabled.
-   */
-  columnsDraggable?: boolean;
-  /**
-   * When true the aggregate function is rendered as plain read-only text
-   * (just the operation name) instead of an editable picker, and the column
-   * labels are omitted. Used for the collapsed Count row in the ungrouped
-   * (pivot) layout.
-   */
-  staticOperation?: boolean;
-};
-
-/**
- * Stable sortable id for a grouped aggregate row (one row per operation).
- * Keyed by the operation rather than its index so a reorder moves the DOM
- * node (and animates) instead of mutating content in place — positional ids
- * stay at the same slot after a reorder, which makes dnd-kit's drop animation
- * snap the dragged row back to where it started.
- */
-function aggregationRowId(operation: string): string {
-  return `${AGGREGATIONS_DROPPABLE}:${operation}`;
-}
-
-/**
- * Stable sortable id for a single column inside an aggregate function group.
- * Shares the `aggregations:` prefix with {@link aggregationRowId} so
- * `resolveContainerOfId` still resolves both to the aggregations container
- * (it splits on the first `:`). The operation and column are joined with a
- * NUL so the column name can contain any printable character.
- */
-function aggregationColumnId(operation: string, column: string): string {
-  return `${AGGREGATIONS_DROPPABLE}:${operation}\u0000${column}`;
-}
-
-/**
- * Decompose an aggregation row or column id back into its operation and
- * (for column ids) column. Returns null for ids that aren't in the
- * aggregations container. Row ids yield `column: null`.
- */
-function parseAggregationId(
-  id: string
-): { operation: string; column: string | null } | null {
-  const prefix = `${AGGREGATIONS_DROPPABLE}:`;
-  if (!id.startsWith(prefix)) {
-    return null;
-  }
-  const rest = id.slice(prefix.length);
-  const nul = rest.indexOf('\u0000');
-  return nul === -1
-    ? { operation: rest, column: null }
-    : { operation: rest.slice(0, nul), column: rest.slice(nul + 1) };
-}
-
-/**
- * A single draggable column line inside an aggregate function group. Columns
- * can be reordered within their function or dragged onto another function to
- * reassign them; the drag-end handler validates the target function against
- * the column's type and snaps back on an invalid drop.
- */
-function AggregateColumnRow({
-  operation,
-  column,
-  onDelete,
-}: {
-  operation: string;
-  column: string;
-  onDelete: () => void;
-}): JSX.Element {
-  const id = aggregationColumnId(operation, column);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id,
-    data: {
-      type: 'aggregation-column',
-      container: AGGREGATIONS_DROPPABLE,
-      operation,
-      column,
-    },
-  });
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-  };
-  return (
-    <div ref={setNodeRef} className="pivot-agg-row-line" style={style}>
-      <span className="pivot-row-label pivot-column-name">{column}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove column"
-        onClick={onDelete}
-      />
-      <span
-        ref={setActivatorNodeRef}
-        className="pivot-grip"
-        aria-label="Drag to re-order"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...attributes}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...listeners}
-      >
-        <GripIcon />
-      </span>
-    </div>
-  );
-}
-
-function formatAggLabel(entry: Aggregation): string {
-  return entry.selected.length > 0
-    ? `${entry.operation} (${entry.selected.join(', ')})`
-    : entry.operation;
-}
-
-/**
- * Two-line aggregate row: the aggregate function rendered as a quiet
- * Spectrum picker (changeable inline) on the first line and the column
- * label on the second. Used both for the grouped layout (one row per
- * function, all columns joined) and the ungrouped layout (one row per
- * function/column pair).
- */
-function AggregateSelectRow({
-  id,
-  operation,
-  columnLabels,
-  availableOperations,
-  columnTypes,
-  onOperationChange,
-  onDelete,
-  onDeleteColumn,
-  columnsDraggable = true,
-  staticOperation = false,
-}: AggregateSelectRowProps): JSX.Element {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    setActivatorNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id,
-    data: { type: 'aggregation', container: AGGREGATIONS_DROPPABLE },
-  });
-  const style: React.CSSProperties = {
-    // Stack the function/columns vertically so the delete + drag icons can
-    // sit on the same centered line as the aggregate-function picker (the
-    // column labels flow underneath).
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    gap: 0,
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-  };
-  const columnItemIds = columnLabels.map(label =>
-    aggregationColumnId(operation, label)
-  );
-  // Disable any aggregate function that isn't valid for every column in this
-  // group (the function applies to all of them). Columns with an unknown type
-  // are skipped so a missing type doesn't over-restrict the picker.
-  const disabledOperationKeys = useMemo(() => {
-    const types = columnLabels
-      .map(label => columnTypes[label])
-      .filter((t): t is string => t != null);
-    if (types.length === 0) {
-      return undefined;
-    }
-    return availableOperations.filter(
-      op =>
-        !types.every(type =>
-          AggregationUtils.isValidOperation(op as AggregationOperation, type)
-        )
-    );
-  }, [availableOperations, columnLabels, columnTypes]);
-  let columnsContent: React.ReactNode = null;
-  if (!staticOperation) {
-    if (onDeleteColumn != null && columnsDraggable) {
-      columnsContent = (
-        <SortableContext
-          items={columnItemIds}
-          strategy={verticalListSortingStrategy}
-        >
-          {columnLabels.map(label => (
-            <AggregateColumnRow
-              key={label}
-              operation={operation}
-              column={label}
-              onDelete={() => onDeleteColumn(label)}
-            />
-          ))}
-        </SortableContext>
-      );
-    } else if (onDeleteColumn != null) {
-      // Aggregation-only view: columns are removable but not draggable; only
-      // whole function groups reorder. A hidden grip spacer keeps the remove
-      // buttons aligned with the draggable function line above.
-      columnsContent = columnLabels.map(label => (
-        <div key={label} className="pivot-agg-row-line">
-          <span className="pivot-row-label pivot-column-name">{label}</span>
-          <Button
-            kind="ghost"
-            className="btn-small pivot-row-btn"
-            icon={vsTrash}
-            tooltip="Remove column"
-            onClick={() => onDeleteColumn(label)}
-          />
-          <span className="pivot-grip pivot-grip--hidden" aria-hidden />
-        </div>
-      ));
-    } else {
-      columnsContent = columnLabels.map(label => (
-        <span key={label} className="pivot-row-label pivot-column-name">
-          {label}
-        </span>
-      ));
-    }
-  }
-  return (
-    <div ref={setNodeRef} className="pivot-row" style={style}>
-      <div className="pivot-agg-row-line">
-        <div className="pivot-agg-row-picker">
-          {staticOperation ? (
-            <span className="pivot-row-label">{operation}</span>
-          ) : (
-            <Picker
-              isQuiet
-              aria-label="Aggregation function"
-              selectedKey={operation}
-              disabledKeys={disabledOperationKeys}
-              onChange={key => {
-                if (key != null) {
-                  onOperationChange(String(key));
-                }
-              }}
-            >
-              {availableOperations.map(op => (
-                <Item key={op} textValue={op}>
-                  {op}
-                </Item>
-              ))}
-            </Picker>
-          )}
-        </div>
-        <Button
-          kind="ghost"
-          className="btn-small pivot-row-btn"
-          icon={vsTrash}
-          tooltip="Remove"
-          onClick={onDelete}
-        />
-        <span
-          ref={setActivatorNodeRef}
-          className="pivot-grip"
-          aria-label="Drag to re-order"
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...attributes}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...listeners}
-        >
-          <GripIcon />
-        </span>
-      </div>
-      {columnsContent}
-    </div>
-  );
-}
-
-function AggregateRowPreview({
-  entry,
-  label,
-}: {
-  entry: Aggregation;
-  label?: string;
-}): JSX.Element {
-  return (
-    <div className="pivot-row pivot-row--dragging">
-      <span className="pivot-row-label">{label ?? formatAggLabel(entry)}</span>
-      <Button
-        kind="ghost"
-        className="btn-small pivot-row-btn"
-        icon={vsTrash}
-        tooltip="Remove"
-        onClick={() => undefined}
-      />
-      <span className="pivot-grip" aria-hidden>
-        <GripIcon />
-      </span>
-    </div>
-  );
-}
-
-type AggregatePickerProps = {
-  anchorRef: React.RefObject<HTMLElement>;
-  availableColumns: readonly string[];
-  columnTypes: Readonly<Record<string, string>>;
-  availableOperations: readonly string[];
-  initial: Aggregation;
-  /** Columns already selected per operation in the card, so switching the
-   *  function in the picker reveals that function's existing columns. */
-  existingSelections: Readonly<Record<string, readonly string[]>>;
-  onCommit: (next: Aggregation) => void;
-  onClose: () => void;
-};
-
-function AggregatePicker({
-  anchorRef,
-  availableColumns,
-  columnTypes,
-  availableOperations,
-  initial,
-  existingSelections,
-  onCommit,
-  onClose,
-}: AggregatePickerProps): JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const selectRef = useRef<HTMLSelectElement>(null);
-  const [operation, setOperation] = useState<string>(initial.operation);
-  const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(existingSelections[initial.operation] ?? initial.selected)
-  );
-  const [query, setQuery] = useState('');
-  const pos = usePortalAnchorPosition(anchorRef, containerRef);
-
-  // When the function changes, load the columns already selected for that
-  // function so the multi-select reflects the current card state. Guarded
-  // by a ref so toggling columns (which doesn't change `operation`) and
-  // parent re-renders don't clobber the user's in-progress selection.
-  const prevOperationRef = useRef(operation);
-  useEffect(() => {
-    if (prevOperationRef.current !== operation) {
-      prevOperationRef.current = operation;
-      setSelected(new Set(existingSelections[operation] ?? []));
-    }
-  }, [operation, existingSelections]);
-
-  useEffect(() => {
-    // Defer focus past portal mount + position so the browser actually
-    // gives the (visible) <select> focus.
-    const id = requestAnimationFrame(() => selectRef.current?.focus());
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const isColumnValid = useCallback(
-    (name: string): boolean => {
-      const t = columnTypes[name];
-      if (t == null) return true;
-      return AggregationUtils.isValidOperation(
-        operation as AggregationOperation,
-        t
-      );
-    },
-    [columnTypes, operation]
-  );
-
-  // Drop any selections that aren't valid for the current operation.
-  useEffect(() => {
-    setSelected(prev => {
-      let changed = false;
-      const next = new Set<string>();
-      prev.forEach(name => {
-        if (isColumnValid(name)) next.add(name);
-        else changed = true;
-      });
-      return changed ? next : prev;
-    });
-  }, [isColumnValid]);
-
-  const filteredColumns = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q === ''
-      ? availableColumns
-      : availableColumns.filter(c => c.toLowerCase().includes(q));
-  }, [availableColumns, query]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent): void {
-      if (
-        containerRef.current != null &&
-        e.target instanceof Node &&
-        !containerRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    }
-    function handleKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [onClose]);
-
-  const toggleColumn = useCallback(
-    (name: string) => {
-      if (!isColumnValid(name)) return;
-      setSelected(prev => {
-        const next = new Set(prev);
-        if (next.has(name)) next.delete(name);
-        else next.add(name);
-        return next;
-      });
-    },
-    [isColumnValid]
-  );
-
-  const handleSelectAll = useCallback(() => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      filteredColumns.forEach(c => {
-        if (isColumnValid(c)) next.add(c);
-      });
-      return next;
-    });
-  }, [filteredColumns, isColumnValid]);
-
-  const handleClear = useCallback(() => {
-    setSelected(new Set());
-  }, []);
-
-  const handleCommit = useCallback(() => {
-    onCommit({
-      operation: operation as AggregationOperation,
-      // Preserve order of availableColumns for stable output.
-      selected: availableColumns.filter(c => selected.has(c)),
-      invert: false,
-    });
-  }, [operation, selected, availableColumns, onCommit]);
-
-  return createPortal(
-    <div
-      ref={containerRef}
-      className="pivot-popover pivot-agg-popover"
-      style={{
-        position: 'fixed',
-        top: pos?.top ?? -9999,
-        right: pos?.right ?? 0,
-        visibility: pos == null ? 'hidden' : 'visible',
-      }}
-      role="dialog"
-    >
-      <div>
-        <div className="pivot-agg-field-label">Select aggregation</div>
-        <Select
-          ref={selectRef}
-          value={operation}
-          onChange={value => setOperation(value)}
-          className="custom-select-box form-control"
-        >
-          {availableOperations.map(op => (
-            <option key={op} value={op}>
-              {op}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="pivot-agg-column-group">
-        <div className="pivot-agg-field-label">
-          Select column(s)
-          <span className="pivot-agg-required">*</span>
-        </div>
-        <SearchInput
-          value={query}
-          placeholder="Find column..."
-          onChange={e => setQuery(e.target.value)}
-        />
-        <div className="pivot-agg-column-list">
-          {filteredColumns.length === 0 ? (
-            <div className="pivot-popover-empty">No columns</div>
-          ) : (
-            filteredColumns.map(name => {
-              const valid = isColumnValid(name);
-              return (
-                <Checkbox
-                  key={name}
-                  checked={selected.has(name)}
-                  disabled={!valid}
-                  onChange={() => toggleColumn(name)}
-                >
-                  {name}
-                </Checkbox>
-              );
-            })
-          )}
-        </div>
-      </div>
-      <div className="pivot-agg-footer">
-        <Button kind="ghost" onClick={handleSelectAll}>
-          Select All
-        </Button>
-        <Button kind="ghost" onClick={handleClear}>
-          Clear
-        </Button>
-        <span className="pivot-spacer" />
-        <Button
-          kind="primary"
-          onClick={handleCommit}
-          disabled={selected.size === 0}
-        >
-          Aggregate
-        </Button>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
 export function PivotConfigSection({
   availableColumns,
   hiddenColumns,
@@ -1280,13 +178,6 @@ export function PivotConfigSection({
   const [aggPickerState, setAggPickerState] = useState<
     { mode: 'add' } | { mode: 'edit'; index: number } | null
   >(null);
-  // Tracks the source droppable while a drag is in progress; null when
-  // nothing is being dragged. Used to toggle the `is-dragging` modifier
-  // on the root so the drop zones render the marching-ants effect.
-  const [dragSource, setDragSource] = useState<string | null>(null);
-  // Id of the droppable/row currently under the pointer during a drag.
-  // Drives the cross-card insertion indicator; null when idle.
-  const [overId, setOverId] = useState<string | null>(null);
 
   // When false (default), the Add-column pickers omit columns the host
   // grid is hiding (via `hiddenColumns`). Card contents are unaffected
@@ -1517,365 +408,34 @@ export function PivotConfigSection({
     };
   }, [aggPickerState, aggregationSettings, pickerAvailableOps]);
 
-  const removeAt = <T,>(arr: T[], index: number): T[] => {
-    const next = arr.slice();
-    next.splice(index, 1);
-    return next;
-  };
-
-  const moveItem = <T,>(arr: readonly T[], from: number, to: number): T[] => {
-    const next = arr.slice();
-    if (from === to) return next;
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    return next;
-  };
-
-  // Flip `dragSource` in `onDragStart`. With @dnd-kit's
-  // MeasuringStrategy.Always (set on the DndContext), every droppable
-  // is re-measured continuously, so the empty drop-zones can expand
-  // from 0px to their full hit-area after the drag starts and the
-  // marching-ants class is applied.
-  // Track the active draggable's id for the DragOverlay preview.
-  const [activeId, setActiveId] = useState<string | null>(null);
-  // Container of the in-flight drag. Unlike `activeId`/`dragSource` (cleared
-  // at the top of `handleDragEnd`), this survives the drop so the drag
-  // overlay can still tell what kind of item it just released while it plays
-  // its drop animation. Reset only on the next drag start.
-  const activeContainerRef = useRef<string | null>(null);
-  // True while an aggregation-column drag is hovering a function that rejects
-  // the column's type. Drives the "not allowed" tint on the drag overlay.
-  const [dropInvalid, setDropInvalid] = useState(false);
-  const handleDragStart = useCallback(
-    (event: DndKitCore.DragStartEvent): void => {
-      const container = String(event.active.data.current?.container ?? '');
-      activeContainerRef.current = container === '' ? null : container;
-      setDragSource(container === '' ? null : container);
-      setActiveId(String(event.active.id));
-      setOverId(null);
-      setDropInvalid(false);
-    },
-    []
-  );
-
-  const handleDragOver = useCallback(
-    (event: DndKitCore.DragOverEvent): void => {
-      const { active, over } = event;
-      const overIdStr = over == null ? null : String(over.id);
-      setOverId(overIdStr);
-
-      // Live validity feedback for a single-column aggregation drag: flag the
-      // drop as invalid when the hovered function rejects the column's type.
-      const activeParsed = parseAggregationId(String(active.id));
-      if (activeParsed?.column == null || overIdStr == null) {
-        setDropInvalid(false);
-        return;
-      }
-      const overParsed =
-        overIdStr === AGGREGATIONS_DROPPABLE
-          ? null
-          : parseAggregationId(overIdStr);
-      const targetOp = overParsed?.operation ?? activeParsed.operation;
-      const type = columnTypes[activeParsed.column];
-      setDropInvalid(
-        type != null &&
-          !AggregationUtils.isValidOperation(
-            targetOp as AggregationOperation,
-            type
-          )
-      );
-    },
-    [columnTypes]
-  );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-  );
-
-  // Only measure droppables continuously *while dragging*. With
-  // `MeasuringStrategy.Always` left on permanently, dnd-kit keeps its
-  // droppable ResizeObserver/MutationObserver active when idle, so any
-  // body-portal overlay (e.g. the Spectrum overflow menu) shifts layout,
-  // triggers a re-measure, and re-renders this whole subtree — which
-  // closes the just-opened menu and flickers the trigger. `WhileDragging`
-  // (the default) disables idle measuring; we switch to `Always` for the
-  // duration of a drag so empty drop-zones still expand to their full
-  // hit-area after the marching-ants class is applied.
-  const measuring = useMemo(
-    () => ({
-      droppable: {
-        strategy:
-          activeId != null
-            ? MeasuringStrategy.Always
-            : MeasuringStrategy.WhileDragging,
-      },
-    }),
-    [activeId]
-  );
-
-  const resolveContainerOfId = useCallback((id: string): string | null => {
-    // Container ids are exact matches; item ids are namespaced as
-    // `${container}:...`.
-    if (
-      id === ROLLUP_ROWS_DROPPABLE ||
-      id === PIVOT_COLUMNS_DROPPABLE ||
-      id === AGGREGATIONS_DROPPABLE
-    ) {
-      return id;
-    }
-    const colonIdx = id.indexOf(':');
-    return colonIdx === -1 ? null : id.slice(0, colonIdx);
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (event: DndKitCore.DragEndEvent): void => {
-      setDragSource(null);
-      setActiveId(null);
-      setOverId(null);
-      setDropInvalid(false);
-      const { active, over } = event;
-      if (over == null) return;
-
-      const activeIdStr = String(active.id);
-      const overIdStr = String(over.id);
-      const fromId = resolveContainerOfId(activeIdStr);
-      const toId = resolveContainerOfId(overIdStr);
-      if (fromId == null || toId == null) return;
-
-      // Aggregations are a separate scope. Whole-function rows reorder among
-      // themselves; an individual column can also be reassigned to another
-      // function, provided that function accepts the column's type.
-      if (fromId === AGGREGATIONS_DROPPABLE) {
-        if (toId !== AGGREGATIONS_DROPPABLE) return;
-
-        const { aggregations } = aggregationSettings;
-        const activeParsed = parseAggregationId(activeIdStr);
-        if (activeParsed == null) return;
-        const overParsed =
-          overIdStr === AGGREGATIONS_DROPPABLE
-            ? null
-            : parseAggregationId(overIdStr);
-
-        // Whole-function row drag: reorder the entries. Tolerates an `over`
-        // that resolves to a column row by mapping it back to its function.
-        if (activeParsed.column == null) {
-          const fromIdx = aggregations.findIndex(
-            entry => entry.operation === activeParsed.operation
-          );
-          if (fromIdx < 0) return;
-          const toIdx =
-            overParsed == null
-              ? aggregations.length - 1
-              : aggregations.findIndex(
-                  entry => entry.operation === overParsed.operation
-                );
-          if (toIdx < 0 || fromIdx === toIdx) return;
-          onAggregationSettingsChange({
-            ...aggregationSettings,
-            aggregations: moveItem(aggregations, fromIdx, toIdx),
-          });
-          return;
-        }
-
-        // Single-column drag: reorder within a function or reassign it.
-        const sourceOp = activeParsed.operation;
-        const { column } = activeParsed;
-        const sourceIdx = aggregations.findIndex(
-          entry => entry.operation === sourceOp
-        );
-        if (sourceIdx < 0) return;
-
-        // Hovering the card background keeps the column in its own function.
-        const targetOp = overParsed?.operation ?? sourceOp;
-        const targetIdx = aggregations.findIndex(
-          entry => entry.operation === targetOp
-        );
-        if (targetIdx < 0) return;
-
-        // Type validation: snap back if the target function rejects the
-        // column's type (e.g. Sum of a String column).
-        const type = columnTypes[column];
-        if (
-          type != null &&
-          !AggregationUtils.isValidOperation(
-            targetOp as AggregationOperation,
-            type
-          )
-        ) {
-          return;
-        }
-
-        if (sourceOp === targetOp) {
-          // Reorder within the function's own column list.
-          const entry = aggregations[sourceIdx];
-          const fromColIdx = entry.selected.indexOf(column);
-          if (fromColIdx < 0) return;
-          const overColIdx =
-            overParsed?.column == null
-              ? -1
-              : entry.selected.indexOf(overParsed.column);
-          const toColIdx =
-            overColIdx < 0 ? entry.selected.length - 1 : overColIdx;
-          if (fromColIdx === toColIdx) return;
-          const next = aggregations.slice();
-          next[sourceIdx] = {
-            ...entry,
-            selected: moveItem(entry.selected, fromColIdx, toColIdx),
-          };
-          onAggregationSettingsChange({
-            ...aggregationSettings,
-            aggregations: next,
-          });
-          return;
-        }
-
-        // Cross-function move. Splice the column into the target function
-        // (de-duped, at the hovered slot or the end) and drop it from the
-        // source, removing the source function if it loses its last column.
-        const targetSelected = aggregations[targetIdx].selected;
-        const overColIdx =
-          overParsed?.column == null
-            ? -1
-            : targetSelected.indexOf(overParsed.column);
-        const insertAt = overColIdx < 0 ? targetSelected.length : overColIdx;
-        let next = aggregations.map(entry => ({
-          ...entry,
-          selected: entry.selected.slice(),
-        }));
-        next[sourceIdx].selected = next[sourceIdx].selected.filter(
-          c => c !== column
-        );
-        if (!next[targetIdx].selected.includes(column)) {
-          next[targetIdx].selected.splice(
-            Math.min(insertAt, next[targetIdx].selected.length),
-            0,
-            column
-          );
-        }
-        if (next[sourceIdx].selected.length === 0) {
-          next = next.filter((_, i) => i !== sourceIdx);
-        }
-        onAggregationSettingsChange({
-          ...aggregationSettings,
-          aggregations: next,
-        });
-        return;
-      }
-      // Columns from the rollup/pivot cards can never land in aggregations.
-      if (toId === AGGREGATIONS_DROPPABLE) return;
-
-      const lists: Record<
-        string,
-        { items: string[]; set: (next: string[]) => void }
-      > = {
-        [ROLLUP_ROWS_DROPPABLE]: {
-          items: rollupRows,
-          set: onRollupRowsChange,
-        },
-        [PIVOT_COLUMNS_DROPPABLE]: {
-          items: pivotColumns,
-          set: onPivotColumnsChange,
-        },
-      };
-      const from = lists[fromId];
-      const to = lists[toId];
-      if (from == null || to == null) return;
-
-      // Recover the moved column name from the active id
-      // (`${container}:${name}`).
-      const colonIdx = activeIdStr.indexOf(':');
-      if (colonIdx === -1) return;
-      const moved = activeIdStr.slice(colonIdx + 1);
-      const fromIdx = from.items.indexOf(moved);
-      if (fromIdx < 0) return;
-
-      let toIdx: number;
-      if (overIdStr === toId) {
-        // Dropped on container background — append.
-        toIdx = to.items.length;
-      } else {
-        const overColon = overIdStr.indexOf(':');
-        const overName =
-          overColon === -1 ? overIdStr : overIdStr.slice(overColon + 1);
-        const overIdx = to.items.indexOf(overName);
-        toIdx = overIdx < 0 ? to.items.length : overIdx;
-      }
-
-      if (fromId === toId) {
-        if (fromIdx === toIdx) return;
-        from.set(moveItem(from.items, fromIdx, toIdx));
-        return;
-      }
-
-      // Cross-list move. Drop silently if the column already exists in
-      // the destination list (no duplicates within a card).
-      if (to.items.includes(moved)) return;
-      from.set(removeAt(from.items.slice(), fromIdx));
-      const nextTo = to.items.slice();
-      nextTo.splice(Math.min(toIdx, nextTo.length), 0, moved);
-      to.set(nextTo);
-    },
-    [
-      aggregationSettings,
-      columnTypes,
-      onAggregationSettingsChange,
-      onPivotColumnsChange,
-      onRollupRowsChange,
-      pivotColumns,
-      resolveContainerOfId,
-      rollupRows,
-    ]
-  );
-
-  const handleDragCancel = useCallback((): void => {
-    setDragSource(null);
-    setActiveId(null);
-    setOverId(null);
-    setDropInvalid(false);
-  }, []);
-
-  // Index at which a cross-card insertion indicator should render in the
-  // column list `targetContainer` (or null for none). Only shown for a
-  // column drag originating in the *other* column card — same-card reorders
-  // already open a gap via SortableContext. The index mirrors the drop
-  // position computed in `handleDragEnd`: before the hovered row, or at the
-  // end when hovering the empty container background.
-  const columnInsertionIndex = useCallback(
-    (targetContainer: string, items: readonly string[]): number | null => {
-      if (activeId == null || overId == null) {
-        return null;
-      }
-      const activeContainer = resolveContainerOfId(activeId);
-      if (
-        activeContainer == null ||
-        activeContainer === targetContainer ||
-        (activeContainer !== ROLLUP_ROWS_DROPPABLE &&
-          activeContainer !== PIVOT_COLUMNS_DROPPABLE)
-      ) {
-        return null;
-      }
-      if (resolveContainerOfId(overId) !== targetContainer) {
-        return null;
-      }
-      if (overId === targetContainer) {
-        return items.length;
-      }
-      const overColon = overId.indexOf(':');
-      const overName = overColon === -1 ? overId : overId.slice(overColon + 1);
-      const idx = items.indexOf(overName);
-      return idx < 0 ? items.length : idx;
-    },
-    [activeId, overId, resolveContainerOfId]
-  );
-
-  const rollupItemIds = useMemo(
-    () => rollupRows.map(n => columnRowId(ROLLUP_ROWS_DROPPABLE, n)),
-    [rollupRows]
-  );
-  const pivotItemIds = useMemo(
-    () => pivotColumns.map(n => columnRowId(PIVOT_COLUMNS_DROPPABLE, n)),
-    [pivotColumns]
-  );
+  const {
+    dragSource,
+    sensors,
+    measuring,
+    activeContainerRef,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragCancel,
+    pinOverlayToCursor,
+    rollupItemIds,
+    pivotItemIds,
+    aggItemIds,
+    crossCardColumnLeaving,
+    aggColumnDrop,
+    isDraggingAggregationGroup,
+    columnInsertionIndex,
+    activeColumnName,
+    dragOverlayPreview,
+  } = usePivotDnd({
+    rollupRows,
+    pivotColumns,
+    aggregationSettings,
+    columnTypes,
+    onRollupRowsChange,
+    onPivotColumnsChange,
+    onAggregationSettingsChange,
+  });
 
   // Columns already used by either the Rollup rows or Pivot columns card.
   // Excluded from both Add pickers so a column can't be selected twice.
@@ -2101,77 +661,10 @@ export function PivotConfigSection({
     ]
   );
 
-  const aggItemIds = useMemo(
-    () =>
-      aggregationSettings.aggregations.map(entry =>
-        aggregationRowId(entry.operation as string)
-      ),
-    [aggregationSettings.aggregations]
-  );
-
-  // Resolve the preview for DragOverlay.
-  const activeColumnName = (() => {
-    if (activeId == null) {
-      return null;
-    }
-    const container = resolveContainerOfId(activeId);
-    if (
-      container !== ROLLUP_ROWS_DROPPABLE &&
-      container !== PIVOT_COLUMNS_DROPPABLE
-    ) {
-      return null;
-    }
-    const colonIdx = activeId.indexOf(':');
-    return colonIdx === -1 ? null : activeId.slice(colonIdx + 1);
-  })();
-  const activeAggregation = (() => {
-    if (activeId == null) {
-      return null;
-    }
-    const container = resolveContainerOfId(activeId);
-    if (container !== AGGREGATIONS_DROPPABLE) {
-      return null;
-    }
-    const colonIdx = activeId.indexOf(':');
-    if (colonIdx === -1) {
-      return null;
-    }
-    // Aggregation row ids are `AGGREGATIONS:<operation>`.
-    const operation = activeId.slice(colonIdx + 1);
-    return (
-      aggregationSettings.aggregations.find(a => a.operation === operation) ??
-      null
-    );
-  })();
-  // The column being dragged when a single aggregate column (not a whole
-  // function row) is in flight.
-  const activeAggregationColumn = (() => {
-    if (activeId == null) {
-      return null;
-    }
-    if (resolveContainerOfId(activeId) !== AGGREGATIONS_DROPPABLE) {
-      return null;
-    }
-    return parseAggregationId(activeId)?.column ?? null;
-  })();
-
-  // Drag overlay contents: a column preview, an aggregation preview, or
-  // nothing, depending on what (if anything) is currently being dragged.
-  let dragOverlayPreview: React.ReactNode = null;
-  if (activeColumnName != null) {
-    dragOverlayPreview = <ColumnRowPreview name={activeColumnName} />;
-  } else if (activeAggregationColumn != null) {
-    dragOverlayPreview = (
-      <ColumnRowPreview name={activeAggregationColumn} invalid={dropInvalid} />
-    );
-  } else if (activeAggregation != null) {
-    dragOverlayPreview = <AggregateRowPreview entry={activeAggregation} />;
-  }
-
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pivotCollisionDetection}
       measuring={measuring}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
@@ -2277,9 +770,15 @@ export function PivotConfigSection({
                   name={name}
                   droppableId={ROLLUP_ROWS_DROPPABLE}
                   onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
+                  collapsed={
+                    crossCardColumnLeaving?.container ===
+                      ROLLUP_ROWS_DROPPABLE &&
+                    crossCardColumnLeaving.column === name
+                  }
                 />
               )),
-              columnInsertionIndex(ROLLUP_ROWS_DROPPABLE, rollupRows)
+              columnInsertionIndex(ROLLUP_ROWS_DROPPABLE, rollupRows),
+              activeColumnName ?? ''
             )}
           </DroppableList>
         </ConfigCard>
@@ -2337,9 +836,15 @@ export function PivotConfigSection({
                     onDelete={() =>
                       onPivotColumnsChange(removeAt(pivotColumns, i))
                     }
+                    collapsed={
+                      crossCardColumnLeaving?.container ===
+                        PIVOT_COLUMNS_DROPPABLE &&
+                      crossCardColumnLeaving.column === name
+                    }
                   />
                 )),
-                columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns)
+                columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns),
+                activeColumnName ?? ''
               )}
             </DroppableList>
           )}
@@ -2382,22 +887,43 @@ export function PivotConfigSection({
             itemIds={aggItemIds}
             isEmpty={aggregationSettings.aggregations.length === 0}
           >
-            {aggregationSettings.aggregations.map((entry, i) => (
-              <AggregateSelectRow
-                key={aggregationRowId(entry.operation as string)}
-                id={aggregationRowId(entry.operation as string)}
-                operation={entry.operation}
-                columnLabels={entry.selected}
-                availableOperations={selectableOperations}
-                columnTypes={columnTypes}
-                onOperationChange={op => handleChangeAggregateOperation(i, op)}
-                onDelete={() => handleDeleteAggregate(i)}
-                onDeleteColumn={column =>
-                  handleDeleteAggregateColumn(i, column)
-                }
-                columnsDraggable={!aggregatesOnly}
-              />
-            ))}
+            {aggregationSettings.aggregations.map((entry, i) => {
+              const op = entry.operation as string;
+              // Ghost-preview index when a column from another group is being
+              // dragged over this one. Mirrors `handleDragEnd`'s insert slot:
+              // the hovered column's index, or the end.
+              let columnDropIndex: number | null = null;
+              if (aggColumnDrop != null && aggColumnDrop.targetOp === op) {
+                const overIdx = entry.selected.indexOf(
+                  aggColumnDrop.overColumn
+                );
+                columnDropIndex = overIdx < 0 ? entry.selected.length : overIdx;
+              }
+              return (
+                <AggregateSelectRow
+                  key={aggregationRowId(op)}
+                  id={aggregationRowId(op)}
+                  operation={entry.operation}
+                  columnLabels={entry.selected}
+                  availableOperations={selectableOperations}
+                  columnTypes={columnTypes}
+                  onOperationChange={o => handleChangeAggregateOperation(i, o)}
+                  onDelete={() => handleDeleteAggregate(i)}
+                  onDeleteColumn={column =>
+                    handleDeleteAggregateColumn(i, column)
+                  }
+                  columnsDraggable={!aggregatesOnly}
+                  collapsed={isDraggingAggregationGroup}
+                  columnDropLabel={aggColumnDrop?.column}
+                  columnDropIndex={columnDropIndex}
+                  collapseColumn={
+                    aggColumnDrop?.sourceOp === op
+                      ? aggColumnDrop.column
+                      : undefined
+                  }
+                />
+              );
+            })}
           </DroppableList>
         </ConfigCard>
 
@@ -2408,15 +934,17 @@ export function PivotConfigSection({
       {createPortal(
         // Aggregations can't be interleaved across operations (the pivot
         // payload groups columns by operation), so a cross-operation drop
-        // regroups the dragged row back into its own operation. Play the
+        // regroups the dragged row back into its own operation. Keep dnd-kit's
         // default drop animation for aggregation drags so that snap-back is
-        // visible instead of looking like a no-op; column drags keep the
-        // instant drop (no animation).
+        // visible; column drags use the Organize Columns fade so the overlay
+        // dissolves as the ghosted source row fades back in.
         <DragOverlay
+          style={DRAG_OVERLAY_STYLE}
+          modifiers={[pinOverlayToCursor]}
           dropAnimation={
             activeContainerRef.current === AGGREGATIONS_DROPPABLE
               ? undefined
-              : null
+              : COLUMN_DROP_ANIMATION
           }
         >
           {dragOverlayPreview}
