@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@deephaven/components": "1.22.1",
-    "@deephaven/dashboard": "1.23.0",
-    "@deephaven/dashboard-core-plugins": "1.23.0",
+    "@deephaven/dashboard": "1.24.0",
+    "@deephaven/dashboard-core-plugins": "1.24.0",
     "@deephaven/icons": "1.2.0",
     "@deephaven/iris-grid": "1.23.0",
     "@deephaven/js-plugin-pivot": "^0.4.0-0",
@@ -36,7 +36,7 @@
     "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
     "@deephaven/jsapi-utils": "1.23.0",
     "@deephaven/log": "1.8.0",
-    "@deephaven/plugin": "1.23.0",
+    "@deephaven/plugin": "1.24.0",
     "@deephaven/react-hooks": "1.21.1",
     "@deephaven/utils": "1.10.0",
     "fast-deep-equal": "^3.1.3"
