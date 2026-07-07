@@ -36,14 +36,15 @@ my_combo_box_basic = ui_combo_box_basic()
 Recommendations for creating clear and effective combo boxes:
 
 1. The combo box's text input simplifies searching through large lists. For lists with fewer than 6 items, use radio buttons. For lists with more than 6 items, assess if the list is complex enough to need searching and filtering, and if not, use a picker instead.
-2. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
-3. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged. If more than one line is needed, consider using a description to add context to the option.
-4. Choose a `width` for your combo boxes that can accommodate most of the available options.
-5. The field labels, menu items, and placeholder text should all be in sentence case.
-6. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
-7. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
-8. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
-9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
+2. For selecting multiple options, use a [multi-select](multi_select.md) instead.
+3. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
+4. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged. If more than one line is needed, consider using a description to add context to the option.
+5. Choose a `width` for your combo boxes that can accommodate most of the available options.
+6. The field labels, menu items, and placeholder text should all be in sentence case.
+7. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
+8. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
+9. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
+10. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 ## Data sources
 
@@ -767,7 +768,7 @@ my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_exa
 
 ## How to create a multi-select component
 
-By leveraging the `on_change` handler of `ui.combo_box` to dynamically generate items, you can pair it with `ui.tag_group` to build a multi-select component.
+It is recommended to use [`multi_select`](multi_select.md) for `multi-select` use cases, but if you want the `combo_box` separate from the tags, you can also use a `tag_group` to show selected items, and use the `on_input_change` and `on_change` events to manage the state between them.
 
 ```python
 from deephaven import ui

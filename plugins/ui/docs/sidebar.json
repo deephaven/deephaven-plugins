@@ -331,6 +331,10 @@
                 "path": "components/meter.md"
               },
               {
+                "label": "multi_select",
+                "path": "components/multi_select.md"
+              },
+              {
                 "label": "number_field",
                 "path": "components/number_field.md"
               },
@@ -363,7 +367,7 @@
                 "path": "components/range_slider.md"
               },
               {
-                "label": "route",
+                "label": "router",
                 "path": "components/router.md"
               },
               {

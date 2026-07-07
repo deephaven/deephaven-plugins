@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.40.0 - 2026-07-02
+
+#### Features
+
+- DH-19683: multi-select combo box component in deephaven.ui ([#1349](https://github.com/deephaven/deephaven-plugins/pull/1349)) - (63dc774) - jnumainville
+- DH-22536: Apply transformations to dh.ui widgets when sending to clients. ([#1357](https://github.com/deephaven/deephaven-plugins/pull/1357)) - (1fbbb71) - Charles P. Wright
+
+- - -
+
+
 ## ui-v0.39.1 - 2026-06-29
 
 #### Bug Fixes
