@@ -45,6 +45,6 @@ npm install
 npm run build
 ```
 
-Bundle is emitted at `dist/index.js`. `plugins/manifest.json` registers
-`table-middleware-example` so the deephaven-plugins dev proxy serves
+Bundle is emitted at `dist/index.js`. Register `table-middleware-example` in
+`plugins/manifest.json` so the deephaven-plugins dev proxy serves
 the bundle.
