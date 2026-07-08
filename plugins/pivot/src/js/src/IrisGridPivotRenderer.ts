@@ -35,6 +35,16 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   ): void {
     super.drawColumnHeaders(context, state);
 
+    // The host Grid holds this renderer in its requestAnimationFrame draw
+    // loop, decoupled from the model state at draw time. During a pivot
+    // config update the proxy can briefly pair this pivot renderer with a
+    // non-pivot inner model for a single frame before the host re-renders
+    // with the base renderer. Skip pivot-only drawing for that frame rather
+    // than throwing; the next render corrects it.
+    if (!isIrisGridPivotModel(state.model)) {
+      return;
+    }
+
     // Draw column source filters on top of headers
     this.drawColumnSourceFilters(context, state);
   }
@@ -48,7 +58,11 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
   ): void {
     const { isFilterBarShown, metrics, model, theme } = state;
     if (!isIrisGridPivotModel(model)) {
-      throw new Error('Unsupported model type');
+      // Transient: the host's rAF draw loop can run this pivot renderer
+      // against a non-pivot model for one frame mid pivot-config swap. Fall
+      // back to the base column-header drawing instead of throwing.
+      super.drawColumnHeadersAtDepth(context, state, range, bounds, depth);
+      return;
     }
     const { modelColumns } = metrics;
     const { columnHeaderHeight } = theme;
@@ -106,9 +120,18 @@ export class IrisGridPivotRenderer extends IrisGridRenderer {
           if (coords != null) {
             const { x1: columnGroupLeft, x2: columnGroupRight } = coords;
 
-            // Set column index to end of the current group
-            columnIndex =
+            // Advance to the end of the current group, but never move backward
+            // or to a non-finite index. If the column header groups are
+            // momentarily out of sync with the columns array, a group's last
+            // child index can be <= the current column (or undefined when the
+            // group has no children yet). Assigning that directly would make
+            // this loop fail to progress and spin forever (hard page freeze),
+            // since the trailing `columnIndex += 1` could never pass endIndex.
+            const lastChildIndex =
               headerGroup.childIndexes[headerGroup.childIndexes.length - 1];
+            if (lastChildIndex != null && lastChildIndex > columnIndex) {
+              columnIndex = lastChildIndex;
+            }
 
             const columnWidth = columnGroupRight - columnGroupLeft;
 
