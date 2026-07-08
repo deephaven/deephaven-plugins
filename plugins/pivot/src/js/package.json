@@ -11,13 +11,19 @@
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "loader": {
+    "package": "@deephaven/js-plugin-pivot"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deephaven/deephaven-plugins"
   },
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "run-s build:bundle build:transpile",
+    "build:bundle": "vite build",
+    "build:transpile": "tsc --emitDeclarationOnly -p tsconfig.build.json"
   },
   "devDependencies": {
     "@deephaven-enterprise/jsapi-coreplus-types": "^1.20240517.518",
@@ -39,15 +45,15 @@
   },
   "dependencies": {
     "@deephaven/components": "^1.22.1",
-    "@deephaven/dashboard": "^1.23.0",
-    "@deephaven/dashboard-core-plugins": "^1.23.0",
+    "@deephaven/dashboard": "^1.24.0",
+    "@deephaven/dashboard-core-plugins": "^1.24.0",
     "@deephaven/grid": "^1.23.0",
     "@deephaven/icons": "^1.2.0",
     "@deephaven/iris-grid": "^1.23.0",
     "@deephaven/jsapi-bootstrap": "^1.23.0",
     "@deephaven/jsapi-utils": "^1.23.0",
     "@deephaven/log": "^1.8.0",
-    "@deephaven/plugin": "^1.23.0",
+    "@deephaven/plugin": "^1.24.0",
     "@deephaven/utils": "^1.10.0",
     "lodash.clamp": "^4.0.3",
     "lodash.throttle": "^4.1.1",
@@ -58,7 +64,7 @@
     "access": "public"
   },
   "files": [
-    "dist/index.js"
+    "dist"
   ],
   "gitHead": "f7d1ce549c1f7f9a8cbadf71b0de9599850f4b98"
 }
