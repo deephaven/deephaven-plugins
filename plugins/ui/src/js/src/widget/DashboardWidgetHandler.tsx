@@ -69,7 +69,7 @@ function DashboardWidgetHandler({
 
   const renderErrorDocument = useCallback(
     // When opening a DashboardWidgetHandler, the panels may already be open, so we don't need to render anything other than in the empty case.
-    (error: NonNullable<unknown>) => renderEmptyDocument(),
+    () => renderEmptyDocument(),
     [renderEmptyDocument]
   );
 

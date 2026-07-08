@@ -269,7 +269,7 @@ function WidgetHandler({
      * @returns The rendered document
      */
     (doc: object | undefined): React.ReactNode => {
-      if (document === undefined || jsonClient == null) {
+      if (doc === undefined || jsonClient == null) {
         return renderEmptyDocument();
       }
 
@@ -373,7 +373,6 @@ function WidgetHandler({
       return hydratedDocument as React.ReactNode;
     },
     [
-      document,
       jsonClient,
       id,
       renderEmptyDocument,
