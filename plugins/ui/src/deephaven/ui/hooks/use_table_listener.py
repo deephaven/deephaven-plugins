@@ -7,6 +7,7 @@ from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
 from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
+from ._transform import transform
 from .use_effect import use_effect
 from ..types import LockType, Dependencies
 
@@ -78,6 +79,39 @@ def use_table_listener(
     Listen to a table and call a listener when the table updates.
     If any dependencies change, the listener will be recreated.
     In this case, updates may be missed if the table updates while the listener is being recreated.
+
+    Args:
+        table: The table to listen to.
+        listener: Either a function or a TableListener with an on_update function.
+          The function must take a TableUpdate and is_replay bool.
+        dependencies: Dependencies of the listener function, so the hook knows when to recreate the listener
+        description: An optional description for the UpdatePerformanceTracker to append to the listener’s
+          entry description, default is None.
+        do_replay: Whether to replay the initial snapshot of the table, default is False.
+
+    Returns:
+        None
+    """
+    transformed = transform(table)
+    return _use_table_listener_without_ticket_transform(
+        transformed, listener, dependencies, description, do_replay
+    )
+
+
+def _use_table_listener_without_ticket_transform(
+    table: Table | None,
+    listener: Callable[[TableUpdate, bool], None] | TableListener,
+    dependencies: Dependencies,
+    description: str | None = None,
+    do_replay: bool = False,
+) -> None:
+    """
+    Listen to a table and call a listener when the table updates.
+    If any dependencies change, the listener will be recreated.
+    In this case, updates may be missed if the table updates while the listener is being recreated.
+
+    Note that plugin transformations are not applied, so this function is intended only for use by other hooks that
+    have already applied a plugin transformation.
 
     Args:
         table: The table to listen to.

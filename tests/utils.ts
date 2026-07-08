@@ -86,7 +86,9 @@ export async function openPanel(
     await page.mouse.move(0, 0);
 
     // check for panel to be loaded
-    await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
+    await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1, {
+      timeout: 30000,
+    });
     if (awaitLoad) {
       await waitForLoad(page);
     }

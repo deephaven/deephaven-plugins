@@ -53,6 +53,7 @@ from .markdown import markdown
 from .menu import menu
 from .menu_trigger import menu_trigger
 from .meter import meter
+from .multi_select import multi_select
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
@@ -72,7 +73,14 @@ from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
-from .table import table, TableAgg, TableDatabar, TableFormat, TableHeatmap
+from .table import (
+    table,
+    TableAgg,
+    TableDatabar,
+    TableFormat,
+    TableHeatmap,
+    TableSort,
+)
 from .tabs import tabs
 from .tag_group import tag_group
 from .text import text
@@ -143,6 +151,7 @@ __all__ = [
     "menu",
     "menu_trigger",
     "meter",
+    "multi_select",
     "number_field",
     "panel",
     "picker",
@@ -166,6 +175,7 @@ __all__ = [
     "TableDatabar",
     "TableFormat",
     "TableHeatmap",
+    "TableSort",
     "tab_list",
     "tab_panels",
     "tabs",
