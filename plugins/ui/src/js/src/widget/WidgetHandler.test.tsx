@@ -7,9 +7,11 @@ import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { type Operation } from 'fast-json-patch';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
 import { type DocumentHandlerProps } from './DocumentHandler';
+import { type WidgetMessageEvent } from './WidgetTypes';
 import {
   makeWidget,
   makeWidgetDescriptor,
+  makeWidgetEventDocumentError,
   makeWidgetEventDocumentPatched,
   makeWidgetEventJsonRpcResponse,
   makeWidgetEventMethodEvent,
@@ -45,6 +47,8 @@ function makeWidgetHandler({
   widgetDescriptor: widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
   initialData = undefined,
+  renderEmptyDocument = undefined,
+  renderErrorDocument = undefined,
   pluginsValue = new Map(),
 }: Partial<WidgetHandlerProps> & {
   pluginsValue?: React.ProviderProps<PluginModuleMap | null>['value'];
@@ -56,6 +60,8 @@ function makeWidgetHandler({
         widgetDescriptor={widget}
         onClose={onClose}
         initialData={initialData}
+        renderEmptyDocument={renderEmptyDocument}
+        renderErrorDocument={renderErrorDocument}
       />
     </PluginsContext.Provider>
   );
@@ -368,6 +374,146 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   expect(screen.getByText('Test error')).toBeVisible();
 
   unmount();
+});
+
+describe('renderErrorDocument', () => {
+  beforeEach(() => {
+    // Render children so the error document is visible in the DOM
+    mockDocumentHandler.mockImplementation(props => (
+      <div className="test-document-handler">{props.children}</div>
+    ));
+  });
+
+  /**
+   * Renders a widget, responds to the initial setState so the jsonClient is
+   * ready, then returns the listener so the caller can dispatch further events.
+   */
+  async function setupReadyWidget(
+    props: Partial<WidgetHandlerProps> = {}
+  ): Promise<{
+    listener: (event: WidgetMessageEvent) => void;
+    unmount: () => void;
+  }> {
+    const mockAddEventListener = jest.fn((() =>
+      jest.fn()) as dh.Widget['addEventListener']);
+    mockWidgetWrapper = {
+      widget: makeWidget({
+        addEventListener: mockAddEventListener,
+        getDataAsString: jest.fn(() => ''),
+        sendMessage: jest.fn(),
+      }),
+      error: null,
+      api: jest.fn() as unknown as typeof dh,
+    };
+
+    const { unmount } = render(makeWidgetHandler(props));
+
+    const listener = mockAddEventListener.mock.calls[0][1];
+
+    // Respond to the initial setState so the jsonClient is ready
+    await act(async () => {
+      listener(makeWidgetEventJsonRpcResponse(0));
+    });
+
+    return { listener, unmount };
+  }
+
+  it('renders the default WidgetErrorView on a document error', async () => {
+    const { listener, unmount } = await setupReadyWidget();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventDocumentError({
+          name: 'DocumentError',
+          message: 'Something went wrong',
+        })
+      );
+    });
+
+    // The default error document is the WidgetErrorView
+    expect(document.querySelector('.ui-widget-error-view')).toBeInTheDocument();
+    expect(screen.getByText('Something went wrong')).toBeVisible();
+
+    unmount();
+  });
+
+  it('uses a custom renderErrorDocument on a document error', async () => {
+    const renderErrorDocument = jest.fn(() => (
+      <div className="custom-error-document">Custom error</div>
+    ));
+
+    const { listener, unmount } = await setupReadyWidget({
+      renderErrorDocument,
+    });
+
+    await act(async () => {
+      listener(
+        makeWidgetEventDocumentError({
+          name: 'DocumentError',
+          message: 'Something went wrong',
+        })
+      );
+    });
+
+    // The custom renderer is used with the parsed error
+    expect(renderErrorDocument).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'DocumentError',
+        message: 'Something went wrong',
+      })
+    );
+    expect(screen.getByText('Custom error')).toBeVisible();
+    // The default WidgetErrorView should not be shown
+    expect(
+      document.querySelector('.ui-widget-error-view')
+    ).not.toBeInTheDocument();
+
+    unmount();
+  });
+
+  it('uses a custom renderErrorDocument when the widget is null (query disconnected)', async () => {
+    const renderErrorDocument = jest.fn(() => (
+      <div className="custom-error-document">Custom error</div>
+    ));
+
+    mockWidgetWrapper = {
+      widget: null,
+      error: new Error('Test error'),
+      api: null,
+    };
+
+    const { unmount } = render(makeWidgetHandler({ renderErrorDocument }));
+
+    expect(renderErrorDocument).toHaveBeenCalledWith(new Error('Test error'));
+    expect(screen.getByText('Custom error')).toBeVisible();
+    // The default WidgetErrorView should not be shown
+    expect(
+      document.querySelector('.ui-widget-error-view')
+    ).not.toBeInTheDocument();
+
+    unmount();
+  });
+
+  it('renders nothing when a custom renderErrorDocument returns null', async () => {
+    const renderErrorDocument = jest.fn(() => null);
+
+    mockWidgetWrapper = {
+      widget: null,
+      error: new Error('Test error'),
+      api: null,
+    };
+
+    const { container, unmount } = render(
+      makeWidgetHandler({ renderErrorDocument })
+    );
+
+    expect(renderErrorDocument).toHaveBeenCalledWith(new Error('Test error'));
+    // Nothing is rendered and the document handler is not used
+    expect(container).toBeEmptyDOMElement();
+    expect(mockDocumentHandler).not.toHaveBeenCalled();
+
+    unmount();
+  });
 });
 
 /**
