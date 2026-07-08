@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.40.1 - 2026-07-08
+
+#### Bug Fixes
+
+- DH-23019: Render a widget error differently for DashboardWidgetHandler ([#1385](https://github.com/deephaven/deephaven-plugins/pull/1385)) - (94d0234) - mofojed
+
+- - -
+
+
 ## ui-v0.40.0 - 2026-07-02
 
 #### Features
