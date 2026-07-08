@@ -89,6 +89,11 @@ export interface WidgetHandlerProps {
 
   /** What to render when the document is empty and in a loading state */
   renderEmptyDocument?: () => JSX.Element | JSX.Element[] | null;
+
+  /** What to render when the document is empty and in an error state */
+  renderErrorDocument?: (
+    error: NonNullable<unknown>
+  ) => JSX.Element | JSX.Element[] | null;
 }
 
 function WidgetHandler({
@@ -98,6 +103,7 @@ function WidgetHandler({
   initialData: initialDataProp,
   id,
   renderEmptyDocument: renderEmptyDocumentProp,
+  renderErrorDocument: renderErrorDocumentProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
   const [isLoading, setIsLoading] = useState(true);
@@ -219,14 +225,25 @@ function WidgetHandler({
 
   const pluginsElementMap = usePluginsElementMap();
 
+  const renderErrorDocument = useCallback(
+    (docError: NonNullable<unknown>) => {
+      if (renderErrorDocumentProp != null) {
+        return renderErrorDocumentProp(docError);
+      }
+
+      // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
+      return <WidgetErrorView error={docError} />;
+    },
+    [renderErrorDocumentProp]
+  );
+
   const renderEmptyDocument = useCallback(
     /**
      * Renders an empty document. This is used when the widget is loading or has an error.
      */
     () => {
       if (error != null) {
-        // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
-        return <WidgetErrorView error={error} />;
+        return renderErrorDocument(error);
       }
       const result = renderEmptyDocumentProp?.();
       if (result != null) {
@@ -236,7 +253,7 @@ function WidgetHandler({
       // Dashboards should not have a default document. It breaks its render flow
       return null;
     },
-    [error, renderEmptyDocumentProp]
+    [error, renderEmptyDocumentProp, renderErrorDocument]
   );
 
   const [uriObjectMap] = useState<Map<string, UriExportedObject>>(new Map());
