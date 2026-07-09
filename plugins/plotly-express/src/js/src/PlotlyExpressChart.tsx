@@ -8,6 +8,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import { getSettings, type RootState } from '@deephaven/redux';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
+import { usePlotlyEventCallbacks } from './usePlotlyEventCallbacks.js';
 
 export function PlotlyExpressChart(
   props: WidgetComponentProps<dh.Widget>
@@ -37,6 +38,7 @@ export function PlotlyExpressChart(
   }, [dh, fetch]);
 
   useHandleSceneTicks(model, containerRef.current);
+  usePlotlyEventCallbacks(containerRef, model ?? null);
 
   return model ? (
     <Chart

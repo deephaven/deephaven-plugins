@@ -183,6 +183,61 @@ class DeephavenFigureListener:
             except RuntimeError:
                 # trying to send data when the connection is closed, ignore
                 pass
+        elif message["type"] == "CALLABLE_EVENT":
+            return self._handle_callable_event(message)
+        return b"", []
+
+    def _handle_callable_event(
+        self, message: dict[str, Any]
+    ) -> tuple[bytes, list[Any]]:
+        """
+        Handle a CALLABLE_EVENT message. Invokes the Python callback and
+        optionally returns a response for preventable events.
+
+        Args:
+            message: The message dict containing callback_id, args, and optionally request_id
+
+        Returns:
+            The result as a tuple of (payload, references)
+        """
+        from ..types import wrap_callable
+
+        callback_id = message.get("callback_id")
+        args = message.get("args", {})
+        request_id = message.get("request_id")
+
+        figure = self._get_figure()
+        fn = (
+            figure.get_callback_by_id(callback_id)
+            if figure and callback_id is not None
+            else None
+        )
+        result = None
+
+        if fn is not None:
+            try:
+                result = wrap_callable(fn)(args)
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Error in plotly event callback %s", callback_id
+                )
+
+        # For preventable events, send back the result via the client connection
+        if request_id is not None:
+            response = json.dumps(
+                {
+                    "type": "CALLABLE_RESPONSE",
+                    "request_id": request_id,
+                    "result": result,
+                }
+            )
+            try:
+                self._connection.on_data(response.encode(), [])
+            except RuntimeError:
+                pass
+
         return b"", []
 
     def __del__(self):

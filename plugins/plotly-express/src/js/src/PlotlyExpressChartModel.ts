@@ -1,4 +1,16 @@
-import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
+import type {
+  Layout,
+  Data,
+  PlotData,
+  LayoutAxis,
+  PlotlyHTMLElement,
+  PlotMouseEvent,
+  PlotSelectionEvent,
+  LegendClickEvent,
+  ClickAnnotationEvent,
+  SunburstClickEvent,
+} from 'plotly.js';
+import Plotly from 'plotly.js-dist-min';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   type DateTimeColumnFormatter,
@@ -41,6 +53,30 @@ import {
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
+
+/**
+ * The Plotly graph div element. Plotly's `PlotlyHTMLElement` type already models
+ * `.on` (with per-event payload types) and `.data`; we add an overload for the
+ * treemap/icicle click events, which share the sunburst click event shape but
+ * aren't in the type despite existing at runtime.
+ */
+type PlotlyGraphDiv = PlotlyHTMLElement & {
+  on: (
+    event:
+      | 'plotly_sunburstclick'
+      | 'plotly_treemapclick'
+      | 'plotly_icicleclick',
+    callback: (event: SunburstClickEvent) => void
+  ) => void;
+};
+
+/** Keyboard modifier keys held during a user interaction. */
+type EventModifiers = {
+  shift: boolean;
+  ctrl: boolean;
+  alt: boolean;
+  meta: boolean;
+};
 
 export class PlotlyExpressChartModel extends ChartModel {
   /**
@@ -86,6 +122,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // The input filter columns are set once at init.
     this.updateFilterColumns(widgetData);
+
+    // Parse event callbacks from initial widget data
+    this.updateCallbacks(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -195,6 +234,21 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   requiredColumns: Set<string> = new Set();
 
+  /**
+   * Map of event name to callback ID for registered event callbacks.
+   */
+  callbackMap: Map<string, string> = new Map();
+
+  /**
+   * Set of callback IDs that use request-response (preventable events).
+   */
+  preventableCallbacks: Set<string> = new Set();
+
+  /**
+   * Map of request ID to resolver function for pending request-response callbacks.
+   */
+  pendingResponses: Map<string, (allowed: boolean) => void> = new Map();
+
   cleanupSubscriptions(id: number): void {
     this.subscriptionCleanupMap.get(id)?.forEach(cleanup => {
       cleanup();
@@ -273,13 +327,22 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
 
     this.isSubscribed = true;
+
+    // Track keyboard modifier keys from the raw DOM pointer event so they can
+    // be attached to every event payload (see getModifiers). Capture phase so
+    // it runs before Plotly dispatches its own handlers.
+    document.addEventListener('pointerdown', this.handlePointerModifiers, true);
+
     this.widgetUnsubscribe = this.widget.addEventListener<DhType.Widget>(
       this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
-        this.handleWidgetUpdated(
-          JSON.parse(detail.getDataAsString()),
-          detail.exportedObjects
-        );
+        const raw = detail.getDataAsString();
+        const parsed = JSON.parse(raw);
+        if (parsed.type === 'CALLABLE_RESPONSE') {
+          this.handleCallableResponse(parsed);
+          return;
+        }
+        this.handleWidgetUpdated(parsed, detail.exportedObjects);
       }
     );
 
@@ -296,6 +359,301 @@ export class PlotlyExpressChartModel extends ChartModel {
       // there are filters, so the server expects the filter to be sent
       this.sendFilterUpdated(this.filterMap ?? new Map());
     }
+
+    // Wire up event callbacks. This is a no-op until the Chart component
+    // provides the Plotly graph div via setPlotElement().
+    this.wireEventCallbacks();
+  }
+
+  /**
+   * The Plotly graph div element, provided by the Chart component once Plotly
+   * has initialized (via its onInitialized callback).
+   */
+  private plotElement: PlotlyGraphDiv | null = null;
+
+  private eventListenersWired = false;
+
+  /**
+   * Keyboard modifier keys held during the most recent pointer interaction,
+   * captured from the raw DOM event (see subscribe). Attached to every event
+   * payload sent to Python so callbacks can branch on e.g. shift-click. We read
+   * these from the DOM directly rather than from Plotly's event objects, which
+   * don't expose modifier state for every event type (selection, relayout...).
+   */
+  private modifiers: EventModifiers = {
+    shift: false,
+    ctrl: false,
+    alt: false,
+    meta: false,
+  };
+
+  private handlePointerModifiers = (event: PointerEvent): void => {
+    this.modifiers = {
+      shift: event.shiftKey,
+      ctrl: event.ctrlKey,
+      alt: event.altKey,
+      meta: event.metaKey,
+    };
+  };
+
+  private getModifiers(): EventModifiers {
+    return { ...this.modifiers };
+  }
+
+  setPlotElement(plotElement: HTMLElement | null): void {
+    this.plotElement = plotElement as PlotlyGraphDiv | null;
+    this.eventListenersWired = false;
+    this.wireEventCallbacks();
+  }
+
+  /**
+   * Attach Plotly event listeners for the hierarchical drill-down clicks
+   * (sunburst/treemap/icicle). These must be wired imperatively rather than
+   * passed as props to the Plotly component because:
+   *   - Plotly only honors a handler's `return false` (to prevent the default
+   *     drill-down) when that handler is the last one registered, and
+   *   - react-plotly.js registers a `plotly_sunburstclick` "update" listener of
+   *     its own after onInitialized, which would otherwise shadow ours, and
+   *   - react-plotly.js exposes no treemap/icicle click props at all.
+   */
+  private wireEventCallbacks(): void {
+    // Pulling the plot element directly rather than passing handlers into the
+    // react component lets us guarantee ordering for the hierarchical clicks.
+    const gd = this.plotElement;
+    if (
+      gd == null ||
+      typeof gd.on !== 'function' ||
+      this.callbackMap.size === 0 ||
+      this.eventListenersWired
+    ) {
+      return;
+    }
+    this.eventListenersWired = true;
+
+    // Defer wiring to a microtask so our listener registers after
+    // react-plotly.js attaches its own, which clobbers our sunburst handler.
+    // Sunburst could be handled directly, but treemap and icicle are not
+    // supported by react-plotly.js at all so they are all handled here.
+    queueMicrotask(() => {
+      if (this.plotElement !== gd) {
+        // The element was swapped out or removed before the microtask ran.
+        return;
+      }
+      this.wireHierarchicalClickHandler(gd);
+    });
+  }
+
+  /**
+   * Wire the hierarchical (sunburst/treemap/icicle) click handler. Always
+   * prevents the default drill-down and re-triggers it via Plotly.animate only
+   * if the Python callback allows it.
+   */
+  private wireHierarchicalClickHandler(gd: PlotlyGraphDiv): void {
+    const clickId = this.callbackMap.get('on_click');
+    if (clickId == null || !this.isPreventable(clickId)) {
+      return;
+    }
+    const hierEvents = [
+      'plotly_sunburstclick',
+      'plotly_treemapclick',
+      'plotly_icicleclick',
+    ] as const;
+    hierEvents.forEach(eventName => {
+      gd.on(eventName, (data: SunburstClickEvent) => {
+        const args = {
+          points: data.points.map(p => ({
+            label: p.label,
+            parent: p.parent,
+            value: p.value,
+            id: p.id,
+            trace_name: (p.data as Partial<PlotData>).name,
+            trace_type: (p.data as Partial<PlotData>).type,
+            curve_number: p.curveNumber,
+          })),
+          next_level: data.nextLevel ?? null,
+          modifiers: this.getModifiers(),
+        };
+        this.sendEventCallbackWithResponse(clickId, args).then(allowed => {
+          if (allowed && data.nextLevel != null) {
+            const traceIdx = data.points?.[0]?.curveNumber ?? 0;
+            Plotly.animate(
+              gd,
+              { data: [{ level: data.nextLevel }], traces: [traceIdx] },
+              {
+                frame: { redraw: false, duration: 300 },
+                transition: { duration: 300, easing: 'cubic-in-out' },
+                mode: 'immediate',
+                fromcurrent: true,
+              }
+            );
+          }
+        });
+        return false; // Always prevent default drill-down
+      });
+    });
+  }
+
+  /**
+   * Handle a double-click on the plot area (e.g. reset axes in zoom/pan mode).
+   */
+  onDoubleClick(): void {
+    const doubleClickId = this.callbackMap.get('on_double_click');
+    if (doubleClickId == null) {
+      return;
+    }
+    this.sendEventCallback(doubleClickId, {
+      modifiers: this.getModifiers(),
+    });
+  }
+
+  /**
+   * Handle a (non-hierarchical) point click.
+   * Hierarchical clicks are preventable and handled
+   * imperatively via wireHierarchicalClickHandler instead.
+   */
+  onClick(event: PlotMouseEvent): void {
+    const clickId = this.callbackMap.get('on_click');
+    if (clickId == null || this.isPreventable(clickId)) {
+      return;
+    }
+    const args = {
+      points: event.points.map(p => ({
+        x: p.x,
+        y: p.y,
+        trace_name: p.data.name,
+        trace_type: p.data.type,
+        curve_number: p.curveNumber,
+      })),
+      modifiers: this.getModifiers(),
+    };
+    this.sendEventCallback(clickId, args);
+  }
+
+  /**
+   * Handle a box/lasso selection.
+   */
+  onSelected(event: PlotSelectionEvent | undefined): void {
+    const selectedId = this.callbackMap.get('on_selected');
+    if (selectedId == null || event == null) {
+      return;
+    }
+    const args: Record<string, unknown> = {
+      points: event.points.map(p => ({
+        x: p.x,
+        y: p.y,
+        trace_name: p.data.name,
+        trace_type: p.data.type,
+        curve_number: p.curveNumber,
+      })),
+      modifiers: this.getModifiers(),
+    };
+    if (event.range != null) {
+      args.range = event.range;
+    }
+    if (event.lassoPoints != null) {
+      args.lasso_points = event.lassoPoints;
+    }
+    this.sendEventCallback(selectedId, args);
+  }
+
+  /**
+   * Handle a selection being cleared.
+   */
+  onDeselect(): void {
+    const deselectId = this.callbackMap.get('on_deselect');
+    if (deselectId == null) {
+      return;
+    }
+    this.sendEventCallback(deselectId, { modifiers: this.getModifiers() });
+  }
+
+  /**
+   * Handle an annotation click.
+   */
+  onClickAnnotation(event: ClickAnnotationEvent): void {
+    const annotationId = this.callbackMap.get('on_click_annotation');
+    if (annotationId == null) {
+      return;
+    }
+    const args = {
+      index: event.index,
+      annotation: {
+        text: event.annotation.text,
+        x: event.annotation.x,
+        y: event.annotation.y,
+      },
+      modifiers: this.getModifiers(),
+    };
+    this.sendEventCallback(annotationId, args);
+  }
+
+  /**
+   * Handle a legend item click.
+   * Returns false to prevent Plotly's default visibility
+   * toggle, then re-applies the toggle only if the Python callback allows it.
+   */
+  onLegendClick(event: LegendClickEvent): boolean {
+    const legendClickId = this.callbackMap.get('on_legend_click');
+    if (legendClickId == null) {
+      // No callback registered — let Plotly perform its default toggle.
+      return true;
+    }
+    const gd = this.plotElement;
+    const args = {
+      trace_name:
+        (event.data?.[event.curveNumber] as Partial<PlotData>)?.name ?? '',
+      curve_number: event.curveNumber,
+      modifiers: this.getModifiers(),
+    };
+    this.sendEventCallbackWithResponse(legendClickId, args).then(allowed => {
+      if (allowed && gd != null) {
+        const currentVis = (gd.data?.[event.curveNumber] as Partial<PlotData>)
+          ?.visible;
+        const nextVis = currentVis === 'legendonly' ? true : 'legendonly';
+        Plotly.restyle(gd, { visible: nextVis }, [event.curveNumber]);
+      }
+    });
+    return false; // Always prevent; re-applied above if allowed.
+  }
+
+  /**
+   * Handle a legend item double-click.
+   * Returns false to prevent Plotly's default
+   * isolate/show-all, then re-applies it only if the Python callback allows it.
+   *
+   * When on_legend_click is registered, its handler returns false which also
+   * suppresses Plotly's native double-click, so we reimplement the default here
+   * even when there's no dedicated double-click callback.
+   */
+  onLegendDoubleClick(event: LegendClickEvent): boolean {
+    const legendClickId = this.callbackMap.get('on_legend_click');
+    const legendDblClickId = this.callbackMap.get('on_legend_double_click');
+    if (legendClickId == null && legendDblClickId == null) {
+      // Nothing registered — let Plotly perform its default.
+      return true;
+    }
+    const gd = this.plotElement;
+    const { curveNumber } = event;
+    if (legendDblClickId != null) {
+      const args = {
+        trace_name:
+          (event.data?.[curveNumber] as Partial<PlotData>)?.name ?? '',
+        curve_number: curveNumber,
+        modifiers: this.getModifiers(),
+      };
+      this.sendEventCallbackWithResponse(legendDblClickId, args).then(
+        allowed => {
+          if (allowed && gd != null) {
+            PlotlyExpressChartModel.performLegendDoubleClick(gd, curveNumber);
+          }
+        }
+      );
+    } else if (gd != null) {
+      // Only on_legend_click is registered; its false return blocks the native
+      // double-click, so perform the default isolate/show-all directly.
+      PlotlyExpressChartModel.performLegendDoubleClick(gd, curveNumber);
+    }
+    return false; // Always prevent; re-applied above if allowed.
   }
 
   override unsubscribe(callback: (event: ChartEvent) => void): void {
@@ -305,6 +663,12 @@ export class PlotlyExpressChartModel extends ChartModel {
     super.unsubscribe(callback);
     this.widgetUnsubscribe?.();
     this.isSubscribed = false;
+
+    document.removeEventListener(
+      'pointerdown',
+      this.handlePointerModifiers,
+      true
+    );
 
     this.tableReferenceMap.forEach((_, id) => this.removeTable(id));
 
@@ -468,6 +832,16 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  updateCallbacks(data: PlotlyChartWidgetData): void {
+    const { deephaven } = data.figure;
+    if (deephaven.callbacks) {
+      this.callbackMap = new Map(Object.entries(deephaven.callbacks));
+    } else {
+      this.callbackMap = new Map();
+    }
+    this.preventableCallbacks = new Set(deephaven.preventable_callbacks ?? []);
+  }
+
   /**
    * Unsubscribe from a table.
    * @param id The table ID to unsubscribe from
@@ -540,6 +914,9 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleWebGlAllowed(this.renderOptions?.webgl);
 
     this.fireRangebreaksUpdated();
+
+    // Parse event callbacks
+    this.updateCallbacks(data);
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
@@ -1001,6 +1378,114 @@ export class PlotlyExpressChartModel extends ChartModel {
       return (value: unknown) => this.chartUtils.unwrapValue(value, timeZone);
     }
   );
+
+  getCallbackMap(): Map<string, string> {
+    return this.callbackMap;
+  }
+
+  hasSelectionCallbacks(): boolean {
+    return (
+      this.callbackMap.has('on_selected') || this.callbackMap.has('on_deselect')
+    );
+  }
+
+  private relayoutTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private relayoutMerged: Record<string, unknown> = {};
+
+  onRelayout(changes: Record<string, unknown>): void {
+    const relayoutId = this.callbackMap.get('on_relayout');
+    if (relayoutId == null) return;
+
+    // Debounce: merge keys from rapid events, send once after 150ms pause
+    Object.assign(this.relayoutMerged, changes);
+    if (this.relayoutTimer) clearTimeout(this.relayoutTimer);
+    this.relayoutTimer = setTimeout(() => {
+      this.sendEventCallback(relayoutId, {
+        ...this.relayoutMerged,
+        modifiers: this.getModifiers(),
+      });
+      this.relayoutMerged = {};
+      this.relayoutTimer = null;
+    }, 150);
+  }
+
+  isPreventable(callbackId: string): boolean {
+    return this.preventableCallbacks.has(callbackId);
+  }
+
+  sendEventCallback(callbackId: string, args: unknown): void {
+    this.widget?.sendMessage(
+      JSON.stringify({ type: 'CALLABLE_EVENT', callback_id: callbackId, args }),
+      []
+    );
+  }
+
+  async sendEventCallbackWithResponse(
+    callbackId: string,
+    args: unknown
+  ): Promise<boolean> {
+    const requestId = crypto.randomUUID();
+    const responsePromise = new Promise<boolean>(resolve => {
+      this.pendingResponses.set(requestId, resolve);
+      // Timeout after 5s — allow default if Python doesn't respond
+      setTimeout(() => {
+        if (this.pendingResponses.delete(requestId)) {
+          resolve(true);
+        }
+      }, 5000);
+    });
+    this.widget?.sendMessage(
+      JSON.stringify({
+        type: 'CALLABLE_EVENT',
+        callback_id: callbackId,
+        args,
+        request_id: requestId,
+      }),
+      []
+    );
+    return responsePromise;
+  }
+
+  handleCallableResponse(parsed: {
+    request_id: string;
+    result: unknown;
+  }): void {
+    const resolver = this.pendingResponses.get(parsed.request_id);
+    if (resolver) {
+      this.pendingResponses.delete(parsed.request_id);
+      resolver(parsed.result !== false);
+    }
+  }
+
+  /**
+   * Perform the default legend double-click behavior: toggle between
+   * isolating the clicked trace and showing all.
+   */
+  private static performLegendDoubleClick(
+    gd: PlotlyGraphDiv,
+    curveNumber: number
+  ): void {
+    const traces = gd.data ?? [];
+    const isAlreadyIsolated = traces.every(
+      (trace, i) =>
+        i === curveNumber ||
+        (trace as Partial<PlotData>).visible === false ||
+        (trace as Partial<PlotData>).visible === 'legendonly'
+    );
+
+    if (isAlreadyIsolated) {
+      // Show all
+      Plotly.restyle(gd, { visible: true });
+    } else {
+      // Isolate — hide all others
+      const visibilities = traces.map((trace, i) => {
+        if ((trace as Partial<PlotData>).visible === false) return false; // false is sticky
+        return i === curveNumber ? true : 'legendonly';
+      });
+      Plotly.restyle(gd, { visible: visibilities } as unknown as Data);
+    }
+  }
 }
 
 export default PlotlyExpressChartModel;
