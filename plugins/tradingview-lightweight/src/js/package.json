@@ -43,22 +43,22 @@
   "devDependencies": {
     "@deephaven/dashboard-core-plugins": "^0.85.42",
     "@deephaven/jsapi-types": "^1.0.0-dev0.39.5",
-    "@deephaven/test-utils": "0.105.0",
-    "@types/react": "^17.0.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "@deephaven/test-utils": "^1.8.0",
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
     "@deephaven/components": "^1.2.0",
     "@deephaven/dashboard": "^1.2.0",
     "@deephaven/icons": "^1.2.0",
-    "@deephaven/jsapi-bootstrap": "1.2.0",
-    "@deephaven/log": "1.1.0",
+    "@deephaven/jsapi-bootstrap": "^1.2.0",
+    "@deephaven/log": "^1.1.0",
     "@deephaven/plugin": "^1.2.0",
     "@deephaven/redux": "^1.2.0",
     "@deephaven/utils": "^1.1.0",

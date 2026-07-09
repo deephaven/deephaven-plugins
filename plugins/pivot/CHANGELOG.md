@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+
+## pivot-v0.5.0 - 2026-07-08
+
+#### Features
+
+- DH-19683: multi-select combo box component in deephaven.ui ([#1349](https://github.com/deephaven/deephaven-plugins/pull/1349)) - (63dc774) - jnumainville
+
+#### Bug Fixes
+
+- DH-19890: Update pivot plugin to allow transient states for the Pivot Builder, add types generation and loader metadata in package.json ([#1384](https://github.com/deephaven/deephaven-plugins/pull/1384)) - (ffb53e4) - vbabich
+
+- - -
+
+
+## pivot-v0.4.1 - 2026-06-26
+
+#### Bug Fixes
+
+- DH-22873: Fix pivot group headers with null column names ([#1363](https://github.com/deephaven/deephaven-plugins/pull/1363)) - (c8095dc) - vbabich
+
+- - -
+
 ## pivot-v0.4.0 - 2026-04-10
 #### Bug Fixes
 - DH-21744: Fix Advanced Filters in Pivots (#1308) - (64fb83a) - vbabich

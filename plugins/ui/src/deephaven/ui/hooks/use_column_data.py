@@ -4,8 +4,9 @@ import pandas as pd
 
 from deephaven.table import Table
 
+from ._transform import transform
 from .use_memo import use_memo
-from .use_table_data import first_column_table, use_table_data
+from .use_table_data import first_column_table, _use_table_data_without_ticket_transform
 from ..types import Sentinel, ColumnData
 
 
@@ -43,7 +44,9 @@ def use_column_data(
         The first column of the table as a list or the sentinel value.
     """
     filtered_table = use_memo(
-        lambda: None if table is None else first_column_table(table),
+        lambda: None if table is None else first_column_table(transform(table)),
         [table],
     )
-    return use_table_data(filtered_table, sentinel, _column_data)
+    return _use_table_data_without_ticket_transform(
+        filtered_table, sentinel, _column_data
+    )

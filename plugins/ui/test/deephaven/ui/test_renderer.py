@@ -150,7 +150,7 @@ class RendererTestCase(BaseTestCase):
         assert count_btn.props != None
         self.assertEqual(count_btn.props["children"], "Count is 1")
 
-        # Only the counter with deps effect and no deps effects should have been called
+        # Only the counter effects should run - parent doesn't re-render since only counter's state changed
         self.assertEqual(
             called_funcs,
             [
@@ -158,8 +158,6 @@ class RendererTestCase(BaseTestCase):
                 "counter_with_deps_cleanup",
                 "counter_no_deps_effect",
                 "counter_with_deps_effect",
-                "parent_no_deps_cleanup",
-                "parent_no_deps_effect",
             ],
         )
         called_funcs.clear()
@@ -236,12 +234,12 @@ class RendererTestCase(BaseTestCase):
         rc = RenderContext(_TestRoot(Mock(), Mock()))
 
         self.assertEqual(
-            _render_child_item({"key": "value"}, rc, "key"),
+            _render_child_item({"key": "value"}, rc, "key", True),
             {"key": "value"},
         )
 
         self.assertEqual(
-            _render_child_item([0, 1, 2], rc, "key"),
+            _render_child_item([0, 1, 2], rc, "key", True),
             [0, 1, 2],
         )
 
@@ -255,7 +253,51 @@ class RendererTestCase(BaseTestCase):
             b: Element
 
         nested_dataclass = _render_child_item(
-            [MyDataclass("test", my_comp())], rc, "key"
+            [MyDataclass("test", my_comp())], rc, "key", True
+        )[0]
+
+        self.assertEqual(
+            nested_dataclass["a"],
+            "test",
+        )
+
+        self.assertIsInstance(nested_dataclass["b"], RenderedNode)
+
+    def test_render_child_item_not_dirty(self):
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
+
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item({"key": "value"}, rc, "dict_key", True)
+
+        # Test with is_dirty_render=False for dict
+        self.assertEqual(
+            _render_child_item({"key": "value"}, rc, "dict_key", False),
+            {"key": "value"},
+        )
+
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item([0, 1, 2], rc, "list_key", True)
+
+        # Test with is_dirty_render=False for list
+        self.assertEqual(
+            _render_child_item([0, 1, 2], rc, "list_key", False),
+            [0, 1, 2],
+        )
+
+        @ui.component
+        def my_comp():
+            return "Hello"
+
+        @dataclass
+        class MyDataclass:
+            a: str
+            b: Element
+
+        # Prime context with an initial dirty render so fetch_only can read cache.
+        _render_child_item([MyDataclass("test", my_comp())], rc, "dataclass_key", True)
+
+        nested_dataclass = _render_child_item(
+            [MyDataclass("test", my_comp())], rc, "dataclass_key", False
         )[0]
 
         self.assertEqual(

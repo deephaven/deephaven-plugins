@@ -22,3 +22,6 @@ file_15=ui_query_params.py
 file_16=ui_home_screen.py
 file_17=ui_routing.py
 file_18=ui_events.py
+file_19=ui_memo.py
+file_20=ui_combo_box.py
+file_21=ui_multi_select.py

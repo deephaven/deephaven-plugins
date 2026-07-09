@@ -31,6 +31,8 @@ test.describe('UI table', () => {
     't_heatmap_both',
     't_heatmap_databar_overlay',
     't_heatmap_databar_mixed',
+    't_programmatic_sort_asc',
+    't_programmatic_sort_abs_desc',
     't_rollup_format',
   ].forEach(name => {
     test(name, async ({ page }) => {

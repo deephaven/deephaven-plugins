@@ -8,8 +8,10 @@ import React, {
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
+  type ChartBuilderSettings,
   type DehydratedQuickFilter,
   IrisGrid,
+  type IrisGridModel,
   type IrisGridType,
   type IrisGridContextMenuData,
   type IrisGridProps,
@@ -18,6 +20,7 @@ import {
   type IrisGridState,
   type DehydratedIrisGridState,
   type DehydratedGridState,
+  isIrisGridTableModelTemplate,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -30,11 +33,13 @@ import {
 } from '@deephaven/components';
 import {
   InputFilterEvent,
+  IrisGridEvent,
   useDashboardColumnFilters,
   useGridLinker,
   useTablePlugin,
 } from '@deephaven/dashboard-core-plugins';
 import {
+  useDhId,
   useLayoutManager,
   useListener,
   usePersistentState,
@@ -374,23 +379,43 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  const initialHydratedState = useMemo(() => {
-    if (model && utils && initialState.current != null) {
-      return {
-        ...utils.hydrateIrisGridState(model, initialState.current),
-        ...IrisGridUtils.hydrateGridState(model, initialState.current),
-      };
-    }
-  }, [model, utils]);
+  // Initial sorts are captured once at mount so later re-renders never push
+  // a new `sorts` reference into IrisGrid (which would call updateSorts and
+  // clobber the user's interactive sort changes).
+  const initialSortsRef = useRef(sorts);
 
-  const hydratedSorts = useMemo(() => {
-    if (utils && sorts !== undefined && columns !== undefined) {
-      log.debug('Hydrating sorts', sorts);
-
-      return utils.hydrateSort(columns, sorts);
+  // Lock the initial hydrated state to a stable value the first time model+utils
+  // are available. Recomputing it would change the `sorts` (and other) prop
+  // identities and cause IrisGrid to overwrite user changes on every re-render.
+  const lockedInitialHydratedStateRef = useRef<
+    Partial<IrisGridProps> | undefined
+  >(undefined);
+  const initialHydratedStateComputedRef = useRef(false);
+  if (
+    !initialHydratedStateComputedRef.current &&
+    model != null &&
+    utils != null
+  ) {
+    initialHydratedStateComputedRef.current = true;
+    const persisted =
+      initialState.current != null
+        ? {
+            ...utils.hydrateIrisGridState(model, initialState.current),
+            ...IrisGridUtils.hydrateGridState(model, initialState.current),
+          }
+        : undefined;
+    const initialSorts = initialSortsRef.current;
+    const seededSorts =
+      persisted == null && initialSorts !== undefined && columns !== undefined
+        ? utils.hydrateSort(columns, initialSorts)
+        : undefined;
+    if (persisted != null) {
+      lockedInitialHydratedStateRef.current = persisted;
+    } else if (seededSorts !== undefined) {
+      lockedInitialHydratedStateRef.current = { sorts: seededSorts };
     }
-    return undefined;
-  }, [columns, utils, sorts]);
+  }
+  const initialHydratedState = lockedInitialHydratedStateRef.current;
 
   const hydratedQuickFilters = useMemo(() => {
     if (
@@ -536,7 +561,6 @@ export function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
       reverse,
@@ -586,7 +610,6 @@ export function UITable({
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
-    hydratedSorts,
     hydratedQuickFilters,
     reverse,
     density,
@@ -629,23 +652,54 @@ export function UITable({
    * Otherwise, we have received changes from the server and we should use those over client state.
    * In the future we may want to do a smarter merge of these.
    */
-  const mergedIrisGridProps = useMemo(() => {
-    if (initialIrisGridServerProps.current === irisGridServerProps) {
-      return {
-        ...irisGridServerProps,
-        ...initialHydratedState,
-      };
-    }
-
-    return {
-      ...initialHydratedState,
-      ...irisGridServerProps,
-    };
-  }, [irisGridServerProps, initialHydratedState]);
+  const mergedIrisGridProps = useMemo(
+    () =>
+      initialIrisGridServerProps.current === irisGridServerProps
+        ? {
+            ...irisGridServerProps,
+            ...(initialHydratedState ?? {}),
+          }
+        : {
+            ...(initialHydratedState ?? {}),
+            ...irisGridServerProps,
+          },
+    [irisGridServerProps, initialHydratedState]
+  );
 
   const inputFilters = useDashboardColumnFilters(
     model?.columns ?? null,
     model?.table
+  );
+
+  const sourcePanelId = useDhId();
+
+  const handleCreateChart = useCallback(
+    (
+      chartBuilderSettings: ChartBuilderSettings,
+      irisGridModel: IrisGridModel
+    ) => {
+      const tableSettings = dehydratedState
+        ? {
+            quickFilters: dehydratedState.quickFilters,
+            advancedFilters: dehydratedState.advancedFilters,
+            sorts: dehydratedState.sorts,
+            inputFilters,
+          }
+        : {};
+
+      eventHub.emit(IrisGridEvent.CREATE_CHART, {
+        metadata: {
+          settings: chartBuilderSettings,
+          sourcePanelId,
+          table: irisGridModel.description || 'Table',
+          tableSettings,
+        },
+        table: isIrisGridTableModelTemplate(irisGridModel)
+          ? irisGridModel.table
+          : undefined,
+      });
+    },
+    [eventHub, sourcePanelId, dehydratedState, inputFilters]
   );
 
   const handleClearAllFilters = useCallback(() => {
@@ -673,6 +727,7 @@ export function UITable({
         <IrisGrid
           ref={ref => setIrisGrid(ref)}
           model={model}
+          onCreateChart={handleCreateChart}
           onStateChange={onStateChange}
           onSelectionChanged={debouncedHandleSelectionChanged}
           columnSelectionValidator={columnSelectionValidator}
