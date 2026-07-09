@@ -11,7 +11,6 @@ import { AGGREGATIONS_DROPPABLE, aggregationColumnId } from '../dnd/dndIds';
 import { sortableRowStyle } from '../dnd/dndStyles';
 import {
   DragGrip,
-  DropGhost,
   HiddenGrip,
   RemoveButton,
   RowLabel,
@@ -56,19 +55,13 @@ export type AggregateSelectRowProps = {
    */
   collapsed?: boolean;
   /**
-   * When a column is being dragged in from ANOTHER group, its name and the
-   * index at which to render a ghost preview in this group's column list.
-   * Mirrors the cross-card DropIndicator so a cross-group reassignment shows
-   * where the column will land. Null index = no preview.
+   * Draggable column items (stable id + display name) for this group, in
+   * visual order, reflecting the live drag preview. Each id may still be
+   * encoded with a DIFFERENT group's operation while a column is being dragged
+   * in from there. When omitted, the items are derived from `columnLabels`.
+   * Only used by the draggable-columns layout.
    */
-  columnDropLabel?: string;
-  columnDropIndex?: number | null;
-  /**
-   * Name of a column in THIS group that is being dragged out into another
-   * group; it collapses out of this group's list (the ghost preview lives in
-   * the target group) so the drag reads as a move.
-   */
-  collapseColumn?: string;
+  columnItems?: { id: string; column: string }[];
   /**
    * When true the aggregate function is rendered as plain read-only text
    * (just the operation name) instead of an editable picker, and the column
@@ -82,20 +75,22 @@ export type AggregateSelectRowProps = {
  * A single draggable column line inside an aggregate function group. Columns
  * can be reordered within their function or dragged onto another function to
  * reassign them; the drag-end handler validates the target function against
- * the column's type and snaps back on an invalid drop.
+ * the column's type and snaps back on an invalid drop. `id` is the column's
+ * stable sortable id (which stays encoded with its ORIGINAL group while it is
+ * previewed inside another group during a drag), independent of `operation`,
+ * which is the group this row currently renders in.
  */
 function AggregateColumnRow({
+  id,
   operation,
   column,
   onDelete,
-  collapsed = false,
 }: {
+  id: string;
   operation: string;
   column: string;
   onDelete: () => void;
-  collapsed?: boolean;
 }): JSX.Element {
-  const id = aggregationColumnId(operation, column);
   const {
     attributes,
     listeners,
@@ -114,7 +109,7 @@ function AggregateColumnRow({
     },
   });
   const style = sortableRowStyle({
-    collapsed,
+    collapsed: false,
     transform,
     transition,
     isDragging,
@@ -161,9 +156,7 @@ export function AggregateSelectRow({
   onDeleteColumn,
   columnsDraggable = true,
   collapsed = false,
-  columnDropLabel,
-  columnDropIndex = null,
-  collapseColumn,
+  columnItems,
   staticOperation = false,
 }: AggregateSelectRowProps): JSX.Element {
   const {
@@ -191,9 +184,14 @@ export function AggregateSelectRow({
     // the cursor), matching Organize Columns' ghost treatment.
     opacity: isDragging ? 0.5 : 1,
   };
-  const columnItemIds = columnLabels.map(label =>
-    aggregationColumnId(operation, label)
-  );
+  // Draggable column items in visual order. Falls back to `columnLabels` when
+  // no preview is supplied (the preview only exists mid-drag).
+  const items =
+    columnItems ??
+    columnLabels.map(label => ({
+      id: aggregationColumnId(operation, label),
+      column: label,
+    }));
   // Disable any aggregate function that isn't valid for every column in this
   // group (the function applies to all of them). Columns with an unknown type
   // are skipped so a missing type doesn't over-restrict the picker.
@@ -214,40 +212,23 @@ export function AggregateSelectRow({
   let columnsContent: React.ReactNode = null;
   if (!staticOperation && !collapsed) {
     if (onDeleteColumn != null && columnsDraggable) {
-      const columnRows = columnLabels.map(label => (
-        <AggregateColumnRow
-          key={label}
-          operation={operation}
-          column={label}
-          onDelete={() => onDeleteColumn(label)}
-          collapsed={label === collapseColumn}
-        />
-      ));
-      // Splice a ghost row where a column dragged in from another group would
-      // land, mirroring the cross-card DropIndicator.
-      let columnChildren: React.ReactNode = columnRows;
-      if (columnDropIndex != null && columnDropLabel != null) {
-        const clamped = Math.max(
-          0,
-          Math.min(columnDropIndex, columnRows.length)
-        );
-        columnChildren = [
-          ...columnRows.slice(0, clamped),
-          <DropGhost
-            key="agg-column-drop-ghost"
-            className="pivot-agg-row-line"
-            label={columnDropLabel}
-            tooltip="Remove column"
-          />,
-          ...columnRows.slice(clamped),
-        ];
-      }
+      // Nested SortableContext: columns reorder within their group and hop
+      // between groups via the drag preview (which reassigns the moved id to
+      // this group's item list), so dnd-kit slides the gap in both cases.
       columnsContent = (
         <SortableContext
-          items={columnItemIds}
+          items={items.map(item => item.id)}
           strategy={verticalListSortingStrategy}
         >
-          {columnChildren}
+          {items.map(item => (
+            <AggregateColumnRow
+              key={item.id}
+              id={item.id}
+              operation={operation}
+              column={item.column}
+              onDelete={() => onDeleteColumn(item.column)}
+            />
+          ))}
         </SortableContext>
       );
     } else if (onDeleteColumn != null) {

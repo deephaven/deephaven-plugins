@@ -12,15 +12,19 @@ import {
 import { usePivotBuilderMiddlewareCore } from './usePivotBuilderMiddlewareCore';
 
 /**
- * Extra IrisGrid-aware props the chained widget host (`GridWidgetPlugin`)
- * accepts. `transformModel` / `transformTableOptions` are added to
- * `@deephaven/iris-grid` / `@deephaven/dashboard-core-plugins` in
- * web-client-ui; widen locally until that version is published and installed.
+ * IrisGrid-aware opt-in props the chained widget host (`GridWidgetPlugin`)
+ * accepts on top of the generic `WidgetComponentProps`. `transformModel`
+ * (`IrisGridModelWidgetProps`) and `transformTableOptions`
+ * (`IrisGridTableOptionsWidgetProps`) are published opt-in props from
+ * `@deephaven/iris-grid`, deliberately kept off the generic widget prop
+ * surface so middleware intersects them in. `irisGridProps` / `onModelChanged`
+ * mirror the host's `GridWidgetPluginMiddlewareProps`, which isn't re-exported
+ * from the package root, so we declare them inline here.
  */
 type ChainedWidgetProps = WidgetComponentProps<DhType.Table> &
   IrisGridTableOptionsWidgetProps &
   IrisGridModelWidgetProps & {
-    irisGridProps?: IrisGridViewProps;
+    irisGridProps?: Partial<IrisGridViewProps>;
     onModelChanged?: (model: IrisGridModel) => void;
   };
 

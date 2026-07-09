@@ -2,7 +2,6 @@ import { Button } from '@deephaven/components';
 import { vsTrash } from '@deephaven/icons';
 import { DndKitSortable } from '@deephaven/iris-grid';
 import GripIcon from './GripIcon';
-import { useGrowInStyle } from '../dnd/dndStyles';
 
 const { useSortable } = DndKitSortable;
 type UseSortableReturn = ReturnType<typeof useSortable>;
@@ -79,37 +78,15 @@ export function StaticGrip(): JSX.Element {
   );
 }
 
-/** Empty grip-sized spacer that keeps non-draggable rows aligned. */
-export function HiddenGrip(): JSX.Element {
-  return <span className="pivot-grip pivot-grip--hidden" aria-hidden />;
-}
-
 /**
- * Ghosted preview of a dragged row shown at the slot where a cross-card /
- * cross-group drop will land. Grows in on mount (so it slides open as the
- * source row collapses shut) and mirrors the row layout with an item-shaped
- * ghost instead of a blank gap. `className` selects the row shape
- * (`pivot-row` vs `pivot-agg-row-line`).
+ * Invisible grip-sized spacer that keeps non-draggable rows' controls aligned
+ * with draggable ones. Renders the same {@link GripIcon} as a real grip (so it
+ * reserves the identical width) but hidden via `pivot-grip--hidden`.
  */
-export function DropGhost({
-  className,
-  label,
-  tooltip,
-}: {
-  className: string;
-  label: string;
-  tooltip?: string;
-}): JSX.Element {
-  const growStyle = useGrowInStyle(0.5);
+export function HiddenGrip(): JSX.Element {
   return (
-    <div
-      className={`${className} pivot-drop-indicator`}
-      aria-hidden
-      style={growStyle}
-    >
-      <RowLabel>{label}</RowLabel>
-      <RemoveButton tooltip={tooltip} />
-      <StaticGrip />
-    </div>
+    <span className="pivot-grip pivot-grip--hidden" aria-hidden>
+      <GripIcon />
+    </span>
   );
 }

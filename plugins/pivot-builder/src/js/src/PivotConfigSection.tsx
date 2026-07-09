@@ -15,19 +15,14 @@ import {
   PIVOT_COLUMNS_DROPPABLE,
   ROLLUP_ROWS_DROPPABLE,
   aggregationRowId,
-  columnRowId,
+  columnNameFromItemId,
 } from './pivotConfig/dnd/dndIds';
 import {
   COLUMN_DROP_ANIMATION,
   DRAG_OVERLAY_STYLE,
 } from './pivotConfig/dnd/dndStyles';
 import pivotCollisionDetection from './pivotConfig/dnd/pivotCollisionDetection';
-import { removeAt } from './pivotConfig/dnd/arrayUtils';
-import {
-  ColumnRow,
-  DroppableList,
-  withDropIndicator,
-} from './pivotConfig/rows/columnRows';
+import { ColumnRow, DroppableList } from './pivotConfig/rows/columnRows';
 import { AggregateSelectRow } from './pivotConfig/rows/aggregateRows';
 import { usePivotDnd } from './pivotConfig/dnd/usePivotDnd';
 import ServiceUnavailableMessage from './pivotConfig/controls/ServiceUnavailableMessage';
@@ -419,14 +414,11 @@ export function PivotConfigSection({
     handleDragEnd,
     handleDragCancel,
     pinOverlayToCursor,
-    rollupItemIds,
-    pivotItemIds,
+    rollupColumnIds,
+    pivotColumnIds,
     aggItemIds,
-    crossCardColumnLeaving,
-    aggColumnDrop,
+    aggColumnGroups,
     isDraggingAggregationGroup,
-    columnInsertionIndex,
-    activeColumnName,
     dragOverlayPreview,
   } = usePivotDnd({
     rollupRows,
@@ -760,27 +752,24 @@ export function PivotConfigSection({
           <DroppableList
             id={ROLLUP_ROWS_DROPPABLE}
             type="columns"
-            itemIds={rollupItemIds}
-            isEmpty={rollupRows.length === 0}
+            itemIds={rollupColumnIds}
+            isEmpty={rollupColumnIds.length === 0}
             disabled={rollupRowsDisabled === true}
           >
-            {withDropIndicator(
-              rollupRows.map((name, i) => (
+            {rollupColumnIds.map(id => {
+              const name = columnNameFromItemId(id) ?? id;
+              return (
                 <ColumnRow
-                  key={columnRowId(ROLLUP_ROWS_DROPPABLE, name)}
+                  key={id}
+                  id={id}
                   name={name}
-                  droppableId={ROLLUP_ROWS_DROPPABLE}
-                  onDelete={() => onRollupRowsChange(removeAt(rollupRows, i))}
-                  collapsed={
-                    crossCardColumnLeaving?.container ===
-                      ROLLUP_ROWS_DROPPABLE &&
-                    crossCardColumnLeaving.column === name
+                  container={ROLLUP_ROWS_DROPPABLE}
+                  onDelete={() =>
+                    onRollupRowsChange(rollupRows.filter(n => n !== name))
                   }
                 />
-              )),
-              columnInsertionIndex(ROLLUP_ROWS_DROPPABLE, rollupRows),
-              activeColumnName ?? ''
-            )}
+              );
+            })}
           </DroppableList>
         </ConfigCard>
 
@@ -824,29 +813,24 @@ export function PivotConfigSection({
             <DroppableList
               id={PIVOT_COLUMNS_DROPPABLE}
               type="columns"
-              itemIds={pivotItemIds}
-              isEmpty={pivotColumns.length === 0}
+              itemIds={pivotColumnIds}
+              isEmpty={pivotColumnIds.length === 0}
               disabled={pivotColumnsDisabled === true}
             >
-              {withDropIndicator(
-                pivotColumns.map((name, i) => (
+              {pivotColumnIds.map(id => {
+                const name = columnNameFromItemId(id) ?? id;
+                return (
                   <ColumnRow
-                    key={columnRowId(PIVOT_COLUMNS_DROPPABLE, name)}
+                    key={id}
+                    id={id}
                     name={name}
-                    droppableId={PIVOT_COLUMNS_DROPPABLE}
+                    container={PIVOT_COLUMNS_DROPPABLE}
                     onDelete={() =>
-                      onPivotColumnsChange(removeAt(pivotColumns, i))
-                    }
-                    collapsed={
-                      crossCardColumnLeaving?.container ===
-                        PIVOT_COLUMNS_DROPPABLE &&
-                      crossCardColumnLeaving.column === name
+                      onPivotColumnsChange(pivotColumns.filter(n => n !== name))
                     }
                   />
-                )),
-                columnInsertionIndex(PIVOT_COLUMNS_DROPPABLE, pivotColumns),
-                activeColumnName ?? ''
-              )}
+                );
+              })}
             </DroppableList>
           )}
         </ConfigCard>
@@ -890,16 +874,6 @@ export function PivotConfigSection({
           >
             {aggregationSettings.aggregations.map((entry, i) => {
               const op = entry.operation as string;
-              // Ghost-preview index when a column from another group is being
-              // dragged over this one. Mirrors `handleDragEnd`'s insert slot:
-              // the hovered column's index, or the end.
-              let columnDropIndex: number | null = null;
-              if (aggColumnDrop != null && aggColumnDrop.targetOp === op) {
-                const overIdx = entry.selected.indexOf(
-                  aggColumnDrop.overColumn
-                );
-                columnDropIndex = overIdx < 0 ? entry.selected.length : overIdx;
-              }
               return (
                 <AggregateSelectRow
                   key={aggregationRowId(op)}
@@ -915,13 +889,10 @@ export function PivotConfigSection({
                   }
                   columnsDraggable={!aggregatesOnly}
                   collapsed={isDraggingAggregationGroup}
-                  columnDropLabel={aggColumnDrop?.column}
-                  columnDropIndex={columnDropIndex}
-                  collapseColumn={
-                    aggColumnDrop?.sourceOp === op
-                      ? aggColumnDrop.column
-                      : undefined
-                  }
+                  // Preview-aware column items so a cross-group drag animates
+                  // via the nested SortableContext. Index-aligned with the
+                  // committed aggregations.
+                  columnItems={aggColumnGroups[i]?.columnItems}
                 />
               );
             })}

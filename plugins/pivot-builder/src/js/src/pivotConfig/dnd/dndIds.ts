@@ -7,19 +7,31 @@ export const ROLLUP_ROWS_DROPPABLE = 'rollup-rows';
 export const PIVOT_COLUMNS_DROPPABLE = 'pivot-columns';
 export const AGGREGATIONS_DROPPABLE = 'aggregations';
 
-/** Stable sortable id for a rollup/pivot column row. */
-export function columnRowId(droppableId: string, name: string): string {
-  return `${droppableId}:${name}`;
+// Namespace for a rollup/pivot column's sortable id. The id is deliberately
+// independent of which card the column currently lives in so the same dnd-kit
+// draggable can move between the Rollup and Pivot SortableContexts without its
+// id (and dnd-kit's tracking of it) changing mid-drag. Column names are unique
+// across both cards, so the name alone disambiguates.
+const COLUMN_ITEM_PREFIX = 'column:';
+
+/** Stable, container-independent sortable id for a rollup/pivot column. */
+export function columnItemId(name: string): string {
+  return `${COLUMN_ITEM_PREFIX}${name}`;
 }
 
 /**
- * Extract the column name from a rollup/pivot column row id
- * (`${container}:${name}`). Returns null for ids without a `:` separator
- * (e.g. a bare container id). Inverse of {@link columnRowId}.
+ * Extract the column name from a column item id ({@link columnItemId}).
+ * Returns null for ids that aren't column items.
  */
-export function columnNameFromId(id: string): string | null {
-  const colonIdx = id.indexOf(':');
-  return colonIdx === -1 ? null : id.slice(colonIdx + 1);
+export function columnNameFromItemId(id: string): string | null {
+  return id.startsWith(COLUMN_ITEM_PREFIX)
+    ? id.slice(COLUMN_ITEM_PREFIX.length)
+    : null;
+}
+
+/** True when `id` is a rollup/pivot column item id. */
+export function isColumnItemId(id: string): boolean {
+  return id.startsWith(COLUMN_ITEM_PREFIX);
 }
 
 /**
@@ -65,8 +77,9 @@ export function parseAggregationId(
 
 /**
  * Resolve the droppable container id from any draggable/droppable id.
- * Container ids are exact matches; item ids are namespaced as
- * `${container}:...` (split on the first `:`).
+ * Container ids are exact matches; aggregation item ids are namespaced as
+ * `${AGGREGATIONS_DROPPABLE}:...`. Returns null for anything else (including
+ * column item ids, which are not tied to a container — {@link columnItemId}).
  */
 export function resolveContainerOfId(id: string): string | null {
   if (
@@ -77,5 +90,9 @@ export function resolveContainerOfId(id: string): string | null {
     return id;
   }
   const colonIdx = id.indexOf(':');
-  return colonIdx === -1 ? null : id.slice(0, colonIdx);
+  if (colonIdx === -1) {
+    return null;
+  }
+  const prefix = id.slice(0, colonIdx);
+  return prefix === AGGREGATIONS_DROPPABLE ? prefix : null;
 }

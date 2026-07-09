@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { DndKitCore, DndKitUtilities } from '@deephaven/iris-grid';
 
 const { defaultDropAnimation } = DndKitCore;
@@ -49,25 +48,6 @@ export const COLLAPSING_SOURCE_STYLE: React.CSSProperties = {
   transition:
     'max-height 150ms ease, opacity 150ms ease, padding 150ms ease, margin 150ms ease',
 };
-
-/**
- * Style for a ghost/preview row that should grow in (max-height 0 → full) when
- * it mounts, so it slides open instead of popping. `targetOpacity` is the
- * resting opacity once expanded.
- */
-export function useGrowInStyle(targetOpacity: number): React.CSSProperties {
-  const [entered, setEntered] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return {
-    maxHeight: entered ? ROW_MAX_HEIGHT : 0,
-    opacity: entered ? targetOpacity : 0,
-    overflow: 'hidden',
-    transition: 'max-height 150ms ease, opacity 150ms ease',
-  };
-}
 
 /**
  * Style for a sortable single-line row (a rollup/pivot column or an aggregate

@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -18,16 +19,62 @@ import {
   PIVOT_COLUMNS_DROPPABLE,
   ROLLUP_ROWS_DROPPABLE,
   aggregationRowId,
-  columnNameFromId,
-  columnRowId,
+  columnItemId,
+  columnNameFromItemId,
+  isColumnItemId,
   parseAggregationId,
   resolveContainerOfId,
 } from './dndIds';
-import { applyPivotDragEnd } from './applyPivotDragEnd';
+import { reorderAggregationGroups } from './reorderAggregationGroups';
+import {
+  findColumnContainer,
+  moveColumnAcross,
+  reorderColumnWithin,
+  type ColumnLists,
+} from './columnMove';
+import {
+  fromAggColPreview,
+  findAggColGroupIndex,
+  moveAggColAcross,
+  reorderAggColWithin,
+  resolveOverGroupIndex,
+  toAggColPreview,
+  type AggColPreview,
+} from './aggColumnMove';
 import { ColumnRowPreview } from '../rows/columnRows';
 import { AggregateRowPreview } from '../rows/aggregateRows';
 
 const { MeasuringStrategy, PointerSensor, useSensor, useSensors } = DndKitCore;
+
+/** Shallow equality for two string lists in order. */
+function sameOrder(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((v, i) => v === b[i]);
+}
+
+/** Equality for two aggregation lists by operation + selected-column order. */
+function sameAggregations(
+  a: AggregationSettings['aggregations'],
+  b: AggregationSettings['aggregations']
+): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (g, i) =>
+        String(g.operation) === String(b[i].operation) &&
+        sameOrder(g.selected, b[i].selected)
+    )
+  );
+}
+
+/**
+ * Render model for one aggregate-function group: its operation and the column
+ * items (stable id + display name) to render. Reflects the live drag preview
+ * during a single aggregate-column drag; the committed selection otherwise.
+ */
+export interface AggColumnGroup {
+  operation: string;
+  columnItems: { id: string; column: string }[];
+}
 
 export interface UsePivotDndParams {
   rollupRows: string[];
@@ -51,27 +98,23 @@ export interface UsePivotDndResult {
   handleDragEnd: (event: DndKitCore.DragEndEvent) => void;
   handleDragCancel: () => void;
   pinOverlayToCursor: DndKitCore.Modifier;
-  rollupItemIds: string[];
-  pivotItemIds: string[];
+  /**
+   * Column item ids for the Rollup card in visual order. Reflects the live
+   * drag preview while a column is being dragged (so the item can hop between
+   * cards), and the committed `rollupRows` otherwise.
+   */
+  rollupColumnIds: string[];
+  /** Column item ids for the Pivot card in visual order (see above). */
+  pivotColumnIds: string[];
   aggItemIds: string[];
-  /** Column being dragged into the OTHER column card, or null. */
-  crossCardColumnLeaving: { container: string; column: string } | null;
-  /** Cross-group aggregate-column drop preview, or null. */
-  aggColumnDrop: {
-    targetOp: string;
-    sourceOp: string;
-    column: string;
-    overColumn: string;
-  } | null;
+  /**
+   * Per-group aggregate column render model, reflecting the live drag preview
+   * during a single aggregate-column drag. Index-aligned with
+   * `aggregationSettings.aggregations`.
+   */
+  aggColumnGroups: AggColumnGroup[];
   /** True while a whole aggregate-function group is being dragged. */
   isDraggingAggregationGroup: boolean;
-  /** Insertion index for a cross-card column drop indicator, or null. */
-  columnInsertionIndex: (
-    targetContainer: string,
-    items: readonly string[]
-  ) => number | null;
-  /** Name of the column currently dragged from a column card, or null. */
-  activeColumnName: string | null;
   /** Contents rendered inside the DragOverlay, or null when idle. */
   dragOverlayPreview: ReactNode;
 }
@@ -94,9 +137,35 @@ export function usePivotDnd({
   // nothing is being dragged. Used to toggle the `is-dragging` modifier
   // on the root so the drop zones render the marching-ants effect.
   const [dragSource, setDragSource] = useState<string | null>(null);
-  // Id of the droppable/row currently under the pointer during a drag.
-  // Drives the cross-card insertion indicator; null when idle.
-  const [overId, setOverId] = useState<string | null>(null);
+
+  // Drag-only snapshot of the two column cards (keyed by container id, holding
+  // column item ids). While a column is being dragged this is mutated in
+  // `onDragOver` so the item hops between the Rollup and Pivot SortableContexts
+  // — dnd-kit then opens and slides the gap natively in BOTH same-card and
+  // cross-card cases. Null unless a column drag is in flight; the committed
+  // `rollupRows`/`pivotColumns` are the source of truth otherwise.
+  const [columnPreview, setColumnPreview] = useState<ColumnLists | null>(null);
+  // Mirror of `columnPreview` for reading the latest value inside the drop
+  // handler (which fires on a later event than the last preview update).
+  const columnPreviewRef = useRef<ColumnLists | null>(null);
+  useEffect(() => {
+    columnPreviewRef.current = columnPreview;
+  }, [columnPreview]);
+
+  // Drag-only snapshot of the aggregate groups' columns (per-group id lists).
+  // While a single aggregate column is dragged this is mutated in `onDragOver`
+  // so the column hops between function groups' nested SortableContexts —
+  // dnd-kit then slides the gap open in BOTH same-group and cross-group cases.
+  // Null unless a single aggregate-column drag is in flight (whole-group drags
+  // and the aggregation-only view, where columns aren't draggable, don't set
+  // it). The committed `aggregationSettings` is the source of truth otherwise.
+  const [aggColPreview, setAggColPreview] = useState<AggColPreview | null>(
+    null
+  );
+  const aggColPreviewRef = useRef<AggColPreview | null>(null);
+  useEffect(() => {
+    aggColPreviewRef.current = aggColPreview;
+  }, [aggColPreview]);
 
   // Flip `dragSource` in `onDragStart`. With @dnd-kit's
   // MeasuringStrategy.Always (set on the DndContext), every droppable
@@ -153,10 +222,28 @@ export function usePivotDnd({
         dragRow?.getBoundingClientRect().top ?? null;
       setDragSource(container === '' ? null : container);
       setActiveId(String(event.active.id));
-      setOverId(null);
       setDropInvalid(false);
+      // Seed the column drag preview from the committed lists when a column is
+      // picked up, so `onDragOver` can move it between cards without touching
+      // real state until the drop.
+      setColumnPreview(
+        isColumnItemId(String(event.active.id))
+          ? {
+              [ROLLUP_ROWS_DROPPABLE]: rollupRows.map(columnItemId),
+              [PIVOT_COLUMNS_DROPPABLE]: pivotColumns.map(columnItemId),
+            }
+          : null
+      );
+      // Seed the aggregate-column preview for a single-column aggregation drag
+      // (a whole-function group drag has no column), so `onDragOver` can move
+      // the column between groups' nested lists.
+      setAggColPreview(
+        parsed != null && parsed.column != null
+          ? toAggColPreview(aggregationSettings.aggregations)
+          : null
+      );
     },
-    []
+    [rollupRows, pivotColumns, aggregationSettings.aggregations]
   );
 
   // After the collapse commits (but before any live reorder), measure how far
@@ -199,27 +286,83 @@ export function usePivotDnd({
     (event: DndKitCore.DragOverEvent): void => {
       const { active, over } = event;
       const overIdStr = over == null ? null : String(over.id);
-      setOverId(overIdStr);
 
-      // Live validity feedback for a single-column aggregation drag: flag the
-      // drop as invalid when the hovered function rejects the column's type.
-      const activeParsed = parseAggregationId(String(active.id));
+      // Multiple-containers pattern: while a column is dragged over a
+      // DIFFERENT column card, move it into that card in the preview so
+      // dnd-kit re-registers it there and slides the gap open. Same-card
+      // motion is handled by dnd-kit's SortableContext and committed on drop.
+      const activeIdStr = String(active.id);
+      if (isColumnItemId(activeIdStr) && overIdStr != null) {
+        setColumnPreview(prev => {
+          if (prev == null) {
+            return prev;
+          }
+          const from = findColumnContainer(prev, activeIdStr);
+          const to = findColumnContainer(prev, overIdStr);
+          if (from == null || to == null || from === to) {
+            return prev;
+          }
+          // Insert after the hovered row when the dragged item's top has
+          // cleared the hovered row's lower edge (mirrors dnd-kit's example),
+          // so the tail of a card is reachable.
+          const { translated } = active.rect.current;
+          const insertAfter =
+            translated != null &&
+            over != null &&
+            translated.top > over.rect.top + over.rect.height;
+          return moveColumnAcross(prev, activeIdStr, overIdStr, insertAfter);
+        });
+        return;
+      }
+
+      // Single aggregate-column drag: mirror the column-card pattern within the
+      // aggregate groups. Move the column into the hovered group's nested list
+      // (when that group accepts its type) so dnd-kit slides the gap; same-group
+      // motion is left to the nested SortableContext and committed on drop.
+      const activeParsed = parseAggregationId(activeIdStr);
       if (activeParsed?.column == null || overIdStr == null) {
         setDropInvalid(false);
         return;
       }
-      const overParsed =
-        overIdStr === AGGREGATIONS_DROPPABLE
-          ? null
-          : parseAggregationId(overIdStr);
-      const targetOp = overParsed?.operation ?? activeParsed.operation;
+      const prev = aggColPreviewRef.current;
+      if (prev == null) {
+        setDropInvalid(false);
+        return;
+      }
+      const fromIdx = findAggColGroupIndex(prev, activeIdStr);
+      const toIdx = resolveOverGroupIndex(prev, overIdStr);
+      if (toIdx < 0) {
+        setDropInvalid(false);
+        return;
+      }
+      // Same group: dnd-kit's nested SortableContext animates the reorder.
+      if (fromIdx === toIdx) {
+        setDropInvalid(false);
+        return;
+      }
+      // Cross-group: reject (snap back, keep the column put) when the target
+      // function can't take the column's type.
       const type = columnTypes[activeParsed.column];
-      setDropInvalid(
+      const invalid =
         type != null &&
-          !AggregationUtils.isValidOperation(
-            targetOp as AggregationOperation,
-            type
-          )
+        !AggregationUtils.isValidOperation(
+          prev[toIdx].operation as AggregationOperation,
+          type
+        );
+      if (invalid) {
+        setDropInvalid(true);
+        return;
+      }
+      setDropInvalid(false);
+      const { translated } = active.rect.current;
+      const insertAfter =
+        translated != null &&
+        over != null &&
+        translated.top > over.rect.top + over.rect.height;
+      setAggColPreview(cur =>
+        cur == null
+          ? cur
+          : moveAggColAcross(cur, activeIdStr, overIdStr, insertAfter)
       );
     },
     [columnTypes]
@@ -252,31 +395,86 @@ export function usePivotDnd({
 
   const handleDragEnd = useCallback(
     (event: DndKitCore.DragEndEvent): void => {
+      const preview = columnPreviewRef.current;
+      const aggPreview = aggColPreviewRef.current;
       setDragSource(null);
       setActiveId(null);
-      setOverId(null);
       setDropInvalid(false);
+      setColumnPreview(null);
+      setAggColPreview(null);
       groupDragRef.current = false;
       activeAggOpRef.current = null;
       overlayPinBaseTopRef.current = null;
       overlayPinDeltaRef.current = 0;
       const { active, over } = event;
+
+      // Column drag: commit the previewed lists (with the final same-card
+      // reorder applied) to the real card state. Cross-card moves were already
+      // reflected in the preview by `onDragOver`.
+      if (preview != null) {
+        const committed =
+          over == null
+            ? preview
+            : reorderColumnWithin(preview, String(active.id), String(over.id));
+        const nextRollup = committed[ROLLUP_ROWS_DROPPABLE].map(
+          id => columnNameFromItemId(id) ?? id
+        );
+        const nextPivot = committed[PIVOT_COLUMNS_DROPPABLE].map(
+          id => columnNameFromItemId(id) ?? id
+        );
+        if (!sameOrder(nextRollup, rollupRows)) {
+          onRollupRowsChange(nextRollup);
+        }
+        if (!sameOrder(nextPivot, pivotColumns)) {
+          onPivotColumnsChange(nextPivot);
+        }
+        return;
+      }
+
+      // Single aggregate-column drag: commit the previewed groups (with the
+      // final same-group reorder applied), merging back onto the settings so
+      // per-entry fields (e.g. `invert`) survive and emptied groups drop out.
+      if (aggPreview != null) {
+        const committed =
+          over == null
+            ? aggPreview
+            : reorderAggColWithin(
+                aggPreview,
+                String(active.id),
+                String(over.id)
+              );
+        const byOp = new Map(
+          aggregationSettings.aggregations.map(a => [String(a.operation), a])
+        );
+        const nextAggs = fromAggColPreview(committed).map(group => {
+          const orig = byOp.get(group.operation);
+          return orig != null
+            ? { ...orig, selected: group.selected }
+            : {
+                operation: group.operation as AggregationOperation,
+                selected: group.selected,
+                invert: false,
+              };
+        });
+        if (!sameAggregations(nextAggs, aggregationSettings.aggregations)) {
+          onAggregationSettingsChange({
+            ...aggregationSettings,
+            aggregations: nextAggs,
+          });
+        }
+        return;
+      }
+
       if (over == null) return;
-      applyPivotDragEnd({
+      reorderAggregationGroups({
         activeId: String(active.id),
         overId: String(over.id),
         aggregationSettings,
-        rollupRows,
-        pivotColumns,
-        columnTypes,
         onAggregationSettingsChange,
-        onRollupRowsChange,
-        onPivotColumnsChange,
       });
     },
     [
       aggregationSettings,
-      columnTypes,
       onAggregationSettingsChange,
       onPivotColumnsChange,
       onRollupRowsChange,
@@ -288,54 +486,29 @@ export function usePivotDnd({
   const handleDragCancel = useCallback((): void => {
     setDragSource(null);
     setActiveId(null);
-    setOverId(null);
     setDropInvalid(false);
+    setColumnPreview(null);
+    setAggColPreview(null);
     groupDragRef.current = false;
     activeAggOpRef.current = null;
     overlayPinBaseTopRef.current = null;
     overlayPinDeltaRef.current = 0;
   }, []);
 
-  // Index at which a cross-card insertion indicator should render in the
-  // column list `targetContainer` (or null for none). Only shown for a
-  // column drag originating in the *other* column card — same-card reorders
-  // already open a gap via SortableContext. The index mirrors the drop
-  // position computed in `handleDragEnd`: before the hovered row, or at the
-  // end when hovering the empty container background.
-  const columnInsertionIndex = useCallback(
-    (targetContainer: string, items: readonly string[]): number | null => {
-      if (activeId == null || overId == null) {
-        return null;
-      }
-      const activeContainer = resolveContainerOfId(activeId);
-      if (
-        activeContainer == null ||
-        activeContainer === targetContainer ||
-        (activeContainer !== ROLLUP_ROWS_DROPPABLE &&
-          activeContainer !== PIVOT_COLUMNS_DROPPABLE)
-      ) {
-        return null;
-      }
-      if (resolveContainerOfId(overId) !== targetContainer) {
-        return null;
-      }
-      if (overId === targetContainer) {
-        return items.length;
-      }
-      const overName = columnNameFromId(overId) ?? overId;
-      const idx = items.indexOf(overName);
-      return idx < 0 ? items.length : idx;
-    },
-    [activeId, overId]
+  // Column item ids per card in visual order. During a drag these come from
+  // the live preview (so the dragged item hops between cards and dnd-kit
+  // animates the gap); otherwise they mirror the committed lists.
+  const rollupColumnIds = useMemo(
+    () =>
+      columnPreview?.[ROLLUP_ROWS_DROPPABLE] ??
+      rollupRows.map(n => columnItemId(n)),
+    [columnPreview, rollupRows]
   );
-
-  const rollupItemIds = useMemo(
-    () => rollupRows.map(n => columnRowId(ROLLUP_ROWS_DROPPABLE, n)),
-    [rollupRows]
-  );
-  const pivotItemIds = useMemo(
-    () => pivotColumns.map(n => columnRowId(PIVOT_COLUMNS_DROPPABLE, n)),
-    [pivotColumns]
+  const pivotColumnIds = useMemo(
+    () =>
+      columnPreview?.[PIVOT_COLUMNS_DROPPABLE] ??
+      pivotColumns.map(n => columnItemId(n)),
+    [columnPreview, pivotColumns]
   );
   const aggItemIds = useMemo(
     () =>
@@ -345,20 +518,28 @@ export function usePivotDnd({
     [aggregationSettings.aggregations]
   );
 
+  // Per-group aggregate column render model. During a single aggregate-column
+  // drag this comes from the live preview (so the column hops between groups
+  // and dnd-kit animates the gap); otherwise it mirrors the committed
+  // selections. Index-aligned with `aggregationSettings.aggregations` (the
+  // preview keeps every group, even one momentarily emptied by a drag).
+  const aggColumnGroups = useMemo<AggColumnGroup[]>(() => {
+    const source =
+      aggColPreview ?? toAggColPreview(aggregationSettings.aggregations);
+    return source.map(group => ({
+      operation: group.operation,
+      columnItems: group.columnIds.map(id => ({
+        id,
+        column: parseAggregationId(id)?.column ?? id,
+      })),
+    }));
+  }, [aggColPreview, aggregationSettings.aggregations]);
+
   // Resolve the preview for DragOverlay.
-  const activeColumnName = (() => {
-    if (activeId == null) {
-      return null;
-    }
-    const container = resolveContainerOfId(activeId);
-    if (
-      container !== ROLLUP_ROWS_DROPPABLE &&
-      container !== PIVOT_COLUMNS_DROPPABLE
-    ) {
-      return null;
-    }
-    return columnNameFromId(activeId);
-  })();
+  const activeColumnName =
+    activeId != null && isColumnItemId(activeId)
+      ? columnNameFromItemId(activeId)
+      : null;
   const activeAggregation = (() => {
     if (activeId == null) {
       return null;
@@ -395,70 +576,6 @@ export function usePivotDnd({
   // atomic items.
   const isDraggingAggregationGroup = activeAggregation != null;
 
-  // Cross-group aggregate-column drop preview: when a column is dragged over a
-  // DIFFERENT function group that accepts its type, render a ghost of the
-  // column at the hovered slot in the target group. Same-group reorders are
-  // handled by the nested SortableContext, so those are excluded here.
-  const aggColumnDrop = useMemo(() => {
-    if (activeId == null || overId == null) {
-      return null;
-    }
-    const active = parseAggregationId(activeId);
-    if (active?.column == null) {
-      return null;
-    }
-    const over = parseAggregationId(overId);
-    if (over?.column == null || over.operation === active.operation) {
-      return null;
-    }
-    const type = columnTypes[active.column];
-    if (
-      type != null &&
-      !AggregationUtils.isValidOperation(
-        over.operation as AggregationOperation,
-        type
-      )
-    ) {
-      return null;
-    }
-    return {
-      targetOp: over.operation,
-      sourceOp: active.operation,
-      column: active.column,
-      overColumn: over.column,
-    };
-  }, [activeId, overId, columnTypes]);
-
-  // A rollup/pivot column being dragged into the OTHER column card. Drives the
-  // source row's collapse so the column reads as moving (a single ghost lives
-  // in the target card). Null when the target already has the column (the drop
-  // would be a no-op, so the source stays put).
-  const crossCardColumnLeaving = useMemo(() => {
-    if (activeId == null || overId == null) {
-      return null;
-    }
-    const activeContainer = resolveContainerOfId(activeId);
-    const overContainer = resolveContainerOfId(overId);
-    if (
-      activeContainer == null ||
-      overContainer == null ||
-      activeContainer === overContainer ||
-      (activeContainer !== ROLLUP_ROWS_DROPPABLE &&
-        activeContainer !== PIVOT_COLUMNS_DROPPABLE) ||
-      (overContainer !== ROLLUP_ROWS_DROPPABLE &&
-        overContainer !== PIVOT_COLUMNS_DROPPABLE)
-    ) {
-      return null;
-    }
-    const column = columnNameFromId(activeId) ?? activeId;
-    const targetItems =
-      overContainer === ROLLUP_ROWS_DROPPABLE ? rollupRows : pivotColumns;
-    if (targetItems.includes(column)) {
-      return null;
-    }
-    return { container: activeContainer, column };
-  }, [activeId, overId, rollupRows, pivotColumns]);
-
   // Drag overlay contents: a column preview, an aggregation preview, or
   // nothing, depending on what (if anything) is currently being dragged.
   let dragOverlayPreview: ReactNode = null;
@@ -489,14 +606,11 @@ export function usePivotDnd({
     handleDragEnd,
     handleDragCancel,
     pinOverlayToCursor,
-    rollupItemIds,
-    pivotItemIds,
+    rollupColumnIds,
+    pivotColumnIds,
     aggItemIds,
-    crossCardColumnLeaving,
-    aggColumnDrop,
+    aggColumnGroups,
     isDraggingAggregationGroup,
-    columnInsertionIndex,
-    activeColumnName,
     dragOverlayPreview,
   };
 }

@@ -1,46 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import { DndKitCore, DndKitSortable } from '@deephaven/iris-grid';
-import { columnRowId } from '../dnd/dndIds';
 import { sortableRowStyle } from '../dnd/dndStyles';
-import {
-  DragGrip,
-  DropGhost,
-  RemoveButton,
-  RowLabel,
-  StaticGrip,
-} from './rowParts';
+import { DragGrip, RemoveButton, RowLabel, StaticGrip } from './rowParts';
 
 const { useDroppable } = DndKitCore;
 const { SortableContext, useSortable, verticalListSortingStrategy } =
   DndKitSortable;
-
-/**
- * Splice a cross-card {@link DropGhost} into a list of rendered rows at
- * `index` (clamped to the row count). Returns the rows unchanged when `index`
- * is null.
- */
-export function withDropIndicator(
-  rows: JSX.Element[],
-  index: number | null,
-  label: string
-): React.ReactNode {
-  // Empty target cards get their own full-card drop-zone highlight (the
-  // marching-ants `.pivot-droppable-empty` overlay), so skip the ghost row
-  // there and let that highlight stand in.
-  if (index == null || rows.length === 0) {
-    return rows;
-  }
-  const clamped = Math.max(0, Math.min(index, rows.length));
-  return [
-    ...rows.slice(0, clamped),
-    <DropGhost
-      key="pivot-drop-indicator"
-      className="pivot-row"
-      label={label}
-    />,
-    ...rows.slice(clamped),
-  ];
-}
 
 type DroppableListProps = {
   id: string;
@@ -89,24 +54,20 @@ export function DroppableList({
 }
 
 type ColumnRowProps = {
+  /** Container-independent sortable id ({@link columnItemId}). */
+  id: string;
   name: string;
-  droppableId: string;
+  /** Column card this row is currently rendered in (for dnd-kit data). */
+  container: string;
   onDelete: () => void;
-  /**
-   * When true this row is the source of a column being dragged into the OTHER
-   * column card, so it collapses out of this list (the drop preview lives in
-   * the target card).
-   */
-  collapsed?: boolean;
 };
 
 export function ColumnRow({
+  id,
   name,
-  droppableId,
+  container,
   onDelete,
-  collapsed = false,
 }: ColumnRowProps): JSX.Element {
-  const id = columnRowId(droppableId, name);
   const {
     attributes,
     listeners,
@@ -115,9 +76,9 @@ export function ColumnRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, data: { type: 'column', container: droppableId } });
+  } = useSortable({ id, data: { type: 'column', container } });
   const style = sortableRowStyle({
-    collapsed,
+    collapsed: false,
     transform,
     transition,
     isDragging,

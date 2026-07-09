@@ -66,7 +66,7 @@ export interface PivotBuilderMiddlewareCore {
   /** Table Options transform to inject: contributes the unified Pivot page. */
   composedTransform: TableOptionsTransform;
   /** Pivot-specific IrisGrid overrides, or `undefined` when not in pivot mode. */
-  irisGridProps: IrisGridViewProps | undefined;
+  irisGridProps: Partial<IrisGridViewProps> | undefined;
   /** Wire to the host's `onModelChanged` so the core can track the model. */
   onModelChanged: (model: IrisGridModel) => void;
   /** The current host model (for callers that layer persistence on top). */
@@ -236,7 +236,7 @@ export function usePivotBuilderMiddlewareCore({
     });
   }, [model]);
 
-  const irisGridProps = useMemo<IrisGridViewProps | undefined>(
+  const irisGridProps = useMemo<Partial<IrisGridViewProps> | undefined>(
     () =>
       isPivot
         ? ({
@@ -244,7 +244,7 @@ export function usePivotBuilderMiddlewareCore({
             renderer: pivotRenderer,
             mouseHandlers: pivotMouseHandlers,
             getMetricCalculator: pivotMetricCalculator,
-          } as IrisGridViewProps)
+          } as Partial<IrisGridViewProps>)
         : undefined,
     [
       isPivot,
