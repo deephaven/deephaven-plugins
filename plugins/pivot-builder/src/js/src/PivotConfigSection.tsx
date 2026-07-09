@@ -419,6 +419,7 @@ export function PivotConfigSection({
     aggItemIds,
     aggColumnGroups,
     isDraggingAggregationGroup,
+    dropInvalid,
     dragOverlayPreview,
   } = usePivotDnd({
     rollupRows,
@@ -676,7 +677,7 @@ export function PivotConfigSection({
           dragSource === AGGREGATIONS_DROPPABLE
             ? ' is-dragging-aggregations'
             : ''
-        }`}
+        }${dropInvalid ? ' is-drop-invalid' : ''}`}
       >
         <div className="pivot-toolbar">
           <span>Enable</span>

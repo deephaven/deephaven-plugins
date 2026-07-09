@@ -115,6 +115,12 @@ export interface UsePivotDndResult {
   aggColumnGroups: AggColumnGroup[];
   /** True while a whole aggregate-function group is being dragged. */
   isDraggingAggregationGroup: boolean;
+  /**
+   * True while a single aggregate-column drag is hovering a function that
+   * rejects the column's type (an invalid drop). Drives the disabled clone
+   * treatment and the "not-allowed" cursor.
+   */
+  dropInvalid: boolean;
   /** Contents rendered inside the DragOverlay, or null when idle. */
   dragOverlayPreview: ReactNode;
 }
@@ -611,6 +617,7 @@ export function usePivotDnd({
     aggItemIds,
     aggColumnGroups,
     isDraggingAggregationGroup,
+    dropInvalid,
     dragOverlayPreview,
   };
 }

@@ -90,10 +90,12 @@
 }
 
 // Drag-overlay treatment when a column is hovering an aggregate function that
-// rejects its type. Signals the drop will snap back instead of taking.
+// rejects its type. Reads as a disabled chip (solid muted gray fill, muted
+// text, flat) rather than the accent fill, signalling the drop won't take.
 .pivot-row--dragging.pivot-drag-invalid {
-  background-color: var(--dh-color-action-disabled-bg);
+  background-color: var(--dh-color-gray-500);
   color: var(--dh-color-text-disabled);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -383,6 +385,16 @@
     .pivot-grip {
       pointer-events: none;
     }
+  }
+
+  // While a column drag is hovering a function that rejects its type, show the
+  // "not-allowed" cursor over the whole config area. The DragOverlay clone is
+  // `pointer-events: none`, so the cursor is taken from the element under the
+  // pointer (a row in the card) — set it here, on the section and every
+  // descendant, so it wins over a row's grab/pointer cursor for the duration.
+  &.is-drop-invalid,
+  &.is-drop-invalid * {
+    cursor: not-allowed;
   }
 
   // Compact row buttons: the base .btn is 32px tall; shrink inline row action
