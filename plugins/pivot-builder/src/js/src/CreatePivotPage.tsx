@@ -47,13 +47,11 @@ export function CreatePivotPage({
   const pivotServiceStatus = usePivotServiceStatus();
   const pivotAvailable = pivotServiceStatus === 'ready';
 
-  // Ask the middleware to re-probe PSP on mount. Covers the common case where
-  // the user runs a script that publishes the PivotService on an already-
-  // running worker, then opens this page — the model hasn't rebuilt, so the
-  // exclusive in `IrisGridProxyModel`). When false, both the Rollup rows and
-  // Pivot columns cards are disabled (a rollup/pivot write would silently
-  // no-op); the Aggregate values card stays enabled and falls back to a
-  // standalone totals row. `isRollupAvailable` is not an event-bearing
+  // Whether the host model can currently apply a rollup (rollup and Select
+  // Distinct are mutually exclusive in `IrisGridProxyModel`). When false, both
+  // the Rollup rows and Pivot columns cards are disabled (a rollup/pivot write
+  // would silently no-op); the Aggregate values card stays enabled and falls
+  // back to a standalone totals row. `isRollupAvailable` is not an event-bearing
   // property — it flips when the inner model swaps (e.g. toggling Select
   // Distinct), which dispatches COLUMNS_CHANGED / SCHEMA_CHANGED — so we
   // re-read it on those events to keep the disabled state live.

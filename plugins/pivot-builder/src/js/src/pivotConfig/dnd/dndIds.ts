@@ -13,6 +13,16 @@ export function columnRowId(droppableId: string, name: string): string {
 }
 
 /**
+ * Extract the column name from a rollup/pivot column row id
+ * (`${container}:${name}`). Returns null for ids without a `:` separator
+ * (e.g. a bare container id). Inverse of {@link columnRowId}.
+ */
+export function columnNameFromId(id: string): string | null {
+  const colonIdx = id.indexOf(':');
+  return colonIdx === -1 ? null : id.slice(colonIdx + 1);
+}
+
+/**
  * Stable sortable id for a grouped aggregate row (one row per operation).
  * Keyed by the operation rather than its index so a reorder moves the DOM
  * node (and animates) instead of mutating content in place — positional ids

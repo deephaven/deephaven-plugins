@@ -41,10 +41,11 @@ import OverflowMenu, {
 const { DndContext, DragOverlay } = DndKitCore;
 
 /**
- * Mock-data UI section that previews the eventual replacement for the
- * Rollups & Aggregations sidebar. State is fully controlled by the parent.
- * The Rollup rows and Aggregate values cards are wired to the model
- * (in CreatePivotPage); pivot/filter cards are still mock-only.
+ * Card-based config UI for the Create Pivot page. State is fully controlled by
+ * the parent (`CreatePivotPage`), which maps it onto the model via
+ * `applyPivotBuilderConfig`. The Rollup rows, Pivot columns, and Aggregate
+ * values cards are wired to the model; the Filterable columns card is still a
+ * placeholder (threaded through but not yet applied).
  */
 
 // Mirrors SELECTABLE_OPTIONS in

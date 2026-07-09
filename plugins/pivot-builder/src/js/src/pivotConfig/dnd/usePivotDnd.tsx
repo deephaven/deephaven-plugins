@@ -18,6 +18,7 @@ import {
   PIVOT_COLUMNS_DROPPABLE,
   ROLLUP_ROWS_DROPPABLE,
   aggregationRowId,
+  columnNameFromId,
   columnRowId,
   parseAggregationId,
   resolveContainerOfId,
@@ -321,8 +322,7 @@ export function usePivotDnd({
       if (overId === targetContainer) {
         return items.length;
       }
-      const overColon = overId.indexOf(':');
-      const overName = overColon === -1 ? overId : overId.slice(overColon + 1);
+      const overName = columnNameFromId(overId) ?? overId;
       const idx = items.indexOf(overName);
       return idx < 0 ? items.length : idx;
     },
@@ -357,8 +357,7 @@ export function usePivotDnd({
     ) {
       return null;
     }
-    const colonIdx = activeId.indexOf(':');
-    return colonIdx === -1 ? null : activeId.slice(colonIdx + 1);
+    return columnNameFromId(activeId);
   })();
   const activeAggregation = (() => {
     if (activeId == null) {
@@ -451,8 +450,7 @@ export function usePivotDnd({
     ) {
       return null;
     }
-    const colonIdx = activeId.indexOf(':');
-    const column = colonIdx === -1 ? activeId : activeId.slice(colonIdx + 1);
+    const column = columnNameFromId(activeId) ?? activeId;
     const targetItems =
       overContainer === ROLLUP_ROWS_DROPPABLE ? rollupRows : pivotColumns;
     if (targetItems.includes(column)) {

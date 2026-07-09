@@ -7,6 +7,7 @@ import {
   AGGREGATIONS_DROPPABLE,
   PIVOT_COLUMNS_DROPPABLE,
   ROLLUP_ROWS_DROPPABLE,
+  columnNameFromId,
   parseAggregationId,
   resolveContainerOfId,
 } from './dndIds';
@@ -180,9 +181,8 @@ export function applyPivotDragEnd({
   if (from == null || to == null) return;
 
   // Recover the moved column name from the active id (`${container}:${name}`).
-  const colonIdx = activeId.indexOf(':');
-  if (colonIdx === -1) return;
-  const moved = activeId.slice(colonIdx + 1);
+  const moved = columnNameFromId(activeId);
+  if (moved == null) return;
   const fromIdx = from.items.indexOf(moved);
   if (fromIdx < 0) return;
 
@@ -191,8 +191,7 @@ export function applyPivotDragEnd({
     // Dropped on container background — append.
     toIdx = to.items.length;
   } else {
-    const overColon = overId.indexOf(':');
-    const overName = overColon === -1 ? overId : overId.slice(overColon + 1);
+    const overName = columnNameFromId(overId) ?? overId;
     const overIdx = to.items.indexOf(overName);
     toIdx = overIdx < 0 ? to.items.length : overIdx;
   }
