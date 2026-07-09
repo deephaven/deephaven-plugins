@@ -156,6 +156,15 @@
   padding: 12px;
   height: 100%;
   box-sizing: border-box;
+
+  // The container is only focusable so it can capture the undo/redo keyboard
+  // shortcuts; it isn't a control the user navigates to. Suppress its focus
+  // ring (matching iris-grid's `.visibility-ordering-builder`) — otherwise a
+  // click focuses it and a subsequent keypress (e.g. Shift) flips the browser
+  // to `:focus-visible`, drawing an outline that wraps the whole scrolling
+  // region and clips into a broken shape. Interactive controls inside keep
+  // their own focus rings.
+  outline: 0;
 }
 
 // Scrolling content flow inside the page. The bottom padding keeps a gap below
