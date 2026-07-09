@@ -1428,7 +1428,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     const requestId = crypto.randomUUID();
     const responsePromise = new Promise<boolean>(resolve => {
       this.pendingResponses.set(requestId, resolve);
-      // Timeout after 5s — allow default if Python doesn't respond
+      // Timeout after 5sand allow default if Python doesn't respond
       setTimeout(() => {
         if (this.pendingResponses.delete(requestId)) {
           resolve(true);
