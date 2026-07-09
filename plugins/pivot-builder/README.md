@@ -3,11 +3,15 @@
 `WidgetMiddlewarePlugin` for [DH-19890](https://deephaven.atlassian.net/browse/DH-19890).
 Adds a unified **Rollup, Aggregate and Pivot** item to the IrisGrid Table
 Options sidebar for flat `Table` widgets, on both the widget and panel paths.
-Configuring it calls the Core+ Pivot API to build a pivot from the underlying
-table and swaps the grid's inner model in place; the configuration is
-persisted via `usePersistentState`.
+Rollup and aggregate work on any worker; the pivot path additionally calls the
+Core+ Pivot API to build a pivot from the underlying table. Either way it swaps
+the grid's inner model in place, and the configuration is persisted via
+`usePersistentState`.
 
-Reference plan: [`plans/DH-21476-pivot-builder-plugin.md`](../../plans/DH-21476-pivot-builder-plugin.md).
+Design notes:
+[`plans/DH-21476-pivot-builder-architecture-recommendations.md`](../../plans/DH-21476-pivot-builder-architecture-recommendations.md)
+and
+[`plans/DH-21476-pivot-builder-sort-filter-hydration.md`](../../plans/DH-21476-pivot-builder-sort-filter-hydration.md).
 
 ## How it works
 
@@ -16,21 +20,24 @@ Reference plan: [`plans/DH-21476-pivot-builder-plugin.md`](../../plans/DH-21476-
   panel path) and injects two transforms into it rather than replacing the
   renderer or mounting its own `IrisGrid`.
 - `transformModel` augments the host-built proxy model into a
-  `PivotBuilderIrisGridModel`. This proxy mirrors the pattern from
+  `PivotBuilderProxyModel`. This proxy mirrors the pattern from
   `IrisGridProxyModel` (JS `Proxy` that forwards unimplemented props to the
   current inner model) and exposes a `pivotConfig` getter/setter alongside
   the usual `rollupConfig`/totals config.
 - `transformTableOptions` composes on top of any upstream transform: it hides
   the built-in **Rollup Rows** and **Aggregations** items (superseded here)
   and appends a single unified **Rollup, Aggregate and Pivot** item
-  (`order` 650). The item relabels to **Edit …** once a pivot exists.
+  (`order` 650).
 - Opening that item shows `CreatePivotPage`, which reconciles its UI state
   into `applyPivotBuilderConfig` on the proxy. Assigning a pivot config calls
   `coreplus.pivot.PivotService.createPivotTable(...)` and swaps the inner
   model to an `IrisGridPivotModel`; clearing it reverts to the original model.
-- When CorePlus is unavailable (open-source DH) the model transform is
-  omitted, so the host renders a plain table and the page surfaces an error
-  if opened.
+- The model transform is installed on **every** worker, not just Core+:
+  rollup and aggregate (totals) are generic iris-grid features that operate
+  on the source table and work on Legacy workers too. Only the pivot path
+  requires Core+ — it is gated by a `PivotService` availability probe that
+  disables the **Pivot columns** card when the service is absent, while the
+  Rollup rows and Aggregate values cards stay usable.
 
 ## Defaults
 
@@ -44,15 +51,19 @@ sensible defaults from the source columns:
 
 ## Requirements
 
-- DHE Core+ worker (Pivot API lives in `@deephaven-enterprise/jsapi-coreplus-types`).
-- The query must export a `PivotService` variable named `psp` (same
-  convention used by the reference `grid-toolbar` plugin).
+- Rollup and aggregate work on any worker (including Legacy).
+- The **pivot** path requires a DHE Core+ worker (Pivot API lives in
+  `@deephaven-enterprise/jsapi-coreplus-types`).
+- For the pivot path, the worker must publish a `PivotService`-typed
+  variable. It is resolved by **type**, so it can be published under any
+  name (the reference `grid-toolbar` plugin names it `psp`).
 
 ## Known limitations
 
 - `supportedTypes` is `['Table']` only.
-- The Pivot API requires a CorePlus worker; on open-source DH the item is
-  shown but the page reports the service as unavailable.
+- The Pivot API requires a Core+ worker; when no `PivotService` is available
+  the item still opens, but the **Pivot columns** card is disabled (rollup
+  and aggregate still work).
 
 ## Build
 
