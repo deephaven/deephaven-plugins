@@ -372,15 +372,44 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
         expect(widget.sendMessage).not.toHaveBeenCalled();
       });
 
-      it('does nothing for a preventable (hierarchical) click', () => {
+      it('does nothing for a preventable click on hierarchical traces', () => {
         const widget = createMockWidgetWithCallbacks({ on_click: 'cb_0' }, [
           'cb_0',
         ]);
         model = new PlotlyExpressChartModel(mockDh, widget, jest.fn());
 
-        model.onClick({ points: [] } as unknown as PlotMouseEvent);
+        model.onClick({
+          points: [
+            {
+              curveNumber: 0,
+              data: { name: 'All', type: 'sunburst' },
+            },
+          ],
+        } as unknown as PlotMouseEvent);
 
         expect(widget.sendMessage).not.toHaveBeenCalled();
+      });
+
+      it('still fires for non-hierarchical traces in a preventable figure', () => {
+        const widget = createMockWidgetWithCallbacks({ on_click: 'cb_0' }, [
+          'cb_0',
+        ]);
+        model = new PlotlyExpressChartModel(mockDh, widget, jest.fn());
+
+        model.onClick({
+          points: [
+            {
+              x: 1,
+              y: 2,
+              curveNumber: 0,
+              data: { name: 'DOG', type: 'scatter' },
+            },
+          ],
+        } as unknown as PlotMouseEvent);
+
+        const sent = lastSent(widget);
+        expect(sent.callback_id).toBe('cb_0');
+        expect(sent.args.points[0].trace_type).toBe('scatter');
       });
     });
 
@@ -480,7 +509,8 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
         expect(widget.sendMessage).not.toHaveBeenCalled();
       });
 
-      it('prevents the default, sends a request, and restyles when allowed', async () => {
+      it('prevents the default, debounces, sends a request, and restyles when allowed', async () => {
+        jest.useFakeTimers();
         const widget = createMockWidgetWithCallbacks(
           { on_legend_click: 'cb_0' },
           ['cb_0']
@@ -495,6 +525,12 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
         } as unknown as LegendClickEvent);
         expect(result).toBe(false);
 
+        // Not sent yet (debounced)
+        expect(widget.sendMessage).not.toHaveBeenCalled();
+
+        // Advance past debounce delay
+        jest.advanceTimersByTime(300);
+
         const sent = lastSent(widget);
         expect(sent.callback_id).toBe('cb_0');
         expect(sent.request_id).toBeDefined();
@@ -508,16 +544,19 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
           request_id: sent.request_id as string,
           result: true,
         });
-        await flushPromises();
+        // Flush the promise .then() microtask
+        await jest.advanceTimersByTimeAsync(0);
 
         expect(Plotly.restyle).toHaveBeenCalledWith(
           gd,
           { visible: 'legendonly' },
           [0]
         );
+        jest.useRealTimers();
       });
 
       it('does not restyle when the callback prevents it', async () => {
+        jest.useFakeTimers();
         const widget = createMockWidgetWithCallbacks(
           { on_legend_click: 'cb_0' },
           ['cb_0']
@@ -531,14 +570,17 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
           data: [{ name: 'DOG' }],
         } as unknown as LegendClickEvent);
 
+        jest.advanceTimersByTime(300);
+
         const sent = lastSent(widget);
         model.handleCallableResponse({
           request_id: sent.request_id as string,
           result: false,
         });
-        await flushPromises();
+        await jest.advanceTimersByTimeAsync(0);
 
         expect(Plotly.restyle).not.toHaveBeenCalled();
+        jest.useRealTimers();
       });
     });
 
@@ -555,25 +597,36 @@ describe('PlotlyExpressChartModel - Event Callbacks', () => {
         expect(result).toBe(true);
       });
 
-      it('prevents the default and sends a request when on_legend_double_click is registered', () => {
+      it('cancels pending legend click debounce on double-click', () => {
+        jest.useFakeTimers();
         const widget = createMockWidgetWithCallbacks(
-          { on_legend_double_click: 'cb_0' },
-          ['cb_0']
+          { on_legend_click: 'cb_0', on_legend_double_click: 'cb_1' },
+          ['cb_0', 'cb_1']
         );
         model = new PlotlyExpressChartModel(mockDh, widget, jest.fn());
         const gd = { on: jest.fn(), data: [{ visible: true }] };
         model.setPlotElement(gd as unknown as HTMLElement);
 
-        const result = model.onLegendDoubleClick({
+        // First click of double-click
+        model.onLegendClick({
           curveNumber: 0,
           data: [{ name: 'DOG' }],
         } as unknown as LegendClickEvent);
-        expect(result).toBe(false);
 
+        // Double-click arrives before debounce expires
+        model.onLegendDoubleClick({
+          curveNumber: 0,
+          data: [{ name: 'DOG' }],
+        } as unknown as LegendClickEvent);
+
+        // Advance past debounce — single click should NOT fire
+        jest.advanceTimersByTime(300);
+
+        // Only the double-click callback should have been sent
         const sent = lastSent(widget);
-        expect(sent.callback_id).toBe('cb_0');
-        expect(sent.request_id).toBeDefined();
-        expect(sent.args.modifiers).toEqual(NO_MODIFIERS);
+        expect(sent.callback_id).toBe('cb_1');
+        expect(widget.sendMessage).toHaveBeenCalledTimes(1);
+        jest.useRealTimers();
       });
     });
 

@@ -78,6 +78,56 @@ type EventModifiers = {
   meta: boolean;
 };
 
+/**
+ * Data-space field names that Plotly may include on point data at runtime,
+ * depending on the chart type
+ */
+const POINT_DATA_FIELDS = [
+  'x',
+  'y',
+  'z',
+  'lat',
+  'lon',
+  'location',
+  'r',
+  'theta',
+  'open',
+  'high',
+  'low',
+  'close',
+  'label',
+  'parent',
+  'value',
+  'id',
+  'text',
+] as const;
+
+/**
+ * Serialize a Plotly point datum into the payload sent to Python.
+ * Includes all data-space fields that are present on the point,
+ * plus `trace_name`, `trace_type`, and `curve_number`.
+ */
+function serializePoint(
+  p: Record<string, unknown> & { data: Partial<PlotData>; curveNumber: number }
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  POINT_DATA_FIELDS.forEach(field => {
+    if (field in p && p[field] !== undefined) {
+      result[field] = p[field];
+    }
+  });
+  result.trace_name = p.data.name;
+  result.trace_type = p.data.type;
+  result.curve_number = p.curveNumber;
+  return result;
+}
+
+/** Hierarchical trace types handled by wireHierarchicalClickHandler. */
+const HIERARCHICAL_TYPES = new Set(['sunburst', 'treemap', 'icicle']);
+
+/** Plotly's default doubleClickDelay for legend click discrimination. */
+const LEGEND_DBL_CLICK_DELAY = 300;
+
 export class PlotlyExpressChartModel extends ChartModel {
   /**
    * The size at which the chart will automatically downsample the data if it can be downsampled.
@@ -507,23 +557,48 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Handle WebGL context lost.
+   */
+  onWebGlContextLost(): void {
+    const webGlLostId = this.callbackMap.get('on_web_gl_context_lost');
+    if (webGlLostId == null) {
+      return;
+    }
+    this.sendEventCallback(webGlLostId, {
+      modifiers: this.getModifiers(),
+    });
+  }
+
+  /**
    * Handle a (non-hierarchical) point click.
    * Hierarchical clicks are preventable and handled
    * imperatively via wireHierarchicalClickHandler instead.
+   * Non-hierarchical traces in a layered/subplot figure that also
+   * contains hierarchical traces still arrive here, so we only skip
+   * when every clicked point is a hierarchical type.
    */
   onClick(event: PlotMouseEvent): void {
     const clickId = this.callbackMap.get('on_click');
-    if (clickId == null || this.isPreventable(clickId)) {
+    if (clickId == null) {
       return;
     }
+    if (this.isPreventable(clickId)) {
+      const allHierarchical = event.points.every(p =>
+        HIERARCHICAL_TYPES.has(p.data.type ?? '')
+      );
+      if (allHierarchical) {
+        return; // Handled by wireHierarchicalClickHandler
+      }
+    }
     const args = {
-      points: event.points.map(p => ({
-        x: p.x,
-        y: p.y,
-        trace_name: p.data.name,
-        trace_type: p.data.type,
-        curve_number: p.curveNumber,
-      })),
+      points: event.points.map(p =>
+        serializePoint(
+          p as unknown as Record<string, unknown> & {
+            data: Partial<PlotData>;
+            curveNumber: number;
+          }
+        )
+      ),
       modifiers: this.getModifiers(),
     };
     this.sendEventCallback(clickId, args);
@@ -538,13 +613,14 @@ export class PlotlyExpressChartModel extends ChartModel {
       return;
     }
     const args: Record<string, unknown> = {
-      points: event.points.map(p => ({
-        x: p.x,
-        y: p.y,
-        trace_name: p.data.name,
-        trace_type: p.data.type,
-        curve_number: p.curveNumber,
-      })),
+      points: event.points.map(p =>
+        serializePoint(
+          p as unknown as Record<string, unknown> & {
+            data: Partial<PlotData>;
+            curveNumber: number;
+          }
+        )
+      ),
       modifiers: this.getModifiers(),
     };
     if (event.range != null) {
@@ -588,9 +664,19 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Timer for debouncing legend single-click vs double-click.
+   * When on_legend_click is registered, single clicks are held for
+   * LEGEND_DBL_CLICK_DELAY ms so a double-click can cancel them.
+   */
+  private legendClickTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
    * Handle a legend item click.
-   * Returns false to prevent Plotly's default visibility
-   * toggle, then re-applies the toggle only if the Python callback allows it.
+   * When on_legend_click is registered the click is debounced to
+   * discriminate from double-clicks (Plotly fires plotly_legendclick
+   * for BOTH clicks of a double-click). If no double-click arrives
+   * within LEGEND_DBL_CLICK_DELAY ms the single-click is sent to Python.
+   * Returns false to prevent Plotly's default toggle.
    */
   onLegendClick(event: LegendClickEvent): boolean {
     const legendClickId = this.callbackMap.get('on_legend_click');
@@ -605,21 +691,34 @@ export class PlotlyExpressChartModel extends ChartModel {
       curve_number: event.curveNumber,
       modifiers: this.getModifiers(),
     };
-    this.sendEventCallbackWithResponse(legendClickId, args).then(allowed => {
-      if (allowed && gd != null) {
-        const currentVis = (gd.data?.[event.curveNumber] as Partial<PlotData>)
-          ?.visible;
-        const nextVis = currentVis === 'legendonly' ? true : 'legendonly';
-        Plotly.restyle(gd, { visible: nextVis }, [event.curveNumber]);
-      }
-    });
+
+    // Cancel any pending debounced click from a previous first-click
+    if (this.legendClickTimer != null) {
+      clearTimeout(this.legendClickTimer);
+      this.legendClickTimer = null;
+    }
+
+    // Debounce: wait to see if a double-click follows
+    this.legendClickTimer = setTimeout(() => {
+      this.legendClickTimer = null;
+      this.sendEventCallbackWithResponse(legendClickId, args).then(allowed => {
+        if (allowed && gd != null) {
+          const currentVis = (gd.data?.[event.curveNumber] as Partial<PlotData>)
+            ?.visible;
+          const nextVis = currentVis === 'legendonly' ? true : 'legendonly';
+          Plotly.restyle(gd, { visible: nextVis }, [event.curveNumber]);
+        }
+      });
+    }, LEGEND_DBL_CLICK_DELAY);
+
     return false; // Always prevent; re-applied above if allowed.
   }
 
   /**
    * Handle a legend item double-click.
-   * Returns false to prevent Plotly's default
-   * isolate/show-all, then re-applies it only if the Python callback allows it.
+   * Cancels any pending debounced single-click so only the double-click
+   * fires. Returns false to prevent Plotly's default isolate/show-all,
+   * then re-applies it only if the Python callback allows it.
    *
    * When on_legend_click is registered, its handler returns false which also
    * suppresses Plotly's native double-click, so we reimplement the default here
@@ -632,6 +731,13 @@ export class PlotlyExpressChartModel extends ChartModel {
       // Nothing registered — let Plotly perform its default.
       return true;
     }
+
+    // Cancel pending debounced single-click
+    if (this.legendClickTimer != null) {
+      clearTimeout(this.legendClickTimer);
+      this.legendClickTimer = null;
+    }
+
     const gd = this.plotElement;
     const { curveNumber } = event;
     if (legendDblClickId != null) {

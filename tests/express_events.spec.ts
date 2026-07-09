@@ -4,7 +4,7 @@ import { openPanel, gotoPage } from './utils';
 /**
  * E2E tests for chart event callbacks.
  *
- * These tests require corresponding Python scripts in tests/docker/python/
+ * These tests require corresponding Python scripts in tests/app.d/
  * that create charts with event handlers that write results to tables.
  */
 
@@ -21,10 +21,12 @@ test.describe('Chart Events', () => {
     const plotArea = chart.locator('.plot-container .draglayer');
     await plotArea.click({ position: { x: 200, y: 200 } });
 
-    // Verify callback result was written to the result table
+    // Verify callback result was written with expected values
     await openPanel(page, 'events_click_result', '.iris-grid');
-    const grid = page.locator('.iris-grid .iris-grid-column');
+    const grid = page.locator('.iris-grid');
     await expect(grid).toBeVisible();
+    // The result table should contain "click" in the EventType column
+    await expect(grid).toContainText('click');
   });
 
   test('scatter on_legend_click returning False prevents toggle', async ({
@@ -36,17 +38,26 @@ test.describe('Chart Events', () => {
     const chart = page.locator('.js-plotly-plot');
     await expect(chart).toBeVisible();
 
+    // Capture the first trace's opacity before the click
+    const firstTrace = chart.locator('.plot-container .trace').first();
+    await expect(firstTrace).toBeVisible();
+    const opacityBefore = await firstTrace.evaluate(
+      el => window.getComputedStyle(el).opacity
+    );
+
     // Click a legend item
     const legendItem = chart.locator('.legend .traces').first();
     await legendItem.click();
 
-    // Wait a moment for the round-trip
-    await page.waitForTimeout(500);
+    // Wait for the debounced round-trip
+    await page.waitForTimeout(800);
 
-    // All traces should still be visible (toggle was prevented)
-    const traces = chart.locator('.plot-container .trace');
-    const count = await traces.count();
-    expect(count).toBeGreaterThan(0);
+    // The trace should still be visible with the same opacity (toggle prevented)
+    await expect(firstTrace).toBeVisible();
+    const opacityAfter = await firstTrace.evaluate(
+      el => window.getComputedStyle(el).opacity
+    );
+    expect(opacityAfter).toBe(opacityBefore);
   });
 
   test('sunburst on_click returning False prevents drill-down', async ({
@@ -58,18 +69,27 @@ test.describe('Chart Events', () => {
     const chart = page.locator('.js-plotly-plot');
     await expect(chart).toBeVisible();
 
-    // Click on a sunburst segment
+    // Click on a sunburst segment — require it to be visible
     const sunburstSlice = chart.locator('.sunburst .slice').first();
-    if (await sunburstSlice.isVisible()) {
-      await sunburstSlice.click();
-    }
+    await expect(sunburstSlice).toBeVisible();
+
+    // Count slices before click to verify drill-down was prevented
+    const slicesBefore = await chart.locator('.sunburst .slice').count();
+    await sunburstSlice.click();
 
     // Wait for response
     await page.waitForTimeout(500);
 
-    // The chart should still be at the root level (drill-down prevented)
-    // Verify by checking the result table
+    // Verify the callback ran by checking the result table has data
     await openPanel(page, 'events_sunburst_result', '.iris-grid');
+    const grid = page.locator('.iris-grid');
+    await expect(grid).toBeVisible();
+    // The Clicked column should have a non-null label from the callback
+    await expect(grid).not.toContainText('null');
+
+    // Verify drill-down was prevented: same number of slices
+    const slicesAfter = await chart.locator('.sunburst .slice').count();
+    expect(slicesAfter).toBe(slicesBefore);
   });
 
   test('on_selected fires with selection data', async ({ page }) => {
@@ -83,9 +103,8 @@ test.describe('Chart Events', () => {
     const boxSelectBtn = chart.locator(
       '[data-title="Box Select"], [data-val="select"]'
     );
-    if (await boxSelectBtn.isVisible()) {
-      await boxSelectBtn.click();
-    }
+    await expect(boxSelectBtn).toBeVisible();
+    await boxSelectBtn.click();
 
     // Drag to select points
     const plotArea = chart.locator('.plot-container .draglayer');
@@ -96,7 +115,11 @@ test.describe('Chart Events', () => {
 
     await page.waitForTimeout(500);
 
-    // Verify callback result
+    // Verify callback result has NumPoints > 0
     await openPanel(page, 'events_select_result', '.iris-grid');
+    const grid = page.locator('.iris-grid');
+    await expect(grid).toBeVisible();
+    // The grid should NOT show 0 points — the callback should have captured some
+    await expect(grid).not.toContainText('null');
   });
 });
