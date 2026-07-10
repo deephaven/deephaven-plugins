@@ -7,8 +7,7 @@ import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { getSettings, type RootState } from '@deephaven/redux';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
-import { useHandleSceneTicks } from './useHandleSceneTicks.js';
-import { usePlotlyEventCallbacks } from './usePlotlyEventCallbacks.js';
+import { usePlotlyExpressModel } from './usePlotlyExpressModel.js';
 
 export function PlotlyExpressChart(
   props: WidgetComponentProps<dh.Widget>
@@ -37,8 +36,7 @@ export function PlotlyExpressChart(
     };
   }, [dh, fetch]);
 
-  useHandleSceneTicks(model, containerRef.current);
-  usePlotlyEventCallbacks(containerRef, model ?? null);
+  const eventCallbacks = usePlotlyExpressModel(model, containerRef.current);
 
   return model ? (
     <Chart
@@ -49,6 +47,8 @@ export function PlotlyExpressChart(
       model={model}
       settings={settings}
       Plotly={Plotly}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...eventCallbacks}
     />
   ) : null;
 }
