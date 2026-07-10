@@ -21,6 +21,11 @@ if [[ "${CI}" == "1" || "${CI}" == "true" ]]; then
 else
   docker compose -f "${COMPOSE_FILE}" run --service-ports --rm --build "$@"
   exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    # Dump server logs before down removes the container, so startup
+    # failures (e.g. an app.d script error) are visible locally.
+    docker compose -f "${COMPOSE_FILE}" logs deephaven-plugins 2>/dev/null | tail -50 || true
+  fi
   docker compose -f "${COMPOSE_FILE}" down
 fi
 
