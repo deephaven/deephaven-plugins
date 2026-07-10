@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
@@ -14,6 +14,14 @@ function useDebouncedOnChange<T, P = T>(
   const prevPropValue = usePrevious(propValue);
   const prevIsFocused = usePrevious(isFocused);
   const log = Log.module('@deephaven/js-plugin-ui/useDebouncedValue');
+
+  // Keep a ref to the latest `propOnChange`. The server hands us a new callable
+  // reference on every re-render, so reading it through a ref lets the
+  // debounced callback below stay stable (see below).
+  const propOnChangeRef = useRef(propOnChange);
+  useEffect(() => {
+    propOnChangeRef.current = propOnChange;
+  }, [propOnChange]);
 
   // Update local value to match a new propValue from the server when no user
   // changes are queued. Skip while the input is focused so we don't change the
@@ -35,14 +43,17 @@ function useDebouncedOnChange<T, P = T>(
   const propDebouncedOnChange = useCallback(
     async (newValue: T) => {
       try {
-        await propOnChange?.(newValue);
+        await propOnChangeRef.current?.(newValue);
       } catch (e) {
         log.warn('Error returned from onChange', e);
       }
       setPending(false);
     },
+    // The callback must stay stable so the debounced callback isn't recreated
+    // (and any pending call cancelled) when the server hands us a new
+    // `propOnChange` on re-render. We read the latest `propOnChange` from a ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [propOnChange]
+    []
   );
 
   const debouncedOnChange = useDebouncedCallback(
