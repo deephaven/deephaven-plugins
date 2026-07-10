@@ -148,19 +148,21 @@ tvl_histogram = tvl.histogram(volume_source, timestamp="Timestamp", value="Volum
 # =============================================================================
 # 7. Candlestick with explicit custom colors (tests non-default styling)
 # =============================================================================
-tvl_candlestick_styled = tvl.candlestick(
-    ohlc_source,
-    timestamp="Timestamp",
-    open="Open",
-    high="High",
-    low="Low",
-    close="Close",
-    up_color="#00C805",
-    down_color="#FF2A04",
-    border_up_color="#00C805",
-    border_down_color="#FF2A04",
-    wick_up_color="#00C805",
-    wick_down_color="#FF2A04",
+tvl_candlestick_styled = tvl.chart(
+    tvl.candlestick(
+        ohlc_source,
+        timestamp="Timestamp",
+        open="Open",
+        high="High",
+        low="Low",
+        close="Close",
+        up_color="#00C805",
+        down_color="#FF2A04",
+        border_up_color="#00C805",
+        border_down_color="#FF2A04",
+        wick_up_color="#00C805",
+        wick_down_color="#FF2A04",
+    ),
     watermark_text="AAPL",
 )
 
@@ -168,7 +170,7 @@ tvl_candlestick_styled = tvl.candlestick(
 # 8. Multi-series: Candlestick + SMA line overlay
 # =============================================================================
 tvl_candlestick_with_sma = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -176,7 +178,7 @@ tvl_candlestick_with_sma = tvl.chart(
         low="Low",
         close="Close",
     ),
-    tvl.line_series(
+    tvl.line(
         value_source,
         timestamp="Timestamp",
         value="SMA_5",
@@ -189,7 +191,7 @@ tvl_candlestick_with_sma = tvl.chart(
 # 9. Multi-series: Candlestick + Volume histogram
 # =============================================================================
 tvl_candlestick_with_volume = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -197,7 +199,7 @@ tvl_candlestick_with_volume = tvl.chart(
         low="Low",
         close="Close",
     ),
-    tvl.histogram_series(
+    tvl.histogram(
         volume_source,
         timestamp="Timestamp",
         value="Volume",
@@ -227,7 +229,7 @@ tvl_candlestick_price_lines = tvl.candlestick(
 # 11. Candlestick with markers
 # =============================================================================
 tvl_candlestick_markers = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -248,10 +250,8 @@ tvl_candlestick_markers = tvl.chart(
 # =============================================================================
 # 12. Line chart with custom grid
 # =============================================================================
-tvl_line_custom_grid = tvl.line(
-    value_source,
-    timestamp="Timestamp",
-    value="Value",
+tvl_line_custom_grid = tvl.chart(
+    tvl.line(value_source, timestamp="Timestamp", value="Value"),
     background_color="#1E222D",
     text_color="#D1D4DC",
     crosshair_mode="magnet",
@@ -260,10 +260,8 @@ tvl_line_custom_grid = tvl.line(
 # =============================================================================
 # 13. Area chart with watermark
 # =============================================================================
-tvl_area_watermark = tvl.area(
-    value_source,
-    timestamp="Timestamp",
-    value="Value",
+tvl_area_watermark = tvl.chart(
+    tvl.area(value_source, timestamp="Timestamp", value="Value"),
     watermark_text="DH Stock",
 )
 
@@ -271,15 +269,15 @@ tvl_area_watermark = tvl.area(
 # 14. Multi-series: Two line series overlay
 # =============================================================================
 tvl_dual_line = tvl.chart(
-    tvl.line_series(value_source, timestamp="Timestamp", value="Value", title="Price"),
-    tvl.line_series(value_source, timestamp="Timestamp", value="SMA_5", title="SMA 5"),
+    tvl.line(value_source, timestamp="Timestamp", value="Value", title="Price"),
+    tvl.line(value_source, timestamp="Timestamp", value="SMA_5", title="SMA 5"),
 )
 
 # =============================================================================
 # 15. Full trading dashboard: Candlestick + SMA + Volume
 # =============================================================================
 tvl_full_dashboard = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -287,8 +285,8 @@ tvl_full_dashboard = tvl.chart(
         low="Low",
         close="Close",
     ),
-    tvl.line_series(value_source, timestamp="Timestamp", value="SMA_5", title="SMA 5"),
-    tvl.histogram_series(
+    tvl.line(value_source, timestamp="Timestamp", value="SMA_5", title="SMA 5"),
+    tvl.histogram(
         volume_source,
         timestamp="Timestamp",
         value="Volume",
@@ -304,10 +302,8 @@ tvl_full_dashboard = tvl.chart(
 # 16. Two price scales: line on right, candlestick on left
 # =============================================================================
 tvl_two_price_scales = tvl.chart(
-    tvl.line_series(
-        value_source, timestamp="Timestamp", value="Value", title="Value (Right)"
-    ),
-    tvl.candlestick_series(
+    tvl.line(value_source, timestamp="Timestamp", value="Value", title="Value (Right)"),
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -325,7 +321,7 @@ tvl_two_price_scales = tvl.chart(
 # 17. Panes: Candlestick (top) + Volume histogram (bottom pane)
 # =============================================================================
 tvl_panes_basic = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -334,7 +330,7 @@ tvl_panes_basic = tvl.chart(
         close="Close",
         pane=0,
     ),
-    tvl.histogram_series(
+    tvl.histogram(
         volume_source,
         timestamp="Timestamp",
         value="Volume",
@@ -348,7 +344,7 @@ tvl_panes_basic = tvl.chart(
 # 18. Panes: Three panes with custom separator styling
 # =============================================================================
 tvl_panes_three = tvl.chart(
-    tvl.candlestick_series(
+    tvl.candlestick(
         ohlc_source,
         timestamp="Timestamp",
         open="Open",
@@ -357,14 +353,14 @@ tvl_panes_three = tvl.chart(
         close="Close",
         pane=0,
     ),
-    tvl.line_series(
+    tvl.line(
         value_source,
         timestamp="Timestamp",
         value="SMA_5",
         title="SMA 5",
         pane=1,
     ),
-    tvl.histogram_series(
+    tvl.histogram(
         volume_source,
         timestamp="Timestamp",
         value="Volume",
@@ -439,12 +435,8 @@ tvl_options_single = tvl.options_chart(
 # 22. Options chart (multi-series: calls + puts)
 # =============================================================================
 tvl_options_multi = tvl.chart(
-    tvl.line_series(
-        options_source, timestamp="Strike", value="CallPremium", title="Calls"
-    ),
-    tvl.line_series(
-        options_source, timestamp="Strike", value="PutPremium", title="Puts"
-    ),
+    tvl.line(options_source, timestamp="Strike", value="CallPremium", title="Calls"),
+    tvl.line(options_source, timestamp="Strike", value="PutPremium", title="Puts"),
     chart_type="options",
     watermark_text="Call vs Put",
 )
@@ -749,8 +741,8 @@ tvl_ticking_hist = tvl.histogram(_ticking_table, timestamp="Timestamp", value="P
 # Mixed series: Line (downsample path) + Histogram (auto-bin path)
 # on different source tables.
 tvl_mixed_line_hist = tvl.chart(
-    tvl.line_series(big_table, timestamp="Timestamp", value="Price"),
-    tvl.histogram_series(big_table, timestamp="Timestamp", value="Price"),
+    tvl.line(big_table, timestamp="Timestamp", value="Price"),
+    tvl.histogram(big_table, timestamp="Timestamp", value="Price"),
 )
 
 # Histogram with explicit bin_width override.
@@ -789,10 +781,10 @@ tvl_big_hist_optout = tvl.histogram(
 # Diagnostic: area + volume histogram on big_table in 2 panes (mimics
 # Sizzle Price+Volume panel shape).
 tvl_big_area_volume_panes = tvl.chart(
-    tvl.area_series(
+    tvl.area(
         big_ohlc_table, timestamp="Timestamp", value="Close", title="Price", pane=0
     ),
-    tvl.histogram_series(
+    tvl.histogram(
         big_ohlc_table,
         timestamp="Timestamp",
         value="Volume",
@@ -816,8 +808,8 @@ _diag_seed = empty_table(4000).update(
 )
 _diag_aapl = _diag_seed.where("Sym = `AAPL`")
 tvl_diag_filtered_panes = tvl.chart(
-    tvl.area_series(_diag_aapl, timestamp="Timestamp", value="Close", pane=0),
-    tvl.histogram_series(
+    tvl.area(_diag_aapl, timestamp="Timestamp", value="Close", pane=0),
+    tvl.histogram(
         _diag_aapl, timestamp="Timestamp", value="Volume", price_scale_id="vol", pane=1
     ),
     pane_stretch_factors=[3.0, 1.0],
