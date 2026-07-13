@@ -78,6 +78,85 @@ async function selectPickerOption(
   await listbox.getByRole('option', { name: option, exact: true }).click();
 }
 
+/**
+ * Closes the currently open iris-grid Table Options sidebar. Any of the sidebar
+ * pages' close buttons dismiss the whole menu, and the sidebar is unmounted once
+ * closed.
+ * @param page The page
+ */
+async function closeTableSidebar(page: Page): Promise<void> {
+  await page
+    .locator('.table-sidebar')
+    .getByRole('button', { name: 'Close', exact: true })
+    .last()
+    .click();
+  await expect(page.locator('.table-sidebar')).toHaveCount(0);
+}
+
+/**
+ * Adds a custom column to the currently active ui.table via the Table Options
+ * sidebar, confirms it was applied, and leaves the sidebar closed.
+ * @param page The page
+ * @param formula The column formula to enter
+ * @param name The name to give the custom column
+ */
+async function addCustomColumnToActiveTable(
+  page: Page,
+  formula: string,
+  name: string
+): Promise<void> {
+  await page.getByRole('button', { name: 'Table Options' }).click();
+  await page.getByTestId('menu-item-Custom Columns').click();
+
+  // Enter the formula first, then the name: the builder resets the name field
+  // shortly after it mounts, so setting the name last ensures it sticks
+  const formulaEditor = page
+    .locator('.custom-column-input-container .monaco-editor')
+    .first();
+  await formulaEditor.click();
+  await page.keyboard.type(formula);
+  await expect(formulaEditor.locator('textarea')).toHaveValue(formula);
+
+  const columnNameInput = page.getByRole('textbox', { name: 'Column Name' });
+  await columnNameInput.fill(name);
+  await expect(columnNameInput).toHaveValue(name);
+
+  await page.getByRole('button', { name: 'Save Column', exact: true }).click();
+  // Give the custom column time to be applied to the table
+  await page.waitForTimeout(1500);
+
+  // Navigate back to the Table Options menu and confirm the column was applied
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await page.getByTestId('menu-item-Organize Columns').click();
+  await expect(page.locator('.visibility-ordering-builder')).toContainText(
+    name
+  );
+  await closeTableSidebar(page);
+}
+
+/**
+ * Opens Organize Columns for the currently active ui.table and asserts the
+ * `present` column is listed and (optionally) the `absent` column is not, then
+ * closes the sidebar. Assumes the sidebar starts closed.
+ * @param page The page
+ * @param present A column name expected to be present
+ * @param absent A column name expected to be absent
+ */
+async function expectActiveTableColumns(
+  page: Page,
+  present: string,
+  absent?: string
+): Promise<void> {
+  await page.getByRole('button', { name: 'Table Options' }).click();
+  await page.getByTestId('menu-item-Organize Columns').click();
+  const builder = page.locator('.visibility-ordering-builder');
+  await expect(builder).toContainText(present);
+  if (absent != null) {
+    await expect(builder).not.toContainText(absent);
+  }
+  await closeTableSidebar(page);
+}
+
 test.describe('Dashboard persistence', () => {
   // Input persistence: text fields and pickers should keep their values after a
   // refresh when the layout is persisted.
@@ -269,9 +348,9 @@ test.describe('Dashboard persistence', () => {
     ).toBeVisible();
   });
 
-  // ui.table persistence: custom columns added to a table through the UI should
-  // persist across a refresh.
-  test('custom columns on a ui.table persist across a refresh', async ({
+  // ui.table persistence: custom columns added to both tables in the stack
+  // through the UI should each persist across a refresh.
+  test('custom columns on both ui.tables in a stack persist across a refresh', async ({
     page,
   }) => {
     await gotoPage(page, '');
@@ -287,40 +366,15 @@ test.describe('Dashboard persistence', () => {
       .first();
     await expect(outerPanel).toBeVisible();
 
-    // Make sure "Table One" (columns a, b) is the active table in the stack
+    // Add a custom column to "Table One" (columns a, b)
     await outerPanel.locator('.lm_tab', { hasText: 'Table One' }).click();
     await waitForLoad(page);
+    await addCustomColumnToActiveTable(page, 'a * 2', 'Doubled');
 
-    // Open Table Options -> Custom Columns and add a custom column
-    await page.getByRole('button', { name: 'Table Options' }).click();
-    await page.getByTestId('menu-item-Custom Columns').click();
-
-    // Enter the formula first, then the name: the builder resets the name field
-    // shortly after it mounts, so setting the name last ensures it sticks
-    const formulaEditor = page
-      .locator('.custom-column-input-container .monaco-editor')
-      .first();
-    await formulaEditor.click();
-    await page.keyboard.type('a * 2');
-    await expect(formulaEditor.locator('textarea')).toHaveValue('a * 2');
-
-    const columnNameInput = page.getByRole('textbox', { name: 'Column Name' });
-    await columnNameInput.fill('Doubled');
-    await expect(columnNameInput).toHaveValue('Doubled');
-
-    await page
-      .getByRole('button', { name: 'Save Column', exact: true })
-      .click();
-    // Give the custom column time to be applied to the table
-    await page.waitForTimeout(1500);
-
-    // Navigate back to the Table Options menu and confirm the custom column was
-    // applied by checking the Organize Columns list
-    await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await page.getByTestId('menu-item-Organize Columns').click();
-    await expect(page.locator('.visibility-ordering-builder')).toContainText(
-      'Doubled'
-    );
+    // Add a different custom column to "Table Two" (columns c, d)
+    await outerPanel.locator('.lm_tab', { hasText: 'Table Two' }).click();
+    await waitForLoad(page);
+    await addCustomColumnToActiveTable(page, 'c * 3', 'Tripled');
 
     await persistLayoutAndReload(page);
 
@@ -328,14 +382,15 @@ test.describe('Dashboard persistence', () => {
       .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
       .first();
     await expect(restoredPanel).toBeVisible();
+
+    // Each table should keep its own custom column after the refresh (and not
+    // pick up the other table's column)
     await restoredPanel.locator('.lm_tab', { hasText: 'Table One' }).click();
     await waitForLoad(page);
+    await expectActiveTableColumns(page, 'Doubled', 'Tripled');
 
-    // The custom column should still be present after the refresh
-    await page.getByRole('button', { name: 'Table Options' }).click();
-    await page.getByTestId('menu-item-Organize Columns').click();
-    await expect(page.locator('.visibility-ordering-builder')).toContainText(
-      'Doubled'
-    );
+    await restoredPanel.locator('.lm_tab', { hasText: 'Table Two' }).click();
+    await waitForLoad(page);
+    await expectActiveTableColumns(page, 'Tripled', 'Doubled');
   });
 });
