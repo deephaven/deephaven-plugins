@@ -49,13 +49,6 @@ export default function AggregatePicker({
     }
   }, [operation, existingSelections]);
 
-  useEffect(() => {
-    // Defer focus past portal mount + position so the browser actually
-    // gives the (visible) <select> focus.
-    const id = requestAnimationFrame(() => selectRef.current?.focus());
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const isColumnValid = useCallback(
     (name: string): boolean => {
       const t = columnTypes[name];
@@ -128,6 +121,7 @@ export default function AggregatePicker({
     <PivotPopover
       anchorRef={anchorRef}
       onClose={onClose}
+      onOpen={() => selectRef.current?.focus()}
       className="pivot-agg-popover"
     >
       <div>

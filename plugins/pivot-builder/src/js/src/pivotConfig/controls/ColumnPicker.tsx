@@ -24,11 +24,6 @@ export default function ColumnPicker({
   const searchRef = useRef<SearchInput>(null);
   const excludedSet = useMemo(() => new Set(excluded), [excluded]);
 
-  useEffect(() => {
-    const id = requestAnimationFrame(() => searchRef.current?.focus());
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return available.filter(
@@ -58,7 +53,11 @@ export default function ColumnPicker({
   );
 
   return (
-    <PivotPopover anchorRef={anchorRef} onClose={onClose}>
+    <PivotPopover
+      anchorRef={anchorRef}
+      onClose={onClose}
+      onOpen={() => searchRef.current?.focus()}
+    >
       <div className="pivot-popover-search">
         <SearchInput
           ref={searchRef}

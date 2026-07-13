@@ -179,22 +179,25 @@
   padding-bottom: $spacer-2;
 }
 
-// === Popovers (column picker, aggregation picker) — portaled to body ===
+// === Popovers (column picker, aggregation picker) ===
+// Applied to the shared `Popper`'s `.popper` element, so the background,
+// border-radius, shadow, and arrow come from the design-system Popper chrome.
+// These rules only add the pivot-specific sizing and layout.
 
 .pivot-popover {
-  position: absolute;
-  z-index: 1000;
-  top: calc(100% + 4px);
-  right: 0;
   width: 240px;
   max-height: 320px;
+}
+
+// Popper wraps our children in its own `.popper-content` div, so the flex
+// column that bounds the scrolling list must live there — not on the `.popper`
+// element (which `.pivot-popover` targets). Otherwise the list is a child of a
+// non-flex block and grows past the popover's max-height instead of scrolling.
+.pivot-popover .popper-content {
   display: flex;
   flex-direction: column;
-  background: var(--dh-color-popover-bg);
-  border: 1px solid var(--dh-color-border);
-  border-radius: 8px;
-  box-shadow: $box-shadow;
-  overflow: hidden;
+  min-height: 0;
+  max-height: inherit;
 }
 
 .pivot-popover-search {
@@ -204,6 +207,7 @@
 .pivot-popover-list {
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .pivot-popover-item {
@@ -228,6 +232,16 @@
 .pivot-agg-popover {
   width: 280px;
   max-height: min(420px, calc(100vh - 32px));
+}
+
+// Same as `.pivot-popover`: bound and pad the inner `.popper-content` so the
+// column list scrolls while the footer stays pinned. Padding lives here (inside
+// the max-height budget) rather than on the `.popper` element.
+.pivot-agg-popover .popper-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
   padding: $spacer-2;
   gap: $spacer-2;
 }
