@@ -142,6 +142,17 @@ On hierarchical charts, an additional `next_level` field is included, which indi
 }
 ```
 
+When the `clickanywhere` layout option is `True` via `unsafe_update_figure`, clicking empty space fires with an empty `points` list plus `xvals` and `yvals`.
+
+```python
+{
+    "points": [],
+    "xvals": [5],  # cursor x in data space, one per x-axis
+    "yvals": [0.479],  # cursor y in data space, one per y-axis
+    "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
+}
+```
+
 ### Double-click events (`on_double_click`, `on_double_press`)
 
 `on_double_press` is an alias for `on_double_click` and receives the same payload. This event fires when the user double-clicks the plot area (commonly used to reset axes in zoom/pan mode).
@@ -527,6 +538,66 @@ fig = dx.line(
     unsafe_update_figure=add_annotations,
     on_click_annotation=handle_annotation_click,
 )
+```
+
+### Add an annotation wherever you click
+
+By default, `on_click` only fires when a data point is clicked. Enable Plotly's `clickanywhere` layout option (via `unsafe_update_figure`) so the callback also fires on empty plot area, where the payload carries `xvals`/`yvals` (the cursor position in data space).
+
+```python
+import deephaven.plot.express as dx
+from deephaven import ui, input_table, new_table, dtypes as dht
+from deephaven.column import double_col
+
+stocks = dx.data.stocks().where("Sym = `DOG`")
+
+# Accumulate the coordinates of every click
+click_points = input_table({"X": dht.double, "Y": dht.double})
+
+
+def handle_click(event):
+    # Clicking a data point populates points
+    # clicking empty plot area (with clickanywhere enabled)
+    # populates xvals/yvals instead.
+    if event.get("points"):
+        point = event["points"][0]
+        x, y = point["x"], point["y"]
+    elif event.get("xvals") and event.get("yvals"):
+        x, y = event["xvals"][0], event["yvals"][0]
+    else:
+        return
+    click_points.add(new_table([double_col("X", [x]), double_col("Y", [y])]))
+
+
+@ui.component
+def annotated_chart():
+    # Listen to the accumulated clicks. Rebuilding the figure re-sends it,
+    # which is required because annotations live in the figure.
+    points = ui.use_table_data(click_points)
+
+    def add_annotations(fig):
+        # Enable clickanywhere so clicks off a data point still fire on_click
+        fig.update_layout(clickanywhere=True)
+        if points is not None:
+            for x, y in zip(points["X"], points["Y"]):
+                fig.add_annotation(
+                    x=x, y=y, text="Clicked", showarrow=True, arrowhead=2
+                )
+
+    # Recreate the figure whenever a new click is recorded via points as a dependency
+    return ui.use_memo(
+        lambda: dx.scatter(
+            stocks,
+            x="Price",
+            y="Dollars",
+            on_click=handle_click,
+            unsafe_update_figure=add_annotations,
+        ),
+        [points],
+    )
+
+
+annotated_chart_panel = annotated_chart()
 ```
 
 ## Events with `layer` and `make_subplots`

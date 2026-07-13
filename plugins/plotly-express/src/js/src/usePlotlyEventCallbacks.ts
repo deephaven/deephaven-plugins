@@ -275,20 +275,23 @@ export function usePlotlyEventCallbacks(
       // preventable and handled imperatively above. Non-hierarchical traces in
       // a layered/subplot figure that also contains hierarchical traces still
       // arrive here, so we only skip when every clicked point is hierarchical.
+      // When the figure enables `clickanywhere`, clicking empty plot area fires
+      // with an empty `points` array plus `xvals`/`yvals` holding the cursor
+      // position in data space (one entry per axis).
       onPlotlyClick: (event: Readonly<PlotMouseEvent>): void => {
         const clickId = model.getCallbackMap().get('on_click');
         if (clickId == null) {
           return;
         }
         if (model.isPreventable(clickId)) {
-          const allHierarchical = event.points.every(p =>
-            HIERARCHICAL_TYPES.has(p.data.type ?? '')
-          );
+          const allHierarchical =
+            event.points.length > 0 &&
+            event.points.every(p => HIERARCHICAL_TYPES.has(p.data.type ?? ''));
           if (allHierarchical) {
             return; // Handled by the imperative hierarchical handler
           }
         }
-        model.sendEventCallback(clickId, {
+        const args: Record<string, unknown> = {
           points: event.points.map(p =>
             serializePoint(
               p as unknown as Record<string, unknown> & {
@@ -298,7 +301,19 @@ export function usePlotlyEventCallbacks(
             )
           ),
           modifiers: getModifiers(),
-        });
+        };
+        // clickanywhere data-space cursor coordinates (plotly.js >= 3.5.0).
+        const clickEvent = event as unknown as {
+          xvals?: unknown[];
+          yvals?: unknown[];
+        };
+        if (clickEvent.xvals != null) {
+          args.xvals = clickEvent.xvals;
+        }
+        if (clickEvent.yvals != null) {
+          args.yvals = clickEvent.yvals;
+        }
+        model.sendEventCallback(clickId, args);
       },
 
       // on_double_click

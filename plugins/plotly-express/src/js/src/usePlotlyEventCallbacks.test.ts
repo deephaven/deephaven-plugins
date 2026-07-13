@@ -208,6 +208,43 @@ describe('usePlotlyEventCallbacks', () => {
       expect(sent.callback_id).toBe('cb_0');
       expect(sent.args.points[0].trace_type).toBe('scatter');
     });
+
+    it('includes xvals/yvals for a clickanywhere empty-area click', () => {
+      const { model, widget } = makeModel({ on_click: 'cb_0' });
+      const { result } = renderHook(() => usePlotlyEventCallbacks(model));
+
+      result.current.onPlotlyClick?.({
+        points: [],
+        xvals: [5],
+        yvals: [0.5],
+      } as unknown as PlotMouseEvent);
+
+      const sent = lastSent(widget);
+      expect(sent.callback_id).toBe('cb_0');
+      expect(sent.args).toEqual({
+        points: [],
+        xvals: [5],
+        yvals: [0.5],
+        modifiers: NO_MODIFIERS,
+      });
+    });
+
+    it('does not fire an empty-area click when preventable and hierarchical', () => {
+      const { model, widget } = makeModel({ on_click: 'cb_0' }, ['cb_0']);
+      const { result } = renderHook(() => usePlotlyEventCallbacks(model));
+
+      // Empty points on a preventable figure should still send (guards against
+      // [].every() returning true and swallowing clickanywhere events).
+      result.current.onPlotlyClick?.({
+        points: [],
+        xvals: [1],
+        yvals: [2],
+      } as unknown as PlotMouseEvent);
+
+      const sent = lastSent(widget);
+      expect(sent.callback_id).toBe('cb_0');
+      expect(sent.args.xvals).toEqual([1]);
+    });
   });
 
   describe('onPlotlySelected', () => {
