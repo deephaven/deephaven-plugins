@@ -41,7 +41,7 @@ import {
   toAggColPreview,
   type AggColPreview,
 } from './aggColumnMove';
-import { ColumnRowPreview } from '../rows/columnRows';
+import { ColumnRowPreview } from '../rows/ColumnRowPreview';
 import { AggregateRowPreview } from '../rows/aggregateRows';
 
 const { MeasuringStrategy, PointerSensor, useSensor, useSensors } = DndKitCore;

@@ -132,12 +132,14 @@ export function usePivotBuilderMiddlewareCore({
   const objectFetcherRef = useRef(objectFetcher);
   objectFetcherRef.current = objectFetcher;
   const pspWidgetRef = useRef<DhType.Widget | null>(null);
+  const unmountedRef = useRef(false);
 
   // Close the cached PivotService widget when the middleware unmounts so the
   // fetched service handle (and any objects it exported) is released
   // server-side, honoring the `useWidget` ownership contract.
   useEffect(
     () => () => {
+      unmountedRef.current = true;
       closePivotServiceWidget(pspWidgetRef.current);
       pspWidgetRef.current = null;
     },
@@ -166,6 +168,13 @@ export function usePivotBuilderMiddlewareCore({
       throw new Error('PivotService not available on this worker');
     }
     const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
+    if (unmountedRef.current) {
+      // The middleware unmounted while the fetch was in flight. The cleanup
+      // effect already ran and will never see this widget, so close it here
+      // instead of caching it to avoid leaking the server-side handle.
+      closePivotServiceWidget(widget);
+      throw new Error('PivotService fetch aborted: middleware unmounted');
+    }
     pspWidgetRef.current = widget;
     return widget;
   }, [waitForWorkerVariables]);

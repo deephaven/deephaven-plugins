@@ -22,7 +22,8 @@ import {
   DRAG_OVERLAY_STYLE,
 } from './pivotConfig/dnd/dndStyles';
 import pivotCollisionDetection from './pivotConfig/dnd/pivotCollisionDetection';
-import { ColumnRow, DroppableList } from './pivotConfig/rows/columnRows';
+import { ColumnRow } from './pivotConfig/rows/ColumnRow';
+import { DroppableList } from './pivotConfig/rows/DroppableList';
 import { AggregateSelectRow } from './pivotConfig/rows/aggregateRows';
 import { usePivotDnd } from './pivotConfig/dnd/usePivotDnd';
 import ServiceUnavailableMessage from './pivotConfig/controls/ServiceUnavailableMessage';
