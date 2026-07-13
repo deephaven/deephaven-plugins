@@ -20,7 +20,7 @@
   position: relative;
   border: 1px solid var(--dh-color-border);
   border-radius: $border-radius;
-  padding: 6px 8px;
+  padding: $spacer-1 $spacer-2;
   background: var(--dh-color-gray-300);
 }
 
@@ -45,13 +45,14 @@
 
 // Header variant used when the card has body content: a thin divider sets the
 // title row off from the list below. Empty cards omit this so they don't show
-// a dangling line. The padding-bottom matches the card's top padding (6px) so
-// the "Add" button keeps equal space above and below it, the same as in an
-// empty card (where the button sits between the card's 6px top/bottom padding).
+// a dangling line. The padding-bottom matches the card's top padding
+// ($spacer-1) so the "Add" button keeps equal space above and below it, the
+// same as in an empty card (where the button sits between the card's top and
+// bottom padding).
 .pivot-card-header--with-body {
   border-bottom: 1px solid var(--dh-color-border);
-  padding-bottom: 6px;
-  margin-bottom: 4px;
+  padding-bottom: $spacer-1;
+  margin-bottom: $spacer-1;
 }
 
 .pivot-card-title {
@@ -74,7 +75,7 @@
 .pivot-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: $spacer-1;
   padding: 0 2px;
 }
 
@@ -86,7 +87,7 @@
   color: var(--dh-color-accent-contrast);
   box-shadow: $box-shadow;
   border-radius: $border-radius;
-  padding: 4px 8px;
+  padding: $spacer-1 $spacer-2;
 }
 
 // Drag-overlay treatment when a column is hovering an aggregate function that
@@ -116,7 +117,7 @@
   align-items: center;
   justify-content: center;
   cursor: grab;
-  padding: 0 4px;
+  padding: 0 $spacer-1;
   color: var(--dh-color-icon-fg);
 }
 
@@ -139,21 +140,21 @@
   min-height: 60px;
   color: var(--dh-color-fg);
   text-align: center;
-  padding: 8px;
+  padding: $spacer-2;
 }
 
 // Toolbar row above the cards (global Toggle + undo/redo + overflow).
 .pivot-toolbar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: $spacer-1;
   padding: 0 2px;
 }
 
 // Sidebar page wrapper. `height: 100%` keeps the empty area below the cards
 // part of the focusable container (see CreatePivotPage's focus handling).
 .pivot-create-page {
-  padding: 12px;
+  padding: $spacer-2;
   height: 100%;
   box-sizing: border-box;
 
@@ -174,8 +175,8 @@
 .pivot-create-page-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-bottom: 12px;
+  gap: $spacer-2;
+  padding-bottom: $spacer-2;
 }
 
 // === Popovers (column picker, aggregation picker) — portaled to body ===
@@ -197,7 +198,7 @@
 }
 
 .pivot-popover-search {
-  padding: 8px;
+  padding: $spacer-2;
 }
 
 .pivot-popover-list {
@@ -206,7 +207,7 @@
 }
 
 .pivot-popover-item {
-  padding: 6px 12px;
+  padding: $spacer-1 $spacer-2;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -218,7 +219,7 @@
 }
 
 .pivot-popover-empty {
-  padding: 8px 12px;
+  padding: $spacer-2 $spacer-2;
   opacity: 0.6;
   font-style: italic;
 }
@@ -227,13 +228,13 @@
 .pivot-agg-popover {
   width: 280px;
   max-height: min(420px, calc(100vh - 32px));
-  padding: 12px;
-  gap: 8px;
+  padding: $spacer-2;
+  gap: $spacer-2;
 }
 
 .pivot-agg-field-label {
   font-size: 12px;
-  margin-bottom: 4px;
+  margin-bottom: $spacer-1;
 }
 
 .pivot-agg-required {
@@ -245,7 +246,7 @@
 .pivot-agg-column-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: $spacer-1;
   flex: 1;
   min-height: 0;
 }
@@ -255,7 +256,7 @@
   overflow-y: auto;
   border: 1px solid var(--dh-color-border);
   border-radius: $border-radius;
-  padding: 4px 8px;
+  padding: $spacer-1 $spacer-2;
   min-height: 120px;
   display: flex;
   flex-direction: column;
@@ -265,8 +266,8 @@
 .pivot-agg-footer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  gap: $spacer-2;
+  margin-top: $spacer-1;
   flex-shrink: 0;
 }
 
@@ -275,7 +276,7 @@
 .pivot-agg-row-line {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: $spacer-1;
 }
 
 .pivot-agg-row-picker {
@@ -288,7 +289,7 @@
 .pivot-config-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: $spacer-2;
   // Labels, card titles, and row text are not meant to be selected (they're
   // drag handles / controls), and stray selection during a drag looks broken.
   // Re-enable selection for editable fields below.
@@ -365,14 +366,14 @@
     border-bottom: 1px solid var(--dh-color-gray-400);
 
     .pivot-agg-row-picker {
-      margin-bottom: -4px;
+      margin-bottom: -$spacer-1;
     }
   }
 
   // Small gap above each function picker so adjacent aggregate entries are
   // visually separated, skipping the first entry (no gap above the top row).
   .pivot-droppable-aggregations > .pivot-row:not(:first-child) {
-    margin-top: 6px;
+    margin-top: $spacer-1;
   }
 
   // Ghosted row-shaped preview shown in a target card while dragging a column
