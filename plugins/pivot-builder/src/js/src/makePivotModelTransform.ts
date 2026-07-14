@@ -103,6 +103,10 @@ export function makePivotModelTransform(
       if (persisted.pivot != null) {
         await getPspWidget();
       }
+      // Unlike the PSP probe above (intentionally fatal), a failure to *apply*
+      // the persisted config is tolerated: log it and still return the
+      // augmented model so the panel renders (rollup/totals may have applied,
+      // and the user can re-apply) rather than erroring the whole model build.
       try {
         log.info('Restoring persisted builder config', persisted);
         await augmented.applyPivotBuilderConfig(persisted);

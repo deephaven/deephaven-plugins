@@ -453,7 +453,8 @@ export function CreatePivotPage({
       // its `:focus-visible` outline wraps the entire scrolling region and gets
       // clipped into a broken shape by the sidebar's scroll container.
       className="iris-grid-plugin-sidebar-page pivot-create-page"
-      role="menu"
+      role="region"
+      aria-label="Create pivot table"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
