@@ -18,8 +18,10 @@ import { GLOBAL_SHORTCUTS } from '@deephaven/components';
 import { useUndoRedo } from '@deephaven/react-hooks';
 import {
   isPivotBuilderIrisGridModel,
+  PIVOT_BUILDER_ERROR,
   type PivotConfig,
   type PivotBuilderUiState,
+  type PivotBuilderErrorDetail,
 } from './pivotBuilderModel';
 import {
   EMPTY_AGGREGATION_SETTINGS,
@@ -27,6 +29,7 @@ import {
   seedPivotBuilderUiState,
 } from './seedPivotBuilderUiState';
 import { PivotConfigSection } from './PivotConfigSection';
+import { addModelListener } from './modelEvents';
 import { usePivotServiceStatus } from './PivotServiceContext';
 
 /**
@@ -143,6 +146,31 @@ export function CreatePivotPage({
   // new undo step.
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // When a build the user just applied is rejected by the pivot service, the
+  // model reverts to a safe config and dispatches `PIVOT_BUILDER_ERROR`. The
+  // cards seed once at mount, so without this they'd keep showing the rejected
+  // selection (e.g. an aggregation the schema can't support). Re-seed the card
+  // snapshot from the config the model reverted to so the sidebar matches the
+  // live pivot. This records an undo step, so the user can step back to inspect
+  // (and fix) what they tried. The reconcile effect below re-applies the
+  // reverted config, which the proxy already holds and treats as a no-op.
+  useEffect(() => {
+    if (!isPivotBuilderIrisGridModel(model)) {
+      return undefined;
+    }
+    return addModelListener(model, PIVOT_BUILDER_ERROR, (e: Event) => {
+      const { revertedTo } = (e as CustomEvent<PivotBuilderErrorDetail>).detail;
+      const reverted = seedPivotBuilderUiState({
+        uiIntent: revertedTo.ui ?? null,
+        pivotIntent: revertedTo.pivot ?? null,
+        rollupIntent: revertedTo.rollup ?? null,
+        totalsIntent: revertedTo.totals ?? null,
+      });
+      stateRef.current = reverted;
+      set(reverted);
+    });
+  }, [model, set]);
 
   const update = useCallback(
     (patch: Partial<PivotBuilderUiState>) => {

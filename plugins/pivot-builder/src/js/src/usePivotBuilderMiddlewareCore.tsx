@@ -40,9 +40,30 @@ const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/usePivotBuilderMiddlewareCore'
 );
 
+/** How long the recoverable pivot build-failure toast stays up, in ms. */
+const TOAST_TIMEOUT_MS = 5000;
+
 /** Stable no-op persisted-config reader for paths that don't persist (widget). */
 function noPersistedConfig(): PivotBuilderConfig | null {
   return null;
+}
+
+/** Best-effort extraction of a human-readable message from an unknown error. */
+function getErrorMessage(error: unknown): string {
+  if (error == null) {
+    return '';
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof (error as { message?: unknown }).message === 'string'
+  ) {
+    return (error as { message: string }).message;
+  }
+  return String(error);
 }
 
 export interface PivotBuilderMiddlewareCoreParams {
@@ -86,7 +107,7 @@ export interface PivotBuilderMiddlewareCore {
  * compose the unified Create Pivot Table Options page on top of any upstream
  * transform, lazily resolve the CorePlus PivotService widget, gate the pivot
  * IrisGrid overrides on whether the proxy is currently in pivot mode, and
- * surface recoverable pivot build failures as a non-fatal toast. Only the
+ * surface recoverable pivot build failures as a toast. Only the
  * differences (panel persistence + PSP-status context wrap; widget has
  * neither) stay in the individual middleware components.
  *
@@ -227,21 +248,29 @@ export function usePivotBuilderMiddlewareCore({
     return addModelListener(model, IrisGridModel.EVENT.COLUMNS_CHANGED, update);
   }, [model]);
 
-  // Surface recoverable pivot build failures as a non-fatal toast. The model
-  // has already contained the failure (reverted to a safe config) and
-  // dispatches `PIVOT_BUILDER_ERROR` instead of the host's `REQUEST_FAILED`,
-  // so the panel stays usable and we only need to notify the user.
+  // Surface recoverable pivot build failures as a global toast. The model has
+  // already contained the failure (reverted to a safe config) and dispatches
+  // `PIVOT_BUILDER_ERROR` instead of the host's `REQUEST_FAILED`, so the panel
+  // stays usable and we only need to notify the user. We use the host's global
+  // Spectrum `ToastQueue` singleton (re-exported from `@deephaven/components`),
+  // which renders into the single themed `<ToastContainer />` the host app
+  // already mounts.
   useEffect(() => {
     if (model == null) {
       return undefined;
     }
     return addModelListener(model, PIVOT_BUILDER_ERROR, (e: Event) => {
       const { detail } = e as CustomEvent<PivotBuilderErrorDetail>;
-      log.warn('Pivot build failed; reverted to a safe config', detail);
-      ToastQueue.negative(
-        'The saved pivot could not be applied and was reverted.',
-        { timeout: 5000 }
+      const reason = getErrorMessage(detail.error);
+      log.error(
+        'Pivot build failed; reverted to a safe config',
+        reason,
+        detail
       );
+      const message = 'The saved pivot could not be applied and was reverted.';
+      ToastQueue.negative(reason !== '' ? `${message} ${reason}` : message, {
+        timeout: TOAST_TIMEOUT_MS,
+      });
     });
   }, [model]);
 

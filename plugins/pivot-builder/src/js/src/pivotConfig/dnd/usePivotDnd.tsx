@@ -26,6 +26,7 @@ import {
   resolveContainerOfId,
 } from './dndIds';
 import { reorderAggregationGroups } from './reorderAggregationGroups';
+import createPivotCollisionDetection from './pivotCollisionDetection';
 import {
   findColumnContainer,
   moveColumnAcross,
@@ -121,6 +122,8 @@ export interface UsePivotDndResult {
    * treatment and the "not-allowed" cursor.
    */
   dropInvalid: boolean;
+  /** Collision detection to pass to the DndContext. */
+  collisionDetection: DndKitCore.CollisionDetection;
   /** Contents rendered inside the DragOverlay, or null when idle. */
   dragOverlayPreview: ReactNode;
 }
@@ -172,6 +175,23 @@ export function usePivotDnd({
   useEffect(() => {
     aggColPreviewRef.current = aggColPreview;
   }, [aggColPreview]);
+
+  // True for one frame after a single aggregate column is moved into a
+  // different group (see `onDragOver`). The collision detection reads it to
+  // pin `over` to the dragged column while the list reflows, preventing the
+  // emptied source group from stealing the target back (flicker). Reset on the
+  // next animation frame after the preview change commits.
+  const recentlyMovedToNewGroupRef = useRef(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      recentlyMovedToNewGroupRef.current = false;
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [aggColPreview]);
+  const collisionDetection = useMemo(
+    () => createPivotCollisionDetection(recentlyMovedToNewGroupRef),
+    []
+  );
 
   // Flip `dragSource` in `onDragStart`. With @dnd-kit's
   // MeasuringStrategy.Always (set on the DndContext), every droppable
@@ -229,6 +249,7 @@ export function usePivotDnd({
       setDragSource(container === '' ? null : container);
       setActiveId(String(event.active.id));
       setDropInvalid(false);
+      recentlyMovedToNewGroupRef.current = false;
       // Seed the column drag preview from the committed lists when a column is
       // picked up, so `onDragOver` can move it between cards without touching
       // real state until the drop.
@@ -360,6 +381,13 @@ export function usePivotDnd({
         return;
       }
       setDropInvalid(false);
+      // Cross-group move: flag that the column just entered a new group so the
+      // collision detection pins `over` to the column for one frame while the
+      // lists reflow. Without this, moving the column empties its former group,
+      // which re-enters the candidate list and steals the target back under the
+      // stationary cursor — the column ping-pongs between the two (flicker).
+      // dnd-kit's multiple-containers stabilization pattern.
+      recentlyMovedToNewGroupRef.current = true;
       const { translated } = active.rect.current;
       const insertAfter =
         translated != null &&
@@ -441,14 +469,33 @@ export function usePivotDnd({
       // final same-group reorder applied), merging back onto the settings so
       // per-entry fields (e.g. `invert`) survive and emptied groups drop out.
       if (aggPreview != null) {
-        const committed =
-          over == null
-            ? aggPreview
-            : reorderAggColWithin(
-                aggPreview,
-                String(active.id),
-                String(over.id)
+        const activeIdStr = String(active.id);
+        const overIdStr = over == null ? null : String(over.id);
+        let committed: AggColPreview;
+        if (overIdStr == null) {
+          committed = aggPreview;
+        } else {
+          const fromIdx = findAggColGroupIndex(aggPreview, activeIdStr);
+          const toIdx = resolveOverGroupIndex(aggPreview, overIdStr);
+          if (toIdx >= 0 && fromIdx !== toIdx) {
+            // Cross-group drop onto a group whose live move was deferred (an
+            // empty group, see `onDragOver`). Validate the target function
+            // against the column's type and only move on a valid drop.
+            const column = parseAggregationId(activeIdStr)?.column;
+            const type = column != null ? columnTypes[column] : undefined;
+            const invalid =
+              type != null &&
+              !AggregationUtils.isValidOperation(
+                aggPreview[toIdx].operation as AggregationOperation,
+                type
               );
+            committed = invalid
+              ? aggPreview
+              : moveAggColAcross(aggPreview, activeIdStr, overIdStr, false);
+          } else {
+            committed = reorderAggColWithin(aggPreview, activeIdStr, overIdStr);
+          }
+        }
         const byOp = new Map(
           aggregationSettings.aggregations.map(a => [String(a.operation), a])
         );
@@ -486,6 +533,7 @@ export function usePivotDnd({
       onRollupRowsChange,
       pivotColumns,
       rollupRows,
+      columnTypes,
     ]
   );
 
@@ -618,6 +666,7 @@ export function usePivotDnd({
     aggColumnGroups,
     isDraggingAggregationGroup,
     dropInvalid,
+    collisionDetection,
     dragOverlayPreview,
   };
 }

@@ -21,7 +21,6 @@ import {
   COLUMN_DROP_ANIMATION,
   DRAG_OVERLAY_STYLE,
 } from './pivotConfig/dnd/dndStyles';
-import pivotCollisionDetection from './pivotConfig/dnd/pivotCollisionDetection';
 import { ColumnRow } from './pivotConfig/rows/ColumnRow';
 import { DroppableList } from './pivotConfig/rows/DroppableList';
 import { AggregateSelectRow } from './pivotConfig/rows/aggregateRows';
@@ -421,6 +420,7 @@ export function PivotConfigSection({
     aggColumnGroups,
     isDraggingAggregationGroup,
     dropInvalid,
+    collisionDetection,
     dragOverlayPreview,
   } = usePivotDnd({
     rollupRows,
@@ -659,7 +659,7 @@ export function PivotConfigSection({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={pivotCollisionDetection}
+      collisionDetection={collisionDetection}
       measuring={measuring}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}

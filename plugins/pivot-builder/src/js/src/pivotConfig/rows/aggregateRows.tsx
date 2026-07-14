@@ -159,6 +159,14 @@ export function AggregateSelectRow({
   columnItems,
   staticOperation = false,
 }: AggregateSelectRowProps): JSX.Element {
+  // Draggable column items in visual order. Falls back to `columnLabels` when
+  // no preview is supplied (the preview only exists mid-drag).
+  const items =
+    columnItems ??
+    columnLabels.map(label => ({
+      id: aggregationColumnId(operation, label),
+      column: label,
+    }));
   const {
     attributes,
     listeners,
@@ -169,7 +177,14 @@ export function AggregateSelectRow({
     isDragging,
   } = useSortable({
     id,
-    data: { type: 'aggregation', container: AGGREGATIONS_DROPPABLE },
+    // `columnCount` lets the collision detection re-include this group's
+    // function-row droppable once it's emptied, so a column dragged out of a
+    // single-item group can be dropped back onto it.
+    data: {
+      type: 'aggregation',
+      container: AGGREGATIONS_DROPPABLE,
+      columnCount: items.length,
+    },
   });
   const style: React.CSSProperties = {
     // Stack the function/columns vertically so the delete + drag icons can
@@ -184,14 +199,6 @@ export function AggregateSelectRow({
     // the cursor), matching Organize Columns' ghost treatment.
     opacity: isDragging ? 0.5 : 1,
   };
-  // Draggable column items in visual order. Falls back to `columnLabels` when
-  // no preview is supplied (the preview only exists mid-drag).
-  const items =
-    columnItems ??
-    columnLabels.map(label => ({
-      id: aggregationColumnId(operation, label),
-      column: label,
-    }));
   // Disable any aggregate function that isn't valid for every column in this
   // group (the function applies to all of them). Columns with an unknown type
   // are skipped so a missing type doesn't over-restrict the picker.
