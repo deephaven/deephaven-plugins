@@ -6,6 +6,7 @@ from typing import Any
 import io
 
 from deephaven.plugin.object_type import MessageStream
+from deephaven.table import PartitionedTable
 from deephaven.table_listener import listen, TableUpdate
 from deephaven.liveness_scope import LivenessScope
 
@@ -71,10 +72,20 @@ class DeephavenFigureListener:
             listen_func = partial(self._on_update, node)
             # if a table is not refreshing, it will never update, so no need to listen
             if table.is_refreshing:
+                # If the table is a partitioned table, add the constituent
+                # table as a dependency to ensure the constituents are ready
+                # when the callback fires
+                dependencies = (
+                    [node.table.table]
+                    if isinstance(node.table, PartitionedTable)
+                    else None
+                )
                 # do_replay=True atomically replays existing state and registers
                 # for future updates under the UG lock, preventing a race where
                 # partitions that appear before registration are missed entirely.
-                handle = listen(table, listen_func, do_replay=True)
+                handle = listen(
+                    table, listen_func, do_replay=True, dependencies=dependencies
+                )
                 self._handles.append(handle)
                 self._liveness_scope.manage(handle)
 
