@@ -38,6 +38,11 @@ type TabChild =
   | ReactElement<TabListProps<TabProps>, typeof TabList<TabProps>>
   | ReactElement<TabPanelsProps<TabProps>, typeof TabPanels>;
 
+// The selection key type accepted by the underlying Spectrum Tabs
+// (`string | number`). Note this is narrower than React's `Key`, which also
+// includes `bigint`.
+type TabSelectionKey = NonNullable<TabComponentProps['defaultSelectedKey']>;
+
 function containsDuplicateKeys(childrenArray: JSX.Element[]) {
   const keys = childrenArray.map(child => child.key);
   return new Set(keys).size !== keys.length;
@@ -98,15 +103,14 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   // Persist the active tab so it is restored when the widget is rehydrated
   // (e.g. after a page refresh). When the component is controlled by the server
   // (`selectedKey` provided) the server remains the source of truth.
-  const [persistedKey, setPersistedKey] = usePersistentState<Key | undefined>(
-    defaultSelectedKey,
-    { type: 'UITabs', version: 1 }
-  );
+  const [persistedKey, setPersistedKey] = usePersistentState<
+    TabSelectionKey | undefined
+  >(defaultSelectedKey, { type: 'UITabs', version: 1 });
 
   const userOnSelectionChange = onSelectionChangeProp ?? onChange;
 
   const onSelectionChange = useCallback(
-    (key: Key) => {
+    (key: TabSelectionKey) => {
       setPersistedKey(key);
       userOnSelectionChange?.(key);
     },
