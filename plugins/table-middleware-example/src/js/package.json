@@ -1,6 +1,7 @@
 {
   "name": "@deephaven/js-plugin-table-middleware-example",
   "version": "0.0.0",
+  "private": true,
   "description": "Minimal example WidgetMiddlewarePlugin that wraps the next component and injects custom props for both the widget and panel paths.",
   "keywords": [
     "Deephaven",
