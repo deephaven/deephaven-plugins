@@ -148,6 +148,10 @@ function WidgetHandler({
     new Map<string, (...args: unknown[]) => void>()
   );
 
+  // The last state received from the server, so the widget can be restored to its
+  // current state (not just its initial one) after a reconnect
+  const lastReceivedStateRef = useRef<Record<string, unknown>>();
+
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
     () =>
@@ -419,6 +423,7 @@ function WidgetHandler({
           if (stateParam != null) {
             try {
               const newState = JSON.parse(stateParam);
+              lastReceivedStateRef.current = newState;
               onDataChange({ state: newState });
             } catch (e) {
               log.warn(
@@ -526,6 +531,7 @@ function WidgetHandler({
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
       renderedCallableMap.current.clear();
+      lastReceivedStateRef.current = undefined;
 
       // Set a var to the client that we know will not be null in the closure below
       const activeClient = jsonClient;
@@ -557,6 +563,31 @@ function WidgetHandler({
         }
       );
 
+      // After a disconnect+reconnect, the same widget object reopens its message stream and the
+      // server renders the widget from scratch: it sends a from-empty document patch with new
+      // callable and exported object ids. Drop all state tied to the old stream, then re-send
+      // the last known state so the server re-renders the document.
+      const reconnectCleanup = widget.addEventListener(
+        // This is defined as dh.Table.EVENT_RECONNECT in Core, use the constant value directly
+        // for the same reason as the 'message' listener above
+        'reconnect',
+        () => {
+          log.debug('Widget reconnected, resetting state', widget);
+          widgetExportedObjectMap.forEach(exportedObject => {
+            exportedObject.close();
+          });
+          widgetExportedObjectMap.clear();
+          exportedObjectCount.current = 0;
+          renderedCallableMap.current.clear();
+          // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
+          unstable_batchedUpdates(() => {
+            setDocument(undefined);
+            setIsLoading(true);
+          });
+          sendSetState(lastReceivedStateRef.current ?? initialData?.state);
+        }
+      );
+
       log.debug('Receiving initial data');
       // We need to get the initial data and process it. If it's an old version of the plugin, it could be a documentUpdated command.
       receiveData(widget.getDataAsString(), widget.exportedObjects);
@@ -567,6 +598,7 @@ function WidgetHandler({
       return () => {
         log.debug('Cleaning up widget', widget);
         cleanup();
+        reconnectCleanup();
         widget.close();
 
         // Clean up any exported objects that haven't been closed yet

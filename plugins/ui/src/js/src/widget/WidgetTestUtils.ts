@@ -10,15 +10,18 @@ import {
   type WidgetMessageEvent,
 } from './WidgetTypes';
 
-export function makeDocumentPatchedJsonRpc(patch: Operation[] = []): {
+export function makeDocumentPatchedJsonRpc(
+  patch: Operation[] = [],
+  state?: string
+): {
   jsonrpc: string;
   method: string;
-  params: [Operation[]];
+  params: [Operation[], string?];
 } {
   return {
     jsonrpc: '2.0',
     method: METHOD_DOCUMENT_PATCHED,
-    params: [patch],
+    params: state === undefined ? [patch] : [patch, state],
   };
 }
 
@@ -31,9 +34,10 @@ export function makeJsonRpcResponseString(id: number, result = ''): string {
 }
 
 export function makeDocumentPatchedJsonRpcString(
-  patch: Operation[] = []
+  patch: Operation[] = [],
+  state?: string
 ): string {
-  return JSON.stringify(makeDocumentPatchedJsonRpc(patch));
+  return JSON.stringify(makeDocumentPatchedJsonRpc(patch, state));
 }
 
 export function makeWidgetEvent(data = ''): WidgetMessageEvent {
@@ -54,9 +58,10 @@ export function makeWidgetEventJsonRpcResponse(
 }
 
 export function makeWidgetEventDocumentPatched(
-  patch: Operation[] = []
+  patch: Operation[] = [],
+  state?: string
 ): WidgetMessageEvent {
-  return makeWidgetEvent(makeDocumentPatchedJsonRpcString(patch));
+  return makeWidgetEvent(makeDocumentPatchedJsonRpcString(patch, state));
 }
 
 export function makeWidgetEventDocumentError(
