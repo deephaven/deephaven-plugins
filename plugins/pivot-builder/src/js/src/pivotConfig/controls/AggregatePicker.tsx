@@ -55,10 +55,7 @@ export default function AggregatePicker({
     (name: string): boolean => {
       const t = columnTypes[name];
       if (t == null) return true;
-      return AggregationUtils.isValidOperation(
-        operation as AggregationOperation,
-        t
-      );
+      return AggregationUtils.isValidOperation(operation, t);
     },
     [columnTypes, operation]
   );
