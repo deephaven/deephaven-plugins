@@ -128,7 +128,7 @@ export default function AggregatePicker({
         <Select
           ref={selectRef}
           value={operation}
-          onChange={value => setOperation(value)}
+          onChange={value => setOperation(value as AggregationOption)}
           className="custom-select-box form-control"
         >
           {availableOperations.map(op => (
