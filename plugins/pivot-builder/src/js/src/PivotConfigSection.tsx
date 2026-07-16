@@ -167,13 +167,15 @@ export function PivotConfigSection({
   onClearAll,
 }: PivotConfigSectionProps): JSX.Element {
   const pivotServiceStatus = usePivotServiceStatus();
-  const [rollupPickerOpen, setRollupPickerOpen] = useState(false);
-  const [pivotPickerOpen, setPivotPickerOpen] = useState(false);
-  // `null` = closed. `{ mode: 'add' }` = adding new. `{ mode: 'edit', index }`
-  // = editing existing entry.
-  const [aggPickerState, setAggPickerState] = useState<
-    { mode: 'add' } | { mode: 'edit'; index: number } | null
-  >(null);
+  // Only one Add/Edit picker may be open at a time across the cards, so a
+  // single discriminated-union models it. `null` = all closed; `rollup` /
+  // `pivot` open the column pickers; `agg-add` adds a new aggregation;
+  // `agg-edit` edits the aggregation entry at `index`.
+  type PickerState =
+    | { mode: 'rollup' | 'pivot' | 'agg-add' }
+    | { mode: 'agg-edit'; index: number }
+    | null;
+  const [pickerState, setPickerState] = useState<PickerState>(null);
 
   // When false (default), the Add-column pickers omit columns the host
   // grid is hiding (via `hiddenColumns`). Card contents are unaffected
@@ -200,36 +202,28 @@ export function PivotConfigSection({
 
   // Only one popover (Add picker) may be open at a time across the cards.
   // Opening any Add picker or overflow menu dismisses the others.
-  const closeAllPickers = useCallback(() => {
-    setRollupPickerOpen(false);
-    setPivotPickerOpen(false);
-    setAggPickerState(null);
-  }, []);
+  const closeAllPickers = useCallback(() => setPickerState(null), []);
 
   const handleAddRollupRow = useCallback(() => {
-    setPivotPickerOpen(false);
-    setAggPickerState(null);
-    setRollupPickerOpen(open => !open);
+    setPickerState(s => (s?.mode === 'rollup' ? null : { mode: 'rollup' }));
   }, []);
 
   const handlePickRollupRow = useCallback(
     (name: string) => {
       onRollupRowsChange([...rollupRows, name]);
-      setRollupPickerOpen(false);
+      setPickerState(null);
     },
     [rollupRows, onRollupRowsChange]
   );
 
   const handleAddPivotColumn = useCallback(() => {
-    setRollupPickerOpen(false);
-    setAggPickerState(null);
-    setPivotPickerOpen(open => !open);
+    setPickerState(s => (s?.mode === 'pivot' ? null : { mode: 'pivot' }));
   }, []);
 
   const handlePickPivotColumn = useCallback(
     (name: string) => {
       onPivotColumnsChange([...pivotColumns, name]);
-      setPivotPickerOpen(false);
+      setPickerState(null);
     },
     [pivotColumns, onPivotColumnsChange]
   );
@@ -259,19 +253,17 @@ export function PivotConfigSection({
     []
   );
 
-  const closeAggPicker = useCallback(() => setAggPickerState(null), []);
+  const closeAggPicker = useCallback(() => setPickerState(null), []);
 
   const handleAddAggregate = useCallback(() => {
-    setRollupPickerOpen(false);
-    setPivotPickerOpen(false);
-    setAggPickerState(s => (s?.mode === 'add' ? null : { mode: 'add' }));
+    setPickerState(s => (s?.mode === 'agg-add' ? null : { mode: 'agg-add' }));
   }, []);
 
   const handleCommitAggregate = useCallback(
     (next: Aggregation) => {
       const aggregations = aggregationSettings.aggregations.slice();
-      if (aggPickerState?.mode === 'edit') {
-        aggregations[aggPickerState.index] = next;
+      if (pickerState?.mode === 'agg-edit') {
+        aggregations[pickerState.index] = next;
       } else {
         // Operations are unique per card: if an entry for this function
         // already exists, merge the new columns into it (de-duped, order
@@ -293,9 +285,9 @@ export function PivotConfigSection({
         }
       }
       onAggregationSettingsChange({ ...aggregationSettings, aggregations });
-      setAggPickerState(null);
+      setPickerState(null);
     },
-    [aggPickerState, aggregationSettings, onAggregationSettingsChange]
+    [pickerState, aggregationSettings, onAggregationSettingsChange]
   );
 
   const handleChangeAggregateOperation = useCallback(
@@ -338,11 +330,11 @@ export function PivotConfigSection({
         (_, i) => i !== index
       );
       onAggregationSettingsChange({ ...aggregationSettings, aggregations });
-      setAggPickerState(curr => {
-        if (curr?.mode !== 'edit') return curr;
+      setPickerState(curr => {
+        if (curr?.mode !== 'agg-edit') return curr;
         if (curr.index === index) return null;
         return curr.index > index
-          ? { mode: 'edit', index: curr.index - 1 }
+          ? { mode: 'agg-edit', index: curr.index - 1 }
           : curr;
       });
     },
@@ -375,24 +367,19 @@ export function PivotConfigSection({
   // every selectable function (including ones already in use); "edit"
   // excludes the operations used by other entries but keeps the current.
   const pickerAvailableOps = useMemo(() => {
-    if (aggPickerState == null || aggPickerState.mode === 'add') {
+    if (pickerState?.mode !== 'agg-edit') {
       return selectableOperations;
     }
     const currentOp =
-      aggregationSettings.aggregations[aggPickerState.index]?.operation;
+      aggregationSettings.aggregations[pickerState.index]?.operation;
     return selectableOperations.filter(
       op => op === currentOp || !usedOperations.includes(op)
     );
-  }, [
-    aggPickerState,
-    aggregationSettings,
-    selectableOperations,
-    usedOperations,
-  ]);
+  }, [pickerState, aggregationSettings, selectableOperations, usedOperations]);
 
   const pickerInitial = useMemo<Aggregation>(() => {
-    if (aggPickerState?.mode === 'edit') {
-      const e = aggregationSettings.aggregations[aggPickerState.index];
+    if (pickerState?.mode === 'agg-edit') {
+      const e = aggregationSettings.aggregations[pickerState.index];
       if (e != null) return e;
     }
     return {
@@ -402,7 +389,7 @@ export function PivotConfigSection({
       selected: [],
       invert: false,
     };
-  }, [aggPickerState, aggregationSettings, pickerAvailableOps]);
+  }, [pickerState, aggregationSettings, pickerAvailableOps]);
 
   const {
     dragSource,
@@ -740,13 +727,13 @@ export function PivotConfigSection({
             />
           }
           picker={anchorRef =>
-            rollupPickerOpen ? (
+            pickerState?.mode === 'rollup' ? (
               <ColumnPicker
                 anchorRef={anchorRef}
                 available={visibleColumns}
                 excluded={usedColumns}
                 onPick={handlePickRollupRow}
-                onClose={() => setRollupPickerOpen(false)}
+                onClose={closeAllPickers}
               />
             ) : null
           }
@@ -797,13 +784,13 @@ export function PivotConfigSection({
             />
           }
           picker={anchorRef =>
-            pivotPickerOpen ? (
+            pickerState?.mode === 'pivot' ? (
               <ColumnPicker
                 anchorRef={anchorRef}
                 available={visibleColumns}
                 excluded={usedColumns}
                 onPick={handlePickPivotColumn}
-                onClose={() => setPivotPickerOpen(false)}
+                onClose={closeAllPickers}
               />
             ) : null
           }
@@ -854,7 +841,8 @@ export function PivotConfigSection({
             />
           }
           picker={anchorRef =>
-            aggPickerState != null ? (
+            pickerState?.mode === 'agg-add' ||
+            pickerState?.mode === 'agg-edit' ? (
               <AggregatePicker
                 anchorRef={anchorRef}
                 availableColumns={visibleColumns}
