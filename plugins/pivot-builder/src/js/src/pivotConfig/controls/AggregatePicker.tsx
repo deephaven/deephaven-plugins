@@ -109,7 +109,7 @@ export default function AggregatePicker({
 
   const handleCommit = useCallback(() => {
     onCommit({
-      operation: operation as AggregationOperation,
+      operation,
       // Preserve order of availableColumns for stable output.
       selected: availableColumns.filter(c => selected.has(c)),
       invert: false,
