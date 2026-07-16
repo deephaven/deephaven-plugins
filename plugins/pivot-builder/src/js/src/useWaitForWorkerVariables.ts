@@ -23,7 +23,7 @@ export function useWaitForWorkerVariables(
     const pending = resolversRef.current;
     if (pending.length === 0) return;
     resolversRef.current = [];
-    pending.forEach(({ resolve }) => resolve(workerVariables));
+    pending.forEach(([resolve]) => resolve(workerVariables));
   }, [workerVariables]);
   // Reject any still-pending waiters on unmount so their promises settle and
   // the captured closures are released, instead of hanging (and retaining
@@ -32,7 +32,7 @@ export function useWaitForWorkerVariables(
     () => () => {
       const pending = resolversRef.current;
       resolversRef.current = [];
-      pending.forEach(({ reject }) =>
+      pending.forEach(([, reject]) =>
         reject(new Error('Worker variables wait aborted: unmounted'))
       );
     },
@@ -43,7 +43,7 @@ export function useWaitForWorkerVariables(
       return Promise.resolve(snapshotRef.current);
     }
     return new Promise<WorkerVariables>((resolve, reject) => {
-      resolversRef.current.push({ resolve, reject });
+      resolversRef.current.push([resolve, reject]);
     });
   }, []);
 }

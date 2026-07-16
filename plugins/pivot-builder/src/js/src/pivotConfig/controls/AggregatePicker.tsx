@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Checkbox, SearchInput, Select } from '@deephaven/components';
+import {
+  Button,
+  Checkbox,
+  Item,
+  Picker,
+  SearchInput,
+} from '@deephaven/components';
 import {
   AggregationUtils,
   type Aggregation,
@@ -30,7 +36,6 @@ export default function AggregatePicker({
   onCommit,
   onClose,
 }: AggregatePickerProps): JSX.Element {
-  const selectRef = useRef<HTMLSelectElement>(null);
   const [operation, setOperation] = useState<AggregationOperation>(
     initial.operation
   );
@@ -120,23 +125,27 @@ export default function AggregatePicker({
     <PivotPopover
       anchorRef={anchorRef}
       onClose={onClose}
-      onOpen={() => selectRef.current?.focus()}
       className="pivot-agg-popover"
     >
       <div>
         <div className="pivot-agg-field-label">Select aggregation</div>
-        <Select
-          ref={selectRef}
-          value={operation}
-          onChange={value => setOperation(value as AggregationOption)}
-          className="custom-select-box form-control"
+        <Picker
+          aria-label="Select aggregation"
+          autoFocus
+          width="100%"
+          selectedKey={operation}
+          onChange={key => {
+            if (key != null) {
+              setOperation(key as AggregationOperation);
+            }
+          }}
         >
           {availableOperations.map(op => (
-            <option key={op} value={op}>
+            <Item key={op} textValue={op}>
               {op}
-            </option>
+            </Item>
           ))}
-        </Select>
+        </Picker>
       </div>
       <div className="pivot-agg-column-group">
         <div className="pivot-agg-field-label">
