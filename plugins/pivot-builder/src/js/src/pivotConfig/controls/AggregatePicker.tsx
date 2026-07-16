@@ -31,7 +31,9 @@ export default function AggregatePicker({
   onClose,
 }: AggregatePickerProps): JSX.Element {
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [operation, setOperation] = useState<string>(initial.operation);
+  const [operation, setOperation] = useState<AggregationOperation>(
+    initial.operation
+  );
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(existingSelections[initial.operation] ?? initial.selected)
   );
