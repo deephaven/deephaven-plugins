@@ -59,7 +59,9 @@ export default function AggregatePicker({
   const isColumnValid = useCallback(
     (name: string): boolean => {
       const t = columnTypes[name];
-      if (t == null) return true;
+      // A missing type means the column isn't in the current source table
+      // (e.g. a stale selection persisted against a different/older schema).
+      if (t == null) return false;
       return AggregationUtils.isValidOperation(operation, t);
     },
     [columnTypes, operation]
