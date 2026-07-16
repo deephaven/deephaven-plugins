@@ -13,10 +13,10 @@ export function useWaitForWorkerVariables(
   const snapshotRef = useRef(workerVariables);
   snapshotRef.current = workerVariables;
   const resolversRef = useRef<
-    Array<{
-      resolve: (value: WorkerVariables) => void;
-      reject: (reason: Error) => void;
-    }>
+    [
+      resolve: (value: WorkerVariables) => void,
+      reject: (reason: Error) => void,
+    ][]
   >([]);
   useEffect(() => {
     if (workerVariables == null) return;
