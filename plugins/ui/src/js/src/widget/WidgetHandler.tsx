@@ -581,6 +581,7 @@ function WidgetHandler({
           renderedCallableMap.current.clear();
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
+            setInternalError(undefined);
             setDocument(undefined);
             setIsLoading(true);
           });
