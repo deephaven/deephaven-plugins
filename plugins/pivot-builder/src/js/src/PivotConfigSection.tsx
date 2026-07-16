@@ -265,21 +265,18 @@ export function PivotConfigSection({
       if (pickerState?.mode === 'agg-edit') {
         aggregations[pickerState.index] = next;
       } else {
-        // Operations are unique per card: if an entry for this function
-        // already exists, merge the new columns into it (de-duped, order
-        // preserved) instead of pushing a duplicate entry.
+        // Operations are unique per card. The picker preloads the operation's
+        // existing columns into its checkboxes, so `next.selected` is the
+        // authoritative set for that function — replace it to pick up newly
+        // checked columns and drop de-selected ones.
         const existingIndex = aggregations.findIndex(
           a => a.operation === next.operation
         );
         if (existingIndex >= 0) {
-          const existing = aggregations[existingIndex];
-          const selected = [...existing.selected];
-          next.selected.forEach(col => {
-            if (!selected.includes(col)) {
-              selected.push(col);
-            }
-          });
-          aggregations[existingIndex] = { ...existing, selected };
+          aggregations[existingIndex] = {
+            ...aggregations[existingIndex],
+            selected: next.selected,
+          };
         } else {
           aggregations.push(next);
         }
