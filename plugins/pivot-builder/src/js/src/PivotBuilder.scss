@@ -203,24 +203,6 @@
   padding: $spacer-2;
 }
 
-.pivot-popover-list {
-  overflow-y: auto;
-  flex: 1;
-  min-height: 0;
-}
-
-.pivot-popover-item {
-  padding: $spacer-1 $spacer-2;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pivot-popover-item--active {
-  background: var(--dh-color-item-list-hover-bg);
-}
-
 .pivot-popover-empty {
   padding: $spacer-2 $spacer-2;
   opacity: 0.6;

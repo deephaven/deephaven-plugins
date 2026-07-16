@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SearchInput } from '@deephaven/components';
+import { useMemo, useRef, useState } from 'react';
+import { Item, ListView, SearchInput, Text } from '@deephaven/components';
 import PivotPopover from './PivotPopover';
 
 type PickerProps = {
@@ -20,7 +20,6 @@ export default function ColumnPicker({
   onClose,
 }: PickerProps): JSX.Element {
   const [query, setQuery] = useState('');
-  const [activeIndex, setActiveIndex] = useState(0);
   const searchRef = useRef<SearchInput>(null);
   const excludedSet = useMemo(() => new Set(excluded), [excluded]);
 
@@ -30,27 +29,6 @@ export default function ColumnPicker({
       c => !excludedSet.has(c) && (q === '' || c.toLowerCase().includes(q))
     );
   }, [available, excludedSet, query]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query, filtered.length]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setActiveIndex(i => Math.min(filtered.length - 1, i + 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setActiveIndex(i => Math.max(0, i - 1));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        const pick = filtered[activeIndex];
-        if (pick != null) onPick(pick);
-      }
-    },
-    [activeIndex, filtered, onPick]
-  );
 
   return (
     <PivotPopover
@@ -64,33 +42,20 @@ export default function ColumnPicker({
           value={query}
           placeholder={placeholder}
           onChange={e => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
         />
       </div>
-      <div className="pivot-popover-list" role="listbox">
-        {filtered.length === 0 ? (
-          <div className="pivot-popover-empty">No options</div>
-        ) : (
-          filtered.map((name, i) => (
-            // eslint-disable-next-line jsx-a11y/interactive-supports-focus
-            <div
-              key={name}
-              role="option"
-              aria-selected={i === activeIndex}
-              className={`pivot-popover-item${
-                i === activeIndex ? ' pivot-popover-item--active' : ''
-              }`}
-              onMouseEnter={() => setActiveIndex(i)}
-              onMouseDown={e => {
-                e.preventDefault();
-                onPick(name);
-              }}
-            >
-              {name}
-            </div>
-          ))
-        )}
-      </div>
+      <ListView
+        aria-label="Available columns"
+        selectionMode="none"
+        height="size-3000"
+        width="100%"
+        onAction={key => onPick(String(key))}
+        renderEmptyState={() => <Text>No options</Text>}
+      >
+        {filtered.map(name => (
+          <Item key={name}>{name}</Item>
+        ))}
+      </ListView>
     </PivotPopover>
   );
 }
