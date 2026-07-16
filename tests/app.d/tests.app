@@ -25,3 +25,5 @@ file_18=ui_events.py
 file_19=ui_memo.py
 file_20=ui_combo_box.py
 file_21=ui_multi_select.py
+file_22=tvl_events.py
+file_23=sizzle.py

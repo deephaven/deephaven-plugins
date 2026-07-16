@@ -4,7 +4,10 @@ import type {
   SeriesType,
 } from 'lightweight-charts';
 import { unconvertTime } from './TradingViewUtils';
-import { extractSeriesPoint } from './TradingViewSeriesFocus';
+import {
+  extractSeriesPoint,
+  resolveFocusedSeriesPoint,
+} from './TradingViewSeriesFocus';
 
 /**
  * Per-series data at the event location, mirroring the shape of the
@@ -69,6 +72,14 @@ export interface TvlPressEventPayload {
  * @param getSeriesTitle user-facing title lookup from ISeriesApi
  * @param timeZone    IANA timezone used to undo the chart's TZ shift on time
  */
+/**
+ * Max vertical gap (px) between the cursor and a series' rendered point for a
+ * press to count as "on" that series when LWC's own hit test is empty. Small
+ * enough that a press in empty chart space resolves to no series, generous
+ * enough to absorb sub-pixel rounding when the press lands on a data point.
+ */
+export const HIT_MAX_DISTANCE_PX = 8;
+
 export function buildPressEventPayload(
   type: 'press' | 'doublePress',
   params: MouseEventParams,
@@ -98,8 +109,24 @@ export function buildPressEventPayload(
         : extracted.data;
   });
 
-  // Hovered series: LWC's own hit-test result, mapped to our string identity.
-  const hovered = params.hoveredInfo?.series;
+  // Hovered series: prefer LWC's own hit-test result. For line/area/baseline
+  // series LWC only populates hoveredInfo.series when the cursor is within the
+  // line's narrow hit region, so a press just off the line (or with the magnet
+  // crosshair snapped to a point) frequently leaves it null. Fall back to the
+  // series whose value at the crosshair is vertically nearest the cursor — the
+  // same disambiguation the tracking tooltip uses — but only when the cursor is
+  // actually near that series' rendered point, so a press in empty space (e.g.
+  // above every line) resolves to no series rather than snapping to a far one.
+  let hovered = params.hoveredInfo?.series;
+  if (hovered == null && params.point != null) {
+    const focused = resolveFocusedSeriesPoint(params);
+    if (focused != null) {
+      const y = focused.series.priceToCoordinate(focused.price);
+      if (y != null && Math.abs(y - params.point.y) <= HIT_MAX_DISTANCE_PX) {
+        hovered = focused.series;
+      }
+    }
+  }
   if (hovered != null) {
     const label = resolveSeriesLabel(hovered, getSeriesId, getSeriesTitle);
     const internalId = getSeriesId(hovered);

@@ -25,7 +25,13 @@ interface LastEvent {
   timeNs?: number;
   seriesId?: string;
   price?: number;
-  seriesData: Record<string, number | { open: number }>;
+  // Mirrors the wire payload: line-like series carry { value }, OHLC series
+  // carry { open, high, low, close }.
+  seriesData: Record<
+    string,
+    | { value: number }
+    | { open: number; high: number; low: number; close: number }
+  >;
   point?: { x: number; y: number };
   paneIndex?: number;
   shiftKey: boolean;
@@ -113,12 +119,24 @@ test.describe('TradingView Lightweight - Press events', () => {
     await page.waitForTimeout(500);
 
     const evt = await getLastEvent(page);
+    // TEMPORARY diagnostics: publish the built payload + canvas rect so a
+    // failing run's report shows the resolved seriesId, point, and per-series
+    // values. Remove once the press-event failures are resolved.
+    await test.info().attach('press-A-event', {
+      body: JSON.stringify(
+        { event: evt, canvas: await getCanvasRect(page) },
+        null,
+        2
+      ),
+      contentType: 'application/json',
+    });
     expect(evt).not.toBeNull();
     expect(evt!.type).toBe('press');
     expect(evt!.seriesId).toBeTruthy();
     // The hit series' value at the pressed time must be ~10 (not ~90).
-    const hitValue = evt!.seriesData[evt!.seriesId as string];
-    expect(typeof hitValue === 'number' ? hitValue : NaN).toBeCloseTo(PRICE_A, 0);
+    const hit = evt!.seriesData[evt!.seriesId as string];
+    const hitValue = hit != null && 'value' in hit ? hit.value : NaN;
+    expect(hitValue).toBeCloseTo(PRICE_A, 0);
   });
 
   test('series A vs B disambiguation', async ({ page }) => {
@@ -130,7 +148,7 @@ test.describe('TradingView Lightweight - Press events', () => {
       const e = await getLastEvent(page);
       if (!e || !e.seriesId) return null;
       const v = e.seriesData[e.seriesId];
-      return typeof v === 'number' ? v : null;
+      return v != null && 'value' in v ? v.value : null;
     };
 
     // Press A, then move the cursor away and pause well past the double-click
@@ -152,8 +170,16 @@ test.describe('TradingView Lightweight - Press events', () => {
     expect(aEvt!.seriesId).toBeTruthy();
     expect(bEvt!.seriesId).toBeTruthy();
     expect(aEvt!.seriesId).not.toBe(bEvt!.seriesId);
-    expect(aEvt!.seriesData[aEvt!.seriesId as string]).toBeCloseTo(PRICE_A, 0);
-    expect(bEvt!.seriesData[bEvt!.seriesId as string]).toBeCloseTo(PRICE_B, 0);
+    const aHit = aEvt!.seriesData[aEvt!.seriesId as string];
+    const bHit = bEvt!.seriesData[bEvt!.seriesId as string];
+    expect(aHit != null && 'value' in aHit ? aHit.value : NaN).toBeCloseTo(
+      PRICE_A,
+      0
+    );
+    expect(bHit != null && 'value' in bHit ? bHit.value : NaN).toBeCloseTo(
+      PRICE_B,
+      0
+    );
   });
 
   test('pressed time matches T', async ({ page }) => {
@@ -192,6 +218,26 @@ test.describe('TradingView Lightweight - Press events', () => {
     await page.waitForTimeout(500);
 
     const evt = await getLastEvent(page);
+    // TEMPORARY diagnostics: the payload's local click point plus each line's
+    // rendered y at the two known prices, so a failing run reveals the actual
+    // cursor↔line gap and lets us tune HIT_MAX_DISTANCE_PX. Remove once the
+    // empty-area gate is confirmed.
+    const diag = await page.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
+      const hook = (window as any).__tvlTestHook;
+      const ids: string[] = hook ? hook.getSeriesIds() : [];
+      return {
+        lines: ids.map(id => ({
+          id,
+          yAt10: hook.priceToCoordinate(id, 10),
+          yAt90: hook.priceToCoordinate(id, 90),
+        })),
+      };
+    });
+    await test.info().attach('empty-area-event', {
+      body: JSON.stringify({ event: evt, ...diag }, null, 2),
+      contentType: 'application/json',
+    });
     expect(evt).not.toBeNull();
     expect(evt!.type).toBe('press');
     // No series under the cursor between/above the lines.

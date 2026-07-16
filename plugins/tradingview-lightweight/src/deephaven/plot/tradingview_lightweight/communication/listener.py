@@ -115,6 +115,14 @@ class _AutoBinTableState:
     # series_id -> dict with keys: type, agg, value_cols
     series_meta: dict[str, dict[str, Any]] = field(default_factory=dict)
     body_range_ns: Optional[tuple[int, int]] = None
+    # Explicit user-supplied ``bin_width`` in ns (None = auto). When set it
+    # is sticky: zoom/reset keep this fixed width instead of recomputing a
+    # "nice" width from the visible range (see series.py `bin_width` docs).
+    bin_width_override_ns: Optional[int] = None
+    # Explicit user-supplied ``bin_count`` (None = derive target_bins from the
+    # chart pixel width). When set it is sticky: the width-px message does not
+    # override it, so zoom/reset keep aiming for this many bins.
+    target_bins_override: Optional[int] = None
 
 
 class TvlChartListener:
@@ -180,14 +188,25 @@ class TvlChartListener:
 
         msg_type = message.get("type", "")
 
-        if msg_type == "RETRIEVE":
-            return self._handle_retrieve()
-        if msg_type == "AUTOBIN_ZOOM":
-            return self._handle_autobin_zoom(message)
-        if msg_type == "AUTOBIN_RESET":
-            return self._handle_autobin_reset(message)
-        if msg_type == "EVENT":
-            return self._handle_event(message)
+        # A handler exception must never propagate out of process_message: the
+        # object-type framework treats a raised handler as fatal and terminates
+        # the widget's message stream ("stream was terminated by error, no
+        # further calls are allowed"). Swallowing it degrades this one widget
+        # (it stops updating) instead of killing the stream — and keeps a bad
+        # table/aggregation from taking neighbours down with it. _handle_event
+        # already guards its own callbacks; this backstops the rest.
+        try:
+            if msg_type == "RETRIEVE":
+                return self._handle_retrieve()
+            if msg_type == "AUTOBIN_ZOOM":
+                return self._handle_autobin_zoom(message)
+            if msg_type == "AUTOBIN_RESET":
+                return self._handle_autobin_reset(message)
+            if msg_type == "EVENT":
+                return self._handle_event(message)
+        except Exception:  # noqa: BLE001 - a handler bug must not kill the stream
+            logger.exception("TVL %s handler raised", msg_type)
+            return b"", []
 
         return b"", []
 
@@ -298,9 +317,11 @@ class TvlChartListener:
 
         # Per-series target bins (use first override; mixed series share a width)
         target_bins = auto_bin.TARGET_BINS
+        target_bins_override: Optional[int] = None
         for s in series_for_table:
             if s.bin_count is not None:
                 target_bins = max(1, int(s.bin_count))
+                target_bins_override = target_bins
                 break
 
         # Per-series bin_width override
@@ -309,6 +330,8 @@ class TvlChartListener:
             if s.bin_width is not None:
                 bin_width_ns = auto_bin.parse_bin_width(s.bin_width)
                 break
+        # An explicit bin_width is sticky across zoom/reset; auto widths are not.
+        bin_width_override_ns = bin_width_ns
         if bin_width_ns is None:
             bin_width_ns = auto_bin.nice_bin_width(range_ns, target_bins)
 
@@ -320,6 +343,8 @@ class TvlChartListener:
             bin_width_ns=bin_width_ns,
             initial_bin_width_ns=bin_width_ns,
             target_bins=target_bins,
+            bin_width_override_ns=bin_width_override_ns,
+            target_bins_override=target_bins_override,
         )
 
         for s in series_for_table:
@@ -469,7 +494,15 @@ class TvlChartListener:
                 continue
 
             agg_ref_index = len(exported_objects)
-            state = self._build_state_for_table(agg_ref_index, table, eligible_series)
+            try:
+                state = self._build_state_for_table(
+                    agg_ref_index, table, eligible_series
+                )
+            except Exception:  # noqa: BLE001 - degrade one table, not the figure
+                logger.exception(
+                    "TVL auto-bin build failed for table %d; " "falling back to raw", i
+                )
+                state = None
             if state is None:
                 continue
             exported_objects.append(state.aggregated_table)
@@ -601,6 +634,11 @@ class TvlChartListener:
 
         Returns the effective target_bins for this operation.
         """
+        # An explicit bin_count is authoritative — the client's pixel width
+        # must not override how many bins the user asked for.
+        if state.target_bins_override is not None:
+            state.target_bins = state.target_bins_override
+            return state.target_bins
 
         def _coerce(value: Any) -> Optional[int]:
             try:
@@ -639,7 +677,12 @@ class TvlChartListener:
             return b"", []
 
         target_bins = self._apply_width_px(state, message)
-        new_width = self._bin_width_for_visible(from_ns, to_ns, target_bins)
+        # A user-supplied bin_width is fixed; only the visible body range
+        # tracks the pan/zoom. Otherwise derive a nice width from the window.
+        if state.bin_width_override_ns is not None:
+            new_width = state.bin_width_override_ns
+        else:
+            new_width = self._bin_width_for_visible(from_ns, to_ns, target_bins)
         at_live_edge = bool(message.get("atLiveEdge"))
         body_to = (1 << 63) - 1 if at_live_edge else to_ns
         new_body_range: tuple[int, int] = (from_ns, body_to)
@@ -662,7 +705,11 @@ class TvlChartListener:
         # TARGET_BINS is used).
         target_bins = self._apply_width_px(state, message)
         full_range_ns = max(1, state.full_range_ns[1] - state.full_range_ns[0])
-        new_initial = auto_bin.nice_bin_width(full_range_ns, target_bins)
+        # Keep an explicit bin_width fixed; only auto widths refine to the width.
+        if state.bin_width_override_ns is not None:
+            new_initial = state.bin_width_override_ns
+        else:
+            new_initial = auto_bin.nice_bin_width(full_range_ns, target_bins)
         state.initial_bin_width_ns = new_initial
         if state.bin_width_ns == new_initial and state.body_range_ns is None:
             return self._autobin_ack(state)

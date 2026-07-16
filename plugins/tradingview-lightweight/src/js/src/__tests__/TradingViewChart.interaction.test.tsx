@@ -229,9 +229,11 @@ function makeWidget() {
 
 async function renderChart() {
   const widget = makeWidget();
-  const result = render(
-    <TradingViewChart fetch={() => Promise.resolve(widget)} metadata={{}} />
-  );
+  const props = {
+    fetch: () => Promise.resolve(widget),
+    metadata: {},
+  } as unknown as React.ComponentProps<typeof TradingViewChart>;
+  const result = render(<TradingViewChart {...props} />);
 
   await act(async () => {
     await Promise.resolve();

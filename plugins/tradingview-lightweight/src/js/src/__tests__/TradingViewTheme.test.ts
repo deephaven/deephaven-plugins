@@ -12,6 +12,7 @@ const mockTheme: TvlChartTheme = {
   gridColor: '#3d3a3e',
   lineColor: '#5b5a5c',
   zeroLineColor: '#7b797e',
+  crosshairLabelBgColor: '#4b494e',
   fontFamily: '"Fira Sans", sans-serif',
   ohlcIncreasing: '#26a69a',
   ohlcDecreasing: '#ef5350',
@@ -53,10 +54,16 @@ describe('chartThemeToOptions', () => {
     expect(options.timeScale).toEqual({ borderColor: '#5b5a5c' });
   });
 
-  it('should map gridColor to crosshair', () => {
+  it('should map gridColor to crosshair line and crosshairLabelBgColor to its label', () => {
     const options = chartThemeToOptions(mockTheme);
-    expect(options.crosshair?.vertLine).toEqual({ color: '#3d3a3e' });
-    expect(options.crosshair?.horzLine).toEqual({ color: '#3d3a3e' });
+    expect(options.crosshair?.vertLine).toEqual({
+      color: '#3d3a3e',
+      labelBackgroundColor: '#4b494e',
+    });
+    expect(options.crosshair?.horzLine).toEqual({
+      color: '#3d3a3e',
+      labelBackgroundColor: '#4b494e',
+    });
   });
 });
 

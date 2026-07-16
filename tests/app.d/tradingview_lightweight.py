@@ -619,7 +619,11 @@ tvl_by_ticking = _tvl_by_ticking_component()
 # =============================================================================
 
 _big_start = to_j_instant("2014-01-01T00:00:00 ET")
-big_table = empty_table(10_000_000).update(
+# update_view (not update): keep these formula columns lazy so 10M rows are
+# never materialized in RAM for the whole session. Downsample/auto-bin scan
+# them on demand; holding them resident across every test inflates the heap
+# and invites GC pauses that can drop in-flight widget streams.
+big_table = empty_table(10_000_000).update_view(
     [
         # Spread 10M rows evenly over 10 years (~3.15s apart)
         "Timestamp = _big_start + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 10_000_000))",
@@ -675,9 +679,10 @@ tvl_ticking_line = tvl.line(_ticking_table, timestamp="Timestamp", value="Price"
 # Auto-bin fixtures — server-side time-bucket aggregation
 # =============================================================================
 
-# A 10M-row "tick" table with derived OHLC columns. Auto-bin will reduce
-# this to ~5000 bars on initial load.
-big_ohlc_table = big_table.update(
+# A 10M-row "tick" table with derived OHLC columns. Auto-bin reduces this to a
+# few hundred bars on initial load. update_view keeps the derived columns lazy
+# (see big_table above) so the OHLC variant adds no resident 10M-row cost.
+big_ohlc_table = big_table.update_view(
     [
         "Open = Price - 1.0",
         "High = Price + 2.0",
@@ -747,7 +752,7 @@ tvl_mixed_line_hist = tvl.chart(
 
 # Histogram with explicit bin_width override.
 # Use a 1-month subset so PT5M produces ~8640 bins, not millions.
-_bin_override_table = empty_table(1_000_000).update(
+_bin_override_table = empty_table(1_000_000).update_view(
     [
         "Timestamp = '2024-01-01T00:00:00 ET' + (long)(ii * (30L * 24 * 3600 * 1_000_000_000L / 1_000_000))",
         "Price = 100 + Math.sin(ii * 0.0001) * 50",
@@ -760,12 +765,15 @@ tvl_big_hist_pt5m = tvl.histogram(
     bin_width="PT5M",
 )
 
-# Histogram with bin_count override
-tvl_big_hist_bc200 = tvl.histogram(
+# Histogram with bin_count override. The default auto target is ~250 bins
+# (DEFAULT_WIDTH_PX / BAR_PX), which over 10 years snaps to 30-day bins. A far
+# smaller bin_count asks for fewer, coarser bins — landing in a wider "nice"
+# bucket (90-day) so the override is observably distinct from the default.
+tvl_big_hist_bc50 = tvl.histogram(
     big_table,
     timestamp="Timestamp",
     value="Price",
-    bin_count=200,
+    bin_count=50,
 )
 
 # Histogram with auto_bin=False — opts out (small derived table to avoid

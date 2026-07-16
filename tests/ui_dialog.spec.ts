@@ -19,7 +19,13 @@ test.describe('UI dialog components', () => {
       await gotoPage(page, '');
       await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-      await expect(page).toHaveScreenshot();
+      // The modal is small enough to leave the console panel's heap-usage
+      // indicator visible behind it; its used-memory bar drifts run-to-run, so
+      // mask it. The fullscreen / takeover variants cover the whole IDE, so
+      // nothing dynamic shows and no mask is needed (empty array == no mask).
+      const mask =
+        name === 'my_modal' ? [page.locator(SELECTORS.HEAP_USAGE)] : [];
+      await expect(page).toHaveScreenshot({ mask });
     });
   });
 });

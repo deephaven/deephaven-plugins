@@ -7,6 +7,9 @@ export const SELECTORS = {
   WIDGET_LOADER_ELEMENT: '.dh-panel.widget-loader-deephaven\\.ui\\.Element',
   WIDGET_LOADER_ELEMENT_VISIBLE:
     '.dh-panel.widget-loader-deephaven\\.ui\\.Element:visible',
+  // The console status-bar heap-usage indicator (bar width + "X.X GB" text).
+  // Its value drifts run-to-run, so full-page screenshots must mask it.
+  HEAP_USAGE: '.max-memory',
 };
 
 const ROW_HEIGHT = 19;
@@ -45,10 +48,76 @@ export async function waitForLoad(page: Page): Promise<void> {
 }
 
 /**
+ * Waits for a Plotly chart's data to finish rendering before a screenshot.
+ *
+ * Plotly draws the axes immediately but streams the data in afterwards. The
+ * loading spinner clears once the widget mounts, so a screenshot taken right
+ * after `waitForLoad` can capture an *empty* plot (axes only, no data).
+ * `toHaveScreenshot`'s auto-stabilization does not help here: an empty plot is
+ * static, so two consecutive frames match and it locks onto the blank state.
+ *
+ * This checks Plotly's data model (`gd.data`) rather than the DOM, so it works
+ * for both SVG traces and WebGL (`scattergl`) traces — the latter render to a
+ * `<canvas>` and have no `.trace` element, which is the default render mode for
+ * `dx.scatter`/`dx.line`. Charts with no plotted array data (e.g. indicators,
+ * whose value is a scalar) never satisfy this and must not use it.
+ *
+ * @param page The page
+ * @param plotlySelector Selector for the Plotly plot container
+ */
+export async function waitForPlotlyData(
+  page: Page,
+  plotlySelector = '.js-plotly-plot'
+): Promise<void> {
+  const plot = page.locator(plotlySelector).first();
+  await plot.waitFor({ state: 'visible', timeout: 30000 });
+  await expect
+    .poll(
+      async () =>
+        plot.evaluate(el => {
+          const { data } = el as unknown as { data?: unknown[] };
+          if (!Array.isArray(data)) {
+            return false;
+          }
+          // A trace column can arrive in any of Plotly's encodings: a plain
+          // array (graph_objects / dx), a typed array, or the binary-encoded
+          // { dtype, bdata } object that Plotly Express produces from numpy.
+          const hasValues = (v: unknown): boolean => {
+            if (v == null) return false;
+            if (Array.isArray(v) || ArrayBuffer.isView(v)) {
+              return (v as { length: number }).length > 0;
+            }
+            if (typeof v === 'object') {
+              const { bdata } = v as { bdata?: unknown };
+              return typeof bdata === 'string' && bdata.length > 0;
+            }
+            return false;
+          };
+          // A loaded chart has at least one trace carrying plotted values.
+          return data.some(trace => {
+            const t = trace as Record<string, unknown>;
+            return ['x', 'y', 'z', 'open', 'close', 'values'].some(key =>
+              hasValues(t[key])
+            );
+          });
+        }),
+      { timeout: 30000, message: 'Plotly chart never received data' }
+    )
+    .toBe(true);
+}
+
+/** Escapes a string so it can be embedded literally in a `RegExp`. */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Opens a panel by clicking on the Panels button and then the panel button
  * @param page The page
  * @param name The name of the panel
- * @param panelLocator The locator for the panel, passed to `page.locator`
+ * @param panelLocator The locator for the panel, passed to `page.locator`. When
+ *   left as the default generic `.dh-panel`, the opened widget is instead
+ *   verified by its Golden Layout tab title (see below).
  * @param awaitLoad If we should wait for the loading spinner to disappear
  */
 export async function openPanel(
@@ -65,8 +134,19 @@ export async function openPanel(
     });
     await expect(appPanels).toBeEnabled();
 
-    // Count how many panels are open before opening a new one
-    const panelCount = await page.locator(panelLocator).count();
+    // The generic '.dh-panel' selector also matches unrelated panels from the
+    // server's default layout (Console, Command History, DEMO.md, etc.). Those
+    // panels load asynchronously and race with opening our widget, so on slower
+    // browsers (e.g. WebKit) they inflate the count and break a naive
+    // toHaveCount(panelCount + 1) check. Only trust a panel count when the
+    // caller supplied a widget-specific locator; otherwise verify the opened
+    // widget by its Golden Layout tab title, which is unaffected by other panels.
+    const useScopedCount = panelLocator !== '.dh-panel';
+
+    // Count how many matching panels are open before opening a new one
+    const panelCount = useScopedCount
+      ? await page.locator(panelLocator).count()
+      : 0;
 
     await appPanels.click();
 
@@ -79,16 +159,27 @@ export async function openPanel(
 
     // open panel
     const targetPanel = page.getByRole('button', { name, exact: true });
-    expect(targetPanel).toBeEnabled();
+    await expect(targetPanel).toBeEnabled();
     await targetPanel.click();
 
     // reset mouse position to not cause unintended hover effects
     await page.mouse.move(0, 0);
 
     // check for panel to be loaded
-    await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1, {
-      timeout: 30000,
-    });
+    if (useScopedCount) {
+      await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1, {
+        timeout: 30000,
+      });
+    } else {
+      // The opened widget gets a Golden Layout tab titled with its exact name.
+      // Allow surrounding whitespace in the title text but anchor the name so
+      // e.g. `tvl_big_hist` does not also match `tvl_big_hist_count`.
+      await expect(
+        page.locator('.lm_title', {
+          hasText: new RegExp(`^\\s*${escapeRegExp(name)}\\s*$`),
+        })
+      ).toHaveCount(1, { timeout: 30000 });
+    }
     if (awaitLoad) {
       await waitForLoad(page);
     }

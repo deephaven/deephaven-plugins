@@ -139,10 +139,8 @@ def sizzle_layout():
 
     options_chart = ui.use_memo(
         lambda: tvl.chart(
-            tvl.line_series(
-                options_data, time="Strike", value="CallIV", title="Call IV"
-            ),
-            tvl.line_series(options_data, time="Strike", value="PutIV", title="Put IV"),
+            tvl.line(options_data, timestamp="Strike", value="CallIV", title="Call IV"),
+            tvl.line(options_data, timestamp="Strike", value="PutIV", title="Put IV"),
             chart_type="options",
             crosshair_mode="magnet",
         ),
@@ -151,12 +149,12 @@ def sizzle_layout():
 
     area_volume = ui.use_memo(
         lambda: tvl.chart(
-            tvl.area_series(
-                sym_data, time="Timestamp", value="Close", title="Price", pane=0
+            tvl.area(
+                sym_data, timestamp="Timestamp", value="Close", title="Price", pane=0
             ),
-            tvl.histogram_series(
+            tvl.histogram(
                 sym_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 value="Volume",
                 price_scale_id="vol",
                 pane=1,
@@ -180,9 +178,9 @@ def sizzle_layout():
 
     area_minmax = ui.use_memo(
         lambda: tvl.chart(
-            tvl.area_series(
+            tvl.area(
                 sym_extremes_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 value="Close",
                 price_lines=[
                     tvl.price_line(column="HighMax", title="High", line_style="dashed"),
@@ -198,19 +196,19 @@ def sizzle_layout():
 
     five_lines = ui.use_memo(
         lambda: tvl.chart(
-            tvl.line_series(sym_data, time="Timestamp", value="Close", title="Close"),
-            tvl.line_series(sym_data, time="Timestamp", value="EMA20", title="EMA 20"),
-            tvl.line_series(sym_data, time="Timestamp", value="SMA20", title="SMA 20"),
-            tvl.line_series(
+            tvl.line(sym_data, timestamp="Timestamp", value="Close", title="Close"),
+            tvl.line(sym_data, timestamp="Timestamp", value="EMA20", title="EMA 20"),
+            tvl.line(sym_data, timestamp="Timestamp", value="SMA20", title="SMA 20"),
+            tvl.line(
                 sym_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 value="BollingerUp",
                 title="BB Upper",
                 line_style="dashed",
             ),
-            tvl.line_series(
+            tvl.line(
                 sym_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 value="BollingerDown",
                 title="BB Lower",
                 line_style="dashed",
@@ -222,23 +220,23 @@ def sizzle_layout():
 
     ohlc_chart = ui.use_memo(
         lambda: tvl.chart(
-            tvl.candlestick_series(
+            tvl.candlestick(
                 sym_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 open="Open",
                 high="High",
                 low="Low",
                 close="Close",
                 marker_spec=tvl.markers_from_table(
                     marker_table,
-                    time="Timestamp",
+                    timestamp="Timestamp",
                     text_column="Label",
                     position_column="Position",
                     shape_column="Shape",
                     color_column="Color",
                 ),
             ),
-            tvl.line_series(sym_data, time="Timestamp", value="EMA20", title="EMA 20"),
+            tvl.line(sym_data, timestamp="Timestamp", value="EMA20", title="EMA 20"),
             crosshair_mode="magnet",
         ),
         [sym_data, selected_sym, marker_table],
@@ -252,13 +250,13 @@ def sizzle_layout():
 
     baseline_chart = ui.use_memo(
         lambda: tvl.chart(
-            tvl.baseline_series(
+            tvl.baseline(
                 sym_data,
-                time="Timestamp",
+                timestamp="Timestamp",
                 value="Close",
                 base_value=first_open if first_open is not None else 150.0,
             ),
-            tvl.line_series(sym_data, time="Timestamp", value="EMA20", title="EMA 20"),
+            tvl.line(sym_data, timestamp="Timestamp", value="EMA20", title="EMA 20"),
             crosshair_mode="magnet",
         ),
         [sym_data, selected_sym, first_open],

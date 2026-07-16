@@ -251,6 +251,70 @@ class TestBinWidthChoice:
         msg = _retrieve(listener)
         assert msg["figure"]["autoBinMeta"]["1"]["targetBins"] == 200
 
+    def test_explicit_bin_width_sticky_under_zoom_and_reset(self):
+        """An explicit bin_width stays fixed across zoom/reset. Regression: the
+        width-px-bearing AUTOBIN_ZOOM/RESET the client sends on load used to
+        recompute a "nice" width and silently discard the override."""
+        big_table = _fake_table(size=1_000_000)
+        series = _make_series(big_table, "Histogram", bin_width="PT1M")
+        chart = _make_chart([series])
+        listener = listener_module.TvlChartListener(chart, MagicMock())
+        _retrieve(listener)
+        state = listener._autobin_states[1]
+        assert state.bin_width_ns == 60 * 10**9
+
+        # A tight zoom carrying widthPx would normally recompute a fine width.
+        listener.process_message(
+            json.dumps(
+                {
+                    "type": "AUTOBIN_ZOOM",
+                    "tableRef": 1,
+                    "fromNs": 0,
+                    "toNs": 1_000_000,  # 1ms window
+                    "widthPx": 8000,
+                    "actualWidthPx": 7600,
+                }
+            ).encode(),
+            [],
+        )
+        assert state.bin_width_ns == 60 * 10**9
+
+        # Reset (also carrying widthPx) must keep the explicit width too.
+        listener.process_message(
+            json.dumps(
+                {"type": "AUTOBIN_RESET", "tableRef": 1, "widthPx": 8000}
+            ).encode(),
+            [],
+        )
+        assert state.bin_width_ns == 60 * 10**9
+
+    def test_explicit_bin_count_sticky_under_width_px(self):
+        """An explicit bin_count is authoritative: the client's widthPx must not
+        override how many bins the user asked for on zoom/reset."""
+        big_table = _fake_table(size=1_000_000)
+        series = _make_series(big_table, "Histogram", bin_count=200)
+        chart = _make_chart([series])
+        listener = listener_module.TvlChartListener(chart, MagicMock())
+        _retrieve(listener)
+        state = listener._autobin_states[1]
+        assert state.target_bins == 200
+
+        # widthPx=8000 would derive target_bins=1000 without the sticky guard.
+        listener.process_message(
+            json.dumps(
+                {
+                    "type": "AUTOBIN_ZOOM",
+                    "tableRef": 1,
+                    "fromNs": 1_700_000_000_000_000_000,
+                    "toNs": 1_700_010_000_000_000_000,
+                    "widthPx": 8000,
+                    "actualWidthPx": 7600,
+                }
+            ).encode(),
+            [],
+        )
+        assert state.target_bins == 200
+
 
 class TestAutoBinMessages:
     def _setup(self, *, range_ns=None):

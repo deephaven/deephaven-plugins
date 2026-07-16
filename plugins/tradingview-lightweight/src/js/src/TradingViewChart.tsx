@@ -414,6 +414,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   ): void {
     const ct = renderer.getChartType();
     figure.series.forEach(series => {
+      // Partition templates aren't rendered directly (the model clones one
+      // runtime series per key); skip them so we don't setData a series the
+      // renderer never created.
+      if (series.partition != null) return;
       const colData = model.getColumnData(series.dataMapping.tableId);
       if (colData) {
         const data = transformTableData(series, colData, ct);
@@ -557,6 +561,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // --- Update series data ---
       figure.series.forEach(series => {
         if (series.dataMapping.tableId !== tableId) return;
+        // Skip partition templates — rendered via their per-key runtime clones.
+        if (series.partition != null) return;
 
         const isAppendOnly =
           addedCount > 0 &&
@@ -844,10 +850,24 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           model.getTimeZone()
         );
         model.sendEvent(type, payload);
-        // Test seam: always publish the built payload to the DOM.
+        // Test seam: publish the built payload to the DOM. Expose the resolved
+        // hit series as `seriesId` (the friendly key `seriesData` is keyed by)
+        // plus its comparable `price`, so assertions can look up the pressed
+        // series' value without re-deriving the hovered-series mapping.
+        const seriesId = payload.hoveredSeries;
+        const hitData =
+          seriesId != null ? payload.seriesData[seriesId] : undefined;
+        let price: number | undefined;
+        if (hitData != null) {
+          price = 'value' in hitData ? hitData.value : hitData.close;
+        }
         containerRef.current?.setAttribute(
           'data-tvl-last-event',
-          JSON.stringify(payload)
+          JSON.stringify({
+            ...payload,
+            ...(seriesId != null ? { seriesId } : {}),
+            ...(price != null ? { price } : {}),
+          })
         );
       }
 
@@ -970,11 +990,45 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // We defer processing until pointerup to avoid firing many
       // downsample requests mid-drag.
       let needsProcessAfterDrag = false;
+      // Visible duration captured at drag start. A pan must preserve the zoom
+      // level, but LWC's fixLeftEdge/fixRightEdge clamping can stretch the
+      // visible range during a drag (pulling in far more time than was shown),
+      // which processRangeChange would then faithfully preserve — turning a pan
+      // into a zoom-out. We re-assert this duration, re-centered on wherever
+      // the user panned to, before processing the range change.
+      let dragStartDurationSec: number | null = null;
       const onDown = () => {
         draggingRef.current = true;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const vr = timeScale.getVisibleRange() as any;
+          dragStartDurationSec =
+            vr != null ? (vr.to as number) - (vr.from as number) : null;
+        } catch {
+          dragStartDurationSec = null;
+        }
       };
       const onUp = () => {
         draggingRef.current = false;
+        if (needsProcessAfterDrag && dragStartDurationSec != null) {
+          // Recenter on the panned-to position but restore the pre-drag width,
+          // so a pan shifts the window without changing the zoom.
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const vr = timeScale.getVisibleRange() as any;
+            if (vr != null) {
+              const center = ((vr.from as number) + (vr.to as number)) / 2;
+              const half = dragStartDurationSec / 2;
+              timeScale.setVisibleRange({
+                from: center - half,
+                to: center + half,
+              } as never);
+            }
+          } catch {
+            // chart may not be ready
+          }
+        }
+        dragStartDurationSec = null;
         if (needsProcessAfterDrag) {
           needsProcessAfterDrag = false;
           processRangeChange();

@@ -135,6 +135,58 @@ describe('buildPressEventPayload', () => {
       expect('hoveredSeries' in payload).toBe(false);
       expect('hoveredSeriesId' in payload).toBe(false);
     });
+
+    it('falls back to the vertically-nearest series when hoveredInfo.series is absent', () => {
+      // LWC leaves hoveredInfo.series null for a press just off a line; the
+      // payload should still report which series the press landed on by
+      // choosing the one whose value maps nearest the cursor's y.
+      const near: FakeSeries & { priceToCoordinate?: (p: number) => number } = {
+        title: 'A',
+        priceToCoordinate: () => 12, // 2px from the cursor
+      };
+      const far: FakeSeries & { priceToCoordinate?: (p: number) => number } = {
+        title: 'B',
+        priceToCoordinate: () => 90, // far from the cursor
+      };
+      const resolver = makeResolver([
+        [near, 'series_0_A'],
+        [far, 'series_1_B'],
+      ]);
+      const seriesData = new Map<ISeriesApi<SeriesType>, unknown>([
+        [asSeries(near), { value: 10 }],
+        [asSeries(far), { value: 90 }],
+      ]);
+      const params = {
+        seriesData,
+        point: { x: 100, y: 10 },
+        // hoveredInfo intentionally absent
+      } as unknown as MouseEventParams;
+
+      const payload = buildPayload('press', params, resolver);
+      expect(payload.hoveredSeries).toBe('A');
+      expect(payload.hoveredSeriesId).toBe('series_0_A');
+    });
+
+    it('does not resolve a series when the nearest is beyond the hit distance', () => {
+      // A press in empty space (far above/below every line) must not snap to a
+      // distant series.
+      const s: FakeSeries & { priceToCoordinate?: (p: number) => number } = {
+        title: 'A',
+        priceToCoordinate: () => 100, // 90px from the cursor
+      };
+      const resolver = makeResolver([[s, 'series_0_A']]);
+      const seriesData = new Map<ISeriesApi<SeriesType>, unknown>([
+        [asSeries(s), { value: 10 }],
+      ]);
+      const params = {
+        seriesData,
+        point: { x: 100, y: 10 },
+      } as unknown as MouseEventParams;
+
+      const payload = buildPayload('press', params, resolver);
+      expect('hoveredSeries' in payload).toBe(false);
+      expect('hoveredSeriesId' in payload).toBe(false);
+    });
   });
 
   describe('point / logical / paneIndex', () => {
