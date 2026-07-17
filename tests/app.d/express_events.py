@@ -1,16 +1,21 @@
 """
 Python scripts for chart event e2e tests.
-These create charts with event handlers and result tables that the Playwright
-tests can verify.
+
+Each panel renders a chart with an on_click handler alongside a read-only
+`ui.text_area` "Event Log" that the handler sets. The Playwright tests click the
+chart and assert on the log's value. This mirrors the pattern used by
+``ui_events.py`` / ``ui_events.spec.ts`` and avoids reading iris-grid cells,
+which are rendered to a canvas and are not present in the DOM.
+
+Scatter charts use ``render_mode="svg"`` so that markers are real SVG DOM
+elements the tests can click.
 """
 
-from deephaven.column import int_col, string_col, double_col
-from deephaven import new_table, empty_table, dtypes
+from deephaven.column import int_col, string_col
+from deephaven import new_table
+from deephaven import ui
 import deephaven.plot.express as dx
 
-# ============================================================
-# Test: scatter on_click fires
-# ============================================================
 click_source = new_table(
     [
         int_col("X", [1, 2, 3, 4, 5]),
@@ -19,103 +24,110 @@ click_source = new_table(
     ]
 )
 
-events_click_result = empty_table(0).update_view(
-    ["EventType = (String)null", "PointX = NULL_INT", "PointY = NULL_INT"]
-)
 
+# ============================================================
+# Test: scatter on_click fires with point data
+# ============================================================
+@ui.component
+def scatter_click_app():
+    log, set_log = ui.use_state("")
 
-def handle_scatter_click(event: dict) -> None:
-    global events_click_result
-    from deephaven import new_table
-    from deephaven.column import string_col, int_col
+    def on_click(event: dict) -> None:
+        points = event.get("points") or []
+        shift = event.get("modifiers", {}).get("shift", False)
+        if points:
+            point = points[0]
+            set_log(f"click:{point.get('x')},{point.get('y')}:shift={shift}")
+        else:
+            set_log(f"click:empty:shift={shift}")
 
-    point = event["points"][0] if event.get("points") else {}
-    events_click_result = new_table(
-        [
-            string_col("EventType", ["click"]),
-            int_col("PointX", [point.get("x", -1)]),
-            int_col("PointY", [point.get("y", -1)]),
-        ]
+    handle_click = ui.use_callback(on_click, [])
+
+    fig = ui.use_memo(
+        lambda: dx.scatter(
+            click_source,
+            x="X",
+            y="Y",
+            by="Sym",
+            render_mode="svg",
+            on_click=handle_click,
+        ),
+        [handle_click],
+    )
+
+    return ui.flex(
+        fig,
+        ui.text_area(label="Event Log", value=log, is_read_only=True),
+        direction="column",
     )
 
 
-events_scatter_click = dx.scatter(
-    click_source, x="X", y="Y", by="Sym", on_click=handle_scatter_click
-)
+events_scatter_click = scatter_click_app()
+
 
 # ============================================================
-# Test: scatter on_legend_click returning False prevents toggle
+# Test: scatter on_double_click fires
 # ============================================================
+@ui.component
+def scatter_double_click_app():
+    log, set_log = ui.use_state("")
 
+    def on_double_click(event: dict) -> None:
+        set_log("doubleclick")
 
-def handle_legend_prevent(event: dict) -> bool:
-    # Return False to prevent the toggle
-    return False
+    handle_double_click = ui.use_callback(on_double_click, [])
 
-
-events_legend_prevent = dx.scatter(
-    click_source,
-    x="X",
-    y="Y",
-    by="Sym",
-    on_legend_click=handle_legend_prevent,
-)
-
-# ============================================================
-# Test: sunburst on_click returning False prevents drill-down
-# ============================================================
-sunburst_source = new_table(
-    [
-        string_col("Labels", ["All", "A", "B", "A1", "A2", "B1"]),
-        string_col("Parents", ["", "All", "All", "A", "A", "B"]),
-        int_col("Values", [60, 30, 30, 15, 15, 30]),
-    ]
-)
-
-events_sunburst_result = empty_table(0).update_view(
-    ["Clicked = (String)null", "NextLevel = (String)null"]
-)
-
-
-def handle_sunburst_prevent(event: dict) -> bool:
-    global events_sunburst_result
-    from deephaven import new_table
-    from deephaven.column import string_col
-
-    point = event["points"][0] if event.get("points") else {}
-    events_sunburst_result = new_table(
-        [
-            string_col("Clicked", [str(point.get("label", ""))]),
-            string_col("NextLevel", [str(event.get("next_level", ""))]),
-        ]
+    fig = ui.use_memo(
+        lambda: dx.scatter(
+            click_source,
+            x="X",
+            y="Y",
+            by="Sym",
+            render_mode="svg",
+            on_double_click=handle_double_click,
+        ),
+        [handle_double_click],
     )
-    # Return False to prevent drill-down
-    return False
+
+    return ui.flex(
+        fig,
+        ui.text_area(label="Event Log", value=log, is_read_only=True),
+        direction="column",
+    )
 
 
-events_sunburst_prevent = dx.sunburst(
-    sunburst_source,
-    names="Labels",
-    parents="Parents",
-    values="Values",
-    on_click=handle_sunburst_prevent,
-)
+events_scatter_double_click = scatter_double_click_app()
+
 
 # ============================================================
-# Test: scatter on_selected fires
+# Test: scatter on_relayout fires (pan/zoom via modebar)
 # ============================================================
-events_select_result = empty_table(0).update_view(["NumPoints = NULL_INT"])
+@ui.component
+def scatter_relayout_app():
+    log, set_log = ui.use_state("")
+
+    def on_relayout(event: dict) -> None:
+        set_log("relayout")
+
+    handle_relayout = ui.use_callback(on_relayout, [])
+
+    fig = ui.use_memo(
+        lambda: dx.scatter(
+            click_source,
+            x="X",
+            y="Y",
+            by="Sym",
+            render_mode="svg",
+            on_relayout=handle_relayout,
+        ),
+        [handle_relayout],
+    )
+
+    return ui.flex(
+        fig,
+        ui.text_area(label="Event Log", value=log, is_read_only=True),
+        direction="column",
+    )
 
 
-def handle_select(event: dict) -> None:
-    global events_select_result
-    from deephaven import new_table
-    from deephaven.column import int_col
-
-    num_points = len(event.get("points", []))
-    events_select_result = new_table([int_col("NumPoints", [num_points])])
-
-
-events_scatter_select = dx.scatter(
-    click_source, x="X", y="Y", on_selected=handle_select
-)
+events_scatter_relayout = scatter_relayout_app()

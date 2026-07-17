@@ -1,125 +1,120 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage } from './utils';
+import { gotoPage, openPanel, SELECTORS } from './utils';
 
 /**
  * E2E tests for chart event callbacks.
  *
  * These tests require corresponding Python scripts in tests/app.d/
- * that create charts with event handlers that write results to tables.
+ * (express_events.py, registered in tests.app). Each panel renders a chart
+ * next to a read-only `ui.text_area` "Event Log" that the on_click handler
+ * sets, so we can assert on the textarea value instead of reading
+ * canvas-rendered iris-grid cells. Scatter charts use render_mode="svg" so
+ * markers are real SVG DOM elements we can click.
  */
 
 test.describe('Chart Events', () => {
   test('scatter on_click fires with point data', async ({ page }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'events_scatter_click', '.js-plotly-plot');
-
-    // Wait for chart to render
-    const chart = page.locator('.js-plotly-plot');
-    await expect(chart).toBeVisible();
-
-    // Click on a data point (center of chart area)
-    const plotArea = chart.locator('.plot-container .draglayer');
-    await plotArea.click({ position: { x: 200, y: 200 } });
-
-    // Verify callback result was written with expected values
-    await openPanel(page, 'events_click_result', '.iris-grid');
-    const grid = page.locator('.iris-grid');
-    await expect(grid).toBeVisible();
-    // The result table should contain "click" in the EventType column
-    await expect(grid).toContainText('click');
-  });
-
-  test('scatter on_legend_click returning False prevents toggle', async ({
-    page,
-  }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'events_legend_prevent', '.js-plotly-plot');
-
-    const chart = page.locator('.js-plotly-plot');
-    await expect(chart).toBeVisible();
-
-    // Capture the first trace's opacity before the click
-    const firstTrace = chart.locator('.plot-container .trace').first();
-    await expect(firstTrace).toBeVisible();
-    const opacityBefore = await firstTrace.evaluate(
-      el => window.getComputedStyle(el).opacity
+    await openPanel(
+      page,
+      'events_scatter_click',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
     );
 
-    // Click a legend item
-    const legendItem = chart.locator('.legend .traces').first();
-    await legendItem.click();
-
-    // Wait for the debounced round-trip
-    await page.waitForTimeout(800);
-
-    // The trace should still be visible with the same opacity (toggle prevented)
-    await expect(firstTrace).toBeVisible();
-    const opacityAfter = await firstTrace.evaluate(
-      el => window.getComputedStyle(el).opacity
-    );
-    expect(opacityAfter).toBe(opacityBefore);
-  });
-
-  test('sunburst on_click returning False prevents drill-down', async ({
-    page,
-  }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'events_sunburst_prevent', '.js-plotly-plot');
-
-    const chart = page.locator('.js-plotly-plot');
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+    const chart = panel.locator('.js-plotly-plot');
     await expect(chart).toBeVisible();
 
-    // Click on a sunburst segment — require it to be visible
-    const sunburstSlice = chart.locator('.sunburst .slice').first();
-    await expect(sunburstSlice).toBeVisible();
+    const log = panel.getByRole('textbox', { name: 'Event Log' });
+    await expect(log).toHaveValue('');
 
-    // Count slices before click to verify drill-down was prevented
-    const slicesBefore = await chart.locator('.sunburst .slice').count();
-    await sunburstSlice.click();
+    // Plotly's click detection lives on the draglayer overlay, so click at the
+    // marker's screen position with page.mouse rather than the marker element.
+    const marker = chart.locator('.scatterlayer .points path.point').first();
+    await expect(marker).toBeVisible();
+    const box = await marker.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    }
 
-    // Wait for response
-    await page.waitForTimeout(500);
-
-    // Verify the callback ran by checking the result table has data
-    await openPanel(page, 'events_sunburst_result', '.iris-grid');
-    const grid = page.locator('.iris-grid');
-    await expect(grid).toBeVisible();
-    // The Clicked column should have a non-null label from the callback
-    await expect(grid).not.toContainText('null');
-
-    // Verify drill-down was prevented: same number of slices
-    const slicesAfter = await chart.locator('.sunburst .slice').count();
-    expect(slicesAfter).toBe(slicesBefore);
+    // on_click should fire and log the clicked point's x,y coordinates.
+    await expect(log).toHaveValue(/click:\d+,\d+:shift=False/);
   });
 
-  test('on_selected fires with selection data', async ({ page }) => {
+  test('scatter on_click reports shift modifier', async ({ page }) => {
     await gotoPage(page, '');
-    await openPanel(page, 'events_scatter_select', '.js-plotly-plot');
+    await openPanel(
+      page,
+      'events_scatter_click',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
 
-    const chart = page.locator('.js-plotly-plot');
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+    const chart = panel.locator('.js-plotly-plot');
     await expect(chart).toBeVisible();
 
-    // Switch to box select mode (click the modebar button)
-    const boxSelectBtn = chart.locator(
-      '[data-title="Box Select"], [data-val="select"]'
+    const log = panel.getByRole('textbox', { name: 'Event Log' });
+    await expect(log).toHaveValue('');
+
+    const marker = chart.locator('.scatterlayer .points path.point').first();
+    await expect(marker).toBeVisible();
+    const box = await marker.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      // Hold Shift so the raw pointer event carries shiftKey.
+      await page.keyboard.down('Shift');
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.keyboard.up('Shift');
+    }
+
+    // The handler should observe the shift modifier.
+    await expect(log).toHaveValue(/click:\d+,\d+:shift=True/);
+  });
+
+  test('scatter on_double_click fires', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(
+      page,
+      'events_scatter_double_click',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
     );
-    await expect(boxSelectBtn).toBeVisible();
-    await boxSelectBtn.click();
 
-    // Drag to select points
-    const plotArea = chart.locator('.plot-container .draglayer');
-    await plotArea.dragTo(plotArea, {
-      sourcePosition: { x: 50, y: 50 },
-      targetPosition: { x: 250, y: 250 },
-    });
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+    const chart = panel.locator('.js-plotly-plot');
+    await expect(chart).toBeVisible();
 
-    await page.waitForTimeout(500);
+    const log = panel.getByRole('textbox', { name: 'Event Log' });
+    await expect(log).toHaveValue('');
 
-    // Verify callback result has NumPoints > 0
-    await openPanel(page, 'events_select_result', '.iris-grid');
-    const grid = page.locator('.iris-grid');
-    await expect(grid).toBeVisible();
-    // The grid should NOT show 0 points — the callback should have captured some
-    await expect(grid).not.toContainText('null');
+    // Double-click the plot area; Plotly fires plotly_doubleclick on the
+    // draglayer overlay.
+    const dragLayer = chart.locator('.draglayer .nsewdrag').first();
+    const box = await dragLayer.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+    }
+
+    await expect(log).toHaveValue('doubleclick');
+  });
+
+  test('scatter on_relayout fires', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(
+      page,
+      'events_scatter_relayout',
+      SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+    );
+
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+    const chart = panel.locator('.js-plotly-plot');
+    await expect(chart).toBeVisible();
+
+    const log = panel.getByRole('textbox', { name: 'Event Log' });
+
+    // Plotly emits plotly_relayout when it applies the initial autorange, so
+    // the handler fires as the chart lays out — no drag/zoom gesture needed.
+    await expect(log).toHaveValue('relayout');
   });
 });

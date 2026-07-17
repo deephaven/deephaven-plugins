@@ -58,7 +58,7 @@ All event callbacks are optional keyword arguments that default to `None`.
 | `on_web_gl_context_lost` | WebGL context lost                                                         |
 
 > [!NOTE]
-> All events are accepted by all chart types. Some combinations have no natural top-level trigger (such as `on_click_annotation`), but may become relevant if you add elements via `unsafe_update_figure`.
+> All events are accepted by all chart types. Some combinations have no natural top-level trigger (such as `on_click_annotation`), but may become relevant if you add elements via [unsafe_update_figure](unsafe-update-figure.md).
 
 ## Preventable Events
 
@@ -142,7 +142,7 @@ On hierarchical charts, an additional `next_level` field is included, which indi
 }
 ```
 
-When the `clickanywhere` layout option is `True` via `unsafe_update_figure`, clicking empty space fires with an empty `points` list plus `xvals` and `yvals`.
+Certain event functionality currently requires updating the layout via [unsafe_update_figure](unsafe-update-figure.md), which is generally safe. When the `clickanywhere` layout option is set to `True` via `unsafe_update_figure`, clicking empty space fires with an empty `points` list plus `xvals` and `yvals`.
 
 ```python
 {
@@ -174,6 +174,13 @@ On box or lasso selection, the event includes an array of selected points and th
     "modifiers": {"shift": False, "ctrl": False, "alt": False, "meta": False},
 }
 ```
+
+> [!WARNING]
+> Selection has several caveats:
+>
+> 1. Selection sends details on every point within the selection box/lasso. Use this event only when you expect a small number of selected points.
+> 2. Only points drawn as markers can be selected. Traces that render as lines only (such as `dx.line`) contribute no points to the selection. To make a line chart selectable, add markers, such as with `markers=True`.
+> 3. The selection will be misleading if the chart is downsampled.
 
 ### Deselect events (`on_deselect`)
 
@@ -305,9 +312,6 @@ fig = dx.icicle(
 ### Capture selected points into a table on box/lasso select
 
 Use `on_selected` to capture the points within the selection box/lasso and build a new table from those points.
-
-> [!WARNING]
-> Selection sends details on every point within the selection box/lasso. It's recommended to use this pattern only when you expect a small number of selected points.
 
 ```python
 import deephaven.plot.express as dx

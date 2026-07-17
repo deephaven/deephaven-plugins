@@ -492,7 +492,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   updateCallbacks(data: PlotlyChartWidgetData): void {
     const { deephaven } = data.figure;
-    if (deephaven.callbacks) {
+    if (deephaven.callbacks != null) {
       this.callbackMap = new Map(Object.entries(deephaven.callbacks));
     } else {
       this.callbackMap = new Map();
