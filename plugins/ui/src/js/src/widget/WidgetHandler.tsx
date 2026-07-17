@@ -408,7 +408,7 @@ function WidgetHandler({
       log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
         METHOD_DOCUMENT_PATCHED,
-        async (params: [Operation[], string]) => {
+        async (params: [Operation[], string?]) => {
           log.debug2(METHOD_DOCUMENT_PATCHED, params);
           const [patch, stateParam] = params;
 
@@ -423,6 +423,15 @@ function WidgetHandler({
           if (stateParam != null) {
             try {
               const newState = JSON.parse(stateParam);
+              if (
+                newState == null ||
+                typeof newState !== 'object' ||
+                Array.isArray(newState)
+              ) {
+                throw new Error(
+                  `Expected state to be an object, received ${typeof newState}`
+                );
+              }
               lastReceivedStateRef.current = newState;
               onDataChange({ state: newState });
             } catch (e) {
