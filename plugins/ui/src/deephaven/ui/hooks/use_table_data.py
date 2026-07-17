@@ -12,10 +12,11 @@ from deephaven.liveness_scope import liveness_scope
 from deephaven.server.executors import submit_task
 from deephaven.update_graph import has_exclusive_lock
 
+from ._transform import transform as apply_ticket_transform
 from .use_callback import use_callback
 from .use_effect import use_effect
 from .use_state import use_state
-from .use_table_listener import use_table_listener
+from .use_table_listener import _use_table_listener_without_ticket_transform
 
 from ..types import Sentinel, TableData, TransformedData
 
@@ -152,6 +153,34 @@ def use_table_data(
     Returns:
         The table data or the sentinel value.
     """
+    table = apply_ticket_transform(table)
+    return _use_table_data_without_ticket_transform(table, sentinel, transform)
+
+
+def _use_table_data_without_ticket_transform(
+    table: Table | None,
+    sentinel: Sentinel = None,
+    transform: (
+        Callable[[pd.DataFrame | Sentinel | None, bool], TransformedData | Sentinel]
+        | None
+    ) = None,
+) -> TableData | Sentinel | TransformedData:
+    """
+    Returns a dictionary with the contents of the table. Component will redraw if the table
+    changes, resulting in an updated frame.
+
+    Note that plugin transformations are not applied, so this function is intended only for use by other hooks that
+    have already applied a plugin transformation.
+
+    Args:
+        table: The table to listen to. If None, None will be returned, not the sentinel value.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        transform: A function to transform the table data and is_sentinel values. Defaults to None, which will
+            return the data as TableData.
+
+    Returns:
+        The table data or the sentinel value.
+    """
     initial_data, initial_is_sentinel = _get_data_values(table, sentinel)
     data, set_data = use_state(initial_data)
     is_sentinel, set_is_sentinel = use_state(initial_is_sentinel)
@@ -181,6 +210,6 @@ def use_table_data(
     )
 
     # call table_updated every time the table updates
-    use_table_listener(table, listener, [])
+    _use_table_listener_without_ticket_transform(table, listener, [])
 
     return transform(data, is_sentinel)

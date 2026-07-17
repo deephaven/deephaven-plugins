@@ -115,3 +115,9 @@ ui_nested_dashboard_interactive = nested_dashboard_interactive_component()
 ui_deeply_nested_dashboard = deeply_nested_dashboard_component()
 ui_nested_dashboard_with_state = nested_dashboard_with_state_component()
 ui_buggy_drag_panel = buggy_drag_panel()
+
+# DH-22995: A dashboard whose only child is a non-panel element. The element is
+# auto-wrapped in a panel. After persisting the layout (disable "Close Panels on
+# Disconnect") and refreshing, the panel reopens but its content renders
+# off-screen with an unnecessary scroll bar.
+ui_heading_dashboard = ui.panel(ui.dashboard(ui.heading("Reproducing DH-22995")))

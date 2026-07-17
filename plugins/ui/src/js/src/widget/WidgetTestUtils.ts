@@ -3,8 +3,10 @@ import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
 import { type Operation } from 'fast-json-patch';
 import {
+  METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
+  type WidgetError,
   type WidgetMessageEvent,
 } from './WidgetTypes';
 
@@ -55,6 +57,23 @@ export function makeWidgetEventDocumentPatched(
   patch: Operation[] = []
 ): WidgetMessageEvent {
   return makeWidgetEvent(makeDocumentPatchedJsonRpcString(patch));
+}
+
+export function makeWidgetEventDocumentError(
+  error: Partial<WidgetError> = {}
+): WidgetMessageEvent {
+  const widgetError: WidgetError = {
+    name: 'Error',
+    message: 'Document error',
+    ...error,
+  };
+  return makeWidgetEvent(
+    JSON.stringify({
+      jsonrpc: '2.0',
+      method: METHOD_DOCUMENT_ERROR,
+      params: [JSON.stringify(widgetError)],
+    })
+  );
 }
 
 export function makeWidgetDescriptor({

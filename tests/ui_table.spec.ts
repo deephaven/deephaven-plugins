@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { SELECTORS, openPanel, gotoPage, clickGridRow } from './utils';
+import {
+  SELECTORS,
+  openPanel,
+  gotoPage,
+  clickGridRow,
+  waitForGridRender,
+} from './utils';
 
 test.describe('UI table', () => {
   [
@@ -31,15 +37,18 @@ test.describe('UI table', () => {
     't_heatmap_both',
     't_heatmap_databar_overlay',
     't_heatmap_databar_mixed',
+    't_programmatic_sort_asc',
+    't_programmatic_sort_abs_desc',
     't_rollup_format',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');
       await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-      await expect(
-        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
-      ).toHaveScreenshot();
+      const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+      await waitForGridRender(locator);
+
+      await expect(locator).toHaveScreenshot();
     });
   });
 });

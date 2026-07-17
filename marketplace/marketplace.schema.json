@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deephaven.io/marketplace.schema.json",
+  "title": "Deephaven Plugin Directory",
+  "description": "Defines the list of plugins shown on deephaven.io/plugins. Open a PR against this file to add your plugin.",
+  "type": "object",
+  "required": ["plugins"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "plugins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/plugin" }
+    }
+  },
+  "$defs": {
+    "plugin": {
+      "type": "object",
+      "required": ["name", "description", "author", "repo", "image"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Display name of the plugin. Don't prefix with \"Deephaven\", that's implied.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "description": {
+          "description": "Short description shown on the plugin card",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280
+        },
+        "author": {
+          "description": "GitHub user or org that owns the plugin's repo",
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$"
+        },
+        "repo": {
+          "description": "GitHub repository URL (a path within a repo is allowed for monorepos)",
+          "type": "string",
+          "pattern": "^https://github\\.com/[^/]+/[^/]+"
+        },
+        "href": {
+          "description": "Where the card links to: an internal docs path (starts with /) or an external https URL. Defaults to the repo URL.",
+          "type": "string",
+          "pattern": "^(/|https://)"
+        },
+        "image": {
+          "description": "Card image: a PNG committed to marketplace/images/ in this repo, referenced as /marketplace/images/<file>.png",
+          "type": "string",
+          "pattern": "^/marketplace/images/[^/]+\\.png$"
+        },
+        "registry": {
+          "description": "Optional package registry listing where the plugin is published",
+          "type": "object",
+          "required": ["kind", "url"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "description": "Which registry the package is published to",
+              "type": "string",
+              "enum": ["pypi", "npm", "maven", "conda", "gradle", "other"]
+            },
+            "package": {
+              "description": "Package name on the registry",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "url": {
+              "description": "URL of the package listing",
+              "type": "string",
+              "pattern": "^https://"
+            }
+          }
+        },
+        "minDeephavenVersion": {
+          "description": "Minimum Deephaven version the plugin is known to work with, e.g. 0.36.0",
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+        },
+        "preInstalled": {
+          "description": "Whether the plugin ships pre-installed with Deephaven. Reserved for Deephaven-owned plugins; enforced by the validator.",
+          "type": "boolean"
+        },
+        "tags": {
+          "description": "Tags used for filtering in the directory. \"official\" is reserved; it is derived automatically from the author.",
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          }
+        }
+      }
+    }
+  }
+}

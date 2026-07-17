@@ -2,7 +2,11 @@ import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
 import { Flex } from '@deephaven/components';
-import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
+import {
+  normalizeRowChildren,
+  wrapBareChildrenInPanel,
+  type RowElementProps,
+} from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
@@ -45,9 +49,10 @@ function Row({ children, height }: RowElementProps): JSX.Element {
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a row here, or normalize the children which might add a stack unnecessarily.
-    // Just render the children as they are, and the initial layout config should already have the panels mapped out.
+    // The persisted layout already has the rows/columns/stacks mapped out, but bare
+    // content children still need a panel wrapper so they portal into their persisted panel.
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return <>{wrapBareChildrenInPanel(children)}</>;
   }
 
   if (panelId == null) {
