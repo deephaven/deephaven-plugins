@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-pivot-builder",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Deephaven Plugin that adds a Create Pivot item to the IrisGrid Table Options sidebar",
   "keywords": [
     "Deephaven",
