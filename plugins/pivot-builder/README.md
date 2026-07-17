@@ -41,13 +41,15 @@ and
 
 ## Defaults
 
-When no row/column/value selection has been made yet, the page picks
-sensible defaults from the source columns:
+The Create Pivot page opens with empty selections — no rollup rows, pivot
+columns, or aggregations are pre-filled. `seedPivotBuilderUiState` only restores
+a previously applied/persisted configuration (or hydrates a legacy iris-grid
+`rollupConfig`/`totalsConfig`); when there is nothing to restore, every card
+starts empty and the user chooses columns explicitly.
 
-- `rowKeys`: first non-numeric column (or first column if all numeric)
-- `columnKeys`: second non-numeric column if available, else `[]`
-- `aggregations`: `{ Sum: [<all numeric col names>] }`, or `{ Count: [] }`
-  when there are no numeric columns
+`makeDefaultPivotConfig` is exported as a convenience helper for computing a
+sensible starting `PivotConfig` (e.g. first non-numeric column for `rowKeys`),
+but the page does not apply it automatically.
 
 ## Requirements
 

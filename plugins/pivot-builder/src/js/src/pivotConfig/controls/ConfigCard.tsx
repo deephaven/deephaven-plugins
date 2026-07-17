@@ -86,15 +86,10 @@ export default function ConfigCard({
             Add
           </ActionButton>
         </span>
-        {overflow}
+        {disabled !== true ? overflow : null}
         {picker?.(buttonRef)}
       </div>
-      <div
-        className={on ? undefined : 'pivot-card-body--off'}
-        aria-disabled={!on}
-      >
-        {children}
-      </div>
+      <div className={on ? undefined : 'pivot-card-body--off'}>{children}</div>
     </div>
   );
 }

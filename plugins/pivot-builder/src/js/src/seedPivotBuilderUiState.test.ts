@@ -86,6 +86,25 @@ describe('aggregationsFromPivot', () => {
       []
     );
   });
+
+  it('merges duplicate operations, de-duping columns and preserving order', () => {
+    expect(
+      aggregationsFromPivot([
+        { operation: 'Sum', columns: ['x', 'y'] },
+        { operation: 'Avg', columns: ['z'] },
+        { operation: 'Sum', columns: ['y', 'w'] },
+      ])
+    ).toEqual([agg('Sum', ['x', 'y', 'w']), agg('Avg', ['z'])]);
+  });
+
+  it('ignores empty-column duplicates when merging', () => {
+    expect(
+      aggregationsFromPivot([
+        { operation: 'Sum', columns: ['x'] },
+        { operation: 'Sum', columns: [] },
+      ])
+    ).toEqual([agg('Sum', ['x'])]);
+  });
 });
 
 describe('aggregationsToPivot', () => {

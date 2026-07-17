@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   type IrisGridModel,
   type IrisGridModelWidgetProps,
@@ -17,11 +17,6 @@ import {
   type PivotBuilderConfig,
   type PivotConfig,
 } from './pivotBuilderModel';
-import {
-  PivotServiceContext,
-  type PivotServiceStatus,
-} from './PivotServiceContext';
-import { PIVOT_SERVICE_TYPE } from './resolvePivotService';
 import { usePivotBuilderMiddlewareCore } from './usePivotBuilderMiddlewareCore';
 import { addModelListener } from './modelEvents';
 
@@ -120,9 +115,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       irisGridProps,
       onModelChanged,
       model,
-      workerVariables,
-      corePlusAvailable,
-      resetPspWidget,
+      wrap,
     } = usePivotBuilderMiddlewareCore({
       metadata: props.metadata as
         | DhType.ide.VariableDescriptor
@@ -132,30 +125,6 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       upstreamTransformModel,
       getPersistedConfig,
     });
-
-    const pivotServiceStatus: PivotServiceStatus = useMemo(() => {
-      if (!corePlusAvailable) return 'unavailable';
-      if (workerVariables == null) return 'loading';
-      return workerVariables.some(v => v.type === PIVOT_SERVICE_TYPE)
-        ? 'ready'
-        : 'unavailable';
-    }, [corePlusAvailable, workerVariables]);
-
-    // Drop the cached PSP widget whenever the host worker no longer publishes
-    // a PivotService variable (e.g. the query restarted onto a worker without
-    // PSP, or the user closed the service). The next Apply will re-fetch.
-    useEffect(() => {
-      if (pivotServiceStatus !== 'ready') {
-        resetPspWidget();
-      }
-    }, [pivotServiceStatus, resetPspWidget]);
-
-    const pivotServiceContextValue = useMemo(
-      () => ({
-        status: pivotServiceStatus,
-      }),
-      [pivotServiceStatus]
-    );
 
     // Persist the current builder config on every change so reloads restore
     // the user's view. `isPivot` (theme/renderer gating) is tracked by the
@@ -191,11 +160,7 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
         irisGridProps,
         onModelChanged,
       },
-      wrap: child => (
-        <PivotServiceContext.Provider value={pivotServiceContextValue}>
-          {child}
-        </PivotServiceContext.Provider>
-      ),
+      wrap,
     };
   },
   'PivotBuilderPanelMiddleware'

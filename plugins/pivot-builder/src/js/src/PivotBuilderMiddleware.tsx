@@ -53,15 +53,20 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
     transformModel: upstreamTransformModel,
     ...props
   }) => {
-    const { transformModel, composedTransform, irisGridProps, onModelChanged } =
-      usePivotBuilderMiddlewareCore({
-        metadata: props.metadata as
-          | DhType.ide.VariableDescriptor
-          | null
-          | undefined,
-        transformTableOptions,
-        upstreamTransformModel,
-      });
+    const {
+      transformModel,
+      composedTransform,
+      irisGridProps,
+      onModelChanged,
+      wrap,
+    } = usePivotBuilderMiddlewareCore({
+      metadata: props.metadata as
+        | DhType.ide.VariableDescriptor
+        | null
+        | undefined,
+      transformTableOptions,
+      upstreamTransformModel,
+    });
 
     return {
       inject: {
@@ -70,6 +75,7 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
         irisGridProps,
         onModelChanged,
       },
+      wrap,
     };
   },
   'PivotBuilderMiddleware'

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+} from 'react';
 import {
   IrisGridModel,
   type IrisGridModelTransform,
@@ -19,7 +26,6 @@ import {
 } from '@deephaven/js-plugin-pivot';
 import { ToastQueue } from '@deephaven/components';
 import Log from '@deephaven/log';
-import type { WorkerVariables } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   isPivotBuilderIrisGridModel,
@@ -32,7 +38,12 @@ import { makePivotModelTransform } from './makePivotModelTransform';
 import {
   closePivotServiceWidget,
   pickPivotServiceDescriptor,
+  PIVOT_SERVICE_TYPE,
 } from './resolvePivotService';
+import {
+  PivotServiceContext,
+  type PivotServiceStatus,
+} from './PivotServiceContext';
 import { useWaitForWorkerVariables } from './useWaitForWorkerVariables';
 import { addModelListener } from './modelEvents';
 
@@ -92,12 +103,12 @@ export interface PivotBuilderMiddlewareCore {
   onModelChanged: (model: IrisGridModel) => void;
   /** The current host model (for callers that layer persistence on top). */
   model: IrisGridModel | null;
-  /** Live worker variable snapshot (for deriving PSP availability status). */
-  workerVariables: WorkerVariables | null;
-  /** Whether the JS API is a CorePlus build (pivot path requires it). */
-  corePlusAvailable: boolean;
-  /** Drop any cached PivotService widget, closing the stale handle first. */
-  resetPspWidget: () => void;
+  /**
+   * Wrap the middleware's rendered child in the PivotService availability
+   * context so the sidebar `CreatePivotPage` sees the same status on both the
+   * widget and panel paths.
+   */
+  wrap: (child: ReactElement) => ReactElement;
 }
 
 /**
@@ -293,15 +304,46 @@ export function usePivotBuilderMiddlewareCore({
     ]
   );
 
+  // PivotService availability, derived once here so both the widget- and
+  // panel-path middlewares expose it to the sidebar identically (no
+  // per-path duplication).
+  const pivotServiceStatus: PivotServiceStatus = useMemo(() => {
+    if (!corePlusAvailable) return 'unavailable';
+    if (workerVariables == null) return 'loading';
+    return workerVariables.some(v => v.type === PIVOT_SERVICE_TYPE)
+      ? 'ready'
+      : 'unavailable';
+  }, [corePlusAvailable, workerVariables]);
+
+  // Drop the cached PSP widget whenever the worker stops publishing a
+  // PivotService variable (e.g. a restart onto a worker without PSP, or the
+  // user closed the service). The next Apply re-fetches.
+  useEffect(() => {
+    if (pivotServiceStatus !== 'ready') {
+      resetPspWidget();
+    }
+  }, [pivotServiceStatus, resetPspWidget]);
+
+  const pivotServiceContextValue = useMemo(
+    () => ({ status: pivotServiceStatus }),
+    [pivotServiceStatus]
+  );
+  const wrap = useCallback(
+    (child: ReactElement): ReactElement => (
+      <PivotServiceContext.Provider value={pivotServiceContextValue}>
+        {child}
+      </PivotServiceContext.Provider>
+    ),
+    [pivotServiceContextValue]
+  );
+
   return {
     transformModel,
     composedTransform,
     irisGridProps,
     onModelChanged: setModel,
     model,
-    workerVariables,
-    corePlusAvailable,
-    resetPspWidget,
+    wrap,
   };
 }
 

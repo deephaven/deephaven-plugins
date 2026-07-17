@@ -100,14 +100,31 @@ export function aggregationsToPivot(
 export function aggregationsFromPivot(
   aggregations: PivotAggregation[] | Record<string, string[]>
 ): AggregationSettings['aggregations'] {
-  return toPivotAggregations(aggregations)
+  // Operations are unique per aggregation card, but an ordered `PivotConfig`
+  // could carry repeated operations. Merge duplicates (columns de-duped, order
+  // preserved) so the UI — which keys one row per operation via
+  // `aggregationRowId(operation)` — never gets colliding IDs.
+  const byOperation = new Map<string, string[]>();
+  toPivotAggregations(aggregations)
     .filter(agg => agg.columns.length > 0)
-    .map(agg => ({
-      operation:
-        agg.operation as AggregationSettings['aggregations'][number]['operation'],
-      selected: [...agg.columns],
-      invert: false,
-    }));
+    .forEach(agg => {
+      const existing = byOperation.get(agg.operation);
+      if (existing == null) {
+        byOperation.set(agg.operation, [...agg.columns]);
+      } else {
+        agg.columns.forEach(col => {
+          if (!existing.includes(col)) {
+            existing.push(col);
+          }
+        });
+      }
+    });
+  return Array.from(byOperation, ([operation, columns]) => ({
+    operation:
+      operation as AggregationSettings['aggregations'][number]['operation'],
+    selected: columns,
+    invert: false,
+  }));
 }
 
 /**
