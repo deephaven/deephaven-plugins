@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.40.2 - 2026-07-15
+
+#### Bug Fixes
+
+- **(ui)** DH-19717: Fix deephaven.ui persistence in dashboards ([#1386](https://github.com/deephaven/deephaven-plugins/pull/1386)) - (29d8f47) - mofojed
+
+- - -
+
+
+## ui-v0.40.1 - 2026-07-08
+
+#### Bug Fixes
+
+- DH-23019: Render a widget error differently for DashboardWidgetHandler ([#1385](https://github.com/deephaven/deephaven-plugins/pull/1385)) - (94d0234) - mofojed
+
+- - -
+
+
 ## ui-v0.40.0 - 2026-07-02
 
 #### Features

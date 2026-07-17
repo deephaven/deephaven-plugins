@@ -1,4 +1,9 @@
-import React, { type Key, type ReactElement, useMemo } from 'react';
+import React, {
+  type Key,
+  type ReactElement,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Tabs as DHCTabs,
   type TabsProps,
@@ -9,6 +14,7 @@ import {
   type TabListProps,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
+import { usePersistentState } from '@deephaven/plugin';
 import { ensureArray } from '@deephaven/utils';
 import classNames from 'classnames';
 import { TabPanels } from './TabPanels';
@@ -31,6 +37,11 @@ type TabChild =
   | ReactElement<TabProps>
   | ReactElement<TabListProps<TabProps>, typeof TabList<TabProps>>
   | ReactElement<TabPanelsProps<TabProps>, typeof TabPanels>;
+
+// The selection key type accepted by the underlying Spectrum Tabs
+// (`string | number`). Note this is narrower than React's `Key`, which also
+// includes `bigint`.
+type TabSelectionKey = NonNullable<TabComponentProps['defaultSelectedKey']>;
 
 function containsDuplicateKeys(childrenArray: JSX.Element[]) {
   const keys = childrenArray.map(child => child.key);
@@ -83,11 +94,36 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     onSelectionChange: onSelectionChangeProp,
     onChange,
     UNSAFE_className,
+    selectedKey,
+    defaultSelectedKey,
     ...otherTabProps
   } = props;
   const childrenArray = useMemo(() => ensureArray(children), [children]);
 
-  const onSelectionChange = onSelectionChangeProp ?? onChange;
+  // Persist the active tab so it is restored when the widget is rehydrated
+  // (e.g. after a page refresh). When the component is controlled by the server
+  // (`selectedKey` provided) the server remains the source of truth.
+  const [persistedKey, setPersistedKey] = usePersistentState<
+    TabSelectionKey | undefined
+  >(defaultSelectedKey, { type: 'UITabs', version: 1 });
+
+  const userOnSelectionChange = onSelectionChangeProp ?? onChange;
+
+  const onSelectionChange = useCallback(
+    (key: TabSelectionKey) => {
+      setPersistedKey(key);
+      userOnSelectionChange?.(key);
+    },
+    [setPersistedKey, userOnSelectionChange]
+  );
+
+  // When the server controls the selection, pass it straight through.
+  // Otherwise seed the (uncontrolled) default from the persisted value so the
+  // previously active tab is selected on rehydration.
+  const selectionProps =
+    selectedKey !== undefined
+      ? { selectedKey }
+      : { defaultSelectedKey: persistedKey ?? defaultSelectedKey };
 
   const tabPanelsOrLists = childrenArray.filter(
     child =>
@@ -141,6 +177,8 @@ export function Tabs(props: TabComponentProps): JSX.Element {
         onSelectionChange={onSelectionChange}
         UNSAFE_className={classNames('dh-tabs', UNSAFE_className)}
         // eslint-disable-next-line react/jsx-props-no-spreading
+        {...selectionProps}
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
         {children}
@@ -152,6 +190,8 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     <DHCTabs
       onSelectionChange={onSelectionChange}
       UNSAFE_className={classNames('dh-tabs', UNSAFE_className)}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...selectionProps}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >

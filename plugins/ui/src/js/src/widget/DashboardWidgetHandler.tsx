@@ -67,12 +67,19 @@ function DashboardWidgetHandler({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [widgetDescriptor]);
 
+  const renderErrorDocument = useCallback(
+    // When opening a DashboardWidgetHandler, the panels may already be open, so we don't need to render anything other than in the empty case.
+    () => renderEmptyDocument(),
+    [renderEmptyDocument]
+  );
+
   return (
     <WidgetHandler
       id={id}
       onDataChange={handleDataChange}
       onClose={handleClose}
       renderEmptyDocument={renderEmptyDocument}
+      renderErrorDocument={renderErrorDocument}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
     />

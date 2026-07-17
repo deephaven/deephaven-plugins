@@ -211,7 +211,15 @@ function ReactPanel({
         }
         LayoutUtils.openComponent({ root: parent, config });
         log.debug('Opened panel', panelId, config);
-      } else if (openedMetadataRef.current !== metadata) {
+      } else if (
+        openedMetadataRef.current != null &&
+        openedMetadataRef.current !== metadata
+      ) {
+        // The panel already exists and its metadata has changed, so bring it to
+        // the front of its stack. We intentionally skip this when there is no
+        // previously-seen metadata (`openedMetadataRef.current == null`), which
+        // is the case when a whole dashboard is being rehydrated - stealing the
+        // active item then would clobber the persisted active tab.
         const contentItem = LayoutUtils.getContentItemInStack(
           existingStack,
           itemConfig

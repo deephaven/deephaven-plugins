@@ -51,9 +51,8 @@ def use_state(
 
     value: T = context.get_state(hook_index)
 
-    def set_value(new_value: T | UpdaterFunction[T]):
-        # Set the value in the context state and trigger a re-render
-        logger.debug("use_state set_value called with %s", new_value)
-        context.queue_render(lambda: context.set_state(hook_index, new_value))
+    # Use a stable setter instance across renders so it serializes to a stable
+    # callable id for the client (see RenderContext.make_state_setter).
+    set_value = context.make_state_setter(hook_index)
 
     return value, set_value
