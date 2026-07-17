@@ -116,7 +116,7 @@ case "$package" in
         ag-grid | matplotlib | pivot | plotly | plotly-express | python-remote-file-source | theme-pack | ui | utilities | packaging)
             update_file "${package}/setup.cfg" 'version = ' '' "$extra"
             ;;
-        auth-keycloak | table-example)
+        auth-keycloak | pivot-builder | table-example)
             # Packages that don't have any Python to publish, just ignore
             ;;
         *)
@@ -130,7 +130,7 @@ esac
 npm_version="${version}"
 if [ "$dev" != true ]; then
     case "$package" in
-        ag-grid | auth-keycloak | matplotlib | pivot | plotly | plotly-express | python-remote-file-source | table-example |  theme-pack  | ui)
+        ag-grid | auth-keycloak | matplotlib | pivot | pivot-builder | plotly | plotly-express | python-remote-file-source | table-example |  theme-pack  | ui)
             # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
             npm version "$npm_version" --workspace=src/js
             ;;
