@@ -4,7 +4,7 @@ Chart events allow you to respond to user interactions on a chart with callback 
 
 ## Example
 
-```python
+```python order=fig,click_history,stocks
 import deephaven.plot.express as dx
 from deephaven import input_table, new_table, dtypes as dht
 from deephaven.column import string_col, double_col
@@ -88,7 +88,7 @@ Every event payload includes a `modifiers` dict describing which keyboard modifi
 
 For example, use `modifiers` to branch on shift-click:
 
-```python
+```python order=fig,gapminder_hierarchy,gapminder
 import deephaven.plot.express as dx
 
 gapminder = dx.data.gapminder()
@@ -246,7 +246,7 @@ Many of the following examples use [`deephaven.ui`](https://deephaven.io/core/do
 
 Use `on_click` to capture the clicked data point and use that information to filter a related table.
 
-```python
+```python order=stock_detail_panel,stocks
 import deephaven.plot.express as dx
 from deephaven import ui
 
@@ -287,7 +287,7 @@ stock_detail_panel = stock_detail()
 
 Return `False` from the `on_click` handler to prevent drill-down on hierarchical charts of type sunburst, treemap, or icicle.
 
-```python
+```python order=fig,gapminder_hierarchy,gapminder
 import deephaven.plot.express as dx
 
 gapminder = dx.data.gapminder()
@@ -313,7 +313,7 @@ fig = dx.icicle(
 
 Use `on_selected` to capture the points within the selection box/lasso and build a new table from those points.
 
-```python
+```python order=selection_panel_instance,stocks
 import deephaven.plot.express as dx
 from deephaven import ui, new_table
 from deephaven.column import double_col
@@ -370,7 +370,7 @@ selection_panel_instance = selection_panel()
 
 Use `on_relayout` to capture the new axis ranges when the user pans or zooms, and use that information to filter a related table to only the visible data.
 
-```python
+```python order=synced_chart_panel,stocks
 import deephaven.plot.express as dx
 from deephaven import ui
 
@@ -452,7 +452,7 @@ synced_chart_panel = synced_chart()
 
 Use `on_legend_click` to prevent the default trace visibility toggle when a user clicks a legend item.
 
-```python
+```python order=fig,stocks
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()
@@ -472,7 +472,7 @@ fig = dx.scatter(
 
 Use `on_legend_double_click` to prevent the default isolate/show-all toggle when a user double-clicks a legend item.
 
-```python
+```python order=fig,stocks
 import deephaven.plot.express as dx
 
 stocks = dx.data.stocks()
@@ -496,7 +496,7 @@ fig = dx.scatter(
 
 Annotations are added via `unsafe_update_figure`. The `on_click_annotation` event fires when clicking on an annotation.
 
-```python
+```python order=fig,annotation_clicks,dog_prices,stocks
 import deephaven.plot.express as dx
 from deephaven import input_table, new_table, dtypes as dht
 from deephaven.column import string_col, double_col
@@ -548,7 +548,7 @@ fig = dx.line(
 
 By default, `on_click` only fires when a data point is clicked. Enable Plotly's `clickanywhere` layout option (via `unsafe_update_figure`) so the callback also fires on empty plot area, where the payload carries `xvals`/`yvals` (the cursor position in data space).
 
-```python
+```python order=annotated_chart_panel,click_points,stocks
 import deephaven.plot.express as dx
 from deephaven import ui, input_table, new_table, dtypes as dht
 from deephaven.column import double_col
@@ -608,7 +608,7 @@ annotated_chart_panel = annotated_chart()
 
 Event callbacks can be passed directly to `layer` and `make_subplots`. Passing in callbacks directly takes priority over callbacks derived from the child figures. If multiple children set the same callback, the callback from the last subplot passed in will take priority.
 
-```python
+```python order=layered,points,trend,smoothed,layer_clicks,stocks
 import deephaven.plot.express as dx
 from deephaven import input_table, new_table, dtypes as dht
 from deephaven.column import long_col, double_col

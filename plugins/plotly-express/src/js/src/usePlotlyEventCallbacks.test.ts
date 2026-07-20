@@ -206,7 +206,8 @@ describe('usePlotlyEventCallbacks', () => {
 
       const sent = lastSent(widget);
       expect(sent.callback_id).toBe('cb_0');
-      expect(sent.args.points[0].trace_type).toBe('scatter');
+      const points = sent.args.points as Array<{ trace_type: string }>;
+      expect(points[0].trace_type).toBe('scatter');
     });
 
     it('includes xvals/yvals for a clickanywhere empty-area click', () => {
