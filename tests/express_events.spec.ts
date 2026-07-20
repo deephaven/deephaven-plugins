@@ -88,15 +88,20 @@ test.describe('Chart Events', () => {
     await expect(log).toHaveValue('');
 
     // Double-click the plot area; Plotly fires plotly_doubleclick on the
-    // draglayer overlay.
+    // draglayer overlay. Plotly only treats two clicks as a double-click when
+    // they land within its doubleClickDelay (~300ms); WebKit sometimes spaces
+    // Playwright's dblclick clicks too far apart, so retry the gesture until
+    // the handler fires.
     const dragLayer = chart.locator('.draglayer .nsewdrag').first();
     const box = await dragLayer.boundingBox();
     expect(box).not.toBeNull();
-    if (box) {
-      await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
-    }
+    const cx = box!.x + box!.width / 2;
+    const cy = box!.y + box!.height / 2;
 
-    await expect(log).toHaveValue('doubleclick');
+    await expect(async () => {
+      await page.mouse.dblclick(cx, cy);
+      await expect(log).toHaveValue('doubleclick', { timeout: 1000 });
+    }).toPass({ timeout: 15000 });
   });
 
   test('scatter on_relayout fires', async ({ page }) => {
