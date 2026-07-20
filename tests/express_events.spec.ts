@@ -87,21 +87,19 @@ test.describe('Chart Events', () => {
     const log = panel.getByRole('textbox', { name: 'Event Log' });
     await expect(log).toHaveValue('');
 
-    // Double-click the plot area; Plotly fires plotly_doubleclick on the
-    // draglayer overlay. Plotly only treats two clicks as a double-click when
-    // they land within its doubleClickDelay (~300ms); WebKit sometimes spaces
-    // Playwright's dblclick clicks too far apart, so retry the gesture until
-    // the handler fires.
-    const dragLayer = chart.locator('.draglayer .nsewdrag').first();
-    const box = await dragLayer.boundingBox();
-    expect(box).not.toBeNull();
-    const cx = box!.x + box!.width / 2;
-    const cy = box!.y + box!.height / 2;
+    // Plotly's double-click detection is timing-based (two clicks within
+    // ~300ms) and is unreliable under Playwright's WebKit driver, which spaces
+    // the synthetic clicks too far apart. The browser-gesture -> plotly_doubleclick
+    // step is Plotly's responsibility; what we own is forwarding the event to the
+    // Python callback. Emit the Plotly event directly so the test deterministically
+    // exercises the JS handler -> widget round-trip -> Python -> textarea path.
+    await chart.evaluate(el => {
+      (el as unknown as { emit: (event: string) => void }).emit(
+        'plotly_doubleclick'
+      );
+    });
 
-    await expect(async () => {
-      await page.mouse.dblclick(cx, cy);
-      await expect(log).toHaveValue('doubleclick', { timeout: 1000 });
-    }).toPass({ timeout: 15000 });
+    await expect(log).toHaveValue('doubleclick');
   });
 
   test('scatter on_relayout fires', async ({ page }) => {
