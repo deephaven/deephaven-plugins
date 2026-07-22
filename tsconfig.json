@@ -2,7 +2,11 @@
   "extends": "@deephaven/tsconfig",
   "compilerOptions": {
     "emitDeclarationOnly": false,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@deephaven/js-plugin-pivot": ["plugins/pivot/src/js/src/index.ts"]
+    }
   },
   "include": [
     "plugins/**/**.ts",
