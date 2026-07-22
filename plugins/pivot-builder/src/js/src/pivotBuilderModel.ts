@@ -70,6 +70,49 @@ export interface PivotBuilderErrorDetail {
 }
 
 /**
+ * Event dispatched on the proxy when `applyPivotBuilderConfig` is handed a
+ * config that references columns which no longer exist on the source table
+ * (schema drift, e.g. a persisted rollup grouped on a column the query later
+ * dropped). Distinct from {@link PIVOT_BUILDER_ERROR}: this is not a build
+ * failure — the offending references are sanitized out before reaching the
+ * host/service, and the model still renders. This event only lets the sidebar
+ * surface a non-fatal notice that the saved config was silently trimmed.
+ *
+ * Fires at most once per distinct bad config (deduped against
+ * `lastStaleNotifiedConfig`), so re-applying the same unchanged stale intent
+ * on every sidebar reconcile does not re-toast. See also the
+ * {@link PivotBuilderProxyModel.staleColumnReport} getter, which the
+ * middleware reads synchronously to catch the hydration-time firing that
+ * happens before any listener can be attached.
+ */
+export const PIVOT_BUILDER_STALE_COLUMNS =
+  '@deephaven/js-plugin-pivot-builder/PIVOT_BUILDER_STALE_COLUMNS';
+
+/**
+ * `detail` payload of a {@link PIVOT_BUILDER_STALE_COLUMNS} event, and the
+ * shape returned by {@link findStaleColumnRefs}. Each array holds the
+ * (de-duplicated) column names referenced by that section of the config that
+ * are missing from the live source schema. Empty arrays (never
+ * `null`/`undefined`) mean nothing was stale in that section.
+ */
+export interface PivotBuilderStaleColumnsDetail {
+  /** Missing columns referenced by `config.rollup` (grouping + aggregations). */
+  rollupColumns: string[];
+  /** Missing columns referenced by `config.totals.operationMap`. */
+  totalsColumns: string[];
+  /** Missing columns referenced by `config.pivot` (row/column keys + aggs). */
+  pivotColumns: string[];
+}
+
+/**
+ * Report of stale (missing-from-schema) column references found across a
+ * `PivotBuilderConfig`. Structurally identical to
+ * {@link PivotBuilderStaleColumnsDetail}; kept as a distinct name so the
+ * "computed report" and "event payload" roles read clearly at call sites.
+ */
+export type StaleColumnReport = PivotBuilderStaleColumnsDetail;
+
+/**
  * A single aggregation entry: an operation applied to one or more columns.
  * The array of these on `PivotConfig` is ORDER-SENSITIVE — reordering entries
  * is a meaningful config change (unlike the order-insensitive
@@ -98,10 +141,14 @@ export function toPivotAggregations(
 }
 
 /**
- * Collapse a `PivotConfig` into the order-insensitive
+ * Collapse a `PivotConfig.aggregations` into the order-insensitive
  * `Record<operation, columns[]>` payload accepted by
- * `coreplus.pivot.PivotService#createPivotTable`, sanitizing it against the
- * current source schema.
+ * `coreplus.pivot.PivotService#createPivotTable`, sanitized against the
+ * current source schema but WITHOUT any Count-fallback synthesis (that is
+ * layered on by {@link buildPivotAggregationsMap}). Splitting these two steps
+ * lets a caller see whether sanitization alone left an empty map — the signal
+ * the total key-loss rule in {@link buildSanitizedPivotRequest} needs — rather
+ * than having the fallback silently paper over it.
  *
  * Every column reference is validated against `columns`: references to
  * columns that no longer exist (schema drift) or whose type is invalid for
@@ -110,16 +157,10 @@ export function toPivotAggregations(
  * the sidebar editor filters these live with the same
  * `AggregationUtils.isValidOperation` rule) are dropped. This mirrors
  * iris-grid, which silently discards now-invalid aggregations at hydration
- * rather than failing the whole model.
- *
- * Aggregations left with no valid columns are dropped. If the result is
- * empty, a `Count` over a single source column (the first not used as a
- * row/column key, falling back to the first column overall) is synthesized so
- * a pivot with keys but no usable values still renders meaningful counts. The
- * fallback is a BUILD-TIME detail only — it is NOT folded back into the
- * persisted `builderConfig`/intent.
+ * rather than failing the whole model. Aggregations left with no valid columns
+ * are dropped entirely.
  */
-export function buildPivotAggregationsMap(
+export function sanitizePivotAggregations(
   config: PivotConfig,
   columns: readonly DhType.Column[]
 ): Record<string, string[]> {
@@ -161,6 +202,23 @@ export function buildPivotAggregationsMap(
       sanitized[operation] = [...(sanitized[operation] ?? []), ...validColumns];
     }
   );
+  return sanitized;
+}
+
+/**
+ * The full `Record<operation, columns[]>` payload for
+ * `PivotService#createPivotTable`: {@link sanitizePivotAggregations} plus a
+ * Count-fallback synthesis. When sanitization leaves the map empty, a `Count`
+ * over a single source column (the first not used as a row/column key, falling
+ * back to the first column overall) is synthesized so a pivot with keys but no
+ * usable values still renders meaningful counts. The fallback is a BUILD-TIME
+ * detail only — it is NOT folded back into the persisted `builderConfig`/intent.
+ */
+export function buildPivotAggregationsMap(
+  config: PivotConfig,
+  columns: readonly DhType.Column[]
+): Record<string, string[]> {
+  const sanitized = sanitizePivotAggregations(config, columns);
 
   if (Object.keys(sanitized).length > 0) {
     return sanitized;
@@ -178,10 +236,245 @@ export function buildPivotAggregationsMap(
 }
 
 /**
+ * The sanitized inputs to `PivotService#createPivotTable`, derived from a
+ * `PivotConfig` at the build boundary. `rowKeys`/`columnKeys` are filtered to
+ * columns that still exist on the source schema; `aggregations` is the
+ * final map (post Count-fallback synthesis) unless {@link isEmpty} is set.
+ */
+export interface SanitizedPivotRequest {
+  rowKeys: string[];
+  columnKeys: string[];
+  aggregations: Record<string, string[]>;
+  /**
+   * True only in the degenerate "total key-loss" case: every `rowKey` and
+   * `columnKey` was dropped as stale AND the sanitized aggregations map (before
+   * any Count-fallback synthesis) was also empty. A "Count of everything, zero
+   * grouping" pivot provides no value, so the caller should revert to the flat
+   * source rather than build it. When either some key survives, or the
+   * sanitized aggregations are non-empty (a meaningful flat summary row),
+   * this is `false` and {@link aggregations} is a real map to build with.
+   */
+  isEmpty: boolean;
+}
+
+/**
+ * Sanitize a `PivotConfig` into the inputs handed to
+ * `PivotService#createPivotTable`, filtering `rowKeys`/`columnKeys` and
+ * aggregation columns against the live schema. Splitting the sanitized
+ * aggregations from the Count-fallback synthesis (see
+ * {@link sanitizePivotAggregations} vs {@link buildPivotAggregationsMap}) lets
+ * us detect the total key-loss case ({@link SanitizedPivotRequest.isEmpty})
+ * WITHOUT the Count fallback silently papering over it. Never mutates
+ * `config`; the raw config remains the persisted intent.
+ */
+export function buildSanitizedPivotRequest(
+  config: PivotConfig,
+  columns: readonly DhType.Column[]
+): SanitizedPivotRequest {
+  const present = new Set(columns.map(column => column.name));
+  const rowKeys = config.rowKeys.filter(name => present.has(name));
+  const columnKeys = config.columnKeys.filter(name => present.has(name));
+  const sanitizedAggregations = sanitizePivotAggregations(config, columns);
+  const noKeys = rowKeys.length === 0 && columnKeys.length === 0;
+  if (noKeys && Object.keys(sanitizedAggregations).length === 0) {
+    return { rowKeys, columnKeys, aggregations: {}, isEmpty: true };
+  }
+  // Build the final map (which synthesizes a Count fallback only when keys
+  // survived but aggregations are empty) against the SANITIZED keys so the
+  // fallback column is never chosen relative to a stale key.
+  const aggregations = buildPivotAggregationsMap(
+    { ...config, rowKeys, columnKeys },
+    columns
+  );
+  return { rowKeys, columnKeys, aggregations, isEmpty: false };
+}
+
+/**
+ * Find every column reference in a `PivotBuilderConfig` that no longer exists
+ * on the live source schema, grouped by section (rollup / totals / pivot).
+ *
+ * Pure existence check against `columns`: a reference whose column was renamed
+ * or dropped is "stale". (Type-drift — e.g. a `Sum` over a column that became a
+ * string — is handled separately by the build-time sanitizers, which is why it
+ * is intentionally NOT reported here; the notification is specifically about
+ * columns that "no longer exist".) Rollup grouping + rollup aggregations, the
+ * totals `operationMap` keys, and pivot row/column keys + aggregations are all
+ * checked regardless of which branch is currently active, since rollup/totals
+ * data is mirrored onto the config even while a pivot supersedes it.
+ *
+ * Returns empty arrays (never `null`) when nothing is stale, de-duplicating
+ * names within each section.
+ */
+export function findStaleColumnRefs(
+  config: PivotBuilderConfig,
+  columns: readonly DhType.Column[]
+): StaleColumnReport {
+  const present = new Set(columns.map(column => column.name));
+  const missing = (names: readonly string[]): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    names.forEach(name => {
+      if (!present.has(name) && !seen.has(name)) {
+        seen.add(name);
+        out.push(name);
+      }
+    });
+    return out;
+  };
+
+  const rollupNames: string[] = [];
+  const rollup = config.rollup as {
+    groupingColumns?: readonly unknown[];
+    aggregations?: Record<string, readonly string[]>;
+  } | null;
+  if (rollup != null) {
+    (rollup.groupingColumns ?? []).forEach(name =>
+      rollupNames.push(String(name))
+    );
+    if (rollup.aggregations != null) {
+      Object.values(rollup.aggregations).forEach(cols =>
+        (cols ?? []).forEach(name => rollupNames.push(name))
+      );
+    }
+  }
+
+  const totalsNames: string[] = [];
+  const totals = config.totals as {
+    operationMap?: Record<string, readonly string[]>;
+  } | null;
+  if (totals?.operationMap != null) {
+    Object.keys(totals.operationMap).forEach(name => totalsNames.push(name));
+  }
+
+  const pivotNames: string[] = [];
+  const pivot = config.pivot;
+  if (pivot != null) {
+    (pivot.rowKeys ?? []).forEach(name => pivotNames.push(name));
+    (pivot.columnKeys ?? []).forEach(name => pivotNames.push(name));
+    toPivotAggregations(pivot.aggregations).forEach(({ columns: cols }) =>
+      cols.forEach(name => pivotNames.push(name))
+    );
+  }
+
+  return {
+    rollupColumns: missing(rollupNames),
+    totalsColumns: missing(totalsNames),
+    pivotColumns: missing(pivotNames),
+  };
+}
+
+/**
+ * The subset of a `PivotBuilderConfig` that determines whether a stale-columns
+ * notification should re-fire: the data-bearing sections only. The `ui` field
+ * (card switch positions / card contents) is deliberately excluded — it has no
+ * bearing on which columns are stale, so toggling a UI-only switch while a
+ * stale reference persists must NOT be treated as a "different" config that
+ * re-toasts. Used both for the dedupe comparison and the stored snapshot.
+ */
+function staleNotifyKey(
+  config: PivotBuilderConfig
+): Pick<PivotBuilderConfig, 'pivot' | 'rollup' | 'totals'> {
+  return {
+    pivot: config.pivot,
+    rollup: config.rollup,
+    totals: config.totals,
+  };
+}
+
+/**
+ * Sanitize a `RollupConfig` for the host `rollupConfig` setter (which forwards
+ * straight to `table.rollup()` with no validation). Drops `groupingColumns`
+ * that no longer exist, and filters the `operation → columns[]` aggregations
+ * map by both existence and `AggregationUtils.isValidOperation` (dropping an
+ * operation once its column list is empty). Returns `null` when every grouping
+ * column was dropped — forwarding a rollup with no grouping is worse than a
+ * flat source, so the caller writes `null` (flat) instead. An empty
+ * aggregations map with surviving grouping is a normal display (grouped rows,
+ * no extra aggregate columns) and is kept. Never mutates `rollup`.
+ */
+export function sanitizeRollupConfig(
+  rollup: DhType.RollupConfig,
+  columns: readonly DhType.Column[]
+): DhType.RollupConfig | null {
+  const columnTypes = new Map(
+    columns.map(column => [column.name, column.type])
+  );
+  const raw = rollup as unknown as {
+    groupingColumns?: readonly unknown[];
+    aggregations?: Record<string, readonly string[]>;
+  };
+  const groupingColumns = (raw.groupingColumns ?? [])
+    .map(name => String(name))
+    .filter(name => columnTypes.has(name));
+  if (groupingColumns.length === 0) {
+    return null;
+  }
+  let aggregations: Record<string, string[]> | undefined;
+  if (raw.aggregations != null) {
+    aggregations = {};
+    Object.entries(raw.aggregations).forEach(([operation, cols]) => {
+      const validColumns = (cols ?? []).filter(name => {
+        const type = columnTypes.get(name);
+        if (type == null) return false;
+        return AggregationUtils.isValidOperation(
+          operation as AggregationOperation,
+          type
+        );
+      });
+      if (validColumns.length > 0) {
+        aggregations![operation] = validColumns;
+      }
+    });
+  }
+  return {
+    ...(rollup as object),
+    groupingColumns,
+    ...(aggregations != null ? { aggregations } : {}),
+  } as unknown as DhType.RollupConfig;
+}
+
+/**
+ * Sanitize a `UITotalsTableConfig` for the host totals write (which forwards
+ * to `table.getTotalsTable()` with no validation). Drops `operationMap`
+ * entries whose column key no longer exists, and filters each column's
+ * operation list by `AggregationUtils.isValidOperation` (dropping the column
+ * entirely once its operation list is empty). An empty `operationMap` after
+ * sanitization is an acceptable terminal state (no totals row —
+ * `defaultOperation` is `Skip`), so this returns a config, never `null`. Never
+ * mutates `totals`.
+ */
+export function sanitizeTotalsConfig(
+  totals: UITotalsTableConfig,
+  columns: readonly DhType.Column[]
+): UITotalsTableConfig {
+  const columnTypes = new Map(
+    columns.map(column => [column.name, column.type])
+  );
+  const raw = totals as unknown as {
+    operationMap?: Record<string, readonly string[]>;
+  };
+  const operationMap: Record<string, string[]> = {};
+  Object.entries(raw.operationMap ?? {}).forEach(([column, ops]) => {
+    const type = columnTypes.get(column);
+    if (type == null) return;
+    const validOps = (ops ?? []).filter(op =>
+      AggregationUtils.isValidOperation(op as AggregationOperation, type)
+    );
+    if (validOps.length > 0) {
+      operationMap[column] = validOps;
+    }
+  });
+  return {
+    ...(totals as object),
+    operationMap,
+  } as unknown as UITotalsTableConfig;
+}
+
+/**
  * User-configured pivot settings. The `aggregations` array is collapsed into
  * the `Record<operation, columns[]>` payload accepted by
  * `coreplus.pivot.PivotService#createPivotTable` at the build boundary
- * (`withFallbackAggregations`); we keep the ordered array form here so the UI
+ * (`buildSanitizedPivotRequest`); we keep the ordered array form here so the UI
  * and intent diffing can detect operation reordering.
  */
 export interface PivotConfig {
@@ -313,6 +606,16 @@ export interface PivotBuilderProxyModel extends IrisGridModel {
   /** Last applied builder config; mirrors `applyPivotBuilderConfig` input. */
   readonly builderConfig: PivotBuilderConfig;
   /**
+   * Snapshot of the stale-column report computed on the LAST
+   * `applyPivotBuilderConfig` call (including hydration), independent of the
+   * once-per-bad-config event dedupe. The middleware reads this synchronously
+   * when the model first becomes available, because the
+   * `PIVOT_BUILDER_STALE_COLUMNS` event fires during hydration — before any
+   * listener can be attached — so the event alone would never surface the
+   * originally-reported bug. Always the three-array shape, never `null`.
+   */
+  readonly staleColumnReport: StaleColumnReport;
+  /**
    * Apply pivot/rollup/totals atomically.
    *
    * The proxy owns ordering (pivot supersedes rollup/totals; otherwise
@@ -404,14 +707,34 @@ export function augmentPivotBuilderModel(
   // regardless of the proxy's current inner model.
   const { table } = proxy.originalModel as unknown as { table: DhType.Table };
 
-  // Sanitize + collapse the config's aggregations into the pivot service's
-  // `Record<operation, columns[]>` payload at this single `createPivotTable`
-  // choke point — dropping schema-invalid columns and synthesizing a `Count`
-  // fallback for an otherwise-empty map. See `buildPivotAggregationsMap`.
-  const withFallbackAggregations = (
-    config: PivotConfig
-  ): Record<string, string[]> =>
-    buildPivotAggregationsMap(config, table.columns);
+  // Sanitize the config's row/column keys and aggregations against the live
+  // schema at this single `createPivotTable` choke point — dropping columns
+  // that no longer exist, dropping schema-invalid aggregations, synthesizing a
+  // `Count` fallback for an otherwise-empty map, and flagging the degenerate
+  // total-key-loss case. See `buildSanitizedPivotRequest`. Sanitization is a
+  // build-time concern only; `current`/`lastIntent`/`storedRollup`/
+  // `storedTotals` keep the raw config so the user can see and fix the stale
+  // reference in the sidebar.
+  const sanitizePivotBuild = (config: PivotConfig): SanitizedPivotRequest =>
+    buildSanitizedPivotRequest(config, table.columns);
+
+  // Snapshot of the last-computed stale-column report and the last config a
+  // stale-columns notification was dispatched for. Both are per-proxy (fresh
+  // per model build): a worker/query restart that re-hydrates the same
+  // still-broken persisted config re-notifies once, a deliberate recurring nag
+  // until the user fixes the reference. `lastStaleColumnReport` is updated on
+  // EVERY apply (independent of the dispatch dedupe) so the middleware can read
+  // it synchronously to catch the hydration-time firing (which happens before
+  // any listener can be attached).
+  let lastStaleNotifiedConfig: Pick<
+    PivotBuilderConfig,
+    'pivot' | 'rollup' | 'totals'
+  > | null = null;
+  let lastStaleColumnReport: StaleColumnReport = {
+    rollupColumns: [],
+    totalsColumns: [],
+    pivotColumns: [],
+  };
 
   let current: PivotConfig | null = null;
   // Monotonic token for in-flight pivot creations. Every `pivotConfig` write
@@ -457,7 +780,6 @@ export function augmentPivotBuilderModel(
   const recoverFromPivotFailure = (
     failedBuilderConfig: PivotBuilderConfig | null
   ): PivotBuilderConfig => {
-    const proxyWithApply = proxy as unknown as PivotBuilderProxyModel;
     const decision = chooseRecoveryTarget(failedBuilderConfig, {
       lastGoodBuilderConfig,
       isRecoveringPivot,
@@ -465,9 +787,14 @@ export function augmentPivotBuilderModel(
     lastGoodBuilderConfig = decision.nextLastGoodBuilderConfig;
     isRecoveringPivot = decision.nextIsRecoveringPivot;
     log.debug('Reverting pivot builder to safe config', decision.target);
-    proxyWithApply
-      .applyPivotBuilderConfig(decision.target)
-      .catch(() => undefined);
+    // Internal revert call: preserve the stale-column snapshot (and any
+    // dispatch) computed by the ORIGINAL failing apply. Re-running staleness
+    // detection here would overwrite `lastStaleColumnReport` with the report of
+    // the safe target (typically empty), clobbering what the middleware needs
+    // to read. See `skipStaleSnapshotUpdate` in `applyPivotBuilderConfigInternal`.
+    applyPivotBuilderConfigInternal(decision.target, {
+      skipStaleSnapshotUpdate: true,
+    }).catch(() => undefined);
     return decision.target;
   };
 
@@ -514,6 +841,43 @@ export function augmentPivotBuilderModel(
       return;
     }
 
+    // Sanitize row/column keys + aggregations against the live schema before
+    // building. `current` already holds the raw config (persistence intent);
+    // only the build inputs are sanitized.
+    const sanitized = sanitizePivotBuild(config);
+    if (sanitized.isEmpty) {
+      // Total key-loss: every row/column key was dropped as stale AND no
+      // aggregation survived sanitization. A "Count of everything, zero
+      // grouping" pivot provides no value, so fall back to the flat source
+      // entirely and re-apply the empty builder config (clearing the now-void
+      // pivot intent). This is schema drift, already surfaced via the
+      // stale-columns notification — NOT a build failure, so we do NOT dispatch
+      // `PIVOT_BUILDER_ERROR` here.
+      log.debug(
+        'Pivot fully stale (no surviving keys or aggregations); reverting to flat source',
+        config
+      );
+      isRecoveringPivot = false;
+      proxy.setNextModel(Promise.resolve(proxy.originalModel));
+      Promise.resolve()
+        .then(() => {
+          // Skip if a newer apply already took over (it's authoritative).
+          if (token !== pivotToken) return;
+          // Internal revert call: preserve the stale-column snapshot computed
+          // by THIS (fully-stale) apply. Re-running detection against the empty
+          // config would clobber `lastStaleColumnReport` to empty on the
+          // microtask that runs BEFORE React commits and the middleware reads
+          // it — silently collapsing a fully-stale saved pivot to a flat table
+          // with no notification. See `skipStaleSnapshotUpdate`.
+          applyPivotBuilderConfigInternal(
+            { ...EMPTY_BUILDER_CONFIG },
+            { skipStaleSnapshotUpdate: true }
+          ).catch(() => undefined);
+        })
+        .catch(() => undefined);
+      return;
+    }
+
     const promise = (async (): Promise<IrisGridModel> => {
       log.info('Creating pivot with config:', config);
       // Pivot creation is the only CorePlus-gated path. The Pivot card is
@@ -535,9 +899,9 @@ export function augmentPivotBuilderModel(
       try {
         pivotTable = await pivotService.createPivotTable({
           source: table as unknown as CorePlusDhType.Table,
-          rowKeys: config.rowKeys,
-          columnKeys: config.columnKeys,
-          aggregations: withFallbackAggregations(config),
+          rowKeys: sanitized.rowKeys,
+          columnKeys: sanitized.columnKeys,
+          aggregations: sanitized.aggregations,
         });
       } catch (e) {
         // A newer apply superseded this build mid-request — treat as a cancel
@@ -746,137 +1110,234 @@ export function augmentPivotBuilderModel(
     },
   });
 
-  Object.defineProperty(proxy, 'applyPivotBuilderConfig', {
+  // Synchronous snapshot of the last-computed stale-column report. Mirrors the
+  // `builderConfig` getter pattern. The middleware reads this once when the
+  // model first becomes available, to catch hydration-time staleness that
+  // fired the `PIVOT_BUILDER_STALE_COLUMNS` event before any listener existed.
+  Object.defineProperty(proxy, 'staleColumnReport', {
     configurable: true,
     enumerable: false,
-    value(config: PivotBuilderConfig): Promise<void> {
-      // The pivot/rollup swap is routed through the host proxy's async
-      // `setNextModel`, so the inner model is not updated synchronously.
-      // `settle` resolves once any in-flight swap has finished (its
-      // `setModel` runs in the proxy's own `.then`, registered before this
-      // await, so the inner model is already swapped when we resume). The
-      // reload transform awaits this so the host hydrates sort/filter against
-      // the derived model; sidebar callers can ignore it.
-      const settle = (): Promise<void> => {
-        const pending = proxyAsAny.modelPromise as PromiseLike<unknown> | null;
-        return pending != null
-          ? Promise.resolve(pending).then(
-              () => undefined,
-              () => undefined
-            )
-          : Promise.resolve();
-      };
-      // No-op when the config is unchanged. `CreatePivotPage` reconciles
-      // on mount (and on every relevant state change), so reopening the
-      // sidebar page re-applies the already-applied intent. Without this
-      // guard we'd still dispatch `PIVOT_BUILDER_CONFIG_CHANGED`, which
-      // calls `setPersistedConfig` upstream and re-renders the host
-      // `IrisGrid` one frame after the sidebar's slide-in starts —
-      // tearing down the in-flight push/pop animation (the page snaps in
-      // instead of sliding, and the Stack's view hook flickers).
-      if (deepEqual(config, lastIntent)) {
-        log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
-        return settle();
-      }
-      // Raise the IrisGrid loading scrim *only* when this apply queued an
-      // async model swap (pivot/rollup change → `setNextModel`). Those swaps
-      // resolve into a COLUMNS_CHANGED / UPDATED event that clears the scrim
-      // automatically. A totals-only change (toggling the aggregate card)
-      // writes synchronously to the base model and produces no such event on
-      // the proxy, so raising the scrim there would leave it stuck forever —
-      // we must not raise it. Call this right before returning, after all
-      // mutations have had a chance to set `modelPromise`. `text` labels the
-      // scrim for whichever operation queued the swap — the pivot branch and
-      // the rollup branch pass different wording so the message is accurate
-      // (e.g. on Legacy workers, where only rollup ever swaps the model).
-      const raisePendingIfSwapping = (text: string): void => {
-        if (proxyAsAny.modelPromise != null) {
-          proxy.dispatchEvent(
-            new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
-              detail: { text },
-            })
-          );
-        }
-      };
-      const proxyWithPivot = proxy as unknown as {
-        pivotConfig: PivotConfig | null;
-      };
-      if (config.pivot != null) {
-        // Pivot supersedes rollup/totals. The pivot itself is built off
-        // the source table directly, so we don't apply rollup/totals to
-        // the inner model — but we must clear the host's *internal*
-        // `this.rollup` cache (only updated via the host setter) so a
-        // later rollup-back transition can't be `deepEqual`-suppressed
-        // against a stale cached value. The transient
-        // `setNextModel(originalModel)` queued by this clear is
-        // immediately superseded — and safely cancelled — by the pivot
-        // `setNextModel` below; `originalModel` is special-cased to not
-        // close on cancel.
-        if (lastIntent.rollup != null) {
-          log.debug('Clearing host rollup cache before pivot');
-          rollupDesc?.set?.call(proxy, null);
-        }
-        if (!deepEqual(config.pivot, lastIntent.pivot)) {
-          log.debug('Applying pivotConfig', config.pivot);
-          // Remember the full intent driving this build so a build failure
-          // can identify what failed and revert to the last good config.
-          pendingPivotBuilderConfig = config;
-          proxyWithPivot.pivotConfig = config.pivot;
-        }
-        // Mirror intent into proxy storage so dehydration is correct.
-        storedRollup = config.rollup;
-        storedTotals = config.totals;
-        lastIntent = config;
-        raisePendingIfSwapping('Applying pivot...');
+    get(): StaleColumnReport {
+      return lastStaleColumnReport;
+    },
+  });
+
+  /**
+   * Shared body for `applyPivotBuilderConfig`. `options.skipStaleSnapshotUpdate`
+   * distinguishes INTERNAL, revert-driven calls (the fully-stale empty-shell
+   * revert in `applyPivotConfig`, and `recoverFromPivotFailure`'s re-apply of a
+   * safe config) from EXTERNAL calls (the public proxy property, used by the
+   * sidebar and by `makePivotModelTransform`'s hydration). When set, the
+   * `lastStaleColumnReport` snapshot is left untouched and no
+   * `PIVOT_BUILDER_STALE_COLUMNS` is dispatched — so the report computed by the
+   * ORIGINAL problematic apply survives long enough for the middleware to read
+   * it (it reads synchronously on mount, after the internal revert microtask
+   * has already run). External calls always update/dispatch as before, so a
+   * user manually clearing a stale config via the sidebar still clears the
+   * snapshot. The distinguishing signal is "internal revert call", NOT "the
+   * resulting config is empty".
+   */
+  function applyPivotBuilderConfigInternal(
+    config: PivotBuilderConfig,
+    options: { skipStaleSnapshotUpdate?: boolean } = {}
+  ): Promise<void> {
+    // The pivot/rollup swap is routed through the host proxy's async
+    // `setNextModel`, so the inner model is not updated synchronously.
+    // `settle` resolves once any in-flight swap has finished (its
+    // `setModel` runs in the proxy's own `.then`, registered before this
+    // await, so the inner model is already swapped when we resume). The
+    // reload transform awaits this so the host hydrates sort/filter against
+    // the derived model; sidebar callers can ignore it.
+    const settle = (): Promise<void> => {
+      const pending = proxyAsAny.modelPromise as PromiseLike<unknown> | null;
+      return pending != null
+        ? Promise.resolve(pending).then(
+            () => undefined,
+            () => undefined
+          )
+        : Promise.resolve();
+    };
+
+    // Detect stale (missing-from-schema) column references on EVERY apply,
+    // BEFORE the no-op short-circuit below. This placement is required: the
+    // no-op return fires whenever the sidebar re-applies an unchanged intent,
+    // and we still must (a) keep `lastStaleColumnReport` current so the
+    // middleware's synchronous hydration read sees it, and (b) not lose a
+    // legitimate first notification for a config that happens to equal the
+    // last intent. The `lastStaleNotifiedConfig` guard (separate from
+    // `lastIntent`) is what prevents re-toasting the SAME bad config on every
+    // reconcile, so the dispatch can safely run above the no-op path.
+    // Internal revert calls skip this entirely so the snapshot/dispatch from
+    // the ORIGINAL problematic apply survives (see the doc comment above).
+    if (options.skipStaleSnapshotUpdate !== true) {
+      const report = findStaleColumnRefs(config, table.columns);
+      lastStaleColumnReport = report;
+      const hasStale =
+        report.rollupColumns.length +
+          report.totalsColumns.length +
+          report.pivotColumns.length >
+        0;
+      // Dedupe on the data-bearing sections only, NOT `ui`: a UI-only change
+      // (e.g. flipping a card switch) while the same stale reference persists
+      // must not be seen as a "different" config that re-toasts.
+      const notifyKey = staleNotifyKey(config);
+      if (hasStale && !deepEqual(notifyKey, lastStaleNotifiedConfig)) {
+        lastStaleNotifiedConfig = notifyKey;
+        const detail: PivotBuilderStaleColumnsDetail = {
+          rollupColumns: report.rollupColumns,
+          totalsColumns: report.totalsColumns,
+          pivotColumns: report.pivotColumns,
+        };
+        log.debug('Stale columns in applied config; notifying', detail);
         proxy.dispatchEvent(
-          new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
-            detail: config,
+          new EventShimCustomEvent(PIVOT_BUILDER_STALE_COLUMNS, { detail })
+        );
+      }
+    }
+
+    // No-op when the config is unchanged. `CreatePivotPage` reconciles
+    // on mount (and on every relevant state change), so reopening the
+    // sidebar page re-applies the already-applied intent. Without this
+    // guard we'd still dispatch `PIVOT_BUILDER_CONFIG_CHANGED`, which
+    // calls `setPersistedConfig` upstream and re-renders the host
+    // `IrisGrid` one frame after the sidebar's slide-in starts —
+    // tearing down the in-flight push/pop animation (the page snaps in
+    // instead of sliding, and the Stack's view hook flickers).
+    if (deepEqual(config, lastIntent)) {
+      log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
+      return settle();
+    }
+    // Raise the IrisGrid loading scrim *only* when this apply queued an
+    // async model swap (pivot/rollup change → `setNextModel`). Those swaps
+    // resolve into a COLUMNS_CHANGED / UPDATED event that clears the scrim
+    // automatically. A totals-only change (toggling the aggregate card)
+    // writes synchronously to the base model and produces no such event on
+    // the proxy, so raising the scrim there would leave it stuck forever —
+    // we must not raise it. Call this right before returning, after all
+    // mutations have had a chance to set `modelPromise`. `text` labels the
+    // scrim for whichever operation queued the swap — the pivot branch and
+    // the rollup branch pass different wording so the message is accurate
+    // (e.g. on Legacy workers, where only rollup ever swaps the model).
+    const raisePendingIfSwapping = (text: string): void => {
+      if (proxyAsAny.modelPromise != null) {
+        proxy.dispatchEvent(
+          new EventShimCustomEvent(IrisGridModel.EVENT.PENDING, {
+            detail: { text },
           })
         );
-        return settle();
       }
-
-      // Pivot inactive — clear it before reconciling rollup/totals.
-      if (lastIntent.pivot != null) {
-        log.debug('Clearing pivotConfig (pivot inactive)');
-        proxyWithPivot.pivotConfig = null;
+    };
+    const proxyWithPivot = proxy as unknown as {
+      pivotConfig: PivotConfig | null;
+    };
+    if (config.pivot != null) {
+      // Pivot supersedes rollup/totals. The pivot itself is built off
+      // the source table directly, so we don't apply rollup/totals to
+      // the inner model — but we must clear the host's *internal*
+      // `this.rollup` cache (only updated via the host setter) so a
+      // later rollup-back transition can't be `deepEqual`-suppressed
+      // against a stale cached value. The transient
+      // `setNextModel(originalModel)` queued by this clear is
+      // immediately superseded — and safely cancelled — by the pivot
+      // `setNextModel` below; `originalModel` is special-cased to not
+      // close on cancel.
+      if (lastIntent.rollup != null) {
+        log.debug('Clearing host rollup cache before pivot');
+        rollupDesc?.set?.call(proxy, null);
       }
-
-      if (!deepEqual(config.rollup, lastIntent.rollup)) {
-        log.debug('Applying rollupConfig', config.rollup);
-        rollupDesc?.set?.call(proxy, config.rollup);
+      if (!deepEqual(config.pivot, lastIntent.pivot)) {
+        log.debug('Applying pivotConfig', config.pivot);
+        // Remember the full intent driving this build so a build failure
+        // can identify what failed and revert to the last good config.
+        pendingPivotBuilderConfig = config;
+        proxyWithPivot.pivotConfig = config.pivot;
       }
+      // Mirror intent into proxy storage so dehydration is correct.
       storedRollup = config.rollup;
-
-      // Diff against the base model's real totals (the queued write if one
-      // is pending, otherwise the last applied value) — not
-      // `lastIntent.totals`, which is `null` after any pivot/rollup supersede
-      // and would mask a needed clearing write.
-      const effectiveInnerTotals =
-        pendingTotals !== undefined ? pendingTotals : appliedInnerTotals;
-      if (!deepEqual(config.totals, effectiveInnerTotals)) {
-        log.debug('Applying totalsConfig', config.totals);
-        if (proxyAsAny.modelPromise != null) {
-          // Mid-swap — queue and flush on next COLUMNS_CHANGED/TABLE_CHANGED.
-          pendingTotals = config.totals;
-        } else {
-          pendingTotals = undefined;
-          writeTotalsToInner(config.totals);
-        }
-      }
       storedTotals = config.totals;
-
       lastIntent = config;
-      // Only the rollup change queues a model swap here (a totals-only change
-      // writes synchronously and leaves `modelPromise` null), so the scrim,
-      // when raised, is always for rollup.
-      raisePendingIfSwapping('Applying rollup...');
+      raisePendingIfSwapping('Applying pivot...');
       proxy.dispatchEvent(
         new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
           detail: config,
         })
       );
       return settle();
+    }
+
+    // Pivot inactive — clear it before reconciling rollup/totals.
+    if (lastIntent.pivot != null) {
+      log.debug('Clearing pivotConfig (pivot inactive)');
+      proxyWithPivot.pivotConfig = null;
+    }
+
+    if (!deepEqual(config.rollup, lastIntent.rollup)) {
+      // Sanitize before the host `rollupConfig` setter (which forwards
+      // straight to `table.rollup()` with no validation): drop grouping
+      // columns / aggregations that reference missing or type-invalid
+      // columns. A rollup whose every grouping column was dropped falls back
+      // to `null` (flat source) — a still-a-rollup-but-empty config would
+      // build a broken/empty TreeTable. `storedRollup` keeps the RAW value.
+      const sanitizedRollup =
+        config.rollup != null
+          ? sanitizeRollupConfig(config.rollup, table.columns)
+          : null;
+      log.debug('Applying rollupConfig (sanitized)', sanitizedRollup);
+      rollupDesc?.set?.call(proxy, sanitizedRollup);
+    }
+    storedRollup = config.rollup;
+
+    // Sanitize totals before the host write (which forwards to
+    // `table.getTotalsTable()` with no validation): drop `operationMap`
+    // entries that reference missing or type-invalid columns. Diff the
+    // SANITIZED value against the base model's real totals (the queued write
+    // if one is pending, otherwise the last applied value) — NOT the raw
+    // `config.totals`. A raw-vs-sanitized diff would be true on essentially
+    // every reconcile while any stale entry persists (they're never
+    // structurally equal), re-firing `writeTotalsToInner` /
+    // `table.getTotalsTable()` each time — RPC churn/flicker. Diffing against
+    // `appliedInnerTotals` (also sanitized) keeps it sanitized-vs-sanitized
+    // and stable. `storedTotals` keeps the RAW value.
+    const sanitizedTotals =
+      config.totals != null
+        ? sanitizeTotalsConfig(config.totals, table.columns)
+        : null;
+    const effectiveInnerTotals =
+      pendingTotals !== undefined ? pendingTotals : appliedInnerTotals;
+    if (!deepEqual(sanitizedTotals, effectiveInnerTotals)) {
+      log.debug('Applying totalsConfig (sanitized)', sanitizedTotals);
+      if (proxyAsAny.modelPromise != null) {
+        // Mid-swap — queue and flush on next COLUMNS_CHANGED/TABLE_CHANGED.
+        pendingTotals = sanitizedTotals;
+      } else {
+        pendingTotals = undefined;
+        writeTotalsToInner(sanitizedTotals);
+      }
+    }
+    storedTotals = config.totals;
+
+    lastIntent = config;
+    // Only the rollup change queues a model swap here (a totals-only change
+    // writes synchronously and leaves `modelPromise` null), so the scrim,
+    // when raised, is always for rollup.
+    raisePendingIfSwapping('Applying rollup...');
+    proxy.dispatchEvent(
+      new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
+        detail: config,
+      })
+    );
+    return settle();
+  }
+
+  Object.defineProperty(proxy, 'applyPivotBuilderConfig', {
+    configurable: true,
+    enumerable: false,
+    // Public entry point: all external callers (sidebar, hydration transform)
+    // go through here with default options, so staleness detection runs and
+    // the snapshot/notification behave exactly as before. Only the internal
+    // revert call sites pass `{ skipStaleSnapshotUpdate: true }`.
+    value(config: PivotBuilderConfig): Promise<void> {
+      return applyPivotBuilderConfigInternal(config);
     },
   });
 
