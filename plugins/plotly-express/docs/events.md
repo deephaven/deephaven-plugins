@@ -142,7 +142,7 @@ On hierarchical charts, an additional `next_level` field is included, which indi
 }
 ```
 
-Certain event functionality currently requires updating the layout via [unsafe_update_figure](unsafe-update-figure.md), which is generally safe. When the `clickanywhere` layout option is set to `True` via `unsafe_update_figure`, clicking empty space fires with an empty `points` list plus `xvals` and `yvals`.
+If `clickanywhere` is enabled via [unsafe_update_figure](unsafe-update-figure.md), clicking empty space fires with an empty `points` list plus `xvals` and `yvals`.
 
 ```python
 {
