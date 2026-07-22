@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## plotly-express-v0.19.3 - 2026-07-21
+
+#### Bug Fixes
+
+- DH-22722: dx listener dependency fix ([#1388](https://github.com/deephaven/deephaven-plugins/pull/1388)) - (79ac0d3) - jnumainville
+- DH-22926: dx race condition ([#1378](https://github.com/deephaven/deephaven-plugins/pull/1378)) - (6b3cc68) - jnumainville
+
+#### Documentation
+
+- DOC-752 copies changelog on docs build and adds to sidebar menu ([#1345](https://github.com/deephaven/deephaven-plugins/pull/1345)) - (6fa17ba) - dsmmcken
+
+- - -
+
+
 ## plotly-express-v0.19.2 - 2026-04-09
 
 #### Bug Fixes
