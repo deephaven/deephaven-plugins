@@ -18,7 +18,12 @@ from ..shared import (
     HISTOGRAM_DEFAULTS,
     default_callback,
 )
-from ..types import PartitionableTableLike, Orientation
+from ..types import (
+    PartitionableTableLike,
+    ChartPreventableEventCallback,
+    ChartEventCallback,
+    Orientation,
+)
 
 
 def violin(
@@ -44,6 +49,17 @@ def violin(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = VIOLIN_DEFAULTS["unsafe_update_figure"],
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Returns a violin chart
 
@@ -103,6 +119,35 @@ def violin(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       DeephavenFigure: A DeephavenFigure that contains the violin chart
@@ -136,6 +181,17 @@ def box(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = BOX_DEFAULTS["unsafe_update_figure"],
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Returns a box chart
 
@@ -195,6 +251,35 @@ def box(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       A DeephavenFigure that contains the box chart
@@ -226,6 +311,17 @@ def strip(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = STRIP_DEFAULTS["unsafe_update_figure"],
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Returns a strip chart
 
@@ -281,6 +377,35 @@ def strip(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       A DeephavenFigure that contains the strip chart
@@ -372,6 +497,17 @@ def histogram(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Returns a histogram
 
@@ -460,6 +596,35 @@ def histogram(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       DeephavenFigure: A DeephavenFigure that contains the histogram

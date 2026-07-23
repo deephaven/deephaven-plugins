@@ -8,7 +8,12 @@ from plotly import express as px
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
-from ..types import PartitionableTableLike, TableLike
+from ..types import (
+    PartitionableTableLike,
+    ChartPreventableEventCallback,
+    ChartEventCallback,
+    TableLike,
+)
 
 
 class MapCenter(TypedDict):
@@ -65,6 +70,17 @@ def scatter_geo(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """
     Create a scatter_geo plot
@@ -163,6 +179,21 @@ def scatter_geo(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+          The function receives a dict with 'points' and 'modifiers'. On
+          hierarchical charts, return False to prevent drill-down.
+      on_press: Alias for on_click.
+      on_double_click: A callback that fires on double-click (zoom/pan mode only).
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback that fires when a box or lasso selection completes.
+      on_deselect: A callback that fires when the selection is cleared.
+      on_relayout: A callback that fires when the layout changes (pan, zoom, axis reset).
+      on_legend_click: A callback that fires when a legend item is clicked.
+          Return False to prevent the trace visibility toggle.
+      on_legend_double_click: A callback that fires when a legend item is
+          double-clicked. Return False to prevent isolate/show-all.
+      on_click_annotation: A callback that fires when an annotation is clicked.
+      on_web_gl_context_lost: A callback that fires when the WebGL context is lost.
 
     Returns:
         DeephavenFigure: A DeephavenFigure that contains the scatter_geo figure
@@ -256,6 +287,17 @@ def scatter_map(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """
     Create a scatter_map plot
@@ -337,6 +379,21 @@ def scatter_map(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+          The function receives a dict with 'points' and 'modifiers'. On
+          hierarchical charts, return False to prevent drill-down.
+      on_press: Alias for on_click.
+      on_double_click: A callback that fires on double-click (zoom/pan mode only).
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback that fires when a box or lasso selection completes.
+      on_deselect: A callback that fires when the selection is cleared.
+      on_relayout: A callback that fires when the layout changes (pan, zoom, axis reset).
+      on_legend_click: A callback that fires when a legend item is clicked.
+          Return False to prevent the trace visibility toggle.
+      on_legend_double_click: A callback that fires when a legend item is
+          double-clicked. Return False to prevent isolate/show-all.
+      on_click_annotation: A callback that fires when an annotation is clicked.
+      on_web_gl_context_lost: A callback that fires when the WebGL context is lost.
 
     Returns:
         DeephavenFigure: A DeephavenFigure that contains the scatter_map figure
@@ -385,6 +442,17 @@ def line_geo(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """
     Create a line_geo plot
@@ -493,6 +561,21 @@ def line_geo(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+          The function receives a dict with 'points' and 'modifiers'. On
+          hierarchical charts, return False to prevent drill-down.
+      on_press: Alias for on_click.
+      on_double_click: A callback that fires on double-click (zoom/pan mode only).
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback that fires when a box or lasso selection completes.
+      on_deselect: A callback that fires when the selection is cleared.
+      on_relayout: A callback that fires when the layout changes (pan, zoom, axis reset).
+      on_legend_click: A callback that fires when a legend item is clicked.
+          Return False to prevent the trace visibility toggle.
+      on_legend_double_click: A callback that fires when a legend item is
+          double-clicked. Return False to prevent isolate/show-all.
+      on_click_annotation: A callback that fires when an annotation is clicked.
+      on_web_gl_context_lost: A callback that fires when the WebGL context is lost.
 
     Returns:
         DeephavenFigure: A DeephavenFigure that contains the line_geo figure
@@ -535,6 +618,17 @@ def line_map(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """
     Create a line_map plot
@@ -625,6 +719,21 @@ def line_map(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+          The function receives a dict with 'points' and 'modifiers'. On
+          hierarchical charts, return False to prevent drill-down.
+      on_press: Alias for on_click.
+      on_double_click: A callback that fires on double-click (zoom/pan mode only).
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback that fires when a box or lasso selection completes.
+      on_deselect: A callback that fires when the selection is cleared.
+      on_relayout: A callback that fires when the layout changes (pan, zoom, axis reset).
+      on_legend_click: A callback that fires when a legend item is clicked.
+          Return False to prevent the trace visibility toggle.
+      on_legend_double_click: A callback that fires when a legend item is
+          double-clicked. Return False to prevent isolate/show-all.
+      on_click_annotation: A callback that fires when an annotation is clicked.
+      on_web_gl_context_lost: A callback that fires when the WebGL context is lost.
 
     Returns:
         DeephavenFigure: A DeephavenFigure that contains the line_map figure
@@ -653,6 +762,17 @@ def density_map(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """
     Create a density_map plot
@@ -687,6 +807,21 @@ def density_map(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' and 'modifiers'. On
+        hierarchical charts, return False to prevent drill-down.
+      on_press: Alias for on_click.
+      on_double_click: A callback that fires on double-click (zoom/pan mode only).
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback that fires when a box or lasso selection completes.
+      on_deselect: A callback that fires when the selection is cleared.
+      on_relayout: A callback that fires when the layout changes (pan, zoom, axis reset).
+      on_legend_click: A callback that fires when a legend item is clicked.
+          Return False to prevent the trace visibility toggle.
+      on_legend_double_click: A callback that fires when a legend item is
+          double-clicked. Return False to prevent isolate/show-all.
+      on_click_annotation: A callback that fires when an annotation is clicked.
+      on_web_gl_context_lost: A callback that fires when the WebGL context is lost.
 
     Returns:
         DeephavenFigure: A DeephavenFigure that contains the density_map figure

@@ -13,3 +13,10 @@ from .preprocessor import (
     HierarchicalTransforms,
 )
 from .utility import FilterColumn
+from .callbacks import (
+    ChartEventCallback,
+    ChartPreventableEventCallback,
+    wrap_callable,
+    ALWAYS_PREVENTABLE_EVENTS,
+    HIERARCHICAL_TRACE_TYPES,
+)

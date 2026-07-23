@@ -6,8 +6,10 @@ from deephaven.execution_context import make_user_exec_ctx
 from plotly.graph_objs import Figure
 
 from ._layer import layer, LayerSpecDict, atomic_layer
+from ._event_callbacks import _extract_event_callbacks, _merge_event_callbacks
 from .. import DeephavenFigure
 from ..shared import default_callback
+from ..types import ChartPreventableEventCallback, ChartEventCallback
 
 # generic grid that is a list of lists of anything
 T = TypeVar("T")
@@ -404,6 +406,19 @@ def atomic_make_subplots(
       Users should not be accessing this function directly.
       title: See make_subplots
       unsafe_update_figure: See make_subplots
+      on_click: See make_subplots
+      on_press: See make_subplots
+      on_double_click: See make_subplots
+      on_selected: See make_subplots
+      on_deselect: See make_subplots
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: See make_subplots
+      on_legend_double_click: See make_subplots
+      on_click_annotation: See make_subplots
+      on_web_gl_context_lost: See make_subplots
 
     Returns:
       DeephavenFigure: The DeephavenFigure with subplots
@@ -545,6 +560,17 @@ def make_subplots(
     subplot_titles: list[str] | tuple[str, ...] | bool = True,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
@@ -598,12 +624,45 @@ def make_subplots(
         Used to add any custom changes to the underlying plotly figure. Note that
         the existing data traces should not be removed. This may lead to unexpected
         behavior if traces are modified in a way that break data mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       DeephavenFigure: The DeephavenFigure with subplots
 
     """
     args = locals()
+
+    # Pull the event callbacks out of args (resolving aliases) so they aren't
+    # reapplied when the subplots are recreated from the graph.
+    direct_callbacks = _extract_event_callbacks(args)
 
     func = atomic_make_subplots
 
@@ -627,5 +686,13 @@ def make_subplots(
     exec_ctx = make_user_exec_ctx()
 
     new_fig.add_layer_to_graph(func, args, exec_ctx)
+
+    # Gather all child figures (direct figs plus any provided via grid)
+    all_figs = list(figs)
+    if grid:
+        for row in grid:
+            all_figs.extend(f for f in row if f is not None)
+
+    _merge_event_callbacks(new_fig, all_figs, direct_callbacks)
 
     return new_fig

@@ -7,7 +7,7 @@ from plotly import express as px
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
-from ..types import TableLike
+from ..types import TableLike, ChartPreventableEventCallback, ChartEventCallback
 
 
 def pie(
@@ -24,6 +24,17 @@ def pie(
     opacity: float | None = None,
     hole: float | None = None,
     unsafe_update_figure: Callable = default_callback,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Returns a pie chart
 
@@ -54,6 +65,35 @@ def pie(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       A DeephavenFigure that contains the pie chart

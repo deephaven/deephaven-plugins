@@ -87,6 +87,9 @@ export class PlotlyExpressChartModel extends ChartModel {
     // The input filter columns are set once at init.
     this.updateFilterColumns(widgetData);
 
+    // Parse event callbacks from initial widget data
+    this.updateCallbacks(widgetData);
+
     this.setTitle(this.getDefaultTitle());
   }
 
@@ -195,6 +198,21 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   requiredColumns: Set<string> = new Set();
 
+  /**
+   * Map of event name to callback ID for registered event callbacks.
+   */
+  callbackMap: Map<string, string> = new Map();
+
+  /**
+   * Set of callback IDs that use request-response (preventable events).
+   */
+  preventableCallbacks: Set<string> = new Set();
+
+  /**
+   * Map of request ID to resolver function for pending request-response callbacks.
+   */
+  pendingResponses: Map<string, (allowed: boolean) => void> = new Map();
+
   cleanupSubscriptions(id: number): void {
     this.subscriptionCleanupMap.get(id)?.forEach(cleanup => {
       cleanup();
@@ -273,13 +291,17 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
 
     this.isSubscribed = true;
+
     this.widgetUnsubscribe = this.widget.addEventListener<DhType.Widget>(
       this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
-        this.handleWidgetUpdated(
-          JSON.parse(detail.getDataAsString()),
-          detail.exportedObjects
-        );
+        const raw = detail.getDataAsString();
+        const parsed = JSON.parse(raw);
+        if (parsed.type === 'CALLABLE_RESPONSE') {
+          this.handleCallableResponse(parsed);
+          return;
+        }
+        this.handleWidgetUpdated(parsed, detail.exportedObjects);
       }
     );
 
@@ -468,6 +490,16 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  updateCallbacks(data: PlotlyChartWidgetData): void {
+    const { deephaven } = data.figure;
+    if (deephaven.callbacks != null) {
+      this.callbackMap = new Map(Object.entries(deephaven.callbacks));
+    } else {
+      this.callbackMap = new Map();
+    }
+    this.preventableCallbacks = new Set(deephaven.preventable_callbacks ?? []);
+  }
+
   /**
    * Unsubscribe from a table.
    * @param id The table ID to unsubscribe from
@@ -540,6 +572,9 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleWebGlAllowed(this.renderOptions?.webgl);
 
     this.fireRangebreaksUpdated();
+
+    // Parse event callbacks
+    this.updateCallbacks(data);
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
@@ -1001,6 +1036,64 @@ export class PlotlyExpressChartModel extends ChartModel {
       return (value: unknown) => this.chartUtils.unwrapValue(value, timeZone);
     }
   );
+
+  getCallbackMap(): Map<string, string> {
+    return this.callbackMap;
+  }
+
+  hasSelectionCallbacks(): boolean {
+    return (
+      this.callbackMap.has('on_selected') || this.callbackMap.has('on_deselect')
+    );
+  }
+
+  isPreventable(callbackId: string): boolean {
+    return this.preventableCallbacks.has(callbackId);
+  }
+
+  sendEventCallback(callbackId: string, args: unknown): void {
+    this.widget?.sendMessage(
+      JSON.stringify({ type: 'CALLABLE_EVENT', callback_id: callbackId, args }),
+      []
+    );
+  }
+
+  async sendEventCallbackWithResponse(
+    callbackId: string,
+    args: unknown
+  ): Promise<boolean> {
+    const requestId = crypto.randomUUID();
+    const responsePromise = new Promise<boolean>(resolve => {
+      this.pendingResponses.set(requestId, resolve);
+      // Timeout after 5sand allow default if Python doesn't respond
+      setTimeout(() => {
+        if (this.pendingResponses.delete(requestId)) {
+          resolve(true);
+        }
+      }, 5000);
+    });
+    this.widget?.sendMessage(
+      JSON.stringify({
+        type: 'CALLABLE_EVENT',
+        callback_id: callbackId,
+        args,
+        request_id: requestId,
+      }),
+      []
+    );
+    return responsePromise;
+  }
+
+  handleCallableResponse(parsed: {
+    request_id: string;
+    result: unknown;
+  }): void {
+    const resolver = this.pendingResponses.get(parsed.request_id);
+    if (resolver) {
+      this.pendingResponses.delete(parsed.request_id);
+      resolver(parsed.result !== false);
+    }
+  }
 }
 
 export default PlotlyExpressChartModel;

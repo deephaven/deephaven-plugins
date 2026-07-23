@@ -170,6 +170,10 @@
           {
             "label": "Static Image Export",
             "path": "static-image-export.md"
+          },
+          {
+            "label": "Events",
+            "path": "events.md"
           }
         ]
       },
