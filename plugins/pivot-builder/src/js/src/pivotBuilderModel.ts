@@ -382,15 +382,17 @@ function staleNotifyKey(
 }
 
 /**
- * Sanitize a `RollupConfig` for the host `rollupConfig` setter (which forwards
- * straight to `table.rollup()` with no validation). Drops `groupingColumns`
- * that no longer exist, and filters the `operation → columns[]` aggregations
- * map by both existence and `AggregationUtils.isValidOperation` (dropping an
- * operation once its column list is empty). Returns `null` when every grouping
- * column was dropped — forwarding a rollup with no grouping is worse than a
- * flat source, so the caller writes `null` (flat) instead. An empty
- * aggregations map with surviving grouping is a normal display (grouped rows,
- * no extra aggregate columns) and is kept. Never mutates `rollup`.
+ * Sanitizes a `RollupConfig` for the host `rollupConfig` setter (forwards
+ * straight to `table.rollup()`, unvalidated): drops missing `groupingColumns`,
+ * and filters aggregations by existence + `AggregationUtils.isValidOperation`.
+ * Returns `null` if grouping ends up empty — a flat source beats a groupless
+ * rollup. Empty aggregations with surviving grouping is fine. Never mutates
+ * `rollup`.
+ *
+ * When this returns `null` but the user configured a real aggregation, the
+ * caller salvages it onto the totals channel (from `config.fallbackTotals`,
+ * the clean `getModelTotalsConfig` output) so the aggregation is not silently
+ * lost — see `applyPivotBuilderConfigInternal`.
  */
 export function sanitizeRollupConfig(
   rollup: DhType.RollupConfig,
@@ -409,28 +411,44 @@ export function sanitizeRollupConfig(
   if (groupingColumns.length === 0) {
     return null;
   }
-  let aggregations: Record<string, string[]> | undefined;
-  if (raw.aggregations != null) {
-    aggregations = {};
-    Object.entries(raw.aggregations).forEach(([operation, cols]) => {
-      const validColumns = (cols ?? []).filter(name => {
-        const type = columnTypes.get(name);
-        if (type == null) return false;
-        return AggregationUtils.isValidOperation(
-          operation as AggregationOperation,
-          type
-        );
-      });
-      if (validColumns.length > 0) {
-        aggregations![operation] = validColumns;
-      }
-    });
-  }
+  // Keep the field absent (not an empty object) when the raw rollup had no
+  // aggregations, so the spread below matches the raw shape exactly.
+  const aggregations =
+    raw.aggregations != null
+      ? sanitizeRollupAggregationsMap(raw.aggregations, columnTypes)
+      : undefined;
   return {
     ...(rollup as object),
     groupingColumns,
     ...(aggregations != null ? { aggregations } : {}),
   } as unknown as DhType.RollupConfig;
+}
+
+/**
+ * Filter a rollup `operation → columns[]` aggregations map against the live
+ * schema: drop columns that no longer exist or whose type is invalid for the
+ * operation, and drop an operation entirely once its column list is empty.
+ * Used by {@link sanitizeRollupConfig}.
+ */
+function sanitizeRollupAggregationsMap(
+  aggregations: Record<string, readonly string[]>,
+  columnTypes: Map<string, string>
+): Record<string, string[]> {
+  const sanitized: Record<string, string[]> = {};
+  Object.entries(aggregations).forEach(([operation, cols]) => {
+    const validColumns = (cols ?? []).filter(name => {
+      const type = columnTypes.get(name);
+      if (type == null) return false;
+      return AggregationUtils.isValidOperation(
+        operation as AggregationOperation,
+        type
+      );
+    });
+    if (validColumns.length > 0) {
+      sanitized[operation] = validColumns;
+    }
+  });
+  return sanitized;
 }
 
 /**
@@ -524,6 +542,32 @@ export interface PivotBuilderConfig {
   pivot: PivotConfig | null;
   rollup: DhType.RollupConfig | null;
   totals: UITotalsTableConfig | null;
+  /**
+   * Clean totals config derived purely from the user's real "Aggregate
+   * values" settings (via `IrisGridUtils.getModelTotalsConfig`), captured by
+   * `CreatePivotPage` when a rollup is active. Used ONLY to salvage genuine
+   * user aggregations onto the totals channel when the rollup's grouping
+   * columns all go stale and the rollup collapses to a flat source — see
+   * `applyPivotBuilderConfigInternal`.
+   *
+   * This exists because `rollup.aggregations` cannot be trusted as the salvage
+   * source: `IrisGridUtils.getModelRollupConfig` also synthesizes a `First`
+   * passthrough entry for every non-aggregated column when
+   * `showNonAggregatedColumns` is on (the `nonAggregatedInRollup` UI toggle,
+   * which defaults to `true`), merging those into the SAME `aggregations` map
+   * as any real user aggregation. Reverse-engineering the fallback from that
+   * map would salvage the synthesized `First` entries and show a phantom
+   * totals row even when the user configured no aggregation at all. This field
+   * is `getModelTotalsConfig`'s output, which never synthesizes passthrough
+   * entries — it is `null` when the user configured no real aggregation.
+   *
+   * Persisted alongside the config (like `rollup`/`totals`/`ui`) so the
+   * hydration transform can salvage on reload without live UI state. Absent on
+   * configs persisted before this field existed: treated as `null` (no
+   * salvage — the safe default, no phantom row) and recomputed fresh on the
+   * next apply, so no migration is required.
+   */
+  fallbackTotals?: UITotalsTableConfig | null;
   /**
    * Pure UI/card state (switch positions + card contents). Decoupled from
    * the derived model config above so reopening the sidebar restores the
@@ -1271,17 +1315,39 @@ export function augmentPivotBuilderModel(
       proxyWithPivot.pivotConfig = null;
     }
 
+    // Sanitize before the host `rollupConfig` setter (which forwards
+    // straight to `table.rollup()` with no validation): drop grouping
+    // columns / aggregations that reference missing or type-invalid
+    // columns. A rollup whose every grouping column was dropped falls back
+    // to `null` (flat source) — a still-a-rollup-but-empty config would
+    // build a broken/empty TreeTable. `storedRollup` keeps the RAW value.
+    const sanitizedRollup =
+      config.rollup != null
+        ? sanitizeRollupConfig(config.rollup, table.columns)
+        : null;
+    // When the rollup collapsed to flat (all grouping stale) but the user
+    // configured a real aggregation, salvage that onto the totals channel below
+    // instead of silently dropping it. The salvage source is
+    // `config.fallbackTotals` — the CLEAN `getModelTotalsConfig` output that
+    // reflects ONLY genuine user aggregations. It is deliberately NOT
+    // reverse-engineered from `config.rollup.aggregations`, which also carries
+    // `First`-passthrough entries synthesized by `getModelRollupConfig` for
+    // non-aggregated columns (default `nonAggregatedInRollup: true`) — salvaging
+    // those would show a phantom `First` totals row even when the user
+    // configured no aggregation. Sanitized against the live schema exactly like
+    // `config.totals` below (the clean candidate can itself reference a column
+    // that is now stale). Computed on EVERY apply (not only when the rollup
+    // changed) so the totals diff below has a stable target: a UI-only
+    // reconcile that does not change the rollup must still see this fallback and
+    // NOT clear the already-applied totals row. `null` unless there's something
+    // to salvage.
+    const fallbackTotals =
+      config.rollup != null &&
+      sanitizedRollup == null &&
+      config.fallbackTotals != null
+        ? sanitizeTotalsConfig(config.fallbackTotals, table.columns)
+        : null;
     if (!deepEqual(config.rollup, lastIntent.rollup)) {
-      // Sanitize before the host `rollupConfig` setter (which forwards
-      // straight to `table.rollup()` with no validation): drop grouping
-      // columns / aggregations that reference missing or type-invalid
-      // columns. A rollup whose every grouping column was dropped falls back
-      // to `null` (flat source) — a still-a-rollup-but-empty config would
-      // build a broken/empty TreeTable. `storedRollup` keeps the RAW value.
-      const sanitizedRollup =
-        config.rollup != null
-          ? sanitizeRollupConfig(config.rollup, table.columns)
-          : null;
       log.debug('Applying rollupConfig (sanitized)', sanitizedRollup);
       rollupDesc?.set?.call(proxy, sanitizedRollup);
     }
@@ -1302,18 +1368,28 @@ export function augmentPivotBuilderModel(
       config.totals != null
         ? sanitizeTotalsConfig(config.totals, table.columns)
         : null;
+    // A real user totals config always wins; `fallbackTotals` only fills in
+    // when there is none. In normal operation the UI in `CreatePivotPage`
+    // makes pivot/rollup/totals mutually exclusive, so whenever a rollup is
+    // present to fall back from, `config.totals` (and thus `sanitizedTotals`)
+    // is already `null` — the `??` is a safe, simple precedence rather than an
+    // overwrite.
+    const totalsToApply = sanitizedTotals ?? fallbackTotals;
     const effectiveInnerTotals =
       pendingTotals !== undefined ? pendingTotals : appliedInnerTotals;
-    if (!deepEqual(sanitizedTotals, effectiveInnerTotals)) {
-      log.debug('Applying totalsConfig (sanitized)', sanitizedTotals);
+    if (!deepEqual(totalsToApply, effectiveInnerTotals)) {
+      log.debug('Applying totalsConfig (sanitized)', totalsToApply);
       if (proxyAsAny.modelPromise != null) {
         // Mid-swap — queue and flush on next COLUMNS_CHANGED/TABLE_CHANGED.
-        pendingTotals = sanitizedTotals;
+        pendingTotals = totalsToApply;
       } else {
         pendingTotals = undefined;
-        writeTotalsToInner(sanitizedTotals);
+        writeTotalsToInner(totalsToApply);
       }
     }
+    // Keep the RAW, actual totals UI state — the fallback is an internal
+    // host-forwarding detail and must stay invisible to the sidebar's totals
+    // card (which would otherwise show a phantom config the user never set).
     storedTotals = config.totals;
 
     lastIntent = config;

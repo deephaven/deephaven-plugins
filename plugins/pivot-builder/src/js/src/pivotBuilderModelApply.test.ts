@@ -184,6 +184,76 @@ describe('applyPivotBuilderConfig — rollup sanitization', () => {
     expect(proxy.builderConfig.rollup).toBe(raw);
   });
 
+  it('salvages a genuine user aggregation as a totals row when every grouping column is stale', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    // Grouping is fully stale (`gone`) but the user configured a genuine Count
+    // over the still-present `price`. The salvage source is the CLEAN
+    // `fallbackTotals` candidate (the `getModelTotalsConfig` output built from
+    // the real Aggregate values), which carries ONLY genuine user
+    // aggregations — NOT `rollup.aggregations`, which may also hold synthesized
+    // `First` passthrough entries. The rollup collapses to flat, but the
+    // surviving aggregation must NOT be dropped — it forwards via totals.
+    const raw = makeRollup(['gone'], { Count: ['price'] });
+    const config: PivotBuilderConfig = {
+      pivot: null,
+      rollup: raw,
+      totals: null,
+      fallbackTotals: makeTotals({ price: ['Count'] }) as never,
+    };
+
+    // Writing `null` (flat) to the host does NOT park a swap, so this resolves
+    // synchronously without `settleSwap`.
+    await proxy.applyPivotBuilderConfig(config);
+
+    // Rollup still forwarded as null (flat) — grouping fully dropped.
+    expect(host.hostRollupWrites).toEqual([null]);
+    // The genuine Count aggregation is salvaged onto the totals channel.
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsWrites[0] as { operationMap: unknown }).operationMap
+    ).toEqual({ price: ['Count'] });
+    // Persisted rollup intent keeps the RAW stale rollup...
+    expect(proxy.rollupConfig).toBe(raw);
+    // ...and the totals UI state stays null — the fallback is invisible to the
+    // sidebar's totals card (no phantom config).
+    expect(proxy.totalsConfig).toBeNull();
+  });
+
+  it('does NOT salvage a synthesized First passthrough as a phantom totals row', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    // Repro of the phantom-`First` bug. Grouping is fully stale, and
+    // `rollup.aggregations` carries ONLY a `First` entry — exactly what
+    // `getModelRollupConfig` synthesizes for the non-aggregated `price` column
+    // when `nonAggregatedInRollup` is on (its default). The user configured NO
+    // real aggregation, so the clean `fallbackTotals` candidate is null. Even
+    // though the stale rollup's `aggregations` map is non-empty, NOTHING must
+    // be salvaged: no phantom `First` totals row.
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: makeRollup(['gone'], { First: ['price'] }),
+      totals: null,
+      fallbackTotals: null,
+    });
+
+    expect(host.hostRollupWrites).toEqual([null]);
+    expect(original.totalsWrites).toHaveLength(0);
+    expect(proxy.totalsConfig).toBeNull();
+  });
+
+  it('does NOT salvage totals when a fully-stale rollup has no aggregations', async () => {
+    const { proxy, host, original } = makeProxy([col('A', DOUBLE)]);
+    // Grouping fully stale, no aggregations at all → nothing to salvage.
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: makeRollup(['B']),
+      totals: null,
+    });
+
+    expect(host.hostRollupWrites).toEqual([null]);
+    expect(original.totalsWrites).toHaveLength(0);
+    expect(proxy.totalsConfig).toBeNull();
+  });
+
   it('filters missing + type-invalid aggregation columns before the host write', async () => {
     const { proxy, host } = makeProxy([
       col('region', STRING),
