@@ -131,9 +131,9 @@ test('UI table with tree table', async ({ page }) => {
   await expect(locator.locator('.iris-grid')).toBeVisible();
 });
 
-// DH-22976: Server-owned `sorts`/`quick_filters` re-apply when their values
-// change programmatically. The button updates both from the server, and the
-// quick filter change exercises the new IrisGrid `updateQuickFilters` path.
+// DH-22976: Explicit controlled props re-apply when their values change
+// programmatically. The quick-filter change exercises IrisGrid's
+// `updateQuickFilters` path.
 test('UI table sorts and filters update programmatically', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(
@@ -151,8 +151,7 @@ test('UI table sorts and filters update programmatically', async ({ page }) => {
   await expect(locator).toHaveScreenshot();
 });
 
-// DH-22976: Sorts and quick filters the user changes in the UI are persisted and
-// restored after a page refresh (user-owned state via `default_*`).
+// DH-22976: Existing user-owned sorts and quick filters persist after refresh.
 test('UI table user sorts and filters persist after refresh', async ({
   page,
 }) => {
