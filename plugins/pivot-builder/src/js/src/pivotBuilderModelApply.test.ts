@@ -1,4 +1,4 @@
-import { IrisGridModel } from '@deephaven/iris-grid';
+import { IrisGridModel, type AggregationSettings } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   augmentPivotBuilderModel,
@@ -6,8 +6,10 @@ import {
   PIVOT_BUILDER_STALE_COLUMNS,
   type PivotBuilderConfig,
   type PivotBuilderProxyModel,
+  type PivotBuilderUiState,
   type PivotConfig,
 } from './pivotBuilderModel';
+import { EMPTY_AGGREGATION_SETTINGS } from './seedPivotBuilderUiState';
 import { makePivotModelTransform } from './makePivotModelTransform';
 
 const STRING = 'java.lang.String';
@@ -37,6 +39,46 @@ function makeTotals(
 
 function makePivot(partial: Partial<PivotConfig>): PivotConfig {
   return { rowKeys: [], columnKeys: [], aggregations: [], ...partial };
+}
+
+/**
+ * Build a minimal `PivotBuilderUiState` carrying the given `aggregations`
+ * (the raw "Aggregate values" card state). The salvage path derives its
+ * totals from `ui.aggregations` via `getModelTotalsConfig`, so tests set only
+ * that field; the rest are inert defaults.
+ */
+function makeUi(aggregations: AggregationSettings): PivotBuilderUiState {
+  return {
+    globalOn: true,
+    rollupRowsOn: true,
+    rollupRows: [],
+    includeConstituents: true,
+    nonAggregatedInRollup: true,
+    aggregatesOn: true,
+    aggregations,
+    pivotColumnsOn: true,
+    pivotColumns: [],
+    filterableOn: true,
+    filterableColumns: [],
+  };
+}
+
+/** A single real aggregation (`operation` over `columns`), `invert` false. */
+function makeAggregationSettings(
+  operation: string,
+  columns: string[]
+): AggregationSettings {
+  return {
+    aggregations: [
+      {
+        operation:
+          operation as AggregationSettings['aggregations'][number]['operation'],
+        selected: columns,
+        invert: false,
+      },
+    ],
+    showOnTop: false,
+  };
 }
 
 type Listener = (e: Event) => void;
@@ -187,18 +229,19 @@ describe('applyPivotBuilderConfig — rollup sanitization', () => {
   it('salvages a genuine user aggregation as a totals row when every grouping column is stale', async () => {
     const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
     // Grouping is fully stale (`gone`) but the user configured a genuine Count
-    // over the still-present `price`. The salvage source is the CLEAN
-    // `fallbackTotals` candidate (the `getModelTotalsConfig` output built from
-    // the real Aggregate values), which carries ONLY genuine user
-    // aggregations — NOT `rollup.aggregations`, which may also hold synthesized
-    // `First` passthrough entries. The rollup collapses to flat, but the
-    // surviving aggregation must NOT be dropped — it forwards via totals.
+    // over the still-present `price` (persisted in `ui.aggregations`). The
+    // model derives the salvage totals from `ui.aggregations` via
+    // `getModelTotalsConfig` — the REAL conversion, exercised end-to-end here —
+    // which carries ONLY genuine user aggregations, NOT `rollup.aggregations`
+    // (which may also hold synthesized `First` passthrough entries). The rollup
+    // collapses to flat, but the surviving aggregation must NOT be dropped — it
+    // forwards via totals.
     const raw = makeRollup(['gone'], { Count: ['price'] });
     const config: PivotBuilderConfig = {
       pivot: null,
       rollup: raw,
       totals: null,
-      fallbackTotals: makeTotals({ price: ['Count'] }) as never,
+      ui: makeUi(makeAggregationSettings('Count', ['price'])),
     };
 
     // Writing `null` (flat) to the host does NOT park a swap, so this resolves
@@ -207,7 +250,9 @@ describe('applyPivotBuilderConfig — rollup sanitization', () => {
 
     // Rollup still forwarded as null (flat) — grouping fully dropped.
     expect(host.hostRollupWrites).toEqual([null]);
-    // The genuine Count aggregation is salvaged onto the totals channel.
+    // The genuine Count aggregation is salvaged onto the totals channel
+    // (produced by the real `getModelTotalsConfig` conversion of
+    // `ui.aggregations`, not a hand-built totals object).
     expect(original.totalsWrites).toHaveLength(1);
     expect(
       (original.totalsWrites[0] as { operationMap: unknown }).operationMap
@@ -219,20 +264,60 @@ describe('applyPivotBuilderConfig — rollup sanitization', () => {
     expect(proxy.totalsConfig).toBeNull();
   });
 
+  it('salvages only the schema-valid aggregations from ui.aggregations (real conversion, not a prebuilt totals object)', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    // Full chain end-to-end: the user configured two aggregations, but one
+    // references a column the query later dropped. The model must run the REAL
+    // `getModelTotalsConfig` conversion over `ui.aggregations` (which filters
+    // each aggregation against the live schema) — a regression in that
+    // conversion step would be caught here, not masked by a hand-built totals
+    // object. Only the surviving Count over `price` is salvaged.
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: makeRollup(['gone'], { Count: ['price'] }),
+      totals: null,
+      ui: makeUi({
+        aggregations: [
+          {
+            operation:
+              'Count' as AggregationSettings['aggregations'][number]['operation'],
+            selected: ['price'],
+            invert: false,
+          },
+          {
+            operation:
+              'Sum' as AggregationSettings['aggregations'][number]['operation'],
+            selected: ['dropped'],
+            invert: false,
+          },
+        ],
+        showOnTop: false,
+      }),
+    });
+
+    expect(host.hostRollupWrites).toEqual([null]);
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsWrites[0] as { operationMap: unknown }).operationMap
+    ).toEqual({ price: ['Count'] });
+  });
+
   it('does NOT salvage a synthesized First passthrough as a phantom totals row', async () => {
     const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
     // Repro of the phantom-`First` bug. Grouping is fully stale, and
     // `rollup.aggregations` carries ONLY a `First` entry — exactly what
     // `getModelRollupConfig` synthesizes for the non-aggregated `price` column
     // when `nonAggregatedInRollup` is on (its default). The user configured NO
-    // real aggregation, so the clean `fallbackTotals` candidate is null. Even
-    // though the stale rollup's `aggregations` map is non-empty, NOTHING must
-    // be salvaged: no phantom `First` totals row.
+    // real aggregation, so `ui.aggregations` is empty and
+    // `getModelTotalsConfig` returns null. The salvage derives from
+    // `ui.aggregations`, never `rollup.aggregations`, so even though the stale
+    // rollup's `aggregations` map is non-empty, NOTHING is salvaged: no phantom
+    // `First` totals row.
     await proxy.applyPivotBuilderConfig({
       pivot: null,
       rollup: makeRollup(['gone'], { First: ['price'] }),
       totals: null,
-      fallbackTotals: null,
+      ui: makeUi(EMPTY_AGGREGATION_SETTINGS),
     });
 
     expect(host.hostRollupWrites).toEqual([null]);
@@ -242,11 +327,37 @@ describe('applyPivotBuilderConfig — rollup sanitization', () => {
 
   it('does NOT salvage totals when a fully-stale rollup has no aggregations', async () => {
     const { proxy, host, original } = makeProxy([col('A', DOUBLE)]);
-    // Grouping fully stale, no aggregations at all → nothing to salvage.
+    // Grouping fully stale, no aggregations, and `ui` omitted entirely — the
+    // very-old-config case (predating the `ui` field). `config.ui == null`
+    // means no salvage source, so nothing is salvaged (graceful degradation).
     await proxy.applyPivotBuilderConfig({
       pivot: null,
       rollup: makeRollup(['B']),
       totals: null,
+    });
+
+    expect(host.hostRollupWrites).toEqual([null]);
+    expect(original.totalsWrites).toHaveLength(0);
+    expect(proxy.totalsConfig).toBeNull();
+  });
+
+  it('does NOT salvage totals when the Aggregate values card is toggled off', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    // Grouping is fully stale, and `ui.aggregations` still carries a genuine
+    // Count over the still-present `price` — but the "Aggregate values" card is
+    // toggled OFF (`aggregatesOn: false`). `ui.aggregations` holds the raw card
+    // contents regardless of the switch (unlike `effectiveAggregationSettings`,
+    // which would be empty here), so without the `aggregatesOn` gate the model
+    // would resurrect a phantom totals row the healthy/non-stale config — with
+    // the card off — would never show. Nothing must be salvaged.
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: makeRollup(['gone'], { Count: ['price'] }),
+      totals: null,
+      ui: {
+        ...makeUi(makeAggregationSettings('Count', ['price'])),
+        aggregatesOn: false,
+      },
     });
 
     expect(host.hostRollupWrites).toEqual([null]);

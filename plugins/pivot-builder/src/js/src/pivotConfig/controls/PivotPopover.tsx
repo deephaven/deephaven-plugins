@@ -50,7 +50,6 @@ export default function PivotPopover({
       onExited={onClose}
       closeOnBlur
       interactive
-      containPortals
     >
       {children}
     </Popper>

@@ -1,6 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import {
   IrisGridModel,
+  IrisGridUtils,
   AggregationOperation,
   AggregationUtils,
   type AggregationSettings,
@@ -390,9 +391,9 @@ function staleNotifyKey(
  * `rollup`.
  *
  * When this returns `null` but the user configured a real aggregation, the
- * caller salvages it onto the totals channel (from `config.fallbackTotals`,
- * the clean `getModelTotalsConfig` output) so the aggregation is not silently
- * lost — see `applyPivotBuilderConfigInternal`.
+ * caller salvages it onto the totals channel (derived from
+ * `config.ui.aggregations` via `getModelTotalsConfig`) so the aggregation is
+ * not silently lost — see `applyPivotBuilderConfigInternal`.
  */
 export function sanitizeRollupConfig(
   rollup: DhType.RollupConfig,
@@ -542,32 +543,6 @@ export interface PivotBuilderConfig {
   pivot: PivotConfig | null;
   rollup: DhType.RollupConfig | null;
   totals: UITotalsTableConfig | null;
-  /**
-   * Clean totals config derived purely from the user's real "Aggregate
-   * values" settings (via `IrisGridUtils.getModelTotalsConfig`), captured by
-   * `CreatePivotPage` when a rollup is active. Used ONLY to salvage genuine
-   * user aggregations onto the totals channel when the rollup's grouping
-   * columns all go stale and the rollup collapses to a flat source — see
-   * `applyPivotBuilderConfigInternal`.
-   *
-   * This exists because `rollup.aggregations` cannot be trusted as the salvage
-   * source: `IrisGridUtils.getModelRollupConfig` also synthesizes a `First`
-   * passthrough entry for every non-aggregated column when
-   * `showNonAggregatedColumns` is on (the `nonAggregatedInRollup` UI toggle,
-   * which defaults to `true`), merging those into the SAME `aggregations` map
-   * as any real user aggregation. Reverse-engineering the fallback from that
-   * map would salvage the synthesized `First` entries and show a phantom
-   * totals row even when the user configured no aggregation at all. This field
-   * is `getModelTotalsConfig`'s output, which never synthesizes passthrough
-   * entries — it is `null` when the user configured no real aggregation.
-   *
-   * Persisted alongside the config (like `rollup`/`totals`/`ui`) so the
-   * hydration transform can salvage on reload without live UI state. Absent on
-   * configs persisted before this field existed: treated as `null` (no
-   * salvage — the safe default, no phantom row) and recomputed fresh on the
-   * next apply, so no migration is required.
-   */
-  fallbackTotals?: UITotalsTableConfig | null;
   /**
    * Pure UI/card state (switch positions + card contents). Decoupled from
    * the derived model config above so reopening the sidebar restores the
@@ -1326,26 +1301,33 @@ export function augmentPivotBuilderModel(
         ? sanitizeRollupConfig(config.rollup, table.columns)
         : null;
     // When the rollup collapsed to flat (all grouping stale) but the user
-    // configured a real aggregation, salvage that onto the totals channel below
-    // instead of silently dropping it. The salvage source is
-    // `config.fallbackTotals` — the CLEAN `getModelTotalsConfig` output that
-    // reflects ONLY genuine user aggregations. It is deliberately NOT
-    // reverse-engineered from `config.rollup.aggregations`, which also carries
-    // `First`-passthrough entries synthesized by `getModelRollupConfig` for
-    // non-aggregated columns (default `nonAggregatedInRollup: true`) — salvaging
-    // those would show a phantom `First` totals row even when the user
-    // configured no aggregation. Sanitized against the live schema exactly like
-    // `config.totals` below (the clean candidate can itself reference a column
-    // that is now stale). Computed on EVERY apply (not only when the rollup
-    // changed) so the totals diff below has a stable target: a UI-only
-    // reconcile that does not change the rollup must still see this fallback and
-    // NOT clear the already-applied totals row. `null` unless there's something
-    // to salvage.
-    const fallbackTotals =
+    // configured a real aggregation, salvage it onto the totals channel instead
+    // of silently dropping it. Derive from the persisted
+    // `PivotBuilderUiState.aggregations` (available at hydration) via
+    // `getModelTotalsConfig`, which yields ONLY genuine user aggregations —
+    // unlike `rollup.aggregations`, whose synthesized `First` passthroughs would
+    // show a phantom totals row. `config.ui` is absent on very old configs (no
+    // salvage). Sanitized against the live schema like `config.totals`; computed
+    // on every apply so a UI-only reconcile doesn't clear an applied totals row.
+    // Also gate on `config.ui.aggregatesOn`: `ui.aggregations` holds the raw
+    // "Aggregate values" card contents regardless of that card's on/off switch
+    // (unlike `effectiveAggregationSettings`, which is empty when the card is
+    // off), so a toggled-off card with leftover content would otherwise
+    // resurrect a phantom totals row the healthy config would never show.
+    const fallbackTotalsCandidate =
       config.rollup != null &&
       sanitizedRollup == null &&
-      config.fallbackTotals != null
-        ? sanitizeTotalsConfig(config.fallbackTotals, table.columns)
+      config.ui?.aggregatesOn === true &&
+      config.ui?.aggregations != null
+        ? IrisGridUtils.getModelTotalsConfig(
+            table.columns,
+            undefined,
+            config.ui.aggregations
+          )
+        : null;
+    const fallbackTotals =
+      fallbackTotalsCandidate != null
+        ? sanitizeTotalsConfig(fallbackTotalsCandidate, table.columns)
         : null;
     if (!deepEqual(config.rollup, lastIntent.rollup)) {
       log.debug('Applying rollupConfig (sanitized)', sanitizedRollup);

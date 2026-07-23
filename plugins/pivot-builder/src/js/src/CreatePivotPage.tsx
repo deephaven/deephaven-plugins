@@ -322,12 +322,6 @@ export function CreatePivotPage({
     let rollup: ReturnType<typeof IrisGridUtils.getModelRollupConfig> | null =
       null;
     let totals: UITotalsTableConfig | null = null;
-    // Clean totals candidate derived PURELY from the user's real Aggregate
-    // values, used only to salvage a genuine aggregation onto the totals
-    // channel if the rollup's grouping all goes stale (the rollup collapses to
-    // flat). `null` unless a rollup is active with a real aggregation. See
-    // `PivotBuilderConfig.fallbackTotals` / `applyPivotBuilderConfigInternal`.
-    let fallbackTotals: UITotalsTableConfig | null = null;
 
     if (pivotActive) {
       // Rollup rows become the pivot's row keys, but only when the rollup
@@ -353,20 +347,6 @@ export function CreatePivotPage({
         },
         effectiveAggregationSettings
       );
-      // Capture a CLEAN totals config from the real aggregation settings for
-      // the model's fallback path. `rollup.aggregations` above cannot be reused
-      // as the salvage source: with `nonAggregatedInRollup` on (the default),
-      // `getModelRollupConfig` synthesizes a `First` passthrough entry for every
-      // non-aggregated column into that same map, so salvaging from it would
-      // show a phantom `First` totals row even when the user configured no
-      // aggregation. `getModelTotalsConfig` (rollupConfig `undefined` so its
-      // internal rollup guard is bypassed) returns ONLY genuine user
-      // aggregations, or `null` when `effectiveAggregationSettings` is empty.
-      fallbackTotals = IrisGridUtils.getModelTotalsConfig(
-        model.sourceTable.columns,
-        undefined,
-        effectiveAggregationSettings
-      );
     } else {
       // No pivot, no rollup — aggregations become a standalone totals row.
       totals = IrisGridUtils.getModelTotalsConfig(
@@ -385,7 +365,6 @@ export function CreatePivotPage({
         pivot,
         rollup,
         totals,
-        fallbackTotals,
         // Persist the full card UI state (switch positions + contents) so the
         // sidebar restores exactly what the user left — the derived
         // pivot/rollup/totals above collapse "card off" and "card on but
