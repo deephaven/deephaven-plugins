@@ -449,6 +449,13 @@ class TradingViewChartRenderer {
         // which is too few for downsampled tables (runChartDownsample output
         // can be much larger than the requested pixel count).
         minBarSpacing: 0.01,
+        // Render every time-axis label at the same (regular) weight. By default
+        // lightweight-charts draws the highest-weight tick (e.g. the year) in
+        // bold, which requests Fira Sans 700 — a weight the app's FontBootstrap
+        // does not preload. Canvas text does not trigger a font load, so that
+        // one bold label races the font and renders in a fallback face,
+        // producing nondeterministic axis-label screenshots.
+        allowBoldLabels: false,
         tickMarkFormatter:
           chartType === 'yieldCurve'
             ? yieldCurveTickMarkFormatter
@@ -1011,6 +1018,43 @@ class TradingViewChartRenderer {
   /** Current series ids (insertion order). Test-only. */
   getSeriesIds(): string[] {
     return Array.from(this.seriesMap.keys());
+  }
+
+  /**
+   * Whether the series currently holds any data points. Unknown series
+   * counts as empty.
+   */
+  seriesHasData(seriesId: string): boolean {
+    const series = this.seriesMap.get(seriesId);
+    if (!series) return false;
+    try {
+      return series.data().length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * First/last data time (TZ-shifted epoch seconds) and point count per
+   * series. Test-only: lets interaction tests see the loaded window behind
+   * the viewport.
+   */
+  getDataExtent(): Record<
+    string,
+    { first: number | null; last: number | null; count: number }
+  > {
+    const out: Record<
+      string,
+      { first: number | null; last: number | null; count: number }
+    > = {};
+    this.seriesMap.forEach((series, id) => {
+      const data = series.data();
+      const first = data.length > 0 ? (data[0].time as number) : null;
+      const last =
+        data.length > 0 ? (data[data.length - 1].time as number) : null;
+      out[id] = { first, last, count: data.length };
+    });
+    return out;
   }
 
   /** Reset all price scales to auto-fit visible data. */

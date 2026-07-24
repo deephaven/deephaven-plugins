@@ -132,13 +132,11 @@ class TestChartFunction(unittest.TestCase):
         self.assertEqual(len(c.series_list), 2)
 
     def test_empty_options(self):
-        """chart() with no kwargs should only have the default font in layout."""
+        """chart() with no kwargs should send no chart options at all —
+        fontFamily comes from the client theme, never from Python."""
         s = line_series(self.table)
         c = chart(s)
-        self.assertEqual(
-            c.chart_options,
-            {"layout": {"fontFamily": "Fira, sans-serif"}},
-        )
+        self.assertEqual(c.chart_options, {})
 
     def test_layout_options(self):
         s = line_series(self.table)
@@ -603,9 +601,9 @@ class TestChartFunction(unittest.TestCase):
         """Sections with all-None values should not appear in chart_options."""
         s = line_series(self.table)
         c = chart(s)  # all defaults are None
-        # layout is always present because fontFamily defaults to "Fira, sans-serif"
-        self.assertIn("layout", c.chart_options)
-        self.assertEqual(c.chart_options["layout"]["fontFamily"], "Fira, sans-serif")
+        # No layout either — fontFamily is intentionally not sent from Python
+        # (the client theme provides the "Fira Sans" stack).
+        self.assertNotIn("layout", c.chart_options)
         self.assertNotIn("grid", c.chart_options)
         self.assertNotIn("crosshair", c.chart_options)
         self.assertNotIn("rightPriceScale", c.chart_options)
@@ -853,13 +851,10 @@ class TestLayoutOptions(unittest.TestCase):
         self.assertNotIn("bottomColor", layout["background"])
 
     def test_all_new_layout_params_omitted_does_not_break_existing(self):
-        """chart() with no new layout params should only have the default font."""
+        """chart() with no new layout params should send no options at all."""
         s = line_series(self.table)
         c = chart(s)
-        self.assertEqual(
-            c.chart_options,
-            {"layout": {"fontFamily": "Fira, sans-serif"}},
-        )
+        self.assertEqual(c.chart_options, {})
 
     def test_chart_with_gradient_and_candlestick_series(self):
         """Gradient background works with candlestick series via chart()."""
@@ -890,7 +885,8 @@ class TestLayoutOptions(unittest.TestCase):
         self.assertEqual(layout["background"]["bottomColor"], "#333")
         self.assertEqual(layout["textColor"], "#fff")
         self.assertEqual(layout["fontSize"], 14)
-        self.assertEqual(layout["fontFamily"], "Fira, sans-serif")
+        # fontFamily must NOT be sent — the client theme provides it.
+        self.assertNotIn("fontFamily", layout)
         self.assertFalse(layout["attributionLogo"])
         self.assertEqual(layout["colorSpace"], "display-p3")
 

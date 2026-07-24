@@ -100,6 +100,51 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   const chartHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<TradingViewChartRenderer | null>(null);
   const modelRef = useRef<TradingViewChartModel | null>(null);
+
+  // lightweight-charts draws axis labels to a <canvas>, which — unlike the
+  // SVG/DOM text plotly and friends use — the browser does NOT re-render when a
+  // web font finishes loading. So if the chart's first paint beats the themed
+  // web font (Fira Sans) to the canvas, labels render (and stay) in a fallback
+  // face. Gate chart initialization on the font actually being usable.
+  //
+  // NOTE: gate on the document.fonts.load() promise itself, NOT on
+  // document.fonts.ready. `ready` resolves whenever no loads are pending —
+  // and a load() kicked off in the same tick is not guaranteed to have put
+  // the FontFaceSet back into the loading state before `ready` is read, so
+  // an already-resolved `ready` can leak through and the chart measures text
+  // with the fallback face. lightweight-charts caches those measurements
+  // keyed by the font *string*, so a pre-load measurement (price-scale width,
+  // tick-mark selection) sticks even after the glyphs repaint in the real
+  // font. The load() promise resolves exactly when the requested faces are
+  // usable. A missing FontFaceSet (jsdom / embedded usage) counts as ready.
+  const [fontsReady, setFontsReady] = useState(
+    () => typeof document === 'undefined' || document.fonts?.ready == null
+  );
+  useEffect(() => {
+    if (fontsReady) return undefined;
+    let cancelled = false;
+    const family = chartThemeRef.current.fontFamily;
+    const font = `12px ${family !== '' ? family : 'sans-serif'}`;
+    // Sample text covers the glyphs axis labels use, so unicode-range
+    // subsetted faces (@fontsource) resolve the right subset file.
+    const sample = '0123456789 JanFebMarAprMayJunJulAugSepOctNovDec:';
+    let loaded: Promise<unknown>;
+    try {
+      loaded = document.fonts.load(font, sample);
+    } catch {
+      // Unparseable font string — don't block the chart.
+      loaded = Promise.resolve();
+    }
+    loaded
+      .catch(() => [])
+      .then(() => {
+        if (!cancelled) setFontsReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fontsReady]);
+
   const [error, setErrorState] = useState<string | null>(null);
   const [debugInfo, setDebugInfoRaw] = useState<string>('loading...');
   const [isLoading, setIsLoadingState] = useState(true);
@@ -149,6 +194,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
    */
   const suppressRef = useRef(false);
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * Table ids that have had a price-axis width flush (see handleDataUpdate).
+   * Lets the flush also cover a table whose FIRST rows arrive as a plain
+   * append (e.g. a table_publisher feed), without paying a full update on
+   * every subsequent tick.
+   */
+  const widthFlushedTablesRef = useRef<Set<number>>(new Set());
 
   /**
    * The visible range to restore after new downsample data arrives.
@@ -570,9 +623,24 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           !isInitialLoad &&
           modifiedCount === 0;
 
-        // Data swap or initial load: full setData (data shape changed).
-        // Ticks on downsampled tables: incremental (just appending new rows).
-        if (isDownsampleSwap || removedCount > 0 || isInitialLoad) {
+        // Data swap, initial load, or first rows for an empty series: full
+        // setData. Ticks on downsampled tables: incremental appends.
+        //
+        // The empty-series check matters beyond efficiency: isInitialLoad is
+        // a model-global flag consumed by whichever table's subscription
+        // fires first, so on a multi-table figure the slower table's first
+        // batch would otherwise be applied point-by-point via update().
+        // lightweight-charts only *guesses* the first point's tick-mark
+        // weight (year/month/day) when a batch of >1 points is set at once
+        // (fillWeightsForPoints); a first point inserted alone keeps weight
+        // 0 forever, flipping the first axis label from "2024" to
+        // "10:00:00" depending on which table won the subscription race.
+        if (
+          isDownsampleSwap ||
+          removedCount > 0 ||
+          isInitialLoad ||
+          !renderer.seriesHasData(series.id)
+        ) {
           const data = transformTableData(series, colData, ct);
           const deduped = deduplicateByTime(data as Record<string, unknown>[]);
           renderer.setSeriesData(series.id, deduped as never[]);
@@ -664,6 +732,44 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           }
         } catch {
           // chart may not be ready
+        }
+      }
+
+      // --- Price-axis width flush ---
+      // LWC freezes a price scale at the widest width it has ever needed
+      // ("avoid price scale is shrunk" guard in PriceAxisWidget): when the
+      // chart lays out before its first data, the width comes from a
+      // no-tick-marks fallback constant (34px -> a 56px axis) and never
+      // shrinks to the measured labels (-> 52px), so the same chart renders
+      // 4px wider or narrower depending on whether layout or data won the
+      // race. An empty applyOptions() runs the one full layout pass whose
+      // size-adjust CAN shrink the axis to the current optimal width.
+      // Called in the same task as the data update so both invalidations
+      // coalesce into a single painted frame — no visible width snap.
+      // Skipped for pure appends after a table's first flush: a width
+      // INCREASE already triggers LWC's own full update, and per-tick full
+      // updates would be wasteful. (The first append still flushes — a
+      // table_publisher feed delivers its initial rows as an append.)
+      if (
+        isInitialLoad ||
+        isDownsampleSwap ||
+        removedCount > 0 ||
+        modifiedCount > 0 ||
+        (addedCount > 0 && !widthFlushedTablesRef.current.has(tableId))
+      ) {
+        widthFlushedTablesRef.current.add(tableId);
+        try {
+          chart.applyOptions({});
+          // A width change re-anchors the viewport but does NOT recompute
+          // bar spacing: a fitContent computed at the old pane width leaves
+          // the content stretched ~(4px / paneWidth) after the axis
+          // settles. Re-fit pre-interaction charts so the final spacing is
+          // computed at the final width.
+          if (!userInteractedRef.current && !draggingRef.current) {
+            renderer.fitContent();
+          }
+        } catch {
+          // chart may already be disposed
         }
       }
 
@@ -805,6 +911,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // Initial downsample is full range (null) — no sparse ends
       lastDsRangeRef.current = null;
       restoreRangeRef.current = null;
+      widthFlushedTablesRef.current.clear();
 
       await model.init(exported, dataString);
       updateDebugState(
@@ -900,6 +1007,28 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         priceToCoordinate: (seriesId: string, p: number) =>
           renderer.priceToCoordinate(seriesId, p),
         getSeriesIds: () => renderer.getSeriesIds(),
+        // Resolved lightweight-charts options — lets tests assert the chart
+        // actually received the themed fontFamily etc. (see font-race notes).
+        getChartOptions: () => renderer.getChart().options(),
+        // Time-scale internals — lets interaction tests distinguish a pan
+        // (logical shift, constant bar spacing) from a zoom (bar-spacing
+        // change) and see the loaded data extent behind the viewport.
+        getTimeScaleDebug: () => {
+          const ts = renderer.getChart().timeScale();
+          const lr = ts.getVisibleLogicalRange();
+          const vr = ts.getVisibleRange() as {
+            from: number;
+            to: number;
+          } | null;
+          const dataExtent = renderer.getDataExtent();
+          return {
+            visibleRange: vr,
+            logicalRange: lr == null ? null : { from: lr.from, to: lr.to },
+            barSpacing: (ts.options() as { barSpacing?: number }).barSpacing,
+            scrollPosition: ts.scrollPosition(),
+            dataExtent,
+          };
+        },
       };
       eventUnsubsRef.current.push(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
@@ -918,6 +1047,50 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         ct
       );
       rendererRef.current = renderer;
+
+      // Belt-and-braces to the fontsReady gate. Two failure modes remain even
+      // with init gated on the font load:
+      //  1. Engines can rasterize a canvas draw issued immediately after a
+      //     font load in the fallback face (canvas never repaints on font
+      //     arrival), so glyphs need one forced repaint.
+      //  2. lightweight-charts caches measureText results per label STRING in
+      //     per-axis TextWidthCaches that only reset when the font string
+      //     changes. Any label measured before the web font was usable keeps
+      //     its fallback width forever — wrong price-scale width and wrong
+      //     tick-mark selection, even though the glyphs draw correctly.
+      // Once the FontFaceSet fully settles, append a redundant ', sans-serif'
+      // to layout.fontFamily: the font STRING changes (busting both axes'
+      // width caches, which re-measure with the now-loaded font) while the
+      // resolved face is identical, so nothing visibly changes. Verified
+      // against LWC 5.2: a poisoned 58px price scale heals to 52px with this
+      // single call. (A fontSize toggle-and-restore does NOT work when both
+      // calls run in one task — the cache-reset check runs lazily at render
+      // and never observes the intermediate value.)
+      if (typeof document !== 'undefined' && document.fonts?.ready != null) {
+        document.fonts.ready.then(() => {
+          setTimeout(() => {
+            if (cancelled) return;
+            const chart = rendererRef.current?.getChart();
+            if (chart == null) return;
+            try {
+              const { fontFamily } = (
+                chart.options() as { layout: { fontFamily: string } }
+              ).layout;
+              chart.applyOptions({
+                layout: { fontFamily: `${fontFamily}, sans-serif` },
+              });
+              // Re-measured labels can change the axis width, which
+              // re-anchors the viewport without recomputing bar spacing —
+              // re-fit pre-interaction charts at the settled width.
+              if (!userInteractedRef.current && !draggingRef.current) {
+                rendererRef.current?.fitContent();
+              }
+            } catch {
+              // chart may already be disposed
+            }
+          }, 100);
+        });
+      }
 
       try {
         await connectModel(renderer);
@@ -997,8 +1170,21 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // into a zoom-out. We re-assert this duration, re-centered on wherever
       // the user panned to, before processing the range change.
       let dragStartDurationSec: number | null = null;
-      const onDown = () => {
+      const onDown = (e: PointerEvent) => {
         draggingRef.current = true;
+        // A drag that starts on the time axis is a scale gesture — LWC
+        // stretches the visible duration as the user drags — so the
+        // pan-only duration re-assert in onUp must not apply, or it would
+        // undo the zoom. The time axis is the last row of LWC's table
+        // layout.
+        const rows = container.querySelectorAll('tr');
+        const timeAxisRow = rows.length > 0 ? rows[rows.length - 1] : null;
+        const startRow =
+          e.target instanceof Element ? e.target.closest('tr') : null;
+        if (timeAxisRow != null && startRow === timeAxisRow) {
+          dragStartDurationSec = null;
+          return;
+        }
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const vr = timeScale.getVisibleRange() as any;
@@ -1119,6 +1305,17 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
       // Subscribe to visible range changes (fires on zoom, pan, fitContent).
       const unsubRange = renderer.subscribeVisibleLogicalRangeChange(() => {
+        // Refresh the state attribute before any early return: suppressed
+        // and mid-drag range changes still move the real viewport, and tests
+        // read this attribute as ground truth. Skipping the refresh here left
+        // a stale visRange behind after a data-swap restore, which made a
+        // correct pan look like a 3.5x zoom-out in e2e.
+        if (containerRef.current) {
+          containerRef.current.setAttribute(
+            'data-tvl-state',
+            buildStateJson(model, renderer)
+          );
+        }
         if (!settled || suppressRef.current) return;
         if (draggingRef.current) {
           userInteractedRef.current = true;
@@ -1168,10 +1365,29 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // interaction we preserve the user's visible range and only refresh
       // density.
       let lastWidth = timeScale.width();
+      let lastFitWidth = lastWidth;
       const unsubSize = renderer.subscribeSizeChange(() => {
+        const width = timeScale.width();
+        // A width change (panel layout settling, price-axis width flush)
+        // re-anchors the viewport to the right edge WITHOUT recomputing bar
+        // spacing, leaving a pre-interaction chart subtly stretched — bars
+        // keep the old width's spacing. Whether the last fitContent ran
+        // before or after the final width change is a run-to-run race that
+        // showed up as ±1-2px screenshot shifts. Re-fit on every
+        // pre-interaction width change (even before `settled`) so the final
+        // spacing is always the final width's.
+        if (
+          width > 0 &&
+          width !== lastFitWidth &&
+          !userInteractedRef.current &&
+          !draggingRef.current
+        ) {
+          lastFitWidth = width;
+          renderer.fitContent();
+        }
         if (!settled || suppressRef.current) return;
         if (Date.now() < dblClickGuardUntil) return;
-        const newWidth = timeScale.width();
+        const newWidth = width;
         if (newWidth <= 0 || newWidth === lastWidth) return;
         lastWidth = newWidth;
 
@@ -1205,7 +1421,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       };
     }
 
-    init();
+    // Gate initialization on font readiness so the canvas's first paint draws
+    // labels in the intended (loaded) font rather than a fallback. When
+    // fontsReady flips true this effect re-runs and init() fires.
+    if (fontsReady) {
+      init();
+    }
 
     return () => {
       cancelled = true;
@@ -1220,7 +1441,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       rendererRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dh, fetch]);
+  }, [dh, fetch, fontsReady]);
 
   // Respond to client-side timezone changes without tearing down the
   // model/renderer. The model re-subscribes its tables so time columns

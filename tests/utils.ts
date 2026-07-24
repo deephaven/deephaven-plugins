@@ -32,10 +32,13 @@ export async function gotoPage(
 ): Promise<void> {
   await test.step(`Go to page (${url})`, async () => {
     await page.goto(url, options);
-    // Wait for any loading progress bars to disappear
+    // Wait for any loading progress bars to disappear. With three browser
+    // projects running fully parallel against one server, initial page load
+    // regularly exceeds the default 15s expect timeout — give it the same
+    // headroom as navigationTimeout rather than failing on a slow load.
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
-    ).toHaveCount(0);
+    ).toHaveCount(0, { timeout: 45000 });
   });
 }
 
@@ -127,12 +130,15 @@ export async function openPanel(
   awaitLoad = true
 ): Promise<void> {
   await test.step(`Open panel (${name})`, async () => {
-    // open app panels menu
+    // open app panels menu. The loading spinner can clear before the IDE
+    // shell has rendered its toolbar (and a page that failed to boot shows
+    // no spinner at all), so under parallel-run load the Panels button may
+    // take well past the default 15s expect timeout to appear.
     const appPanels = page.getByRole('button', {
       name: 'Panels',
       exact: true,
     });
-    await expect(appPanels).toBeEnabled();
+    await expect(appPanels).toBeEnabled({ timeout: 45000 });
 
     // The generic '.dh-panel' selector also matches unrelated panels from the
     // server's default layout (Console, Command History, DEMO.md, etc.). Those

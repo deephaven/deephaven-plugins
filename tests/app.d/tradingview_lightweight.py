@@ -551,54 +551,49 @@ tvl_table_markers_fixed = tvl.candlestick(
 # By (partitioned) ticking chart — tests dynamic partition key discovery
 # =============================================================================
 
-# Create publisher: Sym (string), Timestamp (Instant), Price (double)
-_by_blink, _by_publisher = table_publisher(
-    "By Test",
-    {"Sym": dht.string, "Timestamp": dht.Instant, "Price": dht.double},
-)
-# Accumulate rows across publishes (blink only shows latest tick)
-_by_table = _by_blink.tail(100)
 
-# Seed with 10 rows of AAPL
-_by_publisher.add(
-    new_table(
+def _by_sym_rows(sym: str, base_price: float, step: float):
+    return new_table(
         [
-            string_col("Sym", ["AAPL"] * 10),
+            string_col("Sym", [sym] * 10),
             datetime_col(
                 "Timestamp",
                 [to_j_instant(f"2024-01-{i + 2:02d}T10:00:00 ET") for i in range(10)],
             ),
-            double_col("Price", [150.0 + i for i in range(10)]),
+            double_col("Price", [base_price + i * step for i in range(10)]),
         ]
     )
-)
 
 
 @ui.component
 def _tvl_by_ticking_component():
     added, set_added = ui.use_state(False)
 
-    def handle_add(_event: Any) -> None:
-        _by_publisher.add(
-            new_table(
-                [
-                    string_col("Sym", ["GOOG"] * 10),
-                    datetime_col(
-                        "Timestamp",
-                        [
-                            to_j_instant(f"2024-01-{i + 2:02d}T10:00:00 ET")
-                            for i in range(10)
-                        ],
-                    ),
-                    double_col("Price", [100.0 + i * 2 for i in range(10)]),
-                ]
-            )
+    # The publisher is scoped to this component instance (one per panel
+    # open) rather than module-level: a shared publisher accumulates GOOG
+    # rows the first time ANY test clicks the button, polluting the
+    # "one trace before click" baseline for every later browser project
+    # against the same server.
+    def _make_tables():
+        blink, publisher = table_publisher(
+            "By Test",
+            {"Sym": dht.string, "Timestamp": dht.Instant, "Price": dht.double},
         )
+        # Accumulate rows across publishes (blink only shows latest tick)
+        accum = blink.tail(100)
+        # Seed with 10 rows of AAPL
+        publisher.add(_by_sym_rows("AAPL", 150.0, 1.0))
+        return accum, publisher
+
+    by_table, by_publisher = ui.use_memo(_make_tables, [])
+
+    def handle_add(_event: Any) -> None:
+        by_publisher.add(_by_sym_rows("GOOG", 100.0, 2.0))
         set_added(True)
 
     plot = ui.use_memo(
-        lambda: tvl.line(_by_table, timestamp="Timestamp", value="Price", by="Sym"),
-        [_by_table],
+        lambda: tvl.line(by_table, timestamp="Timestamp", value="Price", by="Sym"),
+        [by_table],
     )
 
     return ui.flex(
@@ -615,20 +610,25 @@ def _tvl_by_ticking_component():
 tvl_by_ticking = _tvl_by_ticking_component()
 
 # =============================================================================
-# Downsampling test: 10M rows over 10 years
+# Downsampling test: 1M rows over 10 years
 # =============================================================================
 
 _big_start = to_j_instant("2014-01-01T00:00:00 ET")
-# update_view (not update): keep these formula columns lazy so 10M rows are
+# update_view (not update): keep these formula columns lazy so 1M rows are
 # never materialized in RAM for the whole session. Downsample/auto-bin scan
 # them on demand; holding them resident across every test inflates the heap
 # and invites GC pauses that can drop in-flight widget streams.
-big_table = empty_table(10_000_000).update_view(
+# 1M rows is still 1000x the JS DOWNSAMPLE_THRESHOLD while keeping the
+# per-scan memory footprint a tenth of the previous 10M-row fixture.
+big_table = empty_table(1_000_000).update_view(
     [
-        # Spread 10M rows evenly over 10 years (~3.15s apart)
-        "Timestamp = _big_start + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 10_000_000))",
-        # Trending sine wave: base 100, amplitude 50, slow upward drift
-        "Price = 100 + Math.sin(ii * 0.0001) * 50 + (ii * 0.000005)",
+        # Spread 1M rows evenly over 10 years (~31.5s apart)
+        "Timestamp = _big_start + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 1_000_000))",
+        # Trending sine wave: base 100, amplitude 50, slow upward drift.
+        # Factors are 10x the old 10M-row fixture's so the waveform as a
+        # function of *time* (and therefore every rendered chart) is
+        # unchanged by the row-count reduction.
+        "Price = 100 + Math.sin(ii * 0.001) * 50 + (ii * 0.00005)",
     ]
 )
 
@@ -679,9 +679,9 @@ tvl_ticking_line = tvl.line(_ticking_table, timestamp="Timestamp", value="Price"
 # Auto-bin fixtures — server-side time-bucket aggregation
 # =============================================================================
 
-# A 10M-row "tick" table with derived OHLC columns. Auto-bin reduces this to a
+# A 1M-row "tick" table with derived OHLC columns. Auto-bin reduces this to a
 # few hundred bars on initial load. update_view keeps the derived columns lazy
-# (see big_table above) so the OHLC variant adds no resident 10M-row cost.
+# (see big_table above) so the OHLC variant adds no resident 1M-row cost.
 big_ohlc_table = big_table.update_view(
     [
         "Open = Price - 1.0",
@@ -777,7 +777,7 @@ tvl_big_hist_bc50 = tvl.histogram(
 )
 
 # Histogram with auto_bin=False — opts out (small derived table to avoid
-# shipping 10M rows to the client).
+# shipping 1M rows to the client).
 _optout_table = big_table.head(2000)
 tvl_big_hist_optout = tvl.histogram(
     _optout_table,

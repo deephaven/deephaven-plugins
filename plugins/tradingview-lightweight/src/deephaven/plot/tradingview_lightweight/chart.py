@@ -974,12 +974,16 @@ def chart(
             "together for a gradient background; only one was given."
         )
 
-    # fontFamily is intentionally not user-configurable; we always use Fira.
+    # fontFamily is intentionally not user-configurable and intentionally not
+    # set here: the client resolves the Deephaven theme's font stack
+    # ("Fira Sans", ...) and any value sent in chartOptions would override it.
+    # (A previous hardcoded "Fira, sans-serif" here silently knocked every
+    # chart() figure's axis labels into the browser's generic sans-serif —
+    # "Fira" is not a registered font family; the web font is "Fira Sans".)
     layout = _filter_none(
         {
             "textColor": text_color,
             "fontSize": font_size,
-            "fontFamily": "Fira, sans-serif",
             "attributionLogo": attribution_logo,
             "colorSpace": color_space,
         }

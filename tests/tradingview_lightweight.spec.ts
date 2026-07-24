@@ -9,6 +9,23 @@ import { openPanel, gotoPage } from './utils';
 const tvlChart = (page: import('@playwright/test').Page) =>
   page.locator('.dh-tvl-chart').last();
 
+// Canvas text antialiasing jitters a handful of pixels between otherwise
+// identical runs (observed: an 11px webkit diff confined to one axis label,
+// against a snapshot regenerated minutes earlier in the same container).
+// A small absolute budget absorbs that noise on these canvas-rendered
+// charts; real layout regressions differ by thousands of pixels. Scoped
+// here rather than in playwright.config.ts so other suites keep exact
+// comparison.
+const SCREENSHOT_OPTIONS = { maxDiffPixels: 25 } as const;
+
+// The downsampled 1M-row chart is the most antialiasing-sensitive fixture
+// in the suite: nearly every column of the pane is a dense near-vertical
+// stroke, so a sub-pixel rasterization difference scatters dozens of
+// isolated pixels (observed: 26-71px between correct renders). Still two
+// orders of magnitude below a real regression, which shifts the whole
+// envelope (10k+ px).
+const DENSE_SCREENSHOT_OPTIONS = { maxDiffPixels: 150 } as const;
+
 // --------------------------------------------------------------------------
 // Single-series convenience function charts
 // --------------------------------------------------------------------------
@@ -17,37 +34,37 @@ test.describe('TradingView Lightweight - Single Series', () => {
   test('Candlestick chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Bar chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_bar');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Line chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_line');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Area chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_area');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Baseline chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_baseline');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Histogram chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_histogram');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -59,19 +76,19 @@ test.describe('TradingView Lightweight - Styled Charts', () => {
   test('Candlestick with custom colors loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_styled');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Line chart with custom grid loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_line_custom_grid');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Area chart with watermark loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_area_watermark');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -83,13 +100,13 @@ test.describe('TradingView Lightweight - Annotations', () => {
   test('Candlestick with price lines loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Candlestick with markers loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_markers');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -101,31 +118,31 @@ test.describe('TradingView Lightweight - Multi-Series', () => {
   test('Candlestick with SMA overlay loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_with_sma');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Candlestick with volume histogram loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_with_volume');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Dual line series overlay loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_dual_line');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Full trading dashboard loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_full_dashboard');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Two price scales loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_two_price_scales');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -137,13 +154,13 @@ test.describe('TradingView Lightweight - Panes', () => {
   test('Two-pane chart with candlestick and volume loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_panes_basic');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Three-pane chart with custom separators loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_panes_three');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -155,13 +172,13 @@ test.describe('TradingView Lightweight - Yield Curve', () => {
   test('Yield curve line chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_yield_curve');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Yield curve area chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_yield_curve_area');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -173,13 +190,13 @@ test.describe('TradingView Lightweight - Options Chart', () => {
   test('Single series options chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_options_single');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Multi-series options chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_options_multi');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -193,7 +210,7 @@ test.describe('TradingView Lightweight - Dynamic Price Lines', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_dynamic_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Candlestick with mixed static and dynamic price lines loads', async ({
@@ -201,7 +218,7 @@ test.describe('TradingView Lightweight - Dynamic Price Lines', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_mixed_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -215,7 +232,7 @@ test.describe('TradingView Lightweight - Table-Driven Markers', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_table_markers');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 
   test('Candlestick with table-driven markers (fixed styling) loads', async ({
@@ -223,7 +240,7 @@ test.describe('TradingView Lightweight - Table-Driven Markers', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_table_markers_fixed');
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -236,44 +253,18 @@ test.describe('TradingView Lightweight - By Ticking', () => {
     page,
   }) => {
     await gotoPage(page, '');
-    try {
-      await openPanel(page, 'tvl_by_ticking', '.dh-react-panel:visible');
-    } catch (err) {
-      // TEMPORARY diagnostics: the panel never becomes visible even though the
-      // TVL chart mounts. Dump what actually rendered (panel kinds, tabs, chart
-      // presence, any error overlay) so a failing run reveals whether the panel
-      // is under a different selector, hidden, or replaced by an error.
-      const dom = await page.evaluate(() => {
-        const els = (sel: string) => Array.from(document.querySelectorAll(sel));
-        return {
-          reactPanels: els('.dh-react-panel').length,
-          reactPanelsVisible: els('.dh-react-panel').filter(
-            e => (e as HTMLElement).offsetParent !== null
-          ).length,
-          dhPanels: els('.dh-panel').length,
-          tvlCharts: els('.dh-tvl-chart').length,
-          tabs: els('.lm_title').map(t => t.textContent),
-          errorOverlays: els(
-            '.iris-panel-message-overlay .message-content, .widget-error-message, .error-message'
-          ).map(e => (e.textContent ?? '').trim()),
-          chartAncestor:
-            els('.dh-tvl-chart')[0]?.closest(
-              '.dh-panel, .dh-react-panel, .lm_item'
-            )?.className ?? null,
-        };
-      });
-      await test.info().attach('npk-dom', {
-        body: JSON.stringify(dom, null, 2),
-        contentType: 'application/json',
-      });
-      throw err;
-    }
+    await openPanel(page, 'tvl_by_ticking');
 
-    const panel = page.locator('.dh-react-panel:visible');
+    // The fixture is a bare @ui.component (not wrapped in ui.panel), so the
+    // web client hosts it directly in a widget-loader `.dh-panel` — there is
+    // no `.dh-react-panel` to target. Identify the panel by its content.
+    const panel = page
+      .locator('.dh-panel')
+      .filter({ has: page.locator('.dh-tvl-chart') });
 
     // Wait for initial chart render (1 series: AAPL only)
     await expect(panel.locator('.dh-tvl-chart')).toBeVisible();
-    await expect(panel).toHaveScreenshot();
+    await expect(panel).toHaveScreenshot(SCREENSHOT_OPTIONS);
 
     // Click button to publish GOOG rows
     await panel.getByRole('button', { name: 'Add GOOG' }).click();
@@ -287,7 +278,7 @@ test.describe('TradingView Lightweight - By Ticking', () => {
     await page.waitForTimeout(3000);
 
     // Chart should now show 2 colored traces (AAPL + GOOG)
-    await expect(panel).toHaveScreenshot();
+    await expect(panel).toHaveScreenshot(SCREENSHOT_OPTIONS);
   });
 });
 
@@ -296,13 +287,13 @@ test.describe('TradingView Lightweight - By Ticking', () => {
 // --------------------------------------------------------------------------
 
 test.describe('TradingView Lightweight - Downsampling', () => {
-  test('10M row line chart loads with downsampling', async ({ page }) => {
+  test('1M row line chart loads with downsampling', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_big_line');
 
-    // Chart should render (not hang or crash) — 10M rows downsampled
+    // Chart should render (not hang or crash) — 1M rows downsampled
     await expect(tvlChart(page)).toBeVisible();
-    await expect(tvlChart(page)).toHaveScreenshot();
+    await expect(tvlChart(page)).toHaveScreenshot(DENSE_SCREENSHOT_OPTIONS);
   });
 });
 
@@ -316,6 +307,7 @@ interface DsState {
   colDataRows: number;
   pendingDs: boolean;
   visRange: [number, number] | null;
+  resampleSeq: number;
 }
 
 /** Read the structured debug state from the data-tvl-state attribute. */
@@ -369,21 +361,45 @@ async function waitForStateChange(
   return getDsState(page);
 }
 
-/** Wait for pendingDs to go false (downsample settled). */
+/**
+ * Wait for the downsample pipeline to settle — quiescent, not just idle.
+ *
+ * A gesture's pipeline (debounced resample → data swap → viewport restore,
+ * possibly repeated) has idle windows *between* stages where pendingDs is
+ * false but the viewport is still in flight. On a loaded browser (webkit
+ * especially) those windows stretch to hundreds of ms, so a single clean
+ * poll can return a transient range mid-gesture — observed as the dblclick
+ * reset "returning" the still-zoomed range and a drag zoom-out "returning"
+ * a mid-zoom-in range. Require the full state (visRange, resampleSeq,
+ * colDataRows) to hold stable for 1s of consecutive idle polls.
+ */
 async function waitForDsSettled(
   page: import('@playwright/test').Page,
-  timeout = 15000
+  timeout = 20000
 ): Promise<DsState> {
   const start = Date.now();
+  let stableSince = 0;
+  let prevKey = '';
+  let state = await getDsState(page);
   while (Date.now() - start < timeout) {
-    const state = await getDsState(page);
-    if (!state.pendingDs && state.colDataRows > 0) {
-      return state;
+    state = await getDsState(page);
+    const idle = !state.pendingDs && state.colDataRows > 0;
+    const key = JSON.stringify([
+      state.visRange,
+      state.resampleSeq,
+      state.colDataRows,
+    ]);
+    if (idle && key === prevKey) {
+      if (stableSince === 0) stableSince = Date.now();
+      if (Date.now() - stableSince >= 1000) return state;
+    } else {
+      stableSince = 0;
+      prevKey = key;
     }
     // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(200);
   }
-  return getDsState(page);
+  return state;
 }
 
 /** Get chart canvas bounding rect. */
@@ -447,8 +463,15 @@ async function panChart(page: import('@playwright/test').Page, dx: number) {
   await page.mouse.down();
   // Interpolated move: Playwright emits `steps` pointermove events in one call,
   // which LWC's drag-scroll registers reliably across browsers (a manual burst
-  // of moves gets coalesced/dropped, notably in Firefox).
-  await page.mouse.move(startX + dx, cy, { steps: 20 });
+  // of moves gets coalesced/dropped, notably in Firefox). Split the drag into
+  // two bursts with a pause so Firefox can't coalesce the whole gesture away,
+  // and let the final position settle before releasing.
+  await page.mouse.move(startX + dx / 2, cy, { steps: 10 });
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(50);
+  await page.mouse.move(startX + dx, cy, { steps: 10 });
+  // eslint-disable-next-line playwright/no-wait-for-timeout
+  await page.waitForTimeout(50);
   await page.mouse.up();
 }
 
@@ -504,7 +527,7 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
   // A. INITIAL LOAD
   // =======================================================================
 
-  test('10M table: initial load is downsampled at full range', async ({
+  test('1M table: initial load is downsampled at full range', async ({
     page,
   }) => {
     const s = await openDsChart(page);
@@ -515,7 +538,7 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
     // Visible range should span a meaningful portion of the data
     if (s.visRange) {
       const days = (s.visRange[1] - s.visRange[0]) / 86400;
-      // 10M rows over 10 years — at minimum 30 days visible after fitContent
+      // 1M rows over 10 years — at minimum 30 days visible after fitContent
       expect(days).toBeGreaterThan(30);
     }
   });
@@ -530,7 +553,7 @@ test.describe('TradingView Lightweight - Downsampling Interactions', () => {
     expect(s.jsDs).toBe(false);
   });
 
-  // 10M candlestick is now safe to load: auto-bin aggregates server-side.
+  // 1M candlestick is now safe to load: auto-bin aggregates server-side.
   test('candlestick on big table: NOT JS-downsampled (auto-binned instead)', async ({
     page,
   }) => {

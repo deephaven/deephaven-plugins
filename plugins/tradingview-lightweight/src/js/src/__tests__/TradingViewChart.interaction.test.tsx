@@ -153,6 +153,8 @@ jest.mock('../TradingViewChartRenderer', () => {
 
     getSeriesIds = jest.fn(() => ['s0']);
 
+    seriesHasData = jest.fn(() => true);
+
     constructor() {
       mockRendererInstances.push(this);
     }

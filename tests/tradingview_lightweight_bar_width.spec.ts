@@ -196,7 +196,7 @@ test('H2: candlestick + volume histogram (existing fixture) bar width', async ({
   // Just collect data — don't assert. The test always passes; we print.
 });
 
-// Hypothesis 3: tvl_big_hist (10M-row autobin path) renders fat bars.
+// Hypothesis 3: tvl_big_hist (1M-row autobin path) renders fat bars.
 test('H3: tvl_big_hist autobin path bar width', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'tvl_big_hist');
