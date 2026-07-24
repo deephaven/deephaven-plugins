@@ -78,6 +78,27 @@ const ALWAYS_FETCH_COLUMN_LIMIT = 500;
 const EMPTY_OBJECT = Object.freeze({});
 
 /**
+ * Returns a reference to `value` that is only updated when its JSON
+ * representation changes. `controlled_quick_filters`/`controlled_sorts` are
+ * plain, JSON-serializable data sent fresh from the server on every render,
+ * so an unrelated re-render (e.g. one triggered by the user's own interactive
+ * edits bubbling through `onStateChange`) can hand us a brand new object/array
+ * with identical content. Without this, that new-but-equal reference would
+ * cascade into a new hydrated `Map`/sort list below, which IrisGrid would
+ * treat as a real prop change and re-apply, clobbering whatever the user just
+ * typed. Comparing by content keeps the reference stable so IrisGrid only
+ * re-applies when the controlled value actually changes.
+ */
+function useStableValue<T>(value: T): T {
+  const json = JSON.stringify(value);
+  const ref = useRef({ json, value });
+  if (ref.current.json !== json) {
+    ref.current = { json, value };
+  }
+  return ref.current.value;
+}
+
+/**
  * Hook to throw an error during a render cycle so it is caught by the error boundary.
  * Useful to throw from async or callbacks that occur outside the render cycle.
  * @returns [throwError, clearError] to throw an error and clear it respectively
@@ -413,29 +434,34 @@ export function UITable({
   const initialSortsRef = useRef(sorts);
   const initialQuickFiltersRef = useRef(quickFilters);
 
+  // Stabilize the raw controlled values so an unrelated re-render can't hand
+  // us a new-but-equal-content object/array (see `useStableValue` above).
+  const stableControlledSorts = useStableValue(controlledSorts);
+  const stableControlledQuickFilters = useStableValue(controlledQuickFilters);
+
   // The controlled values are live IrisGrid props. They are deliberately named
   // separately so changing the existing user-owned props remains non-breaking.
   const hydratedControlledSorts = useMemo(() => {
     if (
-      controlledSorts === undefined ||
+      stableControlledSorts === undefined ||
       utils == null ||
       columns.length === 0
     ) {
       return undefined;
     }
-    log.debug('Hydrating controlled sorts', controlledSorts);
-    return utils.hydrateSort(columns, controlledSorts);
-  }, [controlledSorts, utils, columns]);
+    log.debug('Hydrating controlled sorts', stableControlledSorts);
+    return utils.hydrateSort(columns, stableControlledSorts);
+  }, [stableControlledSorts, utils, columns]);
 
   const hydratedControlledQuickFilters = useMemo(
     () =>
       hydrateUITableQuickFilters(
-        controlledQuickFilters,
+        stableControlledQuickFilters,
         model,
         columns,
         utils
       ),
-    [controlledQuickFilters, model, columns, utils]
+    [stableControlledQuickFilters, model, columns, utils]
   );
 
   // Lock the initial state once the model is ready. Recomputing it would pass
