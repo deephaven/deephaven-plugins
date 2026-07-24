@@ -466,9 +466,9 @@ export function UITable({
 
   // Lock the initial state once the model is ready. Recomputing it would pass
   // new prop identities into IrisGrid and overwrite interactive changes.
-  const initialHydratedStateRef = useRef<
-    Partial<IrisGridProps> | undefined
-  >(undefined);
+  const initialHydratedStateRef = useRef<Partial<IrisGridProps> | undefined>(
+    undefined
+  );
   const initialHydratedStateComputedRef = useRef(false);
   if (
     !initialHydratedStateComputedRef.current &&
@@ -497,10 +497,7 @@ export function UITable({
     );
     if (persisted != null) {
       initialHydratedStateRef.current = persisted;
-    } else if (
-      seededSorts !== undefined ||
-      seededQuickFilters !== undefined
-    ) {
+    } else if (seededSorts !== undefined || seededQuickFilters !== undefined) {
       initialHydratedStateRef.current = {
         ...(seededSorts !== undefined ? { sorts: seededSorts } : {}),
         ...(seededQuickFilters !== undefined
