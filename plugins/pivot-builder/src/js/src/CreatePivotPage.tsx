@@ -9,25 +9,19 @@ import {
 } from 'react';
 import {
   IrisGridModel,
-  IrisGridUtils,
   type AggregationSettings,
   type IrisGridTableOptionsPageProps,
-  type UITotalsTableConfig,
 } from '@deephaven/iris-grid';
 import { GLOBAL_SHORTCUTS } from '@deephaven/components';
 import { useUndoRedo } from '@deephaven/react-hooks';
 import {
   isPivotBuilderIrisGridModel,
   PIVOT_BUILDER_ERROR,
-  type PivotConfig,
   type PivotBuilderUiState,
   type PivotBuilderErrorDetail,
 } from './pivotBuilderModel';
-import {
-  EMPTY_AGGREGATION_SETTINGS,
-  aggregationsToPivot,
-  seedPivotBuilderUiState,
-} from './seedPivotBuilderUiState';
+import { resolveEffectiveBuilderConfig } from './resolveEffectiveBuilderConfig';
+import { seedPivotBuilderUiState } from './seedPivotBuilderUiState';
 import { PivotConfigSection } from './PivotConfigSection';
 import { addModelListener } from './modelEvents';
 import { usePivotServiceStatus } from './PivotServiceContext';
@@ -282,115 +276,105 @@ export function CreatePivotPage({
   useEffect(() => {
     if (!isPivotBuilderIrisGridModel(model)) return;
 
+    // A card counts as "active" only if at least one of its listed columns
+    // still exists on the live table — a card whose entries are ALL stale
+    // (schema drift) must behave as if it were never populated, not as if
+    // it were still populated with something. This is what lets an
+    // all-stale Pivot columns card fall through to a genuine rollup below,
+    // instead of building a degenerate 0-column-key pivot.
+    const hasLiveColumn = (names: readonly string[]): boolean =>
+      names.some(name => columnTypes[name] != null);
+
+    // Defer reconciling while the PivotService availability probe is still
+    // resolving (`'loading'`). During that window `pivotAvailable` is false, so
+    // a pivot-intended config (Pivot columns card on with columns) would be
+    // silently downgraded to a rollup below — and persisting that rollup
+    // clobbers the user's pivot intent to `null`, leaving the applied model (a
+    // rollup) diverged from the restored `ui` (a pivot) on the next reload.
+    // `pivotActive` deliberately gates on the probe being `'ready'` (building a
+    // pivot before then hangs `createPivotTable` for ~10s — see below), so the
+    // correct move is to WAIT, not to downgrade. The `pivotServiceStatus` dep
+    // re-runs this effect once the probe settles to `'ready'` (build the pivot)
+    // or `'unavailable'` (a rollup fallback is then legitimate). Returning
+    // before the `hasReconciledRef` gate keeps the mount-skip intact for the
+    // first post-resolution run. Skip the wait entirely when every pivot
+    // column is stale — `pivotActive` will be `false` regardless of how the
+    // probe resolves, so there's nothing to protect by waiting.
+    if (
+      pivotServiceStatus === 'loading' &&
+      pivotColumnsOn &&
+      hasLiveColumn(pivotColumns)
+    ) {
+      return;
+    }
+
     if (!hasReconciledRef.current) {
       hasReconciledRef.current = true;
       return;
     }
 
-    // Global toggle gates all three sections: when off, the reconcile
-    // computes pivot/rollup/totals as if every card were toggled off,
-    // which clears the modification from the model without disturbing
-    // the per-card switch states or card contents.
-    const rollupActive =
-      globalOn && rollupAvailable && rollupRowsOn && rollupRows.length > 0;
-    const aggsActive =
-      globalOn &&
-      aggregatesOn &&
-      aggregationSettings.aggregations.some(
-        a => a.selected.length > 0 || a.invert
-      );
-
-    const effectiveAggregationSettings = aggsActive
-      ? aggregationSettings
-      : EMPTY_AGGREGATION_SETTINGS;
-
-    // Pivot is valid with empty rowKeys (PSP collapses to a single
-    // row). It is NOT valid with an empty aggregations map, but that
-    // `Count` fallback is synthesized quietly at the `createPivotTable`
-    // call (see pivotBuilderModel) so it never leaks into the persisted
-    // intent or the Aggregate values card. Also gate on PSP being
-    // available on this worker; otherwise createPivotTable hangs and
-    // the proxy times out after 10s.
-    const pivotActive =
-      globalOn &&
-      pivotAvailable &&
-      rollupAvailable &&
-      pivotColumnsOn &&
-      pivotColumns.length > 0;
-
-    let pivot: PivotConfig | null = null;
-    let rollup: ReturnType<typeof IrisGridUtils.getModelRollupConfig> | null =
-      null;
-    let totals: UITotalsTableConfig | null = null;
-
-    if (pivotActive) {
-      // Rollup rows become the pivot's row keys, but only when the rollup
-      // card is active; disabling the rollup card while pivot is on must
-      // collapse the pivot to a single row (otherwise the config is
-      // unchanged and the table doesn't react).
-      const rowKeys = rollupActive ? rollupRows : [];
-      pivot = {
-        rowKeys,
-        columnKeys: pivotColumns,
-        aggregations: aggregationsToPivot(effectiveAggregationSettings),
-      };
-    } else if (rollupActive) {
-      // Rollup folds aggregations into its config; standalone totals row
-      // is suppressed.
-      rollup = IrisGridUtils.getModelRollupConfig(
-        model.sourceTable.columns,
-        {
-          columns: rollupRows,
-          showConstituents: includeConstituents,
-          showNonAggregatedColumns: nonAggregatedInRollup,
-          includeDescriptions: true as const,
-        },
-        effectiveAggregationSettings
-      );
-    } else {
-      // No pivot, no rollup — aggregations become a standalone totals row.
-      totals = IrisGridUtils.getModelTotalsConfig(
-        model.sourceTable.columns,
-        undefined,
-        effectiveAggregationSettings
-      );
-    }
+    // Derive the effective pivot/rollup/totals from the current card state
+    // through the shared `resolveEffectiveBuilderConfig` — the SAME code path
+    // the model uses when re-deriving a persisted config against the live
+    // schema on reload, so the sidebar and a reload always agree on the mode.
+    // The global toggle and every card's on/off + staleness gating live inside
+    // that function.
+    const { pivot, rollup, totals } = resolveEffectiveBuilderConfig(
+      state,
+      model.sourceTable.columns,
+      { pivotAvailable, rollupAvailable }
+    );
 
     // Fire-and-forget: the returned promise only settles after the async
     // inner-model swap; the sidebar doesn't await it (the reload transform
     // does). The no-op catch keeps no-floating-promises happy (settle never
     // rejects).
     model
-      .applyPivotBuilderConfig({
-        pivot,
-        rollup,
-        totals,
-        // Persist the full card UI state (switch positions + contents) so the
-        // sidebar restores exactly what the user left — the derived
-        // pivot/rollup/totals above collapse "card off" and "card on but
-        // empty" into the same value and so can't recover the switches (or a
-        // toggled-off card's contents) on their own.
-        ui: {
-          globalOn,
-          rollupRowsOn,
-          rollupRows,
-          includeConstituents,
-          nonAggregatedInRollup,
-          aggregatesOn,
-          aggregations: aggregationSettings,
-          pivotColumnsOn,
-          pivotColumns,
-          filterableOn: placeholderFilterableOn,
-          filterableColumns: placeholderFilterable,
+      .applyPivotBuilderConfig(
+        {
+          pivot,
+          rollup,
+          totals,
+          // Persist the full card UI state (switch positions + contents) so the
+          // sidebar restores exactly what the user left — the derived
+          // pivot/rollup/totals above collapse "card off" and "card on but
+          // empty" into the same value and so can't recover the switches (or a
+          // toggled-off card's contents) on their own. The model also
+          // re-derives from this `ui` on reload, so it must be complete.
+          ui: {
+            globalOn,
+            rollupRowsOn,
+            rollupRows,
+            includeConstituents,
+            nonAggregatedInRollup,
+            aggregatesOn,
+            aggregations: aggregationSettings,
+            pivotColumnsOn,
+            pivotColumns,
+            filterableOn: placeholderFilterableOn,
+            filterableColumns: placeholderFilterable,
+          },
         },
-      })
+        // The model re-derives pivot/rollup/totals from `ui` against the live
+        // schema (same `resolveEffectiveBuilderConfig`); it can't probe PSP
+        // synchronously, so pass the sidebar's resolved availability so its
+        // derivation matches the one just computed above.
+        { pivotAvailable }
+      )
       .catch(() => {
         // settle() never rejects; no-op catch satisfies no-floating-promises.
       });
     // All reconcile inputs are fields of `state`; depend on the snapshot
     // identity rather than listing each field individually.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model, state, pivotAvailable, rollupAvailable]);
+  }, [
+    model,
+    state,
+    pivotAvailable,
+    rollupAvailable,
+    pivotServiceStatus,
+    columnTypes,
+  ]);
 
   // Transient undo/redo keyboard shortcuts, scoped to this panel via a normal
   // React `onKeyDown` (so they never fire for sibling pivot-builder panels and

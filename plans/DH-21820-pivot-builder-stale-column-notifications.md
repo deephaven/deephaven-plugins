@@ -1,285 +1,149 @@
-# Pivot Builder: sanitize stale columns on the rollup path, notify on all paths
+# Pivot Builder: stale-column handling
 
 ## Background
 
-Repro: a table has columns A and B. A rollup is grouped on B, then the query
-is edited to drop B and the worker restarts. On restart the panel renders
-empty/skeleton rows with no error.
+Repro: a rollup/pivot/aggregation is configured, then the query is edited to
+drop referenced columns and restarts. Originally the persisted config was
+forwarded to the host/service unvalidated, rendering a silently-broken grid
+(rollup), a degenerate pivot, or a fatal `REQUEST_FAILED` (totals).
 
-Root cause: `makePivotModelTransform.ts` rehydrates the persisted
-`PivotBuilderConfig` before the model is published. The rollup branch in
-`applyPivotBuilderConfig` forwards `config.rollup` (still
-`groupingColumns: ['B']`) straight to the host's `rollupConfig` setter with no
-validation. The host calls `table.rollup(...)` with no column-existence check
-and the engine builds a structurally valid but non-functional TreeTable — it
-resolves rather than rejects, so there's no `REQUEST_FAILED`, no console
-error, just a grid that never populates. `settle()` also swallows both
-outcomes of the pending swap.
+A `PivotBuilderConfig` persists both raw card state (`config.ui`) and the
+derived result (`config.pivot`/`rollup`/`totals`, derived by the sidebar at
+edit time against the then-live schema). Trusting the persisted derived value
+at hydration broke in both directions: columns *dropped* (stale references
+forwarded) and columns *restored* (stale derivation replayed — e.g. a
+First-only rollup kept applying after the aggregation column came back).
 
-The pivot path already sanitizes aggregation columns via
-`buildPivotAggregationsMap`, but silently (`log.debug2` only) and it does
-**not** sanitize `rowKeys`/`columnKeys`.
+## Behavior contract
 
-The same staleness affects the sidebar's **Aggregate Values** card, which is
-not part of `config.pivot`. Per `seedPivotBuilderUiState.ts`, its content comes
-from one of two places:
+Columns missing from the live schema behave as if they were never added —
+per entry, per section, whether some or all are missing:
 
-- `config.rollup.aggregations` (`operation → columns[]`) when a rollup is
-  active — forwarded with `groupingColumns` via the same `rollupDesc.set`.
-- `config.totals.operationMap` (`column → operations[]`) when no rollup/pivot
-  is active — forwarded via `writeTotalsToInner` /
-  `originalWritable.totalsConfig`.
-
-All paths need the same treatment: sanitize before the host/service write,
-keep the raw value in `storedRollup`/`storedTotals`/`lastIntent`, and fold
-into a single stale-columns notification.
-
-## Goals
-
-1. Rollup path never renders a silently-broken/empty grid when
-   `groupingColumns` references a missing column.
-2. `storedRollup` / `storedTotals` / `lastIntent` keep the **raw, unsanitized**
-   value so the user can see and fix the stale reference. Only the value sent
-   to the host setter is sanitized.
-3. Rollup, totals (Aggregate Values, non-rollup mode), and pivot paths all
-   toast when a saved config references missing columns, instead of silently
-   dropping them.
-4. A single `applyPivotBuilderConfig` call that finds stale refs across any
-   combination of rollup/totals/pivot shows **one** notification.
-5. The notification does not repeat on every reconcile of the same unchanged
-   bad config — it fires once per distinct bad config (dedupe via `deepEqual`,
-   like `PIVOT_BUILDER_CONFIG_CHANGED`).
-
-## Non-goals
-
-- Not changing the existing hard-failure recovery path (`chooseRecoveryTarget`
-  / `PIVOT_BUILDER_ERROR`). It remains the safety net for non-schema-drift
-  failures (service unavailable, network, etc.).
-- Not auto-fixing the persisted config. The user fixes it via the sidebar or
-  query; we only stop the silent broken render and make the problem visible.
+- A section (Rollup rows / Pivot columns / Aggregate values) whose entries are
+  ALL missing acts as toggled off; mode selection falls through (pivot →
+  rollup → totals → flat).
+- Partial staleness keeps the section active; only live entries take effect.
+- Restoring columns re-enables them, symmetrically.
+- Raw config is never auto-fixed: `builderConfig`/persistence keep the raw
+  values so the sidebar shows stale entries (struck through) for the user to
+  fix.
 
 ## Design
 
-### 1. Stale-reference detection
+### Single derivation path
 
-`findStaleColumnRefs(config, columns)` returns a `StaleColumnReport`:
+`resolveEffectiveBuilderConfig(ui, columns, {pivotAvailable, rollupAvailable})`
+(`resolveEffectiveBuilderConfig.ts`) is the one mode-selection/derivation
+function, extracted from the sidebar's reconcile and shared by:
 
-```ts
-export interface StaleColumnReport {
-  rollupColumns: string[]; // config.rollup groupingColumns + aggregations
-  totalsColumns: string[]; // config.totals operationMap keys
-  pivotColumns: string[];  // config.pivot rowKeys/columnKeys/aggregations
-}
-```
+- `CreatePivotPage` (reconcile on card edits), and
+- `applyPivotBuilderConfigInternal` (hydration and every apply), whenever the
+  config carries `ui`.
 
-- Checks all three sections regardless of which branch will run (rollup/totals
-  are mirrored into the config even while a pivot supersedes them).
-- Returns empty arrays (never null) and de-dupes names within each list.
-- **Existence-only, not type validity.** A column that still exists but is now
-  type-invalid for its operation (e.g. `Sum` over a now-string column) is
-  silently dropped by the sanitizers (section 2) but does **not** trigger the
-  toast. This matches the "no longer exist" toast copy and is intentional.
+A card is active only if at least one listed column is live (`hasLiveColumn`;
+`invert: true` aggregations stay active regardless). Gates:
+`pivotActive = globalOn && pivotAvailable && rollupAvailable && pivotColumnsOn
+&& hasLiveColumn(pivotColumns)`; analogous for rollup/aggs. Three-way branch:
+pivot (raw ui lists; sanitized at the build choke point) → rollup
+(`getModelRollupConfig`) → totals (`getModelTotalsConfig`).
 
-Called once at the **very top** of `applyPivotBuilderConfig`, above the
-`deepEqual(config, lastIntent)` no-op short-circuit. A single call site over
-the one incoming `config` naturally yields one combined report (satisfies goal
-4).
+The persisted derived `pivot`/`rollup`/`totals` are consulted only for legacy
+configs without `ui`. On that legacy path the older salvage guards remain:
+`pivotKeysAllStale` / `pivotColumnKeysAllStale` / `fallbackRollupFromPivot`
+(a `fallbackTotals` salvage existed briefly but was subsumed by the derivation
+and removed).
 
-### 2. Sanitize before the host/service calls, not before storage
+`pivotAvailable` is resolved by callers (the model can't probe PSP): the
+sidebar passes its probe status; `makePivotModelTransform` probes when the
+*ui derivation* implies a pivot (legacy: `persisted.pivot != null`), fatal on
+failure as before, and passes the result. Internal revert calls reuse the last
+passed value. `rollupAvailable` is read live from the host proxy.
 
-- **Rollup (grouping):** drop missing `groupingColumns` and pass the sanitized
-  config to `rollupDesc.set`; keep `storedRollup = config.rollup` raw. If every
-  grouping column is dropped, forward `null` (flat source) rather than an
-  empty-but-still-a-rollup config.
-- **Rollup (Aggregate Values):** filter `rollup.aggregations`, dropping columns
-  that are missing **or** fail `AggregationUtils.isValidOperation(op, type)`,
-  then dropping an operation once its column list is empty. An empty
-  aggregations map is an acceptable terminal state (grouped rows, no aggregate
-  columns) — no synthesized replacement.
-- **Totals (non-rollup mode):** drop `operationMap` entries whose column is
-  missing, and drop individual operations that fail `isValidOperation`, then
-  pass the sanitized totals to `writeTotalsToInner` (both immediate and
-  `pendingTotals`-queued branches); keep `storedTotals = config.totals` raw. An
-  empty `operationMap` is acceptable.
+### Sanitize at the write boundary, store raw
 
-  **Write-ordering fix:** the outer diff that decides whether to write compares
-  against `effectiveInnerTotals` (`pendingTotals ?? appliedInnerTotals`), not
-  `lastIntent.totals`, so supersede-then-return-to-totals still triggers a
-  clearing write. If we keep `config.totals` raw but write a sanitized value,
-  diffing raw-vs-`effectiveInnerTotals` is true on essentially every call while
-  any stale entry persists → RPC churn/flicker (the template's own guard is
-  `===` reference equality). **Fix:** diff the *sanitized* value against
-  `effectiveInnerTotals` (sanitized-vs-sanitized). `storedTotals` still stores
-  raw regardless.
-- **Type validity (in scope):** neither `IrisGridProxyModel`'s `rollupConfig`
-  setter nor `IrisGridTableModelTemplate`'s `totalsConfig` path
-  (`getTotalsTable()`) does any operation/type validation, so we add the
-  `AggregationUtils.isValidOperation` check ourselves on rollup aggregations
-  and totals, matching the pivot path. Note: the totals path **catches** a
-  `getTotalsTable()` rejection and dispatches `REQUEST_FAILED`, so a bad totals
-  config can produce a fatal panel error (not a silent empty render) — another
-  reason to sanitize it. `pivotBuilderModel.ts` already imports
-  `AggregationUtils`.
-- **Pivot:** extend the build boundary (`buildPivotAggregationsMap`) to filter
-  `rowKeys` and `columnKeys` against `table.columns` right before
-  `createPivotTable`. `current`/`lastIntent`/`storedRollup`/`storedTotals`
-  continue to store raw `config.pivot`.
+- `sanitizeRollupConfig` / `sanitizeTotalsConfig` /
+  `buildSanitizedPivotRequest` drop missing columns (and type-invalid
+  aggregation operations) right before the host/service write.
+- `storedRollup`/`storedTotals`/`lastIntent`/`current` keep the RAW values.
+- One write site per host property, diffed against the last APPLIED value:
+  `appliedRollup` (either channel — derived rollup or legacy fallback),
+  `appliedInnerTotals` (+`pendingTotals` mid-swap queue), `current` for pivot.
+  Raw-vs-raw diffs are wrong here (derived values change without the raw
+  fields changing, and vice versa).
 
-  **Total key-loss case:** when sanitization empties both `rowKeys` and
-  `columnKeys`:
-  - If the sanitized aggregations (before any Count-fallback synthesis) are
-    also empty, revert the whole pivot to the empty builder config (flat
-    source) — same target as `chooseRecoveryTarget`. A "Count of everything,
-    zero grouping" pivot has no value.
-  - If the sanitized aggregations are non-empty, keep the pivot with empty keys
-    and those aggregations (a meaningful flat summary row).
-  - The existing Count-fallback (grouping present, aggregations empty) is
-    unchanged.
+### Stale-reference notification
 
-  This requires splitting sanitization from Count-fallback synthesis so the
-  caller can tell "sanitized map was empty before fallback" from "final map is
-  non-empty only because a Count was synthesized" — otherwise the degenerate
-  all-keys-gone case would still silently synthesize a Count. Implemented as
-  `sanitizePivotAggregations` + `buildPivotAggregationsMap` +
-  `buildSanitizedPivotRequest`.
+`findStaleColumnRefs(config, columns)` → `StaleColumnReport`
+(`{rollupColumns, totalsColumns, pivotColumns}`; existence-only, deduped) runs
+on every apply above the no-op short-circuit. Dispatches
+`PIVOT_BUILDER_STALE_COLUMNS` once per distinct bad config (dedupe on
+`{pivot, rollup, totals}` only, not `ui`; per-proxy, so a restart re-notifies
+once).
 
-### 3. Notification event, once per distinct bad config
+**No toast.** The sidebar strikethrough styling
+(`pivot-column-name--stale`: line-through + disabled color, driven by the
+same live-schema check) is the user-facing signal; the middleware `log.warn`s
+the per-section column lists for support. The `PIVOT_BUILDER_ERROR`
+build-failure toast is separate and unchanged.
 
-```ts
-export const PIVOT_BUILDER_STALE_COLUMNS =
-  '@deephaven/js-plugin-pivot-builder/PIVOT_BUILDER_STALE_COLUMNS';
+Hydration visibility: the hydration-time dispatch fires before any listener
+attaches, so the proxy exposes a synchronous `staleColumnReport` getter
+(updated every apply; internal reverts pass `skipStaleSnapshotUpdate` to
+preserve the original report). The middleware reads it once per model swap and
+listens for later live edits.
 
-export interface PivotBuilderStaleColumnsDetail {
-  rollupColumns: string[];
-  totalsColumns: string[];
-  pivotColumns: string[];
-}
-```
+## Non-goals
 
-After computing the report: if all lists are empty, do nothing. Otherwise
-`deepEqual`-compare `config` (on `{pivot, rollup, totals}` only — not the
-UI-only `ui` field) against a per-proxy `lastStaleNotifiedConfig`; dispatch
-only if different, then update it. This runs above the no-op short-circuit
-(the no-op path returns early for unrelated reasons but we still don't want a
-repeat), using the separate guard rather than `lastIntent`.
+- The hard-failure recovery path (`chooseRecoveryTarget` /
+  `PIVOT_BUILDER_ERROR`) is unchanged — still the safety net for
+  non-schema-drift failures.
+- No auto-fixing/rewriting of persisted config; derivation is apply-time only.
 
-### 4. Listener + toast
+## Files
 
-In `usePivotBuilderMiddlewareCore.tsx`, a listener alongside the existing
-`PIVOT_BUILDER_ERROR` one shows a generic toast (`STALE_COLUMNS_MESSAGE`:
-"Some columns in the saved configuration no longer exist and were removed.").
-The per-section lists ride on the event detail and are `log.debug`-ged for
-support, but stay out of the toast. One event per bad config → one toast.
-
-### 5. Hydration-visibility fix (required)
-
-The transform `await`s `applyPivotBuilderConfig(persisted)` **before**
-publishing the model, but the listener only attaches in a `useEffect` gated on
-React `model` state (set after the transform resolves). So the hydration-time
-dispatch — the exact reported bug — fires with no listeners, and
-`CreatePivotPage` skips its mount-time reconcile, so there's no natural second
-call.
-
-Fix: expose a synchronous `staleColumnReport` getter on the proxy (mirroring
-`builderConfig`), updated on **every** `applyPivotBuilderConfig` call
-regardless of the dedupe/dispatch decision. The `[model]` effect reads it once
-when the model becomes available and toasts if non-empty, in addition to the
-`PIVOT_BUILDER_STALE_COLUMNS` listener that covers later live sidebar edits.
-The effect runs once per genuine model swap, so it can't spam.
-
-## Files touched
-
-- `pivotBuilderModel.ts`
-  - `StaleColumnReport`, `findStaleColumnRefs`.
-  - `PIVOT_BUILDER_STALE_COLUMNS` + `PivotBuilderStaleColumnsDetail`.
-  - `sanitizeRollupConfig` (groupingColumns + aggregations, existence +
-    `isValidOperation`), `sanitizeTotalsConfig` (operationMap, existence +
-    `isValidOperation`).
-  - Pivot build split: `sanitizePivotAggregations` +
-    `buildPivotAggregationsMap` + `buildSanitizedPivotRequest`
-    (rowKeys/columnKeys sanitization + total-key-loss rule).
-  - `applyPivotBuilderConfig`: split into a public delegate and internal
-    `applyPivotBuilderConfigInternal(config, { skipStaleSnapshotUpdate? })`.
-    Calls `findStaleColumnRefs` at the top (above the no-op short-circuit);
-    sanitizes rollup before `rollupDesc.set` and totals before
-    `writeTotalsToInner`/`pendingTotals` (sanitized-vs-`effectiveInnerTotals`
-    diff); dispatches with the `lastStaleNotifiedConfig` dedupe; updates
-    `lastStaleColumnReport` unconditionally.
-  - `staleColumnReport` getter on the proxy.
-- `usePivotBuilderMiddlewareCore.tsx`
-  - `[model]` effect: one-time synchronous `staleColumnReport` read (hydration
-    fix) + `PIVOT_BUILDER_STALE_COLUMNS` listener (live edits), both toasting.
+- `resolveEffectiveBuilderConfig.ts` — shared derivation (new).
+- `pivotBuilderModel.ts` — detection/report/event, sanitizers, pivot build
+  split, ui-driven derivation in `applyPivotBuilderConfigInternal`, unified
+  `appliedRollup` write, legacy guards, `staleColumnReport` getter,
+  `pivotAvailable` option.
+- `makePivotModelTransform.ts` — derivation-driven PSP probe, threads
+  `pivotAvailable`.
+- `CreatePivotPage.tsx` — delegates reconcile derivation to the shared
+  function; live-column gating for mode selection and the PSP-loading guard.
+- `usePivotBuilderMiddlewareCore.tsx` — `log.warn` (no toast) on both
+  notification sources.
+- Strikethrough: `rowParts.tsx` / `ColumnRow.tsx` / `aggregateRows.tsx` /
+  `PivotConfigSection.tsx` / `PivotBuilder.scss`.
 - Tests: `findStaleColumnRefs.test.ts`, `pivotBuilderModelApply.test.ts`
-  (incl. the hydration/no-listener test), extended
-  `buildPivotAggregationsMap.test.ts`. Coverage includes: all
-  rollup/totals/pivot combinations + none; dedupe of repeated names;
-  rollup/totals sanitization for missing columns and type-invalid operations
-  with raw values preserved (immediate + queued branches); pivot
-  rowKeys/columnKeys sanitization; single-event dispatch with no-repeat and
-  re-fire-on-change; legacy `Record<op, columns[]>` aggregation shape; v1→v2
-  migrated config; and a non-enum operation string (dropped, not thrown).
+  (sanitization, salvage/legacy paths, ui-driven re-derivation incl. the live
+  repro both PSP-available and not, transform probe trigger, hydration
+  visibility), `buildPivotAggregationsMap.test.ts`, `CreatePivotPage.test.tsx`
+  (mode-selection gating), row-component tests.
 
 ## Resolved decisions
 
-1. **All keys sanitized away:** conditional on sanitized aggregations — empty →
-   revert to flat builder config; non-empty → keep pivot with empty keys and
-   the real aggregations. See the total key-loss rule in section 2.
-2. **Toast wording:** generic, no column/section names. Specifics ride on the
-   event detail and `log.debug` only.
-3. **Dedupe lifetime:** `lastStaleNotifiedConfig` is per-proxy (fresh per model
-   build), so a restart re-hydrating the same broken config toasts again once —
-   an intentional recurring nag until fixed.
-4. **`PIVOT_BUILDER_ERROR` overlap:** kept separate (schema drift vs.
-   unrecoverable service failure). Note `lastGoodBuilderConfig` is stored raw,
-   including a config that only built because sanitization dropped stale refs,
-   so a later hard failure + recovery can dispatch both `PIVOT_BUILDER_ERROR`
-   and `PIVOT_BUILDER_STALE_COLUMNS` together — verified the two toasts read
-   sensibly side by side.
-5. **Type validity (sanitization only):** rollup aggregations and totals gain
-   an `isValidOperation` check alongside existence. This governs what gets
-   dropped, not what the toast reports — `findStaleColumnRefs`/the toast stay
-   existence-only (see decision above and section 1).
-
-## Failure-mode confirmation (closed)
-
-The totals and rollup-aggregation failure modes were reproduced live (Aggregate
-Values on column B, both with a rollup active and via plain totals, then
-dropping B and restarting), confirming the sanitize-and-notify approach is
-correct. As anticipated, the totals path can surface a fatal `REQUEST_FAILED`
-rather than a silent empty render, so sanitizing before `getTotalsTable()` is
-what prevents the panel error. No design changes were needed as a result.
-
-## Open questions
-
-None.
+1. All pivot keys stale → equivalent to section off (legacy guards; on the
+   modern path the derivation prevents it structurally).
+2. Notification is log-only (`log.warn`, per-section details); strikethrough
+   is the UI signal. An earlier generic toast was implemented, then removed by
+   request.
+3. Dedupe lifetime per-proxy: same broken config re-notifies once per restart.
+4. Staleness detection is existence-only; type-validity is a sanitizer concern
+   and doesn't notify.
+5. Persisted derived fields stay written by the sidebar (backward
+   compatibility) but are not trusted at apply time when `ui` is present.
 
 ## Implementation status
 
-Implemented per this plan, including all review fixes:
+Implemented, reviewed (multiple independent review rounds; each fix
+mutation-tested), and verified live against the repro dashboard. Notable bugs
+found and fixed along the way: revert paths clobbering the stale snapshot or
+persisted intent; dedupe re-firing on ui-only toggles; a fully-stale rollup
+silently dropping a valid aggregation; a synthesized `First` passthrough
+resurrecting as a phantom totals row; a toggled-off Aggregate card salvaging
+anyway; all-stale pivot keys firing degenerate keyless/0-column-key pivot
+RPCs; two independent rollup writers able to clobber each other (unified);
+and the stale-derivation-replayed-after-columns-restored bug that motivated
+the shared-derivation refactor.
 
-- `pivotBuilderModel.ts` — `StaleColumnReport`/`findStaleColumnRefs`,
-  `PIVOT_BUILDER_STALE_COLUMNS`/`PivotBuilderStaleColumnsDetail`,
-  `sanitizeRollupConfig`, `sanitizeTotalsConfig`, the pivot build split
-  (`sanitizePivotAggregations` + `buildPivotAggregationsMap` +
-  `buildSanitizedPivotRequest`), the `staleColumnReport` getter, and the
-  dispatch placed above the no-op short-circuit.
-- `usePivotBuilderMiddlewareCore.tsx` — the `[model]` effect (synchronous
-  `staleColumnReport` read + listener), both showing the generic toast.
-- Tests as listed above.
-
-Two bugs found and fixed by post-implementation code review:
-
-1. The empty-shell pivot revert and `recoverFromPivotFailure` re-applied their
-   reverted-to config through the public `applyPivotBuilderConfig`, re-running
-   `findStaleColumnRefs` and overwriting `lastStaleColumnReport` with an
-   all-clear result before the middleware's mount-time read — so a fully-stale
-   persisted pivot silently collapsed to a flat table with no toast. Fixed by
-   the public/internal split, with internal revert/recovery call sites passing
-   `skipStaleSnapshotUpdate: true` (a user legitimately clearing everything
-   still clears the snapshot).
-2. The dedupe compared the whole config including the UI-only `ui` field,
-   causing spurious re-toasts on sidebar switch toggles. Fixed by deduping on
-   `{pivot, rollup, totals}` only.
-
-Both fixes have tests. The full pivot-builder JS suite (12 suites, 139 tests as
-of the latest run) passes with 0 TypeScript errors.
+Suite: 13 suites / 160 tests passing, `tsc` and prettier clean.

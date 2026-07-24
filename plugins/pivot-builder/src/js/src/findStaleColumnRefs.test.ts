@@ -202,9 +202,9 @@ describe('findStaleColumnRefs', () => {
       columnKeys: [],
       aggregations: { Sum: ['price', 'gone'] },
     } as unknown as PivotConfig;
-    expect(findStaleColumnRefs(config({ pivot: legacyPivot }), columns)).toEqual(
-      { rollupColumns: [], totalsColumns: [], pivotColumns: ['gone'] }
-    );
+    expect(
+      findStaleColumnRefs(config({ pivot: legacyPivot }), columns)
+    ).toEqual({ rollupColumns: [], totalsColumns: [], pivotColumns: ['gone'] });
   });
 
   it('handles a v1-migrated config (bare PivotConfig wrapped with null rollup/totals)', () => {
@@ -268,10 +268,7 @@ describe('sanitizeRollupConfig', () => {
   });
 
   it('keeps a rollup with grouping but no surviving aggregations (empty map is valid)', () => {
-    const sanitized = sanitizeRollupConfig(
-      makeRollup(['region'], {}),
-      columns
-    );
+    const sanitized = sanitizeRollupConfig(makeRollup(['region'], {}), columns);
     expect(sanitized).not.toBeNull();
     expect(
       (sanitized as unknown as { groupingColumns: string[] }).groupingColumns
@@ -302,7 +299,10 @@ describe('sanitizeRollupConfig', () => {
 describe('sanitizeTotalsConfig', () => {
   it('drops operationMap entries whose column no longer exists', () => {
     expect(
-      sanitizeTotalsConfig(makeTotals({ price: ['Sum'], gone: ['Avg'] }), columns)
+      sanitizeTotalsConfig(
+        makeTotals({ price: ['Sum'], gone: ['Avg'] }),
+        columns
+      )
     ).toEqual(expect.objectContaining({ operationMap: { price: ['Sum'] } }));
   });
 

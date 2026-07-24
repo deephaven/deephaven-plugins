@@ -12,6 +12,10 @@ import Log from '@deephaven/log';
 import { EventShimCustomEvent } from '@deephaven/utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
+import {
+  resolveEffectiveBuilderConfig,
+  type EffectiveBuilderConfig,
+} from './resolveEffectiveBuilderConfig';
 
 const log = Log.module('@deephaven/js-plugin-pivot-builder/pivotBuilderModel');
 
@@ -348,7 +352,7 @@ export function findStaleColumnRefs(
   }
 
   const pivotNames: string[] = [];
-  const pivot = config.pivot;
+  const { pivot } = config;
   if (pivot != null) {
     (pivot.rowKeys ?? []).forEach(name => pivotNames.push(name));
     (pivot.columnKeys ?? []).forEach(name => pivotNames.push(name));
@@ -390,10 +394,10 @@ function staleNotifyKey(
  * rollup. Empty aggregations with surviving grouping is fine. Never mutates
  * `rollup`.
  *
- * When this returns `null` but the user configured a real aggregation, the
- * caller salvages it onto the totals channel (derived from
- * `config.ui.aggregations` via `getModelTotalsConfig`) so the aggregation is
- * not silently lost — see `applyPivotBuilderConfigInternal`.
+ * On the modern (`config.ui`-bearing) path an all-stale grouping never reaches
+ * this function as a rollup at all: `resolveEffectiveBuilderConfig` deactivates
+ * the rollup card and derives a standalone totals row (the aggregation salvage)
+ * instead. This function's `null` collapse matters for legacy no-ui configs.
  */
 export function sanitizeRollupConfig(
   rollup: DhType.RollupConfig,
@@ -656,8 +660,16 @@ export interface PivotBuilderProxyModel extends IrisGridModel {
    * `setNextModel`) has settled. Synchronous callers (the sidebar) can ignore
    * it; the reload transform awaits it so the host hydrates sort/filter
    * against the derived model rather than the still-flat source.
+   *
+   * `options.pivotAvailable` tells the model whether the worker's PivotService
+   * probe reported `ready` (the model can't probe PSP synchronously). It is
+   * consulted only when `config.ui` is present (the modern re-derivation path)
+   * and remembered across the internal revert calls that omit it.
    */
-  applyPivotBuilderConfig: (config: PivotBuilderConfig) => Promise<void>;
+  applyPivotBuilderConfig: (
+    config: PivotBuilderConfig,
+    options?: { pivotAvailable?: boolean }
+  ) => Promise<void>;
   [PIVOT_BUILDER_TAG]: true;
 }
 
@@ -754,6 +766,15 @@ export function augmentPivotBuilderModel(
     totalsColumns: [],
     pivotColumns: [],
   };
+
+  // Last explicitly-passed PivotService availability. The model can't probe
+  // PSP synchronously, so callers (the sidebar, and the hydration transform
+  // after a successful probe) pass it in; internal revert calls
+  // (`recoverFromPivotFailure`) omit it and reuse this remembered value. Only
+  // consulted on the modern `config.ui`-driven re-derivation path — a stale
+  // `false` never matters on the legacy path (which ignores it). Defaults to
+  // `false`: a pivot can't be built before the probe confirms availability.
+  let lastKnownPivotAvailable = false;
 
   let current: PivotConfig | null = null;
   // Monotonic token for in-flight pivot creations. Every `pivotConfig` write
@@ -865,35 +886,18 @@ export function augmentPivotBuilderModel(
     // only the build inputs are sanitized.
     const sanitized = sanitizePivotBuild(config);
     if (sanitized.isEmpty) {
-      // Total key-loss: every row/column key was dropped as stale AND no
-      // aggregation survived sanitization. A "Count of everything, zero
-      // grouping" pivot provides no value, so fall back to the flat source
-      // entirely and re-apply the empty builder config (clearing the now-void
-      // pivot intent). This is schema drift, already surfaced via the
-      // stale-columns notification — NOT a build failure, so we do NOT dispatch
-      // `PIVOT_BUILDER_ERROR` here.
+      // Defense-in-depth: `applyPivotBuilderConfigInternal` now routes any
+      // all-keys-stale pivot away from this setter before it's ever called
+      // (see `pivotKeysAllStale`), so this should be unreachable in practice.
+      // If it's ever hit anyway, render the flat source without touching
+      // `lastIntent`/persistence, same as that caller's own handling.
       log.debug(
-        'Pivot fully stale (no surviving keys or aggregations); reverting to flat source',
+        'Pivot fully stale (no surviving keys or aggregations); rendering flat source, intent preserved',
         config
       );
       isRecoveringPivot = false;
+      current = null;
       proxy.setNextModel(Promise.resolve(proxy.originalModel));
-      Promise.resolve()
-        .then(() => {
-          // Skip if a newer apply already took over (it's authoritative).
-          if (token !== pivotToken) return;
-          // Internal revert call: preserve the stale-column snapshot computed
-          // by THIS (fully-stale) apply. Re-running detection against the empty
-          // config would clobber `lastStaleColumnReport` to empty on the
-          // microtask that runs BEFORE React commits and the middleware reads
-          // it — silently collapsing a fully-stale saved pivot to a flat table
-          // with no notification. See `skipStaleSnapshotUpdate`.
-          applyPivotBuilderConfigInternal(
-            { ...EMPTY_BUILDER_CONFIG },
-            { skipStaleSnapshotUpdate: true }
-          ).catch(() => undefined);
-        })
-        .catch(() => undefined);
       return;
     }
 
@@ -1051,6 +1055,18 @@ export function augmentPivotBuilderModel(
   // wrongly suppress the clearing write when returning to a plain-totals
   // view, leaving a stale Totals row on the restored base model.
   let appliedInnerTotals: UITotalsTableConfig | null = null;
+  // Mirror of the rollup config actually written to the host, from WHICHEVER
+  // channel produced it — a genuine `config.rollup`, or the fallback
+  // reconstructed from a pivot whose column keys went all-stale (see
+  // `effectiveRollup` below). Writes are diffed against this — NOT against
+  // `lastIntent.rollup` — for the same reason `appliedInnerTotals` exists
+  // instead of diffing against `lastIntent.totals`: a raw-config diff is
+  // right for genuine rollup mode (where `config.rollup` itself changes on
+  // every edit) but wrong for the fallback (derived from `config.pivot` +
+  // `config.ui` while `config.rollup` stays `null` throughout), and a single
+  // applied-value diff serves both correctly and avoids redundant host
+  // writes when a raw edit doesn't change the sanitized result.
+  let appliedRollup: DhType.RollupConfig | null = null;
 
   const proxyAsAny = proxy as unknown as { modelPromise: unknown };
   const originalWritable = proxy.originalModel as unknown as {
@@ -1143,10 +1159,9 @@ export function augmentPivotBuilderModel(
 
   /**
    * Shared body for `applyPivotBuilderConfig`. `options.skipStaleSnapshotUpdate`
-   * distinguishes INTERNAL, revert-driven calls (the fully-stale empty-shell
-   * revert in `applyPivotConfig`, and `recoverFromPivotFailure`'s re-apply of a
-   * safe config) from EXTERNAL calls (the public proxy property, used by the
-   * sidebar and by `makePivotModelTransform`'s hydration). When set, the
+   * distinguishes INTERNAL, revert-driven calls (`recoverFromPivotFailure`'s
+   * re-apply of a safe config) from EXTERNAL calls (the public proxy property,
+   * used by the sidebar and by `makePivotModelTransform`'s hydration). When set, the
    * `lastStaleColumnReport` snapshot is left untouched and no
    * `PIVOT_BUILDER_STALE_COLUMNS` is dispatched — so the report computed by the
    * ORIGINAL problematic apply survives long enough for the middleware to read
@@ -1158,8 +1173,17 @@ export function augmentPivotBuilderModel(
    */
   function applyPivotBuilderConfigInternal(
     config: PivotBuilderConfig,
-    options: { skipStaleSnapshotUpdate?: boolean } = {}
+    options: {
+      skipStaleSnapshotUpdate?: boolean;
+      pivotAvailable?: boolean;
+    } = {}
   ): Promise<void> {
+    // Remember the caller's PivotService availability so the internal revert
+    // calls (which omit it) reuse the last external value. Never widened here
+    // to a default — only overwritten when a caller actually passes one.
+    if (options.pivotAvailable !== undefined) {
+      lastKnownPivotAvailable = options.pivotAvailable;
+    }
     // The pivot/rollup swap is routed through the host proxy's async
     // `setNextModel`, so the inner model is not updated synchronously.
     // `settle` resolves once any in-flight swap has finished (its
@@ -1198,7 +1222,7 @@ export function augmentPivotBuilderModel(
         0;
       // Dedupe on the data-bearing sections only, NOT `ui`: a UI-only change
       // (e.g. flipping a card switch) while the same stale reference persists
-      // must not be seen as a "different" config that re-toasts.
+      // must not be seen as a "different" config that re-notifies.
       const notifyKey = staleNotifyKey(config);
       if (hasStale && !deepEqual(notifyKey, lastStaleNotifiedConfig)) {
         lastStaleNotifiedConfig = notifyKey;
@@ -1226,6 +1250,37 @@ export function augmentPivotBuilderModel(
       log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
       return settle();
     }
+
+    // Decide what to APPLY. A modern config carries raw card state (`ui`); we
+    // re-derive the effective pivot/rollup/totals from it against the CURRENT
+    // live schema through the SAME `resolveEffectiveBuilderConfig` the sidebar
+    // uses, so a reload picks the mode the live sidebar would (the persisted
+    // `pivot`/`rollup`/`totals` were derived at edit time against a possibly
+    // different schema and must not be trusted verbatim). A legacy config (no
+    // `ui`, predating that field) has nothing to re-derive from, so its
+    // persisted derived values are applied as-is (sanitized below, with the
+    // stale-column salvage guards). The RAW `config` is still what gets stored,
+    // diffed, and dispatched — only the values handed to the host writers come
+    // from `effective`.
+    //
+    // `rollupAvailable` is the host proxy's own live flag (rollup and Select
+    // Distinct are mutually exclusive); `pivotAvailable` is the remembered
+    // caller-supplied probe result.
+    const useUiDerivation = config.ui != null;
+    const hostRollupAvailable =
+      (proxy as unknown as { isRollupAvailable?: boolean })
+        .isRollupAvailable === true;
+    const effective: EffectiveBuilderConfig = useUiDerivation
+      ? resolveEffectiveBuilderConfig(
+          config.ui as PivotBuilderUiState,
+          table.columns,
+          {
+            pivotAvailable: lastKnownPivotAvailable,
+            rollupAvailable: hostRollupAvailable,
+          }
+        )
+      : { pivot: config.pivot, rollup: config.rollup, totals: config.totals };
+
     // Raise the IrisGrid loading scrim *only* when this apply queued an
     // async model swap (pivot/rollup change → `setNextModel`). Those swaps
     // resolve into a COLUMNS_CHANGED / UPDATED event that clears the scrim
@@ -1249,27 +1304,68 @@ export function augmentPivotBuilderModel(
     const proxyWithPivot = proxy as unknown as {
       pivotConfig: PivotConfig | null;
     };
-    if (config.pivot != null) {
+    // LEGACY-path guards: a persisted pivot whose keys went all-stale must not
+    // fire a real keyless `createPivotTable` RPC — treat it like the Pivot
+    // section being off and fall through to the rollup/totals path below.
+    // Unreachable on the modern path (`resolveEffectiveBuilderConfig` gates
+    // `pivotActive` on a live pivot column). Reuses
+    // `buildSanitizedPivotRequest` so the "present columns" filter isn't
+    // re-derived.
+    const sanitizedPivotRequest =
+      effective.pivot != null
+        ? buildSanitizedPivotRequest(effective.pivot, table.columns)
+        : null;
+    const pivotKeysAllStale =
+      sanitizedPivotRequest != null &&
+      sanitizedPivotRequest.rowKeys.length === 0 &&
+      sanitizedPivotRequest.columnKeys.length === 0;
+    // A pivot whose COLUMN keys all went stale but whose ROW keys survive
+    // collapses to "grouping only, no column pivot". Rather than firing a real
+    // but degenerate 0-column-key `createPivotTable` RPC, fall through to the
+    // rollup/totals path below and reconstruct a genuine rollup keyed on the
+    // surviving row keys (see `fallbackRollupFromPivot`). Mirrors the
+    // interactive sidebar's own fallback (`CreatePivotPage`: pivotActive false,
+    // rollupActive true) so reload behaves the same as the live sidebar.
+    const pivotColumnKeysAllStale =
+      sanitizedPivotRequest != null &&
+      sanitizedPivotRequest.columnKeys.length === 0 &&
+      sanitizedPivotRequest.rowKeys.length > 0;
+    if (
+      effective.pivot != null &&
+      !pivotKeysAllStale &&
+      !pivotColumnKeysAllStale
+    ) {
       // Pivot supersedes rollup/totals. The pivot itself is built off
       // the source table directly, so we don't apply rollup/totals to
       // the inner model — but we must clear the host's *internal*
       // `this.rollup` cache (only updated via the host setter) so a
       // later rollup-back transition can't be `deepEqual`-suppressed
-      // against a stale cached value. The transient
-      // `setNextModel(originalModel)` queued by this clear is
-      // immediately superseded — and safely cancelled — by the pivot
-      // `setNextModel` below; `originalModel` is special-cased to not
-      // close on cancel.
-      if (lastIntent.rollup != null) {
+      // against a stale cached value. `appliedRollup` tracks whichever
+      // channel (genuine or fallback) last wrote it, so one check covers
+      // both. The transient `setNextModel(originalModel)` queued by this
+      // clear is immediately superseded — and safely cancelled — by the
+      // pivot `setNextModel` below; `originalModel` is special-cased to
+      // not close on cancel.
+      if (appliedRollup != null) {
         log.debug('Clearing host rollup cache before pivot');
         rollupDesc?.set?.call(proxy, null);
+        appliedRollup = null;
       }
-      if (!deepEqual(config.pivot, lastIntent.pivot)) {
-        log.debug('Applying pivotConfig', config.pivot);
+      // Legacy applies `config.pivot` and diffs it against `lastIntent.pivot`
+      // (both raw). The derivation path applies `effective.pivot` (derived from
+      // `config.ui`), which is unrelated to the raw `lastIntent.pivot`, so pass
+      // it unconditionally and let `applyPivotConfig`'s own
+      // `deepEqual(current, config)` no-op handle idempotency against the last
+      // APPLIED pivot. Either way capture the RAW `config` in
+      // `pendingPivotBuilderConfig` for the failure-revert machinery.
+      const pivotChanged =
+        useUiDerivation || !deepEqual(effective.pivot, lastIntent.pivot);
+      if (pivotChanged) {
+        log.debug('Applying pivotConfig', effective.pivot);
         // Remember the full intent driving this build so a build failure
         // can identify what failed and revert to the last good config.
         pendingPivotBuilderConfig = config;
-        proxyWithPivot.pivotConfig = config.pivot;
+        proxyWithPivot.pivotConfig = effective.pivot;
       }
       // Mirror intent into proxy storage so dehydration is correct.
       storedRollup = config.rollup;
@@ -1296,42 +1392,69 @@ export function augmentPivotBuilderModel(
     // columns. A rollup whose every grouping column was dropped falls back
     // to `null` (flat source) — a still-a-rollup-but-empty config would
     // build a broken/empty TreeTable. `storedRollup` keeps the RAW value.
+    // On the modern path `effective.rollup` is already re-derived against the
+    // live schema (and only ever non-null when a grouping column survives), so
+    // sanitization there is harmless cleanup; on the legacy path it is what
+    // trims the persisted derived rollup.
     const sanitizedRollup =
-      config.rollup != null
-        ? sanitizeRollupConfig(config.rollup, table.columns)
+      effective.rollup != null
+        ? sanitizeRollupConfig(effective.rollup, table.columns)
         : null;
-    // When the rollup collapsed to flat (all grouping stale) but the user
-    // configured a real aggregation, salvage it onto the totals channel instead
-    // of silently dropping it. Derive from the persisted
-    // `PivotBuilderUiState.aggregations` (available at hydration) via
-    // `getModelTotalsConfig`, which yields ONLY genuine user aggregations —
-    // unlike `rollup.aggregations`, whose synthesized `First` passthroughs would
-    // show a phantom totals row. `config.ui` is absent on very old configs (no
-    // salvage). Sanitized against the live schema like `config.totals`; computed
-    // on every apply so a UI-only reconcile doesn't clear an applied totals row.
-    // Also gate on `config.ui.aggregatesOn`: `ui.aggregations` holds the raw
-    // "Aggregate values" card contents regardless of that card's on/off switch
-    // (unlike `effectiveAggregationSettings`, which is empty when the card is
-    // off), so a toggled-off card with leftover content would otherwise
-    // resurrect a phantom totals row the healthy config would never show.
-    const fallbackTotalsCandidate =
-      config.rollup != null &&
-      sanitizedRollup == null &&
-      config.ui?.aggregatesOn === true &&
-      config.ui?.aggregations != null
-        ? IrisGridUtils.getModelTotalsConfig(
+    // A pivot whose column keys are ALL stale but whose row keys survive
+    // collapses to "grouping only, no column pivot" — reconstruct a genuine
+    // rollup keyed on the surviving row keys instead of asking the pivot
+    // service for a degenerate 0-column-key pivot (see `pivotColumnKeysAllStale`
+    // above). This is a LEGACY-path salvage: on the modern path
+    // `resolveEffectiveBuilderConfig` already gates `pivotActive` on a live
+    // pivot column, so `effective.pivot` never has all-stale column keys and
+    // `pivotColumnKeysAllStale` is always false — the derivation produces the
+    // rollup/totals directly instead. Self-contained from `sanitizedPivotRequest`
+    // (guaranteed live row keys) + `config.ui` when present (but on the legacy
+    // path `config.ui` is null, so the `?? true` defaults match
+    // `getModelRollupConfig`'s OWN defaults). Passed through
+    // `sanitizeRollupConfig` for the same empty-operation cleanup the genuine
+    // rollup path gets.
+    const rollupFromPivotCandidate =
+      pivotColumnKeysAllStale && sanitizedPivotRequest != null
+        ? IrisGridUtils.getModelRollupConfig(
             table.columns,
-            undefined,
-            config.ui.aggregations
+            {
+              columns: sanitizedPivotRequest.rowKeys,
+              // `?? true` matches `getModelRollupConfig`'s OWN defaults for a
+              // missing config field, so an absent `config.ui` (very old
+              // config) yields constituents + non-aggregated passthrough both
+              // on, exactly as if these had been left undefined.
+              showConstituents: config.ui?.includeConstituents ?? true,
+              showNonAggregatedColumns:
+                config.ui?.nonAggregatedInRollup ?? true,
+              includeDescriptions: true,
+            },
+            config.ui?.aggregatesOn === true && config.ui?.aggregations != null
+              ? config.ui.aggregations
+              : { aggregations: [], showOnTop: false }
           )
         : null;
-    const fallbackTotals =
-      fallbackTotalsCandidate != null
-        ? sanitizeTotalsConfig(fallbackTotalsCandidate, table.columns)
+    // `getModelRollupConfig` only returns `null` when its `columns` param is
+    // empty, which can't happen here (`pivotColumnKeysAllStale` guarantees
+    // `sanitizedPivotRequest.rowKeys.length > 0`) — the null check is purely
+    // to satisfy the type signature.
+    const fallbackRollupFromPivot =
+      rollupFromPivotCandidate != null
+        ? sanitizeRollupConfig(rollupFromPivotCandidate, table.columns)
         : null;
-    if (!deepEqual(config.rollup, lastIntent.rollup)) {
-      log.debug('Applying rollupConfig (sanitized)', sanitizedRollup);
-      rollupDesc?.set?.call(proxy, sanitizedRollup);
+    // Exactly one rollup channel is ever active at a time — the (re-derived or
+    // legacy) rollup, or the fallback reconstructed from a legacy pivot whose
+    // column keys went all-stale — so combine them into a single effective
+    // value and write it through ONE call site, diffed against the single
+    // `appliedRollup` tracking variable. A raw-config diff is right for genuine
+    // rollup edits but wrong for the fallback (derived while `config.rollup`
+    // stays `null`), and one applied-value diff serves both and avoids
+    // redundant host writes when a raw edit doesn't change the sanitized result.
+    const effectiveRollup = sanitizedRollup ?? fallbackRollupFromPivot;
+    if (!deepEqual(effectiveRollup, appliedRollup)) {
+      log.debug('Applying rollupConfig (sanitized)', effectiveRollup);
+      rollupDesc?.set?.call(proxy, effectiveRollup);
+      appliedRollup = effectiveRollup;
     }
     storedRollup = config.rollup;
 
@@ -1340,23 +1463,21 @@ export function augmentPivotBuilderModel(
     // entries that reference missing or type-invalid columns. Diff the
     // SANITIZED value against the base model's real totals (the queued write
     // if one is pending, otherwise the last applied value) — NOT the raw
-    // `config.totals`. A raw-vs-sanitized diff would be true on essentially
-    // every reconcile while any stale entry persists (they're never
-    // structurally equal), re-firing `writeTotalsToInner` /
-    // `table.getTotalsTable()` each time — RPC churn/flicker. Diffing against
-    // `appliedInnerTotals` (also sanitized) keeps it sanitized-vs-sanitized
-    // and stable. `storedTotals` keeps the RAW value.
+    // value. A raw-vs-sanitized diff would be true on essentially every
+    // reconcile while any stale entry persists (they're never structurally
+    // equal), re-firing `writeTotalsToInner` / `table.getTotalsTable()` each
+    // time — RPC churn/flicker. Diffing against `appliedInnerTotals` (also
+    // sanitized) keeps it sanitized-vs-sanitized and stable. On the modern path
+    // `effective.totals` is the re-derived standalone-aggregations row (the
+    // salvage that used to live in a `fallbackTotals` branch now happens inside
+    // `resolveEffectiveBuilderConfig`, which returns a totals config whenever
+    // rollup/pivot are inactive but aggregations are live); on the legacy path
+    // it is the persisted `config.totals`. `storedTotals` keeps the RAW value.
     const sanitizedTotals =
-      config.totals != null
-        ? sanitizeTotalsConfig(config.totals, table.columns)
+      effective.totals != null
+        ? sanitizeTotalsConfig(effective.totals, table.columns)
         : null;
-    // A real user totals config always wins; `fallbackTotals` only fills in
-    // when there is none. In normal operation the UI in `CreatePivotPage`
-    // makes pivot/rollup/totals mutually exclusive, so whenever a rollup is
-    // present to fall back from, `config.totals` (and thus `sanitizedTotals`)
-    // is already `null` — the `??` is a safe, simple precedence rather than an
-    // overwrite.
-    const totalsToApply = sanitizedTotals ?? fallbackTotals;
+    const totalsToApply = sanitizedTotals;
     const effectiveInnerTotals =
       pendingTotals !== undefined ? pendingTotals : appliedInnerTotals;
     if (!deepEqual(totalsToApply, effectiveInnerTotals)) {
@@ -1391,11 +1512,16 @@ export function augmentPivotBuilderModel(
     configurable: true,
     enumerable: false,
     // Public entry point: all external callers (sidebar, hydration transform)
-    // go through here with default options, so staleness detection runs and
-    // the snapshot/notification behave exactly as before. Only the internal
-    // revert call sites pass `{ skipStaleSnapshotUpdate: true }`.
-    value(config: PivotBuilderConfig): Promise<void> {
-      return applyPivotBuilderConfigInternal(config);
+    // go through here, so staleness detection runs and the
+    // snapshot/notification behave exactly as before. Callers may pass
+    // `{ pivotAvailable }` (remembered for the internal revert calls that omit
+    // it). Only the internal revert call sites pass
+    // `{ skipStaleSnapshotUpdate: true }`.
+    value(
+      config: PivotBuilderConfig,
+      options: { pivotAvailable?: boolean } = {}
+    ): Promise<void> {
+      return applyPivotBuilderConfigInternal(config, options);
     },
   });
 
