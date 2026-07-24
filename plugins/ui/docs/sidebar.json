@@ -335,6 +335,10 @@
                 "path": "components/multi_select.md"
               },
               {
+                "label": "notification",
+                "path": "components/notification.md"
+              },
+              {
                 "label": "number_field",
                 "path": "components/number_field.md"
               },

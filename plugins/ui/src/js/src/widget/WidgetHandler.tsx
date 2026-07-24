@@ -54,6 +54,7 @@ import WidgetStatusContext, {
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
 import Toast, { TOAST_EVENT } from '../events/Toast';
+import showNotification, { NOTIFICATION_EVENT } from '../events/Notification';
 import Navigate, {
   NAVIGATE_EVENT,
   type NavigateParams,
@@ -467,6 +468,9 @@ function WidgetHandler({
           switch (name) {
             case TOAST_EVENT:
               Toast(eventParams);
+              break;
+            case NOTIFICATION_EVENT:
+              showNotification(eventParams);
               break;
             case NAVIGATE_EVENT:
               Navigate(eventParams);

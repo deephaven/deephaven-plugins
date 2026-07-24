@@ -54,6 +54,7 @@ from .menu import menu
 from .menu_trigger import menu_trigger
 from .meter import meter
 from .multi_select import multi_select
+from .notification import notification
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
@@ -94,7 +95,6 @@ from .route import route
 from .router import router
 
 from . import html
-
 
 __all__ = [
     "accordion",
@@ -152,6 +152,7 @@ __all__ = [
     "menu_trigger",
     "meter",
     "multi_select",
+    "notification",
     "number_field",
     "panel",
     "picker",
