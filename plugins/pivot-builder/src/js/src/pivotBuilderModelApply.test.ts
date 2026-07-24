@@ -910,6 +910,39 @@ describe('applyPivotBuilderConfig — ui-driven re-derivation', () => {
     expect(proxy.pivotConfig).toEqual(derivedPivot);
     expect(proxy.builderConfig).toBe(config);
   });
+
+  it('clears an applied ui-derived pivot when a later apply derives a rollup (raw pivot was null both times)', async () => {
+    // Regression: the "pivot inactive" clear used to check the RAW
+    // `lastIntent.pivot`, which stays null throughout this scenario — the
+    // pivot was derived from `ui` while the raw `pivot` field was null (the
+    // hydration repro). The clear must key off the APPLIED pivot, or
+    // `pivotConfig`/`isPivot` stay stuck on the old pivot while the grid
+    // swaps to a rollup.
+    const { columns, config } = repro();
+    const { proxy, host } = makeProxy(columns);
+
+    await proxy.applyPivotBuilderConfig(config, { pivotAvailable: true });
+    expect(proxy.pivotConfig).not.toBeNull();
+
+    // Same cards, Pivot columns card toggled OFF → derivation picks rollup.
+    const p = proxy.applyPivotBuilderConfig(
+      {
+        ...config,
+        ui: { ...(config.ui as PivotBuilderUiState), pivotColumnsOn: false },
+      },
+      { pivotAvailable: true }
+    );
+    host.settleSwap();
+    await p;
+
+    // The applied pivot is cleared and the derived rollup takes over.
+    expect(proxy.pivotConfig).toBeNull();
+    expect(host.hostRollupWrites).toHaveLength(1);
+    expect(
+      (host.hostRollupWrites[0] as { groupingColumns: string[] })
+        .groupingColumns
+    ).toEqual(['A']);
+  });
 });
 
 describe('applyPivotBuilderConfig — totals sanitization + write ordering', () => {
@@ -1288,6 +1321,46 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
         .groupingColumns
     ).toEqual(['A']);
     expect(augmented.pivotConfig).toBeNull();
+  });
+
+  it('skips the probe when the host reports rollup unavailable (pivot underivable)', async () => {
+    // Regression: the probe trigger used an optimistic `rollupAvailable: true`,
+    // fatally probing PSP for a pivot the model's own derivation (which reads
+    // the host's LIVE flag) could never build. With rollup unavailable the
+    // derivation falls to totals, so no probe — and its rejection must not
+    // fail the model build.
+    const original = new FakeOriginalModel([col('A', STRING), col('C', INT)]);
+    const host = new FakeHostModel(original);
+    host.isRollupAvailable = false;
+    const getPsp = jest.fn(() => Promise.reject(new Error('no psp')));
+
+    const persisted: PivotBuilderConfig = {
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['C']), {
+        rollupRows: ['A'],
+        pivotColumns: ['C'],
+      }),
+    };
+
+    const transform = makePivotModelTransform(
+      {} as never,
+      getPsp as never,
+      () => persisted
+    );
+    const augmented = (await transform(
+      host as unknown as IrisGridModel
+    )) as unknown as PivotBuilderProxyModel;
+
+    expect(getPsp).not.toHaveBeenCalled();
+    expect(augmented.pivotConfig).toBeNull();
+    expect(host.hostRollupWrites).toHaveLength(0);
+    // The live aggregation lands on the totals channel instead.
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsWrites[0] as { operationMap: unknown }).operationMap
+    ).toEqual({ C: ['Sum'] });
   });
 
   it('fails the model build when the ui derives a pivot but the PSP probe rejects', async () => {

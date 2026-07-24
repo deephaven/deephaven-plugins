@@ -98,18 +98,21 @@ export function makePivotModelTransform(
       // the persisted `pivot`/`rollup`/`totals` are NOT trusted verbatim to
       // decide this — we ask the derivation. `pivotAvailable: true` here means
       // "if the ui implies a pivot, we intend to build one" (so probe); the
-      // real availability is confirmed by the probe below. Both flags are
-      // monotone gates in the derivation, so a missed-probe/silent-downgrade
-      // combination is impossible; the trade-off runs the other way — a ui
-      // implying pivot probes (fatally, if PSP is gone) even when the model's
-      // own derivation might pick rollup via a false `rollupAvailable`.
+      // real availability is confirmed by the probe below. `rollupAvailable`
+      // uses the host's LIVE flag — the same input the model's own derivation
+      // reads — so the probe trigger and the actual derivation can't disagree:
+      // when rollup is unavailable the derivation can never pick pivot, and we
+      // must not fatally probe PSP for a pivot that won't be built.
       // Legacy configs (no `ui`) fall back to the persisted `pivot` field.
       const columns = augmented.sourceTable.columns;
+      const hostRollupAvailable =
+        (augmented as unknown as { isRollupAvailable?: boolean })
+          .isRollupAvailable === true;
       const wouldPivot =
         persisted.ui != null
           ? resolveEffectiveBuilderConfig(persisted.ui, columns, {
               pivotAvailable: true,
-              rollupAvailable: true,
+              rollupAvailable: hostRollupAvailable,
             }).pivot != null
           : persisted.pivot != null;
 

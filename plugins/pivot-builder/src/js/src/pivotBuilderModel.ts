@@ -1380,8 +1380,14 @@ export function augmentPivotBuilderModel(
       return settle();
     }
 
-    // Pivot inactive — clear it before reconciling rollup/totals.
-    if (lastIntent.pivot != null) {
+    // Pivot inactive — clear it before reconciling rollup/totals. Check the
+    // APPLIED pivot (`pivotConfig`, i.e. `current`), not the raw
+    // `lastIntent.pivot`: under ui-derivation a pivot can be applied while the
+    // raw persisted `pivot` field is null (e.g. hydrating a stale-derived
+    // rollup whose ui implies a pivot), and a raw-intent check would skip this
+    // clear — leaving `pivotConfig`/`isPivot` stuck on the old pivot (pivot
+    // renderer/theme applied to a rollup model).
+    if (proxyWithPivot.pivotConfig != null) {
       log.debug('Clearing pivotConfig (pivot inactive)');
       proxyWithPivot.pivotConfig = null;
     }

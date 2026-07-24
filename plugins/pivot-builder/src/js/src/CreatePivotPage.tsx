@@ -285,31 +285,40 @@ export function CreatePivotPage({
     const hasLiveColumn = (names: readonly string[]): boolean =>
       names.some(name => columnTypes[name] != null);
 
+    // Consume the mount marker FIRST, unconditionally: the true mount run is
+    // this effect's first execution, whatever the probe status. Marking it
+    // here (before the loading wait below) means an edit made while the probe
+    // is pending is NOT lost — the post-resolution re-run proceeds and applies
+    // it instead of being swallowed as "the mount run". If nothing was edited,
+    // the post-resolution apply re-sends the hydrated intent, which the model
+    // no-ops via its `deepEqual(config, lastIntent)` guard.
+    if (!hasReconciledRef.current) {
+      hasReconciledRef.current = true;
+      return;
+    }
+
     // Defer reconciling while the PivotService availability probe is still
     // resolving (`'loading'`). During that window `pivotAvailable` is false, so
-    // a pivot-intended config (Pivot columns card on with columns) would be
-    // silently downgraded to a rollup below — and persisting that rollup
+    // a pivot-intended config (Pivot columns card on with live columns) would
+    // be silently downgraded to a rollup below — and persisting that rollup
     // clobbers the user's pivot intent to `null`, leaving the applied model (a
     // rollup) diverged from the restored `ui` (a pivot) on the next reload.
     // `pivotActive` deliberately gates on the probe being `'ready'` (building a
     // pivot before then hangs `createPivotTable` for ~10s — see below), so the
     // correct move is to WAIT, not to downgrade. The `pivotServiceStatus` dep
     // re-runs this effect once the probe settles to `'ready'` (build the pivot)
-    // or `'unavailable'` (a rollup fallback is then legitimate). Returning
-    // before the `hasReconciledRef` gate keeps the mount-skip intact for the
-    // first post-resolution run. Skip the wait entirely when every pivot
-    // column is stale — `pivotActive` will be `false` regardless of how the
-    // probe resolves, so there's nothing to protect by waiting.
+    // or `'unavailable'` (a rollup fallback is then legitimate). Only wait when
+    // the config could actually derive a pivot: skip the wait when the global
+    // toggle is off, rollup is unavailable, or every pivot column is stale —
+    // `pivotActive` will be `false` regardless of how the probe resolves, so
+    // there's nothing to protect by waiting.
     if (
       pivotServiceStatus === 'loading' &&
+      globalOn &&
+      rollupAvailable &&
       pivotColumnsOn &&
       hasLiveColumn(pivotColumns)
     ) {
-      return;
-    }
-
-    if (!hasReconciledRef.current) {
-      hasReconciledRef.current = true;
       return;
     }
 

@@ -133,8 +133,11 @@ function makeModel(
 
 const viewState = { hiddenColumns: [] } as never;
 
-function renderPage(model: IrisGridModel, status: PivotServiceStatus): void {
-  render(
+function pageElement(
+  model: IrisGridModel,
+  status: PivotServiceStatus
+): JSX.Element {
+  return (
     <Provider theme={defaultTheme}>
       <PivotServiceContext.Provider value={{ status }}>
         <CreatePivotPage
@@ -145,6 +148,15 @@ function renderPage(model: IrisGridModel, status: PivotServiceStatus): void {
       </PivotServiceContext.Provider>
     </Provider>
   );
+}
+
+function renderPage(
+  model: IrisGridModel,
+  status: PivotServiceStatus
+): (nextStatus: PivotServiceStatus) => void {
+  const { rerender } = render(pageElement(model, status));
+  return (nextStatus: PivotServiceStatus) =>
+    rerender(pageElement(model, nextStatus));
 }
 
 /**
@@ -290,5 +302,45 @@ describe('CreatePivotPage reconcile — hasLiveColumn gating', () => {
     ]);
     expect(cfg.rollup).toBeNull();
     expect(cfg.totals).toBeNull();
+  });
+
+  it('6. applies an edit made while the PSP probe was pending, once it resolves', async () => {
+    // Regression: the loading wait used to run BEFORE the mount-skip marker,
+    // so with a pivot-intent config the mount run returned at the wait (marker
+    // unconsumed), an edit during 'loading' also returned, and the first
+    // post-resolution run merely consumed the marker and returned — the edit
+    // was silently lost until the NEXT change. The marker is now consumed on
+    // the true mount run, so the post-resolution run applies the edit. The
+    // edit here (Rollup rows card on) deliberately KEEPS the pivot intent, so
+    // the wait guard stays true throughout 'loading'.
+    const { model, applySpy } = makeModel(
+      [col('region', STRING), col('dept', STRING), col('price', DOUBLE)],
+      makeUi({
+        globalOn: true,
+        rollupRowsOn: false,
+        rollupRows: ['dept'],
+        pivotColumns: ['region'],
+        aggregations: aggSettings([agg('Sum', ['price'])]),
+      })
+    );
+    const setStatus = renderPage(model, 'loading');
+
+    // Edit while the probe is pending: turn the Rollup rows card on. The
+    // config could derive a pivot (live pivot column, global on), so the
+    // reconcile must WAIT — nothing applied yet.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('switch', { name: 'Rollup rows' }));
+    expect(applySpy).not.toHaveBeenCalled();
+
+    // Probe resolves → the pending edit applies: a pivot whose row keys come
+    // from the now-enabled Rollup rows card.
+    setStatus('ready');
+    await waitFor(() => expect(applySpy).toHaveBeenCalled());
+    const cfg: PivotBuilderConfig =
+      applySpy.mock.calls[applySpy.mock.calls.length - 1][0];
+    expect(cfg.pivot).not.toBeNull();
+    expect(cfg.pivot?.columnKeys).toEqual(['region']);
+    expect(cfg.pivot?.rowKeys).toEqual(['dept']);
+    expect(cfg.ui?.rollupRowsOn).toBe(true);
   });
 });
