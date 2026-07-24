@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 from typing import Any, Callable, Dict, List
+from deephaven.ui._internal import RootRenderContextProtocol
+from deephaven.ui.types import QueryParams
 from .BaseTest import BaseTestCase
 
 
-class _TestRoot:
+class _TestRoot(RootRenderContextProtocol):
     """Minimal RootRenderContextProtocol implementation for tests."""
 
     def __init__(self, on_change_fn, on_queue_fn):
@@ -24,6 +26,14 @@ class _TestRoot:
 
     def set_url(self, url: str) -> None:
         self._url = url
+
+    def get_query_params(self) -> QueryParams:
+        """Get the current URL query parameters."""
+        return dict()
+
+    def set_query_params(self, query_params: QueryParams) -> None:
+        """Update the URL query parameters."""
+        pass
 
 
 class UITableTestCase(BaseTestCase):

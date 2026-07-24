@@ -48,17 +48,13 @@ export function ComboBox(
           {...pickerProps}
           errorMessage={message}
           validationState="invalid"
-        >
-          {[]}
-        </DHComboBox>
+        />
       );
     }
     if (isLoading || table == null || api == null) {
       return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHComboBox loadingState="loading" {...pickerProps}>
-          {[]}
-        </DHComboBox>
+        <DHComboBox loadingState="loading" {...pickerProps} />
       );
     }
     return (

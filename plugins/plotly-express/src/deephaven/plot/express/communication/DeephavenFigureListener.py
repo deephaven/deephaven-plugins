@@ -6,6 +6,7 @@ from typing import Any
 import io
 
 from deephaven.plugin.object_type import MessageStream
+from deephaven.table import PartitionedTable
 from deephaven.table_listener import listen, TableUpdate
 from deephaven.liveness_scope import LivenessScope
 
@@ -71,7 +72,20 @@ class DeephavenFigureListener:
             listen_func = partial(self._on_update, node)
             # if a table is not refreshing, it will never update, so no need to listen
             if table.is_refreshing:
-                handle = listen(table, listen_func)
+                # If the table is a partitioned table, add the constituent
+                # table as a dependency to ensure the constituents are ready
+                # when the callback fires
+                dependencies = (
+                    [node.table.table]
+                    if isinstance(node.table, PartitionedTable)
+                    else None
+                )
+                # do_replay=True atomically replays existing state and registers
+                # for future updates under the UG lock, preventing a race where
+                # partitions that appear before registration are missed entirely.
+                handle = listen(
+                    table, listen_func, do_replay=True, dependencies=dependencies
+                )
                 self._handles.append(handle)
                 self._liveness_scope.manage(handle)
 
@@ -94,11 +108,17 @@ class DeephavenFigureListener:
         Args:
             node: The node to update. Changes will propagate up from this node.
             update: Not used. Required for the listener.
-            is_replay: Not used. Required for the listener.
+            is_replay: Whether this update is a replay of the table's initial
+                snapshot. Replays only update the cached figure to make sure nothing is
+                missed. It's assumed the retrieve message sends the figure later.
         """
         if self._connection:
             revision = self._revision_manager.get_revision()
             node.recreate_figure()
+            # Replays only update the cached figure to make sure nothing is
+            # missed. It's assumed the retrieve message sends the figure later.
+            if is_replay:
+                return
             figure = self._get_figure()
             try:
                 self._connection.on_data(*self._build_figure_message(figure, revision))
@@ -183,6 +203,61 @@ class DeephavenFigureListener:
             except RuntimeError:
                 # trying to send data when the connection is closed, ignore
                 pass
+        elif message["type"] == "CALLABLE_EVENT":
+            return self._handle_callable_event(message)
+        return b"", []
+
+    def _handle_callable_event(
+        self, message: dict[str, Any]
+    ) -> tuple[bytes, list[Any]]:
+        """
+        Handle a CALLABLE_EVENT message. Invokes the Python callback and
+        optionally returns a response for preventable events.
+
+        Args:
+            message: The message dict containing callback_id, args, and optionally request_id
+
+        Returns:
+            The result as a tuple of (payload, references)
+        """
+        from ..types import wrap_callable
+
+        callback_id = message.get("callback_id")
+        args = message.get("args", {})
+        request_id = message.get("request_id")
+
+        figure = self._get_figure()
+        fn = (
+            figure.get_callback_by_id(callback_id)
+            if figure and callback_id is not None
+            else None
+        )
+        result = None
+
+        if fn is not None:
+            try:
+                result = wrap_callable(fn)(args)
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Error in plotly event callback %s", callback_id
+                )
+
+        # For preventable events, send back the result via the client connection
+        if request_id is not None:
+            response = json.dumps(
+                {
+                    "type": "CALLABLE_RESPONSE",
+                    "request_id": request_id,
+                    "result": result,
+                }
+            )
+            try:
+                self._connection.on_data(response.encode(), [])
+            except RuntimeError:
+                pass
+
         return b"", []
 
     def __del__(self):

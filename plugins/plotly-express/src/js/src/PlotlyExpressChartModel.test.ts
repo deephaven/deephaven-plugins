@@ -38,6 +38,13 @@ jest.mock('./PlotlyExpressChartUtils', () => ({
   setDefaultValueFormat: jest.fn(),
 }));
 
+// plotly.js-dist-min pulls in browser/WebGL APIs that jsdom can't load, so mock
+// it. The model only uses Plotly.animate/restyle for programmatic re-triggers.
+jest.mock('plotly.js-dist-min', () => ({
+  __esModule: true,
+  default: { animate: jest.fn(), restyle: jest.fn() },
+}));
+
 function createMockWidget(
   tables: DhType.Table[],
   plotType = 'scatter',

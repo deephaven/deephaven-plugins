@@ -239,3 +239,48 @@ export async function setGridQuickFilter(
   await gridContainer.page().keyboard.type(text);
   await gridContainer.page().keyboard.press('Enter');
 }
+ /* Waits for a grid to actually render content before continuing.
+ *
+ * The grid draws to an HTML `<canvas>`, so the loading spinner disappearing
+ * does not guarantee that any data has been painted. Taking a screenshot at
+ * that point can capture a blank grid, which then gets saved as a "correct"
+ * snapshot. This polls the canvas pixels until they are no longer uniform,
+ * which indicates the grid has drawn its headers/rows/cells.
+ * @param gridContainer Locator containing an iris-grid / grid-canvas element
+ * @param timeout How long to wait for the grid to render, in ms
+ */
+export async function waitForGridRender(
+  gridContainer: Locator,
+  timeout = 30000
+): Promise<void> {
+  await test.step('Wait for grid to render', async () => {
+    const canvas = gridContainer.locator('canvas.grid-canvas').first();
+    await expect(canvas).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          canvas.evaluate((el: HTMLCanvasElement) => {
+            const ctx = el.getContext('2d');
+            if (ctx == null || el.width === 0 || el.height === 0) {
+              return false;
+            }
+            const { data } = ctx.getImageData(0, 0, el.width, el.height);
+            // A blank grid is a single uniform color. Consider the grid
+            // rendered once we find any pixel that differs from the first.
+            for (let i = 4; i < data.length; i += 4) {
+              if (
+                data[i] !== data[0] ||
+                data[i + 1] !== data[1] ||
+                data[i + 2] !== data[2] ||
+                data[i + 3] !== data[3]
+              ) {
+                return true;
+              }
+            }
+            return false;
+          }),
+        { timeout }
+      )
+      .toBe(true);
+  });
+}

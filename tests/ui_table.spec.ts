@@ -7,6 +7,7 @@ import {
   clickGridColumnHeader,
   setGridQuickFilter,
   waitForLoad,
+  waitForGridRender,
 } from './utils';
 
 test.describe('UI table', () => {
@@ -47,9 +48,10 @@ test.describe('UI table', () => {
       await gotoPage(page, '');
       await openPanel(page, name, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-      await expect(
-        page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
-      ).toHaveScreenshot();
+      const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+      await waitForGridRender(locator);
+
+      await expect(locator).toHaveScreenshot();
     });
   });
 });

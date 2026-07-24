@@ -370,14 +370,15 @@ If you've added a new plugin to the `plugins/` directory, there are a couple thi
 2. Update the `tools/update_version.sh` script to include the new plugin and where its version is stored in source code. If your component has both a Python and JS component, you'll need to add it to both sections. Use the existing entries as examples.
    - For an example, check the [PR that added the pivot plugin for release](https://github.com/deephaven/deephaven-plugins/pull/1242/files).
 3. Add the new plugin to the `.github/workflows/modified-plugin.yml` file so that a tag pushed with the name of the plugin will trigger the modified plugin workflow.
-4. In PyPI, Add a new pending publisher for the project.
+4. Add the new plugin to the [get-changes action](.github/actions/get-changes/action.yml) so the changes trigger the correct test on PRs.
+5. In PyPI, Add a new pending publisher for the project.
    1. Go to https://pypi.org/manage/account/publishing/
    2. Under "Add a new pending publisher" section, enter the following:
       - PyPI Project Name: The name of the python plugin, e.g. `deephaven-plugin-ui`
       - Owner: `deephaven`
       - Repository name: `deephaven-plugins`
    3. Click "Add"
-5. For npmjs, the project should already be scoped to the `@deephaven` or `@deephaven-enterprise` organization. You may need to update the `package.json` to include the correct `repository` if it is not already set. Add the following to your `package.json`:
+6. For npmjs, the project should already be scoped to the `@deephaven` or `@deephaven-enterprise` organization. You may need to update the `package.json` to include the correct `repository` if it is not already set. Add the following to your `package.json`:
    ```json
    "repository": {
      "type": "git",

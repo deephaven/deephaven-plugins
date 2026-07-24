@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from importlib.abc import MetaPathFinder, Loader
 from importlib.machinery import ModuleSpec
 import logging
@@ -7,7 +9,6 @@ from typing import Optional, Sequence
 from .plugin_object import PluginObject
 from .json_rpc import create_request_msg
 from .types import MessageStreamRequestInterface, RemotePythonModuleSpecData
-
 
 logger = logging.getLogger(__name__)
 

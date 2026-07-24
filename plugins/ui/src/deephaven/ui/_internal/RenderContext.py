@@ -87,7 +87,7 @@ The serializable state of a RenderContext. Used to serialize the state for the c
 
 
 def _value_or_call(
-    value: T | None | Callable[[], T | None]
+    value: T | None | Callable[[], T | None],
 ) -> ValueWithLiveness[T | None]:
     """
     Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
@@ -253,6 +253,24 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
+    _is_dirty: bool
+    """
+    Flag to indicate if this context is dirty, e.g. state has changed. This is used to determine if a component needs to be re-rendered.
+    """
+
+    _cache: Any
+    """
+    A value that can be used to store arbitrary data for this context.
+    """
+
+    _hook_setters: Dict[StateKey, Callable[[Any], None]]
+    """
+    Cache of stable state setter functions keyed by hook index. The same setter
+    instance is returned on every render so it serializes to a stable callable id
+    for the client (a fresh setter each render would be assigned a new callable
+    id, causing the client to receive a new prop - e.g. `onChange` - every render).
+    """
+
     def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
@@ -273,6 +291,9 @@ class RenderContext:
         self._open_context_cleanups = []
         self._top_level_scope = None
         self._is_mounted = True
+        self._is_dirty = True
+        self._cache = None
+        self._hook_setters = {}
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -333,6 +354,9 @@ class RenderContext:
                 for cleanup in reversed(self._open_context_cleanups):
                     cleanup()
                 self._open_context_cleanups = []
+
+                # Reset the dirty state before processing effects, so that any state changes in effects will mark the context as dirty for the next render.
+                self.mark_clean()
 
                 # Release all child contexts that are no longer referenced
                 for context_key in old_contexts:
@@ -430,6 +454,33 @@ class RenderContext:
         """
         self._root.set_url(url)
 
+    @property
+    def is_dirty(self) -> bool:
+        """
+        Get whether this context is dirty, e.g. state has changed since the last render.
+
+        Returns:
+            True if this context is dirty, False otherwise.
+        """
+        return self._is_dirty
+
+    def mark_dirty(self) -> None:
+        """
+        Mark this context as dirty so that it (and its children) are re-rendered on
+        the next render pass. Used for changes that are not tracked as component
+        state, such as a URL change, which can affect any component in the tree.
+        """
+        self._is_dirty = True
+
+    def mark_clean(self) -> None:
+        """
+        Mark this context as clean.
+        Called after a successful render pass to reset the dirty flag. Any state
+        changes that occur after this (including inside effects) will mark the
+        context dirty again for the next render.
+        """
+        self._is_dirty = False
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -493,12 +544,58 @@ class RenderContext:
 
         # This is not the initial state, queue up the state change on the render loop
         self._root.on_change(update_state)
+        self.mark_dirty()
 
-    def get_child_context(self, key: ContextKey) -> "RenderContext":
+    def make_state_setter(self, key: StateKey) -> Callable[[Any], None]:
+        """
+        Get a stable setter function for the given state key.
+
+        The same function instance is returned on every render for a given key.
+        This matters because callables are serialized to the client by object
+        identity - returning a fresh setter each render would be assigned a new
+        callable id and the client would see a new prop (e.g. `onChange`) on
+        every render, needlessly churning props and cancelling in-flight work
+        such as debounced input changes.
+
+        Args:
+            key: The state key (hook index) to get the setter for.
+
+        Returns:
+            A stable function that sets the state for the given key.
+        """
+        setter = self._hook_setters.get(key)
+        if setter is None:
+
+            def set_value(new_value: Any) -> None:
+                # Set the value in the context state and trigger a re-render
+                logger.debug("use_state set_value called with %s", new_value)
+                self.queue_render(lambda: self.set_state(key, new_value))
+
+            self._hook_setters[key] = set_value
+            setter = set_value
+        return setter
+
+    def get_child_context(
+        self, key: ContextKey, fetch_only: bool = False
+    ) -> "RenderContext":
         """
         Get the child context for the given key.
+
+        Args:
+            key: The key of the child context to get.
+            fetch_only: If True, only return an existing context without creating
+                a new one or adding it to collected contexts. Raises KeyError if
+                the context doesn't exist.
+
+        Returns:
+            The child context for the given key.
+
+        Raises:
+            KeyError: If fetch_only is True and the context doesn't exist.
         """
         logger.debug("Getting child context for key %s", key)
+        if fetch_only:
+            return self._children_context[key]
         if key not in self._children_context:
             child_context = RenderContext(self._root)
             logger.debug(
@@ -617,6 +714,7 @@ class RenderContext:
         """
         self._state.clear()
         self._children_context.clear()
+        self.mark_dirty()
 
         if "state" in state:
             for key, value in state["state"].items():
@@ -652,3 +750,24 @@ class RenderContext:
         self._collected_effects.clear()
         self._collected_unmount_listeners.clear()
         self._collected_contexts.clear()
+        self._hook_setters.clear()
+
+    @property
+    def cache(self) -> Any:
+        """
+        Get the cache for this context. This can be used to store arbitrary data for this context.
+
+        Returns:
+            The cache for this context.
+        """
+        return self._cache
+
+    @cache.setter
+    def cache(self, value: Any) -> None:
+        """
+        Set the cache for this context.
+
+        Args:
+            value: The value to set the cache to.
+        """
+        self._cache = value

@@ -27,13 +27,7 @@ export interface HydratePivotGridResultError {
 export interface HydratePivotGridResultSuccess {
   props: { localDashboardId: string } & Pick<
     IrisGridPanelProps,
-    | 'getMetricCalculator'
-    | 'loadPlugin'
-    | 'makeModel'
-    | 'metadata'
-    | 'mouseHandlers'
-    | 'renderer'
-    | 'theme'
+    'irisGridProps' | 'loadPlugin' | 'makeModel' | 'metadata'
   >;
   status: 'success';
 }
@@ -98,10 +92,12 @@ export function useHydratePivotGrid(
         return new IrisGridPivotModel(api, pivotTable);
       },
       metadata,
-      mouseHandlers,
-      renderer,
-      theme,
-      getMetricCalculator,
+      irisGridProps: {
+        mouseHandlers,
+        renderer,
+        theme,
+        getMetricCalculator,
+      },
     },
   };
 }

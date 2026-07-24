@@ -700,6 +700,71 @@ class DeephavenFigure:
 
         self._sent_filter_columns = False
 
+        # Event callback storage
+        self._callbacks: dict[str, Callable] = {}
+        self._callback_ids: dict[str, str] = {}
+        self._next_callback_id: int = 0
+
+    def _register_callback(self, event_name: str, fn: Callable) -> None:
+        """Register an event callback.
+
+        Args:
+            event_name: The event name (e.g. 'on_click')
+            fn: The callback function
+        """
+        callback_id = f"cb_{self._next_callback_id}"
+        self._next_callback_id += 1
+        self._callbacks[event_name] = fn
+        self._callback_ids[event_name] = callback_id
+
+    def _register_callbacks(self, callbacks: dict[str, Callable]) -> None:
+        """Register multiple event callbacks.
+
+        Args:
+            callbacks: A dict of event_name -> callback function
+        """
+        for event_name, fn in callbacks.items():
+            self._register_callback(event_name, fn)
+
+    def get_callback_by_id(self, callback_id: str) -> Callable | None:
+        """Get a callback function by its ID.
+
+        Args:
+            callback_id: The callback ID
+
+        Returns:
+            The callback function, or None if not found
+        """
+        for event_name, cid in self._callback_ids.items():
+            if cid == callback_id:
+                return self._callbacks.get(event_name)
+        return None
+
+    def _is_preventable(self, event_name: str) -> bool:
+        """Check if an event is preventable.
+
+        Args:
+            event_name: The event name
+
+        Returns:
+            True if the event is preventable
+        """
+        from ..types import ALWAYS_PREVENTABLE_EVENTS, HIERARCHICAL_TRACE_TYPES
+
+        if event_name in ALWAYS_PREVENTABLE_EVENTS:
+            return True
+        if event_name == "on_click":
+            # on_click is preventable only on hierarchical charts
+            if self._plotly_fig:
+                for trace in self._plotly_fig.data:
+                    if (
+                        hasattr(trace, "type")
+                        and trace.type in HIERARCHICAL_TRACE_TYPES  # type: ignore[union-attr]
+                    ):
+                        return True
+            return False
+        return False
+
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
 
@@ -782,6 +847,17 @@ class DeephavenFigure:
                 ],
             }
             self._sent_filter_columns = True
+
+        # Event callbacks
+        if self._callback_ids:
+            deephaven["callbacks"] = self._callback_ids
+            preventable = [
+                cid
+                for name, cid in self._callback_ids.items()
+                if self._is_preventable(name)
+            ]
+            if preventable:
+                deephaven["preventable_callbacks"] = preventable
 
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
@@ -905,6 +981,13 @@ class DeephavenFigure:
             # filters are managed through the nodes, so attach them when creating the figure
             figure.filter_columns = self._head_node.filter_columns
 
+        if figure is not None and self._callback_ids:
+            # callbacks are registered on the top-level figure and need to be
+            # transferred to the inner figure so to_json includes them
+            figure._callbacks = self._callbacks
+            figure._callback_ids = self._callback_ids
+            figure._next_callback_id = self._next_callback_id
+
         return figure
 
     def get_plotly_fig(self) -> Figure | None:
@@ -1004,6 +1087,10 @@ class DeephavenFigure:
             self._filter_columns,
         )
         new_figure._head_node = self._head_node.copy_graph()
+        # Shallow-copy callback state so per-session copies share callable references
+        new_figure._callbacks = self._callbacks.copy()
+        new_figure._callback_ids = self._callback_ids.copy()
+        new_figure._next_callback_id = self._next_callback_id
         return new_figure
 
     def recreate_figure(self) -> None:
