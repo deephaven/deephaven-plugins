@@ -926,3 +926,74 @@ describe('popstate listener', () => {
     removeEventListenerSpy.mockRestore();
   });
 });
+
+describe('event plugin handling', () => {
+  async function setupWidgetWithPlugins(
+    pluginsValue: PluginModuleMap
+  ): Promise<{
+    listener: (event: WidgetMessageEvent) => void;
+    unmount: () => void;
+  }> {
+    const widget = makeWidgetDescriptor();
+    const cleanup = jest.fn();
+    const mockAddEventListener = jest.fn(
+      (() => cleanup) as dh.Widget['addEventListener']
+    );
+    const initialData = { state: { test: 'value' } };
+    mockWidgetWrapper = {
+      widget: makeWidget({
+        addEventListener: mockAddEventListener,
+        getDataAsString: jest.fn(() => ''),
+        sendMessage: jest.fn(),
+      }),
+      error: null,
+      api: jest.fn() as unknown as typeof dh,
+    };
+
+    const { unmount } = render(
+      makeWidgetHandler({ widgetDescriptor: widget, initialData, pluginsValue })
+    );
+
+    const listener = mockAddEventListener.mock.calls[0][1];
+
+    await act(async () => {
+      listener(makeWidgetEventJsonRpcResponse(0));
+    });
+
+    return { listener, unmount };
+  }
+
+  function makeEventPlugin(
+    name: string,
+    eventMapping: Record<string, (params: Record<string, unknown>) => void>
+  ): PluginModuleMap {
+    return new Map([
+      [
+        name,
+        {
+          name,
+          type: 'ElementPlugin',
+          mapping: {},
+          eventMapping,
+        },
+      ],
+    ]) as unknown as PluginModuleMap;
+  }
+
+  it('dispatches a custom event to a registered event plugin handler', async () => {
+    const handler = jest.fn();
+    const plugins = makeEventPlugin('test-event-plugin', {
+      'test.event': handler,
+    });
+
+    const { listener, unmount } = await setupWidgetWithPlugins(plugins);
+
+    await act(async () => {
+      listener(makeWidgetEventMethodEvent('test.event', { foo: 'bar' }));
+    });
+
+    expect(handler).toHaveBeenCalledWith({ foo: 'bar' });
+
+    unmount();
+  });
+});
