@@ -54,8 +54,6 @@ import {
   type ElementName,
 } from '../elements/model/ElementConstants';
 import Toast, { TOAST_EVENT } from '../events/Toast';
-import showNotification, { NOTIFICATION_EVENT } from '../events/Notification';
-import playTone, { TONE_EVENT } from '../events/Tone';
 import Navigate, { NAVIGATE_EVENT } from '../events/Navigate';
 import { type UIEventHandler } from '../events/EventPlugin';
 import ReactPanel from '../layout/ReactPanel';
@@ -286,8 +284,6 @@ function asEventHandler<T>(handler: (params: T) => void): UIEventHandler {
  */
 export const eventHandlerMap: Record<string, UIEventHandler> = {
   [TOAST_EVENT]: asEventHandler(Toast),
-  [NOTIFICATION_EVENT]: asEventHandler(showNotification),
-  [TONE_EVENT]: asEventHandler(playTone),
   [NAVIGATE_EVENT]: asEventHandler(Navigate),
 };
 
