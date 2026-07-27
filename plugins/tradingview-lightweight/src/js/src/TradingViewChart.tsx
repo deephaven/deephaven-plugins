@@ -353,8 +353,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       const t = model.getTable(tid);
       lines.push(`table[${tid}]: size=${t?.size ?? '?'}`);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lines.push(`pendingDs: ${(model as any).pendingDownsample}`);
+    lines.push(`pendingDs: ${model.pendingDownsample}`);
     if (renderer) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

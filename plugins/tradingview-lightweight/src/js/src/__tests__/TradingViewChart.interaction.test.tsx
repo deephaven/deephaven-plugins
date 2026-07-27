@@ -231,12 +231,11 @@ function makeWidget() {
 
 async function renderChart() {
   const widget = makeWidget();
-  const props = {
+  const { fetch, metadata } = {
     fetch: () => Promise.resolve(widget),
     metadata: {},
   } as unknown as React.ComponentProps<typeof TradingViewChart>;
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  const result = render(<TradingViewChart {...props} />);
+  const result = render(<TradingViewChart fetch={fetch} metadata={metadata} />);
 
   await act(async () => {
     await Promise.resolve();

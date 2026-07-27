@@ -78,8 +78,9 @@ function resolveChartTheme(): TvlChartTheme {
 export function useDHChartTheme(): TvlChartTheme {
   const { activeThemes } = useTheme();
 
-  // activeThemes is a deliberate re-resolve trigger: resolveChartTheme() reads
-  // the current CSS variables, which change when the active theme changes.
+  // resolveChartTheme() reads the current CSS variables rather than any value
+  // in scope, so activeThemes is a deliberate re-resolve trigger that the deps
+  // linter can't model. (Same pattern the ui plugin uses for DOM-derived memos.)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => resolveChartTheme(), [activeThemes]);
 }

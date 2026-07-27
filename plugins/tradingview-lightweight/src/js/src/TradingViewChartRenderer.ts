@@ -611,9 +611,9 @@ class TradingViewChartRenderer {
     // canvas drawing calls receive concrete CSS color strings (hex/rgba).
     seriesConfigs.forEach(cfg => {
       resolveColorsDeep(cfg.options);
-      cfg.priceLines?.forEach(pl => {
-        // eslint-disable-next-line no-param-reassign
-        if (pl.color != null) pl.color = resolveColor(pl.color);
+      const { priceLines } = cfg;
+      priceLines?.forEach((pl, i) => {
+        if (pl.color != null) priceLines[i].color = resolveColor(pl.color);
       });
     });
     // eslint-disable-next-line no-param-reassign

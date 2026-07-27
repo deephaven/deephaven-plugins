@@ -56,13 +56,13 @@ function walk(node: unknown): void {
   if (node == null || typeof node !== 'object') return;
 
   if (Array.isArray(node)) {
-    for (let i = 0; i < node.length; i += 1) {
-      const v = node[i];
+    const arr = node;
+    for (let i = 0; i < arr.length; i += 1) {
+      const v = arr[i];
       if (typeof v === 'string') {
         // Bare string arrays (e.g. a colorway palette) — assume they're colors.
         // No-op for non-color strings since resolveColor passes them through.
-        // eslint-disable-next-line no-param-reassign
-        node[i] = resolveColor(v);
+        arr[i] = resolveColor(v);
       } else {
         walk(v);
       }

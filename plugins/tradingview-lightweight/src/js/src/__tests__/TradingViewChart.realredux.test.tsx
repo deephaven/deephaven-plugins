@@ -5,7 +5,6 @@
  * redux layer is mocked. This reproduces the exact path the user exercises
  * when changing the timezone in the Settings sidebar, without a DH server.
  */
-/* eslint-disable max-classes-per-file */
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -73,15 +72,13 @@ jest.mock('../TradingViewTheme', () => {
   };
 });
 
-class MockResizeObserver {
-  observe = jest.fn();
-
-  unobserve = jest.fn();
-
-  disconnect = jest.fn();
-}
-(global as unknown as { ResizeObserver: unknown }).ResizeObserver =
-  MockResizeObserver;
+(global as unknown as { ResizeObserver: unknown }).ResizeObserver = jest
+  .fn()
+  .mockImplementation(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  }));
 
 class MockTable {
   size = 10;
@@ -142,7 +139,7 @@ it('changing the real redux timezone setting pushes it into the model', async ()
     'setTimeZone'
   );
   const widget = makeWidget();
-  const props = {
+  const { fetch, metadata } = {
     fetch: () => Promise.resolve(widget),
     metadata: {},
   } as unknown as React.ComponentProps<typeof TradingViewChart>;
@@ -150,8 +147,7 @@ it('changing the real redux timezone setting pushes it into the model', async ()
   await act(async () => {
     render(
       <Provider store={store}>
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <TradingViewChart {...props} />
+        <TradingViewChart fetch={fetch} metadata={metadata} />
       </Provider>
     );
   });
