@@ -423,10 +423,6 @@
                 "path": "components/toggle_button.md"
               },
               {
-                "label": "tone",
-                "path": "components/tone.md"
-              },
-              {
                 "label": "URI/resolve",
                 "path": "components/uri.md"
               },

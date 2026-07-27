@@ -90,7 +90,6 @@ from .text_field import text_field
 from .time_field import time_field
 from .toast import toast
 from .toggle_button import toggle_button
-from .tone import tone
 from .view import view
 from .route import route
 from .router import router
@@ -189,6 +188,5 @@ __all__ = [
     "time_field",
     "toast",
     "toggle_button",
-    "tone",
     "view",
 ]
