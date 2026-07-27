@@ -47,9 +47,9 @@ import DocumentHandler from './DocumentHandler';
 import {
   transformNode,
   getComponentForElement,
-  getHandlerForEvent,
   wrapCallable,
 } from './WidgetUtils';
+import { getHandlerForEvent } from '../elements/utils/EventUtils';
 import WidgetStatusContext, {
   type WidgetStatus,
 } from '../layout/WidgetStatusContext';
