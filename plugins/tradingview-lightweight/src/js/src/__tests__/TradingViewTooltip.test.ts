@@ -1,3 +1,4 @@
+import type { MouseEventParams } from 'lightweight-charts';
 import { TradingViewTooltip } from '../TradingViewTooltip';
 import type { TradingViewTooltipDeps } from '../TradingViewTooltip';
 
@@ -32,13 +33,13 @@ function makeContainer(clientWidth = 800, clientHeight = 600): HTMLElement {
 function makeParams(
   entries: Array<[unknown, unknown]>,
   overrides: Record<string, unknown> = {}
-): any {
+): MouseEventParams {
   return {
     time: 1700000000,
     point: { x: 100, y: 100 },
     seriesData: new Map(entries),
     ...overrides,
-  };
+  } as unknown as MouseEventParams;
 }
 
 function deps(

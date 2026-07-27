@@ -15,7 +15,7 @@ import TradingViewChart from './TradingViewChart';
 export function TradingViewChartPanel(
   props: WidgetPanelProps<DhType.Widget>
 ): JSX.Element {
-  const { fetch, metadata } = props;
+  const { fetch, metadata, glContainer, glEventHub } = props;
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +50,8 @@ export function TradingViewChartPanel(
   return React.createElement(
     wp,
     {
-      glContainer: props.glContainer,
-      glEventHub: props.glEventHub,
+      glContainer,
+      glEventHub,
       descriptor: {
         name,
         type: 'TvlChart',

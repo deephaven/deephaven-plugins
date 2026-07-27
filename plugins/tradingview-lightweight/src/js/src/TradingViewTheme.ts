@@ -78,6 +78,9 @@ function resolveChartTheme(): TvlChartTheme {
 export function useDHChartTheme(): TvlChartTheme {
   const { activeThemes } = useTheme();
 
+  // activeThemes is a deliberate re-resolve trigger: resolveChartTheme() reads
+  // the current CSS variables, which change when the active theme changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => resolveChartTheme(), [activeThemes]);
 }
 

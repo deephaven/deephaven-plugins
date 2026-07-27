@@ -5,6 +5,7 @@
  * redux layer is mocked. This reproduces the exact path the user exercises
  * when changing the timezone in the Settings sidebar, without a DH server.
  */
+/* eslint-disable max-classes-per-file */
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -36,7 +37,11 @@ it('does not externalize @deephaven/redux (must be bundled)', () => {
 jest.mock('@deephaven/jsapi-bootstrap', () => {
   const dh = {
     Widget: { EVENT_MESSAGE: 'message', EVENT_CLOSE: 'close' },
-    Table: { EVENT_UPDATED: 'updated', EVENT_DISCONNECT: 'd', EVENT_RECONNECT: 'r' },
+    Table: {
+      EVENT_UPDATED: 'updated',
+      EVENT_DISCONNECT: 'd',
+      EVENT_RECONNECT: 'r',
+    },
     DateWrapper: { ofJsDate: (d: Date) => ({ asDate: () => d }) },
     plot: {
       ChartData: function ChartData() {
@@ -53,10 +58,17 @@ jest.mock('../TradingViewTheme', () => {
   return {
     ...actual,
     useDHChartTheme: () => ({
-      paperBgColor: '#111', plotBgColor: '#111', textColor: '#eee',
-      gridColor: '#333', lineColor: '#555', zeroLineColor: '#777',
-      crosshairLabelBgColor: '#444', fontFamily: 'sans-serif',
-      ohlcIncreasing: '#0a0', ohlcDecreasing: '#a00', colorway: ['#48a', '#f81'],
+      paperBgColor: '#111',
+      plotBgColor: '#111',
+      textColor: '#eee',
+      gridColor: '#333',
+      lineColor: '#555',
+      zeroLineColor: '#777',
+      crosshairLabelBgColor: '#444',
+      fontFamily: 'sans-serif',
+      ohlcIncreasing: '#0a0',
+      ohlcDecreasing: '#a00',
+      colorway: ['#48a', '#f81'],
     }),
   };
 });
@@ -68,7 +80,8 @@ class MockResizeObserver {
 
   disconnect = jest.fn();
 }
-(global as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver;
+(global as unknown as { ResizeObserver: unknown }).ResizeObserver =
+  MockResizeObserver;
 
 class MockTable {
   size = 10;
@@ -102,7 +115,17 @@ function makeWidget() {
         figure: {
           chartType: 'standard',
           chartOptions: {},
-          series: [{ id: 's0', type: 'Line', options: {}, dataMapping: { tableId: 0, columns: { time: 'Timestamp', value: 'Value' } } }],
+          series: [
+            {
+              id: 's0',
+              type: 'Line',
+              options: {},
+              dataMapping: {
+                tableId: 0,
+                columns: { time: 'Timestamp', value: 'Value' },
+              },
+            },
+          ],
           deephaven: { mappings: [] },
         },
         revision: 1,
@@ -114,7 +137,10 @@ function makeWidget() {
 }
 
 it('changing the real redux timezone setting pushes it into the model', async () => {
-  const setTimeZoneSpy = jest.spyOn(TradingViewChartModel.prototype, 'setTimeZone');
+  const setTimeZoneSpy = jest.spyOn(
+    TradingViewChartModel.prototype,
+    'setTimeZone'
+  );
   const widget = makeWidget();
   const props = {
     fetch: () => Promise.resolve(widget),
@@ -124,6 +150,7 @@ it('changing the real redux timezone setting pushes it into the model', async ()
   await act(async () => {
     render(
       <Provider store={store}>
+        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <TradingViewChart {...props} />
       </Provider>
     );

@@ -235,6 +235,7 @@ async function renderChart() {
     fetch: () => Promise.resolve(widget),
     metadata: {},
   } as unknown as React.ComponentProps<typeof TradingViewChart>;
+  // eslint-disable-next-line react/jsx-props-no-spreading
   const result = render(<TradingViewChart {...props} />);
 
   await act(async () => {

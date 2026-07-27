@@ -61,6 +61,7 @@ function walk(node: unknown): void {
       if (typeof v === 'string') {
         // Bare string arrays (e.g. a colorway palette) — assume they're colors.
         // No-op for non-color strings since resolveColor passes them through.
+        // eslint-disable-next-line no-param-reassign
         node[i] = resolveColor(v);
       } else {
         walk(v);

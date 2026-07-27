@@ -277,7 +277,7 @@ export function getAllColumnsForTable(
       });
       // Include columns referenced by dynamic price lines
       s.priceLines?.forEach(pl => {
-        if (pl.column) {
+        if (pl.column != null && pl.column !== '') {
           columns.add(pl.column);
         }
       });

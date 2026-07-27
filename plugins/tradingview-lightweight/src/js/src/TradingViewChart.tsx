@@ -145,9 +145,9 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     };
   }, [fontsReady]);
 
-  const [error, setErrorState] = useState<string | null>(null);
+  const [, setErrorState] = useState<string | null>(null);
   const [debugInfo, setDebugInfoRaw] = useState<string>('loading...');
-  const [isLoading, setIsLoadingState] = useState(true);
+  const [, setIsLoadingState] = useState(true);
 
   const setIsLoading = useCallback(
     (loading: boolean) => {
@@ -288,7 +288,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const m = model as any;
-    const pendingDs =
+    const pendingResample =
       (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean);
     return JSON.stringify({
       // Snapshot-relevant readiness signal: true once every known series
@@ -301,7 +301,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       jsDs: model.isDownsampled(),
       tableSize,
       colDataRows,
-      pendingDs,
+      pendingDs: pendingResample,
       visRange,
       autoBin: model.isAutoBinned(),
       binWidthNs,
@@ -327,11 +327,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // its first row of data AND nothing is mid-resample.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const m = model as any;
-      const pendingDs = model
-        ? ((m.pendingDownsample as boolean) ||
-          (m.pendingAutoBin as boolean))
+      const pendingResample = model
+        ? (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean)
         : true;
-      const ready = !!model && model.isReady() && !pendingDs;
+      const ready = !!model && model.isReady() && !pendingResample;
       containerRef.current.setAttribute(
         'data-snapshot-ready',
         ready ? 'true' : 'false'
@@ -354,6 +353,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       const t = model.getTable(tid);
       lines.push(`table[${tid}]: size=${t?.size ?? '?'}`);
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lines.push(`pendingDs: ${(model as any).pendingDownsample}`);
     if (renderer) {
       try {
@@ -477,9 +477,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         const deduped = deduplicateByTime(data as Record<string, unknown>[]);
         renderer.setSeriesData(series.id, deduped as never[]);
         if (series.markerSpec) {
-          const markerColData = model.getColumnData(
-            series.markerSpec.tableId
-          );
+          const markerColData = model.getColumnData(series.markerSpec.tableId);
           if (markerColData) {
             const tableMarkers = buildMarkersFromTableData(
               series.markerSpec,
@@ -576,11 +574,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         tableId,
         isInitialLoad,
         isResetView,
-        isDownsampleSwap,
+        isDownsampleSwap: isDownsampleSwapRaw,
         addedCount,
         removedCount,
         modifiedCount,
       } = event;
+      const isDownsampleSwap = isDownsampleSwapRaw === true;
       const figure = model.getFigureData();
       if (!figure) return;
 
@@ -914,11 +913,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       widthFlushedTablesRef.current.clear();
 
       await model.init(exported, dataString);
-      updateDebugState(
-        gatherDebug('INIT', model, renderer),
-        model,
-        renderer
-      );
+      updateDebugState(gatherDebug('INIT', model, renderer), model, renderer);
 
       if (!cancelled && model.isResampling()) {
         setupDownsampleSubscriptions(renderer, model);

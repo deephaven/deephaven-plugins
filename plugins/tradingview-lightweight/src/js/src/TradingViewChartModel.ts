@@ -373,18 +373,14 @@ class TradingViewChartModel {
     const downsamplePromises: Promise<void>[] = [];
     this.tables.forEach((table, tableId) => {
       const meta = this.downsampleMeta[String(tableId)];
-      if (meta) {
+      if (meta != null) {
         // Store original for re-downsample on zoom/pan
         this.originalTableMap.set(tableId, table);
         this.jsDownsampledTableIds.add(tableId);
         // Initial full-range downsample
         downsamplePromises.push(
           this.downsampleTable(tableId).catch(err => {
-            log.warn(
-              'Initial downsample failed for table',
-              tableId,
-              err
-            );
+            log.warn('Initial downsample failed for table', tableId, err);
             // Fall back to subscribing to original table directly
             this.jsDownsampledTableIds.delete(tableId);
             this.originalTableMap.delete(tableId);
@@ -484,7 +480,7 @@ class TradingViewChartModel {
     isReset = false
   ): Promise<void> {
     const meta = this.downsampleMeta[String(tableId)];
-    if (!meta) return;
+    if (meta == null) return;
 
     const originalTable = this.originalTableMap.get(tableId);
     if (!originalTable) return;
@@ -504,7 +500,9 @@ class TradingViewChartModel {
     const targetWidth = width ?? 1000;
 
     this.dbg(
-      `downsampleTable tid=${tableId} range=${range ? `[${range[0]},${range[1]}]` : 'null'} w=${targetWidth} reset=${isReset}`
+      `downsampleTable tid=${tableId} range=${
+        range ? `[${range[0]},${range[1]}]` : 'null'
+      } w=${targetWidth} reset=${isReset}`
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -819,7 +817,7 @@ class TradingViewChartModel {
     watcher.seenKeys.add(keyStr);
 
     const table = await pt.getTable(key);
-    if (!table) {
+    if (table == null) {
       log.warn('getTable returned null for key:', key);
       watcher.seenKeys.delete(keyStr);
       return;
@@ -951,7 +949,7 @@ class TradingViewChartModel {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dhPT = (this.dh as any).PartitionedTable;
-        if (dhPT?.EVENT_KEYADDED) {
+        if (dhPT?.EVENT_KEYADDED != null) {
           eventName = dhPT.EVENT_KEYADDED;
         }
       } catch {
@@ -961,7 +959,9 @@ class TradingViewChartModel {
       // Pre-register the watcher entry so addPartitionKey can dedup.
       this.partitionWatchers.set(template.id, {
         partitionedTable: pt,
-        cleanup: () => {},
+        cleanup: () => {
+          /* no-op placeholder; replaced once the keyadded listener attaches */
+        },
         seenKeys: new Set<string>(),
       });
 
@@ -991,7 +991,8 @@ class TradingViewChartModel {
       // Discover existing keys.
       const rawKeys: unknown = pt.getKeys();
       const existingKeys =
-        rawKeys != null && typeof (rawKeys as Promise<unknown>).then === 'function'
+        rawKeys != null &&
+        typeof (rawKeys as Promise<unknown>).then === 'function'
           ? ((await rawKeys) as Set<unknown> | null | undefined)
           : (rawKeys as Set<unknown> | null | undefined);
       const initialCount = existingKeys?.size ?? 0;
@@ -1208,7 +1209,7 @@ class TradingViewChartModel {
 
           this.emit({
             type: 'FIGURE_UPDATED',
-            figure: this.figureData!,
+            figure: msg.figure,
             tables: Array.from(this.tables.values()),
           });
         } else if (msg.type === 'AUTOBIN_FIGURE') {
@@ -1365,9 +1366,7 @@ class TradingViewChartModel {
     // Close any remaining tables (non-downsampled)
     this.tables.forEach((table, tableId) => {
       // Don't double-close tables that were in original/downsampled maps
-      if (
-        !this.jsDownsampledTableIds.has(tableId)
-      ) {
+      if (!this.jsDownsampledTableIds.has(tableId)) {
         try {
           table.close();
         } catch {
@@ -1390,7 +1389,7 @@ class TradingViewChartModel {
       } catch {
         // ignore
       }
-      if (partitionedTable?.close) {
+      if (partitionedTable?.close != null) {
         try {
           partitionedTable.close();
         } catch {

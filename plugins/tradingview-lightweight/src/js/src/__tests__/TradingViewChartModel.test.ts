@@ -4,6 +4,7 @@
  *  - handleAutoBinFigure swaps the subscribed table, drains queued requests
  *  - performResample dispatches across both paths
  */
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import TradingViewChartModel from '../TradingViewChartModel';
 import type { TvlFigureData, TvlSeriesConfig } from '../TradingViewTypes';
 
@@ -123,7 +124,7 @@ function makeMockDh() {
       Downsample: { runChartDownsample: jest.fn() },
     },
     _tableSubscribers: tableSubscribers,
-  } as unknown as typeof import('@deephaven/jsapi-types').dh;
+  } as unknown as typeof DhType;
 }
 
 function makeMockWidget() {
@@ -375,7 +376,9 @@ describe('TradingViewChartModel auto-bin', () => {
 
       const dataEvents: { isResetView?: boolean }[] = [];
       model.subscribe(e => {
-        if (e.type === 'DATA_UPDATED') dataEvents.push({ isResetView: e.isResetView });
+        if (e.type === 'DATA_UPDATED') {
+          dataEvents.push({ isResetView: e.isResetView });
+        }
       });
 
       widget.fire('message', detail);

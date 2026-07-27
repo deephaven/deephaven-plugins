@@ -92,7 +92,7 @@ function resolveLocalization(
   const { priceFormatterName, ...locRest } = loc;
   if (
     typeof priceFormatterName === 'string' &&
-    PRICE_FORMATTERS[priceFormatterName]
+    PRICE_FORMATTERS[priceFormatterName] != null
   ) {
     return {
       ...rest,
@@ -430,6 +430,15 @@ class TradingViewChartRenderer {
   private buildChart(chartType: TvlChartType): IChartApi {
     const chartOpts = this.resolvedChartOpts;
     const resolvedTextColor = this.textColor;
+    let tickMarkFormatter = defaultTickMarkFormatter;
+    let timeFormatter = crosshairTimeFormatter;
+    if (chartType === 'yieldCurve') {
+      tickMarkFormatter = yieldCurveTickMarkFormatter;
+      timeFormatter = yieldCurveCrosshairFormatter;
+    } else if (chartType === 'options') {
+      tickMarkFormatter = optionsTickMarkFormatter;
+      timeFormatter = optionsCrosshairFormatter;
+    }
     const commonOpts = {
       ...chartOpts,
       layout: {
@@ -456,21 +465,11 @@ class TradingViewChartRenderer {
         // one bold label races the font and renders in a fallback face,
         // producing nondeterministic axis-label screenshots.
         allowBoldLabels: false,
-        tickMarkFormatter:
-          chartType === 'yieldCurve'
-            ? yieldCurveTickMarkFormatter
-            : chartType === 'options'
-              ? optionsTickMarkFormatter
-              : defaultTickMarkFormatter,
+        tickMarkFormatter,
         ...(chartOpts.timeScale as Record<string, unknown>),
       },
       localization: {
-        timeFormatter:
-          chartType === 'yieldCurve'
-            ? yieldCurveCrosshairFormatter
-            : chartType === 'options'
-              ? optionsCrosshairFormatter
-              : crosshairTimeFormatter,
+        timeFormatter,
         ...(chartOpts.localization as Record<string, unknown>),
       },
       autoSize: true,
@@ -567,7 +566,7 @@ class TradingViewChartRenderer {
           }))
         : [
             {
-              text: wm.text!,
+              text: wm.text ?? '',
               color: wm.color ?? deriveWatermarkColor(this.textColor),
               fontSize: wm.fontSize ?? DEFAULT_WATERMARK_FONT_SIZE,
               fontStyle: wm.fontStyle,
@@ -611,8 +610,9 @@ class TradingViewChartRenderer {
     // Resolve any DH theme color names in user-supplied options up front so
     // canvas drawing calls receive concrete CSS color strings (hex/rgba).
     seriesConfigs.forEach(cfg => {
-      if (cfg.options) resolveColorsDeep(cfg.options);
+      resolveColorsDeep(cfg.options);
       cfg.priceLines?.forEach(pl => {
+        // eslint-disable-next-line no-param-reassign
         if (pl.color != null) pl.color = resolveColor(pl.color);
       });
     });
@@ -1196,10 +1196,10 @@ class TradingViewChartRenderer {
    * base time positions for proportional spacing.
    */
   private createScaffold(): void {
-    this.scaffoldSeries = this.chart.addSeries(
-      LineSeries,
-      { visible: false, priceScaleId: '' } as SeriesPartialOptionsMap[SeriesType]
-    );
+    this.scaffoldSeries = this.chart.addSeries(LineSeries, {
+      visible: false,
+      priceScaleId: '',
+    } as SeriesPartialOptionsMap[SeriesType]);
   }
 
   /**
