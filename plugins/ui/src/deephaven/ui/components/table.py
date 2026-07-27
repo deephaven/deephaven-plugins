@@ -294,14 +294,13 @@ class table(Element):
             any quick filters the user changed in the UI. Cannot be used with
             `quick_filters`. Dictionary of column name to filter value.
         sorts: The initial sorts to apply to the table. User changes are retained and
-            persisted when the table is reloaded.
-            These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
+            persisted when the table is reloaded. These are UI-controlled sorts
+            (similar to reverse) rather than engine-transformed table data.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
         controlled_sorts: The sorts to update programmatically. Whenever this value
             changes, it is re-applied to the table and replaces any sorts the user
-            changed in the UI. Cannot be used with `sorts`.
-            These are UI-controlled sorts (similar to reverse) rather than engine-transformed table data.
-            Accepts a column name, TableSort, or list containing column names and TableSort instances.
+            changed in the UI. Cannot be used with `sorts`. Accepts the same values
+            as `sorts`.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
         aggregations_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.

@@ -78,16 +78,9 @@ const ALWAYS_FETCH_COLUMN_LIMIT = 500;
 const EMPTY_OBJECT = Object.freeze({});
 
 /**
- * Returns a reference to `value` that is only updated when its JSON
- * representation changes. `controlled_quick_filters`/`controlled_sorts` are
- * plain, JSON-serializable data sent fresh from the server on every render,
- * so an unrelated re-render (e.g. one triggered by the user's own interactive
- * edits bubbling through `onStateChange`) can hand us a brand new object/array
- * with identical content. Without this, that new-but-equal reference would
- * cascade into a new hydrated `Map`/sort list below, which IrisGrid would
- * treat as a real prop change and re-apply, clobbering whatever the user just
- * typed. Comparing by content keeps the reference stable so IrisGrid only
- * re-applies when the controlled value actually changes.
+ * Returns a reference to `value` that only changes when its JSON contents
+ * change, so an equal-but-new object from an unrelated re-render doesn't
+ * look like a real prop change to IrisGrid.
  */
 function useStableValue<T>(value: T): T {
   const json = JSON.stringify(value);
@@ -428,9 +421,9 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Capture the user-owned values once. These remain the existing public API:
-  // they seed the grid only when there is no persisted client state, after which
-  // users own and persist their changes.
+  // Capture the user-owned `sorts`/`quickFilters` once on mount. These provide
+  // the initial values only when there is no persisted client state; after
+  // that, the user's own changes take over.
   const initialSortsRef = useRef(sorts);
   const initialQuickFiltersRef = useRef(quickFilters);
 
@@ -485,11 +478,11 @@ export function UITable({
         : undefined;
     const initialSorts = initialSortsRef.current;
     const initialQuickFilters = initialQuickFiltersRef.current;
-    const seededSorts =
+    const hydratedInitialSorts =
       initialSorts !== undefined && columns.length > 0
         ? utils.hydrateSort(columns, initialSorts)
         : undefined;
-    const seededQuickFilters = hydrateUITableQuickFilters(
+    const hydratedInitialQuickFilters = hydrateUITableQuickFilters(
       initialQuickFilters,
       model,
       columns,
@@ -497,11 +490,16 @@ export function UITable({
     );
     if (persisted != null) {
       initialHydratedStateRef.current = persisted;
-    } else if (seededSorts !== undefined || seededQuickFilters !== undefined) {
+    } else if (
+      hydratedInitialSorts !== undefined ||
+      hydratedInitialQuickFilters !== undefined
+    ) {
       initialHydratedStateRef.current = {
-        ...(seededSorts !== undefined ? { sorts: seededSorts } : {}),
-        ...(seededQuickFilters !== undefined
-          ? { quickFilters: seededQuickFilters }
+        ...(hydratedInitialSorts !== undefined
+          ? { sorts: hydratedInitialSorts }
+          : {}),
+        ...(hydratedInitialQuickFilters !== undefined
+          ? { quickFilters: hydratedInitialQuickFilters }
           : {}),
       };
     }

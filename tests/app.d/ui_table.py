@@ -472,7 +472,7 @@ def t_controlled_component():
 
 t_controlled = t_controlled_component()
 
-# The existing user-owned props seed the initial state. Their changes are
+# The existing user-owned props set the initial state. Their changes are
 # persisted and restored on reload. Uses an explicit table so `Sym` is the first
 # column, giving the e2e test a deterministic column position to click.
 _persist_table = new_table(
