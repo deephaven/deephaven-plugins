@@ -239,7 +239,9 @@ export async function setGridQuickFilter(
   await gridContainer.page().keyboard.type(text);
   await gridContainer.page().keyboard.press('Enter');
 }
- /* Waits for a grid to actually render content before continuing.
+
+/**
+ * Waits for a grid to actually render content before continuing.
  *
  * The grid draws to an HTML `<canvas>`, so the loading spinner disappearing
  * does not guarantee that any data has been painted. Taking a screenshot at
