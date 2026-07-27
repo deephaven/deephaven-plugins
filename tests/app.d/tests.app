@@ -27,3 +27,5 @@ file_20=ui_combo_box.py
 file_21=ui_multi_select.py
 file_22=tvl_events.py
 file_23=sizzle.py
+file_24=ui_dashboard_persistence.py
+file_25=express_events.py

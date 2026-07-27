@@ -31,3 +31,26 @@ Object.defineProperty(window, 'matchMedia', {
  * https://github.com/jsdom/jsdom/issues/3363
  */
 global.structuredClone = jest.fn(val => JSON.parse(JSON.stringify(val)));
+
+/**
+ * Polyfill `crypto.randomUUID` which jsdom's `crypto` implementation does not
+ * provide. Uses an incrementing counter so IDs are unique and deterministic
+ * within a test run.
+ */
+if (typeof globalThis.crypto?.randomUUID !== 'function') {
+  let uuidCounter = 0;
+  Object.defineProperty(
+    globalThis.crypto ?? (globalThis.crypto = {} as Crypto),
+    'randomUUID',
+    {
+      configurable: true,
+      value: () =>
+        `00000000-0000-0000-0000-${(uuidCounter += 1)
+          .toString()
+          .padStart(
+            12,
+            '0'
+          )}` as `${string}-${string}-${string}-${string}-${string}`,
+    }
+  );
+}

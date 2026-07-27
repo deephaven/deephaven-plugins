@@ -53,6 +53,15 @@ export function usePanelManager({
   // initialization function into `useRef` like you can with `useState`
   const [widgetData] = useState<WidgetData>(() => structuredClone(initialData));
 
+  // Accumulates the latest state for every panel. `widgetData` only holds the
+  // initial data (used for rehydration lookups) and is never updated, so we
+  // cannot merge into it - doing so would make each panel's update drop the
+  // other panels' updates, and only the most recently updated panel would be
+  // persisted.
+  const panelStatesRef = useRef<Record<string, unknown[]>>({
+    ...widgetData.panelStates,
+  });
+
   // panelIds that are currently opened within this document. This list is tracked by the `onOpen`/`onClose` call on the `ReactPanelManager` from a child component.
   // Note that the initial widget data provided will be the `panelIds` for this document to use; this array is what is actually opened currently.
   const panelIds = useRef<string[]>([]);
@@ -100,14 +109,15 @@ export function usePanelManager({
 
   const handleDataChange = useCallback(
     (panelId: string, panelData: unknown[]) => {
+      panelStatesRef.current = {
+        ...panelStatesRef.current,
+        [panelId]: panelData,
+      };
       onDataChange({
-        panelStates: {
-          ...widgetData.panelStates,
-          [panelId]: panelData,
-        },
+        panelStates: { ...panelStatesRef.current },
       });
     },
-    [onDataChange, widgetData]
+    [onDataChange]
   );
 
   /**
@@ -129,7 +139,11 @@ export function usePanelManager({
         log.debug('Widget', id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
-        onDataChange({ ...widgetData, panelIds: [...panelIds.current] });
+        onDataChange({
+          ...widgetData,
+          panelStates: { ...panelStatesRef.current },
+          panelIds: [...panelIds.current],
+        });
       }
     },
     [isPanelsDirty, id, onClose, onDataChange, widgetData]
