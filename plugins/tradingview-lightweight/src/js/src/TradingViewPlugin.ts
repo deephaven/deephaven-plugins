@@ -5,8 +5,7 @@ import { vsGraph } from '@deephaven/icons';
 import TradingViewChart from './TradingViewChart';
 import TradingViewChartPanel from './TradingViewChartPanel';
 
-// eslint-disable-next-line import/prefer-default-export
-export const TradingViewPlugin: WidgetPlugin<DhType.Widget> = {
+const TradingViewPlugin: WidgetPlugin<DhType.Widget> = {
   name: '@deephaven/tradingview-lightweight',
   title: 'TradingView Chart',
   type: PluginType.WIDGET_PLUGIN,
@@ -15,3 +14,5 @@ export const TradingViewPlugin: WidgetPlugin<DhType.Widget> = {
   panelComponent: TradingViewChartPanel,
   icon: vsGraph,
 };
+
+export default TradingViewPlugin;

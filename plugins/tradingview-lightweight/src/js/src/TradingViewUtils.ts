@@ -70,43 +70,40 @@ export function transformTableData(
     // time=0, which made the chart draw a line from epoch (1970) to the
     // first real point — visible as a near-vertical "spike" entering the
     // chart from the left edge when zoomed to recent data.
-    if (typeof rawTime !== 'number' || !Number.isFinite(rawTime)) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-    const timeVal = Math.floor(rawTime);
+    const timeVal =
+      typeof rawTime === 'number' && Number.isFinite(rawTime)
+        ? Math.floor(rawTime)
+        : null;
 
     // For standard (time-based) charts, time=0 is essentially always a
     // sentinel for missing data — Instant columns don't represent epoch.
     // Skip at every index (including i=0) to avoid the same left-edge
     // spike as above. Numeric scales (yieldCurve, options) treat 0 as a
     // valid x-axis value and don't apply this filter.
-    if (!isNumericScale && timeVal === 0) {
-      // eslint-disable-next-line no-continue
-      continue;
+    if (timeVal != null && (isNumericScale || timeVal !== 0)) {
+      const point: Record<string, unknown> = {
+        time: timeVal,
+      };
+
+      // Map each non-time column
+      Object.entries(columns).forEach(([field, colName]) => {
+        if (field === 'time') return;
+        const data = columnData.get(colName);
+        if (data != null) {
+          const raw =
+            typeof data[i] === 'object' && data[i] !== null
+              ? Number(data[i])
+              : data[i];
+          // `color` rows can carry DH theme names ("positive") or
+          // `var(--dh-color-...)` expressions — resolve them to canvas-paintable
+          // CSS so lightweight-charts paints theme colors per-row, not the
+          // literal token. Cached so the hot path stays cheap.
+          point[field] = field === 'color' ? resolveRowColor(raw) : raw;
+        }
+      });
+
+      result.push(point);
     }
-    const point: Record<string, unknown> = {
-      time: timeVal,
-    };
-
-    // Map each non-time column
-    Object.entries(columns).forEach(([field, colName]) => {
-      if (field === 'time') return;
-      const data = columnData.get(colName);
-      if (data != null) {
-        const raw =
-          typeof data[i] === 'object' && data[i] !== null
-            ? Number(data[i])
-            : data[i];
-        // `color` rows can carry DH theme names ("positive") or
-        // `var(--dh-color-...)` expressions — resolve them to canvas-paintable
-        // CSS so lightweight-charts paints theme colors per-row, not the
-        // literal token. Cached so the hot path stays cheap.
-        point[field] = field === 'color' ? resolveRowColor(raw) : raw;
-      }
-    });
-
-    result.push(point);
   }
 
   return result;
@@ -365,43 +362,40 @@ export function buildMarkersFromTableData(
     const timeVal =
       typeof timeCol[i] === 'number' ? Math.floor(timeCol[i] as number) : 0;
 
-    // Skip invalid times
-    if (!isNumericScale && timeVal === 0 && i > 0) {
-      // eslint-disable-next-line no-continue
-      continue;
+    // Skip invalid times (time=0 sentinel on time-based scales, except i=0)
+    if (isNumericScale || timeVal !== 0 || i === 0) {
+      const rawPosition = resolveMarkerField(
+        markerSpec,
+        'position',
+        columnData,
+        i
+      ) as string;
+      const rawShape = resolveMarkerField(
+        markerSpec,
+        'shape',
+        columnData,
+        i
+      ) as string;
+      const color = (resolveMarkerField(markerSpec, 'color', columnData, i) ??
+        defaultColor) as string | undefined;
+      const text = (resolveMarkerField(markerSpec, 'text', columnData, i) ??
+        '') as string;
+      const size = resolveMarkerField(markerSpec, 'size', columnData, i) as
+        | number
+        | undefined;
+
+      const position = POSITION_MAP[rawPosition] ?? 'aboveBar';
+      const shape = SHAPE_MAP[rawShape] ?? 'circle';
+
+      markers.push({
+        time: timeVal,
+        position,
+        shape,
+        ...(color != null ? { color } : {}),
+        text,
+        ...(size != null ? { size: Number(size) } : {}),
+      });
     }
-
-    const rawPosition = resolveMarkerField(
-      markerSpec,
-      'position',
-      columnData,
-      i
-    ) as string;
-    const rawShape = resolveMarkerField(
-      markerSpec,
-      'shape',
-      columnData,
-      i
-    ) as string;
-    const color = (resolveMarkerField(markerSpec, 'color', columnData, i) ??
-      defaultColor) as string | undefined;
-    const text = (resolveMarkerField(markerSpec, 'text', columnData, i) ??
-      '') as string;
-    const size = resolveMarkerField(markerSpec, 'size', columnData, i) as
-      | number
-      | undefined;
-
-    const position = POSITION_MAP[rawPosition] ?? 'aboveBar';
-    const shape = SHAPE_MAP[rawShape] ?? 'circle';
-
-    markers.push({
-      time: timeVal,
-      position,
-      shape,
-      ...(color != null ? { color } : {}),
-      text,
-      ...(size != null ? { size: Number(size) } : {}),
-    });
   }
 
   // lightweight-charts requires markers sorted by time ascending

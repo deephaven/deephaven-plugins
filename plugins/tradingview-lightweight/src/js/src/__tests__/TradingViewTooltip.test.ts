@@ -68,8 +68,8 @@ describe('TradingViewTooltip', () => {
 
   it('creates a hidden tooltip element in the container', () => {
     const container = makeContainer();
-    // eslint-disable-next-line no-new
-    new TradingViewTooltip(deps(container, []));
+    const tooltip = new TradingViewTooltip(deps(container, []));
+    expect(tooltip).toBeDefined();
     const el = tooltipEl(container);
     expect(el).not.toBeNull();
     expect(el.style.display).toBe('none');

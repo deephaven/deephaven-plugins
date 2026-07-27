@@ -76,8 +76,7 @@ class TradingViewChartModel {
   private partitionWatchers: Map<
     string,
     {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      partitionedTable: any;
+      partitionedTable: DhType.PartitionedTable;
       cleanup: () => void;
       seenKeys: Set<string>;
     }
@@ -189,15 +188,14 @@ class TradingViewChartModel {
    * Stable translator for value columns. ChartData caches per function
    * identity, so this must be a fixed reference (not a new lambda per call).
    */
-  private readonly valueTranslator = (val: unknown): unknown =>
-    this.unwrapValue(val);
+  private readonly valueTranslator = TradingViewChartModel.unwrapValue;
 
   /**
    * Stable translator for time columns. Produces TZ-adjusted epoch seconds
    * directly, so the view layer never needs to call convertTime.
    */
   private readonly timeTranslator = (val: unknown): unknown => {
-    const unwrapped = this.unwrapValue(val);
+    const unwrapped = TradingViewChartModel.unwrapValue(val);
     if (unwrapped == null || typeof unwrapped !== 'number') return 0;
     // Numeric-scale charts (yieldCurve, options) use raw x values
     if (this.chartType === 'yieldCurve' || this.chartType === 'options') {
@@ -486,8 +484,7 @@ class TradingViewChartModel {
     if (!originalTable) return;
 
     // Convert TZ-shifted seconds to DateWrapper range
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let dsRange: any[] | undefined;
+    let dsRange: DhType.DateWrapper[] | undefined;
     if (range != null) {
       const fromUtcSec = unconvertTime(range[0], this.timeZone);
       const toUtcSec = unconvertTime(range[1], this.timeZone);
@@ -505,8 +502,7 @@ class TradingViewChartModel {
       } w=${targetWidth} reset=${isReset}`
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newTable = await (this.dh as any).plot.Downsample.runChartDownsample(
+    const newTable = await this.dh.plot.Downsample.runChartDownsample(
       originalTable,
       meta.timeCol,
       meta.valueCols,
@@ -706,8 +702,7 @@ class TradingViewChartModel {
 
   private sendWidgetMessage(msg: Record<string, unknown>): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.widget as any).sendMessage(JSON.stringify(msg), []);
+      this.widget.sendMessage(JSON.stringify(msg), []);
     } catch (e) {
       log.error('Failed to send widget message', msg.type, e);
       this.setPendingAutoBin(false);
@@ -803,8 +798,7 @@ class TradingViewChartModel {
    * series, and push it to the figure.
    */
   private async addPartitionKey(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    pt: any,
+    pt: DhType.PartitionedTable,
     key: unknown,
     template: TvlSeriesConfig
   ): Promise<void> {
@@ -816,7 +810,7 @@ class TradingViewChartModel {
     }
     watcher.seenKeys.add(keyStr);
 
-    const table = await pt.getTable(key);
+    const table = await pt.getTable(key as object);
     if (table == null) {
       log.warn('getTable returned null for key:', key);
       watcher.seenKeys.delete(keyStr);
@@ -940,15 +934,13 @@ class TradingViewChartModel {
     exported: DhType.WidgetExportedObject
   ): Promise<void> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pt = (await exported.fetch()) as any;
+      const pt = (await exported.fetch()) as DhType.PartitionedTable;
 
       // Resolve the keyadded event name from the DH namespace; fall back to
       // the literal string if the constant isn't surfaced.
       let eventName = 'keyadded';
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dhPT = (this.dh as any).PartitionedTable;
+        const dhPT = this.dh.PartitionedTable;
         if (dhPT?.EVENT_KEYADDED != null) {
           eventName = dhPT.EVENT_KEYADDED;
         }
@@ -969,8 +961,7 @@ class TradingViewChartModel {
       // our getKeys() sweep are still picked up.
       const cleanup = pt.addEventListener(
         eventName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async (event: any) => {
+        async (event: DhType.Event<unknown>) => {
           try {
             await this.addPartitionKey(pt, event.detail, template);
             if (this.figureData) {
@@ -1069,11 +1060,11 @@ class TradingViewChartModel {
     );
     if (columns.length === 0) return;
 
-    if (!this.subscriptionCleanupMap.has(tableId)) {
-      this.subscriptionCleanupMap.set(tableId, new Set());
+    let cleanupSet = this.subscriptionCleanupMap.get(tableId);
+    if (cleanupSet == null) {
+      cleanupSet = new Set();
+      this.subscriptionCleanupMap.set(tableId, cleanupSet);
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const cleanupSet = this.subscriptionCleanupMap.get(tableId)!;
 
     // Full subscription with ChartData for delta updates
     if (this.tableSubscriptionMap.has(tableId)) return;
@@ -1085,39 +1076,26 @@ class TradingViewChartModel {
     this.tableSubscriptionMap.set(tableId, subscription);
 
     cleanupSet.add(
-      // prettier-ignore
-      subscription.addEventListener(
+      subscription.addEventListener<DhType.SubscriptionTableData>(
         this.dh.Table.EVENT_UPDATED,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((e: any) => {
-          this.handleTableUpdate(
-            e as DhType.Event<DhType.SubscriptionTableData>,
-            tableId
-          );
-        }) as unknown as Parameters<typeof subscription.addEventListener>[1]
+        e => {
+          this.handleTableUpdate(e, tableId);
+        }
       )
     );
 
     // Listen for table disconnect / reconnect
     cleanupSet.add(
-      table.addEventListener(
-        this.dh.Table.EVENT_DISCONNECT,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (() => {
-          log.warn('Table disconnected:', tableId);
-          this.emit({ type: 'DISCONNECTED', connected: false });
-        }) as unknown as Parameters<typeof table.addEventListener>[1]
-      )
+      table.addEventListener(this.dh.Table.EVENT_DISCONNECT, () => {
+        log.warn('Table disconnected:', tableId);
+        this.emit({ type: 'DISCONNECTED', connected: false });
+      })
     );
     cleanupSet.add(
-      table.addEventListener(
-        this.dh.Table.EVENT_RECONNECT,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (() => {
-          log.info('Table reconnected:', tableId);
-          this.emit({ type: 'DISCONNECTED', connected: true });
-        }) as unknown as Parameters<typeof table.addEventListener>[1]
-      )
+      table.addEventListener(this.dh.Table.EVENT_RECONNECT, () => {
+        log.info('Table reconnected:', tableId);
+        this.emit({ type: 'DISCONNECTED', connected: true });
+      })
     );
   }
 
@@ -1195,8 +1173,9 @@ class TradingViewChartModel {
   // ---- Widget & utility methods ----
 
   private listenToWidget(): () => void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handler = ((event: any) => {
+    const handler = (
+      event: DhType.Event<DhType.WidgetMessageDetails>
+    ): void => {
       try {
         const data = event.detail;
         const dataStr = data.getDataAsString();
@@ -1213,8 +1192,7 @@ class TradingViewChartModel {
             tables: Array.from(this.tables.values()),
           });
         } else if (msg.type === 'AUTOBIN_FIGURE') {
-          const exported = (data.exportedObjects ??
-            []) as DhType.WidgetExportedObject[];
+          const exported = data.exportedObjects ?? [];
           this.handleAutoBinFigure(msg as AutoBinFigureMessage, exported).catch(
             err => log.error('handleAutoBinFigure failed', err)
           );
@@ -1222,15 +1200,15 @@ class TradingViewChartModel {
       } catch (e) {
         log.error('Error processing widget message', e);
       }
-    }) as unknown as Parameters<typeof this.widget.addEventListener>[1];
+    };
 
     this.widget.addEventListener(this.dh.Widget.EVENT_MESSAGE, handler);
 
     // Detect widget close (server disconnect / variable removed)
-    const closeHandler = (() => {
+    const closeHandler = (): void => {
       log.warn('Widget closed');
       this.emit({ type: 'DISCONNECTED', connected: false });
-    }) as unknown as Parameters<typeof this.widget.addEventListener>[1];
+    };
     this.widget.addEventListener(this.dh.Widget.EVENT_CLOSE, closeHandler);
 
     return () => {
@@ -1244,8 +1222,7 @@ class TradingViewChartModel {
    * DateWrapper -> epoch millis via asDate().getTime()
    * LongWrapper -> number via asNumber()
    */
-  // eslint-disable-next-line class-methods-use-this
-  private unwrapValue(val: unknown): unknown {
+  private static unwrapValue(val: unknown): unknown {
     if (val == null) return val;
     if (typeof val !== 'object') return val;
 

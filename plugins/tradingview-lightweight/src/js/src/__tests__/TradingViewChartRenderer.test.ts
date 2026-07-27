@@ -1,10 +1,27 @@
+import * as lwcModule from 'lightweight-charts';
 import type { TvlSeriesConfig } from '../TradingViewTypes';
 import TradingViewChartRenderer from '../TradingViewChartRenderer';
 
-// The manual mock at src/__mocks__/lightweight-charts.js is loaded via moduleNameMapper.
-// We import the mock internals to set up assertions.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const lwc = require('lightweight-charts');
+// The manual mock at src/__mocks__/lightweight-charts.js is loaded via
+// moduleNameMapper. Import the same module instance the renderer uses, then
+// widen its type to expose the jest.fn() internals the mock adds for assertions.
+type MockFns = Record<string, jest.Mock>;
+const lwc = lwcModule as unknown as typeof lwcModule & {
+  createChart: jest.Mock;
+  createYieldCurveChart: jest.Mock;
+  createOptionsChart: jest.Mock;
+  createSeriesMarkers: jest.Mock;
+  createTextWatermark: jest.Mock;
+  mockChart: MockFns;
+  mockSeriesInstance: MockFns;
+  mockMarkersPlugin: MockFns;
+  mockWatermarkPlugin: MockFns;
+  mockPane: MockFns;
+  mockTimeScale: MockFns;
+  mockPriceLine: MockFns;
+  mockPriceScale: MockFns;
+  mockPane2: MockFns;
+};
 
 const {
   createChart,
@@ -13,24 +30,17 @@ const {
   createSeriesMarkers,
   createTextWatermark,
 } = lwc;
-// eslint-disable-next-line no-underscore-dangle
-const mockChart = lwc.__mockChart;
-// eslint-disable-next-line no-underscore-dangle
-const mockSeriesInstance = lwc.__mockSeriesInstance;
-// eslint-disable-next-line no-underscore-dangle
-const mockMarkersPlugin = lwc.__mockMarkersPlugin;
-// eslint-disable-next-line no-underscore-dangle
-const mockWatermarkPlugin = lwc.__mockWatermarkPlugin;
-// eslint-disable-next-line no-underscore-dangle
-const mockPane = lwc.__mockPane;
-// eslint-disable-next-line no-underscore-dangle
-const mockTimeScale = lwc.__mockTimeScale;
-// eslint-disable-next-line no-underscore-dangle
-const mockPriceLine = lwc.__mockPriceLine;
-// eslint-disable-next-line no-underscore-dangle
-const mockPriceScale = lwc.__mockPriceScale;
-// eslint-disable-next-line no-underscore-dangle
-const mockPane2 = lwc.__mockPane2;
+const {
+  mockChart,
+  mockSeriesInstance,
+  mockMarkersPlugin,
+  mockWatermarkPlugin,
+  mockPane,
+  mockTimeScale,
+  mockPriceLine,
+  mockPriceScale,
+  mockPane2,
+} = lwc;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -59,12 +69,12 @@ describe('TradingViewChartRenderer', () => {
 
     it('should apply custom options to createChart', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         layout: {
           background: { type: 'solid' as never, color: '#FF0000' },
         },
       });
+      expect(renderer).toBeDefined();
 
       expect(createChart).toHaveBeenCalledWith(
         container,
@@ -819,7 +829,6 @@ describe('TradingViewChartRenderer', () => {
 
     it('should detach watermark on dispose', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
       const renderer = new TradingViewChartRenderer(container, {
         watermark: {
           text: 'AAPL',
@@ -835,8 +844,7 @@ describe('TradingViewChartRenderer', () => {
   describe('watermark', () => {
     it('should create a text watermark plugin when watermark options are provided', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         watermark: {
           text: 'AAPL',
           color: 'rgba(0,0,0,0.2)',
@@ -845,6 +853,7 @@ describe('TradingViewChartRenderer', () => {
           vertAlign: 'top',
         },
       } as never);
+      expect(renderer).toBeDefined();
 
       expect(createTextWatermark).toHaveBeenCalledTimes(1);
       expect(createTextWatermark).toHaveBeenCalledWith(
@@ -866,11 +875,11 @@ describe('TradingViewChartRenderer', () => {
 
     it('should use theme-derived defaults when only text is provided', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         layout: { textColor: '#D1D4DC' },
         watermark: { text: 'AAPL' },
       } as never);
+      expect(renderer).toBeDefined();
 
       expect(createTextWatermark).toHaveBeenCalledTimes(1);
       expect(createTextWatermark).toHaveBeenCalledWith(
@@ -896,37 +905,37 @@ describe('TradingViewChartRenderer', () => {
 
     it('should not create watermark when visible is false', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         watermark: {
           text: 'AAPL',
           visible: false,
         },
       } as never);
+      expect(renderer).toBeDefined();
 
       expect(createTextWatermark).not.toHaveBeenCalled();
     });
 
     it('should not create watermark when text is empty', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         watermark: {
           color: 'rgba(0,0,0,0.2)',
         },
       } as never);
+      expect(renderer).toBeDefined();
 
       expect(createTextWatermark).not.toHaveBeenCalled();
     });
 
     it('should not pass watermark option to createChart', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         watermark: {
           text: 'AAPL',
         },
       } as never);
+      expect(renderer).toBeDefined();
 
       const createChartOptions = createChart.mock.calls[0][1];
       expect(createChartOptions).not.toHaveProperty('watermark');
@@ -1045,10 +1054,10 @@ describe('TradingViewChartRenderer', () => {
   describe('localization price formatter', () => {
     it('should resolve priceFormatterName to a function in constructor', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         localization: { priceFormatterName: 'currency_usd' },
       } as never);
+      expect(renderer).toBeDefined();
 
       const createChartOptions = createChart.mock.calls[0][1];
       expect(createChartOptions.localization).toBeDefined();
@@ -1077,10 +1086,10 @@ describe('TradingViewChartRenderer', () => {
 
     it('should pass through unknown formatter names as-is', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         localization: { priceFormatterName: 'nonexistent' },
       } as never);
+      expect(renderer).toBeDefined();
 
       const createChartOptions = createChart.mock.calls[0][1];
       // Should be left as-is (not resolved)
@@ -1100,10 +1109,10 @@ describe('TradingViewChartRenderer', () => {
 
     it('should format compact values correctly', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         localization: { priceFormatterName: 'compact' },
       } as never);
+      expect(renderer).toBeDefined();
 
       const createChartOptions = createChart.mock.calls[0][1];
       const fmt = createChartOptions.localization.priceFormatter;
@@ -1115,10 +1124,10 @@ describe('TradingViewChartRenderer', () => {
 
     it('should format scientific values correctly', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {
+      const renderer = new TradingViewChartRenderer(container, {
         localization: { priceFormatterName: 'scientific' },
       } as never);
+      expect(renderer).toBeDefined();
 
       const createChartOptions = createChart.mock.calls[0][1];
       const fmt = createChartOptions.localization.priceFormatter;
@@ -1359,8 +1368,8 @@ describe('TradingViewChartRenderer', () => {
   describe('chart type selection', () => {
     it('should call createChart for standard chart type', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {}, 'standard');
+      const renderer = new TradingViewChartRenderer(container, {}, 'standard');
+      expect(renderer).toBeDefined();
       expect(createChart).toHaveBeenCalledTimes(1);
       expect(createYieldCurveChart).not.toHaveBeenCalled();
       expect(createOptionsChart).not.toHaveBeenCalled();
@@ -1368,8 +1377,12 @@ describe('TradingViewChartRenderer', () => {
 
     it('should call createYieldCurveChart for yieldCurve chart type', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {}, 'yieldCurve');
+      const renderer = new TradingViewChartRenderer(
+        container,
+        {},
+        'yieldCurve'
+      );
+      expect(renderer).toBeDefined();
       expect(createYieldCurveChart).toHaveBeenCalledTimes(1);
       expect(createChart).not.toHaveBeenCalled();
       expect(createOptionsChart).not.toHaveBeenCalled();
@@ -1377,8 +1390,8 @@ describe('TradingViewChartRenderer', () => {
 
     it('should call createOptionsChart for options chart type', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container, {}, 'options');
+      const renderer = new TradingViewChartRenderer(container, {}, 'options');
+      expect(renderer).toBeDefined();
       expect(createOptionsChart).toHaveBeenCalledTimes(1);
       expect(createChart).not.toHaveBeenCalled();
       expect(createYieldCurveChart).not.toHaveBeenCalled();
@@ -1386,8 +1399,8 @@ describe('TradingViewChartRenderer', () => {
 
     it('should default to createChart when no chart type specified', () => {
       const container = document.createElement('div');
-      // eslint-disable-next-line no-new
-      new TradingViewChartRenderer(container);
+      const renderer = new TradingViewChartRenderer(container);
+      expect(renderer).toBeDefined();
       expect(createChart).toHaveBeenCalledTimes(1);
     });
 
@@ -1418,14 +1431,15 @@ describe('TradingViewChartRenderer', () => {
       renderer.configureSeries(configs);
 
       // mockSeriesInstance is what addSeries returns and what gets stored.
-      expect(renderer.getSeriesIdForApi(mockSeriesInstance)).toBe('line-x');
+      expect(renderer.getSeriesIdForApi(mockSeriesInstance as never)).toBe(
+        'line-x'
+      );
     });
 
     it('getSeriesIdForApi returns undefined for an unknown series', () => {
       const renderer = createRenderer();
       const other = { setData: jest.fn() };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect(renderer.getSeriesIdForApi(other as any)).toBeUndefined();
+      expect(renderer.getSeriesIdForApi(other as never)).toBeUndefined();
     });
 
     it('subscribeClick registers a handler and returns a working unsubscribe', () => {

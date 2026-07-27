@@ -41,11 +41,12 @@ export function TradingViewChartPanel(
 
   const name = metadata?.name ?? 'TradingView Chart';
 
-  // Cast to any to bridge golden-layout type version mismatches between
+  // Cast to bridge golden-layout type version mismatches between
   // @deephaven/plugin and @deephaven/dashboard-core-plugins.
   // At runtime these are the same objects provided by the IDE.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wp = WidgetPanel as any;
+  const wp = WidgetPanel as unknown as React.ComponentType<
+    Record<string, unknown>
+  >;
 
   return React.createElement(
     wp,

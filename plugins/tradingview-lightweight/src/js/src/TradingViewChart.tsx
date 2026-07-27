@@ -27,8 +27,7 @@ import type {
   TvlFigureData,
   ModelEvent,
 } from './TradingViewTypes';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore Vite ?inline import returns CSS as string
+// Typed via src/declaration.d.ts (declare module '*.css?inline')
 import tvlStyles from './TradingViewChart.css?inline';
 
 const log = Log.module('TradingViewChart');
@@ -261,9 +260,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     let visRange: [number, number] | null = null;
     if (renderer) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vr = renderer.getChart().timeScale().getVisibleRange() as any;
-        if (vr != null) visRange = [vr.from as number, vr.to as number];
+        const vr = renderer.getChart().timeScale().getVisibleRange();
+        if (vr != null) visRange = [Number(vr.from), Number(vr.to)];
       } catch {
         // chart may not be ready
       }
@@ -286,10 +284,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // Body range from the first auto-binned table; null means full source.
       rangeNs = model.getAutoBinBodyRange(Number(autoBinKeys[0]));
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const m = model as any;
-    const pendingResample =
-      (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean);
+    const pendingResample = model.pendingDownsample || model.pendingAutoBin;
     return JSON.stringify({
       // Snapshot-relevant readiness signal: true once every known series
       // has its first row of data. Polled by the image-snapshotter so it
@@ -307,7 +302,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       binWidthNs,
       aggType,
       rangeNs,
-      resampleSeq: (m.resampleSeq as number) ?? 0,
+      resampleSeq: model.resampleSeq,
     });
   }
 
@@ -325,10 +320,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // Generic readiness signal for plugin-agnostic consumers (the docs
       // image-snapshotter polls this). True once every known series has
       // its first row of data AND nothing is mid-resample.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const m = model as any;
       const pendingResample = model
-        ? (m.pendingDownsample as boolean) || (m.pendingAutoBin as boolean)
+        ? model.pendingDownsample || model.pendingAutoBin
         : true;
       const ready = !!model && model.isReady() && !pendingResample;
       containerRef.current.setAttribute(
@@ -356,16 +349,13 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     lines.push(`pendingDs: ${model.pendingDownsample}`);
     if (renderer) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vr = renderer.getChart().timeScale().getVisibleRange() as any;
+        const vr = renderer.getChart().timeScale().getVisibleRange();
         if (vr != null) {
-          const fromD = new Date((vr.from as number) * 1000)
-            .toISOString()
-            .slice(0, 10);
-          const toD = new Date((vr.to as number) * 1000)
-            .toISOString()
-            .slice(0, 10);
-          const dur = ((vr.to as number) - (vr.from as number)) / 86400;
+          const from = Number(vr.from);
+          const to = Number(vr.to);
+          const fromD = new Date(from * 1000).toISOString().slice(0, 10);
+          const toD = new Date(to * 1000).toISOString().slice(0, 10);
+          const dur = (to - from) / 86400;
           lines.push(`visRange: ${fromD} → ${toD} (${dur.toFixed(0)}d)`);
         }
       } catch {
@@ -590,12 +580,11 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       let dragRange: { from: number; to: number } | null = null;
       if (draggingRef.current) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const vr = chart.timeScale().getVisibleRange() as any;
+          const vr = chart.timeScale().getVisibleRange();
           if (vr != null) {
             dragRange = {
-              from: vr.from as number,
-              to: vr.to as number,
+              from: Number(vr.from),
+              to: Number(vr.to),
             };
           }
         } catch {
@@ -709,11 +698,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       } else if (addedCount > 0 && !isInitialLoad && !draggingRef.current) {
         // Ticking: snap-to-live if right edge is near latest data
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const vr = chart.timeScale().getVisibleRange() as any;
+          const vr = chart.timeScale().getVisibleRange();
           if (vr != null) {
-            const visFrom = vr.from as number;
-            const visTo = vr.to as number;
+            const visFrom = Number(vr.from);
+            const visTo = Number(vr.to);
             const visDur = visTo - visFrom;
             const timeColName = figure.series[0]?.dataMapping.columns.time;
             const timeArr = timeColName ? colData.get(timeColName) : undefined;
@@ -989,8 +977,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // click pixel for a (series, time, price) so its independently-derived
       // coordinate can be checked against LWC's native hit test. Tiny and
       // inert; only meaningful when a test reads it. Torn down with the chart.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
-      (window as any).__tvlTestHook = {
+      // Deliberate double-underscore global debug hook, read externally from
+      // the browser/devtools; the underscore prefix is an intentional convention.
+      // eslint-disable-next-line no-underscore-dangle
+      (window as unknown as { __tvlTestHook?: unknown }).__tvlTestHook = {
         timeToCoordinate: (t: number) => renderer.timeToCoordinate(t),
         // Convert a real UTC-seconds time through the same convertTime the
         // data pipeline uses (applies the session-tz shift), then to an x
@@ -1025,8 +1015,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         },
       };
       eventUnsubsRef.current.push(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
-        delete (window as any).__tvlTestHook;
+        // eslint-disable-next-line no-underscore-dangle
+        delete (window as unknown as { __tvlTestHook?: unknown }).__tvlTestHook;
       });
     }
 
@@ -1129,11 +1119,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       setTimeout(() => {
         settled = true;
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const vr = timeScale.getVisibleRange() as any;
+          const vr = timeScale.getVisibleRange();
           if (vr != null) {
-            baselineFrom = vr.from as number;
-            baselineTo = vr.to as number;
+            baselineFrom = Number(vr.from);
+            baselineTo = Number(vr.to);
           }
         } catch {
           // chart may not be ready
@@ -1180,10 +1169,9 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           return;
         }
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const vr = timeScale.getVisibleRange() as any;
+          const vr = timeScale.getVisibleRange();
           dragStartDurationSec =
-            vr != null ? (vr.to as number) - (vr.from as number) : null;
+            vr != null ? Number(vr.to) - Number(vr.from) : null;
         } catch {
           dragStartDurationSec = null;
         }
@@ -1194,10 +1182,9 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           // Recenter on the panned-to position but restore the pre-drag width,
           // so a pan shifts the window without changing the zoom.
           try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const vr = timeScale.getVisibleRange() as any;
+            const vr = timeScale.getVisibleRange();
             if (vr != null) {
-              const center = ((vr.from as number) + (vr.to as number)) / 2;
+              const center = (Number(vr.from) + Number(vr.to)) / 2;
               const half = dragStartDurationSec / 2;
               timeScale.setVisibleRange({
                 from: center - half,
@@ -1227,11 +1214,10 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         if (suppressRef.current) return;
         if (Date.now() < dblClickGuardUntil) return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vr = timeScale.getVisibleRange() as any;
+        const vr = timeScale.getVisibleRange();
         if (vr == null) return;
-        const visFrom = vr.from as number;
-        const visTo = vr.to as number;
+        const visFrom = Number(vr.from);
+        const visTo = Number(vr.to);
         const visDur = visTo - visFrom;
         if (visDur < 1) return;
 
@@ -1392,10 +1378,9 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const visRange = timeScale.getVisibleRange() as any;
-        const from = visRange?.from as number | undefined;
-        const to = visRange?.to as number | undefined;
+        const visRange = timeScale.getVisibleRange();
+        const from = visRange != null ? Number(visRange.from) : undefined;
+        const to = visRange != null ? Number(visRange.to) : undefined;
         if (from != null && to != null) {
           restoreRangeRef.current = { from, to };
           const buf = (to - from) * 0.2;
@@ -1453,14 +1438,13 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
     if (userInteractedRef.current) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vr = renderer.getChart().timeScale().getVisibleRange() as any;
+        const vr = renderer.getChart().timeScale().getVisibleRange();
         if (vr != null) {
           const remap = (shifted: number): number =>
             convertTime(unconvertTime(shifted, oldTimeZone), timeZone);
           restoreRangeRef.current = {
-            from: remap(vr.from as number),
-            to: remap(vr.to as number),
+            from: remap(Number(vr.from)),
+            to: remap(Number(vr.to)),
           };
         }
       } catch {
@@ -1532,8 +1516,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         overflow: 'hidden',
       }}
     >
-      {/* eslint-disable-next-line react/no-danger */}
-      <style dangerouslySetInnerHTML={{ __html: tvlStyles }} />
+      <style>{tvlStyles}</style>
       {/* lightweight-charts mounts into this absolutely-positioned host so its
           explicitly-sized element stays out of the outer flex item's flow —
           see chartHostRef. */}

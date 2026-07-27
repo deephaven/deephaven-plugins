@@ -36,8 +36,7 @@ export function extractSeriesPoint(
   dataItem: unknown
 ): ExtractedSeriesPoint | undefined {
   if (dataItem == null || typeof dataItem !== 'object') return undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const item = dataItem as any;
+  const item = dataItem as Record<string, unknown>;
   const time = item.time as Time | undefined;
   if (typeof item.value === 'number') {
     return { data: item.value, price: item.value, time };

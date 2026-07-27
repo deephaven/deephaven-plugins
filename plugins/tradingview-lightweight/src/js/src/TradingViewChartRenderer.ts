@@ -20,6 +20,7 @@ import type {
   SeriesType,
   DeepPartial,
   ChartOptions,
+  LogicalRange,
   YieldCurveChartOptions,
   PriceChartOptions,
   SeriesMarker,
@@ -603,8 +604,8 @@ class TradingViewChartRenderer {
    */
   configureSeries(
     seriesConfigs: TvlSeriesConfig[],
-    colorway: string[] = [],
-    ohlcColors?: { upColor: string; downColor: string },
+    colorwayInput: string[] = [],
+    ohlcColorsInput?: { upColor: string; downColor: string },
     enableScaffold = false
   ): void {
     // Resolve any DH theme color names in user-supplied options up front so
@@ -616,15 +617,17 @@ class TradingViewChartRenderer {
         if (pl.color != null) priceLines[i].color = resolveColor(pl.color);
       });
     });
-    // eslint-disable-next-line no-param-reassign
-    colorway = colorway.map(c => resolveColor(c) ?? c);
-    if (ohlcColors) {
-      // eslint-disable-next-line no-param-reassign
-      ohlcColors = {
-        upColor: resolveColor(ohlcColors.upColor) ?? ohlcColors.upColor,
-        downColor: resolveColor(ohlcColors.downColor) ?? ohlcColors.downColor,
-      };
-    }
+    const colorway = colorwayInput.map(c => resolveColor(c) ?? c);
+    const ohlcColors =
+      ohlcColorsInput != null
+        ? {
+            upColor:
+              resolveColor(ohlcColorsInput.upColor) ?? ohlcColorsInput.upColor,
+            downColor:
+              resolveColor(ohlcColorsInput.downColor) ??
+              ohlcColorsInput.downColor,
+          }
+        : undefined;
 
     // Store theme colors for marker resolution
     this.colorway = colorway;
@@ -1011,8 +1014,7 @@ class TradingViewChartRenderer {
   priceToCoordinate(seriesId: string, price: number): number | null {
     const series = this.seriesMap.get(seriesId);
     if (!series) return null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return series.priceToCoordinate(price as any);
+    return series.priceToCoordinate(price);
   }
 
   /** Current series ids (insertion order). Test-only. */
@@ -1075,11 +1077,9 @@ class TradingViewChartRenderer {
 
   /** Subscribe to visible logical range changes (zoom/pan detection). */
   subscribeVisibleLogicalRangeChange(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handler: (range: any) => void
+    handler: (range: LogicalRange | null) => void
   ): () => void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ts = this.chart.timeScale() as any;
+    const ts = this.chart.timeScale();
     ts.subscribeVisibleLogicalRangeChange(handler);
     return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
   }
@@ -1179,8 +1179,7 @@ class TradingViewChartRenderer {
 
   /** Subscribe to chart size changes (resize detection). */
   subscribeSizeChange(handler: () => void): () => void {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ts = this.chart.timeScale() as any;
+    const ts = this.chart.timeScale();
     ts.subscribeSizeChange(handler);
     return () => ts.unsubscribeSizeChange(handler);
   }

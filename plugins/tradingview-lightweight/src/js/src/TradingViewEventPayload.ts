@@ -87,8 +87,14 @@ export function buildPressEventPayload(
   getSeriesTitle: (s: ISeriesApi<SeriesType>) => string | undefined,
   timeZone: string
 ): TvlPressEventPayload {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const source = params.sourceEvent as any;
+  const source = params.sourceEvent as
+    | {
+        shiftKey?: boolean;
+        ctrlKey?: boolean;
+        metaKey?: boolean;
+        altKey?: boolean;
+      }
+    | undefined;
   const payload: TvlPressEventPayload = {
     type,
     seriesData: {},
