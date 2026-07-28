@@ -16,7 +16,7 @@ The Python files have the following structure:
 `register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
 The JavaScript files have the following structure:  
-`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains a mapping of names to React elements and the initial name should match the one in `{{ cookiecutter.__component_name }}.py`. It also contains an optional `eventMapping` of event names to handlers for reacting to events sent from the server via `use_send_event` (the same mechanism used by built-in `deephaven.ui` events such as `ui.toast` and `ui.notification`). The template registers an example handler that shows an alert; leave `eventMapping` as an empty map if your plugin does not handle events.
+`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains a mapping of names to React elements and the initial name should match the one in `{{ cookiecutter.__component_name }}.py`. It also contains an optional `eventMapping` of event names to handlers for reacting to events sent from the server via `use_send_event` (the same mechanism used by built-in `deephaven.ui` events such as `ui.toast`). The template registers an example handler that shows an alert; leave `eventMapping` as an empty map if your plugin does not handle events.
 `{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the React element that the name maps to. This file is a good starting point for adding more complex plugin functionality.
 
 ## Using plugin_builder.py
