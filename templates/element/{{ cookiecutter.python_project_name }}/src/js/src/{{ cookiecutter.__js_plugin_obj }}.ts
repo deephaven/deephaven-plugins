@@ -5,6 +5,8 @@ import {{ cookiecutter.__js_plugin_view_obj }} from './{{ cookiecutter.__js_plug
 // `use_send_event`. This is the same mechanism used by built-in deephaven.ui
 // events such as `ui.toast`. Adding an `eventMapping` is
 // optional - leave it as an empty map if your plugin does not handle events.
+// Note that on the server side, `use_send_event` must be called from the render
+// thread (see https://deephaven.io/core/ui/docs/hooks/use_render_queue/).
 type ElementPluginWithEvents = ElementPlugin & {
   eventMapping: Record<string, (params: Record<string, unknown>) => void>;
 };

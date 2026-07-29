@@ -17,6 +17,8 @@ The Python files have the following structure:
 
 The JavaScript files have the following structure:  
 `{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains a mapping of names to React elements and the initial name should match the one in `{{ cookiecutter.__component_name }}.py`. It also contains an optional `eventMapping` of event names to handlers for reacting to events sent from the server via `use_send_event` (the same mechanism used by built-in `deephaven.ui` events such as `ui.toast`). The template registers an example handler that shows an alert; leave `eventMapping` as an empty map if your plugin does not handle events.
+
+Like `ui.toast`, `use_send_event` must be called from the render thread, either while a `@ui.component` is rendering or from an event handler it triggers. Calling it from a background thread, such as a table listener, raises an error. To send an event from off the render thread, queue it with the [`use_render_queue` hook](https://deephaven.io/core/ui/docs/hooks/use_render_queue/).
 `{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the React element that the name maps to. This file is a good starting point for adding more complex plugin functionality.
 
 ## Using plugin_builder.py
