@@ -40,3 +40,8 @@ mixed_case_table = new_table(
 )
 
 ag_mixed_case = AgGrid(mixed_case_table)
+
+ag_case_sensitive = AgGrid(
+    mixed_case_table,
+    column_defs={"Fruit": {"filterParams": {"caseSensitive": True}}},
+)
