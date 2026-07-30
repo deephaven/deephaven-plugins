@@ -4,11 +4,9 @@ from typing import Callable
 from urllib.parse import urlencode
 
 from ..types import QueryParams
+from ._navigate import NAVIGATE_EVENT
 from .use_query_params import use_query_params
 from .use_send_event import use_send_event
-
-
-_NAVIGATE_EVENT = "navigate.event"
 
 
 def _query_params_to_query_string(query_params: QueryParams) -> str:
@@ -89,6 +87,6 @@ def use_set_query_param(
             )
 
         payload = _build_navigate_payload(new_params, replace)
-        send_event(_NAVIGATE_EVENT, payload)
+        send_event(NAVIGATE_EVENT, payload)
 
     return setter

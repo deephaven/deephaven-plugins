@@ -8,6 +8,7 @@ import { type Operation } from 'fast-json-patch';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
 import { type DocumentHandlerProps } from './DocumentHandler';
 import { type WidgetMessageEvent } from './WidgetTypes';
+import { LEGACY_NAVIGATE_EVENT, NAVIGATE_EVENT } from '../events/Navigate';
 import {
   makeWidget,
   makeWidgetDescriptor,
@@ -627,7 +628,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: 'page=1',
         })
       );
@@ -639,12 +640,32 @@ describe('navigate event handling', () => {
     unmount();
   });
 
+  it('handles the legacy event name', async () => {
+    const { listener, unmount } = await setupWidgetWithListener();
+
+    await act(async () => {
+      listener(
+        makeWidgetEventMethodEvent(LEGACY_NAVIGATE_EVENT, {
+          queryParams: 'page=2&sort=name',
+        })
+      );
+    });
+
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/app/widget/local/dashboard?page=2&sort=name'
+    );
+
+    unmount();
+  });
+
   it('uses pushState when replace=false', async () => {
     const { listener, unmount } = await setupWidgetWithListener();
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: 'page=1',
           replace: false,
         })
@@ -662,7 +683,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: 'page=2&sort=name',
         })
       );
@@ -682,7 +703,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: '?foo=bar&baz=qux',
         })
       );
@@ -707,7 +728,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: '',
         })
       );
@@ -724,7 +745,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: 'page=2',
         })
       );
@@ -749,7 +770,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           queryParams: 'tag=python&tag=java',
         })
       );
@@ -776,7 +797,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           path: '/new-page',
         })
       );
@@ -796,7 +817,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           fragment: 'section-2',
         })
       );
@@ -821,7 +842,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           fragment: '',
         })
       );
@@ -846,7 +867,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           path: '/settings',
           queryParams: '?tab=1',
           fragment: 'top',
@@ -869,7 +890,7 @@ describe('navigate event handling', () => {
 
     await act(async () => {
       listener(
-        makeWidgetEventMethodEvent('navigate.event', {
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, {
           path: '/page',
           queryParams: 'x=1',
           fragment: 'sec',

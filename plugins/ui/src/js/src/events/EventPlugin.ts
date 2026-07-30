@@ -19,6 +19,9 @@ export type UIEventMapping = Record<string, UIEventHandler>;
  * events sent from deephaven.ui via `use_send_event`. The `eventMapping`
  * contains the event names as keys and the handlers as values.
  *
+ * Event names should be namespaced with the plugin's package namespace to avoid
+ * collisions. Built-in events are namespaced with `deephaven.ui`.
+ *
  * Because an event plugin is also an element plugin, the `mapping` property is
  * still required. If the plugin only handles events and does not render any
  * elements, set `mapping` to an empty object.

@@ -7,7 +7,7 @@ from .._internal.utils import dict_to_react_props
 from .._internal.EventContext import NoContextException
 from ..types import ToastVariant
 
-_TOAST_EVENT = "toast.event"
+_TOAST_EVENT = "deephaven.ui.toast"
 
 
 class ToastException(NoContextException):

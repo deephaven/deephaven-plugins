@@ -1,6 +1,9 @@
 import { EMPTY_MAP } from '@deephaven/utils';
-import Toast, { TOAST_EVENT } from '../../events/Toast';
-import Navigate, { NAVIGATE_EVENT } from '../../events/Navigate';
+import Toast, { LEGACY_TOAST_EVENT, TOAST_EVENT } from '../../events/Toast';
+import Navigate, {
+  LEGACY_NAVIGATE_EVENT,
+  NAVIGATE_EVENT,
+} from '../../events/Navigate';
 import { type UIEventHandler } from '../../events/EventPlugin';
 
 export function getTargetName(target: EventTarget | null): string | undefined {
@@ -22,11 +25,14 @@ function asEventHandler<T>(handler: (params: T) => void): UIEventHandler {
 }
 
 /**
- * Map event names to their built-in handlers
+ * Map event names to their built-in handlers.
+ * Legacy (pre-namespacing) names are kept for compatibility with older servers.
  */
 export const eventHandlerMap: Record<string, UIEventHandler> = {
   [TOAST_EVENT]: asEventHandler(Toast),
+  [LEGACY_TOAST_EVENT]: asEventHandler(Toast),
   [NAVIGATE_EVENT]: asEventHandler(Navigate),
+  [LEGACY_NAVIGATE_EVENT]: asEventHandler(Navigate),
 };
 
 /**

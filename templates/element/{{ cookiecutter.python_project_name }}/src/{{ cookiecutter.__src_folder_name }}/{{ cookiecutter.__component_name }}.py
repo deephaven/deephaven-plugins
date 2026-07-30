@@ -44,4 +44,6 @@ def {{ cookiecutter.__event_sender_name }}(
     # `use_send_event` returns a callback for sending an event to the client.
     send_event = ui.use_send_event()
     # The event name must match the key in the `eventMapping` of the JS plugin.
+    # Namespace event names with the package namespace to avoid collisions with
+    # other plugins and with built-in `deephaven.ui` events.
     send_event("{{ cookiecutter.__py_namespace }}.event", {"message": message})

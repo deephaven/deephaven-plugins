@@ -3,7 +3,9 @@ import {{ cookiecutter.__js_plugin_view_obj }} from './{{ cookiecutter.__js_plug
 
 // An element plugin can optionally handle events sent from the server via
 // `use_send_event`. This is the same mechanism used by built-in deephaven.ui
-// events such as `ui.toast`. Adding an `eventMapping` is
+// events, which are namespaced with `deephaven.ui` (e.g. `deephaven.ui.toast`).
+// Plugins should namespace their own events the same way, using their package
+// namespace as the prefix. Adding an `eventMapping` is
 // optional - leave it as an empty map if your plugin does not handle events.
 // Note that on the server side, `use_send_event` must be called from the render
 // thread (see https://deephaven.io/core/ui/docs/hooks/use_render_queue/).
@@ -24,7 +26,8 @@ export const {{ cookiecutter.__js_plugin_obj }}: ElementPluginWithEvents = {
       {{ cookiecutter.__js_plugin_view_obj }},
   },
   // Optional: map event names to handlers to react to events sent from the server
-  // via `use_send_event`. The event name must match the name passed to `use_send_event`.
+  // via `use_send_event`. The event name must match the name passed to `use_send_event`,
+  // and should be namespaced with your package namespace to avoid collisions.
   // Leave it as an empty map (`{}`) if your plugin does not handle events.
   // This example handler shows an alert with the message sent from the server. It is
   // triggered by the `{{ cookiecutter.__event_sender_name }}` function in {{ cookiecutter.__component_name }}.py.
