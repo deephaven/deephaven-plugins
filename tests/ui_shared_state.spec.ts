@@ -7,9 +7,13 @@ import { openPanel, gotoPage, SELECTORS } from './utils';
 
 test('shared state displays initial value', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_shared_state', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_shared_state',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // Reset to known state (other browser projects may have changed it)
   await panel.getByRole('button', { name: 'Reset' }).click();
@@ -21,9 +25,13 @@ test('shared state syncs when increment button is clicked', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_shared_state', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_shared_state',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // Reset to known state
   await panel.getByRole('button', { name: 'Reset' }).click();
@@ -44,9 +52,13 @@ test('shared state syncs when increment button is clicked', async ({
 
 test('shared state resets correctly', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_shared_state', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_shared_state',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // Reset to known state
   await panel.getByRole('button', { name: 'Reset' }).click();
@@ -65,9 +77,13 @@ test('shared state with callable initializer displays initial value', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_shared_state', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_shared_state',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // The callable initializer returns ["initial"], so text always starts with "initial"
   await expect(panel.getByText('List: initial')).toBeVisible();
@@ -77,9 +93,13 @@ test('shared state with callable initializer updates correctly', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_shared_state', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(
+    page,
+    'ui_shared_state',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
 
-  const panel = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
+  const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
   // Get the current list text before clicking
   const listText = panel.getByText('List: ');
