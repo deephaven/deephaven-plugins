@@ -232,6 +232,14 @@ class RenderContext:
     A value that can be used to store arbitrary data for this context.
     """
 
+    _hook_setters: Dict[StateKey, Callable[[Any], None]]
+    """
+    Cache of stable state setter functions keyed by hook index. The same setter
+    instance is returned on every render so it serializes to a stable callable id
+    for the client (a fresh setter each render would be assigned a new callable
+    id, causing the client to receive a new prop - e.g. `onChange` - every render).
+    """
+
     def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
@@ -254,6 +262,7 @@ class RenderContext:
         self._is_mounted = True
         self._is_dirty = True
         self._cache = None
+        self._hook_setters = {}
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -506,6 +515,35 @@ class RenderContext:
         self._root.on_change(update_state)
         self.mark_dirty()
 
+    def make_state_setter(self, key: StateKey) -> Callable[[Any], None]:
+        """
+        Get a stable setter function for the given state key.
+
+        The same function instance is returned on every render for a given key.
+        This matters because callables are serialized to the client by object
+        identity - returning a fresh setter each render would be assigned a new
+        callable id and the client would see a new prop (e.g. `onChange`) on
+        every render, needlessly churning props and cancelling in-flight work
+        such as debounced input changes.
+
+        Args:
+            key: The state key (hook index) to get the setter for.
+
+        Returns:
+            A stable function that sets the state for the given key.
+        """
+        setter = self._hook_setters.get(key)
+        if setter is None:
+
+            def set_value(new_value: Any) -> None:
+                # Set the value in the context state and trigger a re-render
+                logger.debug("use_state set_value called with %s", new_value)
+                self.queue_render(lambda: self.set_state(key, new_value))
+
+            self._hook_setters[key] = set_value
+            setter = set_value
+        return setter
+
     def get_child_context(
         self, key: ContextKey, fetch_only: bool = False
     ) -> "RenderContext":
@@ -681,6 +719,7 @@ class RenderContext:
         self._collected_effects.clear()
         self._collected_unmount_listeners.clear()
         self._collected_contexts.clear()
+        self._hook_setters.clear()
 
     @property
     def cache(self) -> Any:

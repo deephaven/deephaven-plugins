@@ -8,6 +8,9 @@ from plotly.graph_objs import Figure
 
 from ..deephaven_figure import DeephavenFigure
 from ..shared import default_callback, unsafe_figure_update_wrapper
+from ..types import ChartPreventableEventCallback, ChartEventCallback
+
+from ._event_callbacks import _extract_event_callbacks, _merge_event_callbacks
 
 
 class LayerSpecDict(TypedDict, total=False):
@@ -567,6 +570,17 @@ def layer(
     specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
     title: str | None = None,
+    on_click: ChartPreventableEventCallback | None = None,
+    on_press: ChartPreventableEventCallback | None = None,
+    on_double_click: ChartEventCallback | None = None,
+    on_double_press: ChartEventCallback | None = None,
+    on_selected: ChartEventCallback | None = None,
+    on_deselect: ChartEventCallback | None = None,
+    on_relayout: ChartEventCallback | None = None,
+    on_legend_click: ChartPreventableEventCallback | None = None,
+    on_legend_double_click: ChartPreventableEventCallback | None = None,
+    on_click_annotation: ChartEventCallback | None = None,
+    on_web_gl_context_lost: ChartEventCallback | None = None,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
     applied, so the layouts of later figures will override the layouts of early
@@ -595,6 +609,35 @@ def layer(
       title:
         Overall title to set for the figure.
         If an empty string, no overall title is shown.
+      on_click: A callback function that is called when a point is clicked.
+        The function receives a dict with 'points' (list of clicked point data)
+        and 'modifiers' (keyboard state). On hierarchical charts (sunburst,
+        treemap, icicle), return False to prevent drill-down. The return value
+        is ignored on other chart types.
+      on_press: Alias for on_click.
+      on_double_click: A callback function that is called on double-click.
+        The function receives a dict with 'modifiers' (keyboard state).
+        Fires in zoom/pan mode only; in select mode, on_deselect fires instead.
+      on_double_press: Alias for on_double_click.
+      on_selected: A callback function that is called when a box or lasso
+        selection completes. The function receives a dict with 'points' (list
+        of selected point data), 'range' (for box select), and 'modifiers'.
+      on_deselect: A callback function that is called when the selection is
+        cleared (e.g., by double-clicking on an empty area).
+      on_relayout: A callback function that is called when the chart layout
+        changes due to user interaction (pan, zoom, axis reset, etc.). The
+        function receives a dict of the layout keys that changed.
+      on_legend_click: A callback function that is called when a legend item
+        is clicked. Return False to prevent the default trace visibility toggle.
+        Return True or None to allow it.
+      on_legend_double_click: A callback function that is called when a legend
+        item is double-clicked. Return False to prevent the default
+        isolate/show-all toggle. Return True or None to allow it.
+      on_click_annotation: A callback function that is called when an
+        annotation is clicked. The function receives a dict with 'index',
+        'annotation', and 'modifiers'.
+      on_web_gl_context_lost: A callback function that is called when the
+        WebGL rendering context is lost (e.g., GPU reclaims resources).
 
     Returns:
       The layered chart
@@ -602,6 +645,11 @@ def layer(
     """
 
     args = locals()
+
+    # Pull the event callbacks out of args (resolving aliases) so they aren't
+    # reapplied when the layer is recreated from the graph. They are registered
+    # on the composed figure below.
+    direct_callbacks = _extract_event_callbacks(args)
 
     func = atomic_layer
 
@@ -618,5 +666,7 @@ def layer(
     exec_ctx = make_user_exec_ctx()
 
     new_fig.add_layer_to_graph(func, args, exec_ctx)
+
+    _merge_event_callbacks(new_fig, figs, direct_callbacks)
 
     return new_fig

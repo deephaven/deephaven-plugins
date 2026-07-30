@@ -83,6 +83,8 @@ export interface PlotlyChartDeephavenData {
   }>;
   is_user_set_template: boolean;
   is_user_set_color: boolean;
+  callbacks?: Record<string, string>;
+  preventable_callbacks?: string[];
 }
 
 export interface PlotlyChartWidgetData {

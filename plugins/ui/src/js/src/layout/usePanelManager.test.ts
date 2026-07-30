@@ -262,6 +262,32 @@ describe('usePanelManager', () => {
         },
       });
     });
+
+    it('accumulates state across sequential updates from different panels', () => {
+      const widget = makeWidget();
+      const onDataChange = jest.fn();
+      const { result } = renderHook(() =>
+        usePanelManager({ widget, onDataChange })
+      );
+
+      const panel1Data = [{ a: 1 }];
+      const panel2Data = [{ b: 2 }];
+
+      act(() => {
+        result.current.onDataChange('panel-1', panel1Data);
+      });
+      act(() => {
+        result.current.onDataChange('panel-2', panel2Data);
+      });
+
+      // The second panel's update must not drop the first panel's state
+      expect(onDataChange).toHaveBeenLastCalledWith({
+        panelStates: {
+          'panel-1': panel1Data,
+          'panel-2': panel2Data,
+        },
+      });
+    });
   });
 
   describe('metadata', () => {

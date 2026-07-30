@@ -8,7 +8,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetPanelProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
-import { useHandleSceneTicks } from './useHandleSceneTicks.js';
+import { usePlotlyExpressModel } from './usePlotlyExpressModel.js';
 
 export function PlotlyExpressChartPanel(
   props: WidgetPanelProps<dh.Widget>
@@ -25,7 +25,7 @@ export function PlotlyExpressChartPanel(
     return m;
   }, [dh, fetch]);
 
-  useHandleSceneTicks(model, container);
+  const eventCallbacks = usePlotlyExpressModel(model, container);
 
   return (
     <ChartPanel
@@ -35,6 +35,8 @@ export function PlotlyExpressChartPanel(
       makeModel={makeModel}
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...eventCallbacks}
     />
   );
 }

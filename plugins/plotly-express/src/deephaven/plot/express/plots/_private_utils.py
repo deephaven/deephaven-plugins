@@ -14,6 +14,7 @@ from deephaven.execution_context import make_user_exec_ctx
 import deephaven.pandas as dhpd
 
 from ._layer import atomic_layer
+from ._event_callbacks import _extract_event_callbacks
 from .PartitionManager import PartitionManager
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..shared import args_copy, unsafe_figure_update_wrapper
@@ -419,6 +420,9 @@ def process_args(
     render_args = locals()
     render_args["args"]["table"] = convert_to_table(render_args["args"]["table"])
 
+    # Extract event callbacks before they flow into plotly figure creation
+    event_callbacks = _extract_event_callbacks(render_args["args"])
+
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
@@ -461,6 +465,9 @@ def process_args(
     )
 
     new_fig.calendar = calendar
+
+    # Register event callbacks on the figure
+    new_fig._register_callbacks(event_callbacks)
 
     return new_fig
 
