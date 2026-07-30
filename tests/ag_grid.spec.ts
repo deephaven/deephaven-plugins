@@ -67,3 +67,42 @@ test('Grid restores rows after clearing a filter that returned zero rows', async
   const restoredRowCount = await rows.count();
   expect(restoredRowCount).toBeGreaterThan(0);
 });
+
+test('Text filters are case-insensitive by default', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ag_mixed_case');
+
+  const agRoot = page.locator('.ag-root');
+  await expect(agRoot).toBeVisible();
+
+  // Wait for all 5 rows to load
+  const rows = agRoot.locator('.ag-center-cols-container .ag-row');
+  await expect(rows).toHaveCount(5);
+
+  // Open the filter popup on the Fruit column
+  const fruitHeader = agRoot.locator('.ag-header-cell').first();
+  await fruitHeader.locator('.ag-header-cell-filter-button').click();
+
+  const filterPopup = page.locator('.ag-filter');
+  await expect(filterPopup).toBeVisible();
+
+  // Select the "Equals" filter type
+  await filterPopup.locator('.ag-filter-select').click();
+  await page.getByRole('option', { name: 'Equals', exact: true }).click();
+
+  // Filter for "apple" and apply - should match "Apple", "apple", and "APPLE"
+  const filterInput = filterPopup.getByLabel('Filter Value');
+  await filterInput.fill('apple');
+  await filterPopup.getByRole('button', { name: 'Apply' }).click();
+  await expect(rows).toHaveCount(3, { timeout: 5000 });
+
+  // Change to a "Starts with" filter - should match "Banana" and "banana"
+  await fruitHeader.locator('.ag-header-cell-filter-button').click();
+  await expect(filterPopup).toBeVisible();
+  // Once a filter is applied, AG Grid shows an extra condition row, so target the first one
+  await filterPopup.locator('.ag-filter-select').first().click();
+  await page.getByRole('option', { name: 'Begins with', exact: true }).click();
+  await filterInput.first().fill('ban');
+  await filterPopup.getByRole('button', { name: 'Apply' }).click();
+  await expect(rows).toHaveCount(2, { timeout: 5000 });
+});
