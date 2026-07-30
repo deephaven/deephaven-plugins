@@ -10,7 +10,7 @@ When all components using a shared store unmount, the state resets to the initia
 
 ### Basic example
 
-```python
+```python order=controls,display
 from deephaven import ui
 
 # Create the shared state at module level
@@ -78,12 +78,12 @@ When an updater function is passed, it is resolved once using the current store 
 
 A common use case is sharing filter criteria across multiple views:
 
-```python
+```python order=slider,filtered,_t
 from deephaven import ui, empty_table
 
 use_filter_value = ui.create_global_state(50)
 
-t = empty_table(1000).update(["x = i", "y = Math.sin(i / 10.0) * 100"])
+_t = empty_table(1000).update(["x = i", "y = Math.sin(i / 10.0) * 100"])
 
 
 @ui.component
@@ -101,7 +101,7 @@ def ui_filter_slider():
 @ui.component
 def ui_filtered_table():
     threshold, _ = use_filter_value()
-    filtered = ui.use_memo(lambda: t.where(f"y > {threshold}"), [threshold])
+    filtered = ui.use_memo(lambda: _t.where(f"y > {threshold}"), [threshold])
     return filtered
 
 
@@ -113,7 +113,7 @@ filtered = ui_filtered_table()
 
 You can wrap the hook returned by `create_global_state` to build a custom hook with prepackaged behavior:
 
-```python
+```python order=item_input,item_list
 from deephaven import ui
 
 _use_items = ui.create_global_state([])

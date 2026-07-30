@@ -10,7 +10,7 @@ When all of a user's components using a shared store unmount, that user's state 
 
 ### Basic example
 
-```python
+```python order=name_input,greeting
 from deephaven import ui
 
 # Create user-scoped shared state at module level
@@ -50,7 +50,7 @@ On **Deephaven Community** (where `deephaven_enterprise` is not installed), all 
 
 ### Per-user selection tracking
 
-```python
+```python order=item_list,summary
 from deephaven import ui
 
 use_selected_items = ui.create_user_state([])
@@ -88,7 +88,7 @@ summary = ui_selection_summary()
 
 You can wrap the hook returned by `create_user_state` to build a custom hook with prepackaged behavior:
 
-```python
+```python order=message_input,message_list
 from deephaven import ui
 
 _use_messages = ui.create_user_state([])
