@@ -43,11 +43,16 @@ export function AgGridWidget(
     [theme, themeParams]
   );
 
-  const table = useWidgetFetch(dh, fetch);
+  const widgetResult = useWidgetFetch(dh, fetch);
 
-  return table != null ? (
+  return widgetResult != null ? (
     <div className="ui-table-container widget-container">
-      <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
+      <AgGridView
+        table={widgetResult.table}
+        options={widgetResult.options}
+        settings={settings}
+        agGridProps={agGridProps}
+      />
     </div>
   ) : (
     <LoadingOverlay />

@@ -300,4 +300,64 @@ describe('getColumnDefs', () => {
       expect(columnDefs[2].headerName).toBe('Foo_Bar');
     });
   });
+
+  describe('column def overrides', () => {
+    it('merges overrides by field name', () => {
+      const table = createMockTable({
+        columns: [
+          createMockColumn({ name: 'col1' }),
+          createMockColumn({ name: 'col2' }),
+        ],
+      });
+      const columnDefs = getColumnDefs(table, {
+        col1: { filterParams: { caseSensitive: true } },
+      });
+      expect(columnDefs[0].field).toBe('col1');
+      expect(columnDefs[0].headerName).toBe('col1');
+      expect(columnDefs[0].filterParams).toEqual({ caseSensitive: true });
+      expect(columnDefs[1].filterParams).toBeUndefined();
+    });
+
+    it('ignores overrides for unknown fields', () => {
+      const table = createMockTable({
+        columns: [createMockColumn({ name: 'col1' })],
+      });
+      const columnDefs = getColumnDefs(table, {
+        unknownCol: { filterParams: { caseSensitive: true } },
+      });
+      expect(columnDefs).toHaveLength(1);
+      expect(columnDefs[0].filterParams).toBeUndefined();
+    });
+
+    it('merges overrides for tree table columns', () => {
+      const treeTable = createMockTreeTable({
+        columns: [
+          createMockColumn({ name: 'col1' }),
+          createMockColumn({ name: 'col2' }),
+        ],
+        groupedColumns: [createMockColumn({ name: 'col1' })],
+      });
+      const columnDefs = getColumnDefs(treeTable, {
+        col1: { headerName: 'Custom' },
+      });
+      expect(columnDefs[0].headerName).toBe('Custom');
+      expect(columnDefs[0].rowGroup).toBe(true);
+    });
+
+    it('merges overrides for pivot table columns', () => {
+      const pivotTable = createMockPivotTable({
+        rowSources: [createMockPivotSource({ name: 'row1' })],
+        columnSources: [createMockPivotSource({ name: 'col1' })],
+        valueSources: [createMockPivotSource({ name: 'value1' })],
+      });
+      const columnDefs = getColumnDefs(pivotTable, {
+        row1: { headerName: 'Row One' },
+        value1: { headerName: 'Value One' },
+      });
+      expect(columnDefs[0].headerName).toBe('Row One');
+      expect(columnDefs[0].rowGroup).toBe(true);
+      expect(columnDefs[1].headerName).toBeUndefined();
+      expect(columnDefs[2].headerName).toBe('Value One');
+    });
+  });
 });

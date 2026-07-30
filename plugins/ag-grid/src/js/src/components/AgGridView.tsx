@@ -26,11 +26,14 @@ import {
   type TreeNode,
 } from '../utils';
 import { DeephavenViewportDatasource } from '../datasources';
-import { type AgGridTableType } from '../types';
+import { type AgGridTableType, type AgGridWidgetOptions } from '../types';
 
 export type AgGridViewProps = {
   /** Table to be displayed */
   table: AgGridTableType;
+
+  /** Options provided by the server, such as column definition overrides */
+  options?: AgGridWidgetOptions;
 
   /** Settings controlling the formatting of the data */
   settings?: Settings;
@@ -47,6 +50,7 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
  */
 export function AgGridView({
   table,
+  options,
   settings,
   agGridProps,
 }: AgGridViewProps): JSX.Element | null {
@@ -61,7 +65,10 @@ export function AgGridView({
   log.debug('AgGridView rendering', table);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(() => getColumnDefs(table), [table]);
+  const colDefs: ColDef[] = useMemo(
+    () => getColumnDefs(table, options?.columnDefs),
+    [table, options]
+  );
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
