@@ -157,7 +157,14 @@ export function getColumnDefs(
   const applyOverride = (colDef: ColDef): ColDef => {
     const override =
       colDef.field != null ? columnDefOverrides[colDef.field] : undefined;
-    return override != null ? { ...colDef, ...override } : colDef;
+    return override != null
+      ? {
+          ...colDef,
+          ...override,
+          field: colDef.field,
+          colId: colDef.colId,
+        }
+      : colDef;
   };
 
   if (isTable(table) || isTreeTable(table)) {
