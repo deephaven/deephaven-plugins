@@ -620,15 +620,25 @@ _big_start = to_j_instant("2014-01-01T00:00:00 ET")
 # and invites GC pauses that can drop in-flight widget streams.
 # 1M rows is still 1000x the JS DOWNSAMPLE_THRESHOLD while keeping the
 # per-scan memory footprint a tenth of the previous 10M-row fixture.
-big_table = empty_table(1_000_000).update_view(
+# Row count is sized to exercise the reduction paths, not to stress the engine.
+# Downsample engages above 1,000 rows and auto-bin above 500 (2 x TARGET_BINS),
+# so 25k rows crosses both with ~100 rows per bin — while a 1M-row fixture made
+# every zoom/pan round trip slow enough that e2e tests measuring the *result*
+# of a swap were really measuring engine scan time, and flaked accordingly.
+#
+# The 10-year span is deliberately unchanged: bin widths derive from the visible
+# time range and the target bin count, never from row count, so every bin-width
+# and scoping assertion in the suite is unaffected by this reduction. The ii
+# coefficients scale with the row count (40x here, as they did for the earlier
+# 10M -> 1M reduction) to keep the waveform identical as a function of *time*,
+# so rendered charts are unchanged too.
+_BIG_N = 25_000
+big_table = empty_table(_BIG_N).update_view(
     [
-        # Spread 1M rows evenly over 10 years (~31.5s apart)
-        "Timestamp = _big_start + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 1_000_000))",
+        # Spread the rows evenly over 10 years
+        "Timestamp = _big_start + (long)(ii * (10L * 365 * 24 * 3600 * 1_000_000_000L / 25_000))",
         # Trending sine wave: base 100, amplitude 50, slow upward drift.
-        # Factors are 10x the old 10M-row fixture's so the waveform as a
-        # function of *time* (and therefore every rendered chart) is
-        # unchanged by the row-count reduction.
-        "Price = 100 + Math.sin(ii * 0.001) * 50 + (ii * 0.00005)",
+        "Price = 100 + Math.sin(ii * 0.04) * 50 + (ii * 0.002)",
     ]
 )
 
@@ -674,6 +684,7 @@ _ticking_table = (
     .view(["Timestamp", "Price"])
 )
 tvl_ticking_line = tvl.line(_ticking_table, timestamp="Timestamp", value="Price")
+
 
 # =============================================================================
 # Auto-bin fixtures — server-side time-bucket aggregation

@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openPanel, gotoPage } from './utils';
+import { openPanel, gotoPage, waitForTvlSettled } from './utils';
+
+// Never tear the page down while a chart swap's Barrage snapshot is still
+// propagating — the server logs "Stream was terminated by error" and that
+// noise lands in other sessions' console history (and their screenshots).
+test.afterEach(async ({ page }) => {
+  await waitForTvlSettled(page);
+});
 
 // --------------------------------------------------------------------------
 // Press-event spec. Uses an inversion-oracle: we independently compute the

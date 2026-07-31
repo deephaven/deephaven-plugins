@@ -193,6 +193,7 @@ jest.mock('../TradingViewChartModel', () => ({
       getAutoBinBodyRange: jest.fn(() => null),
       getTable: jest.fn(() => ({ size: 1000 })),
       isReady: jest.fn(() => true),
+      isQuiescent: jest.fn(() => true),
       getTimeZone: jest.fn(() => 'UTC'),
       getEnabledHandlers: jest.fn(() => []),
       performResample: jest.fn(),

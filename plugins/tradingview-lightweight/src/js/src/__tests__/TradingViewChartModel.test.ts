@@ -130,6 +130,7 @@ function makeMockDh() {
 function makeMockWidget() {
   const listeners = new Map<string, Set<Listener>>();
   return {
+    close: jest.fn(),
     sendMessage: jest.fn(),
     addEventListener: jest.fn((event: string, l: Listener) => {
       if (!listeners.has(event)) listeners.set(event, new Set());
@@ -146,6 +147,22 @@ function makeMockWidget() {
       if (ls) ls.forEach(l => l({ detail }));
     },
   };
+}
+
+/**
+ * Fire a mock subscription's EVENT_UPDATED listeners with a minimal update,
+ * marking the subscription's initial snapshot as delivered (the model only
+ * releases a subscription once its snapshot has arrived — see
+ * retireSubscription).
+ */
+function deliverUpdate(sub: { addEventListener: jest.Mock }): void {
+  [...sub.addEventListener.mock.calls]
+    .filter(([event]) => event === 'updated')
+    .forEach(([, listener]) =>
+      (listener as Listener)({
+        detail: { columns: [], added: null, removed: null, modified: null },
+      })
+    );
 }
 
 function makePartitionFigure(): TvlFigureData {
@@ -605,6 +622,10 @@ describe('TradingViewChartModel timezone changes', () => {
     // init subscribed exactly once
     expect(table.subscribe).toHaveBeenCalledTimes(1);
     const firstSub = table.subscribe.mock.results[0].value;
+    // Deliver the initial snapshot so the old subscription can be released
+    // immediately (an undelivered one is retired lazily — see the
+    // deferred-retirement tests).
+    deliverUpdate(firstSub);
 
     model.setTimeZone('America/New_York');
 
@@ -633,5 +654,100 @@ describe('TradingViewChartModel timezone changes', () => {
     model.setTimeZone('Europe/London');
 
     expect(model.getTimeZone()).toBe('Europe/London');
+  });
+});
+
+describe('TradingViewChartModel deferred retirement', () => {
+  it('defers releasing a subscription until its first update arrives', async () => {
+    const { model, table } = await initModelWithAutoBin(false);
+    const firstSub = table.subscribe.mock.results[0].value;
+
+    // Retire before any data arrived: cancelling now would race the
+    // server's in-flight snapshot, so the release must wait.
+    model.setTimeZone('America/New_York');
+    expect(firstSub.close).not.toHaveBeenCalled();
+
+    // The snapshot lands — the retired subscription is released.
+    deliverUpdate(firstSub);
+    expect(firstSub.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('force-releases a deferred retirement after the timeout', async () => {
+    jest.useFakeTimers();
+    try {
+      const { model, table } = await initModelWithAutoBin(false);
+      const firstSub = table.subscribe.mock.results[0].value;
+
+      model.setTimeZone('America/New_York');
+      expect(firstSub.close).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(60000);
+      expect(firstSub.close).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('close() defers the widget release until retirements drain', async () => {
+    const { model, widget, table } = await initModelWithAutoBin(false);
+    const firstSub = table.subscribe.mock.results[0].value;
+
+    model.close();
+    // The subscription never delivered: releasing it (or the widget, which
+    // releases every export it owns) would cancel the in-flight snapshot.
+    expect(firstSub.close).not.toHaveBeenCalled();
+    expect(widget.close).not.toHaveBeenCalled();
+
+    deliverUpdate(firstSub);
+    expect(firstSub.close).toHaveBeenCalledTimes(1);
+    expect(widget.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('close() releases the widget immediately when nothing is draining', async () => {
+    const { model, widget, table } = await initModelWithAutoBin(false);
+    deliverUpdate(table.subscribe.mock.results[0].value);
+
+    model.close();
+
+    expect(widget.close).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('TradingViewChartModel quiescence', () => {
+  it('reports quiescent only once every active subscription delivered', async () => {
+    const { model, table } = await initModelWithAutoBin(false);
+
+    // Active subscription whose initial snapshot has not arrived.
+    expect(model.isQuiescent()).toBe(false);
+
+    deliverUpdate(table.subscribe.mock.results[0].value);
+    expect(model.isQuiescent()).toBe(true);
+  });
+
+  it('tracks draining retirements and emits RETIREMENT_DRAINED on settle', async () => {
+    jest.useFakeTimers();
+    try {
+      const { model, table } = await initModelWithAutoBin(false);
+      const events: string[] = [];
+      model.subscribe(e => events.push(e.type));
+
+      // Retire the undelivered subscription: it drains, so the chart is
+      // not quiescent even though the replacement subscription is
+      // installed. (Settle via the backstop timer — the mock subscription
+      // replays every registered listener on delivery, which would also
+      // mark the replacement slot delivered and mask the next assertion.)
+      model.setTimeZone('America/New_York');
+      expect(model.isQuiescent()).toBe(false);
+
+      jest.advanceTimersByTime(60000);
+      expect(events).toContain('RETIREMENT_DRAINED');
+      // The drain settled, but the replacement subscription has no data.
+      expect(model.isQuiescent()).toBe(false);
+
+      deliverUpdate(table.subscribe.mock.results[1].value);
+      expect(model.isQuiescent()).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage, waitForPlotlyData, SELECTORS } from './utils';
+import {
+  openPanel,
+  gotoPage,
+  waitForPlotlyData,
+  waitForPlotlyIndicator,
+  SELECTORS,
+} from './utils';
 
 test('Express loads', async ({ page }) => {
   await gotoPage(page, '');
@@ -25,12 +31,14 @@ test('Plotly loads', async ({ page }) => {
 test('Indicator loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'express_indicator', '.js-plotly-plot');
+  await waitForPlotlyIndicator(page);
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
 test('Indicator grid loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'express_indicator_by', '.js-plotly-plot');
+  await waitForPlotlyIndicator(page);
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 

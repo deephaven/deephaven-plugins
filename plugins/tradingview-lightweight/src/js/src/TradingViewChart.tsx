@@ -241,13 +241,24 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     if (!model) return '{}';
     let tableSize = 0;
     let colDataRows = 0;
-    // Sample any resampled table for size/colDataRows; fall back to all tables
-    // if neither downsample nor auto-bin is active.
+    // Sample any resampled table for size/colDataRows; fall back to the
+    // figure's own series tables when neither downsample nor auto-bin is
+    // active. Without the fallback a plain (small / rolling-window) chart
+    // reports 0 rows and 0 size no matter how much data it is rendering,
+    // which reads as "never loaded" to anything polling this state.
     const sampleTableIds: number[] = [];
     model.getDownsampledTableIds().forEach(tid => sampleTableIds.push(tid));
     Object.keys(model.getAutoBinMeta()).forEach(refStr =>
       sampleTableIds.push(Number(refStr))
     );
+    if (sampleTableIds.length === 0) {
+      model.getSeriesConfigs().forEach(s => {
+        const tid = s.dataMapping?.tableId;
+        if (tid != null && !sampleTableIds.includes(tid)) {
+          sampleTableIds.push(tid);
+        }
+      });
+    }
     sampleTableIds.forEach(tid => {
       const t = model.getTable(tid);
       if (t) tableSize = t.size;
@@ -303,6 +314,15 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       aggType,
       rangeNs,
       resampleSeq: model.resampleSeq,
+      dataUpdateSeq: model.dataUpdateSeq,
+      // "Safe to tear the page down": nothing pending or queued, no
+      // retirement draining, all active subscriptions delivered. Tests wait
+      // on this before ending so the server never has a snapshot in flight
+      // for a page that is about to vanish (see waitForTvlSettled in
+      // tests/utils.ts). NOTE: a wheel/pan gesture only schedules its
+      // resample after a 200ms debounce, so consumers must require the flag
+      // to hold, not just appear once.
+      quiescent: model.isQuiescent(),
     });
   }
 
@@ -850,6 +870,17 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
             }
             // Refresh data-tvl-state so consumers (Playwright) see the
             // up-to-date pendingDs without waiting for a DATA_UPDATED.
+            if (containerRef.current) {
+              containerRef.current.setAttribute(
+                'data-tvl-state',
+                buildStateJson(model, renderer)
+              );
+            }
+            break;
+          case 'RETIREMENT_DRAINED':
+            // A deferred retirement finished; on a static chart no
+            // DATA_UPDATED follows, so refresh data-tvl-state here or the
+            // `quiescent` flag would go stale exactly when tests poll it.
             if (containerRef.current) {
               containerRef.current.setAttribute(
                 'data-tvl-state',

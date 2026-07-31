@@ -1,11 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
-import { openPanel, gotoPage } from './utils';
+import { openPanel, gotoPage, waitForTvlSettled } from './utils';
 
 // --------------------------------------------------------------------------
 // Auto-bin spec: verifies that server-side time-bin aggregation correctly
 // scopes to the visible window, picks chunky bin widths, and rebuilds when
 // the user pans past the cached buffer.
 // --------------------------------------------------------------------------
+
+// Never tear the page down while a chart swap's Barrage snapshot is still
+// propagating — the server logs "Stream was terminated by error" and that
+// noise lands in other sessions' console history (and their screenshots).
+test.afterEach(async ({ page }) => {
+  await waitForTvlSettled(page);
+});
 
 interface AutoBinState {
   jsDs: boolean;

@@ -195,6 +195,16 @@ export type ModelEvent =
     }
   | { type: 'ERROR'; message: string }
   | { type: 'DOWNSAMPLE_PENDING'; pending: boolean }
+  | {
+      /**
+       * A deferred retirement finished draining (its subscription's initial
+       * snapshot arrived, or the backstop timeout fired, and it has been
+       * released). Carries no payload — consumers re-read
+       * model.isQuiescent(); the view refreshes data-tvl-state so tests can
+       * wait for full settledness before tearing the page down.
+       */
+      type: 'RETIREMENT_DRAINED';
+    }
   | { type: 'DISCONNECTED'; connected: boolean };
 
 export type ModelEventListener = (event: ModelEvent) => void;

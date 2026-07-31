@@ -148,6 +148,19 @@ class TradingViewChartModel {
    */
   resampleSeq = 0;
 
+  /**
+   * Monotonic counter incremented on every subscription update delivered to
+   * the chart, whatever the shape of the delta (added / modified / removed).
+   *
+   * This is the signal for "data is still flowing". Row counts are not: on a
+   * downsampled or auto-binned chart the rendered row count is capped by the
+   * target bin count, so it saturates and can even shrink as bins merge, and
+   * the rendered time extent only advances when a bin boundary is crossed
+   * (~100 source ticks on the ticking fixtures). Ticks that merely move a
+   * bin's extremes arrive as modifies, which move neither.
+   */
+  dataUpdateSeq = 0;
+
   /** If a new auto-bin zoom was requested while pending, store it here. */
   private pendingAutoBinParams: {
     range: [number, number] | null;
@@ -163,6 +176,40 @@ class TradingViewChartModel {
    * bulk data swap from a normal tick update.
    */
   private freshDownsampleTables: Set<number> = new Set();
+
+  /**
+   * Table IDs whose current subscription has delivered at least one update,
+   * i.e. its initial Barrage snapshot has arrived. Cancelling a subscription
+   * (or releasing its table's export) before that point races the server's
+   * snapshot delivery: the stream gets errored, and the queued
+   * BarrageMessageProducer.propagateSnapshotForSubscription then logs
+   * "IllegalStateException: Stream was terminated by error". See
+   * retireSubscription.
+   */
+  private deliveredTableIds: Set<number> = new Set();
+
+  /**
+   * Settle callbacks for retirements that are waiting on their
+   * subscription's initial snapshot before releasing. Each entry removes
+   * itself when it settles (first update or timeout).
+   */
+  private drainingRetirements: Set<() => void> = new Set();
+
+  /**
+   * Set by close(): release the widget once the last draining retirement
+   * settles (a widget close releases every export it owns at once, which
+   * must not race in-flight snapshots either).
+   */
+  private widgetCloseWhenDrained = false;
+
+  /**
+   * Upper bound on how long a retirement may wait for its snapshot. This is
+   * a stuck-subscription backstop, not an expected path: under load a fresh
+   * aggregation's snapshot can legitimately take many seconds, and releasing
+   * before it lands recreates the cancel-mid-snapshot race this machinery
+   * exists to avoid. Keep it generous.
+   */
+  private static readonly RETIRE_TIMEOUT_MS = 60000;
 
   /** Debug callback for overlay. */
   private debugFn: ((msg: string) => void) | null = null;
@@ -257,7 +304,8 @@ class TradingViewChartModel {
     tableIds.forEach(tableId => {
       const table = this.tables.get(tableId);
       if (!table) return;
-      this.cleanupSubscriptions(tableId);
+      // Same table is re-subscribed below, so no table release here.
+      this.retireSubscription(tableId);
       this.chartDataMap.delete(tableId);
       this.tableDataMap.delete(tableId);
       this.freshDownsampleTables.add(tableId);
@@ -340,6 +388,7 @@ class TradingViewChartModel {
     });
 
     // Fetch all referenced tables (skip PartitionedTable refs)
+    const fetchedRefs = new Set<number>();
     const tablePromises: Promise<void>[] = [];
     message.new_references.forEach(refIdx => {
       if (partitionRefIndices.has(refIdx)) return; // handled below
@@ -351,6 +400,7 @@ class TradingViewChartModel {
         return;
       }
       if (refIdx < exportedObjects.length) {
+        fetchedRefs.add(refIdx);
         const exported = exportedObjects[refIdx];
         tablePromises.push(
           exported.fetch().then((table: unknown) => {
@@ -359,6 +409,21 @@ class TradingViewChartModel {
         );
       }
     });
+
+    // PartitionedTable refs are fetched by setupPartitionWatcher below.
+    partitionRefIndices.forEach(ref => {
+      if (ref < exportedObjects.length) fetchedRefs.add(ref);
+    });
+
+    // Close exports we never fetch (e.g. the raw source behind a large
+    // partition template): unfetched exports must be closed, per the
+    // WidgetExportedObject contract, or they pin server-side resources
+    // for the life of the widget.
+    TradingViewChartModel.closeExportedObjects(
+      exportedObjects,
+      ...Array.from(fetchedRefs)
+    );
+
     await Promise.all(tablePromises);
 
     // Set nextTableId past the highest used ref index to avoid collisions
@@ -433,6 +498,33 @@ class TradingViewChartModel {
   /** Whether any resampling path is active (downsample or auto-bin). */
   isResampling(): boolean {
     return this.isDownsampled() || this.isAutoBinned();
+  }
+
+  /**
+   * True when nothing is in flight server-side on this chart's behalf: no
+   * resample pending or queued, no retirement draining, and every active
+   * subscription has delivered its initial snapshot.
+   *
+   * This is the "safe to tear the page down" signal. A client that vanishes
+   * while a snapshot is propagating makes the server race its own cleanup
+   * and log "Stream was terminated by error" — noise that lands in the
+   * console history and can bleed into unrelated tests' screenshots. Tests
+   * should wait for quiescence (via the `quiescent` field of the
+   * data-tvl-state attribute) before ending.
+   */
+  isQuiescent(): boolean {
+    if (
+      this.pendingDownsample ||
+      this.pendingAutoBin ||
+      this.pendingZoomParams != null ||
+      this.pendingAutoBinParams != null ||
+      this.drainingRetirements.size > 0
+    ) {
+      return false;
+    }
+    return Array.from(this.tableSubscriptionMap.keys()).every(tableId =>
+      this.deliveredTableIds.has(tableId)
+    );
   }
 
   /** Get the auto-bin metadata from Python. */
@@ -521,21 +613,16 @@ class TradingViewChartModel {
 
     this.dbg(`downsampleTable tid=${tableId} result: ${newTable.size} rows`);
 
-    // Tear down old subscription FIRST — this prevents the old
-    // subscription from firing ticks that consume the reset flag.
-    this.cleanupSubscriptions(tableId);
+    // Retire the old subscription FIRST — this prevents the old
+    // subscription from firing ticks that consume the reset flag. The old
+    // downsampled table is a client-created export (runChartDownsample), so
+    // the client must close it — but only once its snapshot has landed;
+    // retireSubscription defers the release when necessary.
+    const oldDs = this.downsampledTableMap.get(tableId);
+    this.downsampledTableMap.delete(tableId);
+    this.retireSubscription(tableId, oldDs);
     this.chartDataMap.delete(tableId);
     this.tableDataMap.delete(tableId);
-
-    // Close old downsampled table (not the original!)
-    const oldDs = this.downsampledTableMap.get(tableId);
-    if (oldDs) {
-      try {
-        oldDs.close();
-      } catch {
-        // May already be closed
-      }
-    }
 
     // Install new downsampled table
     this.downsampledTableMap.set(tableId, newTable);
@@ -585,7 +672,9 @@ class TradingViewChartModel {
             // On failure, fall back to original table
             const orig = this.originalTableMap.get(tableId);
             if (orig) {
-              this.cleanupSubscriptions(tableId);
+              const oldDs = this.downsampledTableMap.get(tableId);
+              this.downsampledTableMap.delete(tableId);
+              this.retireSubscription(tableId, oldDs);
               this.chartDataMap.delete(tableId);
               this.tableDataMap.delete(tableId);
               this.tables.set(tableId, orig);
@@ -723,6 +812,7 @@ class TradingViewChartModel {
       this.revision = msg.revision;
 
       if (msg.noop === true || msg.new_references.length === 0) {
+        TradingViewChartModel.closeExportedObjects(exportedObjects);
         this.setPendingAutoBin(false);
         this.drainPendingAutoBin();
         return;
@@ -736,10 +826,17 @@ class TradingViewChartModel {
           tableRef,
           exportedObjects.length
         );
+        TradingViewChartModel.closeExportedObjects(exportedObjects);
         this.setPendingAutoBin(false);
         this.drainPendingAutoBin();
         return;
       }
+
+      // The server re-exports every table with each AUTOBIN_FIGURE, but only
+      // the swapped aggregation is fetched. Unfetched exports must be closed
+      // (per WidgetExportedObject docs) or each zoom leaks live exports
+      // server-side for the rest of the widget's life.
+      TradingViewChartModel.closeExportedObjects(exportedObjects, tableRef);
 
       const newTable = (await exportedObjects[
         tableRef
@@ -753,19 +850,17 @@ class TradingViewChartModel {
         return;
       }
 
-      // Tear down old subscription before swapping.
-      this.cleanupSubscriptions(tableRef);
+      // Retire the previous aggregation: its subscription is released once
+      // its in-flight snapshot (if any) lands, and its export with it. A
+      // superseded aggregation has no other owner, so releasing it promptly
+      // keeps zoom churn from pinning dead aggregations server-side.
+      const oldTable = this.tables.get(tableRef);
+      this.retireSubscription(
+        tableRef,
+        oldTable !== newTable ? oldTable : undefined
+      );
       this.chartDataMap.delete(tableRef);
       this.tableDataMap.delete(tableRef);
-
-      const oldTable = this.tables.get(tableRef);
-      if (oldTable && oldTable !== newTable) {
-        try {
-          oldTable.close();
-        } catch {
-          // ignore
-        }
-      }
 
       this.tables.set(tableRef, newTable);
       this.freshDownsampleTables.add(tableRef);
@@ -1033,16 +1128,120 @@ class TradingViewChartModel {
   /**
    * Clean up subscriptions and event listeners for a specific table.
    */
-  private cleanupSubscriptions(tableId: number): void {
+  /**
+   * Retire a table slot's subscription, and optionally a client-owned table
+   * export, without cancelling a Barrage snapshot that is still in flight.
+   *
+   * The server assembles and propagates an initial snapshot for every new
+   * subscription. If the client cancels the subscription (sub.close()) or
+   * releases the table's export (table.close()) before that snapshot has
+   * been delivered, the server errors the stream and the queued snapshot
+   * delivery throws "IllegalStateException: Stream was terminated by error"
+   * (BarrageMessageProducer.propagateSnapshotForSubscription). Under zoom
+   * churn, swap N+1 regularly tears down swap N's table while N's snapshot
+   * is in flight, so this happens with a live, well-behaved client.
+   *
+   * The subscription is detached from the model immediately (its listeners
+   * are removed, so the replacement slot owner takes over cleanly), but the
+   * actual release is deferred until the subscription's first update
+   * arrives — proof the snapshot has been delivered — or RETIRE_TIMEOUT_MS
+   * passes.
+   *
+   * @param tableId The table slot being replaced or torn down
+   * @param tableToClose A client-owned table to release along with the
+   *   subscription: runChartDownsample results and superseded auto-bin
+   *   aggregations (both are exports the widget close does not cover, or
+   *   that would otherwise accumulate server-side for the widget's life).
+   *   Leave undefined for tables that should outlive the subscription.
+   */
+  private retireSubscription(
+    tableId: number,
+    tableToClose?: DhType.Table
+  ): void {
     const cleanupSet = this.subscriptionCleanupMap.get(tableId);
     if (cleanupSet) {
       cleanupSet.forEach(cleanup => cleanup());
       this.subscriptionCleanupMap.delete(tableId);
     }
     const sub = this.tableSubscriptionMap.get(tableId);
-    if (sub) {
-      sub.close();
-      this.tableSubscriptionMap.delete(tableId);
+    this.tableSubscriptionMap.delete(tableId);
+    const delivered = this.deliveredTableIds.has(tableId);
+    this.deliveredTableIds.delete(tableId);
+
+    const release = (): void => {
+      try {
+        sub?.close();
+      } catch {
+        // ignore
+      }
+      try {
+        tableToClose?.close();
+      } catch {
+        // ignore
+      }
+    };
+
+    if (sub == null || delivered) {
+      release();
+      return;
+    }
+
+    // Initial snapshot still in flight: release on first update or timeout.
+    let removeListener: (() => void) | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const settle = (): void => {
+      if (!this.drainingRetirements.delete(settle)) return;
+      removeListener?.();
+      if (timer != null) clearTimeout(timer);
+      release();
+      this.maybeCloseWidget();
+      // Quiescence may have just been reached with no DATA_UPDATED to
+      // follow (static tables); poke listeners so the view refreshes
+      // data-tvl-state and tests polling isQuiescent() see it.
+      this.emit({ type: 'RETIREMENT_DRAINED' });
+    };
+    this.drainingRetirements.add(settle);
+    removeListener = sub.addEventListener(this.dh.Table.EVENT_UPDATED, settle);
+    timer = setTimeout(settle, TradingViewChartModel.RETIRE_TIMEOUT_MS);
+  }
+
+  /**
+   * Close widget-message exported objects that will not be fetched. Per the
+   * WidgetExportedObject contract, an export that is never fetched must be
+   * closed, or its server-side resources live until the widget closes.
+   * Closing an unfetched export is always safe — nothing is subscribed to it.
+   *
+   * @param exportedObjects The message's exported objects
+   * @param keepIndexes Indexes that will be fetched and must not be closed
+   */
+  private static closeExportedObjects(
+    exportedObjects: DhType.WidgetExportedObject[],
+    ...keepIndexes: number[]
+  ): void {
+    exportedObjects.forEach((exported, i) => {
+      if (keepIndexes.includes(i)) return;
+      try {
+        exported.close();
+      } catch {
+        // ignore
+      }
+    });
+  }
+
+  /**
+   * Release the widget if close() has run and no retirement is still
+   * draining. Closing the widget releases every export it owns in one
+   * server-side sweep, so it must wait for in-flight snapshots too.
+   */
+  private maybeCloseWidget(): void {
+    if (!this.widgetCloseWhenDrained || this.drainingRetirements.size > 0) {
+      return;
+    }
+    this.widgetCloseWhenDrained = false;
+    try {
+      this.widget.close();
+    } catch {
+      // ignore
     }
   }
 
@@ -1109,6 +1308,11 @@ class TradingViewChartModel {
     event: DhType.Event<DhType.SubscriptionTableData>,
     tableId: number
   ): void {
+    // First update == the subscription's initial snapshot has been
+    // delivered, so it is now safe to cancel/release (see retireSubscription).
+    this.deliveredTableIds.add(tableId);
+    this.dataUpdateSeq += 1;
+
     const chartData = this.chartDataMap.get(tableId);
     const tableData = this.tableDataMap.get(tableId);
 
@@ -1182,6 +1386,19 @@ class TradingViewChartModel {
         const msg = JSON.parse(dataStr);
         this.dbg(`widget msg: type=${msg.type}`);
 
+        if (msg.type === 'AUTOBIN_FIGURE') {
+          const exported = data.exportedObjects ?? [];
+          this.handleAutoBinFigure(msg as AutoBinFigureMessage, exported).catch(
+            err => log.error('handleAutoBinFigure failed', err)
+          );
+          return;
+        }
+
+        // Nothing is fetched from other message types, so release any
+        // exports they carry (unfetched exports must be closed, per the
+        // WidgetExportedObject contract).
+        TradingViewChartModel.closeExportedObjects(data.exportedObjects ?? []);
+
         if (msg.type === 'NEW_FIGURE' && msg.revision > this.revision) {
           this.revision = msg.revision;
           this.figureData = msg.figure;
@@ -1191,11 +1408,6 @@ class TradingViewChartModel {
             figure: msg.figure,
             tables: Array.from(this.tables.values()),
           });
-        } else if (msg.type === 'AUTOBIN_FIGURE') {
-          const exported = data.exportedObjects ?? [];
-          this.handleAutoBinFigure(msg as AutoBinFigureMessage, exported).catch(
-            err => log.error('handleAutoBinFigure failed', err)
-          );
         }
       } catch (e) {
         log.error('Error processing widget message', e);
@@ -1306,51 +1518,20 @@ class TradingViewChartModel {
   close(): void {
     this.closed = true;
 
-    // Clean up subscription event listeners
-    this.subscriptionCleanupMap.forEach(cleanupSet => {
-      cleanupSet.forEach(cleanup => {
-        cleanup();
-      });
+    // Retire every active subscription. Client-created downsample tables are
+    // released with their subscription; every other table is released by the
+    // widget close below. Retirement defers any release whose initial
+    // snapshot is still in flight (see retireSubscription), and the widget
+    // close waits for those retirements to drain.
+    Array.from(this.tableSubscriptionMap.keys()).forEach(tableId => {
+      this.retireSubscription(tableId, this.downsampledTableMap.get(tableId));
     });
     this.subscriptionCleanupMap.clear();
-
-    // Clean up subscriptions
-    this.tableSubscriptionMap.forEach(sub => {
-      sub.close();
-    });
     this.tableSubscriptionMap.clear();
+    this.deliveredTableIds.clear();
 
-    // Close downsampled tables
-    this.downsampledTableMap.forEach(table => {
-      try {
-        table.close();
-      } catch {
-        // ignore
-      }
-    });
     this.downsampledTableMap.clear();
-
-    // Close original tables
-    this.originalTableMap.forEach(table => {
-      try {
-        table.close();
-      } catch {
-        // ignore
-      }
-    });
     this.originalTableMap.clear();
-
-    // Close any remaining tables (non-downsampled)
-    this.tables.forEach((table, tableId) => {
-      // Don't double-close tables that were in original/downsampled maps
-      if (!this.jsDownsampledTableIds.has(tableId)) {
-        try {
-          table.close();
-        } catch {
-          // ignore
-        }
-      }
-    });
     this.tables.clear();
 
     // Clean up widget listener
@@ -1383,6 +1564,15 @@ class TradingViewChartModel {
     this.freshDownsampleTables.clear();
     this.jsDownsampledTableIds.clear();
     this.autoBinnedTableIds.clear();
+
+    // Release the widget, which releases all of its exported tables. tvl never
+    // did this, so every reconnect (connectModel re-fetches) abandoned the
+    // previous widget and its exports. plotly-express closes the widget in
+    // close()/unsubscribe() and re-fetches on the next subscribe. Deferred
+    // until draining retirements settle so the mass export release can't
+    // cancel a snapshot that is still propagating.
+    this.widgetCloseWhenDrained = true;
+    this.maybeCloseWidget();
   }
 }
 
