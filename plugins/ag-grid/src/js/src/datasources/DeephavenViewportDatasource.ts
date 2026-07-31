@@ -365,11 +365,7 @@ export class DeephavenViewportDatasource implements IViewportDatasource {
     }
     log.debug('Applying filter', filterModel);
     this.table.applyFilter(
-      AgGridFilterUtils.parseFilterModel(
-        this.dh,
-        this.table,
-        this.gridApi.getFilterModel()
-      )
+      AgGridFilterUtils.getFilterFromGridApi(this.dh, this.table, this.gridApi)
     );
   }
 

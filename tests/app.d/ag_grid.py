@@ -32,3 +32,16 @@ foo_bar_table = new_table(
 )
 
 ag_foo_bar = AgGrid(foo_bar_table)
+
+mixed_case_table = new_table(
+    [
+        string_col("Fruit", ["Apple", "apple", "APPLE", "Banana", "banana"]),
+    ]
+)
+
+ag_mixed_case = AgGrid(mixed_case_table)
+
+ag_case_sensitive = AgGrid(
+    mixed_case_table,
+    column_defs={"Fruit": {"filterParams": {"caseSensitive": True}}},
+)
