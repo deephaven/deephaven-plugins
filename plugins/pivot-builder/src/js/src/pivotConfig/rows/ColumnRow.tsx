@@ -11,6 +11,8 @@ type ColumnRowProps = {
   /** Column card this row is currently rendered in (for dnd-kit data). */
   container: string;
   onDelete: () => void;
+  /** Column no longer exists on the live table — renders struck through. */
+  isStale?: boolean;
 };
 
 export function ColumnRow({
@@ -18,6 +20,7 @@ export function ColumnRow({
   name,
   container,
   onDelete,
+  isStale = false,
 }: ColumnRowProps): JSX.Element {
   const {
     attributes,
@@ -38,7 +41,7 @@ export function ColumnRow({
   });
   return (
     <div ref={setNodeRef} className="pivot-row" style={style}>
-      <RowLabel>{name}</RowLabel>
+      <RowLabel stale={isStale}>{name}</RowLabel>
       <RemoveButton onClick={onDelete} />
       <DragGrip
         activatorRef={setActivatorNodeRef}

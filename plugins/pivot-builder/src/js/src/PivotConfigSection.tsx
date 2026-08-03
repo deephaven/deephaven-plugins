@@ -200,6 +200,13 @@ export function PivotConfigSection({
     return availableColumns.filter(c => !hidden.has(c));
   }, [availableColumns, hiddenColumns, showHiddenColumns]);
 
+  // Live-table column names; a card row is flagged stale when its column is
+  // absent here.
+  const availableColumnsSet = useMemo(
+    () => new Set(availableColumns),
+    [availableColumns]
+  );
+
   // Only one popover (Add picker) may be open at a time across the cards.
   // Opening any Add picker or overflow menu dismisses the others.
   const closeAllPickers = useCallback(() => setPickerState(null), []);
@@ -750,6 +757,7 @@ export function PivotConfigSection({
                   id={id}
                   name={name}
                   container={ROLLUP_ROWS_DROPPABLE}
+                  isStale={!availableColumnsSet.has(name)}
                   onDelete={() =>
                     onRollupRowsChange(rollupRows.filter(n => n !== name))
                   }
@@ -811,6 +819,7 @@ export function PivotConfigSection({
                     id={id}
                     name={name}
                     container={PIVOT_COLUMNS_DROPPABLE}
+                    isStale={!availableColumnsSet.has(name)}
                     onDelete={() =>
                       onPivotColumnsChange(pivotColumns.filter(n => n !== name))
                     }
