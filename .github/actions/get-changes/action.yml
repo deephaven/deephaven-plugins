@@ -43,3 +43,9 @@ runs:
           python-remote-file-source:
             - plugins/python-remote-file-source/**
             - .github/workflows/test-*.yml
+          pivot-builder:
+            - plugins/pivot-builder/**
+            - .github/workflows/test-*.yml
+          table-middleware-example:
+            - plugins/table-middleware-example/**
+            - .github/workflows/test-*.yml
