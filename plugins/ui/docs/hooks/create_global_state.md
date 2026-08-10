@@ -2,6 +2,9 @@
 
 `create_global_state` is a factory function that creates a shared state hook. Unlike `use_state`, which creates state local to a single component, the state created by `create_global_state` is shared across all components that call the returned hook. When any component updates the shared state, all other components using the same hook will re-render with the new value.
 
+> [!CAUTION]
+> Global state is shared across **all users** connected to the same script session or Persistent Query. When one user updates the state, every other user's components re-render with the new value. Use `create_global_state` only when this is the intended behavior, such as for collaborative views or admin-controlled settings. For state that should be independent per user, use [`create_user_state`](create_user_state.md) instead.
+
 Call `create_global_state` at module level (outside of any component) to create a store. Then call the returned hook inside `@ui.component` functions to subscribe to the shared state.
 
 When all components using a shared store unmount, the state resets to the initial value.
