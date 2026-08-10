@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+# Sentinel to distinguish "not yet set"/"reset" from a legitimate stored value of None.
+_UNSET = object()
+
 
 class _SharedStore(Generic[T]):
     """
@@ -26,7 +29,7 @@ class _SharedStore(Generic[T]):
 
     def __init__(self, initial_value: T | Callable[[], T]):
         self._initial_value_or_callable = initial_value
-        self._value: T | None = value_or_call(initial_value).value
+        self._value: T | object = value_or_call(initial_value).value
         self._subscribers: set[Callable[[T], None]] = set()
         self._lock = threading.Lock()
 
@@ -37,10 +40,10 @@ class _SharedStore(Generic[T]):
         Returns:
             A tuple of (current_value, set_value) matching the `use_state` interface.
         """
-        # Resolve the current value; if None (reset after last unmount),
+        # Resolve the current value; if unset (reset after last unmount),
         # re-initialize from the original initial_value.
         with self._lock:
-            if self._value is None and len(self._subscribers) == 0:
+            if self._value is _UNSET and len(self._subscribers) == 0:
                 self._value = value_or_call(self._initial_value_or_callable).value
             init = cast(T, self._value)
 
@@ -71,7 +74,7 @@ class _SharedStore(Generic[T]):
                 with self._lock:
                     self._subscribers.discard(subscriber)
                     if len(self._subscribers) == 0:
-                        self._value = None
+                        self._value = _UNSET
 
             return cleanup
 
