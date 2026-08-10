@@ -13,14 +13,17 @@ const { SortableContext } = DndKitSortable;
 // jsdom has no ResizeObserver and deephaven-plugins' Jest setup doesn't mock it.
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
+    // eslint-disable-next-line class-methods-use-this
     observe(): void {
       // no-op
     }
 
+    // eslint-disable-next-line class-methods-use-this
     unobserve(): void {
       // no-op
     }
 
+    // eslint-disable-next-line class-methods-use-this
     disconnect(): void {
       // no-op
     }
@@ -43,6 +46,7 @@ function renderRow(overrides: Partial<AggregateSelectRowProps> = {}): void {
     <Provider theme={defaultTheme}>
       <DndContext>
         <SortableContext items={[props.id]}>
+          {/* eslint-disable-next-line react/jsx-props-no-spreading */}
           <AggregateSelectRow {...props} />
         </SortableContext>
       </DndContext>

@@ -17,6 +17,7 @@ function renderColumnRow(
           name="price"
           container="rollup-rows"
           onDelete={() => undefined}
+          // eslint-disable-next-line react/jsx-props-no-spreading
           {...props}
         />
       </SortableContext>
@@ -27,7 +28,9 @@ function renderColumnRow(
 describe('ColumnRow stale passthrough', () => {
   it('renders a normal (non-stale) label by default', () => {
     renderColumnRow({ name: 'price' });
-    expect(screen.getByText('price')).not.toHaveClass('pivot-column-name--stale');
+    expect(screen.getByText('price')).not.toHaveClass(
+      'pivot-column-name--stale'
+    );
   });
 
   it('renders a stale label when isStale is true', () => {
