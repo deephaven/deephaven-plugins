@@ -24,14 +24,25 @@ class _SharedStore(Generic[T]):
     Each subscriber (component) gets its own `use_state` setter, and when any
     subscriber calls `set_value`, the store broadcasts the new value to all subscribers.
 
-    When all subscribers disconnect (unmount), the store resets to its initial value.
+    When all subscribers disconnect (unmount), the store resets to its initial value
+    and notifies the optional `on_empty` callback so an owning registry can discard it.
     """
 
-    def __init__(self, initial_value: T | Callable[[], T]):
+    def __init__(
+        self,
+        initial_value: T | Callable[[], T],
+        on_empty: Callable[[], None] | None = None,
+    ):
         self._initial_value_or_callable = initial_value
         self._value: T | object = value_or_call(initial_value).value
         self._subscribers: set[Callable[[T], None]] = set()
         self._lock = threading.Lock()
+        self._on_empty = on_empty
+
+    def is_empty(self) -> bool:
+        """Whether this store currently has no subscribers."""
+        with self._lock:
+            return len(self._subscribers) == 0
 
     def use(self) -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
         """
@@ -73,8 +84,12 @@ class _SharedStore(Generic[T]):
             def cleanup():
                 with self._lock:
                     self._subscribers.discard(subscriber)
-                    if len(self._subscribers) == 0:
+                    is_empty = len(self._subscribers) == 0
+                    if is_empty:
                         self._value = _UNSET
+                # Notify outside the lock to avoid lock-ordering deadlocks
+                if is_empty and self._on_empty is not None:
+                    self._on_empty()
 
             return cleanup
 
@@ -96,6 +111,47 @@ class _SharedStore(Generic[T]):
                 subscriber(new_value)
 
         return value, shared_set_value
+
+
+class _SharedStoreRegistry(Generic[T]):
+    """
+    A keyed collection of `_SharedStore`s that are created on demand and discarded
+    when their last subscriber unsubscribes, so unused keys don't accumulate.
+    """
+
+    def __init__(self, initial_value: T | Callable[[], T]):
+        self._initial_value = initial_value
+        self._stores: Dict[str, _SharedStore[T]] = {}
+        self._lock = threading.Lock()
+
+    def use(self, key: str) -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
+        """
+        Hook to subscribe to the store for `key`, creating it if needed.
+        Must be called inside a `@ui.component`.
+        """
+        with self._lock:
+            store = self._stores.get(key)
+            if store is None:
+                store = _SharedStore(
+                    self._initial_value, on_empty=lambda: self._prune(key)
+                )
+                self._stores[key] = store
+        return store.use()
+
+    def _prune(self, key: str) -> None:
+        with self._lock:
+            store = self._stores.get(key)
+            if store is not None and store.is_empty():
+                del self._stores[key]
+
+
+def _get_effective_user() -> str:
+    try:
+        from deephaven_enterprise import auth_context  # type: ignore[import-not-found]
+
+        return auth_context.get_effective_user()
+    except (ImportError, ModuleNotFoundError):
+        return "__anonymous__"
 
 
 def create_global_state(
@@ -145,40 +201,9 @@ def create_user_state(
         `use_state` interface. The value and setter are shared across all components
         for the same effective user.
     """
-    stores: Dict[str, _SharedStore[T]] = {}
-    stores_lock = threading.Lock()
-
-    def _get_effective_user() -> str:
-        try:
-            from deephaven_enterprise import auth_context  # type: ignore[import-not-found]
-
-            return auth_context.get_effective_user()
-        except (ImportError, ModuleNotFoundError):
-            return "__anonymous__"
+    registry: _SharedStoreRegistry[T] = _SharedStoreRegistry(initial_value)
 
     def use_user_state() -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
-        user_key = _get_effective_user()
-
-        with stores_lock:
-            if user_key not in stores:
-                stores[user_key] = _SharedStore(initial_value)
-            store = stores[user_key]
-
-        result = store.use()
-
-        def cleanup_user_store():
-            def do_cleanup():
-                with stores_lock:
-                    if user_key in stores:
-                        user_store = stores[user_key]
-                        with user_store._lock:
-                            if len(user_store._subscribers) == 0:
-                                del stores[user_key]
-
-            return do_cleanup
-
-        use_effect(cleanup_user_store, [user_key])
-
-        return result
+        return registry.use(_get_effective_user())
 
     return use_user_state
