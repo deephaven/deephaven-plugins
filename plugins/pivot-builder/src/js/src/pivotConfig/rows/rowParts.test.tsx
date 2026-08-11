@@ -21,7 +21,9 @@ describe('RowLabel stale styling', () => {
 
   it('does not add the stale modifier when `stale` is explicitly false', () => {
     render(<RowLabel stale={false}>here</RowLabel>);
-    expect(screen.getByText('here')).not.toHaveClass('pivot-column-name--stale');
+    expect(screen.getByText('here')).not.toHaveClass(
+      'pivot-column-name--stale'
+    );
   });
 
   it('keeps the non-column-name variant (columnName=false) unstyled by default', () => {

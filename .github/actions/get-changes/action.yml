@@ -43,3 +43,15 @@ runs:
           python-remote-file-source:
             - plugins/python-remote-file-source/**
             - .github/workflows/test-*.yml
+          pivot-builder:
+            - plugins/pivot-builder/**
+            - .github/workflows/test-*.yml
+          auth-keycloak:
+            - plugins/auth-keycloak/**
+            - .github/workflows/test-*.yml
+          table-example:
+            - plugins/table-example/**
+            - .github/workflows/test-*.yml
+          table-middleware-example:
+            - plugins/table-middleware-example/**
+            - .github/workflows/test-*.yml
