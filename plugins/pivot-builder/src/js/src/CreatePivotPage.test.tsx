@@ -29,14 +29,17 @@ const DOUBLE = 'double';
 // mount; jsdom has no ResizeObserver and the shared Jest setup doesn't mock it.
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
+    // eslint-disable-next-line class-methods-use-this
     observe(): void {
       // no-op
     }
 
+    // eslint-disable-next-line class-methods-use-this
     unobserve(): void {
       // no-op
     }
 
+    // eslint-disable-next-line class-methods-use-this
     disconnect(): void {
       // no-op
     }
@@ -269,11 +272,9 @@ describe('CreatePivotPage reconcile — hasLiveColumn gating', () => {
     // The inverted aggregation is NOT dropped — it produces a real totals row
     // over the surviving (live) columns.
     expect(cfg.totals).not.toBeNull();
-    const operationMap = (
-      cfg.totals as unknown as {
-        operationMap: Record<string, string[]>;
-      }
-    ).operationMap;
+    const { operationMap } = cfg.totals as unknown as {
+      operationMap: Record<string, string[]>;
+    };
     expect(Object.keys(operationMap).length).toBeGreaterThan(0);
   });
 

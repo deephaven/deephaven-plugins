@@ -104,7 +104,7 @@ export function makePivotModelTransform(
       // when rollup is unavailable the derivation can never pick pivot, and we
       // must not fatally probe PSP for a pivot that won't be built.
       // Legacy configs (no `ui`) fall back to the persisted `pivot` field.
-      const columns = augmented.sourceTable.columns;
+      const { columns } = augmented.sourceTable;
       const hostRollupAvailable =
         (augmented as unknown as { isRollupAvailable?: boolean })
           .isRollupAvailable === true;
