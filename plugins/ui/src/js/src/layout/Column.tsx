@@ -50,6 +50,18 @@ function LayoutColumn({
 function Column({ children, width }: ColumnElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
+
+  if (panelId != null) {
+    // We're inside a panel (e.g. ui.panel(ui.column(...))), so render as a Flex
+    // regardless of any persisted layout. Wrapping bare children in a panel here
+    // would nest a panel inside a panel and throw a NestedPanelError.
+    return (
+      <Flex width={`${width}%`} direction="column">
+        {children}
+      </Flex>
+    );
+  }
+
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a column here, or normalize the children which might add a stack unnecessarily.
@@ -59,15 +71,7 @@ function Column({ children, width }: ColumnElementProps): JSX.Element {
     return <>{wrapBareChildrenInPanel(children)}</>;
   }
 
-  if (panelId == null) {
-    return <LayoutColumn width={width}>{children}</LayoutColumn>;
-  }
-
-  return (
-    <Flex width={`${width}%`} direction="column">
-      {children}
-    </Flex>
-  );
+  return <LayoutColumn width={width}>{children}</LayoutColumn>;
 }
 
 export default Column;
