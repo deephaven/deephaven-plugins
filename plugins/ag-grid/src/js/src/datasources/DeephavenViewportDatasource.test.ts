@@ -12,7 +12,7 @@ jest.mock('../utils', () => {
     ...actual,
     AgGridFilterUtils: {
       ...actual.AgGridFilterUtils,
-      parseFilterModel: jest.fn().mockReturnValue([]),
+      getFilterFromGridApi: jest.fn().mockReturnValue([]),
     },
   };
 });

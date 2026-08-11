@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 from deephaven.plugin.object_type import MessageStream
@@ -24,11 +25,13 @@ class AgGridMessageStream(MessageStream):
 
     def start(self) -> None:
         """
-        Start the message stream. All this does right now is send the table instance that AgGrid is wrapping to the client.
-        If we added some options on AgGrid that we'd want to pass along to the client as well, we could serialize those as JSON options.
+        Start the message stream. Sends the options for the grid as a JSON payload, and the table
+        instance that AgGrid is wrapping as a reference.
         """
-        # Just send the table reference to the client
-        self._connection.on_data("".encode(), [self._grid.table])
+        options: dict[str, Any] = {}
+        if self._grid.column_defs:
+            options["columnDefs"] = self._grid.column_defs
+        self._connection.on_data(json.dumps(options).encode(), [self._grid.table])
 
     def on_close(self) -> None:
         pass

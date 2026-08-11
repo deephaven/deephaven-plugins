@@ -7,6 +7,8 @@ Display Deephaven tables using [AG Grid](https://www.ag-grid.com/).
 The `src` directory contains the Python and JavaScript code for the plugin.  
 Within the `src` directory, the `deephaven/ag_grid` directory contains the Python code, and the `js` directory contains the JavaScript code.
 
+> **Note:** The Python package in this plugin is only used for development purposes and is not published. Only the JavaScript package is published.
+
 The Python files have the following structure:  
 [`AgGridMessageStream.py`](./src/deephaven/ag_grid/AgGridMessageStream.py) defines a simple Python class that can send messages to the client. It just sends the Deephaven table along.
 [`AgGridType.py`](./src/deephaven/ag_grid/AgGridType.py) defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
@@ -44,3 +46,14 @@ ag_result = AgGrid(_result)
 ```
 
 ![AG Grid example](ag-grid-example.png)
+
+### Column Definitions
+
+Pass `column_defs` to override properties on the [AG Grid column definitions](https://www.ag-grid.com/javascript-data-grid/column-definitions/) generated from the table schema. It maps a column name to the properties to merge on top of the generated definition. For example, to make filtering on the `Strings` column [case sensitive](https://www.ag-grid.com/javascript-data-grid/filter-set-filter-list/#enabling-value-case-sensitivity):
+
+```python
+ag_result = AgGrid(
+    _result,
+    column_defs={"Strings": {"filterParams": {"caseSensitive": True}}},
+)
+```

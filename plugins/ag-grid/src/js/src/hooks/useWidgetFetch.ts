@@ -3,7 +3,7 @@ import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-
 import Log from '@deephaven/log';
 import { useEffect, useState } from 'react';
 import { isCorePlusDhType } from '../utils/CorePlusUtils';
-import { type AgGridTableType } from '../types';
+import { type AgGridTableType, type AgGridWidgetOptions } from '../types';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/hooks/useWidgetFetch');
 
@@ -19,11 +19,25 @@ function isWidget(obj: unknown): obj is DhType.Widget {
 
 const PIVOT_TABLE_WIDGET_TYPE = 'PivotTable';
 
+/** Parse the options JSON sent from the server. Older servers send an empty payload. */
+function parseOptions(widget: DhType.Widget): AgGridWidgetOptions {
+  const data = widget.getDataAsString();
+  if (data === '') {
+    return {};
+  }
+  return JSON.parse(data);
+}
+
+export type WidgetFetchResult = {
+  table: AgGridTableType;
+  options: AgGridWidgetOptions;
+};
+
 export function useWidgetFetch(
   dh: typeof DhType | typeof CorePlusDhType,
   fetch: () => Promise<DhType.Widget>
-): AgGridTableType | undefined {
-  const [table, setTable] = useState<AgGridTableType>();
+): WidgetFetchResult | undefined {
+  const [result, setResult] = useState<WidgetFetchResult>();
 
   /** First we load the widget object. This is the object that is sent from the server in AgGridMessageStream. */
   useEffect(() => {
@@ -34,6 +48,7 @@ export function useWidgetFetch(
       log.debug('Fetched widget of type', widget.type);
       switch (widget.type) {
         case 'deephaven.ag_grid.AgGrid': {
+          const options = parseOptions(widget);
           let newTable = await widget.exportedObjects[0].fetch();
           if (isWidget(newTable)) {
             if (newTable.type !== PIVOT_TABLE_WIDGET_TYPE) {
@@ -49,8 +64,8 @@ export function useWidgetFetch(
             newTable = new dh.coreplus.pivot.PivotTable(newTable);
           }
           if (!cancelled) {
-            log.info('Loaded table', newTable);
-            setTable(newTable);
+            log.info('Loaded table', newTable, 'with options', options);
+            setResult({ table: newTable, options });
           }
           break;
         }
@@ -66,7 +81,7 @@ export function useWidgetFetch(
     };
   }, [dh, fetch]);
 
-  return table;
+  return result;
 }
 
 export default useWidgetFetch;
