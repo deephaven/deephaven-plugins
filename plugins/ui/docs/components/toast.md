@@ -2,6 +2,8 @@
 
 Toasts display brief, temporary notifications of actions, errors, or other events in an application.
 
+`ui.toast` must be called from the render thread, either while a `@ui.component` is rendering or from an event handler it triggers. Calling it from a background thread, such as a table listener, raises an error. To show a toast from off the render thread, queue it with the [`use_render_queue` hook](../hooks/use_render_queue.md). See [render cycle](../add-interactivity/render-cycle.md) for more details on how rendering works.
+
 ## Example
 
 ```python

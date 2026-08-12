@@ -22,4 +22,11 @@ const UIMultiPlugin = {
 
 export { DashboardPlugin };
 
+export {
+  type EventPlugin,
+  type UIEventHandler,
+  type UIEventMapping,
+  isEventPlugin,
+} from './events/EventPlugin';
+
 export default UIMultiPlugin;

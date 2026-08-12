@@ -1,6 +1,9 @@
 import { ToastQueue, type ToastOptions } from '@deephaven/components';
 
-export const TOAST_EVENT = 'toast.event';
+export const TOAST_EVENT = 'deephaven.ui.toast';
+
+/** Pre-namespacing event name, still emitted by older server versions */
+export const LEGACY_TOAST_EVENT = 'toast.event';
 
 export type ToastVariant = 'positive' | 'negative' | 'neutral' | 'info';
 

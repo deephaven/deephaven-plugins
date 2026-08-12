@@ -3,7 +3,10 @@ import Log from '@deephaven/log';
 const log = Log.module('Navigate');
 
 // Event types received from the server
-export const NAVIGATE_EVENT = 'navigate.event';
+export const NAVIGATE_EVENT = 'deephaven.ui.navigate';
+
+/** Pre-namespacing event name, still emitted by older server versions */
+export const LEGACY_NAVIGATE_EVENT = 'navigate.event';
 
 /**
  * Custom event dispatched after Navigate() changes the URL.

@@ -23,3 +23,27 @@ def {{ cookiecutter.__component_name }}(
     # The name should match the key assigned to the associated React component in the mapping found in
     # {{ cookiecutter.__js_plugin_view_obj }}
     return ui.BaseElement('{{ cookiecutter.__element_name }}', **props)
+
+
+def {{ cookiecutter.__event_sender_name }}(
+    message: str = "Hello from the server!",
+) -> None:
+    """
+    Send an event to the client-side handler registered in {{ cookiecutter.__js_plugin_obj }}.ts.
+
+    Similar to `ui.toast`, this must be called from the render thread of a `@ui.component`.
+    Use the `ui.use_render_queue` hook to queue it if you need to trigger it from a
+    background thread or callback.
+
+    Args:
+        message: The message to send to the client. The example handler displays it in an alert.
+
+    Returns:
+        None
+    """
+    # `use_send_event` returns a callback for sending an event to the client.
+    send_event = ui.use_send_event()
+    # The event name must match the key in the `eventMapping` of the JS plugin.
+    # Namespace event names with the package namespace to avoid collisions with
+    # other plugins and with built-in `deephaven.ui` events.
+    send_event("{{ cookiecutter.__py_namespace }}.event", {"message": message})

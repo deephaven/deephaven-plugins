@@ -7,6 +7,7 @@
   "__src_folder_name": "{{ cookiecutter.python_project_name }}",
   "__name_pascal_case": "{{ cookiecutter.python_project_name.replace('_', ' ') .title().replace(' ', '') }}",
   "__component_name": "{{ cookiecutter.python_project_name }}_component",
+  "__event_sender_name": "{{ cookiecutter.python_project_name }}_send_event",
   "__registration_name": "{{ cookiecutter.__name_pascal_case }}Registration",
   "__js_plugin_name_pascal_case": "{{ cookiecutter.javascript_project_name.replace('-', ' ') .title().replace(' ', '') }}",
   "__js_plugin_view_obj": "{{ cookiecutter.__js_plugin_name_pascal_case }}View",
