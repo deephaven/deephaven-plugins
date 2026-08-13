@@ -59,6 +59,47 @@ jobs:
           packages-dir: plugins/${{ inputs.package }}/dist/
           attestations: false # TODO: Followup this thread to see if there's a better fix https://github.com/pypa/gh-action-pypi-publish/issues/283
 
+  jira:
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Create Jira release ticket
+        # Posts to a Jira Automation "Incoming webhook" rule that creates the
+        # "Update plugin version on G+" task and links the DH- issues in the notes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.package }}-v${{ needs.release.outputs.version }}
+          # Names the thing being updated in the ticket summary
+          JIRA_COMPONENT: ${{ inputs.package }}
+          # Bump when the target enterprise release changes
+          JIRA_FIX_VERSION: 'Grizzly Plus (2026.01, release/2026.01)'
+          JIRA_WEBHOOK_URL: ${{ secrets.JIRA_AUTOMATION_WEBHOOK_URL }}
+          JIRA_WEBHOOK_SECRET: ${{ secrets.JIRA_AUTOMATION_WEBHOOK_SECRET }}
+        run: |
+          set -euo pipefail
+          RELEASE_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")
+          RELEASE_URL=$(printf '%s' "$RELEASE_JSON" | jq -r '.html_url')
+          RELEASE_NOTES=$(printf '%s' "$RELEASE_JSON" | jq -r '.body // ""')
+          NOTES_WIKI=$(printf '%s' "$RELEASE_NOTES" \
+            | sed -E 's/^#### /h4. /; s/^### /h3. /; s/^## /h2. /; s/^- /* /; s/\[([^]]*)\]\(([^)]*)\)/[\1|\2]/g; s/\*\*([^*]+)\*\*/*\1*/g')
+          RELATED_ISSUES=$( { printf '%s' "$RELEASE_NOTES" | grep -oE 'DH-[0-9]+' || true; } \
+            | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          jq -n \
+            --arg component "$JIRA_COMPONENT" \
+            --arg version "${{ needs.release.outputs.version }}" \
+            --arg releaseUrl "$RELEASE_URL" \
+            --arg notesWiki "$NOTES_WIKI" \
+            --arg fixVersion "$JIRA_FIX_VERSION" \
+            --argjson relatedIssues "$RELATED_ISSUES" \
+            '{component: $component, version: $version, releaseUrl: $releaseUrl, notesWiki: $notesWiki, fixVersion: $fixVersion, relatedIssues: $relatedIssues}' \
+            | curl -fsS -X POST \
+              -H 'Content-Type: application/json' \
+              -H "X-Automation-Webhook-Token: $JIRA_WEBHOOK_SECRET" \
+              --data @- "$JIRA_WEBHOOK_URL"
+
   check-make-docs:
     runs-on: ubuntu-24.04
     outputs:
