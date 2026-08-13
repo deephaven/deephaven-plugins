@@ -58,6 +58,8 @@ import {
   type FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
+  getUITableQuickFilters,
+  getUITableSorts,
   type UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
@@ -201,10 +203,12 @@ export function UITable({
   onRowPress,
   onRowDoublePress,
   onSelectionChange,
+  onQuickFiltersChange,
+  onSortsChange,
+  defaultQuickFilters,
   quickFilters,
-  controlledQuickFilters,
+  defaultSorts,
   sorts,
-  controlledSorts,
   aggregations,
   aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
@@ -407,30 +411,47 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Capture the user-owned `sorts`/`quickFilters` once on mount. These provide
+  const handleQuickFiltersChange = useCallback(
+    (
+      nextQuickFilters: Parameters<
+        typeof IrisGridUtils.dehydrateQuickFilters
+      >[0]
+    ) => {
+      onQuickFiltersChange?.(
+        getUITableQuickFilters(
+          IrisGridUtils.dehydrateQuickFilters(nextQuickFilters),
+          columns
+        )
+      );
+    },
+    [columns, onQuickFiltersChange]
+  );
+
+  const handleSortsChange = useCallback(
+    (nextSorts: Parameters<typeof IrisGridUtils.dehydrateSort>[0]) => {
+      onSortsChange?.(getUITableSorts(IrisGridUtils.dehydrateSort(nextSorts)));
+    },
+    [onSortsChange]
+  );
+
+  // Capture the user-owned defaults once on mount. These provide
   // the initial values only when there is no persisted client state; after
   // that, the user's own changes take over.
-  const initialSortsRef = useRef(sorts);
-  const initialQuickFiltersRef = useRef(quickFilters);
+  const initialSortsRef = useRef(defaultSorts);
+  const initialQuickFiltersRef = useRef(defaultQuickFilters);
 
-  // The controlled values are live IrisGrid props. They are deliberately named
-  // separately so changing the existing user-owned props remains non-breaking.
+  // Controlled values remain live IrisGrid props.
   const hydratedControlledSorts = useMemo(() => {
-    if (
-      controlledSorts === undefined ||
-      utils == null ||
-      columns.length === 0
-    ) {
+    if (sorts === undefined || utils == null || columns.length === 0) {
       return undefined;
     }
-    log.debug('Hydrating controlled sorts', controlledSorts);
-    return utils.hydrateSort(columns, controlledSorts);
-  }, [controlledSorts, utils, columns]);
+    log.debug('Hydrating controlled sorts', sorts);
+    return utils.hydrateSort(columns, sorts);
+  }, [sorts, utils, columns]);
 
   const hydratedControlledQuickFilters = useMemo(
-    () =>
-      hydrateUITableQuickFilters(controlledQuickFilters, model, columns, utils),
-    [controlledQuickFilters, model, columns, utils]
+    () => hydrateUITableQuickFilters(quickFilters, model, columns, utils),
+    [quickFilters, model, columns, utils]
   );
 
   // Lock the initial state once the model is ready. Recomputing it would pass
@@ -604,7 +625,12 @@ export function UITable({
       alwaysFetchColumns,
       showSearchBar,
       sorts: hydratedControlledSorts,
+      isSortsControlled: sorts !== undefined,
+      onSortsChange: onSortsChange == null ? undefined : handleSortsChange,
       quickFilters: hydratedControlledQuickFilters,
+      isQuickFiltersControlled: quickFilters !== undefined,
+      onQuickFiltersChange:
+        onQuickFiltersChange == null ? undefined : handleQuickFiltersChange,
       isFilterBarShown: showQuickFilters,
       reverse,
       density,
@@ -655,6 +681,12 @@ export function UITable({
     showQuickFilters,
     hydratedControlledSorts,
     hydratedControlledQuickFilters,
+    sorts,
+    quickFilters,
+    onSortsChange,
+    onQuickFiltersChange,
+    handleSortsChange,
+    handleQuickFiltersChange,
     reverse,
     density,
     settings,

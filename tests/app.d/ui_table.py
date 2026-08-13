@@ -463,8 +463,8 @@ def t_controlled_component():
         ),
         ui.table(
             _stocks,
-            controlled_sorts=ui.TableSort(column="Size", direction=sort_direction),
-            controlled_quick_filters={"Sym": sym},
+            sorts=ui.TableSort(column="Size", direction=sort_direction),
+            quick_filters={"Sym": sym},
             show_quick_filters=True,
         ),
     ]
@@ -483,8 +483,8 @@ _persist_table = new_table(
 )
 t_default = ui.table(
     _persist_table,
-    sorts=ui.TableSort(column="Size", direction="ASC"),
-    quick_filters={"Sym": "CAT"},
+    default_sorts=ui.TableSort(column="Size", direction="ASC"),
+    default_quick_filters={"Sym": "CAT"},
     show_quick_filters=True,
 )
 
