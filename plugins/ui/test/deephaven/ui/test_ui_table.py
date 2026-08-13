@@ -106,6 +106,27 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
+    def test_default_quick_filters(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, default_quick_filters={"X": "X > 1"})
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1"},
+            },
+        )
+
+        t = ui.table(self.source, default_quick_filters={"X": "X > 1", "Y": "Y < 2"})
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1", "Y": "Y < 2"},
+            },
+        )
+
     def test_quick_filters(self):
         import deephaven.ui as ui
 
@@ -118,7 +139,22 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-        t = ui.table(self.source, quick_filters={"X": "X > 1", "Y": "Y < 2"})
+    def test_quick_filter_modes_are_exclusive(self):
+        import deephaven.ui as ui
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(
+                self.source,
+                default_quick_filters={"X": "X > 1"},
+                quick_filters={"X": "X > 1"},
+            ),
+        )
+
+        t = ui.table(
+            self.source,
+            quick_filters={"X": "X > 1", "Y": "Y < 2"},
+        )
 
         self.expect_render(
             t,
@@ -127,41 +163,13 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_controlled_quick_filters(self):
+    def test_on_quick_filters_change(self):
         import deephaven.ui as ui
 
-        t = ui.table(self.source, controlled_quick_filters={"X": "X > 1"})
+        callback = Mock()
+        t = ui.table(self.source, on_quick_filters_change=callback)
 
-        self.expect_render(
-            t,
-            {
-                "controlledQuickFilters": {"X": "X > 1"},
-            },
-        )
-
-    def test_quick_filter_modes_are_exclusive(self):
-        import deephaven.ui as ui
-
-        self.assertRaises(
-            ValueError,
-            lambda: ui.table(
-                self.source,
-                quick_filters={"X": "X > 1"},
-                controlled_quick_filters={"Y": "Y < 2"},
-            ),
-        )
-
-        t = ui.table(
-            self.source,
-            controlled_quick_filters={"X": "X > 1", "Y": "Y < 2"},
-        )
-
-        self.expect_render(
-            t,
-            {
-                "controlledQuickFilters": {"X": "X > 1", "Y": "Y < 2"},
-            },
-        )
+        self.expect_render(t, {"onQuickFiltersChange": callback})
 
     def test_show_quick_filters(self):
         import deephaven.ui as ui
@@ -193,15 +201,15 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_sorts(self):
+    def test_default_sorts(self):
         import deephaven.ui as ui
 
-        t = ui.table(self.source, sorts="X")
+        t = ui.table(self.source, default_sorts="X")
 
         self.expect_render(
             t,
             {
-                "sorts": [
+                "defaultSorts": [
                     {
                         "column": "X",
                         "direction": "ASC",
@@ -211,12 +219,12 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-        t = ui.table(self.source, sorts=ui.TableSort(column="X"))
+        t = ui.table(self.source, default_sorts=ui.TableSort(column="X"))
 
         self.expect_render(
             t,
             {
-                "sorts": [
+                "defaultSorts": [
                     {
                         "column": "X",
                         "direction": "ASC",
@@ -228,13 +236,13 @@ class UITableTestCase(BaseTestCase):
 
         t = ui.table(
             self.source,
-            sorts=ui.TableSort(column="X", direction="DESC", is_abs=True),
+            default_sorts=ui.TableSort(column="X", direction="DESC", is_abs=True),
         )
 
         self.expect_render(
             t,
             {
-                "sorts": [
+                "defaultSorts": [
                     {
                         "column": "X",
                         "direction": "DESC",
@@ -299,15 +307,15 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_controlled_sorts(self):
+    def test_sorts(self):
         import deephaven.ui as ui
 
-        t = ui.table(self.source, controlled_sorts="X")
+        t = ui.table(self.source, sorts="X")
 
         self.expect_render(
             t,
             {
-                "controlledSorts": [
+                "sorts": [
                     {
                         "column": "X",
                         "direction": "ASC",
@@ -324,14 +332,14 @@ class UITableTestCase(BaseTestCase):
             ValueError,
             lambda: ui.table(
                 self.source,
+                default_sorts="X",
                 sorts="X",
-                controlled_sorts="Y",
             ),
         )
 
         t = ui.table(
             self.source,
-            controlled_sorts=[
+            sorts=[
                 "X",
                 ui.TableSort(column="Y", direction="DESC", is_abs=True),
             ],
@@ -340,7 +348,7 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "controlledSorts": [
+                "sorts": [
                     {
                         "column": "X",
                         "direction": "ASC",
@@ -354,6 +362,35 @@ class UITableTestCase(BaseTestCase):
                 ]
             },
         )
+
+    def test_sorts_mapping(self):
+        import deephaven.ui as ui
+
+        t = ui.table(
+            self.source,
+            sorts=[
+                {"column": "X", "direction": "DESC", "is_abs": True},
+                {"column": "Y"},
+            ],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "sorts": [
+                    {"column": "X", "direction": "DESC", "isAbs": True},
+                    {"column": "Y", "direction": "ASC", "isAbs": False},
+                ]
+            },
+        )
+
+    def test_on_sorts_change(self):
+        import deephaven.ui as ui
+
+        callback = Mock()
+        t = ui.table(self.source, on_sorts_change=callback)
+
+        self.expect_render(t, {"onSortsChange": callback})
 
     def test_sorts_invalid_direction(self):
         import deephaven.ui as ui
