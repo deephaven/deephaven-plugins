@@ -775,7 +775,7 @@ Quick filters are an easy way to filter the table while also showing the user wh
 
 Quick filters may be preferred if you have multiple servers or workers hosting your data. If, for example, the table is on another Deephaven instance, performing a `where` operation on the table may require copying all of the data from the host server into the server running Deephaven UI. With a quick filter, the filter can instead be applied directly on the server hosting the table.
 
-Quick filters can be added to the table using the `quick_filters` prop. The `quick_filters` prop takes a dictionary where the key is the column and the value is the filter to apply.
+Initial quick filters can be added with `default_quick_filters`. User changes to default quick filters are persisted. Use `quick_filters` for controlled filters and `on_quick_filters_change` to receive the complete filter state proposed by the user. Both filter props take a dictionary where the key is the column and the value is the filter to apply.
 
 The quick filter bar can be expanded by default with the `show_quick_filters` prop.
 
@@ -790,7 +790,7 @@ t = _stocks.where("Sym = `CAT`") # Applied when query is run
 t2 = ui.table( # Filters applied when table is opened on the client
     _stocks,
     show_quick_filters=True,
-    quick_filters={
+    default_quick_filters={
         "Sym": "CAT",
         "Exchange": "TPET",
         "Price": ">=100"
@@ -802,15 +802,15 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ## Sort
 
-You can set the initial sort state of a `ui.table` with the `sorts` prop. This controls table UI state (similar to `quick_filters` and `reverse`) without changing the underlying table definition.
+You can set the initial sort state of a `ui.table` with the `default_sorts` prop. Use `sorts` for controlled sort state and `on_sorts_change` to receive the complete ordered sort state proposed by the user. These props control table UI state without changing the underlying table definition.
 
-The `sorts` prop accepts:
+The `default_sorts` and `sorts` props accept:
 
 - A single column name string (ascending sort)
 - A `ui.TableSort` object
 - A list mixing column names and `ui.TableSort` objects
 
-When you pass `sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
+When you pass `default_sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
 
 ```python order=data,t_mixed_sort_list,t_string_sort
 from deephaven import ui, new_table
@@ -826,7 +826,7 @@ data = new_table(
 
 t_mixed_sort_list = ui.table(
     data,
-    sorts=[
+    default_sorts=[
         "Category",
         ui.TableSort(column="Name", direction="DESC"),
         ui.TableSort(column="SepalLength", direction="ASC", is_abs=True),
@@ -835,7 +835,7 @@ t_mixed_sort_list = ui.table(
 
 t_string_sort = ui.table(
     data,
-    sorts="Name",
+    default_sorts="Name",
 )
 ```
 
