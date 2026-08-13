@@ -2,6 +2,7 @@ import { type StyleProps } from '@react-types/shared';
 import type { dh } from '@deephaven/jsapi-types';
 import {
   type ColumnName,
+  type DehydratedQuickFilter,
   type DehydratedSort,
   AggregationOperation,
   type IrisGridModel,
@@ -37,6 +38,12 @@ export type RowDataValue = CellData & {
 export type ColumnIndex = number;
 
 export type RowDataMap = Record<ColumnName, RowDataValue>;
+
+export type UITableSort = {
+  column: ColumnName;
+  direction: DehydratedSort['direction'];
+  is_abs: boolean;
+};
 
 export type ColorGradient = string[];
 
@@ -98,11 +105,13 @@ export type UITableProps = StyleProps & {
   onColumnPress?: (columnName: ColumnName) => void;
   onColumnDoublePress?: (columnName: ColumnName) => void;
   onSelectionChange?: (selectedRows: RowDataMap[]) => void;
+  onQuickFiltersChange?: (quickFilters: Record<ColumnName, string>) => void;
+  onSortsChange?: (sorts: UITableSort[]) => void;
   alwaysFetchColumns?: string | string[] | boolean;
+  defaultQuickFilters?: Record<string, string>;
   quickFilters?: Record<string, string>;
-  controlledQuickFilters?: Record<string, string>;
+  defaultSorts?: DehydratedSort[];
   sorts?: DehydratedSort[];
-  controlledSorts?: DehydratedSort[];
   aggregations?: UIAggregation | UIAggregation[];
   aggregationsPosition?: 'top' | 'bottom';
   showSearch: boolean;
@@ -130,6 +139,28 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
+}
+
+export function getUITableQuickFilters(
+  quickFilters: readonly DehydratedQuickFilter[],
+  columns: readonly { name: ColumnName }[]
+): Record<ColumnName, string> {
+  return Object.fromEntries(
+    quickFilters.flatMap(([columnIndex, { text }]) => {
+      const columnName = columns[columnIndex]?.name;
+      return columnName == null ? [] : [[columnName, text]];
+    })
+  );
+}
+
+export function getUITableSorts(
+  sorts: readonly DehydratedSort[]
+): UITableSort[] {
+  return sorts.map(({ column, direction, isAbs }) => ({
+    column,
+    direction,
+    is_abs: isAbs,
+  }));
 }
 
 /**

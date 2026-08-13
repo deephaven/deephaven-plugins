@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Literal, Any, Union
+from typing import Literal, Any, Callable, Mapping, Union
 import logging
 from deephaven.table import RollupTable, TreeTable
 from ..elements import Element, resolve
@@ -78,7 +78,10 @@ class TableSort:
     is_abs: bool = False
 
 
-TableSortLike = Union[ColumnName, TableSort]
+TableSortMapping = Mapping[str, Any]
+TableSortLike = Union[ColumnName, TableSort, TableSortMapping]
+QuickFiltersChangeCallback = Callable[[dict[ColumnName, QuickFilterExpression]], None]
+SortsChangeCallback = Callable[[list[TableSortMapping]], None]
 
 
 @dataclass
@@ -239,10 +242,22 @@ def _normalize_table_sorts(
     for sort in sort_list:
         if isinstance(sort, str):
             sort = TableSort(column=sort)
+        elif isinstance(sort, Mapping):
+            try:
+                sort = TableSort(
+                    column=sort["column"],
+                    direction=sort.get("direction", "ASC"),
+                    is_abs=sort.get("is_abs", False),
+                )
+            except KeyError as error:
+                raise ValueError(
+                    "Table sort mappings must include 'column'."
+                ) from error
         elif not isinstance(sort, TableSort):
             raise ValueError(
-                "Table sorts must be a column name, TableSort, or list of column "
-                f"names and TableSort instances. Received {type(sort).__name__}."
+                "Table sorts must be a column name, TableSort, mapping, or list of "
+                "column names, TableSort instances, and mappings. "
+                f"Received {type(sort).__name__}."
             )
 
         direction = sort.direction.upper()
@@ -284,23 +299,29 @@ class table(Element):
             The callback is invoked with the column name.
         on_selection_change: The callback function to run when the selection changes.
             The callback is invoked with the selected rows with data from the columns in `always_fetch_columns`.
+        on_quick_filters_change: The callback function to run when the user changes
+            the quick filters. The callback is invoked with a dictionary of column
+            name to filter value.
+        on_sorts_change: The callback function to run when the user changes the sorts.
+            The callback is invoked with an ordered list of sort mappings containing
+            `column`, `direction`, and `is_abs`.
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
-        quick_filters: The initial quick filters to apply to the table. User changes
+        default_quick_filters: The initial quick filters to apply to the table. User changes
             are retained and persisted when the table is reloaded. Dictionary of
             column name to filter value.
-        controlled_quick_filters: The quick filters to update programmatically.
+        quick_filters: The controlled quick filters to update programmatically.
             Whenever this value changes, it is re-applied to the table and replaces
             any quick filters the user changed in the UI. Cannot be used with
-            `quick_filters`. Dictionary of column name to filter value.
-        sorts: The initial sorts to apply to the table. User changes are retained and
+            `default_quick_filters`. Dictionary of column name to filter value.
+        default_sorts: The initial sorts to apply to the table. User changes are retained and
             persisted when the table is reloaded. These are UI-controlled sorts
             (similar to reverse) rather than engine-transformed table data.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
-        controlled_sorts: The sorts to update programmatically. Whenever this value
+        sorts: The controlled sorts to update programmatically. Whenever this value
             changes, it is re-applied to the table and replaces any sorts the user
-            changed in the UI. Cannot be used with `sorts`. Accepts the same values
-            as `sorts`.
+            changed in the UI. Cannot be used with `default_sorts`. Accepts the same values
+            as `default_sorts`.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
         aggregations_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
@@ -384,11 +405,13 @@ class table(Element):
         on_column_press: ColumnPressCallback | None = None,
         on_column_double_press: ColumnPressCallback | None = None,
         on_selection_change: SelectionChangeCallback | None = None,
+        on_quick_filters_change: QuickFiltersChangeCallback | None = None,
+        on_sorts_change: SortsChangeCallback | None = None,
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
+        default_quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
-        controlled_quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
+        default_sorts: TableSortLike | list[TableSortLike] | None = None,
         sorts: TableSortLike | list[TableSortLike] | None = None,
-        controlled_sorts: TableSortLike | list[TableSortLike] | None = None,
         show_quick_filters: bool = False,
         aggregations: TableAgg | list[TableAgg] | None = None,
         aggregations_position: Literal["top", "bottom"] | None = None,
@@ -456,19 +479,19 @@ class table(Element):
         if format_ is not None:
             _validate_table_format(format_, table)
 
-        if quick_filters is not None and controlled_quick_filters is not None:
+        if default_quick_filters is not None and quick_filters is not None:
             raise ValueError(
-                "ui.table quick_filters and controlled_quick_filters cannot both be set"
+                "ui.table default_quick_filters and quick_filters cannot both be set"
             )
 
-        if sorts is not None and controlled_sorts is not None:
-            raise ValueError("ui.table sorts and controlled_sorts cannot both be set")
+        if default_sorts is not None and sorts is not None:
+            raise ValueError("ui.table default_sorts and sorts cannot both be set")
+
+        if default_sorts is not None:
+            props["default_sorts"] = _normalize_table_sorts(default_sorts)
 
         if sorts is not None:
             props["sorts"] = _normalize_table_sorts(sorts)
-
-        if controlled_sorts is not None:
-            props["controlled_sorts"] = _normalize_table_sorts(controlled_sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
         del props["self"]
