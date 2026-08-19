@@ -565,7 +565,9 @@ class PriceScale:
         visible: Show the scale. (Ignored for the overlay scale.)
         border_visible: Show the scale border.
         border_color: Border CSS color.
-        auto_scale: Auto-fit the scale to the visible data.
+        auto_scale: Auto-fit the scale to the visible data (default).
+            Set ``False`` to fit once on load, then hold that range so
+            the axis stays fixed as the user zooms and pans.
         mode: Scale mapping mode; see :data:`PriceScaleMode`.
         invert_scale: Flip the axis top-to-bottom.
         align_labels: Align scale labels with chart pixels.

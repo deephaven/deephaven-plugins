@@ -14,6 +14,7 @@ const mockSeriesInstance = {
   data: jest.fn(() => []),
   createPriceLine: jest.fn(() => mockPriceLine),
   priceScale: jest.fn(() => mockPriceScale),
+  applyOptions: jest.fn(),
   options: jest.fn(() => ({})),
   priceFormatter: jest.fn(() => ({ format: v => String(v) })),
   priceToCoordinate: jest.fn(() => null),

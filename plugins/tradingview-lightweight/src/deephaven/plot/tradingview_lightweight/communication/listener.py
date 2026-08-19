@@ -500,7 +500,7 @@ class TvlChartListener:
                 )
             except Exception:  # noqa: BLE001 - degrade one table, not the figure
                 logger.exception(
-                    "TVL auto-bin build failed for table %d; " "falling back to raw", i
+                    "TVL auto-bin build failed for table %d; falling back to raw", i
                 )
                 state = None
             if state is None:

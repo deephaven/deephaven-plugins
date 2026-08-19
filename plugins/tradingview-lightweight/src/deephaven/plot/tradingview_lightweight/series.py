@@ -396,6 +396,7 @@ def candlestick_series(
         base_line_width (Optional[LineWidth]): Baseline stroke width.
         base_line_style (Optional[LineStyle]): Baseline dash pattern.
         auto_scale (Optional[bool]): Auto-fit the series' price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin (fraction 0–1)
             applied to the series' price scale.
         scale_margin_bottom (Optional[float]): Bottom margin.
@@ -616,6 +617,7 @@ def bar_series(
         base_line_width (Optional[LineWidth]): Baseline stroke width.
         base_line_style (Optional[LineStyle]): Baseline dash pattern.
         auto_scale (Optional[bool]): Auto-fit the price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin fraction.
         scale_margin_bottom (Optional[float]): Bottom margin fraction.
         scale_mode (Optional[PriceScaleMode]): Price-scale mode.
@@ -818,6 +820,7 @@ def line_series(
         base_line_width (Optional[LineWidth]): Baseline stroke width.
         base_line_style (Optional[LineStyle]): Baseline dash pattern.
         auto_scale (Optional[bool]): Auto-fit the price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin fraction.
         scale_margin_bottom (Optional[float]): Bottom margin fraction.
         scale_mode (Optional[PriceScaleMode]): Price-scale mode.
@@ -1029,6 +1032,7 @@ def area_series(
         base_line_width (Optional[LineWidth]): Baseline width.
         base_line_style (Optional[LineStyle]): Baseline dash.
         auto_scale (Optional[bool]): Auto-fit the price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin fraction.
         scale_margin_bottom (Optional[float]): Bottom margin fraction.
         scale_mode (Optional[PriceScaleMode]): Scale mode.
@@ -1263,6 +1267,7 @@ def baseline_series(
         base_line_style (Optional[LineStyle]): Secondary baseline
             dash.
         auto_scale (Optional[bool]): Auto-fit the price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin fraction.
         scale_margin_bottom (Optional[float]): Bottom margin fraction.
         scale_mode (Optional[PriceScaleMode]): Scale mode.
@@ -1467,6 +1472,7 @@ def histogram_series(
         base_line_width (Optional[LineWidth]): Baseline width.
         base_line_style (Optional[LineStyle]): Baseline dash.
         auto_scale (Optional[bool]): Auto-fit the price scale.
+            ``False`` fits once on load, then holds that range.
         scale_margin_top (Optional[float]): Top margin fraction.
         scale_margin_bottom (Optional[float]): Bottom margin fraction.
         scale_mode (Optional[PriceScaleMode]): Scale mode.

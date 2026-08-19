@@ -363,36 +363,57 @@ snapshot are updated.
 
 ---
 
-## Phase 8 — Frozen price scale (`auto_scale=False`) (parked / future work)
+## Phase 8 — Frozen price scale (`auto_scale=False`) (implemented — verified in-browser)
 
-**Status: PARKED.** In Phase 3 the reviewer's "shows no data" bug was resolved by
-coercing `autoScale:false` → `true` so the data is always visible — but that means
-`auto_scale=False` no longer actually **freezes** the scale (it always auto-fits). This
-phase is to restore a working "freeze the price scale at a fixed range" behavior, which
-several attempts could not land reliably.
+**Status: IMPLEMENTED via `autoscaleInfoProvider`** In Phase 3
+the reviewer's "shows no data" bug was resolved by coercing `autoScale:false` → `true` so
+the data is always visible — but that meant `auto_scale=False` no longer actually froze
+the scale. The freeze is now restored without the coercion's downside.
 
 **Goal:** `auto_scale=False` should fit the visible data **once** on load, then hold that
 range so the axis numbers don't rescale as the user zooms (per the original doc promise).
 
-**What was tried (Phase 3) and why each failed:**
+**Solution (landed):** all four failed attempts raced LWC's lazy fit _from the outside_
+via `setAutoScale(false)`. The vendored LWC supports the series option
+**`autoscaleInfoProvider`** — a hook LWC calls _during its own autoscale computation_,
+passing the `original()` range calculator. That inverts the race: the scale stays
+`autoScale:true`, the provider passes `original()` through until it yields a real
+`priceRange` (so "no data / squished dot" can't happen), then caches that first fitted
+range and returns it on every later recompute, pinning the axis.
+
+Implementation in [TradingViewChartRenderer.ts](plugins/tradingview-lightweight/src/js/src/TradingViewChartRenderer.ts):
+
+- `freezeSeriesScale(id, series)` installs the caching provider; caches live in
+  `frozenRanges` (keyed by series id) so a frozen range **survives configureSeries
+  rebuilds** (autobin figure replacement).
+- Per-series `priceScaleOptions.autoScale === false` → scale options applied with
+  `autoScale: true` + freeze provider on that series.
+- Chart-level `rightPriceScale/leftPriceScale.autoScale === false` (in `applyOptions`) →
+  still coerced to `true` at the scale, scale id recorded in `frozenScaleIds`, freeze
+  applied to existing + future series attached to that scale (works in either
+  applyOptions/configureSeries order).
+- `resetPriceScales()` (double-click) clears the cached ranges → re-fit once, re-freeze
+  at the new range.
+
+Jest coverage in `TradingViewChartRenderer.test.ts` (provider semantics: null
+pass-through, first-fit pinning, reset re-capture, rebuild persistence, chart-level
+retroactive freeze). Python `auto_scale` docstrings updated (options.py + all six series
+constructors): "`False` fits once on load, then holds that range."
+
+### Remaining tasks
+
+- [x] **In-browser verification** with `test_frozen_price_scale.py` (repo root): framed
+      data on load, axis fixed across zoom/ticks, control chart still rescales, mixed
+      left-frozen/right-auto, dblclick re-fit + re-freeze. Hard-reload after reinstall.
+- [x] **Reinstate the doc example** ("lock the visible range") in price-scale.md once
+      verified in-browser.
+
+**What was tried before (Phase 3) and why each failed** (kept for history):
 
 - **Per-series `priceScale().applyOptions({autoScale:false})` before data** → LWC freezes at a default range with the series off-screen (the original "no data").
 - **Force `autoScale:true`, then `setAutoScale(false)` after the first data update (per-series + chart-level via `chart.priceScale('right')`)** → froze at a bad range; the whole series squished to a dot at the top of the pane. LWC computes the price range lazily during its own paint, so freezing in the same handler locks a pre-fit range.
 - **Defer the freeze one frame (`requestAnimationFrame`)** → same squish; our rAF still ran before LWC's internal fit.
 - **Freeze on the _second_ data-present update (deterministic, skip the first "fit + paint" pass)** → still squished. Could not reliably observe when LWC's fit had actually applied.
-
-**Root difficulty:** lightweight-charts exposes **no public "set price range"** API and no
-signal for "the auto-fit has been computed." `IPriceScaleApi` has only `setAutoScale(on)`,
-`applyOptions`, `options`, `width`. So "fit once then freeze" depends on winning a race
-against LWC's lazy range computation, which we couldn't do blind.
-
-**Retry ideas (need live browser inspection — don't do this blind):**
-
-1. **Use browser devtools / the agent browser tools** to inspect the actual price range on the LWC scale after data loads (e.g. read back via `priceToCoordinate` at known values) — establishes ground truth for _when_ the fit lands and _what_ range gets frozen. All four failed attempts were blind; this is the missing piece.
-2. **Capture the fitted range explicitly and re-apply it.** After the first painted data, sample `series.priceToCoordinate()` at the data min/max to derive the visible price range, then hold it — LWC has no setter, but a `MutationObserver`/`ResizeObserver`-driven re-assert, or a very small custom price-scale, could pin it.
-3. **Freeze on a paint signal, not a guess.** A double-`requestAnimationFrame`, or subscribing to LWC's own crosshair/size events as a "has painted" proxy, may land after the lazy fit where single-rAF / second-update did not.
-4. **Upstream option.** Check whether a newer lightweight-charts exposes a set-visible-price-range (or file a feature request); it would make this trivial.
-5. **Reinstate the doc example** ("Turn off auto-scale to lock the visible range") and the honest `auto_scale` docstring only once the freeze actually works in-browser.
 
 **Done when:** `auto_scale=False` renders the data framed correctly **and** the axis stays
 fixed across zoom, verified in-browser; the price-scale doc example + `options.py`

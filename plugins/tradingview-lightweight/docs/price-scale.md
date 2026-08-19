@@ -69,6 +69,21 @@ chart = tvl.chart(
 
 The same `margin_top` / `margin_bottom` apply when you pass a `price_scale()` to the `left_price_scale=` or `overlay_price_scale=` slots.
 
+### Turn off auto-scale to lock the visible range
+
+By default the scale auto-fits to the visible data. Set `auto_scale=False` to freeze it; the user can still pan, but the axis numbers don't shift on zoom.
+
+```python order=chart,values
+import deephaven.plot.tradingview_lightweight as tvl
+
+values = tvl.data.values()
+
+chart = tvl.chart(
+    tvl.line(values, timestamp="Timestamp", value="Value"),
+    right_price_scale=tvl.price_scale(auto_scale=False)
+)
+```
+
 ### Default the visible scale to the left
 
 `default_visible_price_scale_id` accepts `"left"` or `"right"`. It sets the scale every new series binds to _unless_ the series explicitly sets `price_scale_id`. The default is `"right"`; set it to `"left"` to flip the convention.

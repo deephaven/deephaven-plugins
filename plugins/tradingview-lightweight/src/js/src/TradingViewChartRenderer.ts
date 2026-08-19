@@ -20,6 +20,7 @@ import type {
   SeriesType,
   DeepPartial,
   ChartOptions,
+  AutoscaleInfo,
   LogicalRange,
   YieldCurveChartOptions,
   PriceChartOptions,
@@ -369,6 +370,16 @@ class TradingViewChartRenderer {
 
   /** Whether scaffold is currently enabled. */
   private scaffoldEnabled = false;
+
+  /** Built-in scale ids frozen at chart level via autoScale:false. */
+  private frozenScaleIds: Set<string> = new Set();
+
+  /**
+   * Captured autoscale ranges for frozen scales, keyed by series id.
+   * Kept across configureSeries rebuilds so a frozen axis survives figure
+   * updates; cleared by resetPriceScales (double-click) to re-fit + re-freeze.
+   */
+  private frozenRanges: Map<string, { info: AutoscaleInfo | null }> = new Map();
 
   /**
    * Watermark options captured at construction (or via the most recent
@@ -766,15 +777,26 @@ class TradingViewChartRenderer {
         }
 
         // Apply per-series price scale options (autoScale, scaleMargins).
-        // autoScale:false is coerced to true: LWC has no way to seed a frozen
-        // scale with a fitted range, so freezing before data hides the series.
-        // Keeping the scale auto-fitting shows the data (see applyOptions).
-        if (config.priceScaleOptions) {
-          const pso = config.priceScaleOptions as Record<string, unknown>;
+        // autoScale:false means "fit once, then hold": the scale itself must
+        // stay auto (freezing before data hides the series), so the hold is
+        // implemented with an autoscaleInfoProvider (see freezeSeriesScale).
+        const pso = config.priceScaleOptions as
+          | Record<string, unknown>
+          | undefined;
+        if (pso != null) {
           if (pso.autoScale === false) {
             series.priceScale().applyOptions({ ...pso, autoScale: true });
+            this.freezeSeriesScale(config.id, series);
           } else {
-            series.priceScale().applyOptions(config.priceScaleOptions);
+            series.priceScale().applyOptions(pso);
+          }
+        }
+        // Chart-level autoScale:false on a built-in scale freezes every
+        // series attached to it.
+        if (pso?.autoScale !== false) {
+          const scaleId = (options.priceScaleId as string) ?? 'right';
+          if (this.frozenScaleIds.has(scaleId)) {
+            this.freezeSeriesScale(config.id, series);
           }
         }
 
@@ -933,13 +955,14 @@ class TradingViewChartRenderer {
 
     // A built-in scale set to autoScale:false up front freezes at a default
     // range with the data off-screen (LWC can't seed a frozen scale with a
-    // fitted range). Coerce it to true so the data stays visible.
+    // fitted range). Keep the scale auto and freeze it after the first fit
+    // instead, via each attached series' autoscaleInfoProvider.
     (
       [
         ['rightPriceScale', 'right'],
         ['leftPriceScale', 'left'],
       ] as const
-    ).forEach(([key]) => {
+    ).forEach(([key, scaleId]) => {
       const ps = (chartOpts as Record<string, unknown>)[key] as
         | Record<string, unknown>
         | undefined;
@@ -948,6 +971,15 @@ class TradingViewChartRenderer {
           ...ps,
           autoScale: true,
         };
+        this.frozenScaleIds.add(scaleId);
+        // Freeze series already attached to this scale — applyOptions can
+        // arrive after configureSeries (theme changes, reconnects).
+        this.seriesMap.forEach((series, id) => {
+          const sid = (series.options().priceScaleId as string) ?? 'right';
+          if (sid === scaleId) {
+            this.freezeSeriesScale(id, series);
+          }
+        });
       }
     });
 
@@ -1087,8 +1119,45 @@ class TradingViewChartRenderer {
     return out;
   }
 
+  /**
+   * Freeze a series' price scale: LWC keeps autoscaling, but the provider
+   * caches the first fit that yields a real price range and returns it on
+   * every later recompute, pinning the axis. LWC computes the range lazily
+   * during paint, so hooking its own recompute is the only race-free way to
+   * "fit once then hold" (there is no public set-price-range API).
+   */
+  private freezeSeriesScale(
+    seriesId: string,
+    series: ISeriesApi<SeriesType>
+  ): void {
+    let cache = this.frozenRanges.get(seriesId);
+    if (cache == null) {
+      cache = { info: null };
+      this.frozenRanges.set(seriesId, cache);
+    }
+    const cacheRef = cache;
+    series.applyOptions({
+      autoscaleInfoProvider: (
+        original: () => AutoscaleInfo | null
+      ): AutoscaleInfo | null => {
+        if (cacheRef.info == null) {
+          const info = original();
+          if (info?.priceRange != null) {
+            cacheRef.info = info;
+          }
+          return info;
+        }
+        return cacheRef.info;
+      },
+    });
+  }
+
   /** Reset all price scales to auto-fit visible data. */
   resetPriceScales(): void {
+    // Drop captured ranges so frozen scales re-fit once, then re-freeze.
+    this.frozenRanges.forEach(cache => {
+      cache.info = null;
+    });
     this.seriesMap.forEach(series => {
       try {
         series.priceScale().setAutoScale(true);

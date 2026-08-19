@@ -1034,28 +1034,78 @@ describe('TradingViewChartRenderer', () => {
       });
     });
 
-    it('coerces a per-series autoScale:false to true so data stays visible', () => {
+    /** Extract the autoscaleInfoProvider set on the mock series. */
+    function getFreezeProvider(): (
+      original: () => { priceRange: unknown } | null
+    ) => { priceRange: unknown } | null {
+      const call = mockSeriesInstance.applyOptions.mock.calls.find(
+        ([opts]) => opts.autoscaleInfoProvider != null
+      );
+      expect(call).toBeDefined();
+      return call?.[0].autoscaleInfoProvider;
+    }
+
+    const frozenSeriesConfig = {
+      id: 'line-1',
+      type: 'Line',
+      options: {},
+      dataMapping: { tableId: 0, columns: { time: 'T' } },
+      priceScaleOptions: {
+        autoScale: false,
+        scaleMargins: { top: 0.1, bottom: 0.2 },
+      },
+    } as unknown as TvlSeriesConfig;
+
+    it('keeps the scale auto and installs a freeze provider for per-series autoScale:false', () => {
       const renderer = createRenderer();
-      renderer.configureSeries([
-        {
-          id: 'line-1',
-          type: 'Line',
-          options: {},
-          dataMapping: { tableId: 0, columns: { time: 'T' } },
-          priceScaleOptions: {
-            autoScale: false,
-            scaleMargins: { top: 0.1, bottom: 0.2 },
-          },
-        },
-      ]);
+      renderer.configureSeries([frozenSeriesConfig]);
 
       expect(mockPriceScale.applyOptions).toHaveBeenCalledWith({
         autoScale: true,
         scaleMargins: { top: 0.1, bottom: 0.2 },
       });
+      expect(getFreezeProvider()).toBeInstanceOf(Function);
     });
 
-    it('coerces a chart-level right autoScale:false to true', () => {
+    it('freeze provider defers until data, pins the first fitted range, and re-fits after reset', () => {
+      const renderer = createRenderer();
+      renderer.configureSeries([frozenSeriesConfig]);
+      const provider = getFreezeProvider();
+
+      // No data yet: pass the original result through, don't freeze on null
+      expect(provider(() => null)).toBeNull();
+
+      // First real fit is captured...
+      const rangeA = { priceRange: { minValue: 10, maxValue: 20 } };
+      expect(provider(() => rangeA)).toBe(rangeA);
+
+      // ...and pinned: later recomputes return the frozen range
+      const rangeB = { priceRange: { minValue: 0, maxValue: 100 } };
+      expect(provider(() => rangeB)).toBe(rangeA);
+
+      // Double-click reset clears the pin so the scale re-fits + re-freezes
+      renderer.resetPriceScales();
+      expect(provider(() => rangeB)).toBe(rangeB);
+      const rangeC = { priceRange: { minValue: -1, maxValue: 1 } };
+      expect(provider(() => rangeC)).toBe(rangeB);
+    });
+
+    it('keeps the frozen range across configureSeries rebuilds', () => {
+      const renderer = createRenderer();
+      renderer.configureSeries([frozenSeriesConfig]);
+      const rangeA = { priceRange: { minValue: 10, maxValue: 20 } };
+      getFreezeProvider()(() => rangeA);
+
+      // Figure rebuild (e.g. autobin) recreates the series with the same id
+      mockSeriesInstance.applyOptions.mockClear();
+      renderer.configureSeries([frozenSeriesConfig]);
+      const provider = getFreezeProvider();
+      expect(provider(() => ({ priceRange: { minValue: 0, maxValue: 1 } }))).toBe(
+        rangeA
+      );
+    });
+
+    it('coerces a chart-level right autoScale:false to true and freezes attached series', () => {
       const renderer = createRenderer();
       renderer.applyOptions({
         rightPriceScale: { autoScale: false },
@@ -1063,6 +1113,37 @@ describe('TradingViewChartRenderer', () => {
       expect(mockChart.applyOptions).toHaveBeenCalledWith(
         expect.objectContaining({ rightPriceScale: { autoScale: true } })
       );
+
+      // Series created after the freeze default to the right scale
+      renderer.configureSeries([
+        {
+          id: 'line-1',
+          type: 'Line',
+          options: {},
+          dataMapping: { tableId: 0, columns: { time: 'T' } },
+        } as unknown as TvlSeriesConfig,
+      ]);
+      expect(getFreezeProvider()).toBeInstanceOf(Function);
+    });
+
+    it('freezes already-created series when chart-level autoScale:false arrives later', () => {
+      const renderer = createRenderer();
+      renderer.configureSeries([
+        {
+          id: 'line-1',
+          type: 'Line',
+          options: {},
+          dataMapping: { tableId: 0, columns: { time: 'T' } },
+        } as unknown as TvlSeriesConfig,
+      ]);
+      expect(
+        mockSeriesInstance.applyOptions.mock.calls.find(
+          ([opts]) => opts.autoscaleInfoProvider != null
+        )
+      ).toBeUndefined();
+
+      renderer.applyOptions({ rightPriceScale: { autoScale: false } } as never);
+      expect(getFreezeProvider()).toBeInstanceOf(Function);
     });
 
     it('should not call priceScale when no priceScaleOptions', () => {
