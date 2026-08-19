@@ -33,6 +33,9 @@ const mockColumnData = new Map<string, unknown[]>([
 ]);
 
 let mockVisibleRange = { from: 0, to: 100 };
+// Toggles the mock model's resampling state so tests can exercise the plain
+// ticking (non-downsampled) path as well as the downsampled path.
+let mockIsResampling = true;
 const mockVisibleRangeHandlers: Array<() => void> = [];
 const mockSizeHandlers: Array<() => void> = [];
 const mockModelInstances: unknown[] = [];
@@ -123,6 +126,8 @@ jest.mock('../TradingViewChartRenderer', () => {
 
     resetPriceScales = jest.fn();
 
+    freezeDeferredAutoScales = jest.fn();
+
     subscribeVisibleLogicalRangeChange = jest.fn(handler => {
       mockVisibleRangeHandlers.push(handler);
       return () => undefined;
@@ -185,8 +190,8 @@ jest.mock('../TradingViewChartModel', () => ({
       setDebugFn: jest.fn(),
       getFigureData: jest.fn(() => mockFigure),
       getColumnData: jest.fn(() => mockColumnData),
-      isResampling: jest.fn(() => true),
-      isDownsampled: jest.fn(() => true),
+      isResampling: jest.fn(() => mockIsResampling),
+      isDownsampled: jest.fn(() => mockIsResampling),
       isAutoBinned: jest.fn(() => false),
       getDownsampledTableIds: jest.fn(() => new Set([0])),
       getAutoBinMeta: jest.fn(() => ({})),
@@ -275,6 +280,7 @@ describe('TradingViewChart drag viewport handling', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockVisibleRange = { from: 0, to: 100 };
+    mockIsResampling = true;
     mockVisibleRangeHandlers.length = 0;
     mockSizeHandlers.length = 0;
     mockModelInstances.length = 0;
@@ -339,5 +345,40 @@ describe('TradingViewChart drag viewport handling', () => {
       from: 10,
       to: 60,
     });
+  });
+
+  it('tracks zoom on a non-resampled ticking chart so later ticks stop re-fitting', async () => {
+    // A plain ticking chart (no downsample/auto-bin) must still detect user
+    // zoom/pan; otherwise every tick calls fitContent and resets the view.
+    mockIsResampling = false;
+    await renderChart();
+    const renderer = mockRendererInstances[0] as { fitContent: jest.Mock };
+
+    act(() => {
+      jest.advanceTimersByTime(1000); // let the chart settle
+    });
+
+    // Establish the range-change baseline at the initial extent.
+    act(() => {
+      mockVisibleRangeHandlers.forEach(handler => handler());
+      jest.advanceTimersByTime(200);
+    });
+
+    // Pre-interaction tick keeps the view glued to the live extent (fits).
+    renderer.fitContent.mockClear();
+    emitDataUpdate({ addedCount: 1 });
+    expect(renderer.fitContent).toHaveBeenCalled();
+
+    // User zooms in (visible duration 100 -> 40 is a >10% change).
+    mockVisibleRange = { from: 30, to: 70 };
+    act(() => {
+      mockVisibleRangeHandlers.forEach(handler => handler());
+      jest.advanceTimersByTime(200);
+    });
+
+    // Post-interaction tick must NOT re-fit — the user's zoom is preserved.
+    renderer.fitContent.mockClear();
+    emitDataUpdate({ addedCount: 1 });
+    expect(renderer.fitContent).not.toHaveBeenCalled();
   });
 });

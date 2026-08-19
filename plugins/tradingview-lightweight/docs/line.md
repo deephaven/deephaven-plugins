@@ -103,25 +103,27 @@ styles = [
     ("sparse_dotted", -40.0),
 ]
 
-line_styles = tvl.chart(
-    *[
-        tvl.line(
-            base.update([f"Offset_{name} = Value + {offset}"]),
-            timestamp="Timestamp",
-            value=f"Offset_{name}",
-            line_style=name,
-            title=name,
-        )
-        for name, offset in styles
-    ],
-)
+
+def styled_line(name, offset):
+    # Offset each series vertically so the styles don't overlap.
+    return tvl.line(
+        base.update([f"Offset_{name} = Value + {offset}"]),
+        timestamp="Timestamp",
+        value=f"Offset_{name}",
+        line_style=name,
+        title=name,
+    )
+
+
+style_lines = [styled_line(name, offset) for name, offset in styles]
+line_styles = tvl.chart(*style_lines)
 ```
 
 All five styles render on the same chart, vertically offset.
 
 ### Every `LineType` value
 
-`line_type` controls how the line is drawn *between* points. The three options are:
+`line_type` controls how the line is drawn _between_ points. The three options are:
 
 - `"simple"`: straight segments (the default).
 - `"with_steps"`: horizontal segment then a vertical jump at each new point, useful for state data that hold constant between samples.
@@ -137,18 +139,20 @@ types = [
     ("curved", -20.0),
 ]
 
-line_types = tvl.chart(
-    *[
-        tvl.line(
-            base.update([f"Offset_{name} = Value + {offset}"]),
-            timestamp="Timestamp",
-            value=f"Offset_{name}",
-            line_type=name,
-            title=name,
-        )
-        for name, offset in types
-    ],
-)
+
+def typed_line(name, offset):
+    # Offset each series vertically so the line types don't overlap.
+    return tvl.line(
+        base.update([f"Offset_{name} = Value + {offset}"]),
+        timestamp="Timestamp",
+        value=f"Offset_{name}",
+        line_type=name,
+        title=name,
+    )
+
+
+type_lines = [typed_line(name, offset) for name, offset in types]
+line_types = tvl.chart(*type_lines)
 ```
 
 All three types render on the same chart, vertically offset. `with_steps` is the right choice for non-interpolated discrete-state data; `curved` is purely cosmetic.

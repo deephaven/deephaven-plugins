@@ -51,13 +51,13 @@ import deephaven.plot.tradingview_lightweight as tvl
 ohlc = tvl.data.ohlc()
 # A fake "RSI-like" indicator just to fill the pane.
 ohlc_rsi = ohlc.update_view([
-    "Rsi = 50.0 + Math.sin(ii * 0.15) * 30.0",
+    "Rsi = 50.0 + Math.sin(Index * 0.15) * 30.0",
 ])
 
 price = tvl.candlestick(ohlc_rsi, pane=0)
 volume = tvl.histogram(
     ohlc_rsi, timestamp="Timestamp", value="Volume", pane=1,
-    color="rgba(120,120,120,0.5)",
+    color="rgba(96,165,250,0.5)",
 )
 rsi = tvl.line(
     ohlc_rsi, timestamp="Timestamp", value="Rsi", color="#ab47bc",
@@ -81,7 +81,7 @@ ohlc = tvl.data.ohlc()
 price = tvl.candlestick(ohlc, pane=0)
 volume = tvl.histogram(
     ohlc, timestamp="Timestamp", value="Volume", pane=1,
-    color="rgba(120,120,120,0.5)",
+    color="rgba(96,165,250,0.5)",
 )
 
 # Price gets 3 units of vertical space; volume gets 1.
@@ -104,7 +104,7 @@ ohlc_filter = ohlc.where("Volume > 9999999")  # always empty
 price = tvl.candlestick(ohlc, pane=0)
 volume = tvl.histogram(
     ohlc_filter, timestamp="Timestamp", value="Volume", pane=1,
-    color="rgba(120,120,120,0.5)",
+    color="rgba(96,165,250,0.5)",
 )
 
 preserve_chart = tvl.chart(
@@ -128,7 +128,7 @@ ohlc = tvl.data.ohlc()
 price = tvl.candlestick(ohlc, pane=0)
 volume = tvl.histogram(
     ohlc, timestamp="Timestamp", value="Volume", pane=1,
-    color="rgba(120,120,120,0.5)",
+    color="rgba(96,165,250,0.5)",
 )
 
 styled_pane = tvl.chart(
@@ -148,7 +148,9 @@ The chart entry point is `tvl.chart()`. The pane-related options it accepts are 
 For the full `tvl.chart` signature, see the [Chart container](chart.md#api-reference) page.
 
 ```{eval-rst}
+
 ```
 
 ```{eval-rst}
+
 ```

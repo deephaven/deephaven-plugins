@@ -1,6 +1,7 @@
 // Manual mock for lightweight-charts module
 const mockPriceScale = {
   applyOptions: jest.fn(),
+  setAutoScale: jest.fn(),
 };
 
 const mockPriceLine = {
@@ -10,6 +11,7 @@ const mockPriceLine = {
 
 const mockSeriesInstance = {
   setData: jest.fn(),
+  data: jest.fn(() => []),
   createPriceLine: jest.fn(() => mockPriceLine),
   priceScale: jest.fn(() => mockPriceScale),
   options: jest.fn(() => ({})),
@@ -48,6 +50,7 @@ const mockChart = {
   resize: jest.fn(),
   remove: jest.fn(),
   timeScale: jest.fn(() => mockTimeScale),
+  priceScale: jest.fn(() => mockPriceScale),
   panes: jest.fn(() => [mockPane, mockPane2]),
   subscribeClick: jest.fn(),
   unsubscribeClick: jest.fn(),

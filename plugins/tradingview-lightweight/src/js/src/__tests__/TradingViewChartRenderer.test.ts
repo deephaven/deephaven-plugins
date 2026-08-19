@@ -1023,7 +1023,6 @@ describe('TradingViewChartRenderer', () => {
           options: {},
           dataMapping: { tableId: 0, columns: { time: 'T' } },
           priceScaleOptions: {
-            autoScale: false,
             scaleMargins: { top: 0.1, bottom: 0.2 },
           },
         },
@@ -1031,9 +1030,39 @@ describe('TradingViewChartRenderer', () => {
 
       expect(mockSeriesInstance.priceScale).toHaveBeenCalled();
       expect(mockPriceScale.applyOptions).toHaveBeenCalledWith({
-        autoScale: false,
         scaleMargins: { top: 0.1, bottom: 0.2 },
       });
+    });
+
+    it('coerces a per-series autoScale:false to true so data stays visible', () => {
+      const renderer = createRenderer();
+      renderer.configureSeries([
+        {
+          id: 'line-1',
+          type: 'Line',
+          options: {},
+          dataMapping: { tableId: 0, columns: { time: 'T' } },
+          priceScaleOptions: {
+            autoScale: false,
+            scaleMargins: { top: 0.1, bottom: 0.2 },
+          },
+        },
+      ]);
+
+      expect(mockPriceScale.applyOptions).toHaveBeenCalledWith({
+        autoScale: true,
+        scaleMargins: { top: 0.1, bottom: 0.2 },
+      });
+    });
+
+    it('coerces a chart-level right autoScale:false to true', () => {
+      const renderer = createRenderer();
+      renderer.applyOptions({
+        rightPriceScale: { autoScale: false },
+      } as never);
+      expect(mockChart.applyOptions).toHaveBeenCalledWith(
+        expect.objectContaining({ rightPriceScale: { autoScale: true } })
+      );
     });
 
     it('should not call priceScale when no priceScaleOptions', () => {

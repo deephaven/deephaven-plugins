@@ -23,7 +23,7 @@ The mechanism is the `price_scale_id` parameter on every per-type constructor. L
 
 ### Put one series on the left, one on the right
 
-Two series, two built-in scales. Set `price_scale_id="left"` to draw the axis on the left, and `"right"` (the default) for the right.
+Two series, two built-in scales. `price_scale_id` options are `"left"` and `"right"` (the default).
 
 ```python order=lr_chart,stocks,aaa,bbb
 import deephaven.plot.tradingview_lightweight as tvl
@@ -43,8 +43,8 @@ s_bbb = tvl.line(
 
 lr_chart = tvl.chart(
     s_aaa, s_bbb,
-    left_price_scale_visible=True,
-    right_price_scale_visible=True,
+    left_price_scale=tvl.price_scale(visible=True),
+    right_price_scale=tvl.price_scale(visible=True),
 )
 ```
 
@@ -62,7 +62,7 @@ ohlc = tvl.data.ohlc()
 price = tvl.candlestick(ohlc, price_scale_id="right")
 vol = tvl.histogram(
     ohlc, timestamp="Timestamp", value="Volume",
-    color="rgba(120,120,120,0.5)",
+    color="rgba(96,165,250,0.5)",
     price_scale_id="volume",  # overlay scale, anything not "left"/"right"
     scale_margin_top=0.8,     # squash volume into the bottom 20%
     scale_margin_bottom=0.0,
@@ -70,8 +70,7 @@ vol = tvl.histogram(
 
 overlay_chart = tvl.chart(
     price, vol,
-    overlay_price_scale_margin_top=0.8,
-    overlay_price_scale_margin_bottom=0.0,
+    overlay_price_scale=tvl.price_scale(margin_top=0.8, margin_bottom=0.0),
 )
 ```
 
@@ -92,8 +91,8 @@ price = tvl.candlestick(ohlc)
 default_left = tvl.chart(
     price,
     default_visible_price_scale_id="left",
-    left_price_scale_visible=True,
-    right_price_scale_visible=False,
+    left_price_scale=tvl.price_scale(visible=True),
+    right_price_scale=tvl.price_scale(visible=False),
 )
 ```
 
@@ -101,7 +100,8 @@ With `default_visible_price_scale_id="left"`, the candlestick series renders aga
 
 ### Style the left, right, and overlay scales
 
-Each scale (`left`, `right`, `overlay`) has its own block of chart-level options. They mirror each other; here we set border color, text color, and mode independently.
+Each scale (`left`, `right`, `overlay`) takes its own `price_scale()` object. They
+mirror each other; here we set border color, text color, and mode independently.
 
 ```python order=styled_scales,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -115,24 +115,30 @@ ma = tvl.line(
 )
 vol = tvl.histogram(
     ohlc, timestamp="Timestamp", value="Volume",
-    color="rgba(120,120,120,0.5)", price_scale_id="vol",
+    color="rgba(96,165,250,0.5)", price_scale_id="vol",
 )
 
 styled_scales = tvl.chart(
     price, ma, vol,
     # right (price) — log-scale demonstration
-    right_price_scale_visible=True,
-    right_price_scale_mode="logarithmic",
-    right_price_scale_border_color="#1976d2",
-    right_price_scale_text_color="#1976d2",
+    right_price_scale=tvl.price_scale(
+        visible=True,
+        mode="logarithmic",
+        border_color="#1976d2",
+        text_color="#1976d2",
+    ),
     # left (MA) — percentage mode
-    left_price_scale_visible=True,
-    left_price_scale_mode="percentage",
-    left_price_scale_border_color="#ff9800",
-    left_price_scale_text_color="#ff9800",
+    left_price_scale=tvl.price_scale(
+        visible=True,
+        mode="percentage",
+        border_color="#ff9800",
+        text_color="#ff9800",
+    ),
     # overlay (volume)
-    overlay_price_scale_border_color="#999",
-    overlay_price_scale_ticks_visible=False,
+    overlay_price_scale=tvl.price_scale(
+        border_color="#999",
+        ticks_visible=False,
+    ),
 )
 ```
 
@@ -140,7 +146,7 @@ Three scales, three colors. Note the modes: the right scale is log-scaled while 
 
 ### Tune tick mark density per scale
 
-`*_price_scale_tick_mark_density` controls how aggressively each scale draws tick labels. Higher values pack more ticks; lower values thin them out.
+The `tick_mark_density` field on each scale's `price_scale()` controls how aggressively it draws tick labels. Higher values pack more ticks; lower values thin them out.
 
 ```python order=density_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -155,14 +161,12 @@ ma = tvl.line(
 
 density_chart = tvl.chart(
     price, ma,
-    left_price_scale_visible=True,
-    right_price_scale_visible=True,
-    right_price_scale_tick_mark_density=2.0,   # extra ticks
-    left_price_scale_tick_mark_density=0.5,    # half as many ticks
+    left_price_scale=tvl.price_scale(visible=True, tick_mark_density=0.5),   # low value -> more ticks
+    right_price_scale=tvl.price_scale(visible=True, tick_mark_density=4.0),  # high value -> fewer ticks
 )
 ```
 
-The right scale gets more tick labels; the left gets fewer. Use this to balance readability across scales that have different value ranges.
+`tick_mark_density` is the tick _spacing_, so it reads inverted: a **lower** value packs in **more** tick labels (the left scale here), and a **higher** value spaces them out for **fewer** (the right scale). Use it to balance readability across scales that have different value ranges.
 
 ### Auto-scale and invert per scale
 
@@ -181,19 +185,23 @@ price = tvl.candlestick(
 
 invert_chart = tvl.chart(
     price,
-    right_price_scale_invert_scale=True,  # same effect at the chart level
-    right_price_scale_auto_scale=True,
+    right_price_scale=tvl.price_scale(
+        invert_scale=True,  # same effect at the chart level
+        auto_scale=True,
+    ),
 )
 ```
 
-`scale_invert` on the series and `right_price_scale_invert_scale` on the chart are equivalent ways to flip the right axis.
+`scale_invert` on the series and `invert_scale` on the chart's `price_scale` are equivalent ways to flip the right axis.
 
 ## API Reference
 
-For the full `tvl.chart` signature (including all `left_price_scale_*`, `right_price_scale_*`, and `overlay_price_scales` options), see the [Chart container](chart.md#api-reference) page.
+For the full `tvl.chart` signature (which takes `left_price_scale=`, `right_price_scale=`, and `overlay_price_scale=` as `tvl.price_scale(...)` objects), see the [Chart container](chart.md#api-reference) page.
 
 ```{eval-rst}
+
 ```
 
 ```{eval-rst}
+
 ```

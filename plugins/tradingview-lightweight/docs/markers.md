@@ -103,12 +103,12 @@ ohlc = tvl.data.ohlc()
 
 # Build a signals table off of the OHLC data: tag every 10th row alternately.
 signals = ohlc.update_view([
-    "Side = (ii % 20 < 10) ? `BUY` : `SELL`",
+    "Side = (Index % 20 < 10) ? `BUY` : `SELL`",
     "Pos  = Side == `BUY` ? `below_bar` : `above_bar`",
     "Sym  = Side == `BUY` ? `arrow_up` : `arrow_down`",
     "Col  = Side == `BUY` ? `#2e7d32` : `#c62828`",
     "Lbl  = Side",
-]).where("ii % 10 == 0")
+]).where("Index % 10 == 0")
 
 spec = tvl.markers_from_table(
     signals, timestamp="Timestamp",
@@ -133,7 +133,7 @@ If every marker shares the same shape and color, omit the per-row column and set
 import deephaven.plot.tradingview_lightweight as tvl
 
 ohlc = tvl.data.ohlc()
-events = ohlc.where("ii % 7 == 0").update_view(["Note = `event ` + i"])
+events = ohlc.where("Index % 7 == 0").update_view(["Note = `event ` + Index"])
 
 spec = tvl.markers_from_table(
     events, timestamp="Timestamp",
@@ -158,7 +158,7 @@ import deephaven.plot.tradingview_lightweight as tvl
 
 ohlc = tvl.data.ohlc()
 
-levels = ohlc.where("ii % 12 == 0").update_view([
+levels = ohlc.where("Index % 12 == 0").update_view([
     "Level = Close + 2.0",  # mark 2 above the close
 ])
 
@@ -206,7 +206,7 @@ The helper returns a `list[Marker]` that drops straight into the series' `marker
 
 ### Type aliases: `MarkerSign` and `MismatchDirection`
 
-Two Literal aliases live alongside the marker API for completeness. `MarkerSign` annotates a marker's polarity (`"negative"`, `"neutral"`, `"positive"`); it threads through to the JS `SeriesMarker.sign` field and is mainly consumed by JS-side renderer hooks. `MismatchDirection` (`"nearest_left"`, `"none"`, `"nearest_right"`) selects the lookup behavior of `ISeriesApi.dataByIndex()` / `barsInLogicalRange()` on the JS runtime. It is exported for type-hint completeness and isn't accepted as a Python kwarg today.
+Two Literal aliases live alongside the marker API for completeness. `MarkerSign` (`"negative"`, `"neutral"`, `"positive"`) annotates a marker's polarity and is consumed by the JS renderer. `MismatchDirection` (`"nearest_left"`, `"none"`, `"nearest_right"`) is a JS-side lookup mode, exported for type-hint completeness but not accepted as a Python kwarg today.
 
 ```python
 import deephaven.plot.tradingview_lightweight as tvl

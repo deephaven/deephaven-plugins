@@ -7,9 +7,9 @@
 
 # Large Data
 
-TVL is designed to chart tables that don't fit in the browser. This page covers multi-million-row tables: where the performance crossover lies, what each path costs, and how to pick between the two server-side strategies (min/max downsampling and aggregation autobinning).
+This page is the "how big is too big, and which path do I get?" overview. The mechanics live elsewhere — [downsampling](downsampling.md) (Line / Area / Baseline) and [autobinning](autobin.md) (Histogram / Candlestick / Bar) — so here we focus only on the sizing rules of thumb and the cost model that apply to both.
 
-The short version: for **Line / Area / Baseline series**, use the automatic min/max [downsampling](downsampling.md) path. For **Histogram / Candlestick / Bar series**, use [autobinning](autobin.md). Both run in the Deephaven query engine and ship only the post-aggregation buckets to the browser.
+The short version: you don't choose. `tvl.line(...)` downsamples, `tvl.histogram(...)` autobins, and both run in the Deephaven engine and ship only post-aggregation buckets to the browser. Read on if you want to reason about where the time goes at 1M+ rows.
 
 ## What does "large" mean here?
 
@@ -20,22 +20,22 @@ The short version: for **Line / Area / Baseline series**, use the automatic min/
 
 ## What are the costs?
 
-| Cost                       | Where it lives                       | Driven by                                              |
-| -------------------------- | ------------------------------------ | ------------------------------------------------------ |
-| Aggregation (server-side)  | Deephaven engine                     | Row count × bin reduction complexity                   |
-| Serialization              | Server → client wire                 | Bin count (not row count after aggregation)            |
-| Client-side rendering      | Browser, lightweight-charts          | Bin count, viewport pixel width, animation frame rate  |
-| Re-aggregation on pan/zoom | Engine + wire                        | Bin count budget, range listener thresholds            |
+| Cost                       | Where it lives              | Driven by                                             |
+| -------------------------- | --------------------------- | ----------------------------------------------------- |
+| Aggregation (server-side)  | Deephaven engine            | Row count × bin reduction complexity                  |
+| Serialization              | Server → client wire        | Bin count (not row count after aggregation)           |
+| Client-side rendering      | Browser, lightweight-charts | Bin count, viewport pixel width, animation frame rate |
+| Re-aggregation on pan/zoom | Engine + wire               | Bin count budget, range listener thresholds           |
 
 The big win of the server-side paths is that **serialization and rendering cost scale with bin count, not row count**. A 10M-row table downsampled to a 2000-pixel-wide chart serializes ~2000 buckets. The same size as a 2000-row table without downsampling.
 
 ## Downsampling vs. autobinning: when to use which
 
-| Series type | Path | Why |
-|---|---|---|
-| Line, Area, Baseline | Min/max downsampling | Min/max-per-pixel preserves spikes; cheaper than full aggregation |
-| Candlestick, Bar | Autobinning (OHLC reduction) | OHLC requires first/max/min/last per bin |
-| Histogram | Autobinning (sum/count/avg/last) | Bars need a true reduction; min/max would lose meaning |
+| Series type          | Path                             | Why                                                               |
+| -------------------- | -------------------------------- | ----------------------------------------------------------------- |
+| Line, Area, Baseline | Min/max downsampling             | Min/max-per-pixel preserves spikes; cheaper than full aggregation |
+| Candlestick, Bar     | Autobinning (OHLC reduction)     | OHLC requires first/max/min/last per bin                          |
+| Histogram            | Autobinning (sum/count/avg/last) | Bars need a true reduction; min/max would lose meaning            |
 
 You don't usually have to pick. `tvl.line()` uses downsampling, `tvl.histogram()` uses autobinning, etc. The choice is determined by the chart type.
 
@@ -53,7 +53,7 @@ large = tvl.data.large_prices()
 chart = tvl.line(large, timestamp="Timestamp", value="Price")
 ```
 
-Drag-zoom into a small window: the chart refetches a finer aggregation. Click "reset zoom" (double-click an axis if `handle_scale_axis_double_click_reset` is on): the coarse view returns.
+Drag-zoom into a small window: the chart refetches a finer aggregation. Click "reset zoom" (double-click an axis if `tvl.scale(axis_double_click_reset=True)` was passed to `handle_scale`): the coarse view returns.
 
 ### Autobin a histogram over a large table
 
@@ -145,7 +145,7 @@ chart = tvl.chart(
 
 ### Tune conflation precompute priority
 
-The conflation pipeline has an optional precompute step. When `precompute_conflation_on_init=True`, the chart kicks off the precomputation as a browser-scheduled task; `precompute_conflation_priority` (typed as the `PrecomputeConflationPriority` Literal alias) tells the scheduler how aggressive that task should be. The three values map directly to the browser `Scheduler.postTask` levels: `"background"` runs whenever the main thread is idle, `"user-visible"` (the default) runs in front of background work, and `"user-blocking"` preempts most other browser work.
+The conflation pipeline has an optional precompute step, configured on the `tvl.time_scale(...)` object. When `precompute_conflation_on_init=True`, the chart kicks off the precomputation as a browser-scheduled task; `precompute_conflation_priority` (typed as the `PrecomputeConflationPriority` Literal alias) tells the scheduler how aggressive that task should be. The three values map directly to the browser `Scheduler.postTask` levels: `"background"` runs whenever the main thread is idle, `"user-visible"` (the default) runs in front of background work, and `"user-blocking"` preempts most other browser work.
 
 ```python order=background_chart,visible_chart,blocking_chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -155,37 +155,35 @@ large = tvl.data.large_prices()
 # Let precompute run in the background; cheapest, gives up some warm-up time.
 background_chart = tvl.chart(
     tvl.line(large, timestamp="Timestamp", value="Price"),
-    enable_conflation=True,
-    precompute_conflation_on_init=True,
-    precompute_conflation_priority="background",
+    time_scale=tvl.time_scale(
+        enable_conflation=True,
+        precompute_conflation_on_init=True,
+        precompute_conflation_priority="background",
+    ),
 )
 
 # Default tier — precompute runs ahead of background tasks.
 visible_chart = tvl.chart(
     tvl.line(large, timestamp="Timestamp", value="Price"),
-    enable_conflation=True,
-    precompute_conflation_on_init=True,
-    precompute_conflation_priority="user-visible",
+    time_scale=tvl.time_scale(
+        enable_conflation=True,
+        precompute_conflation_on_init=True,
+        precompute_conflation_priority="user-visible",
+    ),
 )
 
 # Highest priority — best for first-paint latency, costs the most main-thread time.
 blocking_chart = tvl.chart(
     tvl.line(large, timestamp="Timestamp", value="Price"),
-    enable_conflation=True,
-    precompute_conflation_on_init=True,
-    precompute_conflation_priority="user-blocking",
+    time_scale=tvl.time_scale(
+        enable_conflation=True,
+        precompute_conflation_on_init=True,
+        precompute_conflation_priority="user-blocking",
+    ),
 )
 ```
 
 `enable_conflation` and `conflation_threshold_factor` control the conflation pipeline itself; the priority kwarg only matters when `precompute_conflation_on_init=True`.
-
-## Benchmarking notes
-
-The `AGENTS.md` in this plugin has a "Downsample Benchmarking" section describing how to run isolated `dh exec` benchmarks. The headline finding: each approach must run in its own process, because JVM warmup biases later runs. The reference fixture in those benchmarks is 10M rows with three value columns (`Price`, `Volume`, `Spread`), aggregated to 1000 bins.
-
-The benchmark approach lets you compare alternatives. For example, `update_view` + `agg_by` (what TVL uses) against a hand-rolled `where` + `view` chain. For most users, the built-in path is what you want; the benchmarks are there for when you're tuning the engine layer.
-
-To run them: write each candidate as a standalone script under `notes/`, then invoke with `dh exec notes/bench_<name>.py 2>&1 | grep "^RESULT:"`. The `notes/bench_isolated.sh` script automates the run-each-in-its-own-process pattern.
 
 ## Picking parameters
 

@@ -2,7 +2,7 @@
 
 A multi-series TradingView Lightweight chart is a single chart that hosts two or more independent series, for example a candlestick price series with a moving-average line drawn on top. Use it to overlay related data on shared axes rather than stacking it into separate panes.
 
-There are two ways to end up with multiple series. The explicit pattern, used for most of this page, is to call one per-type constructor per series to build a single-series TvlChart and pass them positionally to [`tvl.chart()`](#api-reference); use this when you mix series *types* or pull series from different tables. The shortcut, when the series share a type and a single table and differ only by a partition column, is to pass `by="Column"` to one constructor and let the chart fan it out into one series per key (see [Create one series per group with `by`](#create-one-series-per-group-with-by) below). Either way there is no `add_series()` method on `TvlChart`; series are immutable once the chart is constructed.
+There are two ways to end up with multiple series. The explicit pattern, used for most of this page, is to call one per-type constructor per series to build a single-series TvlChart and pass them positionally to [`tvl.chart()`](#api-reference); use this when you mix series _types_ or pull series from different tables. The shortcut, when the series share a type and a single table and differ only by a partition column, is to pass `by="Column"` to one constructor and let the chart fan it out into one series per key (see [Create one series per group with `by`](#create-one-series-per-group-with-by) below). Either way there is no `add_series()` method on `TvlChart`; series are immutable once the chart is constructed.
 
 <!-- coverage-seen-elsewhere:
   pane_index -> multi-pane.md
@@ -70,15 +70,17 @@ Both series share one chart: they sit on the same time axis and the same price a
 
 ### Overlay a moving-average line on a candlestick
 
-The "price + indicator" pattern: a candlestick series for the bars and a line series for a derived signal. The line is computed in a Deephaven `update_view` so it ticks along with the source table.
+The "price + indicator" pattern: a candlestick series for the bars and a line series for a derived signal. The line is computed with a Deephaven `update_by` rolling average, so it ticks along with the source table.
 
 ```python order=overlay_chart,ohlc_with_sma,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
+from deephaven.updateby import rolling_avg_tick
 
 ohlc = tvl.data.ohlc()
-ohlc_with_sma = ohlc.update_view([
-    "Sma = (Close + Close_[i-1] + Close_[i-2]) / 3",
-])
+# 3-tick rolling average of Close, computed server-side so it ticks with the data.
+ohlc_with_sma = ohlc.update_by(
+    ops=[rolling_avg_tick(cols=["Sma = Close"], rev_ticks=3)],
+)
 
 bars = tvl.candlestick(ohlc_with_sma)
 sma = tvl.line(
@@ -86,7 +88,8 @@ sma = tvl.line(
     color="#ff9800", line_width=2,
 )
 
-overlay_chart = tvl.chart(bars, sma, watermark_text="Price + SMA(3)")
+# watermark= adds a faint background label to the whole chart.
+overlay_chart = tvl.chart(bars, sma, watermark=tvl.watermark(text="Price + SMA(3)"))
 ```
 
 The candlestick TvlChart provides the price axis; the SMA line draws on the same scale.
@@ -124,7 +127,7 @@ ohlc = tvl.data.ohlc()
 closes = tvl.line(ohlc, timestamp="Timestamp", value="Close",
                         color="#2e7d32", line_width=2)
 vols = tvl.histogram(ohlc, timestamp="Timestamp", value="Volume",
-                            color="rgba(120,120,120,0.45)",
+                            color="rgba(96,165,250,0.5)",
                             price_scale_id="vol")
 
 mix_chart = tvl.chart(closes, vols)

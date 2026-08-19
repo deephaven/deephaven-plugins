@@ -6,8 +6,8 @@
   watermark_text -> watermark.md
   watermark_lines -> watermark.md
   watermark_image_url -> watermark.md
-  right_price_scale_mode -> price-scale.md
-  left_price_scale_mode -> price-scale.md
+  right_price_scale -> price-scale.md
+  left_price_scale -> price-scale.md
   default_visible_price_scale_id -> multiple-axes.md
   time_visible -> time-scale.md
   seconds_visible -> time-scale.md
@@ -35,7 +35,7 @@ All styling kwargs in this guide live on `chart()` and on every convenience fact
 
 ### Apply a dark theme
 
-The simplest theme switch is three colors: background, text, and grid. Pass them to `chart()` and the whole surface re-renders against the new palette. The grid uses the `vert_lines_*` / `horz_lines_*` families so you can color and style the two axes independently.
+The simplest theme switch is three colors: background, text, and grid. Pass them to `chart()` and the whole surface re-renders against the new palette. The grid is configured with a `grid()` object holding a `grid_lines()` for each axis, so you can color and style the two axes independently.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -45,8 +45,10 @@ chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
     background_color="#1e1e1e",
     text_color="#e0e0e0",
-    vert_lines_color="#2a2a2a",
-    horz_lines_color="#2a2a2a",
+    grid=tvl.grid(
+        vert=tvl.grid_lines(color="#2a2a2a"),
+        horz=tvl.grid_lines(color="#2a2a2a"),
+    ),
 )
 ```
 
@@ -65,8 +67,10 @@ chart = tvl.chart(
     background_top_color="#0d1b2a",
     background_bottom_color="#1b263b",
     text_color="#e0e1dd",
-    vert_lines_color="#22304a",
-    horz_lines_color="#22304a",
+    grid=tvl.grid(
+        vert=tvl.grid_lines(color="#22304a"),
+        horz=tvl.grid_lines(color="#22304a"),
+    ),
 )
 ```
 
@@ -87,7 +91,7 @@ chart = tvl.chart(
 
 ### Customize grid lines
 
-The grid is two independent sets of lines: vertical (time-axis grid) and horizontal (price-axis grid). Each has visibility, color, and `LineStyle` controls. Use `horz_lines_visible=False` to hide one set while keeping the other.
+The grid is two independent sets of lines: vertical (time-axis grid) and horizontal (price-axis grid). Each `grid_lines()` has visibility, color, and `LineStyle` controls. Pass `tvl.grid_lines(visible=False)` for one axis to hide that set while keeping the other.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -95,12 +99,10 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    vert_lines_visible=True,
-    vert_lines_color="#3a3a3a",
-    vert_lines_style="dashed",
-    horz_lines_visible=True,
-    horz_lines_color="#3a3a3a",
-    horz_lines_style="dotted",
+    grid=tvl.grid(
+        vert=tvl.grid_lines(visible=True, color="#3a3a3a", style="dashed"),
+        horz=tvl.grid_lines(visible=True, color="#3a3a3a", style="dotted"),
+    ),
 )
 ```
 
@@ -114,17 +116,17 @@ The `CrosshairMode` enum controls how the cursor crosshair behaves on hover. `"n
 import deephaven.plot.tradingview_lightweight as tvl
 values = tvl.data.values()
 
-normal = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair_mode="normal")
-magnet = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair_mode="magnet")
-magnet_ohlc = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair_mode="magnet_ohlc")
-hidden = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair_mode="hidden")
+normal = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair=tvl.crosshair(mode="normal"))
+magnet = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair=tvl.crosshair(mode="magnet"))
+magnet_ohlc = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair=tvl.crosshair(mode="magnet_ohlc"))
+hidden = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), crosshair=tvl.crosshair(mode="hidden"))
 ```
 
 Use `"magnet"` for sparse data where exact-point readouts matter; `"normal"` for continuous-feeling cursor tracking on dense data.
 
 ### Tune the crosshair line and label
 
-Beyond the mode, every crosshair line and label has its own color, width, style, and visibility kwargs. The vertical (`crosshair_vert_line_*`) line crosses the time axis and the horizontal (`crosshair_horz_line_*`) line crosses the price axis.
+Beyond the mode, every crosshair line and label has its own color, width, style, and visibility options. Build a `crosshair_line()` for the vertical line (which crosses the time axis) and another for the horizontal line (which crosses the price axis), and pass them as `vert_line=` / `horz_line=` on `crosshair()`.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -132,20 +134,26 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    crosshair_mode="normal",
-    crosshair_vert_line_color="#ffc857",
-    crosshair_vert_line_width=2,
-    crosshair_vert_line_style="dashed",
-    crosshair_vert_line_label_visible=True,
-    crosshair_vert_line_label_background_color="#ffc857",
-    crosshair_horz_line_color="#ffc857",
-    crosshair_horz_line_width=2,
-    crosshair_horz_line_style="dotted",
-    crosshair_horz_line_label_background_color="#ffc857",
+    crosshair=tvl.crosshair(
+        mode="normal",
+        vert_line=tvl.crosshair_line(
+            color="#ffc857",
+            width=2,
+            style="dashed",
+            label_visible=True,
+            label_background_color="#ffc857",
+        ),
+        horz_line=tvl.crosshair_line(
+            color="#ffc857",
+            width=2,
+            style="dotted",
+            label_background_color="#ffc857",
+        ),
+    ),
 )
 ```
 
-`crosshair_do_not_snap_to_hidden_series` is helpful in magnet mode when you want the crosshair to ignore series the user has toggled off.
+The `do_not_snap_to_hidden_series` option on `crosshair()` is helpful in magnet mode when you want the crosshair to ignore series the user has toggled off.
 
 ### Hover the active series on top
 
@@ -221,7 +229,7 @@ The two `ColorSpace` enum values are `"srgb"` and `"display-p3"`.
 
 ### Control scroll and zoom interactions
 
-The `handle_scroll_*` and `handle_scale_*` families enable or disable specific input gestures, such as mouse wheel zoom, touch drag, and double-click reset. The top-level `handle_scroll` and `handle_scale` booleans short-circuit all sub-options.
+Pass `tvl.scroll(...)` / `tvl.scale(...)` to `handle_scroll` / `handle_scale` to enable or disable specific input gestures, such as mouse wheel zoom, touch drag, and double-click reset. `handle_scroll` and `handle_scale` also accept a plain bool to short-circuit all sub-options at once.
 
 ```python order=chart,tap_exit,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -229,10 +237,14 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    handle_scroll_mouse_wheel=True,
-    handle_scroll_pressed_mouse_move=True,
-    handle_scale_pinch=True,
-    handle_scale_axis_double_click_reset=True,
+    handle_scroll=tvl.scroll(
+        mouse_wheel=True,
+        pressed_mouse_move=True,
+    ),
+    handle_scale=tvl.scale(
+        pinch=True,
+        axis_double_click_reset=True,
+    ),
     kinetic_scroll_mouse=False,
     tracking_mode_exit_mode="on_touch_end",
 )
@@ -245,6 +257,14 @@ tap_exit = tvl.chart(
 ```
 
 `TrackingModeExitMode` accepts `"on_touch_end"` and `"on_next_tap"`.
+
+The granular gesture controls live on the `Scroll` and `Scale` objects: `tvl.scroll(...)` toggles `mouse_wheel`, `pressed_mouse_move`, `horz_touch_drag`, and `vert_touch_drag`, while `tvl.scale(...)` toggles `mouse_wheel`, `pinch`, `axis_pressed_mouse_move`, and `axis_double_click_reset`. Pass a plain bool to `handle_scroll` / `handle_scale` to toggle everything at once.
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.scroll
+
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.scale
+```
 
 ### Switch last-price animation modes
 
@@ -266,4 +286,19 @@ The three values map directly to the `LastPriceAnimationMode` Literal alias. Use
 
 ## API Reference
 
-For the full `tvl.chart` signature, see the [Chart container](chart.md#api-reference) page.
+Grid lines and the crosshair are configured with grouped objects: `tvl.grid(...)`
+(holding a `tvl.grid_lines(...)` per axis) returns a `Grid` / `GridLines`, and
+`tvl.crosshair(...)` (holding a `tvl.crosshair_line(...)` per line) returns a
+`Crosshair` / `CrosshairLine`. Pass them to `grid=` and `crosshair=` on
+`tvl.chart(...)`. For the full `tvl.chart` signature, see the
+[Chart container](chart.md#api-reference) page.
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.grid
+
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.grid_lines
+
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.crosshair
+
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.crosshair_line
+```

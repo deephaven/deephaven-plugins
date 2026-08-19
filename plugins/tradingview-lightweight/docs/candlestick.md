@@ -116,9 +116,9 @@ data = tvl.data.ohlc()
 
 candlestick = tvl.candlestick(
     data,
-    up_color="gray-500",
-    down_color="gray-500",
-    border_up_color="gray-500",
+    up_color="gray-800",
+    down_color="gray-800",
+    border_up_color="gray-800",
     border_down_color="transparent",
 )
 ```
@@ -135,8 +135,8 @@ data = tvl.data.ohlc()
 
 candlestick = tvl.candlestick(
     data,
-    wick_up_color="gray-500",
-    wick_down_color="gray-500",
+    wick_up_color="gray-800",
+    wick_down_color="gray-800",
 )
 ```
 
@@ -179,9 +179,9 @@ data = tvl.data.ohlc()
 candlestick = tvl.candlestick(
     data,
     border_visible=True,
-    border_color="gray-500",
+    border_color="gray-800",
     wick_visible=True,
-    wick_color="gray-400",
+    wick_color="gray-700",
 )
 ```
 

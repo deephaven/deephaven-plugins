@@ -21,24 +21,18 @@ Use this page when you have a high-rate tick stream and want a histogram or cand
 
 Every aggregating series (`histogram`, `candlestick`, `bar`) accepts three parameters:
 
-| param | meaning |
-|---|---|
-| `auto_bin` | Tri-state: `None` (default) auto-detects; `True` forces autobinning on; `False` opts out. |
-| `bin_width` | ISO-8601 duration override (e.g. `"PT1S"`, `"PT5M"`, `"PT1H"`, `"P1D"`). |
-| `bin_count` | Target number of bins (default 5000). |
-| `agg` | (Histogram only) Reduction mode: `"sum"`, `"count"`, `"avg"`, `"last"`. |
+| param       | meaning                                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| `auto_bin`  | Tri-state: `None` (default) auto-detects; `True` forces autobinning on; `False` opts out. |
+| `bin_width` | ISO-8601 duration override (e.g. `"PT1S"`, `"PT5M"`, `"PT1H"`, `"P1D"`).                  |
+| `bin_count` | Target number of bins (default 5000).                                                     |
+| `agg`       | (Histogram only) Reduction mode: `"sum"`, `"count"`, `"avg"`, `"last"`.                   |
 
 Default policy: when `auto_bin is None`, the chart auto-enables binning if the input table exceeds the `AUTO_BIN_THRESHOLD` (5000 rows). When `auto_bin=True`, binning is forced regardless of row count. When `auto_bin=False`, the chart uses the table as-is and assumes it's already aggregated.
 
-## Algorithm
+## How the bin width is chosen
 
-The source of truth is `src/deephaven/plot/tradingview_lightweight/auto_bin.py`. The pipeline is:
-
-1. **`target_bins_for_width(width_px, actual_width_px)`**: compute the number of bins the chart can usefully show, based on the chart's pixel width and a target bar-pixel-width of `BAR_PX = 8`. Defaults to `TARGET_BINS = DEFAULT_WIDTH_PX // BAR_PX = 2000 // 8 = 250` when the width isn't known. Clamps by `actual_width_px / MIN_BAR_PX (=5)` so each bar stays above 5px even when the cached pixel-width-bucket overshoots.
-2. **`nice_bin_width(range_ns, target_bins)`**: divide the time range by the target bin count, then snap the result up to the next "nice" duration from `NICE_BIN_WIDTHS_NS` (1ns, 100ns, 1µs, 100µs, 1ms, 10ms, 100ms, 1s, 5s, 15s, 30s, 1m, 5m, 15m, 30m, 1h, 4h, 12h, 1d, 7d, 30d, 90d, 365d).
-3. **`build_histogram_view` / `build_ohlc_view`**: apply `upperBin(time, bin_width)` then `agg_by` over each bin, restore the time column name, sort by time. When the visible window is strictly inside the data range, the view is built as `head_anchor + body + tail_anchor` so `fix_left_edge` / `fix_right_edge` have something to clamp to.
-
-The visible range listener triggers a re-aggregation when the bin count drifts outside the range `[MIN_VISIBLE_BINS=80, target_bins * MAX_VISIBLE_BINS_RATIO=2x]`.
+When you don't set `bin_width`, TVL picks one for you: it divides the visible time range by a target bin count (derived from the chart's pixel width, so bars stay a few pixels wide) and rounds up to the next "nice" duration — 1s, 5s, 15s, 1m, 5m, 1h, 1d, and so on. As you zoom in, the bin width refines to a finer cadence so the chart stays informative. All of the aggregation happens in the Deephaven engine; the browser only receives the finished bars.
 
 ## Examples
 
@@ -142,10 +136,6 @@ chart = tvl.histogram(values, timestamp="Timestamp", value="Value", auto_bin=Fal
 ```
 
 Be aware: with `auto_bin=False` on a large raw tick table, the browser receives every row, and rendering performance degrades.
-
-## Current status
-
-`notes/todo.md` previously noted "autobin histogram not working yet." Inspecting `auto_bin.py` against the current series wiring, the `build_histogram_view` and `build_ohlc_view` functions are fully implemented (whitespace-anchored head/body/tail merge, ISO-8601 parsing, nice-bin-width snapping). The recent commits `62c568ea` ("whitespace downsample works okay") and `f45886bb` ("autobin histogram") indicate the path landed. The Python-side aggregation is wired through `histogram` (line 984+ of `series.py` references `HIST_AGGS`) and through both `candlestick` and `bar`. End-to-end the path appears working as of the current commit; if you hit a regression, file an issue and capture the relevant `auto_bin.py` invocation in the bug report.
 
 ## How tunables compose
 

@@ -1,6 +1,6 @@
 # Tracking Tooltip
 
-A tracking tooltip is a small overlay that follows the cursor and shows the value under it. Turn it on with `tooltip_visible=True` on `tvl.chart(...)`:
+A tracking tooltip is a small overlay that follows the cursor and shows the value under it. Turn it on by passing `tooltip=tvl.tooltip()` to `tvl.chart(...)`:
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
@@ -9,7 +9,7 @@ data = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(data, timestamp="Timestamp", value="Value", title="Price"),
-    tooltip_visible=True,
+    tooltip=tvl.tooltip(),
 )
 ```
 
@@ -29,21 +29,21 @@ ohlc = tvl.data.ohlc()
 chart = tvl.chart(
     tvl.line(ohlc, timestamp="Timestamp", value="Close", title="Close"),
     tvl.line(ohlc, timestamp="Timestamp", value="Ema", title="EMA"),
-    tooltip_visible=True,
+    tooltip=tvl.tooltip(),
 )
 ```
 
 ## What the tooltip shows
 
-`tooltip_visible` is the master switch. The remaining options refine what each tooltip displays, and only take effect when the tooltip is visible:
+`tvl.tooltip()` is the master switch. Its remaining arguments refine what each tooltip displays, and only take effect when the tooltip is visible:
 
-| Option | Default | Effect |
-|---|---|---|
-| `tooltip_visible` | off | Enable the tracking tooltip. |
-| `tooltip_show_title` | `True` | Show the series title line (the series `title`, or its id when untitled), tinted with the series color. |
-| `tooltip_show_value` | `True` | Show the series value at the cursor. For candlestick and bar series this is the close. |
-| `tooltip_show_date` | `True` | Show the time/date line, formatted the same way as the time axis. |
-| `tooltip_value_precision` | series price format | Override the number of decimal places shown for the value. |
+| Argument          | Default             | Effect                                                                                                  |
+| ----------------- | ------------------- | ------------------------------------------------------------------------------------------------------- |
+| `visible`         | on when built       | Enable the tracking tooltip (defaults to `True` when the object is constructed).                        |
+| `show_title`      | `True`              | Show the series title line (the series `title`, or its id when untitled), tinted with the series color. |
+| `show_value`      | `True`              | Show the series value at the cursor. For candlestick and bar series this is the close.                  |
+| `show_date`       | `True`              | Show the time/date line, formatted the same way as the time axis.                                       |
+| `value_precision` | series price format | Override the number of decimal places shown for the value.                                              |
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
@@ -52,13 +52,14 @@ data = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(data, timestamp="Timestamp", value="Value", title="Price"),
-    tooltip_visible=True,
-    tooltip_show_date=False,     # value only, no time line
-    tooltip_value_precision=2,   # always two decimals
+    tooltip=tvl.tooltip(
+        show_date=False,     # value only, no time line
+        value_precision=2,   # always two decimals
+    ),
 )
 ```
 
-Setting any of the detail options without `tooltip_visible=True` raises a `ValueError`, so a tooltip that is configured but never shown is caught early rather than silently doing nothing.
+Setting any of the detail arguments together with `visible=False` raises a `ValueError`, so a tooltip that is configured but never shown is caught early rather than silently doing nothing.
 
 ## Colors come from the theme
 
@@ -66,7 +67,7 @@ The tooltip has no color options. Its background, text, and border are drawn fro
 
 ## Tooltip and crosshair
 
-The tooltip tracks the chart's crosshair, so it works together with `crosshair_mode`. With the default magnet crosshair the reported value snaps to the nearest data point; with `crosshair_mode="normal"` it follows the cursor freely. The tooltip works with any crosshair mode; the mode only changes which point the value is read from.
+The tooltip tracks the chart's crosshair, so it works together with `tvl.crosshair(mode=...)`. With the default magnet crosshair the reported value snaps to the nearest data point; with `tvl.crosshair(mode="normal")` it follows the cursor freely. The tooltip works with any crosshair mode; the mode only changes which point the value is read from.
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
@@ -75,7 +76,17 @@ data = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(data, timestamp="Timestamp", value="Value", title="Price"),
-    tooltip_visible=True,
-    crosshair_mode="magnet",
+    tooltip=tvl.tooltip(),
+    crosshair=tvl.crosshair(mode="magnet"),
 )
+```
+
+## API Reference
+
+The tooltip is configured with a grouped object: `tvl.tooltip(...)` returns a
+`Tooltip` that you pass to `tooltip=` on `tvl.chart(...)`. For the full
+`tvl.chart` signature, see the [Chart container](chart.md#api-reference) page.
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.tooltip
 ```

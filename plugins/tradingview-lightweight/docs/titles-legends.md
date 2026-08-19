@@ -28,7 +28,7 @@ Use this page when you want to label a chart for a dashboard tile, show or hide 
 
 ### Add a chart title via watermark
 
-The simplest title is a single-line watermark. `watermark_text` is the text; `watermark_visible=True` enables it; `watermark_color` and `watermark_font_size` style it.
+The simplest title is a single-line watermark. `tvl.watermark(text=...)` sets the text; `visible=True` enables it; `color` and `font_size` style it.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -37,10 +37,12 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    watermark_visible=True,
-    watermark_text="Reference Index",
-    watermark_color="rgba(0, 0, 0, 0.35)",
-    watermark_font_size=24,
+    watermark=tvl.watermark(
+        visible=True,
+        text="Reference Index",
+        color="rgba(150, 150, 150, 0.6)",
+        font_size=24,
+    ),
 )
 ```
 
@@ -48,7 +50,7 @@ The watermark sits centered behind the data by default. See [watermark](watermar
 
 ### Position the watermark in a corner
 
-`watermark_horz_align` (`"left"` / `"center"` / `"right"`) and `watermark_vert_align` (`"top"` / `"center"` / `"bottom"`) place the watermark in any of nine positions. Use a corner placement when the watermark serves as a chart title rather than a centered background label.
+`horz_align` (`"left"` / `"center"` / `"right"`) and `vert_align` (`"top"` / `"center"` / `"bottom"`) on `tvl.watermark(...)` place the watermark in any of nine positions. Use a corner placement when the watermark serves as a chart title rather than a centered background label.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -57,12 +59,14 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    watermark_visible=True,
-    watermark_text="USD / EUR",
-    watermark_horz_align="left",
-    watermark_vert_align="top",
-    watermark_font_size=18,
-    watermark_color="rgba(0, 0, 0, 0.55)",
+    watermark=tvl.watermark(
+        visible=True,
+        text="USD / EUR",
+        horz_align="left",
+        vert_align="top",
+        font_size=18,
+        color="rgba(150, 150, 150, 0.7)",
+    ),
 )
 ```
 
@@ -136,7 +140,7 @@ The legend entry still shows; the line doesn't render until something toggles `v
 
 ### Multi-line watermark for richer titles
 
-For a two-line title (instrument + tagline, "as of" timestamps, etc.) pass a list of `WatermarkLine` dataclasses to `watermark_lines`. Each line can carry its own color, font size, line height, and font style. See [watermark](watermark.md) for details.
+For a two-line title (instrument + tagline, "as of" timestamps, etc.) pass a list of `WatermarkLine` dataclasses to `tvl.watermark(lines=[...])`. Each line can carry its own color, font size, line height, and font style. See [watermark](watermark.md) for details.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -145,30 +149,32 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    watermark_visible=True,
-    watermark_horz_align="center",
-    watermark_vert_align="center",
-    watermark_lines=[
-        tvl.WatermarkLine(
-            text="USD / EUR",
-            color="rgba(0, 0, 0, 0.5)",
-            font_size=32,
-        ),
-        tvl.WatermarkLine(
-            text="Daily close, 2024",
-            color="rgba(0, 0, 0, 0.3)",
-            font_size=14,
-            font_style="italic",
-        ),
-    ],
+    watermark=tvl.watermark(
+        visible=True,
+        horz_align="center",
+        vert_align="center",
+        lines=[
+            tvl.WatermarkLine(
+                text="USD / EUR",
+                color="rgba(150, 150, 150, 0.65)",
+                font_size=32,
+            ),
+            tvl.WatermarkLine(
+                text="Daily close, 2024",
+                color="rgba(150, 150, 150, 0.55)",
+                font_size=14,
+                font_style="italic",
+            ),
+        ],
+    ),
 )
 ```
 
-Single-line shortcuts (`watermark_text` / `watermark_color` / `watermark_font_*`) and `watermark_lines` are mutually exclusive, so pick one path.
+Single-line shortcuts (`tvl.watermark(text=...)`) and `tvl.watermark(lines=...)` are mutually exclusive, so pick one path.
 
 ### Image watermark as a "brand mark"
 
-`watermark_image_url` is the third watermark path, rendering a logo or seal in the chart. Combine with `watermark_image_alpha` for a subtle background mark.
+`tvl.watermark_image(url=...)` is the third watermark path, rendering a logo or seal in the chart. Combine with `alpha` for a subtle background mark.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -177,12 +183,14 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    watermark_image_visible=True,
-    watermark_image_url="https://example.com/brand.png",
-    watermark_image_max_width=120,
-    watermark_image_max_height=120,
-    watermark_image_padding=16,
-    watermark_image_alpha=0.15,
+    watermark_image=tvl.watermark_image(
+        visible=True,
+        url="https://example.com/brand.png",
+        max_width=120,
+        max_height=120,
+        padding=16,
+        alpha=0.15,
+    ),
 )
 ```
 
@@ -200,12 +208,14 @@ values = tvl.data.values()
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
     font_size=10,
-    watermark_visible=True,
-    watermark_text="AAA",
-    watermark_horz_align="left",
-    watermark_vert_align="top",
-    watermark_font_size=12,
-    watermark_color="rgba(0, 0, 0, 0.55)",
+    watermark=tvl.watermark(
+        visible=True,
+        text="AAA",
+        horz_align="left",
+        vert_align="top",
+        font_size=12,
+        color="rgba(150, 150, 150, 0.7)",
+    ),
 )
 ```
 

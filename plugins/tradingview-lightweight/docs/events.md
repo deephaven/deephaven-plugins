@@ -65,20 +65,20 @@ Use the zero-argument form when you only care that a press happened, not where.
 
 The event is a plain `dict` with camelCase keys (a `TvlPressEvent`) mirroring `MouseEventParams`. Read its fields with subscript access, like `e["hoveredSeries"]` and `e["seriesData"]`. It is a dict, not an object, so attribute access (`e.hoveredSeries`) does not work.
 
-| Key | Type | Meaning |
-|---|---|---|
-| `type` | `"press"` or `"doublePress"` | Which handler fired. |
-| `timestamp` | `Instant` / `ZonedDateTime` / `datetime` | Time of the data at the press location (`MouseEventParams.time`), as a Deephaven timestamp mirroring the hovered series' time-column type. Absent when the press is outside the data range. |
-| `hoveredSeries` | `str` | Friendly id of the series under the cursor. Uses the rendered title when present; `by=` charts use the partition key; falls back to `series_0`, `series_1`, etc. only when no title/key exists. This is the key into `seriesData`. Omitted when no series is hovered. |
-| `hoveredSeriesId` | `str` | TVL's stable `series_<n>` id for the hovered series, for unambiguous server-side lookup even when titles collide. Omitted when no series is hovered. |
-| `seriesData` | `dict` | Each series' data at the press location, keyed by friendly id. Values mirror the series' data shape: `{"value": ...}` for line/area/baseline/histogram, or `{"open", "high", "low", "close"}` for candlestick/bar. |
-| `point` | `dict` | Pixel location `{"x": ..., "y": ...}` of the press in the chart. Omitted when outside the chart. |
-| `logical` | `int` | Logical index at the press location (`MouseEventParams.logical`). |
-| `paneIndex` | `int` | Index of the pane the press landed in, when available. |
-| `shiftKey` | `bool` | Whether Shift was held. |
-| `ctrlKey` | `bool` | Whether Ctrl was held. |
-| `metaKey` | `bool` | Whether Meta (Cmd) was held. |
-| `altKey` | `bool` | Whether Alt was held. |
+| Key               | Type                                     | Meaning                                                                                                                                                                                                                                                               |
+| ----------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`            | `"press"` or `"doublePress"`             | Which handler fired.                                                                                                                                                                                                                                                  |
+| `timestamp`       | `Instant` / `ZonedDateTime` / `datetime` | Time of the data at the press location (`MouseEventParams.time`), as a Deephaven timestamp mirroring the hovered series' time-column type. Absent when the press is outside the data range.                                                                           |
+| `hoveredSeries`   | `str`                                    | Friendly id of the series under the cursor. Uses the rendered title when present; `by=` charts use the partition key; falls back to `series_0`, `series_1`, etc. only when no title/key exists. This is the key into `seriesData`. Omitted when no series is hovered. |
+| `hoveredSeriesId` | `str`                                    | TVL's stable `series_<n>` id for the hovered series, for unambiguous server-side lookup even when titles collide. Omitted when no series is hovered.                                                                                                                  |
+| `seriesData`      | `dict`                                   | Each series' data at the press location, keyed by friendly id. Values mirror the series' data shape: `{"value": ...}` for line/area/baseline/histogram, or `{"open", "high", "low", "close"}` for candlestick/bar.                                                    |
+| `point`           | `dict`                                   | Pixel location `{"x": ..., "y": ...}` of the press in the chart. Omitted when outside the chart.                                                                                                                                                                      |
+| `logical`         | `int`                                    | Logical index at the press location (`MouseEventParams.logical`).                                                                                                                                                                                                     |
+| `paneIndex`       | `int`                                    | Index of the pane the press landed in, when available.                                                                                                                                                                                                                |
+| `shiftKey`        | `bool`                                   | Whether Shift was held.                                                                                                                                                                                                                                               |
+| `ctrlKey`         | `bool`                                   | Whether Ctrl was held.                                                                                                                                                                                                                                                |
+| `metaKey`         | `bool`                                   | Whether Meta (Cmd) was held.                                                                                                                                                                                                                                          |
+| `altKey`          | `bool`                                   | Whether Alt was held.                                                                                                                                                                                                                                                 |
 
 Fields that cannot be resolved for a given press are left out of the dict rather than set to `None`. A press outside the data range has no `timestamp`, and a press not over a series has no `hoveredSeries`/`hoveredSeriesId`. Read optional fields with `e.get("hoveredSeries")` and `e.get("timestamp")` so a missing key does not raise `KeyError`. The always-present fields are `type`, `seriesData` (possibly empty), and the four modifier booleans.
 
@@ -113,16 +113,17 @@ Keep handlers quick. A press fires on the data stream's dispatch path, so a slow
 
 ## Example: append pressed points to a table
 
-This wires a line chart so each press records the pressed `(timestamp, value, series)` into a Deephaven input table. The table ticks live as the user clicks the chart, so you can join it, snapshot it, or render it elsewhere.
+This wires a line chart so each press records the pressed `(timestamp, value, series)` into a Deephaven table. `table_publisher` hands back a **blink** table — rows in it live for a single update cycle — so open the accumulating `clicks` view below to watch presses pile up (a raw blink table would appear to show only the most recent press).
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
 from deephaven import dtypes
+from deephaven.stream import blink_to_append_only
 from deephaven.stream.table_publisher import table_publisher
 
 data = tvl.data.values()
 
-clicks, publisher = table_publisher(
+clicks_blink, publisher = table_publisher(
     "chart clicks",
     {
         "Time": dtypes.Instant,
@@ -130,6 +131,10 @@ clicks, publisher = table_publisher(
         "Price": dtypes.double,
     },
 )
+
+# The publisher emits a blink table; keep a persistent, accumulating view so
+# each press stays visible instead of clearing on the next cycle.
+clicks = blink_to_append_only(clicks_blink)
 
 
 def record_press(e):

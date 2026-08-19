@@ -113,7 +113,7 @@ Bars above 1000 use the theme's `positive` color, the rest use `negative`. As wi
 
 `agg` selects the server-side reduction used when the histogram bins are larger than one row each. Deephaven runs an `agg_by` per bin so the browser only receives the reduced bars. The options are `"sum"` (default), `"count"`, `"avg"`, and `"last"`.
 
-To see each `agg` produce a visibly different chart, the input table needs *many* rows per bin and *variation* within each bin. `tvl.data.stocks()` ships one trade per day across three symbols, so a two-week bin aggregates ~14 trades.
+To see each `agg` produce a visibly different chart, the input table needs _many_ rows per bin and _variation_ within each bin. `tvl.data.stocks()` ships one trade per day across three symbols, so a two-week bin aggregates ~14 trades.
 
 ```python order=hist_sum,hist_count,hist_avg,hist_last,data
 import deephaven.plot.tradingview_lightweight as tvl

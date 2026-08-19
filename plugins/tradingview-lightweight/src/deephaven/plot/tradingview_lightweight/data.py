@@ -7,11 +7,14 @@ random walks (geometric-Brownian-motion style) rather than closed-form
 sine waves, so charts have visible structure without being noisy.
 
 Each function takes a ``ticking`` argument. When ``ticking=True`` (default)
-the table seeds with an initial static block and a ``time_table`` appends
-new rows every second. When ``ticking=False`` the static block is returned
-on its own. The env var ``DEEPHAVEN_PLUGINS_STATIC_DATA=1`` forces every
-generator into static mode regardless of the argument; the docs snapshotter
-sets it so captured PNGs are reproducible.
+the table starts with a static seed block and appends a new row every second;
+when ``ticking=False`` only the seed block is returned. Every fixture carries a
+materialized ``Index`` column (an incrementing row counter) — reference it
+instead of the query-language ``ii`` pseudo-column when an example needs a
+row-position value, so the formula stays refresh-safe on the ticking table. The
+env var ``DEEPHAVEN_PLUGINS_STATIC_DATA=1`` forces every generator into static
+mode regardless of the argument; the docs snapshotter sets it so captured PNGs
+are reproducible.
 
 Typical usage::
 
@@ -65,8 +68,10 @@ def _seeded(base_rows: int, ticking: bool) -> "Table":
     """Return a static-only or static-plus-ticking index table.
 
     The result has a single ``Index`` column counting from zero. When
-    ``ticking`` is true, ``time_table("PT1S")`` continues to append rows
-    indexed ``base_rows, base_rows + 1, ...``.
+    ``ticking`` is true, a static seed of ``base_rows`` rows is merged with a
+    ``time_table`` that appends one new row per second, indexed
+    ``base_rows, base_rows + 1, ...``. Examples read the materialized ``Index``
+    column (never ``ii``), so formulas layered on the result stay refresh-safe.
     """
     static = empty_table(base_rows).update("Index = ii")
     if not ticking:
@@ -104,6 +109,7 @@ def ohlc(ticking: bool = True) -> "Table":
         - ``Close`` (double): closing price.
         - ``Volume`` (long): bar volume; correlates with |return|.
         - ``Ema`` (double): 20-tick EMA of ``Close``, for overlay examples.
+        - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
     base_rows = 90
@@ -141,7 +147,7 @@ def ohlc(ticking: bool = True) -> "Table":
             ]
         )
         .update_by(ops=[ema_tick(decay_ticks=20, cols=["Ema = Close"])])
-        .view(["Timestamp", "Open", "High", "Low", "Close", "Volume", "Ema"])
+        .view(["Timestamp", "Open", "High", "Low", "Close", "Volume", "Ema", "Index"])
     )
 
 
@@ -165,6 +171,7 @@ def stocks(ticking: bool = True) -> "Table":
         - ``Sym`` (string): one of ``"AAA"``, ``"BBB"``, ``"CCC"``.
         - ``Price`` (double): symbol-dependent price walk.
         - ``Size`` (long): trade size; lognormal-ish, ~100 +/- 50.
+        - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
     base_rows = 360
@@ -208,7 +215,7 @@ def stocks(ticking: bool = True) -> "Table":
                 "Size = (long)size_lognorm((int)(Index + 17))",
             ]
         )
-        .view(["Timestamp", "Sym", "Price", "Size"])
+        .view(["Timestamp", "Sym", "Price", "Size", "Index"])
     )
 
 
@@ -228,6 +235,7 @@ def volume(ticking: bool = True) -> "Table":
 
         - ``Timestamp`` (Instant): daily timestamps from 2024-01-01.
         - ``Volume`` (long): daily volume, lognormal w/ weekly seasonality.
+        - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
     base_rows = 60
@@ -251,7 +259,7 @@ def volume(ticking: bool = True) -> "Table":
                 "* (double)vol_noise((int)(Index + 23)))",
             ]
         )
-        .view(["Timestamp", "Volume"])
+        .view(["Timestamp", "Volume", "Index"])
     )
 
 
@@ -447,6 +455,7 @@ def values(ticking: bool = True) -> "Table":
 
         - ``Timestamp`` (Instant): daily timestamps from 2024-01-01.
         - ``Value`` (double): smoothed walk centered at ~100.
+        - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
     base_rows = 90
@@ -467,7 +476,7 @@ def values(ticking: bool = True) -> "Table":
         )
         .update_by(ops=[ema_tick(decay_ticks=6, cols=["Smooth = Drift"])])
         .update("Value = 100.0 + Smooth * 3.0")
-        .view(["Timestamp", "Value"])
+        .view(["Timestamp", "Value", "Index"])
     )
 
 
@@ -490,6 +499,7 @@ def large_prices(ticking: bool = True) -> "Table":
 
         - ``Timestamp`` (Instant): ~315-second spaced timestamps from 2020-01-01.
         - ``Price`` (double): smoothed walk centered at ~100.
+        - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_rows = 1_000_000
     # ~315 seconds = 10 years / 1M rows. Inlined as a Java long literal in
@@ -514,5 +524,5 @@ def large_prices(ticking: bool = True) -> "Table":
         .update(
             "Price = 100.0 + Smooth * 0.6 + (double)gauss((int)(Index + 991)) * 2.0"
         )
-        .view(["Timestamp", "Price"])
+        .view(["Timestamp", "Price", "Index"])
     )

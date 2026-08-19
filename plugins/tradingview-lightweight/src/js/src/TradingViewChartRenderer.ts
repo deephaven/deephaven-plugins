@@ -765,9 +765,17 @@ class TradingViewChartRenderer {
           this.seriesColors.set(config.id, seriesColor);
         }
 
-        // Apply per-series price scale options (autoScale, scaleMargins)
+        // Apply per-series price scale options (autoScale, scaleMargins).
+        // autoScale:false is coerced to true: LWC has no way to seed a frozen
+        // scale with a fitted range, so freezing before data hides the series.
+        // Keeping the scale auto-fitting shows the data (see applyOptions).
         if (config.priceScaleOptions) {
-          series.priceScale().applyOptions(config.priceScaleOptions);
+          const pso = config.priceScaleOptions as Record<string, unknown>;
+          if (pso.autoScale === false) {
+            series.priceScale().applyOptions({ ...pso, autoScale: true });
+          } else {
+            series.priceScale().applyOptions(config.priceScaleOptions);
+          }
         }
 
         // Apply price lines (static and dynamic)
@@ -922,6 +930,26 @@ class TradingViewChartRenderer {
       options as Record<string, unknown>
     );
     const chartOpts = resolveLocalization(rawOpts);
+
+    // A built-in scale set to autoScale:false up front freezes at a default
+    // range with the data off-screen (LWC can't seed a frozen scale with a
+    // fitted range). Coerce it to true so the data stays visible.
+    (
+      [
+        ['rightPriceScale', 'right'],
+        ['leftPriceScale', 'left'],
+      ] as const
+    ).forEach(([key]) => {
+      const ps = (chartOpts as Record<string, unknown>)[key] as
+        | Record<string, unknown>
+        | undefined;
+      if (ps != null && ps.autoScale === false) {
+        (chartOpts as Record<string, unknown>)[key] = {
+          ...ps,
+          autoScale: true,
+        };
+      }
+    });
 
     // Update cached theme colors so derived defaults use the new values
     const newTextColor = (chartOpts.layout as Record<string, unknown>)

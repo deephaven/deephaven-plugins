@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from .series import SeriesSpec
 from .markers import Marker, MarkerSpec, PriceLine
@@ -24,12 +24,10 @@ from .options import (
     ChartType,
     ColorSpace,
     CrosshairMode,
-    HorzAlign,
     LastPriceAnimationMode,
     LineStyle,
     LineType,
     LineWidth,
-    PrecomputeConflationPriority,
     PriceFormat,
     PriceLineSource,
     PriceScaleId,
@@ -39,13 +37,16 @@ from .options import (
     PercentageFormatter,
     TickmarksPercentageFormatter,
     TrackingModeExitMode,
-    VertAlign,
-    WatermarkLine,
-    _watermark_line_to_dict,
+    Crosshair,
+    Grid,
+    PriceScale,
+    TimeScale,
+    Watermark,
+    WatermarkImage,
+    Tooltip,
+    Scroll,
+    Scale,
     CHART_TYPE_MAP,
-    CROSSHAIR_MODE_MAP,
-    LINE_STYLE_MAP,
-    PRICE_SCALE_MODE_MAP,
     TRACKING_MODE_EXIT_MODE_MAP,
 )
 from . import series as series_module
@@ -376,131 +377,21 @@ def chart(
     hovered_series_on_top: Optional[bool] = None,
     default_visible_price_scale_id: Optional[PriceScaleId] = None,
     # Grid
-    vert_lines_visible: Optional[bool] = None,
-    vert_lines_color: Optional[Color] = None,
-    vert_lines_style: Optional[LineStyle] = None,
-    horz_lines_visible: Optional[bool] = None,
-    horz_lines_color: Optional[Color] = None,
-    horz_lines_style: Optional[LineStyle] = None,
+    grid: Optional[Grid] = None,
     # Crosshair
-    crosshair_mode: Optional[CrosshairMode] = None,
-    crosshair_vert_line_width: Optional[LineWidth] = None,
-    crosshair_vert_line_color: Optional[Color] = None,
-    crosshair_vert_line_style: Optional[LineStyle] = None,
-    crosshair_vert_line_visible: Optional[bool] = None,
-    crosshair_vert_line_label_visible: Optional[bool] = None,
-    crosshair_vert_line_label_background_color: Optional[Color] = None,
-    crosshair_horz_line_width: Optional[LineWidth] = None,
-    crosshair_horz_line_color: Optional[Color] = None,
-    crosshair_horz_line_style: Optional[LineStyle] = None,
-    crosshair_horz_line_visible: Optional[bool] = None,
-    crosshair_horz_line_label_visible: Optional[bool] = None,
-    crosshair_horz_line_label_background_color: Optional[Color] = None,
-    crosshair_do_not_snap_to_hidden_series: Optional[bool] = None,
-    # Right price scale
-    right_price_scale_visible: Optional[bool] = None,
-    right_price_scale_border_visible: Optional[bool] = None,
-    right_price_scale_border_color: Optional[Color] = None,
-    right_price_scale_auto_scale: Optional[bool] = None,
-    right_price_scale_mode: Optional[PriceScaleMode] = None,
-    right_price_scale_invert_scale: Optional[bool] = None,
-    right_price_scale_align_labels: Optional[bool] = None,
-    right_price_scale_text_color: Optional[Color] = None,
-    right_price_scale_entire_text_only: Optional[bool] = None,
-    right_price_scale_ticks_visible: Optional[bool] = None,
-    right_price_scale_minimum_width: Optional[int] = None,
-    right_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
-    right_price_scale_tick_mark_density: Optional[float] = None,
-    right_price_scale_margin_top: Optional[float] = None,
-    right_price_scale_margin_bottom: Optional[float] = None,
-    # Left price scale
-    left_price_scale_visible: Optional[bool] = None,
-    left_price_scale_border_visible: Optional[bool] = None,
-    left_price_scale_border_color: Optional[Color] = None,
-    left_price_scale_auto_scale: Optional[bool] = None,
-    left_price_scale_mode: Optional[PriceScaleMode] = None,
-    left_price_scale_invert_scale: Optional[bool] = None,
-    left_price_scale_align_labels: Optional[bool] = None,
-    left_price_scale_text_color: Optional[Color] = None,
-    left_price_scale_entire_text_only: Optional[bool] = None,
-    left_price_scale_ticks_visible: Optional[bool] = None,
-    left_price_scale_minimum_width: Optional[int] = None,
-    left_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
-    left_price_scale_tick_mark_density: Optional[float] = None,
-    left_price_scale_margin_top: Optional[float] = None,
-    left_price_scale_margin_bottom: Optional[float] = None,
-    # Overlay price scale defaults
-    overlay_price_scale_border_visible: Optional[bool] = None,
-    overlay_price_scale_ticks_visible: Optional[bool] = None,
-    overlay_price_scale_minimum_width: Optional[int] = None,
-    overlay_price_scale_margin_top: Optional[float] = None,
-    overlay_price_scale_margin_bottom: Optional[float] = None,
-    overlay_price_scale_auto_scale: Optional[bool] = None,
-    overlay_price_scale_mode: Optional[PriceScaleMode] = None,
-    overlay_price_scale_invert_scale: Optional[bool] = None,
-    overlay_price_scale_align_labels: Optional[bool] = None,
-    overlay_price_scale_border_color: Optional[Color] = None,
-    overlay_price_scale_text_color: Optional[Color] = None,
-    overlay_price_scale_entire_text_only: Optional[bool] = None,
-    overlay_price_scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
-    overlay_price_scale_tick_mark_density: Optional[float] = None,
+    crosshair: Optional[Crosshair] = None,
+    # Price scales — right / left / overlay-defaults (reuse one PriceScale)
+    right_price_scale: Optional[PriceScale] = None,
+    left_price_scale: Optional[PriceScale] = None,
+    overlay_price_scale: Optional[PriceScale] = None,
     # Time scale
-    time_visible: Optional[bool] = None,
-    seconds_visible: Optional[bool] = None,
-    time_scale_border_visible: Optional[bool] = None,
-    time_scale_border_color: Optional[Color] = None,
-    right_offset: Optional[int] = None,
-    right_offset_pixels: Optional[int] = None,
-    bar_spacing: Optional[float] = None,
-    min_bar_spacing: Optional[float] = None,
-    max_bar_spacing: Optional[float] = None,
-    fix_left_edge: Optional[bool] = None,
-    fix_right_edge: Optional[bool] = None,
-    lock_visible_time_range_on_resize: Optional[bool] = None,
-    right_bar_stays_on_scroll: Optional[bool] = None,
-    shift_visible_range_on_new_bar: Optional[bool] = None,
-    allow_shift_visible_range_on_whitespace_replacement: Optional[bool] = None,
-    time_scale_ticks_visible: Optional[bool] = None,
-    tick_mark_max_character_length: Optional[int] = None,
-    uniform_distribution: Optional[bool] = None,
-    time_scale_minimum_height: Optional[int] = None,
-    allow_bold_labels: Optional[bool] = None,
-    ignore_whitespace_indices: Optional[bool] = None,
-    enable_conflation: Optional[bool] = None,
-    conflation_threshold_factor: Optional[float] = None,
-    precompute_conflation_on_init: Optional[bool] = None,
-    precompute_conflation_priority: Optional[PrecomputeConflationPriority] = None,
-    time_scale_visible: Optional[bool] = None,
-    # Watermark — single-line shortcut (backwards-compatible)
-    watermark_text: Optional[str] = None,
-    watermark_color: Optional[Color] = None,
-    watermark_visible: Optional[bool] = None,
-    watermark_font_size: Optional[int] = None,
-    # watermark_font_family is intentionally omitted — we do not allow font customization.
-    watermark_font_style: Optional[str] = None,
-    watermark_line_height: Optional[float] = None,
-    watermark_horz_align: Optional[HorzAlign] = None,
-    watermark_vert_align: Optional[VertAlign] = None,
-    # Watermark — multi-line (mutually exclusive with single-line shortcut)
-    watermark_lines: Optional[list[WatermarkLine]] = None,
-    # Watermark — image (independent; can coexist with text watermark)
-    watermark_image_url: Optional[str] = None,
-    watermark_image_max_width: Optional[int] = None,
-    watermark_image_max_height: Optional[int] = None,
-    watermark_image_padding: Optional[int] = None,
-    watermark_image_alpha: Optional[float] = None,
-    watermark_image_visible: Optional[bool] = None,
-    # Scroll / Scale / Kinetic scroll
-    handle_scroll: Optional[bool] = None,
-    handle_scroll_mouse_wheel: Optional[bool] = None,
-    handle_scroll_pressed_mouse_move: Optional[bool] = None,
-    handle_scroll_horz_touch_drag: Optional[bool] = None,
-    handle_scroll_vert_touch_drag: Optional[bool] = None,
-    handle_scale: Optional[bool] = None,
-    handle_scale_mouse_wheel: Optional[bool] = None,
-    handle_scale_pinch: Optional[bool] = None,
-    handle_scale_axis_pressed_mouse_move: Optional[bool] = None,
-    handle_scale_axis_double_click_reset: Optional[bool] = None,
+    time_scale: Optional[TimeScale] = None,
+    # Watermark (text + image)
+    watermark: Optional[Watermark] = None,
+    watermark_image: Optional[WatermarkImage] = None,
+    # Scroll / Scale — bool master toggle OR a granular Scroll/Scale object
+    handle_scroll: Optional[Union[bool, Scroll]] = None,
+    handle_scale: Optional[Union[bool, Scale]] = None,
     kinetic_scroll_touch: Optional[bool] = None,
     kinetic_scroll_mouse: Optional[bool] = None,
     # Localization
@@ -523,11 +414,7 @@ def chart(
     tracking_mode_exit_mode: Optional[TrackingModeExitMode] = None,
     add_default_pane: Optional[bool] = None,
     # Tracking tooltip (cursor-following overlay)
-    tooltip_visible: Optional[bool] = None,
-    tooltip_show_title: Optional[bool] = None,
-    tooltip_show_value: Optional[bool] = None,
-    tooltip_show_date: Optional[bool] = None,
-    tooltip_value_precision: Optional[int] = None,
+    tooltip: Optional[Tooltip] = None,
     # Event handlers
     on_press: Optional[PressEventCallable] = None,
     on_double_press: Optional[PressEventCallable] = None,
@@ -590,233 +477,41 @@ def chart(
             that do not specify one.
 
 
-        vert_lines_visible (Optional[bool]): Show vertical gridlines.
-        vert_lines_color (Optional[Color]): Vertical gridline CSS color.
-        vert_lines_style (Optional[LineStyle]): Vertical gridline dash
-            pattern; see :data:`LineStyle`.
-        horz_lines_visible (Optional[bool]): Show horizontal gridlines.
-        horz_lines_color (Optional[Color]): Horizontal gridline CSS color.
-        horz_lines_style (Optional[LineStyle]): Horizontal gridline
-            dash pattern.
+        grid (Optional[Grid]): Grid-line configuration built with
+            :func:`grid` / :func:`grid_lines`, e.g.
+            ``grid=tvl.grid(vert=tvl.grid_lines(visible=False))``.
+
+        crosshair (Optional[Crosshair]): Crosshair configuration built
+            with :func:`crosshair` / :func:`crosshair_line`, e.g.
+            ``crosshair=tvl.crosshair(mode="magnet",
+            vert_line=tvl.crosshair_line(color="#aaa"))``.
+
+        right_price_scale (Optional[PriceScale]): Right price-scale
+            styling/behavior built with :func:`price_scale`.
+        left_price_scale (Optional[PriceScale]): Left price-scale
+            config built with :func:`price_scale`.
+        overlay_price_scale (Optional[PriceScale]): Default styling for
+            overlay (stub) price scales, built with :func:`price_scale`.
+            One :class:`PriceScale` instance can be reused across all
+            three slots.
 
 
-        crosshair_mode (Optional[CrosshairMode]): Crosshair tracking
-            behavior; see :data:`CrosshairMode`.
-        crosshair_vert_line_width (Optional[LineWidth]): Width of the
-            vertical crosshair line in pixels.
-        crosshair_vert_line_color (Optional[Color]): Vertical crosshair
-            color.
-        crosshair_vert_line_style (Optional[LineStyle]): Vertical
-            crosshair dash pattern.
-        crosshair_vert_line_visible (Optional[bool]): Show the vertical
-            crosshair line.
-        crosshair_vert_line_label_visible (Optional[bool]): Show the
-            vertical crosshair's axis label.
-        crosshair_vert_line_label_background_color (Optional[Color]):
-            Vertical crosshair label background color.
-        crosshair_horz_line_width (Optional[LineWidth]): Width of the
-            horizontal crosshair line in pixels.
-        crosshair_horz_line_color (Optional[Color]): Horizontal crosshair
-            color.
-        crosshair_horz_line_style (Optional[LineStyle]): Horizontal
-            crosshair dash pattern.
-        crosshair_horz_line_visible (Optional[bool]): Show the
-            horizontal crosshair line.
-        crosshair_horz_line_label_visible (Optional[bool]): Show the
-            horizontal crosshair's axis label.
-        crosshair_horz_line_label_background_color (Optional[Color]):
-            Horizontal crosshair label background color.
-        crosshair_do_not_snap_to_hidden_series (Optional[bool]): When
-            ``True``, the crosshair skips hidden series in
-            magnet/snap modes.
+        time_scale (Optional[TimeScale]): Time-axis configuration built
+            with :func:`time_scale`, e.g.
+            ``time_scale=tvl.time_scale(time_visible=True, bar_spacing=8)``.
 
+        watermark (Optional[Watermark]): Text watermark built with
+            :func:`watermark` — single-line (``text=``) or multi-line
+            (``lines=[tvl.watermark_line(...)]``).
+        watermark_image (Optional[WatermarkImage]): Image watermark built
+            with :func:`watermark_image`; coexists with a text watermark.
 
-        right_price_scale_visible (Optional[bool]): Show the right
-            price scale.
-        right_price_scale_border_visible (Optional[bool]): Show the
-            scale border.
-        right_price_scale_border_color (Optional[Color]): Border color.
-        right_price_scale_auto_scale (Optional[bool]): Auto-fit the
-            scale to the visible data.
-        right_price_scale_mode (Optional[PriceScaleMode]): Scale mode;
-            see :data:`PriceScaleMode`.
-        right_price_scale_invert_scale (Optional[bool]): Invert the
-            scale (high values at bottom).
-        right_price_scale_align_labels (Optional[bool]): Align scale
-            labels with chart pixels.
-        right_price_scale_text_color (Optional[Color]): Scale label
-            color.
-        right_price_scale_entire_text_only (Optional[bool]): Render
-            only complete labels (avoid clipping).
-        right_price_scale_ticks_visible (Optional[bool]): Show tick
-            marks on the scale.
-        right_price_scale_minimum_width (Optional[int]): Minimum width
-            of the scale in pixels.
-        right_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
-            Force-render tick marks at the very top and bottom edges.
-        right_price_scale_tick_mark_density (Optional[float]):
-            Approximate tick density (default ``2.5``).
-        right_price_scale_margin_top (Optional[float]): Top margin as a
-            fraction (0–1).
-        right_price_scale_margin_bottom (Optional[float]): Bottom
-            margin as a fraction (0–1).
-
-
-        left_price_scale_visible (Optional[bool]): Show the left price
-            scale.
-        left_price_scale_border_visible (Optional[bool]): Show its
-            border.
-        left_price_scale_border_color (Optional[Color]): Border color.
-        left_price_scale_auto_scale (Optional[bool]): Auto-fit the
-            scale.
-        left_price_scale_mode (Optional[PriceScaleMode]): Scale mode.
-        left_price_scale_invert_scale (Optional[bool]): Invert the
-            scale.
-        left_price_scale_align_labels (Optional[bool]): Align labels
-            with pixels.
-        left_price_scale_text_color (Optional[Color]): Label color.
-        left_price_scale_entire_text_only (Optional[bool]): Only render
-            complete labels.
-        left_price_scale_ticks_visible (Optional[bool]): Show tick
-            marks.
-        left_price_scale_minimum_width (Optional[int]): Minimum width
-            in pixels.
-        left_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
-            Force-render edge tick marks.
-        left_price_scale_tick_mark_density (Optional[float]): Tick
-            density.
-        left_price_scale_margin_top (Optional[float]): Top margin
-            fraction.
-        left_price_scale_margin_bottom (Optional[float]): Bottom margin
-            fraction.
-
-        overlay_price_scale_border_visible (Optional[bool]): Show
-            overlay scale borders.
-        overlay_price_scale_ticks_visible (Optional[bool]): Show
-            overlay tick marks.
-        overlay_price_scale_minimum_width (Optional[int]): Minimum
-            overlay width.
-        overlay_price_scale_margin_top (Optional[float]): Top margin.
-        overlay_price_scale_margin_bottom (Optional[float]): Bottom
-            margin.
-        overlay_price_scale_auto_scale (Optional[bool]): Auto-fit.
-        overlay_price_scale_mode (Optional[PriceScaleMode]): Scale mode.
-        overlay_price_scale_invert_scale (Optional[bool]): Invert.
-        overlay_price_scale_align_labels (Optional[bool]): Align labels.
-        overlay_price_scale_border_color (Optional[Color]): Border color.
-        overlay_price_scale_text_color (Optional[Color]): Label color.
-        overlay_price_scale_entire_text_only (Optional[bool]): Only
-            complete labels.
-        overlay_price_scale_ensure_edge_tick_marks_visible (Optional[bool]):
-            Force edge ticks.
-        overlay_price_scale_tick_mark_density (Optional[float]): Tick
-            density.
-
-
-        time_visible (Optional[bool]): Show the time scale at the
-            bottom of the chart.
-        seconds_visible (Optional[bool]): Show seconds in time labels.
-        time_scale_border_visible (Optional[bool]): Show time scale
-            border.
-        time_scale_border_color (Optional[Color]): Border color.
-        right_offset (Optional[int]): Empty bars beyond the rightmost
-            data point.
-        right_offset_pixels (Optional[int]): Pixel offset of the right
-            edge.
-        bar_spacing (Optional[float]): Pixels between adjacent bars.
-        min_bar_spacing (Optional[float]): Minimum bar spacing
-            (zoom-in cap).
-        max_bar_spacing (Optional[float]): Maximum bar spacing
-            (zoom-out cap).
-        fix_left_edge (Optional[bool]): Prevent scrolling past the
-            leftmost data point.
-        fix_right_edge (Optional[bool]): Prevent scrolling past the
-            rightmost data point.
-        lock_visible_time_range_on_resize (Optional[bool]): Keep the
-            visible time range when the chart is resized.
-        right_bar_stays_on_scroll (Optional[bool]): Pin the rightmost
-            bar in view while scrolling.
-        shift_visible_range_on_new_bar (Optional[bool]): Auto-scroll
-            when a new bar is added.
-        allow_shift_visible_range_on_whitespace_replacement (Optional[bool]):
-            Shift when whitespace bars are replaced by real data.
-        time_scale_ticks_visible (Optional[bool]): Show tick marks on
-            the time scale.
-        tick_mark_max_character_length (Optional[int]): Maximum
-            character length of a tick label before truncation.
-        uniform_distribution (Optional[bool]): Force uniform bar
-            spacing regardless of timestamp gaps.
-        time_scale_minimum_height (Optional[int]): Minimum height of
-            the time scale area in pixels.
-        allow_bold_labels (Optional[bool]): Allow bold time labels.
-        ignore_whitespace_indices (Optional[bool]): Ignore whitespace
-            indices when computing visible logical range.
-        enable_conflation (Optional[bool]): Conflate sub-pixel data
-            points for performance.
-        conflation_threshold_factor (Optional[float]): Conflation
-            sensitivity multiplier.
-        precompute_conflation_on_init (Optional[bool]): Precompute
-            conflation on chart init.
-        precompute_conflation_priority (Optional[PrecomputeConflationPriority]):
-            Scheduling priority for precomputation; see
-            :data:`PrecomputeConflationPriority`.
-        time_scale_visible (Optional[bool]): Master visibility toggle
-            for the time scale.
-
-
-        watermark_text (Optional[str]): Text to display as a single
-            watermark line.  Mutually exclusive with ``watermark_lines``.
-        watermark_color (Optional[Color]): Watermark text color.
-        watermark_visible (Optional[bool]): Show the watermark.
-        watermark_font_size (Optional[int]): Font size in pixels.
-        watermark_font_style (Optional[str]): CSS font-style string
-            (e.g. ``"italic"``).
-        watermark_line_height (Optional[float]): Line height in pixels.
-        watermark_horz_align (Optional[HorzAlign]): Horizontal
-            alignment; see :data:`HorzAlign`.
-        watermark_vert_align (Optional[VertAlign]): Vertical alignment;
-            see :data:`VertAlign`.
-
-
-        watermark_lines (Optional[list[WatermarkLine]]): List of
-            :class:`WatermarkLine` instances, each with its own text
-            and per-line styling.  Mutually exclusive with the
-            single-line shortcut params.
-
-
-        watermark_image_url (Optional[str]): URL of an image to draw
-            as a watermark.
-        watermark_image_max_width (Optional[int]): Maximum image width
-            in pixels.
-        watermark_image_max_height (Optional[int]): Maximum image
-            height in pixels.
-        watermark_image_padding (Optional[int]): Padding around the
-            image in pixels.
-        watermark_image_alpha (Optional[float]): Image opacity (0–1).
-        watermark_image_visible (Optional[bool]): Show the image
-            watermark.
-
-
-        handle_scroll (Optional[bool]): Master toggle for all scroll
-            interactions.  When set, overrides the per-axis booleans.
-        handle_scroll_mouse_wheel (Optional[bool]): Allow mouse-wheel
-            scrolling.
-        handle_scroll_pressed_mouse_move (Optional[bool]): Allow
-            click-drag scrolling.
-        handle_scroll_horz_touch_drag (Optional[bool]): Allow
-            horizontal touch scrolling.
-        handle_scroll_vert_touch_drag (Optional[bool]): Allow vertical
-            touch scrolling.
-        handle_scale (Optional[bool]): Master toggle for all scale /
-            zoom interactions.
-        handle_scale_mouse_wheel (Optional[bool]): Allow zooming with
-            the mouse wheel.
-        handle_scale_pinch (Optional[bool]): Allow pinch-to-zoom on
-            touch devices.
-        handle_scale_axis_pressed_mouse_move (Optional[bool]): Allow
-            scaling by dragging an axis.
-        handle_scale_axis_double_click_reset (Optional[bool]): Reset
-            axis scale on double-click.
+        handle_scroll (Optional[bool | Scroll]): ``True`` / ``False`` toggles
+            all scroll interactions at once; pass :func:`scroll` for
+            per-gesture control.
+        handle_scale (Optional[bool | Scale]): ``True`` / ``False`` toggles
+            all scale/zoom interactions at once; pass :func:`scale` for
+            per-gesture control.
         kinetic_scroll_touch (Optional[bool]): Enable kinetic scrolling
             on touch devices.
         kinetic_scroll_mouse (Optional[bool]): Enable kinetic scrolling
@@ -855,27 +550,13 @@ def chart(
             chart creation (default ``True``).  Set ``False`` for
             advanced multi-pane setups that fully specify their own
             panes.
-        tooltip_visible (Optional[bool]): Enable the tracking tooltip — a
-            small overlay that follows the cursor and shows the focused
-            series' title, value, and time. This is the master switch; the
-            other ``tooltip_*`` options only take effect when it is ``True``.
-            In a multi-series chart the tooltip shows a single focused
-            series: the one under the cursor (LWC hit test), falling back to
-            the series whose value is nearest the cursor. Its colors come
-            entirely from the active Deephaven theme (the title line is
-            tinted with the focused series' own color); there are no color
-            options.
-        tooltip_show_title (Optional[bool]): Show the series title line
-            (the series ``title``, or its id when untitled), tinted with the
-            series color. Default ``True``.
-        tooltip_show_value (Optional[bool]): Show the series value at the
-            cursor, formatted with the series' price format. For OHLC series
-            the close is shown. Default ``True``.
-        tooltip_show_date (Optional[bool]): Show the time/date line, matching
-            the chart's time-axis formatting. Default ``True``.
-        tooltip_value_precision (Optional[int]): Override the number of
-            decimal places for the value line. When unset, the series' own
-            price format is used.
+        tooltip (Optional[Tooltip]): Tracking-tooltip configuration built
+            with :func:`tooltip` — a small overlay that follows the cursor
+            and shows the focused series' title, value, and time. Constructing
+            a ``tvl.tooltip(...)`` enables it; its colors come from the active
+            Deephaven theme (no color options). In a multi-series chart it
+            shows the single series under the cursor (falling back to the one
+            whose value is nearest).
         on_press (Optional[PressEventCallable]): Server-side callback
             invoked when the user presses (clicks) on the chart. Receives
             a ``TvlPressEvent`` dict (or no argument). See
@@ -896,7 +577,8 @@ def chart(
     Example:
         >>> import deephaven.plot.tradingview_lightweight as tvl
         >>> c = tvl.chart(tvl.line(my_table, timestamp="Timestamp", value="Price"),
-        ...               background_color="#1a1a2e", time_visible=True)
+        ...               background_color="#1a1a2e",
+        ...               time_scale=tvl.time_scale(time_visible=True))
     """
     # Resolve chart type
     if chart_type is None:
@@ -1010,313 +692,64 @@ def chart(
         chart_options["layout"] = layout
 
     # Grid
-    grid: dict = {}
-    vert = _filter_none(
-        {
-            "visible": vert_lines_visible,
-            "color": vert_lines_color,
-            "style": LINE_STYLE_MAP.get(vert_lines_style) if vert_lines_style else None,
-        }
-    )
-    if vert:
-        grid["vertLines"] = vert
-    horz = _filter_none(
-        {
-            "visible": horz_lines_visible,
-            "color": horz_lines_color,
-            "style": LINE_STYLE_MAP.get(horz_lines_style) if horz_lines_style else None,
-        }
-    )
-    if horz:
-        grid["horzLines"] = horz
-    if grid:
-        chart_options["grid"] = grid
+    if grid is not None:
+        grid_dict = grid.to_dict()
+        if grid_dict:
+            chart_options["grid"] = grid_dict
 
     # Crosshair
-    crosshair: dict = {}
-    if crosshair_mode is not None:
-        crosshair["mode"] = CROSSHAIR_MODE_MAP.get(crosshair_mode, 0)
-    if crosshair_do_not_snap_to_hidden_series is not None:
-        crosshair[
-            "doNotSnapToHiddenSeriesIndices"
-        ] = crosshair_do_not_snap_to_hidden_series
-    vert_line = _filter_none(
-        {
-            "width": crosshair_vert_line_width,
-            "color": crosshair_vert_line_color,
-            "style": (
-                LINE_STYLE_MAP.get(crosshair_vert_line_style)
-                if crosshair_vert_line_style
-                else None
-            ),
-            "visible": crosshair_vert_line_visible,
-            "labelVisible": crosshair_vert_line_label_visible,
-            "labelBackgroundColor": crosshair_vert_line_label_background_color,
-        }
-    )
-    if vert_line:
-        crosshair["vertLine"] = vert_line
-    horz_line = _filter_none(
-        {
-            "width": crosshair_horz_line_width,
-            "color": crosshair_horz_line_color,
-            "style": (
-                LINE_STYLE_MAP.get(crosshair_horz_line_style)
-                if crosshair_horz_line_style
-                else None
-            ),
-            "visible": crosshair_horz_line_visible,
-            "labelVisible": crosshair_horz_line_label_visible,
-            "labelBackgroundColor": crosshair_horz_line_label_background_color,
-        }
-    )
-    if horz_line:
-        crosshair["horzLine"] = horz_line
-    if crosshair:
-        chart_options["crosshair"] = crosshair
+    if crosshair is not None:
+        crosshair_dict = crosshair.to_dict()
+        if crosshair_dict:
+            chart_options["crosshair"] = crosshair_dict
 
-    # Right price scale
-    rps = _filter_none(
-        {
-            "visible": right_price_scale_visible,
-            "borderVisible": right_price_scale_border_visible,
-            "borderColor": right_price_scale_border_color,
-            "autoScale": right_price_scale_auto_scale,
-            "mode": (
-                PRICE_SCALE_MODE_MAP.get(right_price_scale_mode)
-                if right_price_scale_mode
-                else None
-            ),
-            "invertScale": right_price_scale_invert_scale,
-            "alignLabels": right_price_scale_align_labels,
-            "textColor": right_price_scale_text_color,
-            "entireTextOnly": right_price_scale_entire_text_only,
-            "ticksVisible": right_price_scale_ticks_visible,
-            "minimumWidth": right_price_scale_minimum_width,
-            "ensureEdgeTickMarksVisible": right_price_scale_ensure_edge_tick_marks_visible,
-            "tickMarkDensity": right_price_scale_tick_mark_density,
-        }
-    )
-    rps_margins = _filter_none(
-        {
-            "top": right_price_scale_margin_top,
-            "bottom": right_price_scale_margin_bottom,
-        }
-    )
-    if rps_margins:
-        rps["scaleMargins"] = rps_margins
-    if rps:
-        chart_options["rightPriceScale"] = rps
-
-    # Left price scale
-    lps = _filter_none(
-        {
-            "visible": left_price_scale_visible,
-            "borderVisible": left_price_scale_border_visible,
-            "borderColor": left_price_scale_border_color,
-            "autoScale": left_price_scale_auto_scale,
-            "mode": (
-                PRICE_SCALE_MODE_MAP.get(left_price_scale_mode)
-                if left_price_scale_mode
-                else None
-            ),
-            "invertScale": left_price_scale_invert_scale,
-            "alignLabels": left_price_scale_align_labels,
-            "textColor": left_price_scale_text_color,
-            "entireTextOnly": left_price_scale_entire_text_only,
-            "ticksVisible": left_price_scale_ticks_visible,
-            "minimumWidth": left_price_scale_minimum_width,
-            "ensureEdgeTickMarksVisible": left_price_scale_ensure_edge_tick_marks_visible,
-            "tickMarkDensity": left_price_scale_tick_mark_density,
-        }
-    )
-    lps_margins = _filter_none(
-        {
-            "top": left_price_scale_margin_top,
-            "bottom": left_price_scale_margin_bottom,
-        }
-    )
-    if lps_margins:
-        lps["scaleMargins"] = lps_margins
-    if lps:
-        chart_options["leftPriceScale"] = lps
-
-    # Overlay price scale defaults
-    ops: dict = _filter_none(
-        {
-            "autoScale": overlay_price_scale_auto_scale,
-            "mode": (
-                PRICE_SCALE_MODE_MAP.get(overlay_price_scale_mode)
-                if overlay_price_scale_mode
-                else None
-            ),
-            "invertScale": overlay_price_scale_invert_scale,
-            "alignLabels": overlay_price_scale_align_labels,
-            "borderVisible": overlay_price_scale_border_visible,
-            "borderColor": overlay_price_scale_border_color,
-            "textColor": overlay_price_scale_text_color,
-            "entireTextOnly": overlay_price_scale_entire_text_only,
-            "ticksVisible": overlay_price_scale_ticks_visible,
-            "minimumWidth": overlay_price_scale_minimum_width,
-            "ensureEdgeTickMarksVisible": overlay_price_scale_ensure_edge_tick_marks_visible,
-            "tickMarkDensity": overlay_price_scale_tick_mark_density,
-        }
-    )
-    ops_margins = _filter_none(
-        {
-            "top": overlay_price_scale_margin_top,
-            "bottom": overlay_price_scale_margin_bottom,
-        }
-    )
-    if ops_margins:
-        ops["scaleMargins"] = ops_margins
-    if ops:
-        chart_options["overlayPriceScales"] = ops
+    # Price scales (right / left / overlay defaults)
+    if right_price_scale is not None:
+        rps = right_price_scale.to_dict()
+        if rps:
+            chart_options["rightPriceScale"] = rps
+    if left_price_scale is not None:
+        lps = left_price_scale.to_dict()
+        if lps:
+            chart_options["leftPriceScale"] = lps
+    if overlay_price_scale is not None:
+        ops = overlay_price_scale.to_dict()
+        if ops:
+            chart_options["overlayPriceScales"] = ops
 
     # Time scale
-    ts = _filter_none(
-        {
-            "timeVisible": time_visible,
-            "secondsVisible": seconds_visible,
-            "borderVisible": time_scale_border_visible,
-            "borderColor": time_scale_border_color,
-            "visible": time_scale_visible,
-            "rightOffset": right_offset,
-            "rightOffsetPixels": right_offset_pixels,
-            "barSpacing": bar_spacing,
-            "minBarSpacing": min_bar_spacing,
-            "maxBarSpacing": max_bar_spacing,
-            "fixLeftEdge": fix_left_edge,
-            "fixRightEdge": fix_right_edge,
-            "lockVisibleTimeRangeOnResize": lock_visible_time_range_on_resize,
-            "rightBarStaysOnScroll": right_bar_stays_on_scroll,
-            "shiftVisibleRangeOnNewBar": shift_visible_range_on_new_bar,
-            "allowShiftVisibleRangeOnWhitespaceReplacement": allow_shift_visible_range_on_whitespace_replacement,
-            "ticksVisible": time_scale_ticks_visible,
-            "tickMarkMaxCharacterLength": tick_mark_max_character_length,
-            "uniformDistribution": uniform_distribution,
-            "minimumHeight": time_scale_minimum_height,
-            "allowBoldLabels": allow_bold_labels,
-            "ignoreWhitespaceIndices": ignore_whitespace_indices,
-            "enableConflation": enable_conflation,
-            "conflationThresholdFactor": conflation_threshold_factor,
-            "precomputeConflationOnInit": precompute_conflation_on_init,
-            "precomputeConflationPriority": precompute_conflation_priority,
-        }
-    )
-    if ts:
-        chart_options["timeScale"] = ts
+    if time_scale is not None:
+        ts = time_scale.to_dict()
+        if ts:
+            chart_options["timeScale"] = ts
 
-    # --- Watermark ---
-
-    # Validate mutual exclusion
-    if watermark_lines is not None and watermark_text is not None:
-        raise ValueError(
-            "Provide either 'watermark_text' (single-line shortcut) or "
-            "'watermark_lines' (multi-line), not both."
-        )
-
-    # Single-line styling params are not applicable with watermark_lines
-    if watermark_lines is not None and any(
-        p is not None
-        for p in (
-            watermark_color,
-            watermark_font_size,
-            watermark_font_style,
-            watermark_line_height,
-        )
-    ):
-        raise ValueError(
-            "Single-line watermark params (watermark_color, watermark_font_size, "
-            "watermark_font_style, watermark_line_height) cannot be combined with "
-            "'watermark_lines'. Set per-line styling on each WatermarkLine instead."
-        )
-
-    if watermark_lines is not None:
-        # Multi-line path: serialise each WatermarkLine to a dict
-        lines_payload = [_watermark_line_to_dict(ln) for ln in watermark_lines]
-        wm: dict = {
-            "lines": lines_payload,
-        }
-        if watermark_visible is not None:
-            wm["visible"] = watermark_visible
-        elif lines_payload:
-            wm["visible"] = True
-        if watermark_horz_align is not None:
-            wm["horzAlign"] = watermark_horz_align
-        if watermark_vert_align is not None:
-            wm["vertAlign"] = watermark_vert_align
-        chart_options["watermark"] = wm
-
-    elif watermark_text is not None or watermark_visible is not None:
-        # Legacy single-line path (fully backwards-compatible)
-        wm = _filter_none(
-            {
-                "text": watermark_text,
-                "color": watermark_color,
-                "visible": (
-                    watermark_visible
-                    if watermark_visible is not None
-                    else (True if watermark_text else None)
-                ),
-                "fontSize": watermark_font_size,
-                "fontStyle": watermark_font_style,
-                "lineHeight": watermark_line_height,
-                "horzAlign": watermark_horz_align,
-                "vertAlign": watermark_vert_align,
-            }
-        )
+    # Watermark (text + image)
+    if watermark is not None:
+        wm = watermark.to_dict()
         if wm:
             chart_options["watermark"] = wm
+    if watermark_image is not None:
+        iwm = watermark_image.to_dict()
+        if iwm:
+            chart_options["imageWatermark"] = iwm
 
-    # Image watermark (orthogonal to text watermark)
-    if watermark_image_url is not None or watermark_image_visible is not None:
-        img_wm = _filter_none(
-            {
-                "url": watermark_image_url,
-                "maxWidth": watermark_image_max_width,
-                "maxHeight": watermark_image_max_height,
-                "padding": watermark_image_padding,
-                "alpha": watermark_image_alpha,
-                "visible": (
-                    watermark_image_visible
-                    if watermark_image_visible is not None
-                    else (True if watermark_image_url else None)
-                ),
-            }
-        )
-        if img_wm:
-            chart_options["imageWatermark"] = img_wm
-
-    # HandleScroll
+    # HandleScroll — bool toggles everything; a Scroll object is per-gesture
     if handle_scroll is not None:
-        chart_options["handleScroll"] = handle_scroll
-    else:
-        hs = _filter_none(
-            {
-                "mouseWheel": handle_scroll_mouse_wheel,
-                "pressedMouseMove": handle_scroll_pressed_mouse_move,
-                "horzTouchDrag": handle_scroll_horz_touch_drag,
-                "vertTouchDrag": handle_scroll_vert_touch_drag,
-            }
-        )
-        if hs:
-            chart_options["handleScroll"] = hs
+        if isinstance(handle_scroll, bool):
+            chart_options["handleScroll"] = handle_scroll
+        else:
+            hs = handle_scroll.to_dict()
+            if hs:
+                chart_options["handleScroll"] = hs
 
-    # HandleScale
+    # HandleScale — bool toggles everything; a Scale object is per-gesture
     if handle_scale is not None:
-        chart_options["handleScale"] = handle_scale
-    else:
-        hsc = _filter_none(
-            {
-                "mouseWheel": handle_scale_mouse_wheel,
-                "pinch": handle_scale_pinch,
-                "axisPressedMouseMove": handle_scale_axis_pressed_mouse_move,
-                "axisDoubleClickReset": handle_scale_axis_double_click_reset,
-            }
-        )
-        if hsc:
-            chart_options["handleScale"] = hsc
+        if isinstance(handle_scale, bool):
+            chart_options["handleScale"] = handle_scale
+        else:
+            hsc = handle_scale.to_dict()
+            if hsc:
+                chart_options["handleScale"] = hsc
 
     # KineticScroll
     ks = _filter_none(
@@ -1356,31 +789,10 @@ def chart(
         chart_options["defaultVisiblePriceScaleId"] = default_visible_price_scale_id
 
     # --- Tracking tooltip ---
-    # tooltip_visible is the master switch; the detail options are meaningless
-    # without it, so reject them early (mirrors the watermark validation).
-    _tooltip_details = {
-        "tooltip_show_title": tooltip_show_title,
-        "tooltip_show_value": tooltip_show_value,
-        "tooltip_show_date": tooltip_show_date,
-        "tooltip_value_precision": tooltip_value_precision,
-    }
-    if not tooltip_visible:
-        set_details = [name for name, v in _tooltip_details.items() if v is not None]
-        if set_details:
-            raise ValueError(
-                f"{', '.join(set_details)} require tooltip_visible=True. "
-                f"Set tooltip_visible=True to enable the tracking tooltip."
-            )
-    else:
-        chart_options["tooltip"] = _filter_none(
-            {
-                "visible": True,
-                "showTitle": tooltip_show_title,
-                "showValue": tooltip_show_value,
-                "showDate": tooltip_show_date,
-                "valuePrecision": tooltip_value_precision,
-            }
-        )
+    if tooltip is not None:
+        tt = tooltip.to_dict()
+        if tt:
+            chart_options["tooltip"] = tt
 
     return TvlChart(
         series_list=series_list,
@@ -1400,8 +812,8 @@ def chart(
 # `by=` for partitioning, and return a single-series TvlChart with default
 # chart options. The returned TvlChart can be displayed directly OR passed
 # to tvl.chart(...) to be combined with other series under shared chart
-# styling. Chart-styling options (background_color, text_color, watermark_*,
-# crosshair_*, time_*, width, height, etc.) live only on tvl.chart.
+# styling. Chart-styling options (background_color, text_color, watermark,
+# crosshair, time_scale, tooltip, etc.) live only on tvl.chart.
 
 
 def candlestick(
@@ -1995,8 +1407,12 @@ def yield_curve(
         start_time_range=start_time_range,
         background_color=background_color,
         text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        watermark_text=watermark_text,
+        crosshair=(
+            Crosshair(mode=crosshair_mode) if crosshair_mode is not None else None
+        ),
+        watermark=(
+            Watermark(text=watermark_text) if watermark_text is not None else None
+        ),
     )
 
 
@@ -2100,8 +1516,12 @@ def options_chart(
         chart_type="options",
         background_color=background_color,
         text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        watermark_text=watermark_text,
+        crosshair=(
+            Crosshair(mode=crosshair_mode) if crosshair_mode is not None else None
+        ),
+        watermark=(
+            Watermark(text=watermark_text) if watermark_text is not None else None
+        ),
     )
 
 
@@ -2208,8 +1628,12 @@ def custom_numeric(
         chart_type="custom_numeric",
         background_color=background_color,
         text_color=text_color,
-        crosshair_mode=crosshair_mode,
-        watermark_text=watermark_text,
+        crosshair=(
+            Crosshair(mode=crosshair_mode) if crosshair_mode is not None else None
+        ),
+        watermark=(
+            Watermark(text=watermark_text) if watermark_text is not None else None
+        ),
     )
 
 

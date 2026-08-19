@@ -39,6 +39,19 @@ from deephaven.plot.tradingview_lightweight.series import (
     baseline_series,
     histogram_series,
 )
+from deephaven.plot.tradingview_lightweight.options import (
+    price_scale,
+    crosshair,
+    crosshair_line,
+    grid,
+    grid_lines,
+    time_scale,
+    watermark,
+    watermark_image,
+    tooltip,
+    scroll,
+    scale,
+)
 from deephaven.plot.tradingview_lightweight.markers import Marker, PriceLine
 
 
@@ -165,41 +178,39 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            vert_lines_visible=True,
-            vert_lines_color="#333",
-            vert_lines_style="dashed",
-            horz_lines_visible=False,
-            horz_lines_color="#444",
-            horz_lines_style="dotted",
+            grid=grid(
+                vert=grid_lines(visible=True, color="#333", style="dashed"),
+                horz=grid_lines(visible=False, color="#444", style="dotted"),
+            ),
         )
-        grid = c.chart_options["grid"]
-        self.assertTrue(grid["vertLines"]["visible"])
-        self.assertEqual(grid["vertLines"]["color"], "#333")
-        self.assertEqual(grid["vertLines"]["style"], 2)  # dashed
-        self.assertFalse(grid["horzLines"]["visible"])
-        self.assertEqual(grid["horzLines"]["color"], "#444")
-        self.assertEqual(grid["horzLines"]["style"], 1)  # dotted
+        grid_opts = c.chart_options["grid"]
+        self.assertTrue(grid_opts["vertLines"]["visible"])
+        self.assertEqual(grid_opts["vertLines"]["color"], "#333")
+        self.assertEqual(grid_opts["vertLines"]["style"], 2)  # dashed
+        self.assertFalse(grid_opts["horzLines"]["visible"])
+        self.assertEqual(grid_opts["horzLines"]["color"], "#444")
+        self.assertEqual(grid_opts["horzLines"]["style"], 1)  # dotted
 
     def test_crosshair_mode_normal(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_mode="normal")
+        c = chart(s, crosshair=crosshair(mode="normal"))
         self.assertEqual(c.chart_options["crosshair"]["mode"], 0)
 
     def test_crosshair_mode_magnet(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_mode="magnet")
+        c = chart(s, crosshair=crosshair(mode="magnet"))
         self.assertEqual(c.chart_options["crosshair"]["mode"], 1)
 
     def test_crosshair_mode_hidden(self):
         """CrosshairMode 'hidden' serializes to integer 2."""
         s = line_series(self.table)
-        c = chart(s, crosshair_mode="hidden")
+        c = chart(s, crosshair=crosshair(mode="hidden"))
         self.assertEqual(c.chart_options["crosshair"]["mode"], 2)
 
     def test_crosshair_mode_magnet_ohlc(self):
         """CrosshairMode 'magnet_ohlc' serializes to integer 3."""
         s = line_series(self.table)
-        c = chart(s, crosshair_mode="magnet_ohlc")
+        c = chart(s, crosshair=crosshair(mode="magnet_ohlc"))
         self.assertEqual(c.chart_options["crosshair"]["mode"], 3)
 
     def test_crosshair_mode_all_four_values(self):
@@ -207,7 +218,7 @@ class TestChartFunction(unittest.TestCase):
         expected = {"normal": 0, "magnet": 1, "hidden": 2, "magnet_ohlc": 3}
         s = line_series(self.table)
         for mode_name, mode_int in expected.items():
-            c = chart(s, crosshair_mode=mode_name)
+            c = chart(s, crosshair=crosshair(mode=mode_name))
             self.assertEqual(
                 c.chart_options["crosshair"]["mode"],
                 mode_int,
@@ -223,10 +234,14 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            crosshair_vert_line_width=8,
-            crosshair_vert_line_color="#C3BCDB44",
-            crosshair_vert_line_style="solid",
-            crosshair_vert_line_label_background_color="#9B7DFF",
+            crosshair=crosshair(
+                vert_line=crosshair_line(
+                    width=8,
+                    color="#C3BCDB44",
+                    style="solid",
+                    label_background_color="#9B7DFF",
+                ),
+            ),
         )
         vl = c.chart_options["crosshair"]["vertLine"]
         self.assertEqual(vl["width"], 8)
@@ -238,8 +253,12 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            crosshair_horz_line_color="#9B7DFF",
-            crosshair_horz_line_label_background_color="#9B7DFF",
+            crosshair=crosshair(
+                horz_line=crosshair_line(
+                    color="#9B7DFF",
+                    label_background_color="#9B7DFF",
+                ),
+            ),
         )
         hl = c.chart_options["crosshair"]["horzLine"]
         self.assertEqual(hl["color"], "#9B7DFF")
@@ -249,8 +268,10 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            crosshair_mode="normal",
-            crosshair_vert_line_width=4,
+            crosshair=crosshair(
+                mode="normal",
+                vert_line=crosshair_line(width=4),
+            ),
         )
         ch = c.chart_options["crosshair"]
         self.assertEqual(ch["mode"], 0)
@@ -259,73 +280,73 @@ class TestChartFunction(unittest.TestCase):
     def test_crosshair_sub_options_only(self):
         """Setting sub-options without mode should still create crosshair."""
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_width=2)
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(width=2)))
         self.assertIn("crosshair", c.chart_options)
         self.assertNotIn("mode", c.chart_options["crosshair"])
         self.assertEqual(c.chart_options["crosshair"]["vertLine"]["width"], 2)
 
     def test_crosshair_vert_line_visible_true(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_visible=True)
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(visible=True)))
         self.assertTrue(c.chart_options["crosshair"]["vertLine"]["visible"])
 
     def test_crosshair_vert_line_visible_false(self):
-        """visible=False must be serialized (not filtered out by _filter_none)."""
+        """visible=False must be serialized (not filtered out)."""
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_visible=False)
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(visible=False)))
         self.assertFalse(c.chart_options["crosshair"]["vertLine"]["visible"])
 
     def test_crosshair_vert_line_label_visible_true(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_label_visible=True)
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(label_visible=True)))
         self.assertTrue(c.chart_options["crosshair"]["vertLine"]["labelVisible"])
 
     def test_crosshair_vert_line_label_visible_false(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_label_visible=False)
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(label_visible=False)))
         self.assertFalse(c.chart_options["crosshair"]["vertLine"]["labelVisible"])
 
     def test_crosshair_horz_line_visible_true(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_visible=True)
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(visible=True)))
         self.assertTrue(c.chart_options["crosshair"]["horzLine"]["visible"])
 
     def test_crosshair_horz_line_visible_false(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_visible=False)
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(visible=False)))
         self.assertFalse(c.chart_options["crosshair"]["horzLine"]["visible"])
 
     def test_crosshair_horz_line_label_visible_true(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_label_visible=True)
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(label_visible=True)))
         self.assertTrue(c.chart_options["crosshair"]["horzLine"]["labelVisible"])
 
     def test_crosshair_horz_line_label_visible_false(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_label_visible=False)
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(label_visible=False)))
         self.assertFalse(c.chart_options["crosshair"]["horzLine"]["labelVisible"])
 
     def test_crosshair_do_not_snap_to_hidden_series_true(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_do_not_snap_to_hidden_series=True)
+        c = chart(s, crosshair=crosshair(do_not_snap_to_hidden_series=True))
         self.assertTrue(c.chart_options["crosshair"]["doNotSnapToHiddenSeriesIndices"])
 
     def test_crosshair_do_not_snap_to_hidden_series_false(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_do_not_snap_to_hidden_series=False)
+        c = chart(s, crosshair=crosshair(do_not_snap_to_hidden_series=False))
         self.assertFalse(c.chart_options["crosshair"]["doNotSnapToHiddenSeriesIndices"])
 
     def test_crosshair_all_new_options(self):
-        """All five new crosshair params round-trip correctly together."""
+        """All five crosshair params round-trip correctly together."""
         s = line_series(self.table)
         c = chart(
             s,
-            crosshair_mode="hidden",
-            crosshair_vert_line_visible=False,
-            crosshair_vert_line_label_visible=False,
-            crosshair_horz_line_visible=True,
-            crosshair_horz_line_label_visible=False,
-            crosshair_do_not_snap_to_hidden_series=True,
+            crosshair=crosshair(
+                mode="hidden",
+                do_not_snap_to_hidden_series=True,
+                vert_line=crosshair_line(visible=False, label_visible=False),
+                horz_line=crosshair_line(visible=True, label_visible=False),
+            ),
         )
         ch = c.chart_options["crosshair"]
         self.assertEqual(ch["mode"], 2)
@@ -338,39 +359,41 @@ class TestChartFunction(unittest.TestCase):
     def test_crosshair_vert_line_visible_not_set_by_default(self):
         """visible key must not appear when param is not provided."""
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_color="#fff")  # trigger vertLine dict
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(color="#fff")))
         self.assertNotIn("visible", c.chart_options["crosshair"]["vertLine"])
 
     def test_crosshair_vert_line_label_visible_not_set_by_default(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_vert_line_color="#fff")
+        c = chart(s, crosshair=crosshair(vert_line=crosshair_line(color="#fff")))
         self.assertNotIn("labelVisible", c.chart_options["crosshair"]["vertLine"])
 
     def test_crosshair_horz_line_visible_not_set_by_default(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_color="#fff")
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(color="#fff")))
         self.assertNotIn("visible", c.chart_options["crosshair"]["horzLine"])
 
     def test_crosshair_horz_line_label_visible_not_set_by_default(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_horz_line_color="#fff")
+        c = chart(s, crosshair=crosshair(horz_line=crosshair_line(color="#fff")))
         self.assertNotIn("labelVisible", c.chart_options["crosshair"]["horzLine"])
 
     def test_crosshair_do_not_snap_not_set_by_default(self):
         s = line_series(self.table)
-        c = chart(s, crosshair_mode="normal")
+        c = chart(s, crosshair=crosshair(mode="normal"))
         self.assertNotIn("doNotSnapToHiddenSeriesIndices", c.chart_options["crosshair"])
 
     def test_right_price_scale(self):
         s = line_series(self.table)
         c = chart(
             s,
-            right_price_scale_visible=True,
-            right_price_scale_border_visible=False,
-            right_price_scale_border_color="#555",
-            right_price_scale_auto_scale=True,
-            right_price_scale_mode="logarithmic",
-            right_price_scale_invert_scale=False,
+            right_price_scale=price_scale(
+                visible=True,
+                border_visible=False,
+                border_color="#555",
+                auto_scale=True,
+                mode="logarithmic",
+                invert_scale=False,
+            ),
         )
         rps = c.chart_options["rightPriceScale"]
         self.assertTrue(rps["visible"])
@@ -384,12 +407,14 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            left_price_scale_visible=True,
-            left_price_scale_border_visible=True,
-            left_price_scale_border_color="#666",
-            left_price_scale_auto_scale=False,
-            left_price_scale_mode="percentage",
-            left_price_scale_invert_scale=True,
+            left_price_scale=price_scale(
+                visible=True,
+                border_visible=True,
+                border_color="#666",
+                auto_scale=False,
+                mode="percentage",
+                invert_scale=True,
+            ),
         )
         lps = c.chart_options["leftPriceScale"]
         self.assertTrue(lps["visible"])
@@ -409,7 +434,7 @@ class TestChartFunction(unittest.TestCase):
         }
         s = line_series(self.table)
         for mode_name, mode_value in modes.items():
-            c = chart(s, right_price_scale_mode=mode_name)
+            c = chart(s, right_price_scale=price_scale(mode=mode_name))
             self.assertEqual(
                 c.chart_options["rightPriceScale"]["mode"],
                 mode_value,
@@ -420,15 +445,17 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            time_visible=True,
-            seconds_visible=False,
-            time_scale_border_visible=True,
-            time_scale_border_color="#777",
-            right_offset=5,
-            bar_spacing=10.0,
-            min_bar_spacing=2.0,
-            fix_left_edge=True,
-            fix_right_edge=False,
+            time_scale=time_scale(
+                time_visible=True,
+                seconds_visible=False,
+                border_visible=True,
+                border_color="#777",
+                right_offset=5,
+                bar_spacing=10.0,
+                min_bar_spacing=2.0,
+                fix_left_edge=True,
+                fix_right_edge=False,
+            ),
         )
         ts = c.chart_options["timeScale"]
         self.assertTrue(ts["timeVisible"])
@@ -445,12 +472,14 @@ class TestChartFunction(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_text="AAPL",
-            watermark_color="rgba(0,0,0,0.2)",
-            watermark_visible=True,
-            watermark_font_size=48,
-            watermark_horz_align="center",
-            watermark_vert_align="center",
+            watermark=watermark(
+                text="AAPL",
+                color="rgba(0,0,0,0.2)",
+                visible=True,
+                font_size=48,
+                horz_align="center",
+                vert_align="center",
+            ),
         )
         wm = c.chart_options["watermark"]
         self.assertEqual(wm["text"], "AAPL")
@@ -461,16 +490,16 @@ class TestChartFunction(unittest.TestCase):
         self.assertEqual(wm["vertAlign"], "center")
 
     def test_watermark_text_auto_visible(self):
-        """Setting watermark_text without watermark_visible should set visible=True."""
+        """Setting watermark text without visible should set visible=True."""
         s = line_series(self.table)
-        c = chart(s, watermark_text="Test")
+        c = chart(s, watermark=watermark(text="Test"))
         wm = c.chart_options["watermark"]
         self.assertTrue(wm["visible"])
 
     def test_watermark_visible_false(self):
-        """Explicitly setting watermark_visible=False should be respected."""
+        """Explicitly setting watermark visible=False should be respected."""
         s = line_series(self.table)
-        c = chart(s, watermark_text="Hidden", watermark_visible=False)
+        c = chart(s, watermark=watermark(text="Hidden", visible=False))
         wm = c.chart_options["watermark"]
         self.assertFalse(wm["visible"])
 
@@ -670,22 +699,24 @@ class TestChartFunction(unittest.TestCase):
     def test_partial_grid_only_vert(self):
         """Setting only vertical grid lines should not create horzLines."""
         s = line_series(self.table)
-        c = chart(s, vert_lines_visible=True)
-        grid = c.chart_options["grid"]
-        self.assertIn("vertLines", grid)
-        self.assertNotIn("horzLines", grid)
+        c = chart(s, grid=grid(vert=grid_lines(visible=True)))
+        grid_opts = c.chart_options["grid"]
+        self.assertIn("vertLines", grid_opts)
+        self.assertNotIn("horzLines", grid_opts)
 
     def test_precompute_conflation_priority(self):
         """precompute_conflation_priority should pass through as a string."""
         s = line_series(self.table)
-        c = chart(s, precompute_conflation_priority="background")
+        c = chart(s, time_scale=time_scale(precompute_conflation_priority="background"))
         self.assertEqual(
             c.chart_options["timeScale"]["precomputeConflationPriority"], "background"
         )
 
     def test_precompute_conflation_priority_user_visible(self):
         s = line_series(self.table)
-        c = chart(s, precompute_conflation_priority="user-visible")
+        c = chart(
+            s, time_scale=time_scale(precompute_conflation_priority="user-visible")
+        )
         self.assertEqual(
             c.chart_options["timeScale"]["precomputeConflationPriority"], "user-visible"
         )
@@ -954,7 +985,7 @@ class TestConvenienceFunctions(unittest.TestCase):
                 line_width=3,
                 title="Close Price",
             ),
-            watermark_text="MSFT",
+            watermark=watermark(text="MSFT"),
         )
         series = c.series_list[0]
         self.assertEqual(series.column_mapping["time"], "ts")
@@ -978,7 +1009,7 @@ class TestConvenienceFunctions(unittest.TestCase):
                 line_width=2,
                 title="Depth",
             ),
-            time_visible=True,
+            time_scale=time_scale(time_visible=True),
         )
         series = c.series_list[0]
         self.assertEqual(series.options["lineColor"], "blue")
@@ -999,7 +1030,7 @@ class TestConvenienceFunctions(unittest.TestCase):
                 up_color="#26a69a",
                 down_color="#ef5350",
             ),
-            crosshair_mode="magnet",
+            crosshair=crosshair(mode="magnet"),
         )
         series = c.series_list[0]
         self.assertEqual(series.options["upColor"], "#26a69a")
@@ -1081,9 +1112,9 @@ class TestChartFullSerialization(unittest.TestCase):
             s,
             background_color="#131722",
             text_color="#d1d4dc",
-            crosshair_mode="normal",
-            time_visible=True,
-            watermark_text="AAPL",
+            crosshair=crosshair(mode="normal"),
+            time_scale=time_scale(time_visible=True),
+            watermark=watermark(text="AAPL"),
         )
 
         table_id_map = {id(self.table): 0}
@@ -1327,17 +1358,19 @@ class TestTimeScaleOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            time_scale_ticks_visible=True,
-            shift_visible_range_on_new_bar=False,
-            lock_visible_time_range_on_resize=True,
-            right_bar_stays_on_scroll=True,
-            time_scale_minimum_height=40,
-            allow_bold_labels=False,
-            tick_mark_max_character_length=12,
-            uniform_distribution=True,
-            max_bar_spacing=20.0,
-            right_offset_pixels=50,
-            time_scale_visible=False,
+            time_scale=time_scale(
+                ticks_visible=True,
+                shift_visible_range_on_new_bar=False,
+                lock_visible_time_range_on_resize=True,
+                right_bar_stays_on_scroll=True,
+                minimum_height=40,
+                allow_bold_labels=False,
+                tick_mark_max_character_length=12,
+                uniform_distribution=True,
+                max_bar_spacing=20.0,
+                right_offset_pixels=50,
+                visible=False,
+            ),
         )
         ts = c.chart_options["timeScale"]
         self.assertTrue(ts["ticksVisible"])
@@ -1356,9 +1389,11 @@ class TestTimeScaleOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            enable_conflation=True,
-            conflation_threshold_factor=4.0,
-            precompute_conflation_on_init=True,
+            time_scale=time_scale(
+                enable_conflation=True,
+                conflation_threshold_factor=4.0,
+                precompute_conflation_on_init=True,
+            ),
         )
         ts = c.chart_options["timeScale"]
         self.assertTrue(ts["enableConflation"])
@@ -1369,8 +1404,10 @@ class TestTimeScaleOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            ignore_whitespace_indices=True,
-            allow_shift_visible_range_on_whitespace_replacement=True,
+            time_scale=time_scale(
+                ignore_whitespace_indices=True,
+                allow_shift_visible_range_on_whitespace_replacement=True,
+            ),
         )
         ts = c.chart_options["timeScale"]
         self.assertTrue(ts["ignoreWhitespaceIndices"])
@@ -1390,12 +1427,14 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            right_price_scale_ticks_visible=True,
-            right_price_scale_align_labels=False,
-            right_price_scale_text_color="#FF0000",
-            right_price_scale_entire_text_only=True,
-            right_price_scale_minimum_width=80,
-            right_price_scale_ensure_edge_tick_marks_visible=True,
+            right_price_scale=price_scale(
+                ticks_visible=True,
+                align_labels=False,
+                text_color="#FF0000",
+                entire_text_only=True,
+                minimum_width=80,
+                ensure_edge_tick_marks_visible=True,
+            ),
         )
         rps = c.chart_options["rightPriceScale"]
         self.assertTrue(rps["ticksVisible"])
@@ -1409,8 +1448,10 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            left_price_scale_ticks_visible=True,
-            left_price_scale_minimum_width=60,
+            left_price_scale=price_scale(
+                ticks_visible=True,
+                minimum_width=60,
+            ),
         )
         lps = c.chart_options["leftPriceScale"]
         self.assertTrue(lps["ticksVisible"])
@@ -1440,9 +1481,9 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            right_price_scale_tick_mark_density=4.0,
-            left_price_scale_tick_mark_density=1.5,
-            overlay_price_scale_tick_mark_density=3.0,
+            right_price_scale=price_scale(tick_mark_density=4.0),
+            left_price_scale=price_scale(tick_mark_density=1.5),
+            overlay_price_scale=price_scale(tick_mark_density=3.0),
         )
         self.assertEqual(c.chart_options["rightPriceScale"]["tickMarkDensity"], 4.0)
         self.assertEqual(c.chart_options["leftPriceScale"]["tickMarkDensity"], 1.5)
@@ -1457,11 +1498,13 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            overlay_price_scale_border_visible=False,
-            overlay_price_scale_ticks_visible=True,
-            overlay_price_scale_minimum_width=50,
-            overlay_price_scale_margin_top=0.7,
-            overlay_price_scale_margin_bottom=0.0,
+            overlay_price_scale=price_scale(
+                border_visible=False,
+                ticks_visible=True,
+                minimum_width=50,
+                margin_top=0.7,
+                margin_bottom=0.0,
+            ),
         )
         ops = c.chart_options["overlayPriceScales"]
         self.assertFalse(ops["borderVisible"])
@@ -1482,8 +1525,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            right_price_scale_margin_top=0.2,
-            right_price_scale_margin_bottom=0.1,
+            right_price_scale=price_scale(margin_top=0.2, margin_bottom=0.1),
         )
         rps = c.chart_options["rightPriceScale"]
         self.assertIn("scaleMargins", rps)
@@ -1493,7 +1535,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
     def test_right_price_scale_margin_top_only(self):
         """Providing only top margin still creates scaleMargins with only top key."""
         s = line_series(self.table)
-        c = chart(s, right_price_scale_margin_top=0.3)
+        c = chart(s, right_price_scale=price_scale(margin_top=0.3))
         rps = c.chart_options["rightPriceScale"]
         self.assertEqual(rps["scaleMargins"]["top"], 0.3)
         self.assertNotIn("bottom", rps["scaleMargins"])
@@ -1503,9 +1545,11 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            right_price_scale_visible=True,
-            right_price_scale_margin_top=0.15,
-            right_price_scale_margin_bottom=0.05,
+            right_price_scale=price_scale(
+                visible=True,
+                margin_top=0.15,
+                margin_bottom=0.05,
+            ),
         )
         rps = c.chart_options["rightPriceScale"]
         self.assertTrue(rps["visible"])
@@ -1514,7 +1558,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
     def test_right_price_scale_margins_not_set_by_default(self):
         """No scaleMargins key in rightPriceScale when margin params are None."""
         s = line_series(self.table)
-        c = chart(s, right_price_scale_visible=True)
+        c = chart(s, right_price_scale=price_scale(visible=True))
         rps = c.chart_options["rightPriceScale"]
         self.assertNotIn("scaleMargins", rps)
 
@@ -1525,8 +1569,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            left_price_scale_margin_top=0.1,
-            left_price_scale_margin_bottom=0.2,
+            left_price_scale=price_scale(margin_top=0.1, margin_bottom=0.2),
         )
         lps = c.chart_options["leftPriceScale"]
         self.assertIn("scaleMargins", lps)
@@ -1536,7 +1579,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
     def test_left_price_scale_margin_bottom_only(self):
         """Providing only bottom margin produces scaleMargins with only bottom key."""
         s = line_series(self.table)
-        c = chart(s, left_price_scale_margin_bottom=0.05)
+        c = chart(s, left_price_scale=price_scale(margin_bottom=0.05))
         lps = c.chart_options["leftPriceScale"]
         self.assertNotIn("top", lps["scaleMargins"])
         self.assertEqual(lps["scaleMargins"]["bottom"], 0.05)
@@ -1545,11 +1588,11 @@ class TestPriceScaleNewOptions(unittest.TestCase):
 
     def test_overlay_price_scale_auto_scale(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_auto_scale=True)
+        c = chart(s, overlay_price_scale=price_scale(auto_scale=True))
         self.assertTrue(c.chart_options["overlayPriceScales"]["autoScale"])
 
     def test_overlay_price_scale_mode(self):
-        """overlay_price_scale_mode is serialized via PRICE_SCALE_MODE_MAP."""
+        """overlay price-scale mode is serialized via PRICE_SCALE_MODE_MAP."""
         s = line_series(self.table)
         modes = {
             "normal": 0,
@@ -1558,7 +1601,7 @@ class TestPriceScaleNewOptions(unittest.TestCase):
             "indexed_to_100": 3,
         }
         for mode_name, expected in modes.items():
-            c = chart(s, overlay_price_scale_mode=mode_name)
+            c = chart(s, overlay_price_scale=price_scale(mode=mode_name))
             self.assertEqual(
                 c.chart_options["overlayPriceScales"]["mode"],
                 expected,
@@ -1567,34 +1610,36 @@ class TestPriceScaleNewOptions(unittest.TestCase):
 
     def test_overlay_price_scale_invert_scale(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_invert_scale=True)
+        c = chart(s, overlay_price_scale=price_scale(invert_scale=True))
         self.assertTrue(c.chart_options["overlayPriceScales"]["invertScale"])
 
     def test_overlay_price_scale_align_labels(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_align_labels=False)
+        c = chart(s, overlay_price_scale=price_scale(align_labels=False))
         self.assertFalse(c.chart_options["overlayPriceScales"]["alignLabels"])
 
     def test_overlay_price_scale_border_color(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_border_color="#aabbcc")
+        c = chart(s, overlay_price_scale=price_scale(border_color="#aabbcc"))
         self.assertEqual(
             c.chart_options["overlayPriceScales"]["borderColor"], "#aabbcc"
         )
 
     def test_overlay_price_scale_text_color(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_text_color="#ffffff")
+        c = chart(s, overlay_price_scale=price_scale(text_color="#ffffff"))
         self.assertEqual(c.chart_options["overlayPriceScales"]["textColor"], "#ffffff")
 
     def test_overlay_price_scale_entire_text_only(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_entire_text_only=True)
+        c = chart(s, overlay_price_scale=price_scale(entire_text_only=True))
         self.assertTrue(c.chart_options["overlayPriceScales"]["entireTextOnly"])
 
     def test_overlay_price_scale_ensure_edge_tick_marks_visible(self):
         s = line_series(self.table)
-        c = chart(s, overlay_price_scale_ensure_edge_tick_marks_visible=True)
+        c = chart(
+            s, overlay_price_scale=price_scale(ensure_edge_tick_marks_visible=True)
+        )
         self.assertTrue(
             c.chart_options["overlayPriceScales"]["ensureEdgeTickMarksVisible"]
         )
@@ -1604,21 +1649,23 @@ class TestPriceScaleNewOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            # existing props
-            overlay_price_scale_border_visible=True,
-            overlay_price_scale_ticks_visible=False,
-            overlay_price_scale_minimum_width=50,
-            overlay_price_scale_margin_top=0.1,
-            overlay_price_scale_margin_bottom=0.05,
-            # new props
-            overlay_price_scale_auto_scale=False,
-            overlay_price_scale_mode="percentage",
-            overlay_price_scale_invert_scale=True,
-            overlay_price_scale_align_labels=False,
-            overlay_price_scale_border_color="#111111",
-            overlay_price_scale_text_color="#eeeeee",
-            overlay_price_scale_entire_text_only=True,
-            overlay_price_scale_ensure_edge_tick_marks_visible=True,
+            overlay_price_scale=price_scale(
+                # existing props
+                border_visible=True,
+                ticks_visible=False,
+                minimum_width=50,
+                margin_top=0.1,
+                margin_bottom=0.05,
+                # new props
+                auto_scale=False,
+                mode="percentage",
+                invert_scale=True,
+                align_labels=False,
+                border_color="#111111",
+                text_color="#eeeeee",
+                entire_text_only=True,
+                ensure_edge_tick_marks_visible=True,
+            ),
         )
         ops = c.chart_options["overlayPriceScales"]
         # existing
@@ -2225,7 +2272,7 @@ class TestLineWidth(unittest.TestCase):
         """All four valid LineWidth values should serialize without error."""
         s = line_series(self.table)
         for w in (1, 2, 3, 4):
-            c = chart(s, crosshair_vert_line_width=w)
+            c = chart(s, crosshair=crosshair(vert_line=crosshair_line(width=w)))
             self.assertEqual(
                 c.chart_options["crosshair"]["vertLine"]["width"],
                 w,
@@ -2314,17 +2361,17 @@ class TestAlignTypes(unittest.TestCase):
         self.assertTrue(hasattr(tvl, "VertAlign"))
 
     def test_watermark_horz_align_passthrough(self):
-        """watermark_horz_align should pass through to chartOptions."""
+        """watermark horz_align should pass through to chartOptions."""
         table = MagicMock(name="table")
         s = line_series(table)
-        c = chart(s, watermark_text="TEST", watermark_horz_align="center")
+        c = chart(s, watermark=watermark(text="TEST", horz_align="center"))
         self.assertEqual(c.chart_options["watermark"]["horzAlign"], "center")
 
     def test_watermark_vert_align_passthrough(self):
-        """watermark_vert_align should pass through to chartOptions."""
+        """watermark vert_align should pass through to chartOptions."""
         table = MagicMock(name="table")
         s = line_series(table)
-        c = chart(s, watermark_text="TEST", watermark_vert_align="top")
+        c = chart(s, watermark=watermark(text="TEST", vert_align="top"))
         self.assertEqual(c.chart_options["watermark"]["vertAlign"], "top")
 
 
@@ -2341,9 +2388,11 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_text="AAPL",
-            watermark_font_style="italic",
-            watermark_line_height=80.0,
+            watermark=watermark(
+                text="AAPL",
+                font_style="italic",
+                line_height=80.0,
+            ),
         )
         wm = c.chart_options["watermark"]
         self.assertEqual(wm["text"], "AAPL")
@@ -2355,7 +2404,7 @@ class TestWatermarkOptions(unittest.TestCase):
     def test_watermark_single_line_omitted_new_fields(self):
         """Omitted new fields do not appear in the serialised dict."""
         s = line_series(self.table)
-        c = chart(s, watermark_text="AAPL")
+        c = chart(s, watermark=watermark(text="AAPL"))
         wm = c.chart_options["watermark"]
         self.assertNotIn("fontFamily", wm)
         self.assertNotIn("fontStyle", wm)
@@ -2364,22 +2413,24 @@ class TestWatermarkOptions(unittest.TestCase):
     # --- Multi-line watermark ---
 
     def test_watermark_multi_line_basic(self):
-        """watermark_lines produces a lines[] array in the watermark dict."""
+        """lines= produces a lines[] array in the watermark dict."""
         from deephaven.plot.tradingview_lightweight.options import WatermarkLine
 
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_lines=[
-                WatermarkLine(text="AAPL", font_size=72, font_style="italic"),
-                WatermarkLine(
-                    text="Apple Inc",
-                    font_size=32,
-                    color="rgba(100,100,100,0.3)",
-                ),
-            ],
-            watermark_horz_align="left",
-            watermark_vert_align="bottom",
+            watermark=watermark(
+                lines=[
+                    WatermarkLine(text="AAPL", font_size=72, font_style="italic"),
+                    WatermarkLine(
+                        text="Apple Inc",
+                        font_size=32,
+                        color="rgba(100,100,100,0.3)",
+                    ),
+                ],
+                horz_align="left",
+                vert_align="bottom",
+            ),
         )
         wm = c.chart_options["watermark"]
         self.assertTrue(wm["visible"])
@@ -2404,30 +2455,29 @@ class TestWatermarkOptions(unittest.TestCase):
         from deephaven.plot.tradingview_lightweight.options import WatermarkLine
 
         s = line_series(self.table)
-        c = chart(s, watermark_lines=[WatermarkLine(text="AAPL")])
+        c = chart(s, watermark=watermark(lines=[WatermarkLine(text="AAPL")]))
         wm = c.chart_options["watermark"]
         self.assertNotIn("text", wm)
         self.assertIn("lines", wm)
 
     def test_watermark_multi_line_visible_false(self):
-        """watermark_visible=False is respected with watermark_lines."""
+        """visible=False is respected with lines=."""
         from deephaven.plot.tradingview_lightweight.options import WatermarkLine
 
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_lines=[WatermarkLine(text="AAPL")],
-            watermark_visible=False,
+            watermark=watermark(lines=[WatermarkLine(text="AAPL")], visible=False),
         )
         wm = c.chart_options["watermark"]
         self.assertFalse(wm["visible"])
 
     def test_watermark_multi_line_auto_visible(self):
-        """watermark_lines without watermark_visible auto-sets visible=True."""
+        """lines= without visible auto-sets visible=True."""
         from deephaven.plot.tradingview_lightweight.options import WatermarkLine
 
         s = line_series(self.table)
-        c = chart(s, watermark_lines=[WatermarkLine(text="AAPL")])
+        c = chart(s, watermark=watermark(lines=[WatermarkLine(text="AAPL")]))
         self.assertTrue(c.chart_options["watermark"]["visible"])
 
     def test_watermark_line_height_in_line(self):
@@ -2437,24 +2487,26 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_lines=[WatermarkLine(text="X", line_height=90.0)],
+            watermark=watermark(lines=[WatermarkLine(text="X", line_height=90.0)]),
         )
         line0 = c.chart_options["watermark"]["lines"][0]
         self.assertEqual(line0["lineHeight"], 90.0)
 
     def test_watermark_mutual_exclusion_raises(self):
-        """Providing both watermark_text and watermark_lines must raise ValueError."""
+        """Providing both text and lines to watermark() must raise ValueError."""
         from deephaven.plot.tradingview_lightweight.options import WatermarkLine
 
-        s = line_series(self.table)
         with self.assertRaises(ValueError) as ctx:
-            chart(
-                s,
-                watermark_text="AAPL",
-                watermark_lines=[WatermarkLine(text="AAPL")],
-            )
-        self.assertIn("watermark_text", str(ctx.exception))
-        self.assertIn("watermark_lines", str(ctx.exception))
+            watermark(text="AAPL", lines=[WatermarkLine(text="AAPL")])
+        self.assertIn("text", str(ctx.exception))
+        self.assertIn("lines", str(ctx.exception))
+
+    def test_watermark_single_line_styling_with_lines_raises(self):
+        """Single-line styling combined with lines= must raise ValueError."""
+        from deephaven.plot.tradingview_lightweight.options import WatermarkLine
+
+        with self.assertRaises(ValueError):
+            watermark(color="#111", lines=[WatermarkLine(text="AAPL")])
 
     # --- Image watermark ---
 
@@ -2463,11 +2515,13 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_image_url="https://example.com/logo.png",
-            watermark_image_max_width=200,
-            watermark_image_max_height=100,
-            watermark_image_padding=10,
-            watermark_image_alpha=0.5,
+            watermark_image=watermark_image(
+                url="https://example.com/logo.png",
+                max_width=200,
+                max_height=100,
+                padding=10,
+                alpha=0.5,
+            ),
         )
         img = c.chart_options["imageWatermark"]
         self.assertEqual(img["url"], "https://example.com/logo.png")
@@ -2480,7 +2534,7 @@ class TestWatermarkOptions(unittest.TestCase):
     def test_watermark_image_no_url_no_key(self):
         """No imageWatermark key when url is not given."""
         s = line_series(self.table)
-        c = chart(s, watermark_image_max_width=200)
+        c = chart(s, watermark_image=watermark_image(max_width=200))
         self.assertNotIn("imageWatermark", c.chart_options)
 
     def test_watermark_image_visible_false(self):
@@ -2488,15 +2542,18 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_image_url="https://example.com/logo.png",
-            watermark_image_visible=False,
+            watermark_image=watermark_image(
+                url="https://example.com/logo.png", visible=False
+            ),
         )
         self.assertFalse(c.chart_options["imageWatermark"]["visible"])
 
     def test_watermark_image_url_only(self):
         """Minimal image watermark with only url."""
         s = line_series(self.table)
-        c = chart(s, watermark_image_url="https://example.com/logo.png")
+        c = chart(
+            s, watermark_image=watermark_image(url="https://example.com/logo.png")
+        )
         img = c.chart_options["imageWatermark"]
         self.assertEqual(img["url"], "https://example.com/logo.png")
         self.assertNotIn("maxWidth", img)
@@ -2509,8 +2566,8 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_text="AAPL",
-            watermark_image_url="https://example.com/logo.png",
+            watermark=watermark(text="AAPL"),
+            watermark_image=watermark_image(url="https://example.com/logo.png"),
         )
         self.assertIn("watermark", c.chart_options)
         self.assertIn("imageWatermark", c.chart_options)
@@ -2522,8 +2579,8 @@ class TestWatermarkOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_lines=[WatermarkLine(text="AAPL")],
-            watermark_image_url="https://example.com/logo.png",
+            watermark=watermark(lines=[WatermarkLine(text="AAPL")]),
+            watermark_image=watermark_image(url="https://example.com/logo.png"),
         )
         self.assertIn("watermark", c.chart_options)
         self.assertIn("imageWatermark", c.chart_options)
@@ -2531,16 +2588,18 @@ class TestWatermarkOptions(unittest.TestCase):
     # --- Backwards-compatibility regression guard ---
 
     def test_watermark_options_backward_compat(self):
-        """Existing tests still pass: single-line params produce unchanged shape."""
+        """Single-line params produce the expected watermark shape."""
         s = line_series(self.table)
         c = chart(
             s,
-            watermark_text="AAPL",
-            watermark_color="rgba(0,0,0,0.2)",
-            watermark_visible=True,
-            watermark_font_size=48,
-            watermark_horz_align="center",
-            watermark_vert_align="center",
+            watermark=watermark(
+                text="AAPL",
+                color="rgba(0,0,0,0.2)",
+                visible=True,
+                font_size=48,
+                horz_align="center",
+                vert_align="center",
+            ),
         )
         wm = c.chart_options["watermark"]
         self.assertEqual(wm["text"], "AAPL")
@@ -2586,6 +2645,234 @@ class TestWatermarkOptions(unittest.TestCase):
         self.assertTrue(hasattr(tvl, "WatermarkLine"))
 
 
+class TestGroupedConfigObjects(unittest.TestCase):
+    """Tests for the grouped chart-config factories (price_scale, crosshair, grid)."""
+
+    def test_price_scale_to_dict_camel_case(self):
+        """price_scale().to_dict() emits camelCase keys and nests scaleMargins."""
+        ps = price_scale(
+            visible=True,
+            border_visible=False,
+            border_color="#555",
+            auto_scale=True,
+            mode="logarithmic",
+            invert_scale=False,
+            align_labels=True,
+            text_color="#666",
+            entire_text_only=True,
+            ticks_visible=True,
+            minimum_width=80,
+            ensure_edge_tick_marks_visible=True,
+            tick_mark_density=2.0,
+            margin_top=0.2,
+            margin_bottom=0.1,
+        )
+        self.assertEqual(
+            ps.to_dict(),
+            {
+                "visible": True,
+                "borderVisible": False,
+                "borderColor": "#555",
+                "autoScale": True,
+                "mode": 1,  # logarithmic
+                "invertScale": False,
+                "alignLabels": True,
+                "textColor": "#666",
+                "entireTextOnly": True,
+                "ticksVisible": True,
+                "minimumWidth": 80,
+                "ensureEdgeTickMarksVisible": True,
+                "tickMarkDensity": 2.0,
+                "scaleMargins": {"top": 0.2, "bottom": 0.1},
+            },
+        )
+
+    def test_price_scale_to_dict_omits_none(self):
+        self.assertEqual(price_scale().to_dict(), {})
+        self.assertEqual(
+            price_scale(margin_top=0.3).to_dict(), {"scaleMargins": {"top": 0.3}}
+        )
+
+    def test_crosshair_line_to_dict_camel_case(self):
+        cl = crosshair_line(
+            width=2,
+            color="#aaa",
+            style="dashed",
+            visible=False,
+            label_visible=True,
+            label_background_color="#9B7DFF",
+        )
+        self.assertEqual(
+            cl.to_dict(),
+            {
+                "width": 2,
+                "color": "#aaa",
+                "style": 2,  # dashed
+                "visible": False,
+                "labelVisible": True,
+                "labelBackgroundColor": "#9B7DFF",
+            },
+        )
+
+    def test_crosshair_to_dict_nests_lines(self):
+        ch = crosshair(
+            mode="magnet",
+            do_not_snap_to_hidden_series=True,
+            vert_line=crosshair_line(width=1),
+            horz_line=crosshair_line(color="#000"),
+        )
+        self.assertEqual(
+            ch.to_dict(),
+            {
+                "mode": 1,
+                "doNotSnapToHiddenSeriesIndices": True,
+                "vertLine": {"width": 1},
+                "horzLine": {"color": "#000"},
+            },
+        )
+
+    def test_crosshair_to_dict_omits_empty(self):
+        self.assertEqual(crosshair().to_dict(), {})
+        # An empty nested line should not add a vertLine key.
+        self.assertEqual(crosshair(vert_line=crosshair_line()).to_dict(), {})
+
+    def test_grid_to_dict_camel_case(self):
+        g = grid(
+            vert=grid_lines(visible=True, color="#333", style="dashed"),
+            horz=grid_lines(visible=False),
+        )
+        self.assertEqual(
+            g.to_dict(),
+            {
+                "vertLines": {"visible": True, "color": "#333", "style": 2},
+                "horzLines": {"visible": False},
+            },
+        )
+
+    def test_grid_to_dict_omits_empty(self):
+        self.assertEqual(grid().to_dict(), {})
+        self.assertEqual(grid(vert=grid_lines()).to_dict(), {})
+
+    def test_time_scale_to_dict_camel_case(self):
+        ts = time_scale(
+            visible=False,
+            time_visible=True,
+            seconds_visible=False,
+            border_visible=True,
+            border_color="#777",
+            bar_spacing=8.0,
+            minimum_height=40,
+            ticks_visible=True,
+            precompute_conflation_priority="background",
+        )
+        self.assertEqual(
+            ts.to_dict(),
+            {
+                "visible": False,
+                "timeVisible": True,
+                "secondsVisible": False,
+                "borderVisible": True,
+                "borderColor": "#777",
+                "barSpacing": 8.0,
+                "minimumHeight": 40,
+                "ticksVisible": True,
+                "precomputeConflationPriority": "background",
+            },
+        )
+
+    def test_time_scale_to_dict_omits_none(self):
+        self.assertEqual(time_scale().to_dict(), {})
+
+    def test_watermark_single_line_to_dict(self):
+        wm = watermark(text="AAPL", color="#888", font_size=48, horz_align="center")
+        self.assertEqual(
+            wm.to_dict(),
+            {
+                "text": "AAPL",
+                "color": "#888",
+                "visible": True,
+                "fontSize": 48,
+                "horzAlign": "center",
+            },
+        )
+
+    def test_watermark_multi_line_to_dict(self):
+        from deephaven.plot.tradingview_lightweight.options import watermark_line
+
+        wm = watermark(lines=[watermark_line("A"), watermark_line("B", color="#555")])
+        self.assertEqual(
+            wm.to_dict(),
+            {"lines": [{"text": "A"}, {"text": "B", "color": "#555"}], "visible": True},
+        )
+
+    def test_watermark_validations(self):
+        from deephaven.plot.tradingview_lightweight.options import watermark_line
+
+        with self.assertRaises(ValueError):
+            watermark(text="x", lines=[watermark_line("A")])
+        with self.assertRaises(ValueError):
+            watermark(font_size=10, lines=[watermark_line("A")])
+
+    def test_watermark_image_to_dict(self):
+        self.assertEqual(
+            watermark_image(url="logo.png", alpha=0.3).to_dict(),
+            {"url": "logo.png", "alpha": 0.3, "visible": True},
+        )
+        self.assertEqual(watermark_image().to_dict(), {})
+
+    def test_tooltip_to_dict(self):
+        self.assertEqual(tooltip().to_dict(), {"visible": True})
+        self.assertEqual(
+            tooltip(show_value=True, value_precision=0).to_dict(),
+            {"visible": True, "showValue": True, "valuePrecision": 0},
+        )
+        self.assertEqual(tooltip(visible=False).to_dict(), {})
+        with self.assertRaises(ValueError):
+            tooltip(visible=False, show_title=True)
+
+    def test_scroll_scale_to_dict(self):
+        self.assertEqual(
+            scroll(mouse_wheel=False, horz_touch_drag=True).to_dict(),
+            {"mouseWheel": False, "horzTouchDrag": True},
+        )
+        self.assertEqual(
+            scale(pinch=False, axis_double_click_reset=True).to_dict(),
+            {"pinch": False, "axisDoubleClickReset": True},
+        )
+        self.assertEqual(scroll().to_dict(), {})
+        self.assertEqual(scale().to_dict(), {})
+
+    def test_grouped_factories_exported(self):
+        """All grouped-config factories/types are importable from the package."""
+        from deephaven.plot import tradingview_lightweight as tvl
+
+        for name in (
+            "price_scale",
+            "PriceScale",
+            "crosshair",
+            "Crosshair",
+            "crosshair_line",
+            "CrosshairLine",
+            "grid",
+            "Grid",
+            "grid_lines",
+            "GridLines",
+            "time_scale",
+            "TimeScale",
+            "watermark",
+            "Watermark",
+            "watermark_image",
+            "WatermarkImage",
+            "tooltip",
+            "Tooltip",
+            "scroll",
+            "Scroll",
+            "scale",
+            "Scale",
+        ):
+            self.assertTrue(hasattr(tvl, name), f"tvl.{name} not exported")
+
+
 class TestScrollScaleOptions(unittest.TestCase):
     """Tests for handleScroll, handleScale, and kineticScroll options."""
 
@@ -2621,42 +2908,47 @@ class TestScrollScaleOptions(unittest.TestCase):
         c = chart(s, handle_scroll=True)
         self.assertIs(c.chart_options["handleScroll"], True)
 
-    def test_handle_scroll_shorthand_overrides_granular(self):
-        """When handle_scroll bool is set, granular sub-options are ignored."""
+    def test_handle_scroll_object_and_bool_are_distinct(self):
+        """A bool emits a bool; a Scroll object emits the object form."""
         s = line_series(self.table)
-        c = chart(s, handle_scroll=False, handle_scroll_mouse_wheel=True)
-        # Must be boolean False, not an object
-        self.assertIs(c.chart_options["handleScroll"], False)
+        self.assertIs(
+            chart(s, handle_scroll=False).chart_options["handleScroll"], False
+        )
+        obj = chart(s, handle_scroll=scroll(mouse_wheel=True)).chart_options[
+            "handleScroll"
+        ]
+        self.assertIsInstance(obj, dict)
+        self.assertTrue(obj["mouseWheel"])
 
     # -----------------------------------------------------------------------
-    # HandleScroll — granular sub-options
+    # HandleScroll — granular sub-options via scroll()
     # -----------------------------------------------------------------------
 
     def test_handle_scroll_mouse_wheel_false(self):
-        """handle_scroll_mouse_wheel=False emits object form."""
+        """scroll(mouse_wheel=False) emits object form."""
         s = line_series(self.table)
-        c = chart(s, handle_scroll_mouse_wheel=False)
+        c = chart(s, handle_scroll=scroll(mouse_wheel=False))
         hs = c.chart_options["handleScroll"]
         self.assertIsInstance(hs, dict)
         self.assertFalse(hs["mouseWheel"])
 
     def test_handle_scroll_pressed_mouse_move_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scroll_pressed_mouse_move=False)
+        c = chart(s, handle_scroll=scroll(pressed_mouse_move=False))
         hs = c.chart_options["handleScroll"]
         self.assertIsInstance(hs, dict)
         self.assertFalse(hs["pressedMouseMove"])
 
     def test_handle_scroll_horz_touch_drag_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scroll_horz_touch_drag=False)
+        c = chart(s, handle_scroll=scroll(horz_touch_drag=False))
         hs = c.chart_options["handleScroll"]
         self.assertIsInstance(hs, dict)
         self.assertFalse(hs["horzTouchDrag"])
 
     def test_handle_scroll_vert_touch_drag_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scroll_vert_touch_drag=False)
+        c = chart(s, handle_scroll=scroll(vert_touch_drag=False))
         hs = c.chart_options["handleScroll"]
         self.assertIsInstance(hs, dict)
         self.assertFalse(hs["vertTouchDrag"])
@@ -2666,10 +2958,12 @@ class TestScrollScaleOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            handle_scroll_mouse_wheel=True,
-            handle_scroll_pressed_mouse_move=False,
-            handle_scroll_horz_touch_drag=True,
-            handle_scroll_vert_touch_drag=False,
+            handle_scroll=scroll(
+                mouse_wheel=True,
+                pressed_mouse_move=False,
+                horz_touch_drag=True,
+                vert_touch_drag=False,
+            ),
         )
         hs = c.chart_options["handleScroll"]
         self.assertIsInstance(hs, dict)
@@ -2681,7 +2975,7 @@ class TestScrollScaleOptions(unittest.TestCase):
     def test_handle_scroll_partial_granular_only_set_keys_emitted(self):
         """Only explicitly set granular keys should appear in the output dict."""
         s = line_series(self.table)
-        c = chart(s, handle_scroll_mouse_wheel=False)
+        c = chart(s, handle_scroll=scroll(mouse_wheel=False))
         hs = c.chart_options["handleScroll"]
         # Only "mouseWheel" should be present — not the others
         self.assertIn("mouseWheel", hs)
@@ -2704,40 +2998,42 @@ class TestScrollScaleOptions(unittest.TestCase):
         c = chart(s, handle_scale=True)
         self.assertIs(c.chart_options["handleScale"], True)
 
-    def test_handle_scale_shorthand_overrides_granular(self):
-        """When handle_scale bool is set, granular sub-options are ignored."""
+    def test_handle_scale_object_and_bool_are_distinct(self):
+        """A bool emits a bool; a Scale object emits the object form."""
         s = line_series(self.table)
-        c = chart(s, handle_scale=False, handle_scale_pinch=True)
-        self.assertIs(c.chart_options["handleScale"], False)
+        self.assertIs(chart(s, handle_scale=False).chart_options["handleScale"], False)
+        obj = chart(s, handle_scale=scale(pinch=True)).chart_options["handleScale"]
+        self.assertIsInstance(obj, dict)
+        self.assertTrue(obj["pinch"])
 
     # -----------------------------------------------------------------------
-    # HandleScale — granular sub-options
+    # HandleScale — granular sub-options via scale()
     # -----------------------------------------------------------------------
 
     def test_handle_scale_mouse_wheel_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scale_mouse_wheel=False)
+        c = chart(s, handle_scale=scale(mouse_wheel=False))
         hsc = c.chart_options["handleScale"]
         self.assertIsInstance(hsc, dict)
         self.assertFalse(hsc["mouseWheel"])
 
     def test_handle_scale_pinch_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scale_pinch=False)
+        c = chart(s, handle_scale=scale(pinch=False))
         hsc = c.chart_options["handleScale"]
         self.assertIsInstance(hsc, dict)
         self.assertFalse(hsc["pinch"])
 
     def test_handle_scale_axis_pressed_mouse_move_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scale_axis_pressed_mouse_move=False)
+        c = chart(s, handle_scale=scale(axis_pressed_mouse_move=False))
         hsc = c.chart_options["handleScale"]
         self.assertIsInstance(hsc, dict)
         self.assertFalse(hsc["axisPressedMouseMove"])
 
     def test_handle_scale_axis_double_click_reset_false(self):
         s = line_series(self.table)
-        c = chart(s, handle_scale_axis_double_click_reset=False)
+        c = chart(s, handle_scale=scale(axis_double_click_reset=False))
         hsc = c.chart_options["handleScale"]
         self.assertIsInstance(hsc, dict)
         self.assertFalse(hsc["axisDoubleClickReset"])
@@ -2747,10 +3043,12 @@ class TestScrollScaleOptions(unittest.TestCase):
         s = line_series(self.table)
         c = chart(
             s,
-            handle_scale_mouse_wheel=True,
-            handle_scale_pinch=False,
-            handle_scale_axis_pressed_mouse_move=True,
-            handle_scale_axis_double_click_reset=False,
+            handle_scale=scale(
+                mouse_wheel=True,
+                pinch=False,
+                axis_pressed_mouse_move=True,
+                axis_double_click_reset=False,
+            ),
         )
         hsc = c.chart_options["handleScale"]
         self.assertIsInstance(hsc, dict)
@@ -2762,7 +3060,7 @@ class TestScrollScaleOptions(unittest.TestCase):
     def test_handle_scale_partial_granular_only_set_keys_emitted(self):
         """Only explicitly set granular keys should appear in the output dict."""
         s = line_series(self.table)
-        c = chart(s, handle_scale_pinch=False)
+        c = chart(s, handle_scale=scale(pinch=False))
         hsc = c.chart_options["handleScale"]
         self.assertIn("pinch", hsc)
         self.assertNotIn("mouseWheel", hsc)
@@ -2819,7 +3117,7 @@ class TestScrollScaleOptions(unittest.TestCase):
         c = chart(
             s,
             handle_scroll=False,
-            handle_scale_pinch=False,
+            handle_scale=scale(pinch=False),
             kinetic_scroll_mouse=True,
         )
         self.assertIs(c.chart_options["handleScroll"], False)
@@ -2832,7 +3130,7 @@ class TestScrollScaleOptions(unittest.TestCase):
         c = chart(
             s,
             background_color="#000",
-            vert_lines_visible=False,
+            grid=grid(vert=grid_lines(visible=False)),
             handle_scroll=False,
             handle_scale=False,
             kinetic_scroll_touch=False,
@@ -2845,7 +3143,7 @@ class TestScrollScaleOptions(unittest.TestCase):
 
 
 class TestTrackingTooltip(unittest.TestCase):
-    """Tests for the tracking-tooltip (``tooltip_*``) chart options."""
+    """Tests for the tracking-tooltip (``tooltip=``) chart option."""
 
     def setUp(self):
         self.table = MagicMock(name="table")
@@ -2855,21 +3153,22 @@ class TestTrackingTooltip(unittest.TestCase):
         self.assertNotIn("tooltip", c.chart_options)
 
     def test_visible_emits_block(self):
-        c = chart(line_series(self.table), tooltip_visible=True)
+        c = chart(line_series(self.table), tooltip=tooltip())
         self.assertEqual(c.chart_options["tooltip"], {"visible": True})
 
     def test_visible_false_omits_block(self):
-        c = chart(line_series(self.table), tooltip_visible=False)
+        c = chart(line_series(self.table), tooltip=tooltip(visible=False))
         self.assertNotIn("tooltip", c.chart_options)
 
     def test_all_options(self):
         c = chart(
             line_series(self.table),
-            tooltip_visible=True,
-            tooltip_show_title=False,
-            tooltip_show_value=True,
-            tooltip_show_date=False,
-            tooltip_value_precision=3,
+            tooltip=tooltip(
+                show_title=False,
+                show_value=True,
+                show_date=False,
+                value_precision=3,
+            ),
         )
         self.assertEqual(
             c.chart_options["tooltip"],
@@ -2883,29 +3182,18 @@ class TestTrackingTooltip(unittest.TestCase):
         )
 
     def test_precision_zero_is_kept(self):
-        # 0 is falsy but a valid precision — must not be dropped by _filter_none.
-        c = chart(
-            line_series(self.table),
-            tooltip_visible=True,
-            tooltip_value_precision=0,
-        )
+        # 0 is falsy but a valid precision — must not be dropped.
+        c = chart(line_series(self.table), tooltip=tooltip(value_precision=0))
         self.assertEqual(c.chart_options["tooltip"]["valuePrecision"], 0)
 
-    def test_details_without_visible_raise(self):
+    def test_details_with_visible_false_raise(self):
         with self.assertRaises(ValueError) as ctx:
-            chart(line_series(self.table), tooltip_show_title=True)
-        self.assertIn("tooltip_visible=True", str(ctx.exception))
+            tooltip(visible=False, show_title=True)
+        self.assertIn("visible=True", str(ctx.exception))
 
-    def test_details_without_visible_lists_offenders(self):
-        with self.assertRaises(ValueError) as ctx:
-            chart(
-                line_series(self.table),
-                tooltip_show_date=True,
-                tooltip_value_precision=2,
-            )
-        msg = str(ctx.exception)
-        self.assertIn("tooltip_show_date", msg)
-        self.assertIn("tooltip_value_precision", msg)
+    def test_details_with_visible_false_lists_offenders(self):
+        with self.assertRaises(ValueError):
+            tooltip(visible=False, show_date=True, value_precision=2)
 
 
 if __name__ == "__main__":

@@ -7,9 +7,9 @@
 
 # Downsampling
 
-Downsampling is what keeps TVL responsive on multi-million-row tables. The Line, Area, and Baseline series automatically thin out points as the user pans and zooms, so the renderer never tries to draw more bars than the chart has pixels. The visible curve still includes every local minimum and maximum, so spikes and dips never disappear.
+Downsampling is what keeps TVL responsive on multi-million-row tables. Line, Area, and Baseline series automatically thin out points as you pan and zoom, so the renderer never draws more bars than the chart has pixels — while still keeping every local minimum and maximum, so spikes and dips never disappear.
 
-This page is the conceptual reference: what downsampling is, when it kicks in, how to tune it, and (briefly) when to turn it off.
+In normal use this is fully automatic: plot a big table with `tvl.line(...)` and it just works. This page is background for when you're curious how it behaves or want to nudge the few available knobs.
 
 ## What is downsampling useful for?
 
@@ -48,6 +48,8 @@ For OHLC and histogram series, downsampling reduces each bucket via `first(open)
 ### A 1M-row line chart
 
 The `tvl.data.large_prices()` fixture is a 1,000,000-row intraday price series. Plotting it with `tvl.line()` works exactly like plotting a 100-row table. TVL handles the downsampling transparently.
+
+> Building a fixture this large can take ~30 seconds to initialize the first time; that's the data generation, not the chart.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -99,7 +101,7 @@ Both lines stay smooth under interaction; each gets its own server-side aggregat
 
 ### Use bar spacing to control downsampling density
 
-`bar_spacing` (pixels per bar) and `min_bar_spacing` / `max_bar_spacing` (zoom limits) shape the downsampler's bucket size indirectly. Larger `bar_spacing` means fewer buckets per pixel, which gives the renderer more breathing room.
+`bar_spacing` (pixels per bar) and `min_bar_spacing` / `max_bar_spacing` (zoom limits), all passed via `tvl.time_scale(...)`, shape the downsampler's bucket size indirectly. Larger `bar_spacing` means fewer buckets per pixel, which gives the renderer more breathing room.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -108,17 +110,19 @@ large = tvl.data.large_prices()
 
 chart = tvl.chart(
     tvl.line(large, timestamp="Timestamp", value="Price"),
-    bar_spacing=4,
-    min_bar_spacing=1,
-    max_bar_spacing=20,
+    time_scale=tvl.time_scale(
+        bar_spacing=4,
+        min_bar_spacing=1,
+        max_bar_spacing=20,
+    ),
 )
 ```
 
 These knobs matter most when the rendered bars start dropping below a single pixel. Bump `min_bar_spacing` to keep them visible.
 
-## Turning it off (and why you probably shouldn't)
+## Downsampling is always on (Line / Area / Baseline)
 
-There is no chart-level "disable downsampling" boolean for Line / Area / Baseline series. The reason is that disabling it is almost always wrong:
+There is no switch to disable downsampling for Line / Area / Baseline series, by design — turning it off would be almost always wrong:
 
 - **Browsers can't render 1M points in a polyline at 60fps.** Even on fast hardware, building and laying out the SVG / canvas path is bottlenecked on point count.
 - **The downsampled view is faithful.** Min and max per bucket survive: the only thing you lose is rendering every individual point, which the chart couldn't show anyway because each one is sub-pixel.
@@ -132,9 +136,9 @@ For OHLC and histogram series, the equivalent toggle exists (`auto_bin=False`). 
 The downsampler is mostly automatic, but a few knobs on `chart()` and the series factories influence it:
 
 - **`width` / `height` on `chart()`**: pin the pixel budget, which sets the bucket target.
-- **`bar_spacing` / `min_bar_spacing` / `max_bar_spacing`**: pixels per bar, which drives the bucket count.
+- **`bar_spacing` / `min_bar_spacing` / `max_bar_spacing`** (on `tvl.time_scale(...)`): pixels per bar, which drives the bucket count.
 - **`auto_bin` / `bin_width` / `bin_count`** (Candlestick / Bar / Histogram): see [autobin](autobin.md).
-- **`fix_left_edge` / `fix_right_edge`**: anchor the visible range to the data edges. The downsampler emits single-row anchors at the head and tail when the visible window is strictly inside the data range so these clamps work.
+- **`fix_left_edge` / `fix_right_edge`** (on `tvl.time_scale(...)`): anchor the visible range to the data edges. The downsampler emits single-row anchors at the head and tail when the visible window is strictly inside the data range so these clamps work.
 
 For benchmarking comparisons (server-side autobin vs. client-side rendering cost), see [large-data](large-data.md).
 

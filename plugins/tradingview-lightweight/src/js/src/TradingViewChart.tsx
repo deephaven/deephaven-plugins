@@ -933,7 +933,13 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       await model.init(exported, dataString);
       updateDebugState(gatherDebug('INIT', model, renderer), model, renderer);
 
-      if (!cancelled && model.isResampling()) {
+      // Viewport-interaction tracking (zoom/pan detection that arms
+      // userInteractedRef so live ticks stop re-fitting the time scale)
+      // applies to EVERY chart, not just resampled ones. The
+      // performResample/performAutoBin calls inside are already no-ops unless
+      // the model is downsampled/auto-binned, so a plain ticking chart gets
+      // interaction tracking without any resample side effects.
+      if (!cancelled) {
         setupDownsampleSubscriptions(renderer, model);
       }
 

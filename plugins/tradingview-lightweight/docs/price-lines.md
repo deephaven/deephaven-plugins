@@ -132,23 +132,26 @@ This is the Deephaven extension to `price_line()`. Pass `column=` instead of `pr
 
 ```python order=live_line,ohlc_w_avg,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
+from deephaven.updateby import rolling_avg_tick
 
 ohlc = tvl.data.ohlc()
-# Running mean — last row is the current value.
-ohlc_w_avg = ohlc.update_view(["AvgClose = avg(Close)"])
+# 20-period moving average — last row is the current value.
+ohlc_w_avg = ohlc.update_by(
+    ops=[rolling_avg_tick(cols=["AvgClose = Close"], rev_ticks=20)],
+)
 
 live = tvl.price_line(
     column="AvgClose",
     color="#ef6c00",
     line_width=2,
     line_style="solid",
-    title="avg(Close)",
+    title="MA(20)",
 )
 
 live_line = tvl.candlestick(ohlc_w_avg, price_lines=[live])
 ```
 
-The orange line tracks the running mean of `Close`. It is mutually exclusive with `price=`; setting both, or neither, raises `ValueError`.
+The orange line tracks the 20-period moving average of `Close`. It is mutually exclusive with `price=`; setting both, or neither, raises `ValueError`.
 
 ### Pick the source for the built-in last-price line
 

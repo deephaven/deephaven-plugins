@@ -6,7 +6,7 @@
 
 # Time Scale
 
-The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through a family of `chart()` kwargs. This page covers the most common ones, plus the helper types (`BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()`) for when you need to work outside numeric timestamps.
+The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through the `tvl.time_scale(...)` object, which you pass to `chart(time_scale=...)`. This page covers the most common options, plus the helper types (`BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()`) for when you need to work outside numeric timestamps.
 
 Use this page when you want to hide weekends and holidays, push the most recent bar away from the right edge to make room for annotations, hide seconds, or stop tick labels from overlapping on a narrow chart.
 
@@ -30,8 +30,10 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    time_visible=True,
-    seconds_visible=True,
+    time_scale=tvl.time_scale(
+        time_visible=True,
+        seconds_visible=True,
+    ),
 )
 ```
 
@@ -39,7 +41,7 @@ When `time_visible=False`, the axis shows only the date, which suits daily-bar c
 
 ### Hide the time scale entirely
 
-Set `time_scale_visible=False` to hide the bottom axis when you have several stacked panes and only need the axis on the outermost one.
+Set `tvl.time_scale(visible=False)` to hide the bottom axis when you have several stacked panes and only need the axis on the outermost one.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -48,7 +50,7 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    time_scale_visible=False,
+    time_scale=tvl.time_scale(visible=False),
 )
 ```
 
@@ -56,7 +58,7 @@ Combine with `pane_index` (see [multi-pane](multi-pane.md)) to hide the per-pane
 
 ### Right-offset whitespace for live charts
 
-`right_offset` adds bars of empty space to the right of the latest data point, keeping the live tip visually separated from the price scale. Use `right_offset_pixels` for a fixed pixel inset instead.
+`right_offset` adds bars of empty space to the right of the latest data point, keeping the live tip visually separated from the price scale. Use `right_offset_pixels` for a fixed pixel inset instead. All of these live on `tvl.time_scale(...)`.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -65,8 +67,10 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    right_offset=12,
-    bar_spacing=8,
+    time_scale=tvl.time_scale(
+        right_offset=12,
+        bar_spacing=8,
+    ),
 )
 ```
 
@@ -83,11 +87,13 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    fix_left_edge=True,
-    fix_right_edge=True,
-    lock_visible_time_range_on_resize=True,
-    right_bar_stays_on_scroll=True,
-    shift_visible_range_on_new_bar=False,
+    time_scale=tvl.time_scale(
+        fix_left_edge=True,
+        fix_right_edge=True,
+        lock_visible_time_range_on_resize=True,
+        right_bar_stays_on_scroll=True,
+        shift_visible_range_on_new_bar=False,
+    ),
 )
 ```
 
@@ -95,7 +101,7 @@ For live charts you usually want `right_bar_stays_on_scroll=True` and `shift_vis
 
 ### Tune tick density
 
-`tick_mark_max_character_length` caps how many characters each tick label can use; the chart will drop ticks until the labels fit. `uniform_distribution` enforces a uniform tick spacing rather than the default "snap to nice intervals" behavior. `time_scale_minimum_height` reserves vertical space so the time scale doesn't shrink below a usable height.
+`tick_mark_max_character_length` caps how many characters each tick label can use; the chart will drop ticks until the labels fit. `uniform_distribution` enforces a uniform tick spacing rather than the default "snap to nice intervals" behavior. `minimum_height` reserves vertical space so the time scale doesn't shrink below a usable height.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -104,11 +110,13 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    tick_mark_max_character_length=10,
-    uniform_distribution=True,
-    time_scale_minimum_height=32,
-    time_scale_ticks_visible=True,
-    allow_bold_labels=True,
+    time_scale=tvl.time_scale(
+        tick_mark_max_character_length=10,
+        uniform_distribution=True,
+        minimum_height=32,
+        ticks_visible=True,
+        allow_bold_labels=True,
+    ),
 )
 ```
 
@@ -116,7 +124,7 @@ chart = tvl.chart(
 
 ### Style the time-scale border
 
-The border between the time scale and the plot area is its own layer. Toggle visibility with `time_scale_border_visible` and color with `time_scale_border_color`.
+The border between the time scale and the plot area is its own layer. Toggle visibility with `tvl.time_scale(border_visible=...)` and color with `border_color`.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -125,8 +133,10 @@ values = tvl.data.values()
 
 chart = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    time_scale_border_visible=True,
-    time_scale_border_color="#888",
+    time_scale=tvl.time_scale(
+        border_visible=True,
+        border_color="#888",
+    ),
 )
 ```
 
@@ -218,6 +228,13 @@ Display timezone is a UI concern: the chart renders the same UTC second the same
 
 ## API Reference
 
+The time scale is configured with a grouped object: `tvl.time_scale(...)`
+returns a `TimeScale` that you pass to `time_scale=` on `tvl.chart(...)`.
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.time_scale
+```
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.business_day
 ```
@@ -230,4 +247,4 @@ Display timezone is a UI concern: the chart renders the same UTC second the same
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.is_utc_timestamp
 ```
 
-For the full `tvl.chart` signature (including all `time_*`, `right_offset`, `bar_spacing`, etc. options), see the [Chart container](chart.md#api-reference) page.
+For the full `tvl.chart` signature, see the [Chart container](chart.md#api-reference) page.
