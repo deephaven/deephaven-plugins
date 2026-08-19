@@ -46,6 +46,18 @@ function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
 function Row({ children, height }: RowElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
+
+  if (panelId != null) {
+    // We're inside a panel (e.g. ui.panel(ui.row(...))), so render as a Flex
+    // regardless of any persisted layout. Wrapping bare children in a panel here
+    // would nest a panel inside a panel and throw a NestedPanelError.
+    return (
+      <Flex height={`${height}%`} direction="row">
+        {children}
+      </Flex>
+    );
+  }
+
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a row here, or normalize the children which might add a stack unnecessarily.
@@ -55,15 +67,7 @@ function Row({ children, height }: RowElementProps): JSX.Element {
     return <>{wrapBareChildrenInPanel(children)}</>;
   }
 
-  if (panelId == null) {
-    return <LayoutRow height={height}>{children}</LayoutRow>;
-  }
-
-  return (
-    <Flex height={`${height}%`} direction="row">
-      {children}
-    </Flex>
-  );
+  return <LayoutRow height={height}>{children}</LayoutRow>;
 }
 
 export default Row;

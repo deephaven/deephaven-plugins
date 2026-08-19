@@ -3,6 +3,7 @@ import {
   type AdvancedFilterModel,
   type DateFilterModel,
   type FilterModel,
+  type GridApi,
   type ICombinedSimpleModel,
   type ISimpleFilterModel,
   type NumberFilterModel,
@@ -39,11 +40,54 @@ export class AgGridFilterUtils {
     return b.every(f => filters.has(f.toString()));
   }
 
-  // Not handling AdvancedFilterModel yet
+  /**
+   * Parses the given filter model into Deephaven filter conditions.
+   * @param dh Deephaven API instance
+   * @param table Table to filter
+   * @param filterModel Filter model to parse
+   * @returns The equivalent Deephaven filter conditions
+   * @deprecated Use `getFilterFromGridApi` instead, which respects column
+   * filter params such as `caseSensitive`. This method always filters
+   * case-sensitively.
+   */
   static parseFilterModel(
     dh: typeof DhType,
     table: DhType.Table | DhType.TreeTable,
     filterModel: FilterModel | AdvancedFilterModel | null
+  ): DhType.FilterCondition[] {
+    // Preserves the original behavior of always filtering case-sensitively
+    return this.parseFilterModelInternal(dh, table, filterModel, () => true);
+  }
+
+  /**
+   * Gets the Deephaven filter conditions for the current filter model set on
+   * the given GridApi, respecting column filter params such as
+   * `caseSensitive`. AG Grid text filters are case-insensitive unless the
+   * column's filterParams specify otherwise.
+   * @param dh Deephaven API instance
+   * @param table Table to filter
+   * @param gridApi GridApi to get the filter model and column definitions from
+   * @returns The equivalent Deephaven filter conditions
+   */
+  static getFilterFromGridApi(
+    dh: typeof DhType,
+    table: DhType.Table | DhType.TreeTable,
+    gridApi: GridApi
+  ): DhType.FilterCondition[] {
+    // Not handling AdvancedFilterModel (gridApi.getAdvancedFilterModel()) yet
+    return this.parseFilterModelInternal(
+      dh,
+      table,
+      gridApi.getFilterModel(),
+      colId => gridApi.getColumnDef(colId)?.filterParams?.caseSensitive === true
+    );
+  }
+
+  private static parseFilterModelInternal(
+    dh: typeof DhType,
+    table: DhType.Table | DhType.TreeTable,
+    filterModel: FilterModel | AdvancedFilterModel | null,
+    isCaseSensitive: (colId: string) => boolean
   ): DhType.FilterCondition[] {
     if (filterModel == null) {
       return [];
@@ -51,12 +95,13 @@ export class AgGridFilterUtils {
 
     return Object.entries(filterModel).map(([colId, model]) => {
       const column = table.findColumn(colId);
+      const caseSensitive = isCaseSensitive(colId);
 
       if (this.isCombinedSimpleModel(model, this.isSimpleFilterModel)) {
         return model.conditions
           .map(m => {
             if (this.isSupportedSimpleFilterModel(m)) {
-              return this.parseSimpleFilter(dh, column, m);
+              return this.parseSimpleFilter(dh, column, m, caseSensitive);
             }
             throw new Error(`Filter model ${m} is not supported`);
           })
@@ -77,7 +122,7 @@ export class AgGridFilterUtils {
         this.isSimpleFilterModel(model) &&
         this.isSupportedSimpleFilterModel(model)
       ) {
-        return this.parseSimpleFilter(dh, column, model);
+        return this.parseSimpleFilter(dh, column, model, caseSensitive);
       }
       throw new Error(`Filter model ${model} is not supported`);
     });
@@ -127,11 +172,12 @@ export class AgGridFilterUtils {
   private static parseSimpleFilter(
     dh: typeof DhType,
     column: DhType.Column,
-    model: SupportedSimpleFilterModel
+    model: SupportedSimpleFilterModel,
+    caseSensitive = false
   ): DhType.FilterCondition {
     switch (model.filterType) {
       case 'text':
-        return this.parseTextFilter(dh, column, model);
+        return this.parseTextFilter(dh, column, model, caseSensitive);
       case 'number':
         return this.parseNumberFilter(dh, column, model);
       case 'date':
@@ -144,34 +190,63 @@ export class AgGridFilterUtils {
   private static parseTextFilter(
     dh: typeof DhType,
     column: DhType.Column,
-    model: TextFilterModel
+    model: TextFilterModel,
+    caseSensitive = false
   ): DhType.FilterCondition {
-    const filterValue = dh.FilterValue.ofString(model.filter ?? '');
+    const filterText = model.filter ?? '';
+    const filterValue = dh.FilterValue.ofString(filterText);
 
     switch (model.type as ExtendedTextFilterModelType) {
       case 'equals':
-        return column.filter().eq(filterValue);
+        return caseSensitive
+          ? column.filter().eq(filterValue)
+          : column.filter().eqIgnoreCase(filterValue);
       case 'notEqual':
-        return column.filter().notEq(filterValue);
+        return caseSensitive
+          ? column.filter().notEq(filterValue)
+          : column.filter().notEqIgnoreCase(filterValue);
       case 'contains':
-        return column.filter().contains(filterValue);
+        return caseSensitive
+          ? column.filter().contains(filterValue)
+          : column.filter().containsIgnoreCase(filterValue);
       case 'notContains':
         return column
           .filter()
           .isNull()
-          .or(column.filter().contains(filterValue).not());
+          .or(
+            (caseSensitive
+              ? column.filter().contains(filterValue)
+              : column.filter().containsIgnoreCase(filterValue)
+            ).not()
+          );
       case 'startsWith':
         return column
           .filter()
           .isNull()
           .not()
-          .and(column.filter().invoke('startsWith', filterValue));
+          .and(
+            caseSensitive
+              ? column.filter().invoke('startsWith', filterValue)
+              : column
+                  .filter()
+                  .matchesIgnoreCase(
+                    dh.FilterValue.ofString(`(?s)^\\Q${filterText}\\E.*`)
+                  )
+          );
       case 'endsWith':
         return column
           .filter()
           .isNull()
           .not()
-          .and(column.filter().invoke('endsWith', filterValue));
+          .and(
+            caseSensitive
+              ? column.filter().invoke('endsWith', filterValue)
+              : column
+                  .filter()
+                  .matchesIgnoreCase(
+                    dh.FilterValue.ofString(`(?s).*\\Q${filterText}\\E$`)
+                  )
+          );
       // filterValue becomes ofString('') for blank/notBlank filters
       case 'blank':
         return column.filter().isNull().or(column.filter().eq(filterValue));

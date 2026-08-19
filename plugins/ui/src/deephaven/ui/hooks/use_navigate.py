@@ -4,10 +4,8 @@ from typing import Any, Callable
 from urllib.parse import urlencode, urlsplit
 
 from ..types import QueryParamsInput
+from ._navigate import NAVIGATE_EVENT
 from .use_send_event import use_send_event
-
-
-_NAVIGATE_EVENT = "navigate.event"
 
 
 def _normalize_path(path: str | None) -> str | None:
@@ -170,6 +168,6 @@ def use_navigate() -> Callable[..., None]:
             )
 
         payload = build_navigate_payload(path, query_params, fragment, replace)
-        send_event(_NAVIGATE_EVENT, payload)
+        send_event(NAVIGATE_EVENT, payload)
 
     return navigate

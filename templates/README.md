@@ -5,11 +5,13 @@ In order to use these templates, you must have [cookiecutter](https://cookiecutt
 
 There are two main ways to use these templates.
 If you have this repository locally, you can run the following command from where you want to create your plugin:
+
 ```sh
 cookiecutter <path/to/deephaven-plugins>/templates/<template name>
 ```
 
 If you don't have this repository locally, you can run the following command:
+
 ```sh
 cookiecutter gh:deephaven/deephaven-plugins --directory="templates/<template name>"
 ```
@@ -21,7 +23,7 @@ Use the widget plugin only if you must have full control over the messages sent 
 ## element
 
 This creates a basic element plugin for Deephaven.
-An element plugin extends `deephaven.ui` with custom React components.
+An element plugin extends `deephaven.ui` with custom React components and custom event handlers.
 This template is recommended if you can use `deephaven.ui` and do not need full control over messaging.
 Because element plugins are built on top of `deephaven.ui`, they are easier to use and require less boilerplate code than bidirectional widget plugins.
 

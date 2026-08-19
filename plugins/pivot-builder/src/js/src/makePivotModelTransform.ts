@@ -10,6 +10,7 @@ import {
   type PivotBuilderConfig,
   type PivotBuilderProxyModel,
 } from './pivotBuilderModel';
+import { resolveEffectiveBuilderConfig } from './resolveEffectiveBuilderConfig';
 
 const log = Log.module(
   '@deephaven/js-plugin-pivot-builder/makePivotModelTransform'
@@ -91,6 +92,30 @@ export function makePivotModelTransform(
     // model's columns.
     const persisted = getPersistedConfig();
     if (persisted != null) {
+      // Whether restoring this config would render a *pivot*. Modern configs
+      // carry raw card state (`ui`) and are re-derived against the CURRENT live
+      // schema (via the same `resolveEffectiveBuilderConfig` the model uses), so
+      // the persisted `pivot`/`rollup`/`totals` are NOT trusted verbatim to
+      // decide this — we ask the derivation. `pivotAvailable: true` here means
+      // "if the ui implies a pivot, we intend to build one" (so probe); the
+      // real availability is confirmed by the probe below. `rollupAvailable`
+      // uses the host's LIVE flag — the same input the model's own derivation
+      // reads — so the probe trigger and the actual derivation can't disagree:
+      // when rollup is unavailable the derivation can never pick pivot, and we
+      // must not fatally probe PSP for a pivot that won't be built.
+      // Legacy configs (no `ui`) fall back to the persisted `pivot` field.
+      const { columns } = augmented.sourceTable;
+      const hostRollupAvailable =
+        (augmented as unknown as { isRollupAvailable?: boolean })
+          .isRollupAvailable === true;
+      const wouldPivot =
+        persisted.ui != null
+          ? resolveEffectiveBuilderConfig(persisted.ui, columns, {
+              pivotAvailable: true,
+              rollupAvailable: hostRollupAvailable,
+            }).pivot != null
+          : persisted.pivot != null;
+
       // A persisted *pivot* view can only be rebuilt if the worker still has
       // the PivotService. Probe it up-front and let any failure propagate out
       // of the transform: a query edited to remove the pivot service (then
@@ -100,16 +125,24 @@ export function makePivotModelTransform(
       // result, so the subsequent `applyPivotBuilderConfig` reuses this widget
       // without re-fetching. Rollup/totals-only views build off the source
       // table directly and need no probe.
-      if (persisted.pivot != null) {
+      let pivotAvailable = false;
+      if (wouldPivot) {
         await getPspWidget();
+        // A failed probe throws above and never reaches here, so a successful
+        // probe means PSP is available for this build.
+        pivotAvailable = true;
       }
       // Unlike the PSP probe above (intentionally fatal), a failure to *apply*
       // the persisted config is tolerated: log it and still return the
       // augmented model so the panel renders (rollup/totals may have applied,
       // and the user can re-apply) rather than erroring the whole model build.
+      // Pass the probe result so the model's re-derivation of `persisted.ui`
+      // agrees on the mode. When no probe ran (`wouldPivot` false) a `false`
+      // value is only consulted if the derivation would pick a pivot — which by
+      // construction it won't.
       try {
         log.info('Restoring persisted builder config', persisted);
-        await augmented.applyPivotBuilderConfig(persisted);
+        await augmented.applyPivotBuilderConfig(persisted, { pivotAvailable });
       } catch (err) {
         log.warn('Failed to restore persisted builder config', err);
       }

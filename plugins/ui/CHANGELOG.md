@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.41.0 - 2026-08-12
+
+#### Features
+
+- **(ui)** DH-23183: Event mapping framework for Element plugins ([#1396](https://github.com/deephaven/deephaven-plugins/pull/1396)) - (0acdd34) - mofojed
+- DH-22062: add create_global_state and create_user_state shared state hooks ([#1324](https://github.com/deephaven/deephaven-plugins/pull/1324)) - (c7dc679) - mofojed
+
+#### Bug Fixes
+
+- DH-23205: Fix nested panels error with ui.column/ui.row ([#1398](https://github.com/deephaven/deephaven-plugins/pull/1398)) - (4ca1124) - vbabich
+
+- - -
+
+
 ## ui-v0.40.2 - 2026-07-15
 
 #### Bug Fixes

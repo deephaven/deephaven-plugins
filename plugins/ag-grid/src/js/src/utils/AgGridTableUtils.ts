@@ -2,7 +2,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import type { ColDef, SideBarDef } from 'ag-grid-community';
 import type { dh as CorePlusDhType } from '@deephaven-enterprise/jsapi-coreplus-types';
 import { TableUtils } from '@deephaven/jsapi-utils';
-import { type AgGridTableType } from '../types';
+import { type AgGridTableType, type AgGridWidgetOptions } from '../types';
 import AgGridFormatter from './AgGridFormatter';
 
 export type SingleRowData = { [columnKey: string]: unknown };
@@ -142,7 +142,31 @@ export function convertColumnToColDef(
   }
 }
 
-export function getColumnDefs(table: AgGridTableType): ColDef[] {
+/**
+ * Get the column definitions for the given table, applying any server provided overrides.
+ *
+ * @param table Table to get the column definitions for
+ * @param columnDefOverrides Map from column name to a partial column definition to merge on top of
+ *                           the generated column definition
+ * @returns The column definitions to pass to AG Grid
+ */
+export function getColumnDefs(
+  table: AgGridTableType,
+  columnDefOverrides: AgGridWidgetOptions['columnDefs'] = {}
+): ColDef[] {
+  const applyOverride = (colDef: ColDef): ColDef => {
+    const override =
+      colDef.field != null ? columnDefOverrides[colDef.field] : undefined;
+    return override != null
+      ? {
+          ...colDef,
+          ...override,
+          field: colDef.field,
+          colId: colDef.colId,
+        }
+      : colDef;
+  };
+
   if (isTable(table) || isTreeTable(table)) {
     const groupedColSet = new Set(
       (isTreeTable(table) ? table.groupedColumns : []).map(c => c.name)
@@ -161,7 +185,7 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
               enableRowGroup: isRowGroupable(c.type),
               enableValue: true,
             };
-        return convertColumnToColDef(c, templateColDef);
+        return applyOverride(convertColumnToColDef(c, templateColDef));
       }) ?? [];
     return newDefs;
   }
@@ -170,15 +194,17 @@ export function getColumnDefs(table: AgGridTableType): ColDef[] {
     // For pivot tables, we need to create ColDefs for the row, column, and value sources.
     const colDefs: ColDef[] = [];
     table.rowSources.forEach(c => {
-      colDefs.push({ field: c.name, rowGroup: true });
+      colDefs.push(applyOverride({ field: c.name, rowGroup: true }));
     });
     table.columnSources.forEach(c => {
-      colDefs.push({ field: c.name, pivot: true });
+      colDefs.push(applyOverride({ field: c.name, pivot: true }));
     });
     table.valueSources.forEach(c => {
       // We're just pushing an `aggFunc` here so it shows up correctly in the UI, but we also set the `suppressAggFuncInHeader` so that it doesn't actually appear.
       // We specify our own custom aggregation name. We don't actually use it, since the server does the aggregation already.
-      colDefs.push({ field: c.name, aggFunc: 'deephaven-aggregation' });
+      colDefs.push(
+        applyOverride({ field: c.name, aggFunc: 'deephaven-aggregation' })
+      );
     });
     return colDefs;
   }

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## plotly-express-v0.20.0 - 2026-07-29
+
+#### Features
+
+- DH-22030: dx event handlers ([#1373](https://github.com/deephaven/deephaven-plugins/pull/1373)) - (4fd442f) - jnumainville
+
+- - -
+
+
 ## plotly-express-v0.19.3 - 2026-07-21
 
 #### Bug Fixes

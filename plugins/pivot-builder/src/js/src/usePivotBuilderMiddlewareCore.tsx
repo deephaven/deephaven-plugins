@@ -30,8 +30,10 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   isPivotBuilderIrisGridModel,
   PIVOT_BUILDER_ERROR,
+  PIVOT_BUILDER_STALE_COLUMNS,
   type PivotBuilderConfig,
   type PivotBuilderErrorDetail,
+  type PivotBuilderStaleColumnsDetail,
 } from './pivotBuilderModel';
 import { makeCreatePivotTransform } from './makeCreatePivotTransform';
 import { makePivotModelTransform } from './makePivotModelTransform';
@@ -281,6 +283,45 @@ export function usePivotBuilderMiddlewareCore({
       const message = 'The saved pivot could not be applied and was reverted.';
       ToastQueue.negative(reason !== '' ? `${message} ${reason}` : message, {
         timeout: TOAST_TIMEOUT_MS,
+      });
+    });
+  }, [model]);
+
+  // Log stale-column notifications: a saved config that references columns
+  // which no longer exist has those references excluded from the effective
+  // derivation. The sidebar's strikethrough styling is the user-facing signal;
+  // here we only `log.warn` the specifics for support (deliberately NO toast).
+  //
+  // Two sources. (1) A one-time synchronous read of `model.staleColumnReport`:
+  // the transform applies the persisted config during hydration — before this
+  // effect can attach any listener and before `CreatePivotPage` mounts — so
+  // the `PIVOT_BUILDER_STALE_COLUMNS` event it dispatches then has no
+  // listeners. The synchronous snapshot is the only way to catch that. (2) The
+  // `PIVOT_BUILDER_STALE_COLUMNS` listener handles LATER live edits made
+  // through the sidebar after mount. This effect runs once per genuine model
+  // swap (`model` only changes on `onModelChanged`), so it cannot spam on
+  // re-renders.
+  useEffect(() => {
+    if (model == null || !isPivotBuilderIrisGridModel(model)) {
+      return undefined;
+    }
+    const report = model.staleColumnReport;
+    if (
+      report.rollupColumns.length +
+        report.totalsColumns.length +
+        report.pivotColumns.length >
+      0
+    ) {
+      log.warn('Stale columns found during hydration', report);
+    }
+    return addModelListener(model, PIVOT_BUILDER_STALE_COLUMNS, (e: Event) => {
+      const { rollupColumns, totalsColumns, pivotColumns } = (
+        e as CustomEvent<PivotBuilderStaleColumnsDetail>
+      ).detail;
+      log.warn('Stale columns excluded from saved pivot/rollup config', {
+        rollupColumns,
+        totalsColumns,
+        pivotColumns,
       });
     });
   }, [model]);

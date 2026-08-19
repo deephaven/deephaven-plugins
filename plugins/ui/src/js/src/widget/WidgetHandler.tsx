@@ -49,17 +49,17 @@ import {
   getComponentForElement,
   wrapCallable,
 } from './WidgetUtils';
+import { getHandlerForEvent } from '../elements/utils/EventUtils';
 import WidgetStatusContext, {
   type WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import Toast, { TOAST_EVENT } from '../events/Toast';
 import Navigate, {
-  NAVIGATE_EVENT,
   type NavigateParams,
   URL_CHANGED_EVENT,
 } from '../events/Navigate';
 import NavigateContext from '../events/NavigateContext';
+import { usePluginsEventMap } from '../events/usePluginsEventMap';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
 
@@ -224,6 +224,7 @@ function WidgetHandler({
   );
 
   const pluginsElementMap = usePluginsElementMap();
+  const pluginsEventMap = usePluginsEventMap();
 
   const renderErrorDocument = useCallback(
     (docError: NonNullable<unknown>) => {
@@ -464,16 +465,11 @@ function WidgetHandler({
             }
             return value;
           });
-          switch (name) {
-            case TOAST_EVENT:
-              Toast(eventParams);
-              break;
-            case NAVIGATE_EVENT:
-              Navigate(eventParams);
-              break;
-            default:
-              throw new Error(`Unknown event ${name}`);
+          const handler = getHandlerForEvent(name, pluginsEventMap);
+          if (handler == null) {
+            throw new Error(`Unknown event ${name}`);
           }
+          handler(eventParams);
         } catch (e) {
           throw new Error(
             `Error parsing event ${name} with payload ${payload}: ${e}`
@@ -485,7 +481,13 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, callableFinalizationRegistry, sendSetState]
+    [
+      jsonClient,
+      onDataChange,
+      callableFinalizationRegistry,
+      sendSetState,
+      pluginsEventMap,
+    ]
   );
 
   /**

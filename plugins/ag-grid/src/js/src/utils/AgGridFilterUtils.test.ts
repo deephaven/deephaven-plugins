@@ -1,6 +1,7 @@
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import {
   type FilterModel,
+  type GridApi,
   type TextFilterModel,
   type NumberFilterModel,
   type DateFilterModel,
@@ -29,8 +30,25 @@ describe('AgGridFilterUtils', () => {
     findColumn: jest.fn().mockReturnValue(mockColumn),
   };
 
+  const mockGridApi = {
+    getColumnDef: jest.fn().mockReturnValue(null),
+    getFilterModel: jest.fn().mockReturnValue({}),
+  };
+
+  /** Set the filter model returned by the mock GridApi and parse it */
+  function parseModel(model: FilterModel | null): DhType.FilterCondition[] {
+    mockGridApi.getFilterModel.mockReturnValue(model);
+    return AgGridFilterUtils.getFilterFromGridApi(
+      mockDh as unknown as typeof DhType,
+      mockTable as unknown as DhType.Table,
+      mockGridApi as unknown as GridApi
+    );
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTable.findColumn.mockReturnValue(mockColumn);
+    mockGridApi.getColumnDef.mockReturnValue(null);
   });
 
   describe('areFiltersEqual', () => {
@@ -62,31 +80,8 @@ describe('AgGridFilterUtils', () => {
     });
   });
 
-  describe('parseFilterModel', () => {
-    it('should return empty array for null filter model', () => {
-      const result = AgGridFilterUtils.parseFilterModel(
-        mockDh as unknown as typeof DhType,
-        mockTable as unknown as DhType.Table,
-        null
-      );
-      expect(result).toEqual([]);
-    });
-
-    it('should throw error for unsupported filter model', () => {
-      const model = {
-        col1: { filterType: 'unsupported' },
-      } as unknown as FilterModel;
-
-      expect(() =>
-        AgGridFilterUtils.parseFilterModel(
-          mockDh as unknown as typeof DhType,
-          mockTable as unknown as DhType.Table,
-          model
-        )
-      ).toThrow();
-    });
-
-    it('should parse text filter model', () => {
+  describe('parseFilterModel (deprecated)', () => {
+    it('should keep filtering text case-sensitively with the original signature', () => {
       const column = 'col1';
       const filterValue = 'test';
       const textModel: FilterModel = {
@@ -112,6 +107,52 @@ describe('AgGridFilterUtils', () => {
       expect(mockEq).toHaveBeenCalledWith(filterValue);
     });
 
+    it('should return empty array for null filter model', () => {
+      const result = AgGridFilterUtils.parseFilterModel(
+        mockDh as unknown as typeof DhType,
+        mockTable as unknown as DhType.Table,
+        null
+      );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getFilterFromGridApi', () => {
+    it('should return empty array for null filter model', () => {
+      const result = parseModel(null);
+      expect(result).toEqual([]);
+    });
+
+    it('should throw error for unsupported filter model', () => {
+      const model = {
+        col1: { filterType: 'unsupported' },
+      } as unknown as FilterModel;
+
+      expect(() => parseModel(model)).toThrow();
+    });
+
+    it('should parse text filter model case-insensitively by default', () => {
+      const column = 'col1';
+      const filterValue = 'test';
+      const textModel: FilterModel = {
+        [column]: {
+          filterType: 'text',
+          type: 'equals',
+          filter: filterValue,
+        } as TextFilterModel,
+      };
+
+      const mockEqIgnoreCase = jest.fn();
+      mockColumn.filter.mockReturnValue({
+        eqIgnoreCase: mockEqIgnoreCase,
+      });
+      mockDh.FilterValue.ofString.mockReturnValueOnce(filterValue);
+
+      parseModel(textModel);
+      expect(mockTable.findColumn).toHaveBeenCalledWith(column);
+      expect(mockEqIgnoreCase).toHaveBeenCalledWith(filterValue);
+    });
+
     it('should parse number filter model', () => {
       const column = 'col1';
       const filterValue = 123;
@@ -129,11 +170,7 @@ describe('AgGridFilterUtils', () => {
       });
       mockDh.FilterValue.ofNumber.mockReturnValueOnce(filterValue);
 
-      AgGridFilterUtils.parseFilterModel(
-        mockDh as unknown as typeof DhType,
-        mockTable as unknown as DhType.Table,
-        model
-      );
+      parseModel(model);
       expect(mockTable.findColumn).toHaveBeenCalledWith(column);
       expect(mockEq).toHaveBeenCalledWith(filterValue);
     });
@@ -158,11 +195,7 @@ describe('AgGridFilterUtils', () => {
       const mockFilterValue = 12345;
       mockDh.FilterValue.ofNumber.mockReturnValueOnce(mockFilterValue);
 
-      AgGridFilterUtils.parseFilterModel(
-        mockDh as unknown as typeof DhType,
-        mockTable as unknown as DhType.Table,
-        model
-      );
+      parseModel(model);
       expect(mockTable.findColumn).toHaveBeenCalledWith(column);
       expect(mockEq).toHaveBeenCalledWith(mockFilterValue);
     });
@@ -195,13 +228,13 @@ describe('AgGridFilterUtils', () => {
 
       // First condition
       mockColumn.filter.mockReturnValueOnce({
-        eq: mockEq1,
+        eqIgnoreCase: mockEq1,
       });
       mockDh.FilterValue.ofString.mockReturnValueOnce(filterValue1);
 
       // Second condition
       mockColumn.filter.mockReturnValueOnce({
-        eq: mockEq2,
+        eqIgnoreCase: mockEq2,
       });
       mockDh.FilterValue.ofString.mockReturnValueOnce(filterValue2);
 
@@ -210,16 +243,161 @@ describe('AgGridFilterUtils', () => {
         and: mockAnd,
       });
 
-      AgGridFilterUtils.parseFilterModel(
-        mockDh as unknown as typeof DhType,
-        mockTable as unknown as DhType.Table,
-        model
-      );
+      parseModel(model);
 
       expect(mockTable.findColumn).toHaveBeenCalledWith(column);
       expect(mockEq1).toHaveBeenCalledWith(filterValue1);
       expect(mockEq2).toHaveBeenCalledWith(filterValue2);
       expect(mockAnd).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getFilterFromGridApi text filter case sensitivity', () => {
+    const column = 'col1';
+    const filterText = 'Test';
+
+    function makeTextModel(type: string): FilterModel {
+      return {
+        [column]: {
+          filterType: 'text',
+          type,
+          filter: filterText,
+        } as TextFilterModel,
+      };
+    }
+
+    function parse(model: FilterModel): void {
+      parseModel(model);
+    }
+
+    function setCaseSensitive(caseSensitive: boolean): void {
+      mockGridApi.getColumnDef.mockReturnValue({
+        filterParams: { caseSensitive },
+      });
+    }
+
+    it.each([
+      ['equals', 'eq', 'eqIgnoreCase'],
+      ['notEqual', 'notEq', 'notEqIgnoreCase'],
+      ['contains', 'contains', 'containsIgnoreCase'],
+    ])(
+      '%s uses %s when case-sensitive and %s otherwise',
+      (type, sensitiveMethod, insensitiveMethod) => {
+        const mockSensitive = jest.fn();
+        const mockInsensitive = jest.fn();
+        mockColumn.filter.mockReturnValue({
+          [sensitiveMethod]: mockSensitive,
+          [insensitiveMethod]: mockInsensitive,
+        });
+        mockDh.FilterValue.ofString.mockReturnValue(filterText);
+
+        setCaseSensitive(true);
+        parse(makeTextModel(type));
+        expect(mockSensitive).toHaveBeenCalledWith(filterText);
+        expect(mockInsensitive).not.toHaveBeenCalled();
+
+        mockSensitive.mockClear();
+        setCaseSensitive(false);
+        parse(makeTextModel(type));
+        expect(mockInsensitive).toHaveBeenCalledWith(filterText);
+        expect(mockSensitive).not.toHaveBeenCalled();
+      }
+    );
+
+    it('notContains uses contains when case-sensitive and containsIgnoreCase otherwise', () => {
+      const mockNot = jest.fn();
+      const mockOr = jest.fn();
+      const mockContains = jest.fn().mockReturnValue({ not: mockNot });
+      const mockContainsIgnoreCase = jest
+        .fn()
+        .mockReturnValue({ not: mockNot });
+      mockColumn.filter.mockReturnValue({
+        isNull: jest.fn().mockReturnValue({ or: mockOr }),
+        contains: mockContains,
+        containsIgnoreCase: mockContainsIgnoreCase,
+      });
+      mockDh.FilterValue.ofString.mockReturnValue(filterText);
+
+      setCaseSensitive(true);
+      parse(makeTextModel('notContains'));
+      expect(mockContains).toHaveBeenCalledWith(filterText);
+      expect(mockContainsIgnoreCase).not.toHaveBeenCalled();
+
+      mockContains.mockClear();
+      setCaseSensitive(false);
+      parse(makeTextModel('notContains'));
+      expect(mockContainsIgnoreCase).toHaveBeenCalledWith(filterText);
+      expect(mockContains).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['startsWith', `(?s)^\\Q${filterText}\\E.*`],
+      ['endsWith', `(?s).*\\Q${filterText}\\E$`],
+    ])(
+      '%s uses invoke when case-sensitive and matchesIgnoreCase otherwise',
+      (type, expectedPattern) => {
+        const mockAnd = jest.fn();
+        const mockInvoke = jest.fn();
+        const mockMatchesIgnoreCase = jest.fn();
+        mockColumn.filter.mockReturnValue({
+          isNull: jest.fn().mockReturnValue({
+            not: jest.fn().mockReturnValue({ and: mockAnd }),
+          }),
+          invoke: mockInvoke,
+          matchesIgnoreCase: mockMatchesIgnoreCase,
+        });
+        mockDh.FilterValue.ofString.mockImplementation(value => value);
+
+        setCaseSensitive(true);
+        parse(makeTextModel(type));
+        expect(mockInvoke).toHaveBeenCalledWith(type, filterText);
+        expect(mockMatchesIgnoreCase).not.toHaveBeenCalled();
+
+        mockInvoke.mockClear();
+        setCaseSensitive(false);
+        parse(makeTextModel(type));
+        expect(mockMatchesIgnoreCase).toHaveBeenCalledWith(expectedPattern);
+        expect(mockInvoke).not.toHaveBeenCalled();
+      }
+    );
+
+    it('defaults to case-insensitive when column def has no filterParams', () => {
+      const mockEq = jest.fn();
+      const mockEqIgnoreCase = jest.fn();
+      mockColumn.filter.mockReturnValue({
+        eq: mockEq,
+        eqIgnoreCase: mockEqIgnoreCase,
+      });
+      mockDh.FilterValue.ofString.mockReturnValue(filterText);
+      mockGridApi.getColumnDef.mockReturnValue({});
+
+      parse(makeTextModel('equals'));
+      expect(mockEqIgnoreCase).toHaveBeenCalledWith(filterText);
+      expect(mockEq).not.toHaveBeenCalled();
+    });
+
+    it('applies case sensitivity to combined filter conditions', () => {
+      const model: FilterModel = {
+        [column]: {
+          conditions: [
+            { filterType: 'text', type: 'equals', filter: 'a' },
+            { filterType: 'text', type: 'equals', filter: 'b' },
+          ],
+          operator: 'OR',
+        } as ICombinedSimpleModel<TextFilterModel>,
+      };
+
+      const mockOr = jest.fn();
+      const mockEq = jest.fn().mockReturnValue({ or: mockOr });
+      mockColumn.filter.mockReturnValue({ eq: mockEq });
+      mockDh.FilterValue.ofString.mockImplementation(value => value);
+
+      setCaseSensitive(true);
+      parse(model);
+      expect(mockEq).toHaveBeenCalledTimes(2);
+      expect(mockEq).toHaveBeenCalledWith('a');
+      expect(mockEq).toHaveBeenCalledWith('b');
+      expect(mockOr).toHaveBeenCalledTimes(1);
     });
   });
 

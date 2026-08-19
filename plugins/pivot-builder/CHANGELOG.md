@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## pivot-builder-v0.1.1 - 2026-08-12
+
+#### Bug Fixes
+
+- DH-23165: Fix nested adobe-spectrum overlays in Popper dialog ([#1400](https://github.com/deephaven/deephaven-plugins/pull/1400)) - (e91f935) - vbabich
+- DH-21820: Sanitize pivot builder config, skip missing columns ([#1394](https://github.com/deephaven/deephaven-plugins/pull/1394)) - (6fffab7) - vbabich
+
+- - -
+
+
 ## pivot-builder-v0.1.0 - 2026-07-17
 
 #### Features

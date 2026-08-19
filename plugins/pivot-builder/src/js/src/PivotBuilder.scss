@@ -112,6 +112,14 @@
   font-weight: var(--spectrum-global-font-weight-medium);
 }
 
+// Stale column-name label: the persisted column no longer exists on the live
+// table. Struck through and dimmed (matching .pivot-drag-invalid) so missing
+// entries stand out. Composed alongside .pivot-row-label.pivot-column-name.
+.pivot-column-name--stale {
+  text-decoration: line-through;
+  color: var(--dh-color-text-disabled);
+}
+
 .pivot-grip {
   display: inline-flex;
   align-items: center;

@@ -146,7 +146,7 @@ class UseSetQueryParamTestCase(BaseTestCase):
 
         send_event_mock.assert_called_once()
         name, payload = send_event_mock.call_args[0]
-        self.assertEqual(name, "navigate.event")
+        self.assertEqual(name, "deephaven.ui.navigate")
         self.assertEqual(payload["queryParams"], "?page=2")
         self.assertNotIn("path", payload)
         self.assertNotIn("fragment", payload)

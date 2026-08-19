@@ -85,11 +85,14 @@ function AggregateColumnRow({
   operation,
   column,
   onDelete,
+  stale = false,
 }: {
   id: string;
   operation: string;
   column: string;
   onDelete: () => void;
+  /** Column no longer exists on the live table — renders struck through. */
+  stale?: boolean;
 }): JSX.Element {
   const {
     attributes,
@@ -121,7 +124,7 @@ function AggregateColumnRow({
   });
   return (
     <div ref={setNodeRef} className="pivot-agg-row-line" style={style}>
-      <RowLabel>{column}</RowLabel>
+      <RowLabel stale={stale}>{column}</RowLabel>
       <RemoveButton tooltip="Remove column" onClick={onDelete} />
       <DragGrip
         activatorRef={setActivatorNodeRef}
@@ -233,6 +236,7 @@ export function AggregateSelectRow({
               id={item.id}
               operation={operation}
               column={item.column}
+              stale={columnTypes[item.column] == null}
               onDelete={() => onDeleteColumn(item.column)}
             />
           ))}
@@ -244,7 +248,7 @@ export function AggregateSelectRow({
       // buttons aligned with the draggable function line above.
       columnsContent = columnLabels.map(label => (
         <div key={label} className="pivot-agg-row-line">
-          <RowLabel>{label}</RowLabel>
+          <RowLabel stale={columnTypes[label] == null}>{label}</RowLabel>
           <RemoveButton
             tooltip="Remove column"
             onClick={() => onDeleteColumn(label)}
@@ -254,7 +258,9 @@ export function AggregateSelectRow({
       ));
     } else {
       columnsContent = columnLabels.map(label => (
-        <RowLabel key={label}>{label}</RowLabel>
+        <RowLabel key={label} stale={columnTypes[label] == null}>
+          {label}
+        </RowLabel>
       ));
     }
   }

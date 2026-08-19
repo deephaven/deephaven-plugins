@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { Button } from '@deephaven/components';
 import { vsTrash } from '@deephaven/icons';
 import { DndKitSortable } from '@deephaven/iris-grid';
@@ -25,19 +26,26 @@ export function RemoveButton({
   );
 }
 
-/** Row label; `columnName` adds the `pivot-column-name` modifier (default). */
+/**
+ * Row label; `columnName` adds the `pivot-column-name` modifier (default).
+ * `stale` adds the `pivot-column-name--stale` modifier (column no longer on
+ * the live table).
+ */
 export function RowLabel({
   children,
   columnName = true,
+  stale = false,
 }: {
   children: React.ReactNode;
   columnName?: boolean;
+  stale?: boolean;
 }): JSX.Element {
   return (
     <span
-      className={
-        columnName ? 'pivot-row-label pivot-column-name' : 'pivot-row-label'
-      }
+      className={classNames('pivot-row-label', {
+        'pivot-column-name': columnName,
+        'pivot-column-name--stale': stale,
+      })}
     >
       {children}
     </span>

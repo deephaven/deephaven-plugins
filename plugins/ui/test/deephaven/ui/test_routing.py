@@ -142,7 +142,7 @@ class UseNavigateTestCase(BaseTestCase):
 
         mock.assert_called_once()
         name, payload = mock.call_args[0]
-        self.assertEqual(name, "navigate.event")
+        self.assertEqual(name, "deephaven.ui.navigate")
         self.assertEqual(payload["path"], "/dashboard")
         self.assertRaises(KeyError, lambda: payload["queryParams"])
         self.assertRaises(KeyError, lambda: payload["fragment"])

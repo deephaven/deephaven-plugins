@@ -13,12 +13,13 @@ from .RenderContext import (
     UpdaterFunction,
     get_context,
     NoContextException,
-    ValueWithLiveness,
     ExportedRenderState,
     _get_context_stacks,
     _get_context_stack,
 )
 from .utils import (
+    ValueWithLiveness,
+    value_or_call,
     get_component_name,
     get_component_qualname,
     to_camel_case,
