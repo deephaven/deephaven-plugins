@@ -28,7 +28,8 @@ next. The final section is a single verification pass to run before requesting r
 4. Contrast / rendering polish in examples.
 5. Documentation clarity, pruning, and comments.
 6. Code style in examples.
-7. Histogram binning gaps + borders — **parked / future work** (do after the others).
+7. Histogram binning gaps + borders — **parked / future work**, split out to
+   [DH-1376-histogram-continuous-bars.md](DH-1376-histogram-continuous-bars.md).
 8. Frozen price scale (`auto_scale=False`) — **parked / future work**.
 
 ---
@@ -317,45 +318,13 @@ named-function form and the examples still run. **DONE.**
 
 ## Phase 7 — Histogram binning gaps + borders (parked / future work)
 
-**Status: PARKED.** A first implementation attempt was made and then fully reverted at the
-maintainer's request; do the other phases first. This section preserves the root-cause
-analysis and everything learned so a future attempt can resume without re-deriving it.
-
-**Symptoms** ([docs/histogram.md](plugins/tradingview-lightweight/docs/histogram.md#L68) line 68 = visible borders between bars; [#L122](plugins/tradingview-lightweight/docs/histogram.md#L122) line 122 = large gaps):
-
-- The plugin renders histograms with LWC's **built-in `HistogramSeries`**, which draws a **fixed pixel-width bar per data point** (`round(barSpacing) − 1`), _not_ a bar spanning the time-bin width. That inherent 1px gap is the "borders between bars" (line 68) — LWC has no touching-bar / `bargap=0` option.
-- To fake a proportional time axis on LWC's ordinal scale, the plugin adds a **dense whitespace "scaffold" series** (~`width*2` points across the full range; `minBarSpacing: 0.01`) whenever it resamples/auto-bins ([TradingViewChart.tsx `updateScaffold`](plugins/tradingview-lightweight/src/js/src/TradingViewChart.tsx#L417)). Server autobin drops empty bins (`agg_by(by=["__Bin"])` in [auto_bin.py](plugins/tradingview-lightweight/src/deephaven/plot/tradingview_lightweight/auto_bin.py#L212)). Combined, sparse bins land at their true time positions among thousands of scaffold slots → **thin bars separated by large time-proportional gaps** (line 122). (The `replayAllData` comment claiming "just two bookend whitespace points" for autobin is **stale**; `updateScaffold` always goes dense.)
-- The client already has what a custom renderer would need: `binWidthNs` + `fullRangeNs` per series via `getAutoBinMeta()` ([TradingViewTypes.ts `TvlAutoBinMeta`](plugins/tradingview-lightweight/src/js/src/TradingViewTypes.ts#L38)).
-
-**Attempted fix (custom histogram series) — reverted.** A custom LWC series
-(`chart.addCustomSeries` + `ICustomSeriesPaneView`, `ContinuousBarsSeries.ts`) covering all
-three ordinal types (Histogram/Candlestick/Bar), opt-in via a per-series `continuous=True`
-and a chart-level `continuous_bars=True`. All of it was reverted: `ContinuousBarsSeries.ts`
-
-- tests, the `createSeries` routing in `TradingViewChartRenderer.ts`, `continuous?` on
-  `TvlSeriesConfig`, the mock's `addCustomSeries`/`customSeriesDefaultOptions`, the Python
-  `continuous`/`continuous_bars` params in `series.py`/`chart.py`, `TestContinuousBars`, and
-  the histogram/candlestick/bar doc mentions.
-
-**What was tried, in order, and what each taught us:**
-
-1. **Global bin-pixel width** (`min` adjacent `bars[i+1].x − bars[i].x`, draw every bar that wide, centered). → Correct at some zooms, wrong at others. **Why:** the dense scaffold is spaced by an _evenly-spaced-in-time_ whitespace grid, and `binWidthNs / scaffoldStep` is non-integer, so the scaffold-index count between adjacent bins **jitters ±1**. A single global width can't tile jittered positions — borders/overlaps at some zooms only.
-2. **Neighbor-midpoint edges with a median-bin threshold** (a bar meets its neighbor at the shared pixel midpoint when the gap is ≤ ~1.5× the median gap; else keep its own width). → Still gappy/inconsistent. **Why:** a pixel-based "is this an empty bin?" threshold is fundamentally ambiguous when scaffold jitter and real empty-bin gaps are similar sizes.
-3. **Time-based adjacency** (decide bins from each bar's _time_ — `bar.originalData.time`, exact integer epoch seconds; `binCount = round(Δtime / minΔtime)`; fill `Δpixels / (2·binCount)` toward each neighbor, so adjacent bars share the exact midpoint and n-bin gaps stay proportional). → **Verified correct in isolation:** simulating the real shipped auto-bin data (`build_histogram_view` on `large_prices` at full / 1-day / 1-hour zoom) and running this logic on the actual time deltas gives `binCount = 1` for every body bin at every zoom (bodies are contiguous; the only large deltas are the far-off head/tail anchors). Jest geometry tests (jitter regression + large-gap) passed. **But the browser still showed thin, gappy bars.**
-
-**Key blockers (the reasons it's parked):**
-
-- **The custom series never actually rendered on the auto-bin path in-browser.** Thin far-apart bars on a dense scaffold are the signature of the **built-in `HistogramSeries`**, i.e. the `continuous` flag/routing was being lost between the wire and `createSeries` **specifically for auto-binned series** (non-auto-binned continuous series _did_ render touching). Not yet traced — prime suspect is the `AUTOBIN_FIGURE` / figure-rebuild path in [listener.py](plugins/tradingview-lightweight/src/deephaven/plot/tradingview_lightweight/communication/listener.py) dropping `continuous`, **or** a stale cached browser bundle (reinstalls need a hard reload + re-running the script).
-- **Proportional gaps require the scaffold, which only exists when resampling.** `enableScaffold = model.isResampling()` ([TradingViewChart.tsx](plugins/tradingview-lightweight/src/js/src/TradingViewChart.tsx#L522)). A histogram below the auto-bin threshold (`AUTO_BIN_THRESHOLD = 2 × TARGET_BINS = 500` rows) renders on the plain **ordinal** scale, where equal index spacing **collapses real time gaps** to one step — so a small, non-auto-binned histogram can never show a proportional gap regardless of the renderer. A future "continuous" feature must decide whether to force the scaffold on for continuous ordinal series (bigger change) or restrict the feature to the resampled path.
-
-**Retry checklist (future):**
-
-1. Trace `continuous` through `listener.py`'s figure rebuild and the client figure parse to confirm whether the built-in series is what renders on the auto-bin path.
-2. Rule out bundle caching (hard reload) before trusting any in-browser observation.
-3. If routing is fixed, resume from the **time-based geometry (attempt #3)** — it's the validated approach.
-4. Decide the small-table (no-scaffold) behavior.
-5. In-browser visual validation is mandatory — jest geometry tests are necessary but not sufficient.
-6. Optional: **zero-fill empty bins server-side** in `build_histogram_view` so "empty bin" reads as an explicit 0-height bar rather than absent (cleaner semantics once the renderer draws fixed bin-width rects).
+**Status: PARKED — split out to
+[DH-1376-histogram-continuous-bars.md](DH-1376-histogram-continuous-bars.md).** That file
+carries the full root-cause analysis (built-in `HistogramSeries` 1px borders; scaffold
+jitter vs. dropped empty bins), the reverted `ContinuousBarsSeries` attempt history, the
+recommended strategy (zero-fill empty bins server-side as the primary fix, which removes
+the scaffold dependency and its jitter), the lost-`continuous`-flag instrumentation plan,
+and the retry checklist.
 
 **Done when:** borders are gone on contiguous bins, gaps appear only for genuinely-empty
 bins, the behavior is stable across zoom levels and verified in-browser, and the example +
