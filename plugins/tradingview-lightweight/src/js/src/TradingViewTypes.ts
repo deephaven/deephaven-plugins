@@ -166,6 +166,8 @@ export interface TvlMarkerSpec {
     color?: string;
     text?: string;
     size?: number;
+    /** Fixed price for atPrice* positions when no price column is set. */
+    price?: number;
   };
 }
 

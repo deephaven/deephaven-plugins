@@ -468,6 +468,9 @@ def price_format(
         precision: Number of decimal places.
         min_move: Smallest representable step (e.g. ``0.01`` for cents).
 
+    Returns:
+        PriceFormat: A number-format config for ``price_format=``.
+
     Example:
         >>> tvl.line(..., price_format=tvl.price_format(precision=4, min_move=0.0001))
     """
@@ -695,6 +698,9 @@ def price_scale(
         margin_top: Top margin as a fraction (0-1).
         margin_bottom: Bottom margin as a fraction (0-1).
 
+    Returns:
+        PriceScale: A price-scale config for ``tvl.chart(...)``.
+
     Example:
         >>> scale = tvl.price_scale(border_visible=True, text_color="#666")
         >>> tvl.chart(..., right_price_scale=scale, overlay_price_scale=scale)
@@ -775,6 +781,9 @@ def crosshair_line(
         visible: Show the line.
         label_visible: Show the line's axis label.
         label_background_color: Axis-label background color.
+
+    Returns:
+        CrosshairLine: A crosshair-line style config.
     """
     return CrosshairLine(
         width=width,
@@ -834,6 +843,9 @@ def crosshair(
         vert_line: Styling for the vertical crosshair line.
         horz_line: Styling for the horizontal crosshair line.
 
+    Returns:
+        Crosshair: A crosshair config for ``tvl.chart(crosshair=...)``.
+
     Example:
         >>> tvl.chart(..., crosshair=tvl.crosshair(
         ...     mode="magnet", vert_line=tvl.crosshair_line(color="#aaa")))
@@ -886,6 +898,9 @@ def grid_lines(
         visible: Show the gridlines.
         color: Gridline CSS color.
         style: Dash pattern; see :data:`LineStyle`.
+
+    Returns:
+        GridLines: A gridline style config.
     """
     return GridLines(visible=visible, color=color, style=style)
 
@@ -925,6 +940,9 @@ def grid(
     Args:
         vert: Styling for the vertical gridlines.
         horz: Styling for the horizontal gridlines.
+
+    Returns:
+        Grid: A grid config for ``tvl.chart(grid=...)``.
 
     Example:
         >>> tvl.chart(..., grid=tvl.grid(vert=tvl.grid_lines(visible=False)))
@@ -986,6 +1004,9 @@ def last_price_line(
         color: Line CSS color (empty string uses the series color).
         style: Dash pattern; see :data:`LineStyle`.
 
+    Returns:
+        LastPriceLine: A last-price-line config for ``last_price_line=``.
+
     Example:
         >>> tvl.line(..., last_price_line=tvl.last_price_line(visible=False))
     """
@@ -1043,6 +1064,9 @@ def base_line(
         width: Stroke width in pixels; see :data:`LineWidth`.
         style: Dash pattern; see :data:`LineStyle`.
 
+    Returns:
+        BaseLine: A base-line config for ``base_line=``.
+
     Example:
         >>> tvl.line(..., base_line=tvl.base_line(visible=False))
     """
@@ -1097,6 +1121,9 @@ def crosshair_marker(
         border_color: Marker border color.
         background_color: Marker fill color.
         border_width: Marker border width in pixels.
+
+    Returns:
+        CrosshairMarker: A crosshair-marker config for ``crosshair_marker=``.
 
     Example:
         >>> tvl.line(..., crosshair_marker=tvl.crosshair_marker(radius=6))
@@ -1271,6 +1298,9 @@ def time_scale(
         precompute_conflation_priority: Scheduling priority for precomputation;
             see :data:`PrecomputeConflationPriority`.
 
+    Returns:
+        TimeScale: A time-scale config for ``tvl.chart(time_scale=...)``.
+
     Example:
         >>> tvl.chart(..., time_scale=tvl.time_scale(time_visible=True, bar_spacing=8))
     """
@@ -1412,6 +1442,9 @@ def watermark(
         lines: List of :class:`WatermarkLine` for a multi-line watermark
             (build each with :func:`watermark_line`).
 
+    Returns:
+        Watermark: A text-watermark config for ``tvl.chart(watermark=...)``.
+
     Example:
         >>> tvl.chart(..., watermark=tvl.watermark(text="AAPL", color="#888"))
         >>> tvl.chart(..., watermark=tvl.watermark(
@@ -1489,6 +1522,9 @@ def watermark_image(
         padding: Padding around the image in pixels.
         alpha: Image opacity (0-1).
         visible: Show the image watermark (defaults to ``True`` when ``url`` given).
+
+    Returns:
+        WatermarkImage: An image-watermark config for ``tvl.chart(watermark_image=...)``.
 
     Example:
         >>> tvl.chart(..., watermark_image=tvl.watermark_image(url="logo.png", alpha=0.3))
@@ -1572,6 +1608,9 @@ def tooltip(
         value_precision: Decimal places for the value line (defaults to the
             series' own price format when unset).
 
+    Returns:
+        Tooltip: A tracking-tooltip config for ``tvl.chart(tooltip=...)``.
+
     Example:
         >>> tvl.chart(..., tooltip=tvl.tooltip(show_value=True, value_precision=2))
     """
@@ -1628,6 +1667,9 @@ def scroll(
         horz_touch_drag: Allow horizontal touch scrolling.
         vert_touch_drag: Allow vertical touch scrolling.
 
+    Returns:
+        Scroll: A scroll-interaction config for ``tvl.chart(handle_scroll=...)``.
+
     Example:
         >>> tvl.chart(..., handle_scroll=tvl.scroll(mouse_wheel=False))
     """
@@ -1682,6 +1724,9 @@ def scale(
         pinch: Allow pinch-to-zoom on touch devices.
         axis_pressed_mouse_move: Allow scaling by dragging an axis.
         axis_double_click_reset: Reset axis scale on double-click.
+
+    Returns:
+        Scale: A scale-interaction config for ``tvl.chart(handle_scale=...)``.
 
     Example:
         >>> tvl.chart(..., handle_scale=tvl.scale(pinch=False))

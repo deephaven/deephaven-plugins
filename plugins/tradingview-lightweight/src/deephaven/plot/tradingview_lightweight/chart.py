@@ -1126,6 +1126,9 @@ def baseline(
         base_value: Baseline price level (default 0.0).
         by (Optional[str]): Partition column.
         Other parameters: full TVL Baseline series options surface.
+
+    Returns:
+        TvlChart: A chart wrapping a single baseline series.
     """
     kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.baseline_series(**kwargs)
@@ -1172,6 +1175,9 @@ def histogram(
         agg: Per-bin reduction (``"sum"``, ``"count"``, ``"avg"``, ``"last"``).
         by (Optional[str]): Partition column.
         Other parameters: full TVL Histogram series options surface.
+
+    Returns:
+        TvlChart: A chart wrapping a single histogram series.
     """
     kwargs = {k: v for k, v in locals().items() if k not in _CHART_ONLY_KWARGS}
     spec = series_module.histogram_series(**kwargs)
