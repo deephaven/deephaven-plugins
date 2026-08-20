@@ -16,10 +16,11 @@ from .events import (
 # Optional imports — unavailable in test environments without a Deephaven server
 try:
     from deephaven.liveness_scope import LivenessScope
-    from deephaven.table import Table
+    from deephaven.table import Table, PartitionedTable
 except ImportError:
     LivenessScope = None  # type: ignore[assignment,misc]
     Table = None  # type: ignore[assignment,misc]
+    PartitionedTable = None  # type: ignore[assignment,misc]
 from .options import (
     ChartType,
     ColorSpace,
@@ -235,13 +236,17 @@ class TvlChart:
         if self._liveness_scope is None or Table is None:
             return
         for table in self.get_tables():
-            # Static tables must not be managed (causes errors later)
-            if isinstance(table, Table) and not table.is_refreshing:
+            # Only manage real refreshing tables: static tables must not be
+            # managed (causes errors later), and non-Table objects (e.g.
+            # test mocks) cannot be managed at all.
+            if not isinstance(table, Table) or not table.is_refreshing:
                 continue
             self._liveness_scope.manage(table)
         # Per-series partitioned tables must also be managed.
+        if PartitionedTable is None:
+            return
         for s in self._series_list:
-            if s.partitioned_table is not None:
+            if isinstance(s.partitioned_table, PartitionedTable):
                 self._liveness_scope.manage(s.partitioned_table)
 
     @property

@@ -163,7 +163,7 @@ tvl_candlestick_styled = tvl.chart(
         wick_up_color="#00C805",
         wick_down_color="#FF2A04",
     ),
-    watermark_text="AAPL",
+    watermark=tvl.watermark(text="AAPL"),
 )
 
 # =============================================================================
@@ -184,7 +184,7 @@ tvl_candlestick_with_sma = tvl.chart(
         value="SMA_5",
         title="SMA 5",
     ),
-    crosshair_mode="magnet",
+    crosshair=tvl.crosshair(mode="magnet"),
 )
 
 # =============================================================================
@@ -206,7 +206,7 @@ tvl_candlestick_with_volume = tvl.chart(
         color="rgba(38, 166, 154, 0.5)",
         price_scale_id="volume",
     ),
-    right_price_scale_visible=True,
+    right_price_scale=tvl.price_scale(visible=True),
 )
 
 # =============================================================================
@@ -254,7 +254,7 @@ tvl_line_custom_grid = tvl.chart(
     tvl.line(value_source, timestamp="Timestamp", value="Value"),
     background_color="#1E222D",
     text_color="#D1D4DC",
-    crosshair_mode="magnet",
+    crosshair=tvl.crosshair(mode="magnet"),
 )
 
 # =============================================================================
@@ -262,7 +262,7 @@ tvl_line_custom_grid = tvl.chart(
 # =============================================================================
 tvl_area_watermark = tvl.chart(
     tvl.area(value_source, timestamp="Timestamp", value="Value"),
-    watermark_text="DH Stock",
+    watermark=tvl.watermark(text="DH Stock"),
 )
 
 # =============================================================================
@@ -293,9 +293,9 @@ tvl_full_dashboard = tvl.chart(
         color="rgba(38, 166, 154, 0.5)",
         price_scale_id="volume",
     ),
-    crosshair_mode="magnet",
-    watermark_text="AAPL",
-    right_price_scale_visible=True,
+    crosshair=tvl.crosshair(mode="magnet"),
+    watermark=tvl.watermark(text="AAPL"),
+    right_price_scale=tvl.price_scale(visible=True),
 )
 
 # =============================================================================
@@ -312,9 +312,9 @@ tvl_two_price_scales = tvl.chart(
         close="Close",
         price_scale_id="left",
     ),
-    right_price_scale_visible=True,
-    left_price_scale_visible=True,
-    crosshair_mode="normal",
+    right_price_scale=tvl.price_scale(visible=True),
+    left_price_scale=tvl.price_scale(visible=True),
+    crosshair=tvl.crosshair(mode="normal"),
 )
 
 # =============================================================================
@@ -438,7 +438,7 @@ tvl_options_multi = tvl.chart(
     tvl.line(options_source, timestamp="Strike", value="CallPremium", title="Calls"),
     tvl.line(options_source, timestamp="Strike", value="PutPremium", title="Puts"),
     chart_type="options",
-    watermark_text="Call vs Put",
+    watermark=tvl.watermark(text="Call vs Put"),
 )
 
 # =============================================================================

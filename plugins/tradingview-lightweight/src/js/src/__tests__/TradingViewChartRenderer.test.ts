@@ -1100,9 +1100,9 @@ describe('TradingViewChartRenderer', () => {
       mockSeriesInstance.applyOptions.mockClear();
       renderer.configureSeries([frozenSeriesConfig]);
       const provider = getFreezeProvider();
-      expect(provider(() => ({ priceRange: { minValue: 0, maxValue: 1 } }))).toBe(
-        rangeA
-      );
+      expect(
+        provider(() => ({ priceRange: { minValue: 0, maxValue: 1 } }))
+      ).toBe(rangeA);
     });
 
     it('coerces a chart-level right autoScale:false to true and freezes attached series', () => {

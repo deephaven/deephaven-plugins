@@ -77,7 +77,7 @@ def _on_press(e: Any) -> None:
 # per-type line carries the `by=` partition template.
 tvl_events_chart = tvl.chart(
     tvl.line(_src, timestamp="Timestamp", value="Price", by="Sym"),
-    crosshair_mode="magnet",
+    crosshair=tvl.crosshair(mode="magnet"),
     on_press=_on_press,
     on_double_press=lambda e: None,
 )

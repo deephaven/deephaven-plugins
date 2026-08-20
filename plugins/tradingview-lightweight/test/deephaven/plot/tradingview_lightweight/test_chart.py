@@ -1974,13 +1974,23 @@ class TestCustomNumericConvenience(unittest.TestCase):
 class TestLiveness(unittest.TestCase):
     """Tests for LivenessScope integration."""
 
-    def test_liveness_scope_none_in_test_env(self):
-        """Without a real DH server, LivenessScope is None so _liveness_scope is None."""
+    def test_liveness_scope_tolerates_mock_tables(self):
+        """Construction with mock tables works with or without a live JVM."""
+        import importlib
+
+        # `chart` the function shadows the submodule attribute on the package
+        chart_module = importlib.import_module(
+            "deephaven.plot.tradingview_lightweight.chart"
+        )
         table = MagicMock(name="table")
         s = line_series(table)
         c = TvlChart([s], {})
-        # In test env, LivenessScope import fails → _liveness_scope is None
-        self.assertIsNone(c._liveness_scope)
+        if chart_module.LivenessScope is None:
+            # No deephaven-server: LivenessScope import fails → scope is None
+            self.assertIsNone(c._liveness_scope)
+        else:
+            # JVM available: a scope exists, but mock tables are not managed
+            self.assertIsNotNone(c._liveness_scope)
 
     def test_partition_metadata_defaults(self):
         table = MagicMock(name="table")
@@ -1995,7 +2005,7 @@ class TestLiveness(unittest.TestCase):
         table = MagicMock(name="table")
         s = line_series(table)
         c = TvlChart([s], {})
-        # Should not raise even though _liveness_scope is None
+        # Should not raise regardless of whether a scope was created
         del c
 
 

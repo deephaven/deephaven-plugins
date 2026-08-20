@@ -1155,7 +1155,9 @@ class TradingViewChartRenderer {
   /** Reset all price scales to auto-fit visible data. */
   resetPriceScales(): void {
     // Drop captured ranges so frozen scales re-fit once, then re-freeze.
+    // Mutate in place (not replace): provider closures hold these objects.
     this.frozenRanges.forEach(cache => {
+      // eslint-disable-next-line no-param-reassign
       cache.info = null;
     });
     this.seriesMap.forEach(series => {
