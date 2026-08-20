@@ -463,6 +463,11 @@ def price_format(
 ) -> PriceFormat:
     """Create a :class:`PriceFormat` for a series' ``price_format=`` argument.
 
+    Args:
+        type: Value kind — ``"price"``, ``"volume"``, or ``"percent"``.
+        precision: Number of decimal places.
+        min_move: Smallest representable step (e.g. ``0.01`` for cents).
+
     Example:
         >>> tvl.line(..., price_format=tvl.price_format(precision=4, min_move=0.0001))
     """
@@ -670,6 +675,26 @@ def price_scale(
     Pass the result to ``right_price_scale=``, ``left_price_scale=``, or
     ``overlay_price_scale=``. One instance can be reused across slots.
 
+    Args:
+        visible: Show the scale. (Ignored for the overlay scale.)
+        border_visible: Show the scale border.
+        border_color: Border CSS color.
+        auto_scale: Auto-fit the scale to the visible data (default).
+            Set ``False`` to fit once on load, then hold that range so
+            the axis stays fixed as the user zooms and pans.
+        mode: Scale mapping mode; see :data:`PriceScaleMode`.
+        invert_scale: Flip the axis top-to-bottom.
+        align_labels: Align scale labels with chart pixels.
+        text_color: Scale label color.
+        entire_text_only: Render only complete labels (avoid clipping).
+        ticks_visible: Show tick marks on the scale.
+        minimum_width: Minimum scale width in pixels.
+        ensure_edge_tick_marks_visible: Force tick marks at the top/bottom edges.
+        tick_mark_density: Tick-mark spacing (default ``2.5``). Reads
+            inverted: lower values render more ticks, higher values fewer.
+        margin_top: Top margin as a fraction (0-1).
+        margin_bottom: Bottom margin as a fraction (0-1).
+
     Example:
         >>> scale = tvl.price_scale(border_visible=True, text_color="#666")
         >>> tvl.chart(..., right_price_scale=scale, overlay_price_scale=scale)
@@ -741,7 +766,16 @@ def crosshair_line(
     label_visible: Optional[bool] = None,
     label_background_color: Optional[Color] = None,
 ) -> CrosshairLine:
-    """Create a :class:`CrosshairLine` for ``tvl.crosshair(vert_line=..., horz_line=...)``."""
+    """Create a :class:`CrosshairLine` for ``tvl.crosshair(vert_line=..., horz_line=...)``.
+
+    Args:
+        width: Line width in pixels; see :data:`LineWidth`.
+        color: Line CSS color.
+        style: Dash pattern; see :data:`LineStyle`.
+        visible: Show the line.
+        label_visible: Show the line's axis label.
+        label_background_color: Axis-label background color.
+    """
     return CrosshairLine(
         width=width,
         color=color,
@@ -794,6 +828,12 @@ def crosshair(
 ) -> Crosshair:
     """Create a :class:`Crosshair` config for ``tvl.chart(crosshair=...)``.
 
+    Args:
+        mode: Tracking behavior; see :data:`CrosshairMode`.
+        do_not_snap_to_hidden_series: In magnet/snap modes, skip hidden series.
+        vert_line: Styling for the vertical crosshair line.
+        horz_line: Styling for the horizontal crosshair line.
+
     Example:
         >>> tvl.chart(..., crosshair=tvl.crosshair(
         ...     mode="magnet", vert_line=tvl.crosshair_line(color="#aaa")))
@@ -840,7 +880,13 @@ def grid_lines(
     color: Optional[Color] = None,
     style: Optional["LineStyle"] = None,
 ) -> GridLines:
-    """Create :class:`GridLines` styling for ``tvl.grid(vert=..., horz=...)``."""
+    """Create :class:`GridLines` styling for ``tvl.grid(vert=..., horz=...)``.
+
+    Args:
+        visible: Show the gridlines.
+        color: Gridline CSS color.
+        style: Dash pattern; see :data:`LineStyle`.
+    """
     return GridLines(visible=visible, color=color, style=style)
 
 
@@ -875,6 +921,10 @@ def grid(
     horz: Optional[GridLines] = None,
 ) -> Grid:
     """Create a chart :class:`Grid` config for ``tvl.chart(grid=...)``.
+
+    Args:
+        vert: Styling for the vertical gridlines.
+        horz: Styling for the horizontal gridlines.
 
     Example:
         >>> tvl.chart(..., grid=tvl.grid(vert=tvl.grid_lines(visible=False)))
@@ -929,6 +979,13 @@ def last_price_line(
 ) -> LastPriceLine:
     """Create a :class:`LastPriceLine` for a series' ``last_price_line=`` argument.
 
+    Args:
+        visible: Show the last-price line (TVL default ``True``).
+        source: Which bar drives the line; see :data:`PriceLineSource`.
+        width: Stroke width in pixels; see :data:`LineWidth`.
+        color: Line CSS color (empty string uses the series color).
+        style: Dash pattern; see :data:`LineStyle`.
+
     Example:
         >>> tvl.line(..., last_price_line=tvl.last_price_line(visible=False))
     """
@@ -980,6 +1037,12 @@ def base_line(
 ) -> BaseLine:
     """Create a :class:`BaseLine` for a series' ``base_line=`` argument.
 
+    Args:
+        visible: Show the base line (TVL default ``True``).
+        color: Line CSS color.
+        width: Stroke width in pixels; see :data:`LineWidth`.
+        style: Dash pattern; see :data:`LineStyle`.
+
     Example:
         >>> tvl.line(..., base_line=tvl.base_line(visible=False))
     """
@@ -1027,6 +1090,13 @@ def crosshair_marker(
     border_width: Optional[float] = None,
 ) -> CrosshairMarker:
     """Create a :class:`CrosshairMarker` for a series' ``crosshair_marker=`` argument.
+
+    Args:
+        visible: Show the crosshair marker dot.
+        radius: Marker radius in pixels.
+        border_color: Marker border color.
+        background_color: Marker fill color.
+        border_width: Marker border width in pixels.
 
     Example:
         >>> tvl.line(..., crosshair_marker=tvl.crosshair_marker(radius=6))
@@ -1171,6 +1241,36 @@ def time_scale(
 ) -> TimeScale:
     """Create a :class:`TimeScale` config for ``tvl.chart(time_scale=...)``.
 
+    Args:
+        visible: Master visibility toggle for the time scale.
+        time_visible: Show the time (not just the date) in labels.
+        seconds_visible: Show seconds in time labels.
+        border_visible: Show the time-scale border.
+        border_color: Border CSS color.
+        right_offset: Empty bars kept beyond the rightmost data point.
+        right_offset_pixels: Pixel offset of the right edge.
+        bar_spacing: Pixels between adjacent bars.
+        min_bar_spacing: Minimum bar spacing (zoom-in cap).
+        max_bar_spacing: Maximum bar spacing (zoom-out cap).
+        fix_left_edge: Prevent scrolling past the leftmost data point.
+        fix_right_edge: Prevent scrolling past the rightmost data point.
+        lock_visible_time_range_on_resize: Keep the visible range on resize.
+        right_bar_stays_on_scroll: Pin the rightmost bar while scrolling.
+        shift_visible_range_on_new_bar: Auto-scroll when a new bar is added.
+        allow_shift_visible_range_on_whitespace_replacement: Shift when whitespace
+            bars are replaced by real data.
+        ticks_visible: Show tick marks on the time scale.
+        tick_mark_max_character_length: Max characters in a tick label before truncation.
+        uniform_distribution: Force uniform bar spacing regardless of timestamp gaps.
+        minimum_height: Minimum height of the time-scale area in pixels.
+        allow_bold_labels: Allow bold time labels.
+        ignore_whitespace_indices: Ignore whitespace indices in visible-range math.
+        enable_conflation: Conflate sub-pixel data points for performance.
+        conflation_threshold_factor: Conflation sensitivity multiplier.
+        precompute_conflation_on_init: Precompute conflation on chart init.
+        precompute_conflation_priority: Scheduling priority for precomputation;
+            see :data:`PrecomputeConflationPriority`.
+
     Example:
         >>> tvl.chart(..., time_scale=tvl.time_scale(time_visible=True, bar_spacing=8))
     """
@@ -1300,6 +1400,18 @@ def watermark(
 ) -> Watermark:
     """Create a :class:`Watermark` config for ``tvl.chart(watermark=...)``.
 
+    Args:
+        text: Single-line watermark text.
+        color: Text color (single-line only).
+        visible: Show the watermark (defaults to ``True`` when text/lines given).
+        font_size: Font size in pixels (single-line only).
+        font_style: CSS font-style, e.g. ``"italic"`` (single-line only).
+        line_height: Line height in pixels (single-line only).
+        horz_align: Horizontal alignment; see :data:`HorzAlign`.
+        vert_align: Vertical alignment; see :data:`VertAlign`.
+        lines: List of :class:`WatermarkLine` for a multi-line watermark
+            (build each with :func:`watermark_line`).
+
     Example:
         >>> tvl.chart(..., watermark=tvl.watermark(text="AAPL", color="#888"))
         >>> tvl.chart(..., watermark=tvl.watermark(
@@ -1369,6 +1481,14 @@ def watermark_image(
     visible: Optional[bool] = None,
 ) -> WatermarkImage:
     """Create a :class:`WatermarkImage` for ``tvl.chart(watermark_image=...)``.
+
+    Args:
+        url: Image URL.
+        max_width: Maximum image width in pixels.
+        max_height: Maximum image height in pixels.
+        padding: Padding around the image in pixels.
+        alpha: Image opacity (0-1).
+        visible: Show the image watermark (defaults to ``True`` when ``url`` given).
 
     Example:
         >>> tvl.chart(..., watermark_image=tvl.watermark_image(url="logo.png", alpha=0.3))
@@ -1444,6 +1564,14 @@ def tooltip(
 ) -> Tooltip:
     """Create a :class:`Tooltip` config for ``tvl.chart(tooltip=...)``.
 
+    Args:
+        visible: Master switch (default ``True`` when the object is built).
+        show_title: Show the series title line.
+        show_value: Show the series value at the cursor.
+        show_date: Show the time/date line.
+        value_precision: Decimal places for the value line (defaults to the
+            series' own price format when unset).
+
     Example:
         >>> tvl.chart(..., tooltip=tvl.tooltip(show_value=True, value_precision=2))
     """
@@ -1494,6 +1622,12 @@ def scroll(
 ) -> Scroll:
     """Create a :class:`Scroll` config for ``tvl.chart(handle_scroll=...)``.
 
+    Args:
+        mouse_wheel: Allow mouse-wheel scrolling.
+        pressed_mouse_move: Allow click-drag scrolling.
+        horz_touch_drag: Allow horizontal touch scrolling.
+        vert_touch_drag: Allow vertical touch scrolling.
+
     Example:
         >>> tvl.chart(..., handle_scroll=tvl.scroll(mouse_wheel=False))
     """
@@ -1542,6 +1676,12 @@ def scale(
     axis_double_click_reset: Optional[bool] = None,
 ) -> Scale:
     """Create a :class:`Scale` config for ``tvl.chart(handle_scale=...)``.
+
+    Args:
+        mouse_wheel: Allow zooming with the mouse wheel.
+        pinch: Allow pinch-to-zoom on touch devices.
+        axis_pressed_mouse_move: Allow scaling by dragging an axis.
+        axis_double_click_reset: Reset axis scale on double-click.
 
     Example:
         >>> tvl.chart(..., handle_scale=tvl.scale(pinch=False))

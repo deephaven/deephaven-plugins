@@ -155,7 +155,13 @@ export interface TvlMarkerSpec {
   columns: Record<string, string>;
   /** Fixed defaults for properties not sourced from columns. */
   defaults: {
-    position?: 'aboveBar' | 'belowBar' | 'inBar';
+    position?:
+      | 'aboveBar'
+      | 'belowBar'
+      | 'inBar'
+      | 'atPriceTop'
+      | 'atPriceBottom'
+      | 'atPriceMiddle';
     shape?: 'circle' | 'square' | 'arrowUp' | 'arrowDown';
     color?: string;
     text?: string;
