@@ -31,7 +31,7 @@ class Marker:
     marker per row), use :class:`MarkerSpec` / :func:`markers_from_table`
     instead.
 
-    The ``position`` and ``shape`` fields use camelCase JS values
+    The ``position`` and ``shape`` fields use camelCase values
     (e.g. ``"aboveBar"``, ``"arrowUp"``).  When constructing through
     :func:`marker`, supply snake_case Python aliases (e.g.
     ``"above_bar"``, ``"arrow_up"``); the factory translates them.
@@ -40,10 +40,10 @@ class Marker:
         time: The time value to anchor the marker to.  May be a UTC
             timestamp (``int`` / ``float``), an ISO date string, or
             a :class:`BusinessDay` dict.
-        position: Anchor position in camelCase JS form (e.g.
+        position: Anchor position in camelCase form (e.g.
             ``"aboveBar"``, ``"belowBar"``, ``"inBar"``,
             ``"atPriceTop"``, ``"atPriceBottom"``, ``"atPriceMiddle"``).
-        shape: Glyph in camelCase JS form (``"circle"``, ``"square"``,
+        shape: Glyph in camelCase form (``"circle"``, ``"square"``,
             ``"arrowUp"``, ``"arrowDown"``).
         color: CSS color string for the glyph fill.
         text: Optional label text drawn near the marker.
@@ -400,12 +400,11 @@ def up_down_markers(
 ) -> list[Marker]:
     """Create a combined list of up and down markers.
 
-    Equivalent to the JS ``createUpDownMarkers()`` convenience helper.
     Up-markers are placed below the bar with an upward arrow; down-markers
     are placed above the bar with a downward arrow.
 
     The returned list can be passed directly to the ``markers=`` parameter
-    of any series factory.  The JS library will sort markers by time, so
+    of any series factory.  The library sorts markers by time, so
     Python ordering does not matter.
 
     Args:

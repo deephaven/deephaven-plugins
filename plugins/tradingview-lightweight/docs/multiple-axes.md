@@ -64,8 +64,8 @@ vol = tvl.histogram(
     ohlc, timestamp="Timestamp", value="Volume",
     color="rgba(96,165,250,0.5)",
     price_scale_id="volume",  # overlay scale, anything not "left"/"right"
-    scale_margin_top=0.8,     # squash volume into the bottom 20%
-    scale_margin_bottom=0.0,
+    # squash volume into the bottom 20%
+    price_scale=tvl.price_scale(margin_top=0.8, margin_bottom=0.0),
 )
 
 overlay_chart = tvl.chart(
@@ -170,7 +170,7 @@ density_chart = tvl.chart(
 
 ### Auto-scale and invert per scale
 
-Each scale exposes `*_auto_scale` and `*_invert_scale` for fine control. Invert flips the axis upside-down, which helps with bid-spread or option-greek charts where lower values are "higher" conceptually.
+Each scale's `price_scale()` exposes `auto_scale` and `invert_scale` for fine control. Invert flips the axis upside-down, which helps with bid-spread or option-greek charts where lower values are "higher" conceptually.
 
 ```python order=invert_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -179,8 +179,8 @@ ohlc = tvl.data.ohlc()
 
 price = tvl.candlestick(
     ohlc, price_scale_id="right",
-    scale_invert=True,        # per-series shortcut
-    auto_scale=True,
+    # per-series form
+    price_scale=tvl.price_scale(invert_scale=True, auto_scale=True),
 )
 
 invert_chart = tvl.chart(
@@ -192,7 +192,7 @@ invert_chart = tvl.chart(
 )
 ```
 
-`scale_invert` on the series and `invert_scale` on the chart's `price_scale` are equivalent ways to flip the right axis.
+The series' `price_scale=` and the chart's `right_price_scale=` take the same `tvl.price_scale(...)` object — two equivalent ways to flip the right axis.
 
 ## API Reference
 

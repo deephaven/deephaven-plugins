@@ -202,28 +202,7 @@ markers = tvl.up_down_markers(
 updown_chart = tvl.candlestick(ohlc, markers=markers)
 ```
 
-The helper returns a `list[Marker]` that drops straight into the series' `markers=` argument. The library sorts markers by time, so the order of `up_times` and `down_times` doesn't matter.
-
-### Type aliases: `MarkerSign` and `MismatchDirection`
-
-Two Literal aliases live alongside the marker API for completeness. `MarkerSign` (`"negative"`, `"neutral"`, `"positive"`) annotates a marker's polarity and is consumed by the JS renderer. `MismatchDirection` (`"nearest_left"`, `"none"`, `"nearest_right"`) is a JS-side lookup mode, exported for type-hint completeness but not accepted as a Python kwarg today.
-
-```python
-import deephaven.plot.tradingview_lightweight as tvl
-from typing import get_args
-
-# Sentinel snapshots of the two Literal aliases — useful when wiring
-# typed dataclasses or building marker payloads from a table.
-signs = list(get_args(tvl.MarkerSign))  # ["negative", "neutral", "positive"]
-directions = list(
-    get_args(tvl.MismatchDirection)
-)  # ["nearest_left", "none", "nearest_right"]
-
-assert signs == ["negative", "neutral", "positive"]
-assert directions == ["nearest_left", "none", "nearest_right"]
-```
-
-These constants are stable across releases; refer to them by name (e.g. `tvl.MarkerSign`) rather than re-typing the string literals.
+The helper returns a `list[Marker]` that drops straight into the series' `markers=` argument. The library sorts markers by time, so the order of `up_times` and `down_times` doesn't matter. (Two type-only Literal aliases, `MarkerSign` and `MismatchDirection`, are exported for annotations.)
 
 ## API Reference
 

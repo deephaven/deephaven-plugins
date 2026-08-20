@@ -757,4 +757,40 @@ describe('buildMarkersFromTableData', () => {
     const result = buildMarkersFromTableData(spec, columnData);
     expect(result[0].size).toBe(3);
   });
+
+  it('should resolve per-row price from a column for atPrice positions', () => {
+    const spec: TvlMarkerSpec = {
+      tableId: 1,
+      columns: { time: 'Time', price: 'Level' },
+      defaults: { position: 'atPriceTop', shape: 'square', color: '#ef6c00' },
+    };
+
+    const columnData = new Map<string, unknown[]>([
+      ['Time', [1704067200, 1704153600]],
+      ['Level', [110.5, 95.25]],
+    ]);
+
+    const result = buildMarkersFromTableData(spec, columnData);
+    expect(result[0].position).toBe('atPriceTop');
+    expect(result[0].price).toBe(110.5);
+    expect(result[1].price).toBe(95.25);
+  });
+
+  it('should apply a fixed default price when no price column is set', () => {
+    const spec: TvlMarkerSpec = {
+      tableId: 1,
+      columns: { time: 'Time' },
+      defaults: {
+        position: 'atPriceMiddle',
+        shape: 'square',
+        color: '#000',
+        price: 100,
+      },
+    };
+
+    const columnData = new Map<string, unknown[]>([['Time', [1704067200]]]);
+
+    const result = buildMarkersFromTableData(spec, columnData);
+    expect(result[0].price).toBe(100);
+  });
 });

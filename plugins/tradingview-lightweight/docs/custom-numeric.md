@@ -7,9 +7,9 @@
 
 # Custom Numeric Chart
 
-A custom-numeric chart puts any numeric quantity on the horizontal axis. Unlike the candlestick / line / area family (which require time on the x-axis) and unlike the yield-curve chart (which expects months) and the options chart (which expects strikes), `tvl.custom_numeric` makes no assumption about what your x-values _mean_. They're just numbers.
+A custom-numeric chart puts any numeric quantity on the horizontal axis. Unlike the candlestick / line / area family (which require time on the x-axis) and unlike the yield-curve chart (which expects months) and the options chart (which expects strikes), `tvl.custom_numeric` makes no assumption about what your x-values _mean_.
 
-Internally `tvl.custom_numeric` uses the same `createOptionsChart` renderer as `tvl.options_chart`. Use it whenever your x-axis is a generic numeric quantity (frequency in Hz, distance in km, price level for a profile chart, basket index) rather than time, maturity, or strike. TVL also exposes a more flexible `createChartEx` entry point in JavaScript that lets you attach a custom JS `horzScaleBehavior`, which is intentionally not surfaced through the Python API.
+Internally `tvl.custom_numeric` uses the same `createOptionsChart` renderer as `tvl.options_chart`. Use it whenever your x-axis is a generic numeric quantity (frequency in Hz, distance in km, price level for a profile chart, basket index) rather than time, maturity, or strike.
 
 ## What are custom-numeric charts useful for?
 

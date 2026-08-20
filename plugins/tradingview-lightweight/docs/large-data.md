@@ -7,9 +7,7 @@
 
 # Large Data
 
-This page is the "how big is too big, and which path do I get?" overview. The mechanics live elsewhere — [downsampling](downsampling.md) (Line / Area / Baseline) and [autobinning](autobin.md) (Histogram / Candlestick / Bar) — so here we focus only on the sizing rules of thumb and the cost model that apply to both.
-
-The short version: you don't choose. `tvl.line(...)` downsamples, `tvl.histogram(...)` autobins, and both run in the Deephaven engine and ship only post-aggregation buckets to the browser. Read on if you want to reason about where the time goes at 1M+ rows.
+Large data is handled through [downsampling](downsampling.md) (Line / Area / Baseline) and [autobinning](autobin.md) (Histogram / Candlestick / Bar). `tvl.line(...)` downsamples, `tvl.histogram(...)` autobins, and both run in the Deephaven engine and ship only post-aggregation buckets to the browser.
 
 ## What does "large" mean here?
 
@@ -142,48 +140,6 @@ chart = tvl.chart(
     tvl.line(shifted, timestamp="Timestamp", value="Price", color="#dc2626"),
 )
 ```
-
-### Tune conflation precompute priority
-
-The conflation pipeline has an optional precompute step, configured on the `tvl.time_scale(...)` object. When `precompute_conflation_on_init=True`, the chart kicks off the precomputation as a browser-scheduled task; `precompute_conflation_priority` (typed as the `PrecomputeConflationPriority` Literal alias) tells the scheduler how aggressive that task should be. The three values map directly to the browser `Scheduler.postTask` levels: `"background"` runs whenever the main thread is idle, `"user-visible"` (the default) runs in front of background work, and `"user-blocking"` preempts most other browser work.
-
-```python order=background_chart,visible_chart,blocking_chart,large
-import deephaven.plot.tradingview_lightweight as tvl
-
-large = tvl.data.large_prices()
-
-# Let precompute run in the background; cheapest, gives up some warm-up time.
-background_chart = tvl.chart(
-    tvl.line(large, timestamp="Timestamp", value="Price"),
-    time_scale=tvl.time_scale(
-        enable_conflation=True,
-        precompute_conflation_on_init=True,
-        precompute_conflation_priority="background",
-    ),
-)
-
-# Default tier — precompute runs ahead of background tasks.
-visible_chart = tvl.chart(
-    tvl.line(large, timestamp="Timestamp", value="Price"),
-    time_scale=tvl.time_scale(
-        enable_conflation=True,
-        precompute_conflation_on_init=True,
-        precompute_conflation_priority="user-visible",
-    ),
-)
-
-# Highest priority — best for first-paint latency, costs the most main-thread time.
-blocking_chart = tvl.chart(
-    tvl.line(large, timestamp="Timestamp", value="Price"),
-    time_scale=tvl.time_scale(
-        enable_conflation=True,
-        precompute_conflation_on_init=True,
-        precompute_conflation_priority="user-blocking",
-    ),
-)
-```
-
-`enable_conflation` and `conflation_threshold_factor` control the conflation pipeline itself; the priority kwarg only matters when `precompute_conflation_on_init=True`.
 
 ## Picking parameters
 

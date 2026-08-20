@@ -27,6 +27,12 @@ from deephaven.plot.tradingview_lightweight.series import (
     histogram_series,
 )
 from deephaven.plot.tradingview_lightweight.markers import Marker, PriceLine
+from deephaven.plot.tradingview_lightweight.options import (
+    base_line,
+    crosshair_marker,
+    last_price_line,
+    price_scale,
+)
 
 
 class TestCandlestickSeries(unittest.TestCase):
@@ -140,12 +146,14 @@ class TestCandlestickSeries(unittest.TestCase):
         self.assertNotIn("priceLines", result)
 
     def test_price_format(self):
-        # minMove (camelCase) is the correct key -- matches TVL JS API
-        pf = {"type": "price", "precision": 4, "minMove": 0.0001}
+        from deephaven.plot.tradingview_lightweight.options import price_format
+
+        pf = price_format(type="price", precision=4, min_move=0.0001)
         spec = candlestick_series(self.table, price_format=pf)
+        # min_move serialises to the camelCase minMove key
         self.assertEqual(spec.options["priceFormat"]["minMove"], 0.0001)
         self.assertEqual(spec.options["priceFormat"]["precision"], 4)
-        # min_move (old snake_case key) must NOT appear
+        # snake_case min_move must NOT leak into the serialized shape
         self.assertNotIn("min_move", spec.options["priceFormat"])
 
     def test_border_color(self):
@@ -254,8 +262,7 @@ class TestLineSeries(unittest.TestCase):
             line_width=3,
             title="Price Line",
             visible=False,
-            crosshair_marker_visible=True,
-            crosshair_marker_radius=5.0,
+            crosshair_marker=crosshair_marker(visible=True, radius=5.0),
             price_scale_id="left",
         )
         self.assertEqual(spec.column_mapping, {"time": "ts", "value": "price"})
@@ -335,7 +342,7 @@ class TestAreaSeries(unittest.TestCase):
             line_width=2,
             line_style="dashed",
             line_type="curved",
-            crosshair_marker_visible=False,
+            crosshair_marker=crosshair_marker(visible=False),
             title="Volume Area",
         )
         self.assertEqual(spec.options["lineColor"], "#0000ff")
@@ -608,15 +615,19 @@ class TestCrosshairMarkerOnAreaAndBaseline(unittest.TestCase):
         self.table = MagicMock(name="table")
 
     def test_area_crosshair_marker_radius(self):
-        spec = area_series(self.table, crosshair_marker_radius=5.0)
+        spec = area_series(self.table, crosshair_marker=crosshair_marker(radius=5.0))
         self.assertEqual(spec.options["crosshairMarkerRadius"], 5.0)
 
     def test_baseline_crosshair_marker_visible(self):
-        spec = baseline_series(self.table, crosshair_marker_visible=False)
+        spec = baseline_series(
+            self.table, crosshair_marker=crosshair_marker(visible=False)
+        )
         self.assertFalse(spec.options["crosshairMarkerVisible"])
 
     def test_baseline_crosshair_marker_radius(self):
-        spec = baseline_series(self.table, crosshair_marker_radius=3.0)
+        spec = baseline_series(
+            self.table, crosshair_marker=crosshair_marker(radius=3.0)
+        )
         self.assertEqual(spec.options["crosshairMarkerRadius"], 3.0)
 
 
@@ -785,17 +796,22 @@ class TestPriceScaleOptions(unittest.TestCase):
         self.table = MagicMock(name="table")
 
     def test_auto_scale(self):
-        spec = line_series(self.table, auto_scale=False)
+        spec = line_series(self.table, price_scale=price_scale(auto_scale=False))
         self.assertFalse(spec.price_scale_options["autoScale"])
 
     def test_scale_margins(self):
-        spec = line_series(self.table, scale_margin_top=0.1, scale_margin_bottom=0.2)
+        spec = line_series(
+            self.table, price_scale=price_scale(margin_top=0.1, margin_bottom=0.2)
+        )
         self.assertEqual(spec.price_scale_options["scaleMargins"]["top"], 0.1)
         self.assertEqual(spec.price_scale_options["scaleMargins"]["bottom"], 0.2)
 
     def test_combined(self):
         spec = candlestick_series(
-            self.table, auto_scale=False, scale_margin_top=0.1, scale_margin_bottom=0.3
+            self.table,
+            price_scale=price_scale(
+                auto_scale=False, margin_top=0.1, margin_bottom=0.3
+            ),
         )
         self.assertFalse(spec.price_scale_options["autoScale"])
         self.assertEqual(spec.price_scale_options["scaleMargins"]["top"], 0.1)
@@ -806,7 +822,9 @@ class TestPriceScaleOptions(unittest.TestCase):
         self.assertEqual(spec.price_scale_options, {})
 
     def test_to_dict_includes_price_scale_options(self):
-        spec = line_series(self.table, auto_scale=False, scale_margin_top=0.1)
+        spec = line_series(
+            self.table, price_scale=price_scale(auto_scale=False, margin_top=0.1)
+        )
         result = spec.to_dict("s0", 0)
         self.assertIn("priceScaleOptions", result)
         self.assertFalse(result["priceScaleOptions"]["autoScale"])
@@ -826,7 +844,7 @@ class TestPriceScaleOptions(unittest.TestCase):
             baseline_series,
             histogram_series,
         ]:
-            spec = fn(self.table, scale_margin_top=0.2)
+            spec = fn(self.table, price_scale=price_scale(margin_top=0.2))
             self.assertEqual(spec.price_scale_options["scaleMargins"]["top"], 0.2)
 
 
@@ -885,17 +903,19 @@ class TestExtendedPriceScaleOptions(unittest.TestCase):
     def test_new_scale_options_on_line_series(self):
         spec = line_series(
             self.table,
-            scale_mode="logarithmic",
-            scale_invert=True,
-            scale_align_labels=False,
-            scale_border_visible=False,
-            scale_border_color="#333",
-            scale_text_color="#FF0000",
-            scale_entire_text_only=True,
-            scale_visible=False,
-            scale_ticks_visible=True,
-            scale_minimum_width=80,
-            scale_ensure_edge_tick_marks_visible=True,
+            price_scale=price_scale(
+                mode="logarithmic",
+                invert_scale=True,
+                align_labels=False,
+                border_visible=False,
+                border_color="#333",
+                text_color="#FF0000",
+                entire_text_only=True,
+                visible=False,
+                ticks_visible=True,
+                minimum_width=80,
+                ensure_edge_tick_marks_visible=True,
+            ),
         )
         pso = spec.price_scale_options
         self.assertEqual(pso["mode"], 1)  # logarithmic = 1
@@ -919,7 +939,10 @@ class TestExtendedPriceScaleOptions(unittest.TestCase):
             baseline_series,
             histogram_series,
         ]:
-            spec = fn(self.table, scale_ticks_visible=True, scale_minimum_width=50)
+            spec = fn(
+                self.table,
+                price_scale=price_scale(ticks_visible=True, minimum_width=50),
+            )
             self.assertTrue(spec.price_scale_options["ticksVisible"])
             self.assertEqual(spec.price_scale_options["minimumWidth"], 50)
 
@@ -929,7 +952,7 @@ class TestExtendedPriceScaleOptions(unittest.TestCase):
 
     def test_to_dict_includes_new_scale_options(self):
         spec = line_series(
-            self.table, scale_mode="percentage", scale_ticks_visible=True
+            self.table, price_scale=price_scale(mode="percentage", ticks_visible=True)
         )
         d = spec.to_dict("s0", 0)
         self.assertIn("priceScaleOptions", d)
@@ -938,41 +961,45 @@ class TestExtendedPriceScaleOptions(unittest.TestCase):
 
 
 class TestPriceLineOptions(unittest.TestCase):
-    """price_line_* common options on all series types."""
+    """last_price_line grouped options on all series types."""
 
     def setUp(self):
         self.table = MagicMock(name="table")
 
     def test_price_line_visible_false(self):
-        spec = line_series(self.table, price_line_visible=False)
+        spec = line_series(self.table, last_price_line=last_price_line(visible=False))
         self.assertFalse(spec.options["priceLineVisible"])
 
     def test_price_line_visible_true(self):
-        spec = line_series(self.table, price_line_visible=True)
+        spec = line_series(self.table, last_price_line=last_price_line(visible=True))
         self.assertTrue(spec.options["priceLineVisible"])
 
     def test_price_line_source_last_bar(self):
-        spec = line_series(self.table, price_line_source="last_bar")
+        spec = line_series(
+            self.table, last_price_line=last_price_line(source="last_bar")
+        )
         self.assertEqual(spec.options["priceLineSource"], 0)
 
     def test_price_line_source_last_visible(self):
-        spec = line_series(self.table, price_line_source="last_visible")
+        spec = line_series(
+            self.table, last_price_line=last_price_line(source="last_visible")
+        )
         self.assertEqual(spec.options["priceLineSource"], 1)
 
     def test_price_line_width(self):
-        spec = line_series(self.table, price_line_width=2)
+        spec = line_series(self.table, last_price_line=last_price_line(width=2))
         self.assertEqual(spec.options["priceLineWidth"], 2)
 
     def test_price_line_color(self):
-        spec = line_series(self.table, price_line_color="#ff0000")
+        spec = line_series(self.table, last_price_line=last_price_line(color="#ff0000"))
         self.assertEqual(spec.options["priceLineColor"], "#ff0000")
 
     def test_price_line_style_dashed(self):
-        spec = line_series(self.table, price_line_style="dashed")
+        spec = line_series(self.table, last_price_line=last_price_line(style="dashed"))
         self.assertEqual(spec.options["priceLineStyle"], 2)
 
     def test_price_line_style_solid(self):
-        spec = line_series(self.table, price_line_style="solid")
+        spec = line_series(self.table, last_price_line=last_price_line(style="solid"))
         self.assertEqual(spec.options["priceLineStyle"], 0)
 
     def test_price_line_options_absent_when_none(self):
@@ -984,7 +1011,7 @@ class TestPriceLineOptions(unittest.TestCase):
         self.assertNotIn("priceLineStyle", spec.options)
 
     def test_all_series_types_accept_price_line_options(self):
-        """price_line_* must be accepted by all 6 series functions."""
+        """last_price_line must be accepted by all 6 series functions."""
         for fn in [
             candlestick_series,
             bar_series,
@@ -995,11 +1022,13 @@ class TestPriceLineOptions(unittest.TestCase):
         ]:
             spec = fn(
                 self.table,
-                price_line_visible=False,
-                price_line_source="last_visible",
-                price_line_width=3,
-                price_line_color="#aabbcc",
-                price_line_style="dotted",
+                last_price_line=last_price_line(
+                    visible=False,
+                    source="last_visible",
+                    width=3,
+                    color="#aabbcc",
+                    style="dotted",
+                ),
             )
             self.assertFalse(spec.options["priceLineVisible"])
             self.assertEqual(spec.options["priceLineSource"], 1)
@@ -1010,8 +1039,7 @@ class TestPriceLineOptions(unittest.TestCase):
     def test_to_dict_includes_price_line_options(self):
         spec = line_series(
             self.table,
-            price_line_visible=True,
-            price_line_color="#123456",
+            last_price_line=last_price_line(visible=True, color="#123456"),
         )
         result = spec.to_dict("s0", 0)
         self.assertTrue(result["options"]["priceLineVisible"])
@@ -1019,29 +1047,29 @@ class TestPriceLineOptions(unittest.TestCase):
 
 
 class TestBaseLineOptions(unittest.TestCase):
-    """base_line_* common options on all series types."""
+    """base_line grouped options on all series types."""
 
     def setUp(self):
         self.table = MagicMock(name="table")
 
     def test_base_line_visible_false(self):
-        spec = line_series(self.table, base_line_visible=False)
+        spec = line_series(self.table, base_line=base_line(visible=False))
         self.assertFalse(spec.options["baseLineVisible"])
 
     def test_base_line_color(self):
-        spec = line_series(self.table, base_line_color="#B2B5BE")
+        spec = line_series(self.table, base_line=base_line(color="#B2B5BE"))
         self.assertEqual(spec.options["baseLineColor"], "#B2B5BE")
 
     def test_base_line_width(self):
-        spec = line_series(self.table, base_line_width=2)
+        spec = line_series(self.table, base_line=base_line(width=2))
         self.assertEqual(spec.options["baseLineWidth"], 2)
 
     def test_base_line_style_solid(self):
-        spec = line_series(self.table, base_line_style="solid")
+        spec = line_series(self.table, base_line=base_line(style="solid"))
         self.assertEqual(spec.options["baseLineStyle"], 0)
 
     def test_base_line_style_large_dashed(self):
-        spec = line_series(self.table, base_line_style="large_dashed")
+        spec = line_series(self.table, base_line=base_line(style="large_dashed"))
         self.assertEqual(spec.options["baseLineStyle"], 3)
 
     def test_base_line_options_absent_when_none(self):
@@ -1052,7 +1080,7 @@ class TestBaseLineOptions(unittest.TestCase):
         self.assertNotIn("baseLineStyle", spec.options)
 
     def test_all_series_types_accept_base_line_options(self):
-        """base_line_* must be accepted by all 6 series functions."""
+        """base_line must be accepted by all 6 series functions."""
         for fn in [
             candlestick_series,
             bar_series,
@@ -1063,10 +1091,12 @@ class TestBaseLineOptions(unittest.TestCase):
         ]:
             spec = fn(
                 self.table,
-                base_line_visible=False,
-                base_line_color="#ffffff",
-                base_line_width=1,
-                base_line_style="dotted",
+                base_line=base_line(
+                    visible=False,
+                    color="#ffffff",
+                    width=1,
+                    style="dotted",
+                ),
             )
             self.assertFalse(spec.options["baseLineVisible"])
             self.assertEqual(spec.options["baseLineColor"], "#ffffff")
@@ -1076,8 +1106,7 @@ class TestBaseLineOptions(unittest.TestCase):
     def test_to_dict_includes_base_line_options(self):
         spec = area_series(
             self.table,
-            base_line_visible=True,
-            base_line_color="#aaaaaa",
+            base_line=base_line(visible=True, color="#aaaaaa"),
         )
         result = spec.to_dict("s0", 0)
         self.assertTrue(result["options"]["baseLineVisible"])
@@ -1091,11 +1120,15 @@ class TestPriceLineSourceEnum(unittest.TestCase):
         self.table = MagicMock(name="table")
 
     def test_last_bar_is_zero(self):
-        spec = candlestick_series(self.table, price_line_source="last_bar")
+        spec = candlestick_series(
+            self.table, last_price_line=last_price_line(source="last_bar")
+        )
         self.assertEqual(spec.options["priceLineSource"], 0)
 
     def test_last_visible_is_one(self):
-        spec = candlestick_series(self.table, price_line_source="last_visible")
+        spec = candlestick_series(
+            self.table, last_price_line=last_price_line(source="last_visible")
+        )
         self.assertEqual(spec.options["priceLineSource"], 1)
 
     def test_source_absent_when_not_set(self):
@@ -1202,21 +1235,29 @@ class TestCrosshairMarkerExtended(unittest.TestCase):
         self.table = MagicMock(name="table")
 
     def test_line_border_color(self):
-        spec = line_series(self.table, crosshair_marker_border_color="#ff0000")
+        spec = line_series(
+            self.table, crosshair_marker=crosshair_marker(border_color="#ff0000")
+        )
         self.assertEqual(spec.options["crosshairMarkerBorderColor"], "#ff0000")
 
     def test_line_background_color(self):
-        spec = line_series(self.table, crosshair_marker_background_color="#00ff00")
+        spec = line_series(
+            self.table, crosshair_marker=crosshair_marker(background_color="#00ff00")
+        )
         self.assertEqual(spec.options["crosshairMarkerBackgroundColor"], "#00ff00")
 
     def test_line_border_width(self):
-        spec = line_series(self.table, crosshair_marker_border_width=3.0)
+        spec = line_series(
+            self.table, crosshair_marker=crosshair_marker(border_width=3.0)
+        )
         self.assertEqual(spec.options["crosshairMarkerBorderWidth"], 3.0)
 
     def test_line_empty_string_border_color(self):
         """Empty string is a valid value (means 'use series color') and must not be filtered."""
-        spec = line_series(self.table, crosshair_marker_border_color="")
-        # _filter_none removes None via `if v is not None`, so "" passes through.
+        spec = line_series(
+            self.table, crosshair_marker=crosshair_marker(border_color="")
+        )
+        # to_dict omits None via `if v is not None`, so "" passes through.
         self.assertIn("crosshairMarkerBorderColor", spec.options)
         self.assertEqual(spec.options["crosshairMarkerBorderColor"], "")
 
@@ -1229,9 +1270,11 @@ class TestCrosshairMarkerExtended(unittest.TestCase):
     def test_area_all_three(self):
         spec = area_series(
             self.table,
-            crosshair_marker_border_color="#111",
-            crosshair_marker_background_color="#222",
-            crosshair_marker_border_width=1.5,
+            crosshair_marker=crosshair_marker(
+                border_color="#111",
+                background_color="#222",
+                border_width=1.5,
+            ),
         )
         self.assertEqual(spec.options["crosshairMarkerBorderColor"], "#111")
         self.assertEqual(spec.options["crosshairMarkerBackgroundColor"], "#222")
@@ -1240,9 +1283,11 @@ class TestCrosshairMarkerExtended(unittest.TestCase):
     def test_baseline_all_three(self):
         spec = baseline_series(
             self.table,
-            crosshair_marker_border_color="#aaa",
-            crosshair_marker_background_color="#bbb",
-            crosshair_marker_border_width=4.0,
+            crosshair_marker=crosshair_marker(
+                border_color="#aaa",
+                background_color="#bbb",
+                border_width=4.0,
+            ),
         )
         self.assertEqual(spec.options["crosshairMarkerBorderColor"], "#aaa")
         self.assertEqual(spec.options["crosshairMarkerBackgroundColor"], "#bbb")
@@ -1260,8 +1305,8 @@ class TestCommonOptionsCoexistence(unittest.TestCase):
             self.table,
             color="blue",
             line_width=2,
-            price_line_visible=False,
-            base_line_color="#ff0000",
+            last_price_line=last_price_line(visible=False),
+            base_line=base_line(color="#ff0000"),
             last_value_visible=False,
             title="My Line",
         )
@@ -1276,9 +1321,8 @@ class TestCommonOptionsCoexistence(unittest.TestCase):
         spec = candlestick_series(
             self.table,
             up_color="#00ff00",
-            price_line_visible=True,
-            price_line_width=2,
-            base_line_visible=False,
+            last_price_line=last_price_line(visible=True, width=2),
+            base_line=base_line(visible=False),
         )
         self.assertEqual(spec.options["upColor"], "#00ff00")
         self.assertTrue(spec.options["priceLineVisible"])

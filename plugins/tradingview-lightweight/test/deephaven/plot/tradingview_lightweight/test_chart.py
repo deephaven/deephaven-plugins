@@ -2291,11 +2291,12 @@ class TestPriceFormat(unittest.TestCase):
 
     def test_price_format_builtin_types_accepted(self):
         """Valid built-in type values should not raise."""
-        from deephaven.plot.tradingview_lightweight.options import PriceFormat
+        from deephaven.plot.tradingview_lightweight.options import price_format
 
         for t in ("price", "volume", "percent"):
-            pf: PriceFormat = {"type": t, "precision": 2, "min_move": 0.01}
-            self.assertEqual(pf["type"], t)
+            pf = price_format(type=t, precision=2, min_move=0.01)
+            self.assertEqual(pf.type, t)
+            self.assertEqual(pf.to_dict()["minMove"], 0.01)
 
     def test_price_format_custom_type_not_in_literal(self):
         """The 'custom' literal must not appear in PriceFormat.type."""
@@ -2308,13 +2309,17 @@ class TestPriceFormat(unittest.TestCase):
 
     def test_price_format_custom_raises_valueerror(self):
         """Passing type='custom' to a series function should raise ValueError."""
+        from deephaven.plot.tradingview_lightweight.options import PriceFormat
+
         with self.assertRaises(ValueError) as ctx:
-            line_series(self.table, price_format={"type": "custom"})
+            line_series(self.table, price_format=PriceFormat(type="custom"))  # type: ignore[arg-type]
         self.assertIn("custom", str(ctx.exception))
 
     def test_price_format_custom_raises_in_all_series(self):
         """All series creation functions should reject type='custom'."""
-        custom_pf = {"type": "custom"}
+        from deephaven.plot.tradingview_lightweight.options import PriceFormat
+
+        custom_pf = PriceFormat(type="custom")  # type: ignore[arg-type]
         for fn in (
             candlestick_series,
             bar_series,
@@ -2325,10 +2330,7 @@ class TestPriceFormat(unittest.TestCase):
             with self.assertRaises(
                 ValueError, msg=f"{fn.__name__} should reject custom"
             ):
-                if fn in (candlestick_series, bar_series):
-                    fn(self.table, price_format=custom_pf)
-                else:
-                    fn(self.table, price_format=custom_pf)
+                fn(self.table, price_format=custom_pf)
 
 
 class TestAlignTypes(unittest.TestCase):

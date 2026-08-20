@@ -6,18 +6,18 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from .options import (
+    BaseLine,
+    CrosshairMarker,
     LastPriceAnimationMode,
+    LastPriceLine,
     LineStyle,
     LineType,
     LineWidth,
     PriceFormat,
-    PriceLineSource,
-    PriceScaleMode,
+    PriceScale,
     LAST_PRICE_ANIMATION_MODE_MAP,
     LINE_STYLE_MAP,
     LINE_TYPE_MAP,
-    PRICE_LINE_SOURCE_MAP,
-    PRICE_SCALE_MODE_MAP,
 )
 from .markers import Marker, PriceLine, MarkerSpec
 from ._colors import Color
@@ -28,12 +28,15 @@ from ._colors import Color
 
 
 def _validate_price_format(price_format: Optional[PriceFormat]) -> None:
-    """Raise ValueError if price_format uses the unsupported 'custom' type."""
-    if price_format is not None and price_format.get("type") == "custom":
+    """Raise ValueError if price_format uses an unsupported type."""
+    if price_format is not None and price_format.type not in (
+        "price",
+        "volume",
+        "percent",
+    ):
         raise ValueError(
-            "PriceFormatCustom (type='custom') is not supported by the Python plugin. "
-            "The TradingView JS API requires a JavaScript formatter callback which "
-            "cannot be serialized from Python. Use type='price', 'volume', or 'percent'."
+            f"Unsupported price_format type {price_format.type!r}. "
+            "Use 'price', 'volume', or 'percent'."
         )
 
 
@@ -193,43 +196,9 @@ def _resolve_last_price_animation(
     return LAST_PRICE_ANIMATION_MODE_MAP[mode]
 
 
-def _build_price_scale_options(
-    auto_scale: Optional[bool],
-    scale_margin_top: Optional[float],
-    scale_margin_bottom: Optional[float],
-    mode: Optional[PriceScaleMode] = None,
-    invert_scale: Optional[bool] = None,
-    align_labels: Optional[bool] = None,
-    border_visible: Optional[bool] = None,
-    border_color: Optional[Color] = None,
-    text_color: Optional[Color] = None,
-    entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    ticks_visible: Optional[bool] = None,
-    minimum_width: Optional[int] = None,
-    ensure_edge_tick_marks_visible: Optional[bool] = None,
-) -> dict:
-    """Build priceScaleOptions dict from kwargs."""
-    opts = _filter_none(
-        {
-            "autoScale": auto_scale,
-            "mode": PRICE_SCALE_MODE_MAP.get(mode) if mode is not None else None,
-            "invertScale": invert_scale,
-            "alignLabels": align_labels,
-            "borderVisible": border_visible,
-            "borderColor": border_color,
-            "textColor": text_color,
-            "entireTextOnly": entire_text_only,
-            "visible": scale_visible,
-            "ticksVisible": ticks_visible,
-            "minimumWidth": minimum_width,
-            "ensureEdgeTickMarksVisible": ensure_edge_tick_marks_visible,
-        }
-    )
-    margins = _filter_none({"top": scale_margin_top, "bottom": scale_margin_bottom})
-    if margins:
-        opts["scaleMargins"] = margins
-    return opts
+def _build_price_scale_options(price_scale: Optional[PriceScale]) -> dict:
+    """Serialise a grouped :class:`PriceScale` to priceScaleOptions (or ``{}``)."""
+    return price_scale.to_dict() if price_scale is not None else {}
 
 
 def _build_common_options(
@@ -238,54 +207,31 @@ def _build_common_options(
     visible: Optional[bool],
     price_scale_id: Optional[str],
     price_format: Optional[PriceFormat],
-    price_line_visible: Optional[bool],
-    price_line_source: Optional[PriceLineSource],
-    price_line_width: Optional[LineWidth],
-    price_line_color: Optional[Color],
-    price_line_style: Optional[LineStyle],
-    base_line_visible: Optional[bool],
-    base_line_color: Optional[Color],
-    base_line_width: Optional[LineWidth],
-    base_line_style: Optional[LineStyle],
+    last_price_line: Optional[LastPriceLine],
+    base_line: Optional[BaseLine],
 ) -> dict:
     """Build the SeriesOptionsCommon portion of the series options dict.
 
     Returns a dict with only non-None entries, ready to be merged into the
     per-type options dict via ``{**_build_common_options(...), ...}``.
-
-        price_line_visible: Show the price line. Default True.
-        price_line_source:  "last_bar" or "last_visible". Default "last_bar".
-        price_line_width:   Line width 1-4 px. Default 1.
-        price_line_color:   CSS color string. Empty string uses series color.
-        price_line_style:   LineStyle value. Default "dashed".
-
-        base_line_visible: Show the baseline. Default True.
-        base_line_color:   CSS color string. Default "#B2B5BE".
-        base_line_width:   Line width 1-4 px. Default 1.
-        base_line_style:   LineStyle value. Default "solid".
+    The grouped ``last_price_line`` / ``base_line`` objects serialise to
+    their flat camelCase ``priceLine*`` / ``baseLine*`` option keys.
     """
-    return _filter_none(
-        {
-            "lastValueVisible": last_value_visible,
-            "title": title,
-            "visible": visible,
-            "priceScaleId": price_scale_id,
-            "priceFormat": price_format,
-            "priceLineVisible": price_line_visible,
-            "priceLineSource": (
-                PRICE_LINE_SOURCE_MAP.get(price_line_source)
-                if price_line_source is not None
-                else None
-            ),
-            "priceLineWidth": price_line_width,
-            "priceLineColor": price_line_color,
-            "priceLineStyle": _resolve_line_style(price_line_style),
-            "baseLineVisible": base_line_visible,
-            "baseLineColor": base_line_color,
-            "baseLineWidth": base_line_width,
-            "baseLineStyle": _resolve_line_style(base_line_style),
-        }
-    )
+    return {
+        **_filter_none(
+            {
+                "lastValueVisible": last_value_visible,
+                "title": title,
+                "visible": visible,
+                "priceScaleId": price_scale_id,
+                "priceFormat": price_format.to_dict()
+                if price_format is not None
+                else None,
+            }
+        ),
+        **(last_price_line.to_dict() if last_price_line is not None else {}),
+        **(base_line.to_dict() if base_line is not None else {}),
+    }
 
 
 def candlestick_series(
@@ -310,29 +256,9 @@ def candlestick_series(
     last_value_visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     color_column: Optional[str] = None,
     border_color_column: Optional[str] = None,
     wick_color_column: Optional[str] = None,
@@ -377,45 +303,15 @@ def candlestick_series(
         price_scale_id (Optional[str]): ID of the price scale this
             series uses (``"left"``, ``"right"``, or a custom overlay
             ID).
-        price_format (Optional[PriceFormat]): Per-series price-format
-            dict; see :class:`PriceFormat`.
-        price_line_visible (Optional[bool]): Show the auto last-price
-            horizontal rule.
-        price_line_source (Optional[PriceLineSource]): Which bar
-            drives the price line; see :data:`PriceLineSource`.
-        price_line_width (Optional[LineWidth]): Price-line stroke
-            width (1–4 px).
-        price_line_color (Optional[Color]): Price-line color (empty
-            string uses series color).
-        price_line_style (Optional[LineStyle]): Price-line dash
-            pattern; see :data:`LineStyle`.
-        base_line_visible (Optional[bool]): Show the zero/index
-            baseline (in ``percentage`` / ``indexed_to_100`` price
-            modes).
-        base_line_color (Optional[Color]): Baseline color.
-        base_line_width (Optional[LineWidth]): Baseline stroke width.
-        base_line_style (Optional[LineStyle]): Baseline dash pattern.
-        auto_scale (Optional[bool]): Auto-fit the series' price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin (fraction 0–1)
-            applied to the series' price scale.
-        scale_margin_bottom (Optional[float]): Bottom margin.
-        scale_mode (Optional[PriceScaleMode]): Price-scale mode; see
-            :data:`PriceScaleMode`.
-        scale_invert (Optional[bool]): Invert the price scale.
-        scale_align_labels (Optional[bool]): Align scale labels with
-            pixels.
-        scale_border_visible (Optional[bool]): Show the scale border.
-        scale_border_color (Optional[Color]): Scale border color.
-        scale_text_color (Optional[Color]): Scale label color.
-        scale_entire_text_only (Optional[bool]): Render only complete
-            labels.
-        scale_visible (Optional[bool]): Show the price scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum scale width in
-            pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge tick marks.
+        price_format (Optional[PriceFormat]): Per-series number format;
+            build with :func:`price_format`.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the zero/index base
+            line (``percentage`` / ``indexed_to_100`` price modes);
+            build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         color_column (Optional[str]): Column name supplying per-row
             body color (overrides ``up_color`` / ``down_color``).
         border_color_column (Optional[str]): Column name supplying
@@ -459,15 +355,8 @@ def candlestick_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -505,22 +394,7 @@ def candlestick_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
         auto_bin=auto_bin,
         bin_width=bin_width,
@@ -545,29 +419,9 @@ def bar_series(
     last_value_visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     color_column: Optional[str] = None,
     pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
@@ -602,36 +456,12 @@ def bar_series(
             badge.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
-        price_line_visible (Optional[bool]): Show the auto last-price
-            horizontal rule.
-        price_line_source (Optional[PriceLineSource]): Which bar
-            drives the auto price line.
-        price_line_width (Optional[LineWidth]): Price-line stroke
-            width.
-        price_line_color (Optional[Color]): Price-line color.
-        price_line_style (Optional[LineStyle]): Price-line dash
-            pattern.
-        base_line_visible (Optional[bool]): Show the zero/index
-            baseline.
-        base_line_color (Optional[Color]): Baseline color.
-        base_line_width (Optional[LineWidth]): Baseline stroke width.
-        base_line_style (Optional[LineStyle]): Baseline dash pattern.
-        auto_scale (Optional[bool]): Auto-fit the price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin fraction.
-        scale_margin_bottom (Optional[float]): Bottom margin fraction.
-        scale_mode (Optional[PriceScaleMode]): Price-scale mode.
-        scale_invert (Optional[bool]): Invert the price scale.
-        scale_align_labels (Optional[bool]): Align labels with pixels.
-        scale_border_visible (Optional[bool]): Show scale border.
-        scale_border_color (Optional[Color]): Border color.
-        scale_text_color (Optional[Color]): Label color.
-        scale_entire_text_only (Optional[bool]): Only complete labels.
-        scale_visible (Optional[bool]): Show the price scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum width in pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge ticks.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the zero/index base
+            line; build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         color_column (Optional[str]): Column name supplying per-row
             bar color.
         pane (Optional[int]): Pane index.
@@ -660,15 +490,8 @@ def bar_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -696,22 +519,7 @@ def bar_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
         auto_bin=auto_bin,
         bin_width=bin_width,
@@ -731,40 +539,16 @@ def line_series(
     line_visible: Optional[bool] = None,
     point_markers_visible: Optional[bool] = None,
     point_markers_radius: Optional[float] = None,
-    crosshair_marker_visible: Optional[bool] = None,
-    crosshair_marker_radius: Optional[float] = None,
-    crosshair_marker_border_color: Optional[Color] = None,
-    crosshair_marker_background_color: Optional[Color] = None,
-    crosshair_marker_border_width: Optional[float] = None,
+    crosshair_marker: Optional[CrosshairMarker] = None,
     last_price_animation: Optional[LastPriceAnimationMode] = None,
     last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
     visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     color_column: Optional[str] = None,
     pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
@@ -789,16 +573,8 @@ def line_series(
             at every data point.
         point_markers_radius (Optional[float]): Point marker radius in
             pixels.
-        crosshair_marker_visible (Optional[bool]): Show the crosshair
-            marker dot.
-        crosshair_marker_radius (Optional[float]): Crosshair marker
-            radius in pixels.
-        crosshair_marker_border_color (Optional[Color]): Crosshair
-            marker border color.
-        crosshair_marker_background_color (Optional[Color]): Crosshair
-            marker fill color.
-        crosshair_marker_border_width (Optional[float]): Crosshair
-            marker border width.
+        crosshair_marker (Optional[CrosshairMarker]): Styling for the
+            crosshair marker dot; build with :func:`crosshair_marker`.
         last_price_animation (Optional[LastPriceAnimationMode]):
             Last-price dot animation; see :data:`LastPriceAnimationMode`.
         last_value_visible (Optional[bool]): Show the last-value badge.
@@ -806,35 +582,12 @@ def line_series(
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
-        price_line_visible (Optional[bool]): Show the auto last-price
-            horizontal rule.
-        price_line_source (Optional[PriceLineSource]): Which bar
-            drives the auto price line.
-        price_line_width (Optional[LineWidth]): Price-line stroke
-            width.
-        price_line_color (Optional[Color]): Price-line color.
-        price_line_style (Optional[LineStyle]): Price-line dash
-            pattern.
-        base_line_visible (Optional[bool]): Show the baseline.
-        base_line_color (Optional[Color]): Baseline color.
-        base_line_width (Optional[LineWidth]): Baseline stroke width.
-        base_line_style (Optional[LineStyle]): Baseline dash pattern.
-        auto_scale (Optional[bool]): Auto-fit the price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin fraction.
-        scale_margin_bottom (Optional[float]): Bottom margin fraction.
-        scale_mode (Optional[PriceScaleMode]): Price-scale mode.
-        scale_invert (Optional[bool]): Invert the scale.
-        scale_align_labels (Optional[bool]): Align labels with pixels.
-        scale_border_visible (Optional[bool]): Show scale border.
-        scale_border_color (Optional[Color]): Border color.
-        scale_text_color (Optional[Color]): Label color.
-        scale_entire_text_only (Optional[bool]): Only complete labels.
-        scale_visible (Optional[bool]): Show the price scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum width in pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge ticks.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the zero/index base
+            line; build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         color_column (Optional[str]): Column name supplying per-row
             line color.
         pane (Optional[int]): Pane index.
@@ -858,15 +611,8 @@ def line_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -877,16 +623,12 @@ def line_series(
                 "lineVisible": line_visible,
                 "pointMarkersVisible": point_markers_visible,
                 "pointMarkersRadius": point_markers_radius,
-                "crosshairMarkerVisible": crosshair_marker_visible,
-                "crosshairMarkerRadius": crosshair_marker_radius,
-                "crosshairMarkerBorderColor": crosshair_marker_border_color,
-                "crosshairMarkerBackgroundColor": crosshair_marker_background_color,
-                "crosshairMarkerBorderWidth": crosshair_marker_border_width,
                 "lastPriceAnimation": _resolve_last_price_animation(
                     last_price_animation
                 ),
             }
         ),
+        **(crosshair_marker.to_dict() if crosshair_marker is not None else {}),
     }
     column_mapping = {"time": timestamp, "value": value}
     if color_column is not None:
@@ -899,22 +641,7 @@ def line_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
     )
 
@@ -934,40 +661,16 @@ def area_series(
     line_visible: Optional[bool] = None,
     point_markers_visible: Optional[bool] = None,
     point_markers_radius: Optional[float] = None,
-    crosshair_marker_visible: Optional[bool] = None,
-    crosshair_marker_radius: Optional[float] = None,
-    crosshair_marker_border_color: Optional[Color] = None,
-    crosshair_marker_background_color: Optional[Color] = None,
-    crosshair_marker_border_width: Optional[float] = None,
+    crosshair_marker: Optional[CrosshairMarker] = None,
     last_price_animation: Optional[LastPriceAnimationMode] = None,
     last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
     visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     line_color_column: Optional[str] = None,
     top_color_column: Optional[str] = None,
     bottom_color_column: Optional[str] = None,
@@ -1005,16 +708,8 @@ def area_series(
         point_markers_visible (Optional[bool]): Show point markers
             at every data point.
         point_markers_radius (Optional[float]): Point marker radius.
-        crosshair_marker_visible (Optional[bool]): Show the crosshair
-            marker dot.
-        crosshair_marker_radius (Optional[float]): Crosshair marker
-            radius.
-        crosshair_marker_border_color (Optional[Color]): Crosshair
-            marker border color.
-        crosshair_marker_background_color (Optional[Color]): Crosshair
-            marker fill color.
-        crosshair_marker_border_width (Optional[float]): Crosshair
-            marker border width.
+        crosshair_marker (Optional[CrosshairMarker]): Styling for the
+            crosshair marker dot; build with :func:`crosshair_marker`.
         last_price_animation (Optional[LastPriceAnimationMode]):
             Last-price dot animation.
         last_value_visible (Optional[bool]): Show the last-value badge.
@@ -1022,31 +717,12 @@ def area_series(
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
-        price_line_visible (Optional[bool]): Auto last-price line.
-        price_line_source (Optional[PriceLineSource]): Source bar.
-        price_line_width (Optional[LineWidth]): Price-line width.
-        price_line_color (Optional[Color]): Price-line color.
-        price_line_style (Optional[LineStyle]): Price-line dash.
-        base_line_visible (Optional[bool]): Show the baseline.
-        base_line_color (Optional[Color]): Baseline color.
-        base_line_width (Optional[LineWidth]): Baseline width.
-        base_line_style (Optional[LineStyle]): Baseline dash.
-        auto_scale (Optional[bool]): Auto-fit the price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin fraction.
-        scale_margin_bottom (Optional[float]): Bottom margin fraction.
-        scale_mode (Optional[PriceScaleMode]): Scale mode.
-        scale_invert (Optional[bool]): Invert the scale.
-        scale_align_labels (Optional[bool]): Align labels with pixels.
-        scale_border_visible (Optional[bool]): Show scale border.
-        scale_border_color (Optional[Color]): Border color.
-        scale_text_color (Optional[Color]): Label color.
-        scale_entire_text_only (Optional[bool]): Only complete labels.
-        scale_visible (Optional[bool]): Show the scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum width in pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge ticks.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the zero/index base
+            line; build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         line_color_column (Optional[str]): Per-row line color column.
         top_color_column (Optional[str]): Per-row top-color column.
         bottom_color_column (Optional[str]): Per-row bottom-color
@@ -1074,15 +750,8 @@ def area_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -1097,16 +766,12 @@ def area_series(
                 "lineVisible": line_visible,
                 "pointMarkersVisible": point_markers_visible,
                 "pointMarkersRadius": point_markers_radius,
-                "crosshairMarkerVisible": crosshair_marker_visible,
-                "crosshairMarkerRadius": crosshair_marker_radius,
-                "crosshairMarkerBorderColor": crosshair_marker_border_color,
-                "crosshairMarkerBackgroundColor": crosshair_marker_background_color,
-                "crosshairMarkerBorderWidth": crosshair_marker_border_width,
                 "lastPriceAnimation": _resolve_last_price_animation(
                     last_price_animation
                 ),
             }
         ),
+        **(crosshair_marker.to_dict() if crosshair_marker is not None else {}),
     }
     column_mapping = {"time": timestamp, "value": value}
     if line_color_column is not None:
@@ -1123,22 +788,7 @@ def area_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
     )
 
@@ -1161,40 +811,16 @@ def baseline_series(
     relative_gradient: Optional[bool] = None,
     point_markers_visible: Optional[bool] = None,
     point_markers_radius: Optional[float] = None,
-    crosshair_marker_visible: Optional[bool] = None,
-    crosshair_marker_radius: Optional[float] = None,
-    crosshair_marker_border_color: Optional[Color] = None,
-    crosshair_marker_background_color: Optional[Color] = None,
-    crosshair_marker_border_width: Optional[float] = None,
+    crosshair_marker: Optional[CrosshairMarker] = None,
     last_price_animation: Optional[LastPriceAnimationMode] = None,
     last_value_visible: Optional[bool] = None,
     title: Optional[str] = None,
     visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     top_line_color_column: Optional[str] = None,
     top_fill_color1_column: Optional[str] = None,
     top_fill_color2_column: Optional[str] = None,
@@ -1236,16 +862,8 @@ def baseline_series(
             to series values rather than chart bounds.
         point_markers_visible (Optional[bool]): Show point markers.
         point_markers_radius (Optional[float]): Point marker radius.
-        crosshair_marker_visible (Optional[bool]): Show crosshair
-            marker.
-        crosshair_marker_radius (Optional[float]): Crosshair marker
-            radius.
-        crosshair_marker_border_color (Optional[Color]): Crosshair
-            marker border color.
-        crosshair_marker_background_color (Optional[Color]): Crosshair
-            marker fill color.
-        crosshair_marker_border_width (Optional[float]): Crosshair
-            marker border width.
+        crosshair_marker (Optional[CrosshairMarker]): Styling for the
+            crosshair marker dot; build with :func:`crosshair_marker`.
         last_price_animation (Optional[LastPriceAnimationMode]):
             Last-price dot animation.
         last_value_visible (Optional[bool]): Show the last-value badge.
@@ -1253,35 +871,13 @@ def baseline_series(
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
-        price_line_visible (Optional[bool]): Auto last-price line.
-        price_line_source (Optional[PriceLineSource]): Source bar.
-        price_line_width (Optional[LineWidth]): Price-line width.
-        price_line_color (Optional[Color]): Price-line color.
-        price_line_style (Optional[LineStyle]): Price-line dash.
-        base_line_visible (Optional[bool]): Show the secondary
-            baseline (TVL's built-in baseline at 0/index — not the
-            same as ``base_value``).
-        base_line_color (Optional[Color]): Secondary baseline color.
-        base_line_width (Optional[LineWidth]): Secondary baseline
-            width.
-        base_line_style (Optional[LineStyle]): Secondary baseline
-            dash.
-        auto_scale (Optional[bool]): Auto-fit the price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin fraction.
-        scale_margin_bottom (Optional[float]): Bottom margin fraction.
-        scale_mode (Optional[PriceScaleMode]): Scale mode.
-        scale_invert (Optional[bool]): Invert the scale.
-        scale_align_labels (Optional[bool]): Align labels with pixels.
-        scale_border_visible (Optional[bool]): Show scale border.
-        scale_border_color (Optional[Color]): Border color.
-        scale_text_color (Optional[Color]): Label color.
-        scale_entire_text_only (Optional[bool]): Only complete labels.
-        scale_visible (Optional[bool]): Show the scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum width in pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge ticks.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the secondary
+            baseline (TVL's built-in zero/index rule — not the same as
+            ``base_value``); build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         top_line_color_column (Optional[str]): Per-row top line color
             column.
         top_fill_color1_column (Optional[str]): Per-row top gradient
@@ -1315,15 +911,8 @@ def baseline_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -1345,16 +934,12 @@ def baseline_series(
                 "relativeGradient": relative_gradient,
                 "pointMarkersVisible": point_markers_visible,
                 "pointMarkersRadius": point_markers_radius,
-                "crosshairMarkerVisible": crosshair_marker_visible,
-                "crosshairMarkerRadius": crosshair_marker_radius,
-                "crosshairMarkerBorderColor": crosshair_marker_border_color,
-                "crosshairMarkerBackgroundColor": crosshair_marker_background_color,
-                "crosshairMarkerBorderWidth": crosshair_marker_border_width,
                 "lastPriceAnimation": _resolve_last_price_animation(
                     last_price_animation
                 ),
             }
         ),
+        **(crosshair_marker.to_dict() if crosshair_marker is not None else {}),
     }
     column_mapping = {"time": timestamp, "value": value}
     if top_line_color_column is not None:
@@ -1377,22 +962,7 @@ def baseline_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
     )
 
@@ -1409,29 +979,9 @@ def histogram_series(
     visible: Optional[bool] = None,
     price_scale_id: Optional[str] = None,
     price_format: Optional[PriceFormat] = None,
-    price_line_visible: Optional[bool] = None,
-    price_line_source: Optional[PriceLineSource] = None,
-    price_line_width: Optional[LineWidth] = None,
-    price_line_color: Optional[Color] = None,
-    price_line_style: Optional[LineStyle] = None,
-    base_line_visible: Optional[bool] = None,
-    base_line_color: Optional[Color] = None,
-    base_line_width: Optional[LineWidth] = None,
-    base_line_style: Optional[LineStyle] = None,
-    auto_scale: Optional[bool] = None,
-    scale_margin_top: Optional[float] = None,
-    scale_margin_bottom: Optional[float] = None,
-    scale_mode: Optional[PriceScaleMode] = None,
-    scale_invert: Optional[bool] = None,
-    scale_align_labels: Optional[bool] = None,
-    scale_border_visible: Optional[bool] = None,
-    scale_border_color: Optional[Color] = None,
-    scale_text_color: Optional[Color] = None,
-    scale_entire_text_only: Optional[bool] = None,
-    scale_visible: Optional[bool] = None,
-    scale_ticks_visible: Optional[bool] = None,
-    scale_minimum_width: Optional[int] = None,
-    scale_ensure_edge_tick_marks_visible: Optional[bool] = None,
+    last_price_line: Optional[LastPriceLine] = None,
+    base_line: Optional[BaseLine] = None,
+    price_scale: Optional[PriceScale] = None,
     pane: Optional[int] = None,
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
@@ -1462,31 +1012,12 @@ def histogram_series(
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
-        price_line_visible (Optional[bool]): Auto last-price line.
-        price_line_source (Optional[PriceLineSource]): Source bar.
-        price_line_width (Optional[LineWidth]): Price-line width.
-        price_line_color (Optional[Color]): Price-line color.
-        price_line_style (Optional[LineStyle]): Price-line dash.
-        base_line_visible (Optional[bool]): Show the baseline.
-        base_line_color (Optional[Color]): Baseline color.
-        base_line_width (Optional[LineWidth]): Baseline width.
-        base_line_style (Optional[LineStyle]): Baseline dash.
-        auto_scale (Optional[bool]): Auto-fit the price scale.
-            ``False`` fits once on load, then holds that range.
-        scale_margin_top (Optional[float]): Top margin fraction.
-        scale_margin_bottom (Optional[float]): Bottom margin fraction.
-        scale_mode (Optional[PriceScaleMode]): Scale mode.
-        scale_invert (Optional[bool]): Invert the scale.
-        scale_align_labels (Optional[bool]): Align labels with pixels.
-        scale_border_visible (Optional[bool]): Show scale border.
-        scale_border_color (Optional[Color]): Border color.
-        scale_text_color (Optional[Color]): Label color.
-        scale_entire_text_only (Optional[bool]): Only complete labels.
-        scale_visible (Optional[bool]): Show the scale.
-        scale_ticks_visible (Optional[bool]): Show tick marks.
-        scale_minimum_width (Optional[int]): Minimum width in pixels.
-        scale_ensure_edge_tick_marks_visible (Optional[bool]): Force
-            edge ticks.
+        last_price_line (Optional[LastPriceLine]): Styling for the auto
+            last-price horizontal rule; build with :func:`last_price_line`.
+        base_line (Optional[BaseLine]): Styling for the zero/index base
+            line; build with :func:`base_line`.
+        price_scale (Optional[PriceScale]): Options for the price scale
+            this series binds to; build with :func:`price_scale`.
         pane (Optional[int]): Pane index.
         markers (Optional[list[Marker]]): Static markers.
         price_lines (Optional[list[PriceLine]]): Horizontal price
@@ -1522,15 +1053,8 @@ def histogram_series(
             visible=visible,
             price_scale_id=price_scale_id,
             price_format=price_format,
-            price_line_visible=price_line_visible,
-            price_line_source=price_line_source,
-            price_line_width=price_line_width,
-            price_line_color=price_line_color,
-            price_line_style=price_line_style,
-            base_line_visible=base_line_visible,
-            base_line_color=base_line_color,
-            base_line_width=base_line_width,
-            base_line_style=base_line_style,
+            last_price_line=last_price_line,
+            base_line=base_line,
         ),
         **_filter_none(
             {
@@ -1554,22 +1078,7 @@ def histogram_series(
         markers=markers,
         price_lines=price_lines,
         marker_spec=marker_spec,
-        price_scale_options=_build_price_scale_options(
-            auto_scale,
-            scale_margin_top,
-            scale_margin_bottom,
-            mode=scale_mode,
-            invert_scale=scale_invert,
-            align_labels=scale_align_labels,
-            border_visible=scale_border_visible,
-            border_color=scale_border_color,
-            text_color=scale_text_color,
-            entire_text_only=scale_entire_text_only,
-            scale_visible=scale_visible,
-            ticks_visible=scale_ticks_visible,
-            minimum_width=scale_minimum_width,
-            ensure_edge_tick_marks_visible=scale_ensure_edge_tick_marks_visible,
-        ),
+        price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
         auto_bin=auto_bin,
         bin_width=bin_width,

@@ -6,9 +6,7 @@
 
 # Time Scale
 
-The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through the `tvl.time_scale(...)` object, which you pass to `chart(time_scale=...)`. This page covers the most common options, plus the helper types (`BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()`) for when you need to work outside numeric timestamps.
-
-Use this page when you want to hide weekends and holidays, push the most recent bar away from the right edge to make room for annotations, hide seconds, or stop tick labels from overlapping on a narrow chart.
+The time scale is the horizontal axis at the bottom of a chart. TVL exposes its visibility, label density, border, tick formatting, scroll offset, and the underlying time-value model (UTC timestamps vs. business days) through the `tvl.time_scale(...)` object, which you pass to `chart(time_scale=...)`. Additional options (`BusinessDay`, `business_day()`, `is_business_day()`, `is_utc_timestamp()`) are available for when you need to work outside numeric timestamps.
 
 ## What are the time-scale options useful for?
 
@@ -142,34 +140,24 @@ chart = tvl.chart(
 
 Hide the border for borderless dashboard tiles.
 
-### Tick mark types: what TVL labels at each boundary
+### Conflate sub-pixel points
 
-The `TickMarkType` enum (`"year"`, `"month"`, `"day_of_month"`, `"time"`, `"time_with_seconds"`) is the set of label kinds the time scale renders at different zoom levels. TVL picks the right type per tick automatically based on the visible range. The enum is exposed for parity with the upstream JS API but has no current Python consumer (it would require a JavaScript `tickMarkFormatter` callback, which TVL does not allow).
+`enable_conflation=True` merges data points that fall on the same pixel column, trading a little precision for faster rendering on dense charts. `precompute_conflation_on_init=True` does that work upfront at load; `precompute_conflation_priority` (a `PrecomputeConflationPriority` value) sets how eagerly it runs (`"background"`, `"user-visible"`, `"user-blocking"`).
 
-| `TickMarkType` value | rendered at |
-|---|---|
-| `"year"` | a year boundary, e.g. `2024` |
-| `"month"` | a month boundary, e.g. `Mar` or `Mar '24` |
-| `"day_of_month"` | a day boundary, e.g. `15` |
-| `"time"` | intra-day, e.g. `14:30` |
-| `"time_with_seconds"` | intra-day with seconds, e.g. `14:30:05` |
-
-When the chart spans years you'll see `"year"` and `"month"` ticks; zoomed in to a single day, you'll see `"day_of_month"` and `"time"`; zoomed in to a few minutes, `"time_with_seconds"`.
-
-```python
+```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
-from typing import get_args
 
-# Snapshot of the full TickMarkType alias — handy when wiring a JS-side
-# tickMarkFormatter callback or building a legend on top of the chart.
-tick_kinds = list(get_args(tvl.TickMarkType))
-assert tick_kinds == [
-    "year",
-    "month",
-    "day_of_month",
-    "time",
-    "time_with_seconds",
-]
+values = tvl.data.values()
+
+chart = tvl.chart(
+    tvl.line(values, timestamp="Timestamp", value="Value"),
+    time_scale=tvl.time_scale(
+        enable_conflation=True,
+        precompute_conflation_on_init=True,
+        # priority is one of "background", "user-visible", "user-blocking"
+        precompute_conflation_priority="background",
+    ),
+)
 ```
 
 ### Business-day timestamps for trading-hours charts
@@ -201,7 +189,7 @@ assert tvl.is_utc_timestamp(ts)
 assert not tvl.is_utc_timestamp(bd)
 ```
 
-The two predicates mirror the JS API's `isBusinessDay()` / `isUTCTimestamp()` type guards.
+The two predicates distinguish business-day points from numeric UTC timestamps. The `TickMarkType` Literal alias names the label kinds the time scale renders at each zoom level; TVL picks the right one per tick automatically.
 
 ### UTC vs. local timestamps
 

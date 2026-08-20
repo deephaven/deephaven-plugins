@@ -1,8 +1,6 @@
 # Price Lines
 
-A price line is a horizontal line drawn across a series at a specific price, the visual equivalent of "draw a line at $100 across the chart". Use price lines when you need to annotate fixed levels (entry, stop, target, strike) or track a live, table-driven value such as a moving threshold.
-
-There are two ways to build a price line. Use [`tvl.price_line()`](#api-reference) for a static level (`price=100`) or for a Deephaven-extension column-driven level (`column="ThresholdCol"`) where the line tracks the last row of a named column as the table ticks. The returned `PriceLine` object goes onto a series via the `price_lines=` argument.
+A price line is a horizontal line drawn across a series at a specific price. Use price lines when you need to annotate fixed levels (entry, stop, target, strike) or track a live, table-driven value such as a moving threshold. Use [`tvl.price_line()`](#api-reference) for a static level (`price=100`) or for a Deephaven-extension column-driven level (`column="ThresholdCol"`) where the line tracks the last row of a named column as the table ticks. The returned `PriceLine` object goes onto a series via the `price_lines=` argument.
 
 ## What are price lines useful for?
 
@@ -155,7 +153,7 @@ The orange line tracks the 20-period moving average of `Close`. It is mutually e
 
 ### Pick the source for the built-in last-price line
 
-Separate from user-added price lines, every series has an automatic "last price" horizontal line. The `price_line_source` argument (a `PriceLineSource` enum value) picks whether it follows the last bar or the last visible bar. Set it on the series factory.
+Separate from user-added price lines, every series has an automatic "last price" horizontal line, styled with `last_price_line=tvl.last_price_line(...)` (returns a `LastPriceLine`). Its `source` (a `PriceLineSource` value) picks whether it follows the last bar or the last visible bar.
 
 ```python order=source_chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -166,31 +164,39 @@ ohlc = tvl.data.ohlc()
 last_bar = tvl.line(
     ohlc, timestamp="Timestamp", value="Close",
     color="#1976d2",
-    price_line_visible=True,
-    price_line_source="last_bar",
-    price_line_color="#1976d2",
-    price_line_width=2,
-    price_line_style="dotted",
+    last_price_line=tvl.last_price_line(
+        visible=True,
+        source="last_bar",
+        color="#1976d2",
+        width=2,
+        style="dotted",
+    ),
 )
 
 # Follow the last visible bar — moves as you scroll.
 last_visible = tvl.line(
     ohlc, timestamp="Timestamp", value="Open",
     color="#d32f2f",
-    price_line_visible=True,
-    price_line_source="last_visible",
-    price_line_color="#d32f2f",
-    price_line_width=2,
-    price_line_style="dashed",
+    last_price_line=tvl.last_price_line(
+        visible=True,
+        source="last_visible",
+        color="#d32f2f",
+        width=2,
+        style="dashed",
+    ),
 )
 
 source_chart = tvl.chart(last_bar, last_visible)
 ```
 
-Two series with different `price_line_source` values demonstrate both members of the `PriceLineSource` enum (`"last_bar"`, `"last_visible"`).
+Two series with different `source` values demonstrate both members of the `PriceLineSource` enum (`"last_bar"`, `"last_visible"`).
 
 ## API Reference
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.price_line
+```
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.last_price_line
 ```

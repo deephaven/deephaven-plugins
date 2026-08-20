@@ -15,29 +15,9 @@
   visible -> titles-legends.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
-  price_line_visible -> price-lines.md
-  price_line_source -> price-lines.md
-  price_line_width -> price-lines.md
-  price_line_color -> price-lines.md
-  price_line_style -> price-lines.md
-  base_line_visible -> price-scale.md
-  base_line_color -> price-scale.md
-  base_line_width -> price-scale.md
-  base_line_style -> price-scale.md
-  auto_scale -> price-scale.md
-  scale_margin_top -> price-scale.md
-  scale_margin_bottom -> price-scale.md
-  scale_mode -> price-scale.md
-  scale_invert -> price-scale.md
-  scale_align_labels -> price-scale.md
-  scale_border_visible -> price-scale.md
-  scale_border_color -> price-scale.md
-  scale_text_color -> price-scale.md
-  scale_entire_text_only -> price-scale.md
-  scale_visible -> price-scale.md
-  scale_ticks_visible -> price-scale.md
-  scale_minimum_width -> price-scale.md
-  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  last_price_line -> price-lines.md
+  base_line -> price-scale.md
+  price_scale -> price-scale.md
   pane -> multi-pane.md
   by -> multi-series.md
 -->

@@ -4,6 +4,7 @@ Loaded as a Deephaven Application-mode field (see ``tooltip.app``) so the chart
 auto-opens as a panel when the e2e server boots. The Playwright spec hovers the
 chart and asserts the ``data-tvl-tooltip`` DOM seam.
 """
+
 from deephaven import empty_table
 from deephaven.time import to_j_instant
 from deephaven.plot import tradingview_lightweight as tvl  # type: ignore[attr-defined]

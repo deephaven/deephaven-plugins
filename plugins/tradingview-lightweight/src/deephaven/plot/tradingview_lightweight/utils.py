@@ -1,6 +1,6 @@
 """Utility functions for the TradingView Lightweight Charts plugin.
 
-These mirror the top-level utility functions in the JavaScript library.
+Type guards for distinguishing the time-value shapes accepted in series data.
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ def is_business_day(time: Any) -> bool:
     """Return True if *time* is a BusinessDay dict.
 
     A BusinessDay is a dict with integer keys ``year``, ``month``, and ``day``.
-    This mirrors the JS ``isBusinessDay()`` type guard.
 
     Args:
         time: A time value -- either a BusinessDay dict, a numeric UTC timestamp,
@@ -46,8 +45,7 @@ def is_utc_timestamp(time: Any) -> bool:
     """Return True if *time* is a numeric UTC timestamp.
 
     A UTCTimestamp is a Unix epoch timestamp (seconds since 1970-01-01 UTC)
-    expressed as an ``int`` or ``float``. This mirrors the JS ``isUTCTimestamp()``
-    type guard.
+    expressed as an ``int`` or ``float``.
 
     Args:
         time: A time value -- either a BusinessDay dict, a numeric UTC timestamp,

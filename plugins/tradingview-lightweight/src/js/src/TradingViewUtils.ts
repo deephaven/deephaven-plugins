@@ -387,6 +387,11 @@ export function buildMarkersFromTableData(
       const position = POSITION_MAP[rawPosition] ?? 'aboveBar';
       const shape = SHAPE_MAP[rawShape] ?? 'circle';
 
+      // atPrice* positions require a price; pull it from the column/default.
+      const price = resolveMarkerField(markerSpec, 'price', columnData, i) as
+        | number
+        | undefined;
+
       markers.push({
         time: timeVal,
         position,
@@ -394,6 +399,7 @@ export function buildMarkersFromTableData(
         ...(color != null ? { color } : {}),
         text,
         ...(size != null ? { size: Number(size) } : {}),
+        ...(price != null ? { price: Number(price) } : {}),
       });
     }
   }

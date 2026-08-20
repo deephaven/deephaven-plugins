@@ -12,47 +12,23 @@
   line_visible -> line.md
   point_markers_visible -> line.md
   point_markers_radius -> line.md
-  crosshair_marker_visible -> line.md
-  crosshair_marker_radius -> line.md
-  crosshair_marker_border_color -> line.md
-  crosshair_marker_background_color -> line.md
-  crosshair_marker_border_width -> line.md
+  crosshair_marker -> line.md
   last_price_animation -> line.md
   last_value_visible -> titles-legends.md
   title -> titles-legends.md
   visible -> titles-legends.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
-  price_line_visible -> price-lines.md
-  price_line_source -> price-lines.md
-  price_line_width -> price-lines.md
-  price_line_color -> price-lines.md
-  price_line_style -> price-lines.md
-  base_line_visible -> price-scale.md
-  base_line_color -> price-scale.md
-  base_line_width -> price-scale.md
-  base_line_style -> price-scale.md
-  auto_scale -> price-scale.md
-  scale_margin_top -> price-scale.md
-  scale_margin_bottom -> price-scale.md
-  scale_mode -> price-scale.md
-  scale_invert -> price-scale.md
-  scale_align_labels -> price-scale.md
-  scale_border_visible -> price-scale.md
-  scale_border_color -> price-scale.md
-  scale_text_color -> price-scale.md
-  scale_entire_text_only -> price-scale.md
-  scale_visible -> price-scale.md
-  scale_ticks_visible -> price-scale.md
-  scale_minimum_width -> price-scale.md
-  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  last_price_line -> price-lines.md
+  base_line -> price-scale.md
+  price_scale -> price-scale.md
   pane -> multi-pane.md
   by -> multi-series.md
 -->
 
 # Baseline Chart
 
-A baseline chart is an area chart split along a horizontal reference level: the portion *above* the baseline is filled with one color (typically green for "good"), the portion *below* with another (typically red for "bad"). Use it when the meaningful question is "are we above or below this number?", such as performance vs. a benchmark, P&L vs. zero, or latency vs. an SLA.
+A baseline chart is an area chart split along a horizontal reference level: the portion _above_ the baseline is filled with one color (typically green for "good"), the portion _below_ with another (typically red for "bad"). Use it when the meaningful question is "are we above or below this number?", such as performance vs. a benchmark, P&L vs. zero, or latency vs. an SLA.
 
 The `base_value` parameter is the y-coordinate of the dividing line. By default it sits at 0, which is the right choice for P&L and other zero-centered quantities; set it explicitly when your baseline is a benchmark return, an SLA, or any non-zero reference.
 

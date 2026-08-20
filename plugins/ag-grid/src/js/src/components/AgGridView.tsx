@@ -61,7 +61,6 @@ export function AgGridView({
 
   const [isVisible, setIsVisible] = useState(false);
   const [isFirstDataRendered, setIsFirstDataRendered] = useState(false);
-  const [isFirstDataLoaded, setIsFirstDataLoaded] = useState(false);
 
   log.debug('AgGridView rendering', table);
 
@@ -129,33 +128,9 @@ export function AgGridView({
     [datasource]
   );
 
-  /**
-   * The viewport row model creates blank row nodes for the visible range and
-   * fills them as Deephaven viewport updates arrive, so firstDataRendered can
-   * fire while some displayed rows still have no data. Auto-sizing at that
-   * point measures a partial column (e.g. before any negative value has
-   * arrived) and the resulting widths depend on update chunk timing — column
-   * widths would differ run to run. Only treat data as loaded once every
-   * displayed row actually has data; the viewport model dispatches
-   * modelUpdated after each setRowData, so this is re-checked as data lands.
-   */
-  const checkFirstDataLoaded = () => {
-    const gridApi = gridApiRef.current;
-    if (!gridApi) return;
-    const first = gridApi.getFirstDisplayedRowIndex();
-    const last = gridApi.getLastDisplayedRowIndex();
-    for (let i = first; i <= last; i += 1) {
-      if (gridApi.getDisplayedRowAtIndex(i)?.data == null) {
-        return;
-      }
-    }
-    setIsFirstDataLoaded(true);
-  };
-
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
     log.debug('handleFirstDataRendered', event);
     setIsFirstDataRendered(true);
-    checkFirstDataLoaded();
   };
 
   const handleGridSizeChanged = (event: GridSizeChangedEvent) => {
@@ -163,17 +138,11 @@ export function AgGridView({
     setIsVisible(event.clientHeight > 0 && event.clientWidth > 0);
   };
 
-  const handleModelUpdated = () => {
-    if (!isFirstDataLoaded) {
-      checkFirstDataLoaded();
-    }
-  };
-
   useEffect(() => {
-    if (isVisible && isFirstDataRendered && isFirstDataLoaded) {
+    if (isVisible && isFirstDataRendered) {
       autoSizeAllColumns();
     }
-  }, [isVisible, isFirstDataRendered, isFirstDataLoaded]);
+  }, [isVisible, isFirstDataRendered]);
 
   const getRowId = useCallback(
     (params: GetRowIdParams): string => {
@@ -211,7 +180,6 @@ export function AgGridView({
       onGridReady={handleGridReady}
       onFirstDataRendered={handleFirstDataRendered}
       onGridSizeChanged={handleGridSizeChanged}
-      onModelUpdated={handleModelUpdated}
       autoGroupColumnDef={autoGroupColumnDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}

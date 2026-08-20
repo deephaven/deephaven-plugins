@@ -11,29 +11,9 @@
   visible -> titles-legends.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
-  price_line_visible -> price-lines.md
-  price_line_source -> price-lines.md
-  price_line_width -> price-lines.md
-  price_line_color -> price-lines.md
-  price_line_style -> price-lines.md
-  base_line_visible -> price-scale.md
-  base_line_color -> price-scale.md
-  base_line_width -> price-scale.md
-  base_line_style -> price-scale.md
-  auto_scale -> price-scale.md
-  scale_margin_top -> price-scale.md
-  scale_margin_bottom -> price-scale.md
-  scale_mode -> price-scale.md
-  scale_invert -> price-scale.md
-  scale_align_labels -> price-scale.md
-  scale_border_visible -> price-scale.md
-  scale_border_color -> price-scale.md
-  scale_text_color -> price-scale.md
-  scale_entire_text_only -> price-scale.md
-  scale_visible -> price-scale.md
-  scale_ticks_visible -> price-scale.md
-  scale_minimum_width -> price-scale.md
-  scale_ensure_edge_tick_marks_visible -> price-scale.md
+  last_price_line -> price-lines.md
+  base_line -> price-scale.md
+  price_scale -> price-scale.md
   color_column -> histogram.md
   pane -> multi-pane.md
 -->
@@ -214,7 +194,7 @@ The last-price marker now pulses continuously. Use `"disabled"` whenever snapsho
 
 ### Crosshair marker and line visibility
 
-When the user hovers, LWC draws a marker where the crosshair meets the line. `crosshair_marker_visible` toggles it, `crosshair_marker_radius` sizes it (pixels), and `crosshair_marker_border_color` / `crosshair_marker_background_color` / `crosshair_marker_border_width` style it. `line_visible=False` hides the connecting line itself, handy when you only want the point markers or the crosshair dot.
+When the user hovers, LWC draws a marker where the crosshair meets the line. Pass `crosshair_marker=tvl.crosshair_marker(...)` (returns a `CrosshairMarker`) to style it: `visible` toggles it, `radius` sizes it (pixels), and `border_color` / `background_color` / `border_width` style it. `line_visible=False` hides the connecting line itself, handy when you only want the point markers or the crosshair dot.
 
 ```python order=line,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -225,11 +205,13 @@ line = tvl.line(
     timestamp="Timestamp",
     value="Value",
     line_visible=True,
-    crosshair_marker_visible=True,
-    crosshair_marker_radius=6,
-    crosshair_marker_border_color="accent-400",
-    crosshair_marker_background_color="accent-200",
-    crosshair_marker_border_width=2,
+    crosshair_marker=tvl.crosshair_marker(
+        visible=True,
+        radius=6,
+        border_color="accent-400",
+        background_color="accent-200",
+        border_width=2,
+    ),
 )
 ```
 
@@ -239,4 +221,8 @@ These crosshair-marker options apply to `area` and `baseline` series too.
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.line
+```
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.crosshair_marker
 ```

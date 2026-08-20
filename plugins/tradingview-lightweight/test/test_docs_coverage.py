@@ -55,6 +55,9 @@ CHART_TYPE_FUNCS = set(CHART_TYPE_PAGES.values())
 
 # Public Literal-alias names exposed from options.py. These are the "enums"
 # whose value membership we check via typing.get_args().
+# Type-only aliases with no Python-kwarg consumer (MarkerSign,
+# MismatchDirection, TickMarkType) are deliberately excluded — the docs
+# mention them by name but don't exercise their values in examples.
 ENUM_NAMES = [
     "ChartType",
     "ColorSpace",
@@ -73,10 +76,7 @@ ENUM_NAMES = [
     "MarkerShape",
     "MarkerPosition",
     "LastPriceAnimationMode",
-    "MarkerSign",
-    "MismatchDirection",
     "PriceLineSource",
-    "TickMarkType",
     "TrackingModeExitMode",
     "VertAlign",
 ]
@@ -352,7 +352,7 @@ class TestDhautofunctionPerPublicSymbol(unittest.TestCase):
         self.assertEqual(
             missing_lenient,
             [],
-            f"Public callables not mentioned anywhere in docs: " f"{missing_lenient}",
+            f"Public callables not mentioned anywhere in docs: {missing_lenient}",
         )
 
 

@@ -175,6 +175,37 @@ ruff format + lint clean.
 
 ---
 
+## Phase 1c — Group the per-series flat clusters (candlestick, line, etc.)
+
+Extends the same grouping rule to the six per-series constructors, which each carried
+the same repeated flat clusters. Same conventions (snake_case in → camelCase out,
+`None` omitted). **DONE.**
+
+- [x] **`price_scale=`** — reuses the existing `PriceScale`/`price_scale()` object,
+      replacing `auto_scale` + the 13 `scale_*` kwargs on all 6 constructors (~84 kwargs
+      total). Series `to_dict` path: `price_scale.to_dict()` → `priceScaleOptions`.
+- [x] **`last_price_line=`** — new `LastPriceLine`/`last_price_line()` in `options.py`
+      (`visible`, `source`, `width`, `color`, `style` → flat `priceLine*` JS keys),
+      replacing the 5 `price_line_*` kwargs ×6.
+- [x] **`base_line=`** — new `BaseLine`/`base_line()` (`visible`, `color`, `width`,
+      `style` → flat `baseLine*` keys), replacing the 4 `base_line_*` kwargs ×6.
+- [x] **`crosshair_marker=`** — new `CrosshairMarker`/`crosshair_marker()` (`visible`,
+      `radius`, `border_color`, `background_color`, `border_width` → flat
+      `crosshairMarker*` keys), replacing the 5 `crosshair_marker_*` kwargs on
+      line/area/baseline.
+- [x] Left flat (below the grouping threshold, single-type): candlestick border/wick
+      quads, bar `open_visible`/`thin_bars`, baseline fill colors, point-marker pair.
+- [x] Updated both signature copies (series.py factories + chart.py `locals()`-forwarding
+      wrappers), `_build_common_options`, exports, and `test_series.py` (150/150 green).
+- [x] Migrated docs: coverage headers on all six per-type pages, plus examples/prose in
+      price-scale, price-lines, multiple-axes, price-formats, line. Added
+      `dhautofunction` blocks + class mentions for the new names; exempted the type-only
+      aliases (`MarkerSign`/`MismatchDirection`/`TickMarkType`) from enum coverage and
+      re-exercised `PrecomputeConflationPriority` values in the conflation example.
+- [ ] Doc snapshots for the migrated pages need the same pipeline regen as Phases 1/1b.
+
+---
+
 ## Phase 2 — Fix broken examples (`ii` refresh errors)
 
 Several examples throw at runtime. Fix them against the Phase 1 API.
@@ -267,7 +298,7 @@ Multiple examples use low-contrast gray styling that is unreadable in dark mode.
 
 ### Tasks
 
-- [x] [docs/candlestick.md](plugins/tradingview-lightweight/docs/candlestick.md#L126) — line 126: replace the gray demo palette with a dark-mode-legible one. **Done:** bumped the neutral `gray-500`/`gray-400` demo tokens to higher-contrast `gray-800`/`gray-700`.
+- [x] [docs/candlestick.md](plugins/tradingview-lightweight/docs/candlestick.md#L126) — line 126: replace the gray demo palette with a theme-legible one. **Done:** kept the neutral `gray-500` demo tokens (a gray-800/700 bump was tried but reverted — it hurt light-mode contrast; `gray-500` is the mid-gray that stays legible in both themes).
 - [x] [docs/multi-pane.md](plugins/tradingview-lightweight/docs/multi-pane.md#L131) — line 131: same gray-contrast issue. **Done:** volume fills `rgba(120,120,120,0.5)` → visible `rgba(96,165,250,0.5)`.
 - [x] [docs/price-scale.md](plugins/tradingview-lightweight/docs/price-scale.md#L114) — line 114: poor contrast. **Done:** dark `#444`/`#666` scale text → `#a0a0a0`.
 - [x] [docs/titles-legends.md](plugins/tradingview-lightweight/docs/titles-legends.md#L196) — line 196: "quite difficult to see". **Done:** black watermarks (invisible on the dark theme) → mid-gray `rgba(150,150,150,…)`.
@@ -292,7 +323,10 @@ Tighten prose, remove redundant/overly-technical material, and add code comments
 - [x] [docs/large-data.md](plugins/tradingview-lightweight/docs/large-data.md#L12) — kept but reframed as the "sizing + cost model" overview (points to downsampling/autobin for mechanics), reducing redundancy rather than dropping the page.
 - [x] [docs/large-data.md](plugins/tradingview-lightweight/docs/large-data.md#L149) — clarity pass (intro reframe + benchmarking removal).
 - [x] [docs/large-data.md](plugins/tradingview-lightweight/docs/large-data.md#L188) — removed the internal "Benchmarking notes" section (`AGENTS.md`, `dh exec`, `notes/` scripts).
+- [x] [docs/large-data.md](plugins/tradingview-lightweight/docs/large-data.md) — moved the "Tune conflation precompute priority" section (three near-identical chart blocks + `Scheduler.postTask` internals) off large-data — conflation is a `time_scale()` render optimization, not a server-side aggregation. Replaced with a vastly-simplified 1-example "Conflate sub-pixel points" subsection in [docs/time-scale.md](plugins/tradingview-lightweight/docs/time-scale.md).
 - [x] [docs/markers.md](plugins/tradingview-lightweight/docs/markers.md#L209) — made the JS-connection mention terse.
+- [x] [docs/markers.md](plugins/tradingview-lightweight/docs/markers.md) — deleted the "Type aliases: `MarkerSign` and `MismatchDirection`" section (a `get_args` sentinel-snapshot block for two type-only Literal aliases with no user-facing kwarg; still covered by the API reference / type hints).
+- [x] [docs/time-scale.md](plugins/tradingview-lightweight/docs/time-scale.md) — deleted the "Tick mark types" section (`TickMarkType` `get_args` snapshot + enum table, explicitly "no current Python consumer"; TVL picks tick types automatically so users never set it).
 
 ### Clarify wording
 

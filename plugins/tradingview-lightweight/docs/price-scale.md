@@ -1,7 +1,6 @@
 <!-- coverage-seen-elsewhere:
   default_visible_price_scale_id -> multiple-axes.md
   price_scale_id (per-series) -> multiple-axes.md
-  scale_mode (per-series) -> multiple-axes.md
   watermark_text -> watermark.md
 -->
 
@@ -164,7 +163,13 @@ import deephaven.plot.tradingview_lightweight as tvl
 volume = tvl.data.volume()
 
 chart = tvl.chart(
-    tvl.histogram(volume, timestamp="Timestamp", value="Volume", price_scale_id="vol", scale_margin_top=0.7),
+    tvl.histogram(
+        volume,
+        timestamp="Timestamp",
+        value="Volume",
+        price_scale_id="vol",
+        price_scale=tvl.price_scale(margin_top=0.7),
+    ),
     overlay_price_scale=tvl.price_scale(
         border_visible=True,
         border_color="#aaa",
@@ -203,7 +208,7 @@ chart = tvl.chart(
 
 ### Per-series scale options vs. chart-level
 
-Each per-type constructor also accepts `scale_margin_top`, `scale_margin_bottom`, `scale_mode`, `scale_invert`, etc. Series-level options take precedence over chart-level for the scale that series binds to, which helps when you want one overlay scale styled differently from another.
+Each per-type constructor also accepts a `price_scale=tvl.price_scale(...)` object of its own. Series-level options take precedence over chart-level for the scale that series binds to, which helps when you want one overlay scale styled differently from another.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -214,28 +219,30 @@ chart = tvl.line(
     values,
     timestamp="Timestamp",
     value="Value",
-    scale_mode="logarithmic",
-    scale_margin_top=0.25,
-    scale_margin_bottom=0.15,
-    auto_scale=True,
-    scale_invert=False,
-    scale_align_labels=True,
-    scale_border_visible=True,
-    scale_border_color="#888",
-    scale_text_color="#a0a0a0",
-    scale_entire_text_only=True,
-    scale_visible=True,
-    scale_ticks_visible=True,
-    scale_minimum_width=60,
-    scale_ensure_edge_tick_marks_visible=True,
+    price_scale=tvl.price_scale(
+        mode="logarithmic",
+        margin_top=0.25,
+        margin_bottom=0.15,
+        auto_scale=True,
+        invert_scale=False,
+        align_labels=True,
+        border_visible=True,
+        border_color="#888",
+        text_color="#a0a0a0",
+        entire_text_only=True,
+        visible=True,
+        ticks_visible=True,
+        minimum_width=60,
+        ensure_edge_tick_marks_visible=True,
+    ),
 )
 ```
 
-If you set `scale_mode` per-series and `mode` on the chart's `price_scale`, the per-series mode wins. The remaining `scale_*` options mirror their `price_scale()` fields but bind to whichever scale the series uses.
+If you set `mode` on both the series' `price_scale` and the chart's, the per-series one wins. The same `tvl.price_scale(...)` object works in both places — it binds to whichever scale the series uses.
 
 ### Style the baseline reference line
 
-In `"percentage"` and `"indexed_to_100"` modes the scale draws a horizontal reference line at the base value. `base_line_visible`, `base_line_color`, `base_line_width`, and `base_line_style` style that line (these are per-series options).
+In `"percentage"` and `"indexed_to_100"` modes the scale draws a horizontal reference line at the base value. Pass `base_line=tvl.base_line(...)` (returns a `BaseLine`) on the series to style that line.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -247,10 +254,12 @@ chart = tvl.chart(
         values,
         timestamp="Timestamp",
         value="Value",
-        base_line_visible=True,
-        base_line_color="#888",
-        base_line_width=2,
-        base_line_style="dashed",
+        base_line=tvl.base_line(
+            visible=True,
+            color="#888",
+            width=2,
+            style="dashed",
+        ),
     ),
     right_price_scale=tvl.price_scale(mode="indexed_to_100"),
 )
@@ -265,4 +274,8 @@ For the full `tvl.chart` signature, see the [Chart container](chart.md#api-refer
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.tradingview_lightweight.price_scale
+```
+
+```{eval-rst}
+.. dhautofunction:: deephaven.plot.tradingview_lightweight.base_line
 ```

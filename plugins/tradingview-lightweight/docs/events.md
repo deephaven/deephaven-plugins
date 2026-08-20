@@ -5,11 +5,7 @@
 
 # Press Events
 
-A TVL chart can call back into Python when the user presses on it. Attach a handler with `on_press` or `on_double_press` and it runs server-side with the press details: the time and pixel location of the click, the series under the cursor, every series' data at that location, the pane, and the modifier keys that were held.
-
-The payload mirrors lightweight-charts' [`MouseEventParams`](https://tradingview.github.io/lightweight-charts/docs/api/interfaces/MouseEventParams), using the same camelCase field names that deephaven.ui's own event payloads use. Two things change for the server round-trip: the hovered series is reported as a string id rather than a chart object, and `time` arrives as a Deephaven timestamp.
-
-These follow the deephaven.ui convention. The name is "press", not "click", and the handler is a plain Python callable, exactly like a deephaven.ui event callback. The two handlers are available on `tvl.chart(...)` and on every per-type constructor (`line`, `area`, `candlestick`, `bar`, `baseline`, `histogram`), so you can wire them whether you build a chart the long way or with the per-type shorthand.
+A TVL chart can call back into Python when the user presses on it. Attach a handler with `on_press` or `on_double_press` and it runs server-side with the press details: the time and pixel location of the click, the series under the cursor, every series' data at that location, the pane, and the modifier keys that were held. The two handlers are available on `tvl.chart(...)` and on every per-type constructor (`line`, `area`, `candlestick`, `bar`, `baseline`, `histogram`), so you can wire them whether you build a chart the long way or with the per-type shorthand.
 
 ## What are press events useful for?
 

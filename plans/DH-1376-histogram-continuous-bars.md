@@ -88,8 +88,8 @@ needed), but it stays relevant if Candlestick/Bar continuous rendering is ever r
 
 ### 3. Small-table (no-scaffold) behavior mostly evaporates under #1
 
-Zero-fill gives small *binned* histograms the same uniform grid — no scaffold decision
-needed. Only *unbinned* histograms (below `AUTO_BIN_THRESHOLD`, raw rows) keep pure
+Zero-fill gives small _binned_ histograms the same uniform grid — no scaffold decision
+needed. Only _unbinned_ histograms (below `AUTO_BIN_THRESHOLD`, raw rows) keep pure
 ordinal spacing; document that as a limitation instead of forcing the scaffold on.
 
 ### Retry checklist

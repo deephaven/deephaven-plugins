@@ -8,8 +8,6 @@
 
 Autobinning is TVL's server-side time-bucket aggregation for histograms, candlesticks, and bars. Unlike the min/max downsampling used by Line / Area / Baseline (see [downsampling](downsampling.md)), OHLC and histogram series can't be thinned out by dropping points; they need true aggregation. Autobinning runs that aggregation in the Deephaven query engine: `update_view` to compute a bin column, `agg_by` to reduce, snap the result back to the original time column name, and ship it to the chart.
 
-Use this page when you have a high-rate tick stream and want a histogram or candlestick chart over an automatically-chosen bin width, or when you want to override the chosen bin width manually.
-
 ## What is autobinning useful for?
 
 - **Histograms over raw ticks**: A raw trade stream can be aggregated server-side to per-minute volume bars without writing the binning by hand.
@@ -32,7 +30,7 @@ Default policy: when `auto_bin is None`, the chart auto-enables binning if the i
 
 ## How the bin width is chosen
 
-When you don't set `bin_width`, TVL picks one for you: it divides the visible time range by a target bin count (derived from the chart's pixel width, so bars stay a few pixels wide) and rounds up to the next "nice" duration — 1s, 5s, 15s, 1m, 5m, 1h, 1d, and so on. As you zoom in, the bin width refines to a finer cadence so the chart stays informative. All of the aggregation happens in the Deephaven engine; the browser only receives the finished bars.
+When you don't set `bin_width`, TVL picks one for you: it divides the visible time range by a target bin count (derived from the chart's width, so bars stay at least a few pixels wide) and rounds up to the next "nice" duration — 1s, 5s, 15s, 1m, 5m, 1h, 1d, and so on. As you zoom in, the bin width refines to a finer cadence so the chart stays informative. All of the aggregation happens in the Deephaven engine; the browser only receives the finished bars.
 
 ## Examples
 

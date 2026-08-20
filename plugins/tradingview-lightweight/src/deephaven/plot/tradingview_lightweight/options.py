@@ -32,7 +32,7 @@ module's docstring for the enumerated values.  See
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, Optional, TypedDict
+from typing import Literal, Optional
 from ._colors import Color
 
 # Line style constants (matching lightweight-charts LineStyle enum)
@@ -70,7 +70,7 @@ LineWidth = Literal[1, 2, 3, 4]
 """Stroke width in CSS pixels for series lines, crosshairs, and price lines.
 
 Allowed values: ``1``, ``2``, ``3``, ``4``.  Values outside this range are
-rejected by the TVL JS runtime.
+rejected as invalid.
 """
 
 # Coordinate and Logical are JS-only nominal types used by ITimeScaleApi
@@ -299,25 +299,19 @@ Allowed values:
 """
 
 MarkerSign = Literal["negative", "neutral", "positive"]
-"""Optional per-marker sign annotation passed through to
-``SeriesMarker.sign``.
+"""Optional per-marker sign annotation.
 
 Allowed values: ``"negative"``, ``"neutral"``, ``"positive"``.
-
-Mainly used by JS-side rendering hooks; included in the Python API for
-completeness.
 """
 
 MismatchDirection = Literal["nearest_left", "none", "nearest_right"]
-"""Mismatch-direction selector used by ``ISeriesApi.dataByIndex()`` and
-``barsInLogicalRange()``.  Allowed values:
+"""How a lookup resolves an index that has no exact data point.
+
+Allowed values:
 
 - ``"nearest_left"`` — closest data point at or to the left of the index.
 - ``"none"`` — exact match only; returns null if no data at that index.
 - ``"nearest_right"`` — closest data point at or to the right of the index.
-
-These methods are JS-runtime only; the alias is exported for type-hint
-completeness and for any future bidirectional messaging work.
 """
 
 PriceLineSource = Literal["last_bar", "last_visible"]
@@ -332,7 +326,7 @@ Consumer: ``SeriesOptionsCommon.priceLineSource``.
 """
 
 TickMarkType = Literal["year", "month", "day_of_month", "time", "time_with_seconds"]
-"""Tick-mark granularity passed to ``TimeScaleOptions.tickMarkFormatter``.
+"""Tick-mark granularity for time-axis labels.
 
 Allowed values:
 
@@ -342,8 +336,7 @@ Allowed values:
 - ``"time"`` — intra-day hours / minutes.
 - ``"time_with_seconds"`` — intra-day with seconds resolution.
 
-``tickMarkFormatter`` itself requires a JS callable and is not exposed from
-Python; this alias is provided for completeness.
+The time scale picks the right granularity per tick automatically.
 """
 
 TrackingModeExitMode = Literal["on_touch_end", "on_next_tap"]
@@ -439,23 +432,41 @@ TRACKING_MODE_EXIT_MODE_MAP = {
 }
 
 
-class PriceFormat(TypedDict, total=False):
-    """Price format configuration (built-in formats only).
+@dataclass
+class PriceFormat:
+    """Per-series number format. Pass to ``price_format=`` on any series factory.
 
-    Keys match the TVL JS API exactly:
-      - type:      ``'price'`` | ``'volume'`` | ``'percent'``
-      - precision: number of decimal places
-      - minMove:   minimum price movement (e.g. 0.01 for cents)
-
-    Note:
-        The ``'custom'`` type from the TradingView JS API requires a JavaScript
-        formatter callback and cannot be expressed in this Python plugin. Passing
-        ``type='custom'`` will raise ``ValueError`` at chart-building time.
+    Args:
+        type: Value kind — ``"price"``, ``"volume"``, or ``"percent"``.
+        precision: Number of decimal places.
+        min_move: Smallest representable step (e.g. ``0.01`` for cents).
     """
 
-    type: Literal["price", "volume", "percent"]
-    precision: int
-    minMove: float
+    type: Literal["price", "volume", "percent"] = "price"
+    precision: Optional[int] = None
+    min_move: Optional[float] = None
+
+    def to_dict(self) -> dict:
+        """Serialise to the JS priceFormat shape (camelCase, None omitted)."""
+        d: dict = {"type": self.type}
+        if self.precision is not None:
+            d["precision"] = self.precision
+        if self.min_move is not None:
+            d["minMove"] = self.min_move
+        return d
+
+
+def price_format(
+    type: Literal["price", "volume", "percent"] = "price",
+    precision: Optional[int] = None,
+    min_move: Optional[float] = None,
+) -> PriceFormat:
+    """Create a :class:`PriceFormat` for a series' ``price_format=`` argument.
+
+    Example:
+        >>> tvl.line(..., price_format=tvl.price_format(precision=4, min_move=0.0001))
+    """
+    return PriceFormat(type=type, precision=precision, min_move=min_move)
 
 
 @dataclass
@@ -869,6 +880,164 @@ def grid(
         >>> tvl.chart(..., grid=tvl.grid(vert=tvl.grid_lines(visible=False)))
     """
     return Grid(vert=vert, horz=horz)
+
+
+@dataclass
+class LastPriceLine:
+    """Styling for a series' automatic last-price horizontal rule.
+
+    Pass to any series constructor via ``last_price_line=``.
+
+    Args:
+        visible: Show the last-price line (TVL default ``True``).
+        source: Which bar drives the line; see :data:`PriceLineSource`.
+        width: Stroke width in pixels; see :data:`LineWidth`.
+        color: Line CSS color (empty string uses the series color).
+        style: Dash pattern; see :data:`LineStyle`.
+    """
+
+    visible: Optional[bool] = None
+    source: Optional["PriceLineSource"] = None
+    width: Optional["LineWidth"] = None
+    color: Optional[Color] = None
+    style: Optional["LineStyle"] = None
+
+    def to_dict(self) -> dict:
+        """Serialise to flat camelCase ``priceLine*`` series-option keys (None omitted)."""
+        pairs = [
+            ("priceLineVisible", self.visible),
+            (
+                "priceLineSource",
+                PRICE_LINE_SOURCE_MAP[self.source] if self.source is not None else None,
+            ),
+            ("priceLineWidth", self.width),
+            ("priceLineColor", self.color),
+            (
+                "priceLineStyle",
+                LINE_STYLE_MAP[self.style] if self.style is not None else None,
+            ),
+        ]
+        return {k: v for k, v in pairs if v is not None}
+
+
+def last_price_line(
+    visible: Optional[bool] = None,
+    source: Optional["PriceLineSource"] = None,
+    width: Optional["LineWidth"] = None,
+    color: Optional[Color] = None,
+    style: Optional["LineStyle"] = None,
+) -> LastPriceLine:
+    """Create a :class:`LastPriceLine` for a series' ``last_price_line=`` argument.
+
+    Example:
+        >>> tvl.line(..., last_price_line=tvl.last_price_line(visible=False))
+    """
+    return LastPriceLine(
+        visible=visible, source=source, width=width, color=color, style=style
+    )
+
+
+@dataclass
+class BaseLine:
+    """Styling for a series' zero/index base line (shown in ``percentage`` /
+    ``indexed_to_100`` price-scale modes).
+
+    Pass to any series constructor via ``base_line=``. Not related to the
+    Baseline *series type* (:func:`baseline`) — this is the horizontal
+    reference rule on the price scale.
+
+    Args:
+        visible: Show the base line (TVL default ``True``).
+        color: Line CSS color.
+        width: Stroke width in pixels; see :data:`LineWidth`.
+        style: Dash pattern; see :data:`LineStyle`.
+    """
+
+    visible: Optional[bool] = None
+    color: Optional[Color] = None
+    width: Optional["LineWidth"] = None
+    style: Optional["LineStyle"] = None
+
+    def to_dict(self) -> dict:
+        """Serialise to flat camelCase ``baseLine*`` series-option keys (None omitted)."""
+        pairs = [
+            ("baseLineVisible", self.visible),
+            ("baseLineColor", self.color),
+            ("baseLineWidth", self.width),
+            (
+                "baseLineStyle",
+                LINE_STYLE_MAP[self.style] if self.style is not None else None,
+            ),
+        ]
+        return {k: v for k, v in pairs if v is not None}
+
+
+def base_line(
+    visible: Optional[bool] = None,
+    color: Optional[Color] = None,
+    width: Optional["LineWidth"] = None,
+    style: Optional["LineStyle"] = None,
+) -> BaseLine:
+    """Create a :class:`BaseLine` for a series' ``base_line=`` argument.
+
+    Example:
+        >>> tvl.line(..., base_line=tvl.base_line(visible=False))
+    """
+    return BaseLine(visible=visible, color=color, width=width, style=style)
+
+
+@dataclass
+class CrosshairMarker:
+    """Styling for the crosshair marker dot on Line / Area / Baseline series.
+
+    Pass via ``crosshair_marker=`` on :func:`line`, :func:`area`, or
+    :func:`baseline`.
+
+    Args:
+        visible: Show the crosshair marker dot.
+        radius: Marker radius in pixels.
+        border_color: Marker border color.
+        background_color: Marker fill color.
+        border_width: Marker border width in pixels.
+    """
+
+    visible: Optional[bool] = None
+    radius: Optional[float] = None
+    border_color: Optional[Color] = None
+    background_color: Optional[Color] = None
+    border_width: Optional[float] = None
+
+    def to_dict(self) -> dict:
+        """Serialise to flat camelCase ``crosshairMarker*`` series-option keys (None omitted)."""
+        pairs = [
+            ("crosshairMarkerVisible", self.visible),
+            ("crosshairMarkerRadius", self.radius),
+            ("crosshairMarkerBorderColor", self.border_color),
+            ("crosshairMarkerBackgroundColor", self.background_color),
+            ("crosshairMarkerBorderWidth", self.border_width),
+        ]
+        return {k: v for k, v in pairs if v is not None}
+
+
+def crosshair_marker(
+    visible: Optional[bool] = None,
+    radius: Optional[float] = None,
+    border_color: Optional[Color] = None,
+    background_color: Optional[Color] = None,
+    border_width: Optional[float] = None,
+) -> CrosshairMarker:
+    """Create a :class:`CrosshairMarker` for a series' ``crosshair_marker=`` argument.
+
+    Example:
+        >>> tvl.line(..., crosshair_marker=tvl.crosshair_marker(radius=6))
+    """
+    return CrosshairMarker(
+        visible=visible,
+        radius=radius,
+        border_color=border_color,
+        background_color=background_color,
+        border_width=border_width,
+    )
 
 
 @dataclass

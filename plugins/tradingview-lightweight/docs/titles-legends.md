@@ -13,9 +13,7 @@
 
 # Titles, Legends, and Watermarks
 
-TVL doesn't have a separate "title" widget the way Plotly does. Instead, the chart title lives on the watermark, and per-series titles drive the in-chart legend that appears in the top-left corner. This page covers titles and legends and gives a brief tour of the watermark options; for the full watermark treatment (multi-line, image watermarks, alignment) see [watermark](watermark.md).
-
-Use this page when you want to label a chart for a dashboard tile, show or hide the legend on individual series, or pick a corner for a single-line watermark.
+TVL doesn't have a "title" widget. Instead, a chart title is added through a watermark, and per-series titles drive the in-chart legend that appears in the top-left corner. This page covers titles and legends and gives a brief tour of the watermark options; for the full watermark treatment (multi-line, image watermarks, alignment) see [watermark](watermark.md).
 
 ## What are titles and legends useful for?
 

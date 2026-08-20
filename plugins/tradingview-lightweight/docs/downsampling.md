@@ -22,10 +22,10 @@ In normal use this is fully automatic: plot a big table with `tvl.line(...)` and
 
 TVL has two server-side / client-side cooperating paths:
 
-1. **JS-side viewport downsampling** (Line / Area / Baseline). When a series has more points than the viewport has bars, the client requests a downsampled view from the server, asking for "give me the min and the max for each pixel column in the visible time range." The aggregation runs in the Deephaven query engine via `agg_by` with `first` / `last` / `sorted_first` / `sorted_last` reductions per bucket. On pan and zoom the client re-requests with the new range; on data ticks the buckets refresh.
+1. **Client-side viewport downsampling** (Line / Area / Baseline). When a series has more points than the viewport has bars, the client requests a downsampled view from the server, asking for "give me the min and the max for each pixel column in the visible time range." The aggregation runs in the Deephaven query engine via `agg_by` with `first` / `last` / `sorted_first` / `sorted_last` reductions per bucket. On pan and zoom the client re-requests with the new range; on data ticks the buckets refresh.
 2. **Server-side autobinning** (Candlestick / Bar / Histogram). OHLC and histogram series can't be downsampled by min/max: they need a true aggregation. See [autobin](autobin.md) for that path.
 
-> **Numeric-axis charts don't downsample.** Viewport downsampling is gated to `chart_type == "standard"` and reads a hard-coded `time` column. `tvl.custom_numeric`, `tvl.options_chart`, and `tvl.yield_curve` therefore ship raw rows to the client. Keep their input tables modest (tens of thousands of rows) or pre-aggregate server-side.
+> [!NOTE] > **Numeric-axis charts don't downsample.** Viewport downsampling is gated to `chart_type == "standard"` and reads a hard-coded `time` column. `tvl.custom_numeric`, `tvl.options_chart`, and `tvl.yield_curve` therefore ship raw rows to the client. Keep their input tables modest (tens of thousands of rows) or pre-aggregate server-side.
 
 ### What activates it
 
@@ -49,7 +49,8 @@ For OHLC and histogram series, downsampling reduces each bucket via `first(open)
 
 The `tvl.data.large_prices()` fixture is a 1,000,000-row intraday price series. Plotting it with `tvl.line()` works exactly like plotting a 100-row table. TVL handles the downsampling transparently.
 
-> Building a fixture this large can take ~30 seconds to initialize the first time; that's the data generation, not the chart.
+> [!WARNING]
+> Large tables can take a significant amount of time to initialize.
 
 ```python order=chart,large
 import deephaven.plot.tradingview_lightweight as tvl
@@ -133,7 +134,7 @@ For OHLC and histogram series, the equivalent toggle exists (`auto_bin=False`). 
 
 ## Tunables
 
-The downsampler is mostly automatic, but a few knobs on `chart()` and the series factories influence it:
+The downsampler is mostly automatic, but a few variables on `chart()` and the series factories influence it:
 
 - **`width` / `height` on `chart()`**: pin the pixel budget, which sets the bucket target.
 - **`bar_spacing` / `min_bar_spacing` / `max_bar_spacing`** (on `tvl.time_scale(...)`): pixels per bar, which drives the bucket count.
