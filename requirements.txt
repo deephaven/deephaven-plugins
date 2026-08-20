@@ -1,7 +1,9 @@
 pre-commit==3.3.3
 build
 pip
-setuptools
+# setuptools>=64 required for PEP 660 editable installs of namespace packages
+# used by `pip install -e` in tools/plugin_builder.py
+setuptools>=64
 tox
 
 # Plugin builder dependencies
