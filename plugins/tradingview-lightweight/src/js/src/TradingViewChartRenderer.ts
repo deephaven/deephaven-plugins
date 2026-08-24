@@ -485,6 +485,12 @@ class TradingViewChartRenderer {
         // which is too few for downsampled tables (runChartDownsample output
         // can be much larger than the requested pixel count).
         minBarSpacing: 0.01,
+        // The continuous (time-proportional) axis fills the chart with
+        // whitespace scaffold slots. Without this, the crosshair / magnet /
+        // press hit-testing snaps to the nearest *index* — almost always an
+        // empty scaffold slot with no seriesData — and grid lines / tick
+        // marks land on whitespace too. No-op on charts with no whitespace.
+        ignoreWhitespaceIndices: true,
         // Render every time-axis label at the same (regular) weight. By default
         // lightweight-charts draws the highest-weight tick (e.g. the year) in
         // bold, which requests Fira Sans 700 — a weight the app's FontBootstrap
@@ -897,6 +903,13 @@ class TradingViewChartRenderer {
     if (item.color == null && item.open != null && item.close != null) {
       item.color = item.close >= item.open ? colors.up : colors.down;
     }
+  }
+
+  /**
+   * All data series (never the hidden scaffold), for press-event snapping.
+   */
+  getDataSeriesList(): ISeriesApi<SeriesType>[] {
+    return Array.from(this.seriesMap.values());
   }
 
   /**

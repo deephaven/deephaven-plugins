@@ -68,6 +68,23 @@ describe('TradingViewChartRenderer', () => {
       expect(renderer).toBeDefined();
     });
 
+    it('should snap the crosshair past whitespace scaffold slots', () => {
+      const container = document.createElement('div');
+      // eslint-disable-next-line no-new
+      new TradingViewChartRenderer(container);
+      // Regression: with the continuous-axis scaffold, crosshair/press
+      // hit-testing must skip data-less whitespace indices or press events
+      // resolve to empty seriesData.
+      expect(createChart).toHaveBeenCalledWith(
+        container,
+        expect.objectContaining({
+          timeScale: expect.objectContaining({
+            ignoreWhitespaceIndices: true,
+          }),
+        })
+      );
+    });
+
     it('should apply custom options to createChart', () => {
       const container = document.createElement('div');
       const renderer = new TradingViewChartRenderer(container, {

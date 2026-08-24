@@ -2,7 +2,9 @@ import type {
   MouseEventParams,
   ISeriesApi,
   SeriesType,
+  Time,
 } from 'lightweight-charts';
+import { MismatchDirection } from 'lightweight-charts';
 import { unconvertTime } from './TradingViewUtils';
 import {
   extractSeriesPoint,
@@ -79,6 +81,68 @@ export interface TvlPressEventPayload {
  * enough to absorb sub-pixel rounding when the press lands on a data point.
  */
 export const HIT_MAX_DISTANCE_PX = 8;
+
+/**
+ * Re-resolve press params at the nearest real data point.
+ *
+ * LWC builds click params at the raw pointer index: unlike the crosshair,
+ * the click path calls coordinateToIndex WITHOUT considerIgnoreWhitespace
+ * (lightweight-charts.mjs — the clicked delegate), and seriesData uses an
+ * exact per-index search. On a scaffolded (continuous-axis) chart nearly
+ * every index is a data-less whitespace slot, so presses arrived with empty
+ * seriesData and a whitespace time. Snap to the pixel-nearest data point
+ * across all series and rebuild seriesData/time there; params that already
+ * carry data pass through untouched (ordinary ordinal charts).
+ */
+export function snapPressParamsToData(
+  params: MouseEventParams,
+  seriesList: readonly ISeriesApi<SeriesType>[],
+  timeToCoordinate: (t: Time) => number | null
+): MouseEventParams {
+  if (params.seriesData.size > 0) return params;
+  const { logical, point } = params;
+  if (logical == null || point == null || seriesList.length === 0) {
+    return params;
+  }
+
+  interface Candidate {
+    series: ISeriesApi<SeriesType>;
+    item: { time: Time };
+    x: number;
+  }
+  const candidates: Candidate[] = [];
+  let bestDist = Infinity;
+  let bestTime: Time | null = null;
+  seriesList.forEach(series => {
+    [MismatchDirection.NearestLeft, MismatchDirection.NearestRight].forEach(
+      dir => {
+        const item = series.dataByIndex(logical as number, dir) as {
+          time?: Time;
+        } | null;
+        if (item?.time == null) return;
+        const x = timeToCoordinate(item.time);
+        if (x == null) return;
+        candidates.push({ series, item: item as { time: Time }, x });
+        const dist = Math.abs(x - point.x);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestTime = item.time;
+        }
+      }
+    );
+  });
+  if (bestTime == null) return params;
+
+  const seriesData = new Map<ISeriesApi<SeriesType>, unknown>();
+  candidates.forEach(c => {
+    if (c.item.time === bestTime) seriesData.set(c.series, c.item);
+  });
+  return {
+    ...params,
+    time: bestTime,
+    seriesData: seriesData as MouseEventParams['seriesData'],
+  };
+}
 
 export function buildPressEventPayload(
   type: 'press' | 'doublePress',

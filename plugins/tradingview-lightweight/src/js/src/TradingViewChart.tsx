@@ -8,7 +8,10 @@ import Log from '@deephaven/log';
 import type { MouseEventParams } from 'lightweight-charts';
 import TradingViewChartModel from './TradingViewChartModel';
 import TradingViewChartRenderer from './TradingViewChartRenderer';
-import { buildPressEventPayload } from './TradingViewEventPayload';
+import {
+  buildPressEventPayload,
+  snapPressParamsToData,
+} from './TradingViewEventPayload';
 import {
   useDHChartTheme,
   chartThemeToOptions,
@@ -1021,9 +1024,16 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         type: 'press' | 'doublePress',
         params: MouseEventParams
       ) {
+        // Scaffolded charts: presses land on whitespace slot indices with
+        // empty seriesData — re-resolve at the nearest real data point.
+        const snapped = snapPressParamsToData(
+          params,
+          renderer.getDataSeriesList(),
+          t => renderer.getChart().timeScale().timeToCoordinate(t)
+        );
         const payload = buildPressEventPayload(
           type,
-          params,
+          snapped,
           s => renderer.getSeriesIdForApi(s),
           s => renderer.getSeriesTitleForApi(s),
           model.getTimeZone()

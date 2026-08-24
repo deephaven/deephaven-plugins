@@ -20,8 +20,11 @@ test.afterEach(async ({ page }) => {
 // event into the `tvl_events_result` table.
 // --------------------------------------------------------------------------
 
-// 2024-06-03T10:00:00 ET == 14:00:00 UTC == 1717423200 (epoch seconds, UTC).
-const T_UTC_SEC = 1717423200;
+// 2024-06-05T10:00:00 ET == 14:00:00 UTC == 1717596000 (epoch seconds, UTC).
+// This is the MIDDLE fixture sample: on the continuous (scaffolded) time axis
+// the first/last samples sit within a fraction of a pixel of the chart edges,
+// where real mouse clicks are browser-dependent (firefox misses the canvas).
+const T_UTC_SEC = 1717596000;
 const PRICE_A = 10;
 const PRICE_B = 90;
 
@@ -126,17 +129,6 @@ test.describe('TradingView Lightweight - Press events', () => {
     await page.waitForTimeout(500);
 
     const evt = await getLastEvent(page);
-    // TEMPORARY diagnostics: publish the built payload + canvas rect so a
-    // failing run's report shows the resolved seriesId, point, and per-series
-    // values. Remove once the press-event failures are resolved.
-    await test.info().attach('press-A-event', {
-      body: JSON.stringify(
-        { event: evt, canvas: await getCanvasRect(page) },
-        null,
-        2
-      ),
-      contentType: 'application/json',
-    });
     expect(evt).not.toBeNull();
     expect(evt!.type).toBe('press');
     expect(evt!.seriesId).toBeTruthy();
@@ -225,26 +217,6 @@ test.describe('TradingView Lightweight - Press events', () => {
     await page.waitForTimeout(500);
 
     const evt = await getLastEvent(page);
-    // TEMPORARY diagnostics: the payload's local click point plus each line's
-    // rendered y at the two known prices, so a failing run reveals the actual
-    // cursor↔line gap and lets us tune HIT_MAX_DISTANCE_PX. Remove once the
-    // empty-area gate is confirmed.
-    const diag = await page.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-underscore-dangle
-      const hook = (window as any).__tvlTestHook;
-      const ids: string[] = hook ? hook.getSeriesIds() : [];
-      return {
-        lines: ids.map(id => ({
-          id,
-          yAt10: hook.priceToCoordinate(id, 10),
-          yAt90: hook.priceToCoordinate(id, 90),
-        })),
-      };
-    });
-    await test.info().attach('empty-area-event', {
-      body: JSON.stringify({ event: evt, ...diag }, null, 2),
-      contentType: 'application/json',
-    });
     expect(evt).not.toBeNull();
     expect(evt!.type).toBe('press');
     // No series under the cursor between/above the lines.
@@ -264,12 +236,7 @@ test.describe('TradingView Lightweight - Press events', () => {
     await openPanel(page, 'tvl_events_result');
     await expect
       .poll(
-        async () =>
-          page
-            .locator('.iris-grid')
-            .last()
-            .locator('canvas')
-            .count(),
+        async () => page.locator('.iris-grid').last().locator('canvas').count(),
         { timeout: 15000 }
       )
       .toBeGreaterThan(0);
