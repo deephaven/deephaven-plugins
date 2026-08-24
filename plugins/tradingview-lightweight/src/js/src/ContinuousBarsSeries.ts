@@ -66,13 +66,17 @@ export function isContinuousBarType(
  */
 export const CANDLE_BODY_FRACTION = 0.7;
 
-/** True when any series in the list renders via ContinuousBarsSeries. */
-export function hasContinuousBarSeries(
-  series: ReadonlyArray<{ type: string; continuous?: boolean }>
+/**
+ * True when no series opts out of the time-proportional (continuous) axis.
+ * The axis layout is chart-wide, so a single `continuous=False` series pins
+ * the whole chart to the plain ordinal layout — necessary anyway for the
+ * built-in bar-type renderers, whose fixed pixel widths turn into hairlines
+ * on the dense whitespace scaffold.
+ */
+export function allSeriesContinuous(
+  series: ReadonlyArray<{ continuous?: boolean }>
 ): boolean {
-  return series.some(
-    s => isContinuousBarType(s.type) && s.continuous !== false
-  );
+  return series.every(s => s.continuous !== false);
 }
 
 /** Data item shape — matches transformTableData output for the 3 types. */

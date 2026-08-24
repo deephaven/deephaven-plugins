@@ -151,7 +151,16 @@ class SeriesSpec:
                 "columns": self.column_mapping,
             },
         }
-        if self.series_type in ("Histogram", "Candlestick", "Bar"):
+        # Bar types gate their custom renderer on this; line types only
+        # gate the chart-wide time-proportional axis (whitespace scaffold).
+        if self.series_type in (
+            "Histogram",
+            "Candlestick",
+            "Bar",
+            "Line",
+            "Area",
+            "Baseline",
+        ):
             result["continuous"] = self.continuous
         if self.markers:
             result["markers"] = [m.to_dict() for m in self.markers]
@@ -576,6 +585,7 @@ def line_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create a line series specification.
 
@@ -617,6 +627,10 @@ def line_series(
         price_lines (Optional[list[PriceLine]]): Horizontal price
             lines.
         marker_spec (Optional[MarkerSpec]): Table-driven marker spec.
+        continuous (bool): ``True`` (default) lays the chart's time axis
+            out proportionally, so real time gaps render as open gaps.
+            ``False`` opts the whole chart back to the plain ordinal
+            layout (gaps collapse to one step).
 
     Returns:
         SeriesSpec: A line-series specification.
@@ -665,6 +679,7 @@ def line_series(
         marker_spec=marker_spec,
         price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
+        continuous=continuous,
     )
 
 
@@ -700,6 +715,7 @@ def area_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create an area series specification.
 
@@ -754,6 +770,9 @@ def area_series(
         price_lines (Optional[list[PriceLine]]): Horizontal price
             lines.
         marker_spec (Optional[MarkerSpec]): Table-driven marker spec.
+        continuous (bool): ``True`` (default) = time-proportional chart
+            axis; ``False`` opts the whole chart back to the plain
+            ordinal layout.  See :func:`line_series`.
 
     Returns:
         SeriesSpec: An area-series specification.
@@ -812,6 +831,7 @@ def area_series(
         marker_spec=marker_spec,
         price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
+        continuous=continuous,
     )
 
 
@@ -853,6 +873,7 @@ def baseline_series(
     markers: Optional[list[Marker]] = None,
     price_lines: Optional[list[PriceLine]] = None,
     marker_spec: Optional[MarkerSpec] = None,
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create a baseline series specification.
 
@@ -917,6 +938,9 @@ def baseline_series(
         price_lines (Optional[list[PriceLine]]): Horizontal price
             lines.
         marker_spec (Optional[MarkerSpec]): Table-driven marker spec.
+        continuous (bool): ``True`` (default) = time-proportional chart
+            axis; ``False`` opts the whole chart back to the plain
+            ordinal layout.  See :func:`line_series`.
 
     Returns:
         SeriesSpec: A baseline-series specification.
@@ -986,6 +1010,7 @@ def baseline_series(
         marker_spec=marker_spec,
         price_scale_options=_build_price_scale_options(price_scale),
         pane=pane,
+        continuous=continuous,
     )
 
 

@@ -14,6 +14,7 @@
   point_markers_radius -> line.md
   crosshair_marker -> line.md
   last_price_animation -> line.md
+  continuous -> line.md
   last_value_visible -> titles-legends.md
   title -> titles-legends.md
   visible -> titles-legends.md

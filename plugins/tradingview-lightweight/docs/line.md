@@ -217,6 +217,19 @@ line = tvl.line(
 
 These crosshair-marker options apply to `area` and `baseline` series too.
 
+### Time-proportional axis with `continuous`
+
+By default (`continuous=True`) the chart's time axis is laid out proportionally: points that are far apart in time are far apart on screen, and real time holes (a market close, a halted feed, missing rows) render as open gaps. Set `continuous=False` to opt back into the plain ordinal layout, where every consecutive point is one equal step apart and time holes collapse.
+
+The axis layout is chart-wide: a single series with `continuous=False` switches the whole chart (all panes and overlays) back to ordinal. The parameter exists on every time-axis series type — for the bar-family behavior (bin-spanning bars, candle gaps) see [histogram](histogram.md#continuous-bars), [candlestick](candlestick.md#time-proportional-layout-with-continuous), and [bar](bar.md#time-proportional-layout-with-continuous). Numeric-axis charts (`yield_curve`, `options_chart`, `custom_numeric`) are unaffected.
+
+```python order=line,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.values()
+
+line = tvl.line(data, timestamp="Timestamp", value="Value", continuous=False)
+```
+
 ## API Reference
 
 ```{eval-rst}

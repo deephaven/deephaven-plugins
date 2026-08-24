@@ -27,7 +27,7 @@ import type {
   TvlFigureData,
   ModelEvent,
 } from './TradingViewTypes';
-import { hasContinuousBarSeries } from './ContinuousBarsSeries';
+import { allSeriesContinuous } from './ContinuousBarsSeries';
 // Typed via src/declaration.d.ts (declare module '*.css?inline')
 import tvlStyles from './TradingViewChart.css?inline';
 
@@ -495,9 +495,11 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
   /**
    * Whether the chart needs the whitespace scaffold. Resampling always
-   * does; continuous bar series need it too (on standard time charts) so
-   * real time gaps render proportionally instead of collapsing to one
-   * ordinal step — no autobin required.
+   * does; otherwise every standard time chart gets one by default so the
+   * axis is time-proportional — real time gaps render as open gaps instead
+   * of collapsing to one ordinal step. Any series with continuous=False
+   * opts the whole chart back to the plain ordinal layout (the axis is
+   * chart-wide, and the built-in bar renderers need ordinal spacing).
    */
   function shouldEnableScaffold(
     renderer: TradingViewChartRenderer,
@@ -508,7 +510,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     return (
       figure != null &&
       renderer.getChartType() === 'standard' &&
-      hasContinuousBarSeries(figure.series)
+      allSeriesContinuous(figure.series)
     );
   }
 
