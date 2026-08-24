@@ -1,5 +1,4 @@
 import React, {
-  type PropsWithChildren,
   useCallback,
   useEffect,
   useMemo,

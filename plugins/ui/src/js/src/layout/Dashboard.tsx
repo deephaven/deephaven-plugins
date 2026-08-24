@@ -30,7 +30,7 @@ function Dashboard({
     if (isNested) {
       return;
     }
-    const hasHeaders = layoutManager?.config.settings.hasHeaders;
+    const hasHeaders = layoutManager?.config?.settings?.hasHeaders;
     if (showHeaders === true) {
       if (hasHeaders === false) {
         layoutManager?.enableHeaders();
