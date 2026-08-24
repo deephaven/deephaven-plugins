@@ -27,3 +27,4 @@ file_20=ui_multi_select.py
 file_21=ui_dashboard_persistence.py
 file_22=express_events.py
 file_23=ui_shared_state.py
+file_24=ui_dashboard_headers.py
