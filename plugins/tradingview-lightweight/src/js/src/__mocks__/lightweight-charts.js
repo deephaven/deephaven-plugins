@@ -46,6 +46,7 @@ const mockTimeScale = {
 
 const mockChart = {
   addSeries: jest.fn(() => mockSeriesInstance),
+  addCustomSeries: jest.fn(() => mockSeriesInstance),
   removeSeries: jest.fn(),
   applyOptions: jest.fn(),
   resize: jest.fn(),
@@ -77,6 +78,8 @@ const AreaSeries = 'AreaSeries';
 const BaselineSeries = 'BaselineSeries';
 const HistogramSeries = 'HistogramSeries';
 
+const customSeriesDefaultOptions = {};
+
 module.exports = {
   createChart,
   createYieldCurveChart,
@@ -90,6 +93,7 @@ module.exports = {
   AreaSeries,
   BaselineSeries,
   HistogramSeries,
+  customSeriesDefaultOptions,
   mockChart,
   mockSeriesInstance,
   mockPriceLine,

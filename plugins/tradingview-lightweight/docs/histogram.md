@@ -125,6 +125,22 @@ histogram = tvl.histogram(data, timestamp="Timestamp", value="Volume", title="Da
 
 The legend now reads "Daily traded volume".
 
+### Continuous bars
+
+By default (`continuous=True`) histogram bars are drawn end-to-end, with gaps between sections of dense data as appropriate. Set `continuous=False` to draw bars with a fixed width, regardless of data gaps.
+
+```python order=histogram,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.volume()
+
+histogram = tvl.histogram(
+    data,
+    timestamp="Timestamp",
+    value="Volume",
+    continuous=False,
+)
+```
+
 ## Auto-binning
 
 When the input table is larger than `AUTO_BIN_THRESHOLD` (5000 rows) the histogram automatically aggregates server-side: pick a bin width that maps cleanly to the screen pixel grid, reduce each bin with `agg`, and stream only the resulting bars to the client. You can override the heuristic with three knobs:

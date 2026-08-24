@@ -41,6 +41,10 @@ import type {
 } from './TradingViewTypes';
 import { resolveColor, resolveColorsDeep } from './TradingViewColors';
 import { TradingViewTooltip } from './TradingViewTooltip';
+import ContinuousBarsSeries, {
+  isContinuousBarType,
+  stampContinuousBarTimes,
+} from './ContinuousBarsSeries';
 
 const log = Log.module('TradingViewChartRenderer');
 
@@ -341,6 +345,17 @@ class TradingViewChartRenderer {
 
   /** Resolved primary color per series id, used to tint the tracking tooltip. */
   private seriesColors: Map<string, string> = new Map();
+
+  /**
+   * Up/down colors per continuous Candlestick/Bar series id. LWC colors a
+   * custom series' last-value line from each item's `color` field, so
+   * direction colors are injected per data item (see injectOhlcItemColors).
+   */
+  private continuousOhlcColors: Map<string, { up: string; down: string }> =
+    new Map();
+
+  /** Ids of series rendered by ContinuousBarsSeries (need `ts` stamping). */
+  private continuousSeriesIds: Set<string> = new Set();
 
   /** Active tracking tooltip, when enabled via chartOptions.tooltip.visible. */
   private tooltip: TradingViewTooltip | null = null;
@@ -668,6 +683,8 @@ class TradingViewChartRenderer {
     });
     this.seriesMap.clear();
     this.seriesColors.clear();
+    this.continuousOhlcColors.clear();
+    this.continuousSeriesIds.clear();
     this.dynamicPriceLines.clear();
 
     // Create scaffold FIRST so it occupies base time positions
@@ -831,6 +848,25 @@ class TradingViewChartRenderer {
   }
 
   private createSeries(config: TvlSeriesConfig): ISeriesApi<SeriesType> | null {
+    // Continuous (end-to-end) rendering is the default for the ordinal bar
+    // types: bodies span their full time bin via a custom series instead of
+    // the built-in fixed pixel width. Opt out with continuous=False.
+    if (config.continuous !== false && isContinuousBarType(config.type)) {
+      this.continuousSeriesIds.add(config.id);
+      if (config.type !== 'Histogram') {
+        const opts = config.options;
+        this.continuousOhlcColors.set(config.id, {
+          up: (opts.upColor as string) ?? '#26a69a',
+          down: (opts.downColor as string) ?? '#ef5350',
+        });
+      }
+      return this.chart.addCustomSeries(
+        new ContinuousBarsSeries(config.type),
+        config.options as never,
+        config.paneIndex
+      ) as unknown as ISeriesApi<SeriesType>;
+    }
+
     const definition = SERIES_DEFINITIONS[config.type];
     if (definition == null) {
       log.warn('Unknown series type:', config.type);
@@ -846,6 +882,24 @@ class TradingViewChartRenderer {
   }
 
   /**
+   * Stamp the direction color onto continuous OHLC items that don't carry a
+   * per-row color already. Matches what the renderer paints, so bodies are
+   * unchanged; it exists so LWC's last-value line/label picks the same color.
+   */
+  private injectOhlcItemColors(seriesId: string, point: unknown): void {
+    const colors = this.continuousOhlcColors.get(seriesId);
+    if (colors == null) return;
+    const item = point as {
+      open?: number;
+      close?: number;
+      color?: string;
+    };
+    if (item.color == null && item.open != null && item.close != null) {
+      item.color = item.close >= item.open ? colors.up : colors.down;
+    }
+  }
+
+  /**
    * Replace all data for a specific series. Use only for initial load
    * or full reconfiguration — NOT for ticking updates.
    */
@@ -854,6 +908,10 @@ class TradingViewChartRenderer {
     if (!series) {
       log.warn('Series not found:', seriesId);
       return;
+    }
+    data.forEach(point => this.injectOhlcItemColors(seriesId, point));
+    if (this.continuousSeriesIds.has(seriesId)) {
+      stampContinuousBarTimes(data);
     }
     series.setData(data as Parameters<typeof series.setData>[0]);
   }
@@ -868,6 +926,10 @@ class TradingViewChartRenderer {
     if (!series) {
       log.warn('Series not found for update:', seriesId);
       return;
+    }
+    this.injectOhlcItemColors(seriesId, point);
+    if (this.continuousSeriesIds.has(seriesId)) {
+      stampContinuousBarTimes([point]);
     }
     series.update(point as Parameters<typeof series.update>[0]);
   }

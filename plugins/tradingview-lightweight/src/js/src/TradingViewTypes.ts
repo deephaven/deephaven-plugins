@@ -110,6 +110,13 @@ export interface TvlTooltipOptions {
 export interface TvlSeriesConfig {
   id: string;
   type: 'Candlestick' | 'Bar' | 'Line' | 'Area' | 'Baseline' | 'Histogram';
+  /**
+   * Continuous (end-to-end) rendering for Histogram / Candlestick / Bar.
+   * When not false, these types render via a custom series whose bodies
+   * span their full time bin instead of the built-in fixed pixel width.
+   * Default true; ignored for other series types.
+   */
+  continuous?: boolean;
   options: Record<string, unknown>;
   dataMapping: {
     tableId: number;

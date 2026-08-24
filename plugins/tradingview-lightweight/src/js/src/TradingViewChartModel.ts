@@ -922,6 +922,7 @@ class TradingViewChartModel {
     const newSeries: TvlSeriesConfig = {
       id: `${template.id}_${keyStr}`,
       type: template.type,
+      continuous: template.continuous,
       options: { ...(template.options ?? {}), title: keyStr },
       dataMapping: {
         tableId: newTableId,

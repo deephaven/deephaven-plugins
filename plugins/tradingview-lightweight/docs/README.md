@@ -2,6 +2,9 @@
 
 Deephaven TradingView Lightweight Charts is a Python plotting plugin for Deephaven built on the [TradingView lightweight-charts](https://tradingview.github.io/lightweight-charts/) library. It is less general-purpose than `deephaven.plot.express`. The focus is financial charts and the layouts traders expect: candlesticks, bars, area / baseline / line series, histograms, multi-pane stacks, and yield curves. Viewport-aware downsampling and server-side autobinning keep render-time low on multi-million-row tables.
 
+> [!WARNING]
+> This library is in **beta**. Some features may be incomplete or subject to change.
+
 ## Quickstart
 
 Install via pip (or use a Docker image that already includes the plugin):

@@ -165,6 +165,17 @@ candlestick = tvl.candlestick(
 )
 ```
 
+### Time-proportional layout with `continuous`
+
+By default (`continuous=True`) candles are laid out proportionally in time. Unlike the [histogram](histogram.md#continuous-bars), candle bodies are **not** drawn end-to-end — they keep the classic proportions, with a small gap between adjacent candles — but sections of data separated by a time hole (a market close, a halted feed, missing rows) are separated by a proportional open gap. On data with no holes, `continuous=True` and `continuous=False` look the same. Set `continuous=False` to restore the plain ordinal layout, which collapses any time hole to a single candle-width step.
+
+```python order=candlestick,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.ohlc()
+
+candlestick = tvl.candlestick(data, continuous=False)
+```
+
 ### Per-bar colors from a column
 
 Drive each candle's color from a table column with `color_column` (body), `border_color_column` (outline), and `wick_color_column` (wick). Each names a column holding a CSS/theme color string per row. Here we color each bar by whether it closed up or down.

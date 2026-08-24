@@ -1,6 +1,7 @@
 import * as lwcModule from 'lightweight-charts';
 import type { TvlSeriesConfig } from '../TradingViewTypes';
 import TradingViewChartRenderer from '../TradingViewChartRenderer';
+import ContinuousBarsSeries from '../ContinuousBarsSeries';
 
 // The manual mock at src/__mocks__/lightweight-charts.js is loaded via
 // moduleNameMapper. Import the same module instance the renderer uses, then
@@ -89,7 +90,7 @@ describe('TradingViewChartRenderer', () => {
   });
 
   describe('configureSeries', () => {
-    it('should create a Candlestick series via addSeries', () => {
+    it('should create a Candlestick series via addCustomSeries (continuous default)', () => {
       const renderer = createRenderer();
       const configs: TvlSeriesConfig[] = [
         {
@@ -102,6 +103,28 @@ describe('TradingViewChartRenderer', () => {
 
       renderer.configureSeries(configs);
 
+      expect(mockChart.addSeries).not.toHaveBeenCalled();
+      expect(mockChart.addCustomSeries).toHaveBeenCalledTimes(1);
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
+        expect.objectContaining({ upColor: '#00FF00' }),
+        undefined
+      );
+    });
+
+    it('should create a built-in Candlestick series when continuous is false', () => {
+      const renderer = createRenderer();
+      renderer.configureSeries([
+        {
+          id: 'candle-1',
+          type: 'Candlestick',
+          continuous: false,
+          options: { upColor: '#00FF00' },
+          dataMapping: { tableId: 0, columns: { time: 'T' } },
+        },
+      ]);
+
+      expect(mockChart.addCustomSeries).not.toHaveBeenCalled();
       expect(mockChart.addSeries).toHaveBeenCalledTimes(1);
       expect(mockChart.addSeries).toHaveBeenCalledWith(
         lwc.CandlestickSeries,
@@ -110,7 +133,7 @@ describe('TradingViewChartRenderer', () => {
       );
     });
 
-    it('should create a Bar series via addSeries', () => {
+    it('should create a Bar series via addCustomSeries', () => {
       const renderer = createRenderer();
       renderer.configureSeries([
         {
@@ -120,8 +143,8 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.BarSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         {},
         undefined
       );
@@ -178,7 +201,7 @@ describe('TradingViewChartRenderer', () => {
       );
     });
 
-    it('should create a Histogram series via addSeries', () => {
+    it('should create a Histogram series via addCustomSeries', () => {
       const renderer = createRenderer();
       renderer.configureSeries([
         {
@@ -188,8 +211,8 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.HistogramSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         {},
         undefined
       );
@@ -233,7 +256,7 @@ describe('TradingViewChartRenderer', () => {
       ]);
       expect(mockChart.removeSeries).toHaveBeenCalledTimes(1);
       expect(mockChart.removeSeries).toHaveBeenCalledWith(mockSeriesInstance);
-      expect(mockChart.addSeries).toHaveBeenCalledTimes(2);
+      expect(mockChart.addCustomSeries).toHaveBeenCalledTimes(1);
     });
 
     it('should create multiple series at once', () => {
@@ -252,7 +275,8 @@ describe('TradingViewChartRenderer', () => {
           dataMapping: { tableId: 0, columns: { time: 'T' } },
         },
       ]);
-      expect(mockChart.addSeries).toHaveBeenCalledTimes(2);
+      expect(mockChart.addSeries).toHaveBeenCalledTimes(1);
+      expect(mockChart.addCustomSeries).toHaveBeenCalledTimes(1);
     });
 
     it('should apply price lines when configured', () => {
@@ -478,8 +502,8 @@ describe('TradingViewChartRenderer', () => {
         colorway
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.HistogramSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({ color: '#4878d0' }),
         undefined
       );
@@ -500,8 +524,8 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.CandlestickSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({
           upColor: '#26a69a',
           downColor: '#ef5350',
@@ -525,8 +549,8 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.CandlestickSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({
           borderUpColor: '#26a69a',
           borderDownColor: '#ef5350',
@@ -552,8 +576,8 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.CandlestickSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({
           borderUpColor: '#AAAAAA',
           borderDownColor: '#ef5350',
@@ -579,8 +603,8 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.CandlestickSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({
           upColor: '#00FF00',
           downColor: '#ef5350',
@@ -604,8 +628,8 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      expect(mockChart.addSeries).toHaveBeenCalledWith(
-        lwc.BarSeries,
+      expect(mockChart.addCustomSeries).toHaveBeenCalledWith(
+        expect.any(ContinuousBarsSeries),
         expect.objectContaining({
           upColor: '#26a69a',
           downColor: '#ef5350',
@@ -635,9 +659,10 @@ describe('TradingViewChartRenderer', () => {
         ohlcColors
       );
 
-      // Line series should get colorway[0], not colorway[1]
+      // Line series should get colorway[0], not colorway[1]. The candle is
+      // routed through addCustomSeries, so the line is the first addSeries.
       expect(mockChart.addSeries).toHaveBeenNthCalledWith(
-        2,
+        1,
         lwc.LineSeries,
         expect.objectContaining({ color: '#4878d0' }),
         undefined

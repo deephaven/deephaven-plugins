@@ -27,6 +27,7 @@ import type {
   TvlFigureData,
   ModelEvent,
 } from './TradingViewTypes';
+import { hasContinuousBarSeries } from './ContinuousBarsSeries';
 // Typed via src/declaration.d.ts (declare module '*.css?inline')
 import tvlStyles from './TradingViewChart.css?inline';
 
@@ -214,6 +215,15 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
    * Null means full range. Used to compute scaffold density ratio.
    */
   const lastDsRangeRef = useRef<[number, number] | null>(null);
+
+  /**
+   * Extent [min, max] currently covered by the non-resampled continuous
+   * scaffold. Rebuilding the scaffold re-spreads every whitespace slot, so
+   * per-tick rebuilds make the chart drift/zoom on its own; rebuilds are
+   * skipped while the data stays inside this coverage (which is padded
+   * forward on ticking updates to buy headroom).
+   */
+  const scaffoldCoverageRef = useRef<[number, number] | null>(null);
 
   /** True while the user is actively dragging (pointer down on chart). */
   const draggingRef = useRef(false);
@@ -407,7 +417,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
    */
   function updateScaffold(
     renderer: TradingViewChartRenderer,
-    model: TradingViewChartModel
+    model: TradingViewChartModel,
+    padForTicks = false
   ): void {
     if (!renderer.isScaffoldEnabled()) return;
 
@@ -448,6 +459,19 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
     if (dataMin >= dataMax) return;
 
+    // Non-resampled continuous scaffold: skip rebuilds while covered, and
+    // pad ticking rebuilds forward so appends don't force one per batch.
+    if (!model.isResampling()) {
+      const cov = scaffoldCoverageRef.current;
+      if (cov != null && dataMin >= cov[0] && dataMax <= cov[1]) return;
+      if (padForTicks) {
+        dataMax += Math.max(1, (dataMax - dataMin) * 0.05);
+      }
+      scaffoldCoverageRef.current = [dataMin, dataMax];
+    } else {
+      scaffoldCoverageRef.current = null;
+    }
+
     const totalDuration = dataMax - dataMin;
     const width = renderer.getTimeScaleWidth();
     const dsRange = lastDsRangeRef.current;
@@ -468,6 +492,25 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   }
 
   // ---- Series data helpers ----
+
+  /**
+   * Whether the chart needs the whitespace scaffold. Resampling always
+   * does; continuous bar series need it too (on standard time charts) so
+   * real time gaps render proportionally instead of collapsing to one
+   * ordinal step — no autobin required.
+   */
+  function shouldEnableScaffold(
+    renderer: TradingViewChartRenderer,
+    model: TradingViewChartModel
+  ): boolean {
+    if (model.isResampling()) return true;
+    const figure = model.getFigureData();
+    return (
+      figure != null &&
+      renderer.getChartType() === 'standard' &&
+      hasContinuousBarSeries(figure.series)
+    );
+  }
 
   function renderAllSeriesData(
     renderer: TradingViewChartRenderer,
@@ -523,13 +566,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         figure.series,
         getColorway(chartTheme),
         getOhlcColors(chartTheme),
-        model.isResampling()
+        shouldEnableScaffold(renderer, model)
       );
+      scaffoldCoverageRef.current = null;
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
       renderAllSeriesData(renderer, model, figure);
-      if (model.isResampling()) {
+      if (shouldEnableScaffold(renderer, model)) {
         updateScaffold(renderer, model);
       }
       renderer.fitContent();
@@ -550,13 +594,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         figure.series,
         getColorway(chartThemeRef.current),
         getOhlcColors(chartThemeRef.current),
-        model.isResampling()
+        shouldEnableScaffold(renderer, model)
       );
+      scaffoldCoverageRef.current = null;
       if (figure.paneStretchFactors) {
         renderer.applyPaneStretchFactors(figure.paneStretchFactors);
       }
       renderAllSeriesData(renderer, model, figure);
-      if (model.isResampling()) {
+      if (shouldEnableScaffold(renderer, model)) {
         updateScaffold(renderer, model);
       }
       renderer.fitContent();
@@ -687,8 +732,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       });
 
       // --- Update scaffold on data swap ---
-      if (isDownsampleSwap) {
-        updateScaffold(renderer, model);
+      // Non-resampled continuous charts have no swap events; their scaffold
+      // tracks the data extent (padded on ticks; rebuilt only when the data
+      // escapes coverage — see scaffoldCoverageRef).
+      if (
+        isDownsampleSwap ||
+        (!model.isResampling() && shouldEnableScaffold(renderer, model))
+      ) {
+        updateScaffold(renderer, model, !isInitialLoad);
       }
 
       // --- Viewport control ---

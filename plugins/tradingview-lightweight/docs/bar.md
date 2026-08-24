@@ -111,6 +111,17 @@ bar = tvl.bar(data, auto_bin=True, bin_width="P7D")
 
 See [autobin](autobin.md) for the full autobin surface: ISO-8601 duration grammar, when each `auto_bin` value is the right pick, and how the path interacts with the downsampler.
 
+### Time-proportional layout with `continuous`
+
+By default (`continuous=True`) bars are laid out proportionally in time. Unlike the [histogram](histogram.md#continuous-bars), the open/close ticks are **not** drawn end-to-end — each bar keeps the classic proportions, and the ticks of adjacent bars never touch — but sections of data separated by a time hole (a market close, a halted feed, missing rows) are separated by a proportional open gap. On data with no holes, `continuous=True` and `continuous=False` look the same. Set `continuous=False` to restore the plain ordinal layout, which collapses any time hole to a single bar-width step.
+
+```python order=bar,data
+import deephaven.plot.tradingview_lightweight as tvl
+data = tvl.data.ohlc()
+
+bar = tvl.bar(data, continuous=False)
+```
+
 ### Thin bars and hidden open ticks
 
 Two bar-specific styling options trim the visual weight of each bar. `thin_bars=True` renders each bar with a narrower body, which is useful on very dense intraday charts; `open_visible=False` hides the short left "open" tick so each bar shows only the range line plus the right "close" tick, a cleaner look when the open price is not the focus.

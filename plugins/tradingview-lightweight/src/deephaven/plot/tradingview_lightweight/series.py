@@ -81,6 +81,11 @@ class SeriesSpec:
         agg: Histogram-only per-bin aggregation: ``"sum"``,
             ``"count"``, ``"avg"``, or ``"last"``.  Set by the
             factory; not user-facing on non-histogram series.
+        continuous: Continuous (end-to-end) rendering for Histogram /
+            Candlestick / Bar series.  ``True`` (default) renders each
+            item's body spanning its full time bin via a custom
+            client-side series; ``False`` uses the built-in fixed
+            pixel-width renderer.  Ignored for other series types.
     """
 
     series_type: str  # "Candlestick", "Bar", "Line", "Area", "Baseline", "Histogram"
@@ -102,6 +107,11 @@ class SeriesSpec:
     bin_count: Optional[int] = None
     # Histogram-only aggregation mode: "sum" | "count" | "avg" | "last".
     agg: Optional[str] = None
+
+    # Continuous (end-to-end) rendering for Histogram/Candlestick/Bar.
+    # True (default) = custom client series with bin-spanning bodies;
+    # False = built-in fixed pixel-width renderer.
+    continuous: bool = True
 
     # ---- Partition-by-key (`by=`) ----
     # When set, the source table is partitioned by this column and one
@@ -141,6 +151,8 @@ class SeriesSpec:
                 "columns": self.column_mapping,
             },
         }
+        if self.series_type in ("Histogram", "Candlestick", "Bar"):
+            result["continuous"] = self.continuous
         if self.markers:
             result["markers"] = [m.to_dict() for m in self.markers]
         if self.price_lines:
@@ -269,6 +281,7 @@ def candlestick_series(
     auto_bin: Optional[bool] = None,
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create a candlestick series specification.
 
@@ -331,6 +344,9 @@ def candlestick_series(
             ``"PT1S"``, ``"PT5M"``).
         bin_count (Optional[int]): Target number of bins (default
             ``5000``).
+        continuous (bool): ``True`` (default) renders candle bodies
+            spanning their full time bin (end-to-end); ``False`` uses
+            the built-in fixed pixel-width renderer.
 
     Returns:
         SeriesSpec: A series specification suitable for passing to
@@ -400,6 +416,7 @@ def candlestick_series(
         bin_width=bin_width,
         bin_count=bin_count,
         agg="ohlc",
+        continuous=continuous,
     )
 
 
@@ -430,6 +447,7 @@ def bar_series(
     auto_bin: Optional[bool] = None,
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create a bar (OHLC) series specification.
 
@@ -473,6 +491,9 @@ def bar_series(
             :func:`candlestick_series` for full semantics.
         bin_width (Optional[str]): ISO 8601 duration override.
         bin_count (Optional[int]): Target number of bins.
+        continuous (bool): ``True`` (default) renders bars spanning
+            their full time bin (end-to-end); ``False`` uses the
+            built-in fixed pixel-width renderer.
 
     Returns:
         SeriesSpec: A bar-series specification.
@@ -525,6 +546,7 @@ def bar_series(
         bin_width=bin_width,
         bin_count=bin_count,
         agg="ohlc",
+        continuous=continuous,
     )
 
 
@@ -990,6 +1012,7 @@ def histogram_series(
     bin_width: Optional[str] = None,
     bin_count: Optional[int] = None,
     agg: str = "sum",
+    continuous: bool = True,
 ) -> SeriesSpec:
     """Create a histogram series specification.
 
@@ -1034,6 +1057,10 @@ def histogram_series(
             initial aggregation (default ``5000``).
         agg (str): Per-bin reduction for the value column.  One of
             ``"sum"`` (default), ``"count"``, ``"avg"``, ``"last"``.
+        continuous (bool): ``True`` (default) renders bars spanning
+            their full time bin (end-to-end, no gaps between adjacent
+            bins); ``False`` uses the built-in fixed pixel-width
+            renderer.
 
     Returns:
         SeriesSpec: A histogram-series specification.
@@ -1084,4 +1111,5 @@ def histogram_series(
         bin_width=bin_width,
         bin_count=bin_count,
         agg=agg,
+        continuous=continuous,
     )
