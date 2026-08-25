@@ -239,6 +239,14 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
    */
   const userInteractedRef = useRef(false);
 
+  /**
+   * True once the fonts-ready label re-measure flush (and its re-fit) has
+   * run — or was determined unnecessary. Until then the price-axis width
+   * may still change by ~1px when the web font lands, so screenshots taken
+   * earlier race the flush: `quiescent` holds false until this flips.
+   */
+  const fontsFlushedRef = useRef(false);
+
   /** Cleanup for downsample subscriptions. */
   const dsCleanupRef = useRef<(() => void) | null>(null);
 
@@ -335,7 +343,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // tests/utils.ts). NOTE: a wheel/pan gesture only schedules its
       // resample after a 200ms debounce, so consumers must require the flag
       // to hold, not just appear once.
-      quiescent: model.isQuiescent(),
+      quiescent: model.isQuiescent() && fontsFlushedRef.current,
     });
   }
 
@@ -487,15 +495,23 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     const dsRange = lastDsRangeRef.current;
 
     let count: number;
-    if (dsRange != null) {
-      // Zoomed: scale density so body region gets ~width*2 points,
-      // and the full extent (including head/tail) is proportionally dense
-      const bodyDuration = Math.max(1, dsRange[1] - dsRange[0]);
-      const ratio = totalDuration / bodyDuration;
-      count = Math.min(30000, Math.max(1000, Math.ceil(width * 2 * ratio)));
+    if (model.isResampling()) {
+      if (dsRange != null) {
+        // Zoomed: scale density so body region gets ~width*2 points,
+        // and the full extent (including head/tail) is proportionally dense
+        const bodyDuration = Math.max(1, dsRange[1] - dsRange[0]);
+        const ratio = totalDuration / bodyDuration;
+        count = Math.min(30000, Math.max(1000, Math.ceil(width * 2 * ratio)));
+      } else {
+        // Full range: no head/tail, just need body density
+        count = Math.min(30000, Math.max(1000, width * 2));
+      }
     } else {
-      // Full range: no head/tail, just need body density
-      count = Math.min(30000, Math.max(1000, width * 2));
+      // Non-resampled continuous axis: FIXED density, never width-derived.
+      // This runs on the first data batch, which races panel layout — a
+      // width-dependent count differs run-to-run (layout may or may not
+      // have settled), shifting every bar sub-pixel: flaky screenshots.
+      count = 2000;
     }
 
     renderer.setScaffoldData(dataMin, dataMax, count);
@@ -1098,6 +1114,18 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         priceToCoordinate: (seriesId: string, p: number) =>
           renderer.priceToCoordinate(seriesId, p),
         getSeriesIds: () => renderer.getSeriesIds(),
+        // Pin both price scales to a fixed width. Firefox headless canvas
+        // measureText jitters ~2px on the price labels, which resizes the
+        // pane and shifts every bar run-to-run; a fixed axis width removes
+        // text measurement from the layout so screenshots are deterministic.
+        // Test-only seam — real charts never call this, so their axes still
+        // auto-size to content.
+        pinPriceScales: (width: number) => {
+          renderer.getChart().applyOptions({
+            leftPriceScale: { minimumWidth: width },
+            rightPriceScale: { minimumWidth: width },
+          });
+        },
         // Resolved lightweight-charts options — lets tests assert the chart
         // actually received the themed fontFamily etc. (see font-race notes).
         getChartOptions: () => renderer.getChart().options(),
@@ -1158,8 +1186,67 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       // calls run in one task — the cache-reset check runs lazily at render
       // and never observes the intermediate value.)
       if (typeof document !== 'undefined' && document.fonts?.ready != null) {
+        // fonts.ready + a fixed delay is NOT sufficient on firefox: canvas
+        // measureText can keep returning fallback-face metrics for a while
+        // after the FontFaceSet settles — and fallback metrics are just as
+        // "stable" as real ones, so consecutive-equal-reads can certify the
+        // wrong font. The reliable canvas-level signal is divergence from
+        // the pure fallback: while the custom face is unusable,
+        // `"<face>", serif` and `serif` measure identically; the moment the
+        // face lands in canvas they differ. Poll for that divergence
+        // (bounded) before flushing.
+        const probeFontStable = (onStable: () => void): void => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const chart = rendererRef.current?.getChart();
+          if (ctx == null || chart == null) {
+            onStable();
+            return;
+          }
+          let fontFamily = '';
+          try {
+            fontFamily = (chart.options() as { layout: { fontFamily: string } })
+              .layout.fontFamily;
+          } catch {
+            // fall through
+          }
+          const first = fontFamily
+            .split(',')[0]
+            ?.trim()
+            .replace(/^['"]|['"]$/g, '');
+          if (
+            first == null ||
+            first === '' ||
+            /^(serif|sans-serif|monospace|system-ui|ui-sans-serif)$/i.test(
+              first
+            )
+          ) {
+            // Generic family: nothing to load, nothing to race.
+            onStable();
+            return;
+          }
+          const PROBE = '0123456789.00';
+          const widthWith = (font: string): number => {
+            ctx.font = font;
+            return ctx.measureText(PROBE).width;
+          };
+          let attempts = 0;
+          const tick = (): void => {
+            if (cancelled) return;
+            attempts += 1;
+            const custom = widthWith(`11px "${first}", serif`);
+            const fallback = widthWith('11px serif');
+            if (custom !== fallback || attempts >= 50) {
+              onStable(); // divergence = face usable; or give up after ~5s
+              return;
+            }
+            setTimeout(tick, 100);
+          };
+          tick();
+        };
+
         document.fonts.ready.then(() => {
-          setTimeout(() => {
+          probeFontStable(() => {
             if (cancelled) return;
             const chart = rendererRef.current?.getChart();
             if (chart == null) return;
@@ -1179,8 +1266,17 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
             } catch {
               // chart may already be disposed
             }
-          }, 100);
+            // Only now is the layout font-stable: unblock `quiescent` and
+            // refresh the DOM seam so pollers see it without another event.
+            fontsFlushedRef.current = true;
+            containerRef.current?.setAttribute(
+              'data-tvl-state',
+              buildStateJson(modelRef.current, rendererRef.current)
+            );
+          });
         });
+      } else {
+        fontsFlushedRef.current = true;
       }
 
       try {

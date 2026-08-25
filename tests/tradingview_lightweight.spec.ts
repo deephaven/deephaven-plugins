@@ -25,6 +25,28 @@ const tvlChart = (page: import('@playwright/test').Page) =>
 // comparison.
 const SCREENSHOT_OPTIONS = { maxDiffPixels: 25 } as const;
 
+// Settle before capturing: `quiescent` (data-tvl-state) also holds false
+// until the chart's fonts-ready layout flush has run — without the wait,
+// whether a screenshot lands before or after that flush is a run-to-run
+// race worth ~1px of price-axis width (slowest on firefox).
+async function expectChartScreenshot(
+  page: import('@playwright/test').Page
+): Promise<void> {
+  await waitForTvlSettled(page);
+  // Pin the price-axis width. Firefox headless canvas measureText returns a
+  // ~2px-bistable width for the price labels even after the font loads; the
+  // axis auto-sizes to that, resizing the pane and shifting every bar
+  // run-to-run. A fixed width removes text measurement from the layout, so
+  // the settled positions are a pure function of the chart's pixel size.
+  // Test-only (via __tvlTestHook); the product default still auto-sizes.
+  await page.evaluate(() => {
+    // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-explicit-any
+    (window as any).__tvlTestHook?.pinPriceScales?.(120);
+  });
+  await waitForTvlSettled(page);
+  await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+}
+
 // --------------------------------------------------------------------------
 // Single-series convenience function charts
 // --------------------------------------------------------------------------
@@ -33,37 +55,37 @@ test.describe('TradingView Lightweight - Single Series', () => {
   test('Candlestick chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Bar chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_bar');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Line chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_line');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Area chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_area');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Baseline chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_baseline');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Histogram chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_histogram');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -75,19 +97,19 @@ test.describe('TradingView Lightweight - Styled Charts', () => {
   test('Candlestick with custom colors loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_styled');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Line chart with custom grid loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_line_custom_grid');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Area chart with watermark loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_area_watermark');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -99,13 +121,13 @@ test.describe('TradingView Lightweight - Annotations', () => {
   test('Candlestick with price lines loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Candlestick with markers loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_markers');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -117,31 +139,31 @@ test.describe('TradingView Lightweight - Multi-Series', () => {
   test('Candlestick with SMA overlay loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_with_sma');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Candlestick with volume histogram loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_candlestick_with_volume');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Dual line series overlay loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_dual_line');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Full trading dashboard loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_full_dashboard');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Two price scales loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_two_price_scales');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -153,13 +175,13 @@ test.describe('TradingView Lightweight - Panes', () => {
   test('Two-pane chart with candlestick and volume loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_panes_basic');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Three-pane chart with custom separators loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_panes_three');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -171,13 +193,13 @@ test.describe('TradingView Lightweight - Yield Curve', () => {
   test('Yield curve line chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_yield_curve');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Yield curve area chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_yield_curve_area');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -189,13 +211,13 @@ test.describe('TradingView Lightweight - Options Chart', () => {
   test('Single series options chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_options_single');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Multi-series options chart loads', async ({ page }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_options_multi');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -209,7 +231,7 @@ test.describe('TradingView Lightweight - Dynamic Price Lines', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_dynamic_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Candlestick with mixed static and dynamic price lines loads', async ({
@@ -217,7 +239,7 @@ test.describe('TradingView Lightweight - Dynamic Price Lines', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_mixed_price_lines');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
@@ -231,7 +253,7 @@ test.describe('TradingView Lightweight - Table-Driven Markers', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_table_markers');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 
   test('Candlestick with table-driven markers (fixed styling) loads', async ({
@@ -239,7 +261,7 @@ test.describe('TradingView Lightweight - Table-Driven Markers', () => {
   }) => {
     await gotoPage(page, '');
     await openPanel(page, 'tvl_table_markers_fixed');
-    await expect(tvlChart(page)).toHaveScreenshot(SCREENSHOT_OPTIONS);
+    await expectChartScreenshot(page);
   });
 });
 
