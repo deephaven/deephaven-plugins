@@ -501,6 +501,19 @@ class TradingViewChartModel {
   }
 
   /**
+   * Whether any table on the chart is live (ticking). Static charts get
+   * deterministic layout (exact scaffold extents); live charts get tick
+   * headroom instead.
+   */
+  hasRefreshingTables(): boolean {
+    let refreshing = false;
+    this.tables.forEach(table => {
+      if (table?.isRefreshing === true) refreshing = true;
+    });
+    return refreshing;
+  }
+
+  /**
    * True when nothing is in flight server-side on this chart's behalf: no
    * resample pending or queued, no retirement draining, and every active
    * subscription has delivered its initial snapshot.

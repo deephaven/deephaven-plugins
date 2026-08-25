@@ -420,8 +420,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
    */
   function updateScaffold(
     renderer: TradingViewChartRenderer,
-    model: TradingViewChartModel,
-    padForTicks = false
+    model: TradingViewChartModel
   ): void {
     if (!renderer.isScaffoldEnabled()) return;
 
@@ -462,13 +461,21 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
     if (dataMin >= dataMax) return;
 
-    // Non-resampled continuous scaffold: skip rebuilds while covered, and
-    // pad ticking rebuilds forward so appends don't force one per batch.
+    // Non-resampled continuous scaffold. Live (refreshing) charts pad the
+    // right edge and skip rebuilds while covered, so appends don't force a
+    // full whitespace re-spread per batch. Static charts must NOT pad or
+    // approximate: batch arrival order varies run-to-run (isInitialLoad is
+    // consumed by whichever table lands first), and any order-dependent
+    // extent shifts the whole layout — flaky screenshot tests. Rebuilding
+    // to the exact extent makes the settled layout a pure function of the
+    // data, whatever the arrival order.
     if (!model.isResampling()) {
       const cov = scaffoldCoverageRef.current;
-      if (cov != null && dataMin >= cov[0] && dataMax <= cov[1]) return;
-      if (padForTicks) {
+      if (model.hasRefreshingTables()) {
+        if (cov != null && dataMin >= cov[0] && dataMax <= cov[1]) return;
         dataMax += Math.max(1, (dataMax - dataMin) * 0.05);
+      } else if (cov != null && dataMin === cov[0] && dataMax === cov[1]) {
+        return;
       }
       scaffoldCoverageRef.current = [dataMin, dataMax];
     } else {
@@ -744,7 +751,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         isDownsampleSwap ||
         (!model.isResampling() && shouldEnableScaffold(renderer, model))
       ) {
-        updateScaffold(renderer, model, !isInitialLoad);
+        updateScaffold(renderer, model);
       }
 
       // --- Viewport control ---
