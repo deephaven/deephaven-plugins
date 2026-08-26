@@ -50,6 +50,20 @@ async function expectHeaderHidden(
   await expect(tab).toBeHidden();
 }
 
+/**
+ * Asserts the panel tab for the given title is displayed.
+ * @param scope The page or locator to search within
+ * @param title The panel title
+ */
+async function expectHeaderVisible(
+  scope: Page | Locator,
+  title: string
+): Promise<void> {
+  const tab = panelTab(scope, title);
+  await expect(tab).toHaveCount(1);
+  await expect(tab).toBeVisible();
+}
+
 test.describe('Dashboard headers', () => {
   test('shows panel headers by default', async ({ page }) => {
     await gotoPage(page, '');
@@ -58,8 +72,8 @@ test.describe('Dashboard headers', () => {
     await expect(page.getByText('Content shown alpha')).toBeVisible();
     await expect(page.getByText('Content shown beta')).toBeVisible();
 
-    await expect(panelTab(page, 'Shown Alpha')).toBeVisible();
-    await expect(panelTab(page, 'Shown Beta')).toBeVisible();
+    await expectHeaderVisible(page, 'Shown Alpha');
+    await expectHeaderVisible(page, 'Shown Beta');
   });
 
   test('hides panel headers when show_headers is False', async ({ page }) => {
@@ -89,7 +103,7 @@ test.describe('Dashboard headers', () => {
     await expectHeaderHidden(page, 'Wrapper Hidden');
 
     // The nested dashboard opts back in to headers
-    await expect(panelTab(nested, 'Inner Shown')).toBeVisible();
+    await expectHeaderVisible(nested, 'Inner Shown');
   });
 
   test('nested dashboard hides its headers inside a dashboard with headers', async ({
@@ -102,8 +116,8 @@ test.describe('Dashboard headers', () => {
     await expect(page.getByText('Content outer shown')).toBeVisible();
     await expect(nested.getByText('Content inner hidden')).toBeVisible();
 
-    await expect(panelTab(page, 'Outer Shown')).toBeVisible();
-    await expect(panelTab(page, 'Wrapper Shown')).toBeVisible();
+    await expectHeaderVisible(page, 'Outer Shown');
+    await expectHeaderVisible(page, 'Wrapper Shown');
 
     await expectHeaderHidden(nested, 'Inner Hidden');
   });
@@ -121,6 +135,6 @@ test.describe('Dashboard headers', () => {
     await expectHeaderHidden(page, 'Outer Default');
     await expectHeaderHidden(page, 'Wrapper Default');
 
-    await expect(panelTab(nested, 'Inner Default')).toBeVisible();
+    await expectHeaderVisible(nested, 'Inner Default');
   });
 });

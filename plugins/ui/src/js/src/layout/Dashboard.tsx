@@ -25,7 +25,7 @@ function Dashboard({
   const isNested = contextPanelId != null || reactPanelId != null;
 
   // We need to make sure the headers are showing in the top-level dashboard if we're not nested and the showHeaders prop is set
-  const { showHeaders } = otherProps;
+  const { showHeaders = true } = otherProps;
   useEffect(() => {
     if (isNested) {
       return;
