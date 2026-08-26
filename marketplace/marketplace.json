@@ -118,6 +118,19 @@
       "tags": ["audio", "tables", "python"]
     },
     {
+      "name": "Notification",
+      "description": "A deephaven.ui plugin that raises OS-level system notifications from Python, with a toast fallback when notifications are unavailable.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-notification",
+      "image": "/marketplace/images/notification.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-notification",
+        "url": "https://pypi.org/project/deephaven-plugin-notification/"
+      },
+      "tags": ["notifications", "ui", "python"]
+    },
+    {
       "name": "Notebook",
       "description": "An experimental plugin that creates and embeds simple Jupyter notebooks within Deephaven.",
       "author": "jnumainville",
