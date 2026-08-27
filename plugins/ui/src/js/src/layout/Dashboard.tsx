@@ -30,15 +30,11 @@ function Dashboard({
     if (isNested) {
       return;
     }
-    const hasHeaders = layoutManager?.config?.settings?.hasHeaders;
-    if (showHeaders === true) {
-      if (hasHeaders === false) {
-        layoutManager?.enableHeaders();
-      }
-    } else if (showHeaders === false) {
-      if (hasHeaders === true) {
-        layoutManager?.disableHeaders();
-      }
+    const hasHeaders = layoutManager?.config?.settings?.hasHeaders ?? true;
+    if (showHeaders && !hasHeaders) {
+      layoutManager?.enableHeaders();
+    } else if (!showHeaders && hasHeaders) {
+      layoutManager?.disableHeaders();
     }
   }, [isNested, layoutManager, showHeaders]);
 
