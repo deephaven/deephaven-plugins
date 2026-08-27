@@ -1,12 +1,12 @@
 import abc
 import logging
 from functools import partial
-from typing import Callable, ContextManager, Type
+from typing import Callable, ContextManager, Optional, Type
 import importlib.resources
 import json
 import pathlib
 import sys
-from deephaven.plugin.js import JsPlugin
+from deephaven.plugin.js import JsPlugin, JsonValue
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +20,13 @@ class CommonJsPlugin(JsPlugin):
         version: str,
         main: str,
         path: pathlib.Path,
+        loader: Optional[JsonValue] = None,
     ) -> None:
         self._name = name
         self._version = version
         self._main = main
         self._path = path
+        self._loader = loader
 
     @property
     def name(self) -> str:
@@ -37,6 +39,10 @@ class CommonJsPlugin(JsPlugin):
     @property
     def main(self) -> str:
         return self._main
+
+    @property
+    def loader(self) -> Optional[JsonValue]:
+        return self._loader
 
     def path(self) -> pathlib.Path:
         return self._path
@@ -54,7 +60,7 @@ def is_enterprise_environment() -> bool:
 
 
 def _create_from_npm_package_json(
-    path_provider: Callable[[], ContextManager[pathlib.Path]]
+    path_provider: Callable[[], ContextManager[pathlib.Path]],
 ) -> JsPlugin:
     """
     Create a JsPlugin from an npm package.json file.
@@ -78,6 +84,7 @@ def _create_from_npm_package_json(
         package_json["version"],
         package_json["main"],
         js_path,
+        package_json.get("loader"),
     )
 
 
