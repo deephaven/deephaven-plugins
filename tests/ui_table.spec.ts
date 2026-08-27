@@ -63,13 +63,34 @@ test('UI table responds to prop changes', async ({ page }) => {
 
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
+  // Wait for the grid to paint its data so the screenshot isn't of a blank grid
+  await waitForGridRender(locator);
+
   await expect(locator).toHaveScreenshot();
 
+  // Each toggle round-trips to the server, and the buttons are inside the
+  // screenshot region. Wait for the button to relabel itself before shooting:
+  // the label and the table's new props arrive in the same render, so a
+  // relabelled button means the toggle landed. Without this, a screenshot can
+  // stabilize on the pre-click frame -- harmless when comparing against a
+  // baseline (the mismatch just retries) but silently baked in by
+  // --update-snapshots, which has nothing to compare against.
   await locator.getByRole('button', { name: 'formatting' }).click();
+  await expect(
+    locator.getByRole('button', { name: 'Turn formatting on' })
+  ).toBeVisible();
   await expect(locator).toHaveScreenshot();
+
   await locator.getByRole('button', { name: 'databars' }).click();
+  await expect(
+    locator.getByRole('button', { name: 'Turn databars on' })
+  ).toBeVisible();
   await expect(locator).toHaveScreenshot();
+
   await locator.getByRole('button', { name: 'case' }).click();
+  await expect(
+    locator.getByRole('button', { name: 'Original case' })
+  ).toBeVisible();
   await expect(locator).toHaveScreenshot();
 });
 
