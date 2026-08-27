@@ -3,6 +3,13 @@
 COMPOSE_FILE=$1
 shift
 
+# Pass host UID/GID into compose so the docs error-reporter service can
+# chown the docs/snapshots dirs back to the calling user after the
+# (root-running) salmon snapshotter / image-snapshotter have written into
+# them. Files would otherwise be root-owned and uneditable on the host.
+export SNAPSHOT_UID="${SNAPSHOT_UID:-$(id -u)}"
+export SNAPSHOT_GID="${SNAPSHOT_GID:-$(id -g)}"
+
 # Start the containers
 if [[ "${CI}" == "1" || "${CI}" == "true" ]]; then
   # In CI, keep the container in case we need to dump logs in another
@@ -14,6 +21,11 @@ if [[ "${CI}" == "1" || "${CI}" == "true" ]]; then
 else
   docker compose -f "${COMPOSE_FILE}" run --service-ports --rm --build "$@"
   exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    # Dump server logs before down removes the container, so startup
+    # failures (e.g. an app.d script error) are visible locally.
+    docker compose -f "${COMPOSE_FILE}" logs deephaven-plugins 2>/dev/null | tail -50 || true
+  fi
   docker compose -f "${COMPOSE_FILE}" down
 fi
 

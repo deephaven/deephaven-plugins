@@ -8,6 +8,11 @@ services:
       - 10000
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
+      # Force tvl.data / dx.data into static mode so docs snapshots are
+      # reproducible AND so doc blocks that chain `.update(["X = (double)ii"])`
+      # onto a generator output don't blow up on the refreshing-formula check
+      # (the merged static+time_table isn't classified as append-only).
+      - DEEPHAVEN_PLUGINS_STATIC_DATA=1
 
 networks:
   default:

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://raw.githubusercontent.com/deephaven/salmon-sync/refs/heads/main/sidebar.schema.json",
+  "config": {
+    "name": "Deephaven TradingView Lightweight Docs"
+  },
+  "sidebars": {
+    "main": [
+      {
+        "label": "Introduction",
+        "path": "README.md"
+      },
+      {
+        "label": "Chart Types",
+        "collapsible": false,
+        "items": [
+          {
+            "label": "Area",
+            "path": "area.md"
+          },
+          {
+            "label": "Bar",
+            "path": "bar.md"
+          },
+          {
+            "label": "Baseline",
+            "path": "baseline.md"
+          },
+          {
+            "label": "Candlestick",
+            "path": "candlestick.md"
+          },
+          {
+            "label": "Custom Numeric",
+            "path": "custom-numeric.md"
+          },
+          {
+            "label": "Histogram",
+            "path": "histogram.md"
+          },
+          {
+            "label": "Line",
+            "path": "line.md"
+          },
+          {
+            "label": "Options Chart",
+            "path": "options-chart.md"
+          },
+          {
+            "label": "Yield Curve",
+            "path": "yield-curve.md"
+          }
+        ]
+      },
+      {
+        "label": "Configuration",
+        "collapsible": false,
+        "items": [
+          {
+            "label": "Chart container",
+            "path": "chart.md"
+          },
+          {
+            "label": "Compose",
+            "items": [
+              {
+                "label": "Multiple series",
+                "path": "multi-series.md"
+              },
+              {
+                "label": "Multiple panes",
+                "path": "multi-pane.md"
+              },
+              {
+                "label": "Multiple axes",
+                "path": "multiple-axes.md"
+              }
+            ]
+          },
+          {
+            "label": "Annotate",
+            "items": [
+              {
+                "label": "Titles and legends",
+                "path": "titles-legends.md"
+              },
+              {
+                "label": "Markers",
+                "path": "markers.md"
+              },
+              {
+                "label": "Price lines",
+                "path": "price-lines.md"
+              },
+              {
+                "label": "Watermark",
+                "path": "watermark.md"
+              }
+            ]
+          },
+          {
+            "label": "Style",
+            "items": [
+              {
+                "label": "Styling",
+                "path": "styling.md"
+              },
+              {
+                "label": "Time scale",
+                "path": "time-scale.md"
+              },
+              {
+                "label": "Price scale",
+                "path": "price-scale.md"
+              },
+              {
+                "label": "Price formats",
+                "path": "price-formats.md"
+              }
+            ]
+          },
+          {
+            "label": "Interact",
+            "items": [
+              {
+                "label": "Press events",
+                "path": "events.md"
+              },
+              {
+                "label": "Tracking tooltip",
+                "path": "tooltip.md"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Concepts",
+        "items": [
+          {
+            "label": "Downsampling",
+            "path": "downsampling.md"
+          },
+          {
+            "label": "Autobin",
+            "path": "autobin.md"
+          },
+          {
+            "label": "Large Data",
+            "path": "large-data.md"
+          }
+        ]
+      },
+      {
+        "label": "Example Data",
+        "path": "example-data.md"
+      }
+    ]
+  }
+}

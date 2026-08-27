@@ -1,0 +1,43 @@
+# Pass 2 (image-snapshotter) test server. Plugin-agnostic.
+#
+# Reuses the python-server image already built by salmon's Pass 1
+# (../python/docker-compose.yml). The only differences vs. that compose:
+#
+#   - We mount a generated app.d directory at /app.d so the docs examples
+#     are pre-loaded as Deephaven panels (the Pass 2 server is otherwise
+#     headless — no code is ever sent over the console).
+#   - START_OPTS adds -Ddeephaven.application.dir=/app.d to enable app
+#     mode against that directory.
+#   - DEEPHAVEN_PLUGINS_STATIC_DATA=1 forces tvl.data / dx.data into
+#     static mode so screenshots are deterministic.
+#
+# image-snapshotter's entrypoint sets PASS2_APPD_HOST_PATH to the host
+# filesystem path of the generated app.d (bind mounts traverse the host
+# because the docker socket is the host's). The `:?` makes compose fail
+# fast if the entrypoint forgot to export it.
+#
+# SNAPSHOTTER_SERVER_CONTAINER lets parallel plugin invocations produce
+# unique container names. Serial Pass 2 invocations (the default
+# docs-snapshots compose flow) can rely on the default.
+#
+# The image tag matches what `docker/python/docker-compose.yml` builds —
+# `image: python-server:latest` rather than a `build:` block because Pass 1
+# always runs first and produces the image. On a clean run with Pass 1
+# skipped the image won't exist locally and `up` will fail; that's the
+# documented contract.
+services:
+  server:
+    image: python-server:latest
+    container_name: ${SNAPSHOTTER_SERVER_CONTAINER:-deephaven-snapshotter-server}
+    expose:
+      - 10000
+    environment:
+      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python -Ddeephaven.application.dir=/app.d
+      - DEEPHAVEN_PLUGINS_STATIC_DATA=1
+    volumes:
+      - ${PASS2_APPD_HOST_PATH:?PASS2_APPD_HOST_PATH must be set}:/app.d:ro
+
+networks:
+  default:
+    name: deephaven-plugins-docs-snapshot-network
+    external: true

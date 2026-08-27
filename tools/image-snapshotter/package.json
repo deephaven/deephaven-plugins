@@ -1,0 +1,29 @@
+{
+  "name": "@deephaven/image-snapshotter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pass 2 docs image snapshotter. Walks a plugin's docs/*.md, captures widget PNGs via Playwright, and writes salmon-compatible JSON envelopes. Plugin-agnostic: the target selector, widget type, fixture app id, and server container name come from the SNAPSHOTTER_* env vars.",
+  "bin": {
+    "image-snapshotter": "./dist/cli.js",
+    "image-snapshotter-fixture-gen": "./dist/generate-fixtures-cli.js",
+    "image-snapshotter-validate-assets": "./dist/validate-assets-cli.js"
+  },
+  "main": "./dist/cli.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@playwright/test": "1.44.1",
+    "glob": "^10.4.5",
+    "mdast-util-from-markdown": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

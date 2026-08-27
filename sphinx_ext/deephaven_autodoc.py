@@ -40,6 +40,7 @@ class SignatureData(TypedDict):
     module_name: str
     name: str
     description: NotRequired[str]
+    Raises: NotRequired[SignatureValue]
 
 
 SignatureValue = Union[str, Params]
@@ -319,6 +320,11 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     return SignatureData(**result)
 
 
+def _escape_mdx_braces(text: str) -> str:
+    """Escape ``{`` / ``}`` so MDX doesn't try to acorn-parse them as JSX."""
+    return text.replace("{", "&#123;").replace("}", "&#125;")
+
+
 def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
     """
     Convert the provided description node to a node that is a mdx component
@@ -335,13 +341,42 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
     return_description = result.pop("return_description")
     return_type = result.pop("return_type")
     description = result.pop("description")
+    # Raises also has to come out: a multi-line ``:raises:`` docstring leaves
+    # ``<br />`` markers in the value, and the post-processor rewrites those
+    # back to literal newlines that acorn can't parse inside the JSX
+    # expression. Render it as its own bolded run instead.
+    raises = result.pop("Raises", None)
 
     dat = json.dumps(result)
+
+    # MDX 3 treats ``{`` as the start of a JSX expression. Freeform docstring
+    # runs frequently contain literal curly braces (dict-shape ``Returns:``
+    # blurbs, JS-ish examples), so escape them for any prose we splice
+    # directly into the markdown.
+    description = _escape_mdx_braces(description)
+    return_description = _escape_mdx_braces(return_description)
+
+    if isinstance(raises, list):
+        # bullet-list :raises: with multiple entries
+        raises_text = "<br />".join(
+            f"{p['name']} ({p['type']}) -- {p['description']}"
+            if p.get("type")
+            else f"{p['name']} -- {p['description']}"
+            for p in raises
+        )
+    elif raises:
+        raises_text = raises
+    else:
+        raises_text = ""
+    raises_text = _escape_mdx_braces(raises_text) if raises_text else ""
+
+    raises_md = rf"**Raises:** {raises_text}<br /><br />" if raises_text else ""
 
     autofunction_markdown = (
         f"{AUTOFUNCTION_COMMENT_PREFIX}"
         rf"{description}<br /><br />"
         rf"**Returns:** `{return_type}` {return_description}<br /><br />"
+        f"{raises_md}"
         rf"<ParamTable param={{{dat}}} />"
     )
 
