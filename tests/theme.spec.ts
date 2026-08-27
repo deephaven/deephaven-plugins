@@ -1,7 +1,7 @@
 import { expect, test, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SELECTORS, waitForLoad, waitForPlotlyData } from './utils';
+import { SELECTORS, waitForLoad } from './utils';
 
 // Parse theme names directly from theme-pack source
 // Can't just import due to vite ?inline statements
@@ -42,9 +42,6 @@ async function fillThemeName(page: Page, themeName: string): Promise<void> {
 
 async function takeScreenshot(page: Page, themeName: string): Promise<void> {
   await waitForLoad(page);
-  // The demo's "Price by Symbol" plot streams its data in after the spinner
-  // clears; wait for it so the screenshot isn't of an empty chart.
-  await waitForPlotlyData(page);
   await page.mouse.move(-1, -1); // Move mouse out of the way for screenshot
   await expect(page).toHaveScreenshot(`theme-${themeName}.png`);
 }

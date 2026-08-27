@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
@@ -32,31 +32,17 @@ function useDebouncedOnChange<T, P = T>(
     setValue(propValue);
   }
 
-  // The server hands down a NEW propOnChange callable on every re-render —
-  // including the re-render its own previous onChange caused. Because
-  // useDebouncedCallback cancels its pending trailing call whenever the
-  // callback identity changes, keying the debounce on propOnChange silently
-  // drops whatever the user typed while a round trip was in flight (e.g.
-  // type "world" fast: "wor" fires, the re-render lands, and the trailing
-  // "world" call is cancelled — the final keystrokes never reach Python).
-  // Keep ONE stable debounced instance and resolve the latest callable at
-  // fire time instead.
-  const propOnChangeRef = useRef(propOnChange);
-  useEffect(() => {
-    propOnChangeRef.current = propOnChange;
-  }, [propOnChange]);
-
   const propDebouncedOnChange = useCallback(
     async (newValue: T) => {
       try {
-        await propOnChangeRef.current?.(newValue);
+        await propOnChange?.(newValue);
       } catch (e) {
         log.warn('Error returned from onChange', e);
       }
       setPending(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [propOnChange]
   );
 
   const debouncedOnChange = useDebouncedCallback(

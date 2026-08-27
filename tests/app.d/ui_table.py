@@ -447,7 +447,7 @@ t_programmatic_sort_asc = ui.table(
 
 t_programmatic_sort_abs_desc = ui.table(
     _programmatic_sort_data,
-    sorts=ui.TableSort(column="SepalLength", direction="DESC", is_abs=True),
+    sorts=ui.TableSort(column="Name", direction="DESC", is_abs=True),
 )
 
 from deephaven import agg

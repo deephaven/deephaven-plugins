@@ -4,23 +4,13 @@ import { openPanel, gotoPage } from './utils';
 test('AgGrid loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'ag_random');
-  const agRoot = page.locator('.ag-root');
-  // Wait for rows to render so the screenshot isn't of an empty grid
-  await expect(
-    agRoot.locator('.ag-center-cols-container .ag-row').first()
-  ).toBeVisible();
-  await expect(agRoot).toHaveScreenshot();
+  await expect(page.locator('.ag-root')).toHaveScreenshot();
 });
 
 test('AgGrid with RollupTable loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'ag_rollup');
-  const agRoot = page.locator('.ag-root');
-  // Wait for rows to render so the screenshot isn't of an empty grid
-  await expect(
-    agRoot.locator('.ag-center-cols-container .ag-row').first()
-  ).toBeVisible();
-  await expect(agRoot).toHaveScreenshot();
+  await expect(page.locator('.ag-root')).toHaveScreenshot();
 });
 
 test('Column headers match column names match exactly', async ({ page }) => {

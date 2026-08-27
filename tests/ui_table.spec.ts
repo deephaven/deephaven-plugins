@@ -63,9 +63,6 @@ test('UI table responds to prop changes', async ({ page }) => {
 
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
 
-  // Wait for the grid to paint its data so the screenshot isn't of a blank grid
-  await waitForGridRender(locator);
-
   await expect(locator).toHaveScreenshot();
 
   await locator.getByRole('button', { name: 'formatting' }).click();

@@ -7,9 +7,6 @@ export const SELECTORS = {
   WIDGET_LOADER_ELEMENT: '.dh-panel.widget-loader-deephaven\\.ui\\.Element',
   WIDGET_LOADER_ELEMENT_VISIBLE:
     '.dh-panel.widget-loader-deephaven\\.ui\\.Element:visible',
-  // The console status-bar heap-usage indicator (bar width + "X.X GB" text).
-  // Its value drifts run-to-run, so full-page screenshots must mask it.
-  HEAP_USAGE: '.max-memory',
 };
 
 const ROW_HEIGHT = 19;
@@ -295,7 +292,7 @@ export async function openPanel(
     } else {
       // The opened widget gets a Golden Layout tab titled with its exact name.
       // Allow surrounding whitespace in the title text but anchor the name so
-      // e.g. `tvl_big_hist` does not also match `tvl_big_hist_count`.
+      // e.g. `ag_random` does not also match `ag_random_rollup`.
       await expect(
         page.locator('.lm_title', {
           hasText: new RegExp(`^\\s*${escapeRegExp(name)}\\s*$`),
