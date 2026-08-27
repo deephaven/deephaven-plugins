@@ -32,12 +32,9 @@ describe('useDebouncedOnChange', () => {
   });
 
   it('does not drop a pending change when the onChange prop identity changes', () => {
-    // The server hands down a NEW on_change callable on every re-render —
-    // including the re-render caused by its own previous onChange. A pending
-    // trailing call must survive that identity change and fire with the
-    // latest callable, or the user's final keystrokes are silently lost
-    // (type "world" fast: "wor" round-trips, the re-render lands, and
-    // "world" was never delivered).
+    // An unmemoized server handler is a new callable every render. A pending
+    // call has to survive that and fire with the latest one, or the user's
+    // last keystrokes are lost.
     const first = jest.fn(() => Promise.resolve());
     const second = jest.fn(() => Promise.resolve());
     const { result, rerender } = renderHook(

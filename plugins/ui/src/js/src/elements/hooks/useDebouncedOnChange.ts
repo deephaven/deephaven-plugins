@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
@@ -32,19 +32,13 @@ function useDebouncedOnChange<T, P = T>(
     setValue(propValue);
   }
 
-  // The server hands down a NEW propOnChange callable on every re-render —
-  // including the re-render its own previous onChange caused. Because
-  // useDebouncedCallback cancels its pending trailing call whenever the
-  // callback identity changes, keying the debounce on propOnChange silently
-  // drops whatever the user typed while a round trip was in flight (e.g.
-  // type "world" fast: "wor" fires, the re-render lands, and the trailing
-  // "world" call is cancelled — the final keystrokes never reach Python).
-  // Keep ONE stable debounced instance and resolve the latest callable at
-  // fire time instead.
+  // useDebouncedCallback cancels its pending call when the callback identity
+  // changes, and an unmemoized server handler is a new callable every render.
+  // Keying the debounce on propOnChange would drop the user's last keystrokes
+  // whenever a re-render landed mid-typing, so keep one debounced instance and
+  // read the latest callable when it fires.
   const propOnChangeRef = useRef(propOnChange);
-  useEffect(() => {
-    propOnChangeRef.current = propOnChange;
-  }, [propOnChange]);
+  propOnChangeRef.current = propOnChange;
 
   const propDebouncedOnChange = useCallback(
     async (newValue: T) => {
