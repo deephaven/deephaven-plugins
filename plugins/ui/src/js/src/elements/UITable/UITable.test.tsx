@@ -272,13 +272,13 @@ describe('UITable controlled state', () => {
     });
   });
 
-  it('does not control IrisGrid when only default values are provided', async () => {
+  it('does not control IrisGrid when no change callbacks are provided', async () => {
     await act(async () => {
       render(
         <UITable
           table={mockExportedTable}
-          defaultQuickFilters={{}}
-          defaultSorts={[]}
+          quickFilters={{}}
+          sorts={[]}
           showSearch={false}
           showQuickFilters={false}
           showGroupingColumn={false}
