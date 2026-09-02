@@ -51,6 +51,7 @@ import {
   type GridMouseHandler,
   type GridRange,
   type GridState,
+  type KeyHandler,
 } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
@@ -63,6 +64,7 @@ import {
   type UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
+import UITableClearFilterKeyHandler from './UITableClearFilterKeyHandler';
 import UITableContextMenuHandler, {
   type ResolvableUIContextItem,
   wrapContextActions,
@@ -209,6 +211,8 @@ export function UITable({
   quickFilters,
   defaultSorts,
   sorts,
+  isQuickFiltersReadOnly: isQuickFiltersReadOnlyProp,
+  isSortsReadOnly: isSortsReadOnlyProp,
   aggregations,
   aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
@@ -264,6 +268,9 @@ export function UITable({
   );
 
   const { eventHub } = useLayoutManager();
+
+  const isQuickFiltersReadOnly = isQuickFiltersReadOnlyProp === true;
+  const isSortsReadOnly = isSortsReadOnlyProp === true;
 
   const {
     widget: table,
@@ -364,6 +371,15 @@ export function UITable({
   if (model) {
     model.setColorMap(colorMap);
   }
+
+  useEffect(() => {
+    if (model == null) {
+      return;
+    }
+    model.setQuickFiltersReadOnly(isQuickFiltersReadOnly);
+    model.setSortsReadOnly(isSortsReadOnly);
+    irisGrid?.grid?.forceUpdate();
+  }, [model, irisGrid, isQuickFiltersReadOnly, isSortsReadOnly]);
 
   const {
     alwaysFetchColumns: linkerAlwaysFetchColumns,
@@ -610,6 +626,14 @@ export function UITable({
     [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
   );
 
+  const keyHandlers = useMemo(
+    () =>
+      isQuickFiltersReadOnly
+        ? ([new UITableClearFilterKeyHandler()] as readonly KeyHandler[])
+        : undefined,
+    [isQuickFiltersReadOnly]
+  );
+
   // Some of the server props rely on the model existing,
   // so we need to start as undefined and set it in the useMemo below once we have a model
   const initialIrisGridServerProps = useRef<Partial<IrisGridProps> | undefined>(
@@ -622,6 +646,7 @@ export function UITable({
     }
     const props = {
       mouseHandlers,
+      keyHandlers,
       alwaysFetchColumns,
       showSearchBar,
       sorts: hydratedControlledSorts,
@@ -676,6 +701,7 @@ export function UITable({
     return props;
   }, [
     mouseHandlers,
+    keyHandlers,
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
@@ -779,11 +805,11 @@ export function UITable({
   );
 
   const handleClearAllFilters = useCallback(() => {
-    if (irisGrid == null) {
+    if (irisGrid == null || isQuickFiltersReadOnly) {
       return;
     }
     irisGrid.clearAllFilters();
-  }, [irisGrid]);
+  }, [irisGrid, isQuickFiltersReadOnly]);
 
   useListener(
     eventHub,

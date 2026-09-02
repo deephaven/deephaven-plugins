@@ -19,6 +19,8 @@ const mockModel = {
   table: mockTable,
   close: jest.fn(),
   setColorMap: jest.fn(),
+  setQuickFiltersReadOnly: jest.fn(),
+  setSortsReadOnly: jest.fn(),
   getColumnIndexByName: jest.fn(),
 } as unknown as IrisGridTableModel;
 

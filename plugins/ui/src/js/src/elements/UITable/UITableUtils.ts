@@ -112,6 +112,8 @@ export type UITableProps = StyleProps & {
   quickFilters?: Record<string, string>;
   defaultSorts?: DehydratedSort[];
   sorts?: DehydratedSort[];
+  isQuickFiltersReadOnly?: boolean;
+  isSortsReadOnly?: boolean;
   aggregations?: UIAggregation | UIAggregation[];
   aggregationsPosition?: 'top' | 'bottom';
   showSearch: boolean;
