@@ -312,16 +312,21 @@ class table(Element):
             column name to filter value.
         quick_filters: The controlled quick filters to update programmatically.
             Whenever this value changes, it is re-applied to the table and replaces
-            any quick filters the user changed in the UI. Cannot be used with
-            `default_quick_filters`. Dictionary of column name to filter value.
+            any quick filters the user changed in the UI. Dictionary of column name
+            to filter value.
         default_sorts: The initial sorts to apply to the table. User changes are retained and
             persisted when the table is reloaded. These are UI-controlled sorts
             (similar to reverse) rather than engine-transformed table data.
             Accepts a column name, TableSort, or list containing column names and TableSort instances.
         sorts: The controlled sorts to update programmatically. Whenever this value
             changes, it is re-applied to the table and replaces any sorts the user
-            changed in the UI. Cannot be used with `default_sorts`. Accepts the same values
-            as `default_sorts`.
+            changed in the UI. Accepts the same values as `default_sorts`.
+        is_quick_filters_read_only: Whether the user is prevented from changing the quick
+            filters. Applied filters are still shown, but the filter bar is not editable
+            and filter actions are disabled. Useful to indicate `quick_filters` is controlled.
+        is_sorts_read_only: Whether the user is prevented from changing the sorts. Applied
+            sorts are still shown, but sorting actions are disabled. Useful to indicate
+            `sorts` is controlled.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
         aggregations_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
@@ -412,6 +417,8 @@ class table(Element):
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         default_sorts: TableSortLike | list[TableSortLike] | None = None,
         sorts: TableSortLike | list[TableSortLike] | None = None,
+        is_quick_filters_read_only: bool = False,
+        is_sorts_read_only: bool = False,
         show_quick_filters: bool = False,
         aggregations: TableAgg | list[TableAgg] | None = None,
         aggregations_position: Literal["top", "bottom"] | None = None,
@@ -478,14 +485,6 @@ class table(Element):
 
         if format_ is not None:
             _validate_table_format(format_, table)
-
-        if default_quick_filters is not None and quick_filters is not None:
-            raise ValueError(
-                "ui.table default_quick_filters and quick_filters cannot both be set"
-            )
-
-        if default_sorts is not None and sorts is not None:
-            raise ValueError("ui.table default_sorts and sorts cannot both be set")
 
         if default_sorts is not None:
             props["default_sorts"] = _normalize_table_sorts(default_sorts)
