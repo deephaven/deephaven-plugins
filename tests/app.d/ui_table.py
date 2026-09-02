@@ -453,18 +453,24 @@ t_programmatic_sort_abs_desc = ui.table(
 
 @ui.component
 def t_controlled_component():
-    # Explicit controlled props re-apply server changes to the grid.
-    sort_direction, set_sort_direction = ui.use_state("ASC")
-    sym, set_sym = ui.use_state("CAT")
+    # Change callbacks make sorts and quick_filters controlled;
+    # server changes re-apply to the grid.
+    sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
+    quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
     return [
         ui.button(
             "Update sort and filter",
-            on_press=lambda _: (set_sort_direction("DESC"), set_sym("DOG")),
+            on_press=lambda _: (
+                set_sorts([ui.TableSort(column="Size", direction="DESC")]),
+                set_quick_filters({"Sym": "DOG"}),
+            ),
         ),
         ui.table(
             _stocks,
-            sorts=ui.TableSort(column="Size", direction=sort_direction),
-            quick_filters={"Sym": sym},
+            sorts=sorts,
+            on_sorts_change=set_sorts,
+            quick_filters=quick_filters,
+            on_quick_filters_change=set_quick_filters,
             show_quick_filters=True,
         ),
     ]
@@ -472,7 +478,7 @@ def t_controlled_component():
 
 t_controlled = t_controlled_component()
 
-# The existing user-owned props set the initial state. Their changes are
+# Value props without change callbacks set the initial state. User changes are
 # persisted and restored on reload. Uses an explicit table so `Sym` is the first
 # column, giving the e2e test a deterministic column position to click.
 _persist_table = new_table(
@@ -483,8 +489,8 @@ _persist_table = new_table(
 )
 t_default = ui.table(
     _persist_table,
-    default_sorts=ui.TableSort(column="Size", direction="ASC"),
-    default_quick_filters={"Sym": "CAT"},
+    sorts=ui.TableSort(column="Size", direction="ASC"),
+    quick_filters={"Sym": "CAT"},
     show_quick_filters=True,
 )
 
