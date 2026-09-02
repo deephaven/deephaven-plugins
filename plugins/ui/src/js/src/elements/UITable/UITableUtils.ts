@@ -108,9 +108,7 @@ export type UITableProps = StyleProps & {
   onQuickFiltersChange?: (quickFilters: Record<ColumnName, string>) => void;
   onSortsChange?: (sorts: UITableSort[]) => void;
   alwaysFetchColumns?: string | string[] | boolean;
-  defaultQuickFilters?: Record<string, string>;
   quickFilters?: Record<string, string>;
-  defaultSorts?: DehydratedSort[];
   sorts?: DehydratedSort[];
   isQuickFiltersReadOnly?: boolean;
   isSortsReadOnly?: boolean;

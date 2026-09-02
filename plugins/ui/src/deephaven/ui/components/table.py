@@ -301,26 +301,29 @@ class table(Element):
             The callback is invoked with the selected rows with data from the columns in `always_fetch_columns`.
         on_quick_filters_change: The callback function to run when the user changes
             the quick filters. The callback is invoked with a dictionary of column
-            name to filter value.
+            name to filter value. Providing this callback makes `quick_filters`
+            controlled.
         on_sorts_change: The callback function to run when the user changes the sorts.
             The callback is invoked with an ordered list of sort mappings containing
-            `column`, `direction`, and `is_abs`.
+            `column`, `direction`, and `is_abs`. Providing this callback makes
+            `sorts` controlled.
         always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
             If True, all columns will always be fetched. This may make tables with many columns slow.
-        default_quick_filters: The initial quick filters to apply to the table. User changes
-            are retained and persisted when the table is reloaded. Dictionary of
-            column name to filter value.
-        quick_filters: The controlled quick filters to update programmatically.
-            Whenever this value changes, it is re-applied to the table and replaces
-            any quick filters the user changed in the UI. Dictionary of column name
-            to filter value.
-        default_sorts: The initial sorts to apply to the table. User changes are retained and
-            persisted when the table is reloaded. These are UI-controlled sorts
+        quick_filters: The quick filters to apply to the table. Dictionary of column
+            name to filter value. If `on_quick_filters_change` is not provided, these
+            are the initial quick filters and user changes are retained and persisted
+            when the table is reloaded. If `on_quick_filters_change` is provided, the
+            quick filters are controlled: whenever this value changes, it is
+            re-applied to the table and replaces any quick filters the user changed
+            in the UI.
+        sorts: The sorts to apply to the table. These are UI-controlled sorts
             (similar to reverse) rather than engine-transformed table data.
-            Accepts a column name, TableSort, or list containing column names and TableSort instances.
-        sorts: The controlled sorts to update programmatically. Whenever this value
-            changes, it is re-applied to the table and replaces any sorts the user
-            changed in the UI. Accepts the same values as `default_sorts`.
+            Accepts a column name, TableSort, or list containing column names and
+            TableSort instances. If `on_sorts_change` is not provided, these are the
+            initial sorts and user changes are retained and persisted when the table
+            is reloaded. If `on_sorts_change` is provided, the sorts are controlled:
+            whenever this value changes, it is re-applied to the table and replaces
+            any sorts the user changed in the UI.
         is_quick_filters_read_only: Whether the user is prevented from changing the quick
             filters. Applied filters are still shown, but the filter bar is not editable
             and filter actions are disabled. Useful to indicate `quick_filters` is controlled.
@@ -413,9 +416,7 @@ class table(Element):
         on_quick_filters_change: QuickFiltersChangeCallback | None = None,
         on_sorts_change: SortsChangeCallback | None = None,
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
-        default_quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
-        default_sorts: TableSortLike | list[TableSortLike] | None = None,
         sorts: TableSortLike | list[TableSortLike] | None = None,
         is_quick_filters_read_only: bool = False,
         is_sorts_read_only: bool = False,
@@ -485,9 +486,6 @@ class table(Element):
 
         if format_ is not None:
             _validate_table_format(format_, table)
-
-        if default_sorts is not None:
-            props["default_sorts"] = _normalize_table_sorts(default_sorts)
 
         if sorts is not None:
             props["sorts"] = _normalize_table_sorts(sorts)
