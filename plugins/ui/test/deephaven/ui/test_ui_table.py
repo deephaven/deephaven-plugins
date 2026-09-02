@@ -139,18 +139,6 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_quick_filter_modes_are_exclusive(self):
-        import deephaven.ui as ui
-
-        self.assertRaises(
-            ValueError,
-            lambda: ui.table(
-                self.source,
-                default_quick_filters={"X": "X > 1"},
-                quick_filters={"X": "X > 1"},
-            ),
-        )
-
         t = ui.table(
             self.source,
             quick_filters={"X": "X > 1", "Y": "Y < 2"},
@@ -163,6 +151,23 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
+    def test_quick_filter_modes_together(self):
+        import deephaven.ui as ui
+
+        t = ui.table(
+            self.source,
+            default_quick_filters={"X": "X > 1"},
+            quick_filters={"Y": "Y < 2"},
+        )
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1"},
+                "quickFilters": {"Y": "Y < 2"},
+            },
+        )
+
     def test_on_quick_filters_change(self):
         import deephaven.ui as ui
 
@@ -170,6 +175,28 @@ class UITableTestCase(BaseTestCase):
         t = ui.table(self.source, on_quick_filters_change=callback)
 
         self.expect_render(t, {"onQuickFiltersChange": callback})
+
+    def test_is_quick_filters_read_only(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source)
+
+        self.expect_render(t, {"isQuickFiltersReadOnly": False})
+
+        t = ui.table(self.source, is_quick_filters_read_only=True)
+
+        self.expect_render(t, {"isQuickFiltersReadOnly": True})
+
+    def test_is_sorts_read_only(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source)
+
+        self.expect_render(t, {"isSortsReadOnly": False})
+
+        t = ui.table(self.source, is_sorts_read_only=True)
+
+        self.expect_render(t, {"isSortsReadOnly": True})
 
     def test_show_quick_filters(self):
         import deephaven.ui as ui
@@ -325,20 +352,12 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_sort_modes_are_exclusive(self):
+    def test_sort_modes_together(self):
         import deephaven.ui as ui
-
-        self.assertRaises(
-            ValueError,
-            lambda: ui.table(
-                self.source,
-                default_sorts="X",
-                sorts="X",
-            ),
-        )
 
         t = ui.table(
             self.source,
+            default_sorts="X",
             sorts=[
                 "X",
                 ui.TableSort(column="Y", direction="DESC", is_abs=True),
@@ -348,6 +367,13 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
+                "defaultSorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    }
+                ],
                 "sorts": [
                     {
                         "column": "X",
@@ -359,7 +385,7 @@ class UITableTestCase(BaseTestCase):
                         "direction": "DESC",
                         "isAbs": True,
                     },
-                ]
+                ],
             },
         )
 
