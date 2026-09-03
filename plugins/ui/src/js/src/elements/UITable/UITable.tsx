@@ -51,6 +51,7 @@ import {
   type GridMouseHandler,
   type GridRange,
   type GridState,
+  type KeyHandler,
 } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
@@ -58,9 +59,12 @@ import {
   type FormattingRule,
   getAggregationOperation,
   getSelectionDataMap,
+  getUITableQuickFilters,
+  getUITableSorts,
   type UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
+import UITableClearFilterKeyHandler from './UITableClearFilterKeyHandler';
 import UITableContextMenuHandler, {
   type ResolvableUIContextItem,
   wrapContextActions,
@@ -166,6 +170,32 @@ function useUITableModel({
   return model;
 }
 
+/**
+ * Hydrate the `quick_filters` dict from the server into the quick filter map
+ * IrisGrid expects. Returns undefined if the filters or grid are not ready.
+ */
+function hydrateUITableQuickFilters(
+  quickFilters: Record<string, string> | undefined,
+  model: UITableModel | undefined,
+  columns: readonly DhType.Column[],
+  utils: IrisGridUtils | null
+): ReturnType<IrisGridUtils['hydrateQuickFilters']> | undefined {
+  if (quickFilters === undefined || utils == null || model == null) {
+    return undefined;
+  }
+  log.debug('Hydrating filters', quickFilters);
+
+  const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
+  Object.entries(quickFilters).forEach(([columnName, filter]) => {
+    const columnIndex = model.getColumnIndexByName(columnName);
+    if (columnIndex !== undefined) {
+      dehydratedQuickFilters.push([columnIndex, { text: filter }]);
+    }
+  });
+
+  return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
+}
+
 export function UITable({
   format_: formatProp = EMPTY_ARRAY as unknown as FormattingRule[],
   onCellPress,
@@ -175,8 +205,12 @@ export function UITable({
   onRowPress,
   onRowDoublePress,
   onSelectionChange,
+  onQuickFiltersChange,
+  onSortsChange,
   quickFilters,
   sorts,
+  isQuickFiltersReadOnly: isQuickFiltersReadOnlyProp,
+  isSortsReadOnly: isSortsReadOnlyProp,
   aggregations,
   aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
@@ -232,6 +266,9 @@ export function UITable({
   );
 
   const { eventHub } = useLayoutManager();
+
+  const isQuickFiltersReadOnly = isQuickFiltersReadOnlyProp === true;
+  const isSortsReadOnly = isSortsReadOnlyProp === true;
 
   const {
     widget: table,
@@ -333,6 +370,15 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  useEffect(() => {
+    if (model == null) {
+      return;
+    }
+    model.setQuickFiltersReadOnly(isQuickFiltersReadOnly);
+    model.setSortsReadOnly(isSortsReadOnly);
+    irisGrid?.grid?.forceUpdate();
+  }, [model, irisGrid, isQuickFiltersReadOnly, isSortsReadOnly]);
+
   const {
     alwaysFetchColumns: linkerAlwaysFetchColumns,
     columnSelectionValidator,
@@ -379,17 +425,72 @@ export function UITable({
     [memoizedStateFn, model, setDehydratedState]
   );
 
-  // Initial sorts are captured once at mount so later re-renders never push
-  // a new `sorts` reference into IrisGrid (which would call updateSorts and
-  // clobber the user's interactive sort changes).
-  const initialSortsRef = useRef(sorts);
+  const handleQuickFiltersChange = useCallback(
+    (
+      nextQuickFilters: Parameters<
+        typeof IrisGridUtils.dehydrateQuickFilters
+      >[0]
+    ) => {
+      onQuickFiltersChange?.(
+        getUITableQuickFilters(
+          IrisGridUtils.dehydrateQuickFilters(nextQuickFilters),
+          columns
+        )
+      );
+    },
+    [columns, onQuickFiltersChange]
+  );
 
-  // Lock the initial hydrated state to a stable value the first time model+utils
-  // are available. Recomputing it would change the `sorts` (and other) prop
-  // identities and cause IrisGrid to overwrite user changes on every re-render.
-  const lockedInitialHydratedStateRef = useRef<
-    Partial<IrisGridProps> | undefined
-  >(undefined);
+  const handleSortsChange = useCallback(
+    (nextSorts: Parameters<typeof IrisGridUtils.dehydrateSort>[0]) => {
+      onSortsChange?.(getUITableSorts(IrisGridUtils.dehydrateSort(nextSorts)));
+    },
+    [onSortsChange]
+  );
+
+  // Providing a change callback makes the corresponding value prop controlled.
+  const isSortsControlled = sorts !== undefined && onSortsChange != null;
+  const isQuickFiltersControlled =
+    quickFilters !== undefined && onQuickFiltersChange != null;
+
+  // Without a change callback, the value props are user-owned defaults.
+  // Capture them once on mount. These provide the initial values only when
+  // there is no persisted client state; after that, the user's own changes take over.
+  const initialSortsRef = useRef(isSortsControlled ? undefined : sorts);
+  const initialQuickFiltersRef = useRef(
+    isQuickFiltersControlled ? undefined : quickFilters
+  );
+
+  // Controlled values remain live IrisGrid props.
+  const hydratedControlledSorts = useMemo(() => {
+    if (
+      !isSortsControlled ||
+      sorts === undefined ||
+      utils == null ||
+      columns.length === 0
+    ) {
+      return undefined;
+    }
+    log.debug('Hydrating controlled sorts', sorts);
+    return utils.hydrateSort(columns, sorts);
+  }, [isSortsControlled, sorts, utils, columns]);
+
+  const hydratedControlledQuickFilters = useMemo(
+    () =>
+      hydrateUITableQuickFilters(
+        isQuickFiltersControlled ? quickFilters : undefined,
+        model,
+        columns,
+        utils
+      ),
+    [isQuickFiltersControlled, quickFilters, model, columns, utils]
+  );
+
+  // Lock the initial state once the model is ready. Recomputing it would pass
+  // new prop identities into IrisGrid and overwrite interactive changes.
+  const initialHydratedStateRef = useRef<Partial<IrisGridProps> | undefined>(
+    undefined
+  );
   const initialHydratedStateComputedRef = useRef(false);
   if (
     !initialHydratedStateComputedRef.current &&
@@ -405,40 +506,34 @@ export function UITable({
           }
         : undefined;
     const initialSorts = initialSortsRef.current;
-    const seededSorts =
-      persisted == null && initialSorts !== undefined && columns !== undefined
+    const initialQuickFilters = initialQuickFiltersRef.current;
+    const hydratedInitialSorts =
+      initialSorts !== undefined && columns.length > 0
         ? utils.hydrateSort(columns, initialSorts)
         : undefined;
+    const hydratedInitialQuickFilters = hydrateUITableQuickFilters(
+      initialQuickFilters,
+      model,
+      columns,
+      utils
+    );
     if (persisted != null) {
-      lockedInitialHydratedStateRef.current = persisted;
-    } else if (seededSorts !== undefined) {
-      lockedInitialHydratedStateRef.current = { sorts: seededSorts };
+      initialHydratedStateRef.current = persisted;
+    } else if (
+      hydratedInitialSorts !== undefined ||
+      hydratedInitialQuickFilters !== undefined
+    ) {
+      initialHydratedStateRef.current = {
+        ...(hydratedInitialSorts !== undefined
+          ? { sorts: hydratedInitialSorts }
+          : {}),
+        ...(hydratedInitialQuickFilters !== undefined
+          ? { quickFilters: hydratedInitialQuickFilters }
+          : {}),
+      };
     }
   }
-  const initialHydratedState = lockedInitialHydratedStateRef.current;
-
-  const hydratedQuickFilters = useMemo(() => {
-    if (
-      quickFilters !== undefined &&
-      utils &&
-      model !== undefined &&
-      columns !== undefined
-    ) {
-      log.debug('Hydrating filters', quickFilters);
-
-      const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
-
-      Object.entries(quickFilters).forEach(([columnName, filter]) => {
-        const columnIndex = model.getColumnIndexByName(columnName);
-        if (columnIndex !== undefined) {
-          dehydratedQuickFilters.push([columnIndex, { text: filter }]);
-        }
-      });
-
-      return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
-    }
-    return undefined;
-  }, [quickFilters, model, columns, utils]);
+  const initialHydratedState = initialHydratedStateRef.current;
 
   // Get any format values that match column names
   // Assume the format value is derived from the column
@@ -547,6 +642,14 @@ export function UITable({
     [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
   );
 
+  const keyHandlers = useMemo(
+    () =>
+      isQuickFiltersReadOnly
+        ? ([new UITableClearFilterKeyHandler()] as readonly KeyHandler[])
+        : undefined,
+    [isQuickFiltersReadOnly]
+  );
+
   // Some of the server props rely on the model existing,
   // so we need to start as undefined and set it in the useMemo below once we have a model
   const initialIrisGridServerProps = useRef<Partial<IrisGridProps> | undefined>(
@@ -559,9 +662,16 @@ export function UITable({
     }
     const props = {
       mouseHandlers,
+      keyHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      quickFilters: hydratedQuickFilters,
+      sorts: hydratedControlledSorts,
+      isSortsControlled,
+      onSortsChange: onSortsChange == null ? undefined : handleSortsChange,
+      quickFilters: hydratedControlledQuickFilters,
+      isQuickFiltersControlled,
+      onQuickFiltersChange:
+        onQuickFiltersChange == null ? undefined : handleQuickFiltersChange,
       isFilterBarShown: showQuickFilters,
       reverse,
       density,
@@ -607,10 +717,18 @@ export function UITable({
     return props;
   }, [
     mouseHandlers,
+    keyHandlers,
     alwaysFetchColumns,
     showSearchBar,
     showQuickFilters,
-    hydratedQuickFilters,
+    hydratedControlledSorts,
+    hydratedControlledQuickFilters,
+    isSortsControlled,
+    isQuickFiltersControlled,
+    onSortsChange,
+    onQuickFiltersChange,
+    handleSortsChange,
+    handleQuickFiltersChange,
     reverse,
     density,
     settings,
@@ -703,11 +821,11 @@ export function UITable({
   );
 
   const handleClearAllFilters = useCallback(() => {
-    if (irisGrid == null) {
+    if (irisGrid == null || isQuickFiltersReadOnly) {
       return;
     }
     irisGrid.clearAllFilters();
-  }, [irisGrid]);
+  }, [irisGrid, isQuickFiltersReadOnly]);
 
   useListener(
     eventHub,

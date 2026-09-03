@@ -5,6 +5,7 @@ import {
   type ModelIndex,
   type GridColor,
   type NullableGridColor,
+  type BoundedAxisRange,
   memoizeClear,
   GridRenderer,
 } from '@deephaven/grid';
@@ -320,6 +321,10 @@ class UITableModel extends IrisGridModel {
 
   private format: FormattingRule[];
 
+  private quickFiltersReadOnly = false;
+
+  private sortsReadOnly = false;
+
   constructor({
     dh,
     model,
@@ -399,6 +404,36 @@ class UITableModel extends IrisGridModel {
 
   setColorMap(colorMap: Map<string, string>): void {
     this.colorMap = colorMap;
+  }
+
+  setQuickFiltersReadOnly(isReadOnly: boolean): void {
+    this.quickFiltersReadOnly = isReadOnly;
+  }
+
+  setSortsReadOnly(isReadOnly: boolean): void {
+    this.sortsReadOnly = isReadOnly;
+  }
+
+  override isFilterable(columnIndex: ModelIndex): boolean {
+    if (this.quickFiltersReadOnly) {
+      return false;
+    }
+    return this.model.isFilterable(columnIndex);
+  }
+
+  override isColumnSortable(columnIndex: ModelIndex): boolean {
+    if (this.sortsReadOnly) {
+      return false;
+    }
+    return this.model.isColumnSortable(columnIndex);
+  }
+
+  // The base implementation calls `isFilterable` on the wrapped model, bypassing our override
+  override getClearFilterRange(column: ModelIndex): BoundedAxisRange | null {
+    if (this.quickFiltersReadOnly) {
+      return null;
+    }
+    return this.model.getClearFilterRange(column);
   }
 
   // eslint-disable-next-line class-methods-use-this

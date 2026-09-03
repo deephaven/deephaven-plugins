@@ -5,6 +5,9 @@ import {
   gotoPage,
   clickGridRow,
   waitForGridRender,
+  clickGridColumnHeader,
+  setGridQuickFilter,
+  waitForLoad,
 } from './utils';
 
 test.describe('UI table', () => {
@@ -126,4 +129,59 @@ test('UI table with tree table', async ({ page }) => {
 
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   await expect(locator.locator('.iris-grid')).toBeVisible();
+});
+
+// DH-22976: Explicit controlled props re-apply when their values change
+// programmatically. The quick-filter change exercises IrisGrid's
+// `updateQuickFilters` path.
+test('UI table sorts and filters update programmatically', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_controlled',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
+  await expect(locator).toHaveScreenshot();
+
+  await locator.getByRole('button', { name: 'Update sort and filter' }).click();
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: Existing user-owned sorts and quick filters persist after refresh.
+test('UI table user sorts and filters persist after refresh', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_default', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+
+  // User changes the sort by clicking a column header and sets a quick filter.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await setGridQuickFilter(grid, 50, 'DOG');
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+
+  // Disable "Close Panels on Disconnect" so the layout is persisted on refresh.
+  await page
+    .getByRole('button', { name: 'More Actions...', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Close Panels on Disconnect', exact: true })
+    .click();
+  // Wait for the debounced setting to save before refreshing.
+  await page.waitForTimeout(2000);
+
+  await page.reload();
+  await waitForLoad(page);
+
+  // The user's sort and quick filter are restored from the persisted layout.
+  await expect(locator).toHaveScreenshot();
 });

@@ -450,6 +450,50 @@ t_programmatic_sort_abs_desc = ui.table(
     sorts=ui.TableSort(column="SepalLength", direction="DESC", is_abs=True),
 )
 
+
+@ui.component
+def t_controlled_component():
+    # Change callbacks make sorts and quick_filters controlled;
+    # server changes re-apply to the grid.
+    sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
+    quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
+    return [
+        ui.button(
+            "Update sort and filter",
+            on_press=lambda _: (
+                set_sorts([ui.TableSort(column="Size", direction="DESC")]),
+                set_quick_filters({"Sym": "DOG"}),
+            ),
+        ),
+        ui.table(
+            _stocks,
+            sorts=sorts,
+            on_sorts_change=set_sorts,
+            quick_filters=quick_filters,
+            on_quick_filters_change=set_quick_filters,
+            show_quick_filters=True,
+        ),
+    ]
+
+
+t_controlled = t_controlled_component()
+
+# Value props without change callbacks set the initial state. User changes are
+# persisted and restored on reload. Uses an explicit table so `Sym` is the first
+# column, giving the e2e test a deterministic column position to click.
+_persist_table = new_table(
+    [
+        string_col("Sym", ["CAT", "DOG", "BEAR", "FISH", "CAT", "DOG", "BEAR"]),
+        int_col("Size", [10, 20, 30, 40, 50, 60, 70]),
+    ]
+)
+t_default = ui.table(
+    _persist_table,
+    sorts=ui.TableSort(column="Size", direction="ASC"),
+    quick_filters={"Sym": "CAT"},
+    show_quick_filters=True,
+)
+
 from deephaven import agg
 
 _rollup_source = empty_table(100).update(

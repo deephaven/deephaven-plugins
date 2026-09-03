@@ -775,7 +775,7 @@ Quick filters are an easy way to filter the table while also showing the user wh
 
 Quick filters may be preferred if you have multiple servers or workers hosting your data. If, for example, the table is on another Deephaven instance, performing a `where` operation on the table may require copying all of the data from the host server into the server running Deephaven UI. With a quick filter, the filter can instead be applied directly on the server hosting the table.
 
-Quick filters can be added to the table using the `quick_filters` prop. The `quick_filters` prop takes a dictionary where the key is the column and the value is the filter to apply.
+Quick filters can be added with the `quick_filters` prop, a dictionary where the key is the column and the value is the filter to apply. By default, `quick_filters` sets the initial filters, and any changes the user makes are retained and persisted. Provide `on_quick_filters_change` to make `quick_filters` controlled: the callback receives the complete filter state proposed by the user, and whenever the `quick_filters` value changes, it is re-applied to the table and replaces any filters the user changed in the UI.
 
 The quick filter bar can be expanded by default with the `show_quick_filters` prop.
 
@@ -800,9 +800,25 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ![Example of quick filters](../_assets/table_quick_filter.png)
 
+Set `is_quick_filters_read_only` to prevent the user from changing the quick filters. Applied filters are still visible, but the filter bar is not editable and filter actions are disabled. This is useful alongside `quick_filters` to make it clear that the filters are controlled by the server.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+t = ui.table(
+    _stocks,
+    show_quick_filters=True,
+    quick_filters={"Sym": "CAT"},
+    is_quick_filters_read_only=True,
+)
+```
+
 ## Sort
 
-You can set the initial sort state of a `ui.table` with the `sorts` prop. This controls table UI state (similar to `quick_filters` and `reverse`) without changing the underlying table definition.
+You can set the sort state of a `ui.table` with the `sorts` prop. This controls table UI state without changing the underlying table definition.
 
 The `sorts` prop accepts:
 
@@ -810,7 +826,7 @@ The `sorts` prop accepts:
 - A `ui.TableSort` object
 - A list mixing column names and `ui.TableSort` objects
 
-When you pass `sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
+By default, `sorts` seeds the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload. Provide `on_sorts_change` to make `sorts` controlled: the callback receives the complete ordered sort state proposed by the user, and whenever the `sorts` value changes, it is re-applied to the table and replaces any sorts the user changed in the UI.
 
 ```python order=data,t_mixed_sort_list,t_string_sort
 from deephaven import ui, new_table
@@ -844,6 +860,8 @@ t_string_sort = ui.table(
 - `column`: The column name to sort by.
 - `direction`: `"ASC"` or `"DESC"`.
 - `is_abs`: If `True`, sort by absolute value.
+
+Set `is_sorts_read_only` to prevent the user from changing the sorts. Applied sorts are still visible, but sorting actions are disabled. This is useful alongside `sorts` to make it clear that the sorts are controlled by the server. Note that this does not affect `reverse`.
 
 ## Reverse
 

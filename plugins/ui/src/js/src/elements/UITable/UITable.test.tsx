@@ -3,6 +3,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import { TestUtils } from '@deephaven/test-utils';
 import type {
   ChartBuilderSettings,
+  IrisGridProps,
   IrisGridModel,
   IrisGridTableModel,
 } from '@deephaven/iris-grid';
@@ -18,6 +19,8 @@ const mockModel = {
   table: mockTable,
   close: jest.fn(),
   setColorMap: jest.fn(),
+  setQuickFiltersReadOnly: jest.fn(),
+  setSortsReadOnly: jest.fn(),
   getColumnIndexByName: jest.fn(),
 } as unknown as IrisGridTableModel;
 
@@ -88,12 +91,14 @@ jest.mock('@deephaven/components', () => ({
 let capturedOnCreateChart:
   | ((settings: ChartBuilderSettings, model: IrisGridModel) => void)
   | undefined;
+let capturedIrisGridProps: IrisGridProps | undefined;
 
 jest.mock('@deephaven/iris-grid', () => {
   const actual = jest.requireActual('@deephaven/iris-grid');
   return {
     ...actual,
     IrisGrid: jest.fn(props => {
+      capturedIrisGridProps = props;
       capturedOnCreateChart = props.onCreateChart;
       return <div data-testid="iris-grid" />;
     }),
@@ -118,6 +123,7 @@ const mockExportedTable = {} as dh.WidgetExportedObject;
 beforeEach(() => {
   jest.clearAllMocks();
   capturedOnCreateChart = undefined;
+  capturedIrisGridProps = undefined;
 });
 
 describe('UITable chart builder', () => {
@@ -233,5 +239,61 @@ describe('UITable chart builder', () => {
         table: undefined,
       })
     );
+  });
+});
+
+describe('UITable controlled state', () => {
+  it('passes controlled quick-filter and sort proposal handlers to IrisGrid', async () => {
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          quickFilters={{}}
+          sorts={[]}
+          onQuickFiltersChange={jest.fn()}
+          onSortsChange={jest.fn()}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toEqual(
+        expect.objectContaining({
+          isQuickFiltersControlled: true,
+          isSortsControlled: true,
+          onQuickFiltersChange: expect.any(Function),
+          onSortsChange: expect.any(Function),
+        })
+      );
+    });
+  });
+
+  it('does not control IrisGrid when no change callbacks are provided', async () => {
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          quickFilters={{}}
+          sorts={[]}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toEqual(
+        expect.objectContaining({
+          isQuickFiltersControlled: false,
+          isSortsControlled: false,
+        })
+      );
+    });
   });
 });
