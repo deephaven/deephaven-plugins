@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.42.0 - 2026-09-03
+
+#### Features
+
+- Pass through loader field from package.json in create_js_plugin ([#1404](https://github.com/deephaven/deephaven-plugins/pull/1404)) - (82f074b) - mofojed
+
+#### Bug Fixes
+
+- **(ui)** Set the debounced onChange ref during render ([#1407](https://github.com/deephaven/deephaven-plugins/pull/1407)) - (e62da21) - dsmmcken
+- DH-23473: Hide dashboard headers when specified for outer dashboards ([#1403](https://github.com/deephaven/deephaven-plugins/pull/1403)) - (02e5983) - mofojed
+
+#### Tests
+
+- fix flaky e2e screenshot tests ([#1406](https://github.com/deephaven/deephaven-plugins/pull/1406)) - (2b7aa63) - dsmmcken
+
+- - -
+
+
 ## ui-v0.41.0 - 2026-08-12
 
 #### Features
