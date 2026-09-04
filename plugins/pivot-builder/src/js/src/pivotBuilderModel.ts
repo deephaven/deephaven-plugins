@@ -837,16 +837,11 @@ export function augmentPivotBuilderModel(
     return decision.target;
   };
 
-  // `PivotService.getInstance()` returns a NEW service wrapper on every call,
-  // and every service multiplexes over the worker's single bidi message
-  // stream. dh-core fans each response out to ALL services on the stream, so a
-  // stale service left over from a previous config edit receives responses for
-  // ids it never issued and logs "No handler for response: N" via
-  // console.error — once per stale service, so the noise grows with every
-  // edit. The service is documented as a per-worker singleton ("The initial
-  // call for a given worker must be either a PivotTable or a PivotService"), so
-  // cache one service for this model's lifetime and reuse it across edits to
-  // keep a single consumer on the stream.
+  // `PivotService.getInstance(object)` returns a per-worker-connection singleton
+  // service, deriving the worker from any server object handed to it (here the
+  // source table) and creating the service through the server's pivot command
+  // resolver — no dedicated PivotService widget required. Cache the promise for
+  // this model's lifetime to avoid redundant calls.
   let cachedPivotServicePromise: Promise<CorePlusDhType.coreplus.pivot.PivotService> | null =
     null;
 
@@ -857,8 +852,7 @@ export function augmentPivotBuilderModel(
       return cachedPivotServicePromise;
     }
     cachedPivotServicePromise =
-      // @ts-expect-error getInstance will be updated to take no args in the API
-      corePlusDh.coreplus.pivot.PivotService.getInstance();
+      corePlusDh.coreplus.pivot.PivotService.getInstance(table);
     return cachedPivotServicePromise;
   };
 
@@ -913,7 +907,7 @@ export function augmentPivotBuilderModel(
       let pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
       try {
         pivotTable = await pivotService.createPivotTable({
-          source: table as unknown as CorePlusDhType.Table,
+          source: table,
           rowKeys: sanitized.rowKeys,
           columnKeys: sanitized.columnKeys,
           aggregations: sanitized.aggregations,
