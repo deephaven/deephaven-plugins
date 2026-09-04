@@ -155,6 +155,32 @@
         "url": "https://pypi.org/project/deephaven-plugin-pyinstrument/"
       },
       "tags": ["python"]
+    },
+    {
+      "name": "Clockface",
+      "description": "A deephaven.ui element that renders a live clock in one of seven faces: digital, retro seven-segment, analog, split-flap, binary, nixie tube, or word clock, themed to match the Deephaven UI.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-clockface",
+      "image": "/marketplace/images/clockface.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-clockface",
+        "url": "https://pypi.org/project/deephaven-plugin-clockface/"
+      },
+      "tags": ["ui", "python"]
+    },
+    {
+      "name": "Speed Reader",
+      "description": "A deephaven.ui element that displays text one word at a time using rapid serial visual presentation, with pivot-letter alignment and adjustable words per minute.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-speed-reader",
+      "image": "/marketplace/images/speed-reader.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-speed-reader",
+        "url": "https://pypi.org/project/deephaven-plugin-speed-reader/"
+      },
+      "tags": ["ui", "python"]
     }
   ]
 }
