@@ -212,8 +212,7 @@ function makeProxy(columns: DhType.Column[]): {
   // `proxy.pivotConfig` instead (set synchronously before that gate runs).
   const proxy = augmentPivotBuilderModel(
     {} as never,
-    host as unknown as IrisGridModel,
-    () => Promise.reject(new Error('no psp'))
+    host as unknown as IrisGridModel
   );
   return { proxy, host, original };
 }
@@ -1141,11 +1140,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
       totals: null,
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      (() => Promise.reject(new Error('no psp'))) as never,
-      () => persisted
-    );
+    const transform = makePivotModelTransform({} as never, () => persisted);
 
     const augmented = (await transform(
       host as unknown as IrisGridModel
@@ -1186,15 +1181,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
       totals: null,
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      // `persisted.pivot != null`, so the transform probes the PSP widget
-      // up-front; it must resolve. The build itself never reaches
-      // `createPivotTable` — the fully-stale pivot short-circuits to the flat
-      // source before any service call — so a dummy widget is enough.
-      (() => Promise.resolve({} as never)) as never,
-      () => persisted
-    );
+    const transform = makePivotModelTransform({} as never, () => persisted);
 
     const augmented = (await transform(
       host as unknown as IrisGridModel
@@ -1236,20 +1223,32 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
   });
 });
 
-describe('makePivotModelTransform — ui-driven probe trigger', () => {
-  it('probes PSP and threads pivotAvailable when the persisted ui derives a pivot', async () => {
-    // Modern config: the persisted DERIVED value is a stale-derived rollup,
-    // but the ui derives a PIVOT against the current schema (live pivot column
-    // `C`). The transform must ask the derivation — not `persisted.pivot`
-    // (null here) — probe the PSP widget, and pass `pivotAvailable: true` so
-    // the model's own derivation picks the pivot.
+describe('makePivotModelTransform — CorePlus-gated pivot availability', () => {
+  // A CorePlus dh whose `PivotService.getInstance()` rejects: enough to make
+  // `isCorePlusDh` true (so pivot is available) while the pivot build itself
+  // never resolves — the tests assert the routed intent via `pivotConfig`, set
+  // synchronously before the build runs.
+  const corePlusDh = {
+    coreplus: {
+      pivot: {
+        PivotService: {
+          getInstance: () => Promise.reject(new Error('no build in test')),
+        },
+      },
+    },
+  } as never;
+
+  it('derives a PIVOT from ui + live schema on a CorePlus worker', async () => {
+    // Modern config: the persisted DERIVED value is a stale-derived rollup, but
+    // the ui derives a PIVOT against the current schema (live pivot column `C`).
+    // On a CorePlus worker pivot is available, so the model derives and routes
+    // the pivot; persisted raw intent is untouched.
     const original = new FakeOriginalModel([
       col('A', STRING),
       col('C', INT),
       col('F', STRING),
     ]);
     const host = new FakeHostModel(original);
-    const getPsp = jest.fn(() => Promise.resolve({} as never));
 
     const persisted: PivotBuilderConfig = {
       pivot: null,
@@ -1261,21 +1260,14 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
       }),
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      getPsp as never,
-      () => persisted
-    );
+    const transform = makePivotModelTransform(corePlusDh, () => persisted);
     const augmented = (await transform(
       host as unknown as IrisGridModel
     )) as unknown as PivotBuilderProxyModel;
     await flushMicrotasks();
 
-    // The probe fired even though `persisted.pivot` is null — the trigger is
-    // the ui derivation.
-    expect(getPsp).toHaveBeenCalled();
     // The model derived and routed a pivot (raw ui lists; sanitization happens
-    // at the build choke point). Persisted raw intent is untouched.
+    // at the build choke point).
     expect(augmented.pivotConfig).toEqual({
       rowKeys: ['A', 'B'],
       columnKeys: ['C', 'D'],
@@ -1285,13 +1277,12 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     expect(augmented.builderConfig.pivot).toBeNull();
   });
 
-  it('skips the probe when the persisted ui derives a rollup (no live pivot columns)', async () => {
+  it('derives a ROLLUP when the persisted ui has no live pivot columns', async () => {
     const original = new FakeOriginalModel([
       col('A', STRING),
       col('price', DOUBLE),
     ]);
     const host = new FakeHostModel(original);
-    const getPsp = jest.fn(() => Promise.reject(new Error('no psp')));
 
     const persisted: PivotBuilderConfig = {
       pivot: null,
@@ -1303,18 +1294,12 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
       }),
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      getPsp as never,
-      () => persisted
-    );
+    const transform = makePivotModelTransform(corePlusDh, () => persisted);
     const restored = transform(host as unknown as IrisGridModel);
     host.settleSwap();
     const augmented = (await restored) as unknown as PivotBuilderProxyModel;
 
-    // All pivot columns are stale → derivation picks rollup → no PSP probe
-    // (and its rejection therefore doesn't fail the model build).
-    expect(getPsp).not.toHaveBeenCalled();
+    // All pivot columns are stale → derivation picks rollup.
     expect(host.hostRollupWrites).toHaveLength(1);
     expect(
       (host.hostRollupWrites[0] as { groupingColumns: string[] })
@@ -1323,16 +1308,10 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     expect(augmented.pivotConfig).toBeNull();
   });
 
-  it('skips the probe when the host reports rollup unavailable (pivot underivable)', async () => {
-    // Regression: the probe trigger used an optimistic `rollupAvailable: true`,
-    // fatally probing PSP for a pivot the model's own derivation (which reads
-    // the host's LIVE flag) could never build. With rollup unavailable the
-    // derivation falls to totals, so no probe — and its rejection must not
-    // fail the model build.
+  it('derives totals when the host reports rollup unavailable', async () => {
     const original = new FakeOriginalModel([col('A', STRING), col('C', INT)]);
     const host = new FakeHostModel(original);
     host.isRollupAvailable = false;
-    const getPsp = jest.fn(() => Promise.reject(new Error('no psp')));
 
     const persisted: PivotBuilderConfig = {
       pivot: null,
@@ -1344,16 +1323,11 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
       }),
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      getPsp as never,
-      () => persisted
-    );
+    const transform = makePivotModelTransform(corePlusDh, () => persisted);
     const augmented = (await transform(
       host as unknown as IrisGridModel
     )) as unknown as PivotBuilderProxyModel;
 
-    expect(getPsp).not.toHaveBeenCalled();
     expect(augmented.pivotConfig).toBeNull();
     expect(host.hostRollupWrites).toHaveLength(0);
     // The live aggregation lands on the totals channel instead.
@@ -1363,15 +1337,20 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     ).toEqual({ C: ['Sum'] });
   });
 
-  it('fails the model build when the ui derives a pivot but the PSP probe rejects', async () => {
-    // Intentionally fatal: a query edited to remove the pivot service must
-    // fail the build loudly rather than silently dropping to flat.
-    const original = new FakeOriginalModel([col('A', STRING), col('C', INT)]);
+  it('derives a ROLLUP instead of a PIVOT on a non-CorePlus worker', async () => {
+    // Same live pivot column `C` as the CorePlus case, but the dh is not
+    // CorePlus, so pivot is unavailable and the derivation falls back to a
+    // rollup — the Pivot section is CorePlus-only.
+    const original = new FakeOriginalModel([
+      col('A', STRING),
+      col('C', INT),
+      col('F', STRING),
+    ]);
     const host = new FakeHostModel(original);
 
     const persisted: PivotBuilderConfig = {
       pivot: null,
-      rollup: null,
+      rollup: makeRollup(['A'], { First: ['F'] }),
       totals: null,
       ui: makeUi(makeAggregationSettings('Sum', ['C']), {
         rollupRows: ['A'],
@@ -1379,13 +1358,16 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
       }),
     };
 
-    const transform = makePivotModelTransform(
-      {} as never,
-      (() => Promise.reject(new Error('no psp'))) as never,
-      () => persisted
-    );
-    await expect(transform(host as unknown as IrisGridModel)).rejects.toThrow(
-      'no psp'
-    );
+    const transform = makePivotModelTransform({} as never, () => persisted);
+    const restored = transform(host as unknown as IrisGridModel);
+    host.settleSwap();
+    const augmented = (await restored) as unknown as PivotBuilderProxyModel;
+
+    expect(augmented.pivotConfig).toBeNull();
+    expect(host.hostRollupWrites).toHaveLength(1);
+    expect(
+      (host.hostRollupWrites[0] as { groupingColumns: string[] })
+        .groupingColumns
+    ).toEqual(['A']);
   });
 });

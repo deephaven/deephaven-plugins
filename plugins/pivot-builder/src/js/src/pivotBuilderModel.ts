@@ -714,16 +714,15 @@ class SupersededError extends Error {
  */
 export function augmentPivotBuilderModel(
   dh: typeof DhType | typeof CorePlusDhType,
-  model: IrisGridModel,
-  getPspWidget: () => Promise<DhType.Widget>
+  model: IrisGridModel
 ): PivotBuilderProxyModel {
   // CorePlus is NOT required to install the proxy: rollup and aggregate
   // (totals) are generic iris-grid features that work on any worker (Legacy
   // included) since they operate on the source table. Only the actual pivot
   // path needs CorePlus, so that check is deferred into `applyPivotConfig`'s
   // pivot branch (the single place that builds `PivotService` /
-  // `IrisGridPivotModel`). The Pivot card is independently gated on the PSP
-  // availability probe, so a pivot can't be requested on a worker without it.
+  // `IrisGridPivotModel`). The Pivot card is independently gated on CorePlus
+  // availability, so a pivot can't be requested on a worker without it.
 
   const proxy = model as IrisGridModel & {
     setNextModel: (promise: Promise<IrisGridModel>) => void;
@@ -838,33 +837,28 @@ export function augmentPivotBuilderModel(
     return decision.target;
   };
 
-  // `PivotService.getInstance` returns a NEW service wrapper on every call,
-  // and every service created from the same psp widget multiplexes over that
-  // widget's single bidi message stream. dh-core fans each response out to
-  // ALL services on the stream, so a stale service left over from a previous
-  // config edit receives responses for ids it never issued and logs
-  // "No handler for response: N" via console.error — once per stale service,
-  // so the noise grows with every edit. The service is documented as a
-  // per-worker singleton ("The initial call for a given worker must be either
-  // a PivotTable or a PivotService"), so cache one service per psp widget and
-  // reuse it across edits to keep a single consumer on the stream. The cache
-  // is keyed on widget identity: when the middleware re-resolves the psp
-  // widget (closing the old one and its stream), the next build rebuilds the
-  // service against the new widget.
-  let cachedPspWidget: DhType.Widget | null = null;
+  // `PivotService.getInstance()` returns a NEW service wrapper on every call,
+  // and every service multiplexes over the worker's single bidi message
+  // stream. dh-core fans each response out to ALL services on the stream, so a
+  // stale service left over from a previous config edit receives responses for
+  // ids it never issued and logs "No handler for response: N" via
+  // console.error — once per stale service, so the noise grows with every
+  // edit. The service is documented as a per-worker singleton ("The initial
+  // call for a given worker must be either a PivotTable or a PivotService"), so
+  // cache one service for this model's lifetime and reuse it across edits to
+  // keep a single consumer on the stream.
   let cachedPivotServicePromise: Promise<CorePlusDhType.coreplus.pivot.PivotService> | null =
     null;
 
   const getPivotService = (
-    corePlusDh: typeof CorePlusDhType,
-    pspWidget: DhType.Widget
+    corePlusDh: typeof CorePlusDhType
   ): Promise<CorePlusDhType.coreplus.pivot.PivotService> => {
-    if (cachedPivotServicePromise != null && cachedPspWidget === pspWidget) {
+    if (cachedPivotServicePromise != null) {
       return cachedPivotServicePromise;
     }
-    cachedPspWidget = pspWidget;
     cachedPivotServicePromise =
-      corePlusDh.coreplus.pivot.PivotService.getInstance(pspWidget);
+      // @ts-expect-error getInstance will be updated to take no args in the API
+      corePlusDh.coreplus.pivot.PivotService.getInstance();
     return cachedPivotServicePromise;
   };
 
@@ -904,19 +898,17 @@ export function augmentPivotBuilderModel(
     const promise = (async (): Promise<IrisGridModel> => {
       log.info('Creating pivot with config:', config);
       // Pivot creation is the only CorePlus-gated path. The Pivot card is
-      // disabled unless the PSP availability probe reports `ready`, so this
-      // should never run on a non-CorePlus (e.g. Legacy) worker — but guard
-      // anyway so a stray pivot request fails loudly instead of casting a
-      // non-CorePlus `dh` and dereferencing `coreplus` undefined.
+      // disabled unless CorePlus is available, so this should never run on a
+      // non-CorePlus (e.g. Legacy) worker — but guard anyway so a stray pivot
+      // request fails loudly instead of casting a non-CorePlus `dh` and
+      // dereferencing `coreplus` undefined.
       if (!isCorePlusDh(dh)) {
         throw new Error(
           'PivotService not available: CorePlus is required to create a pivot'
         );
       }
       const corePlusDh = dh;
-      const pspWidget = await getPspWidget();
-      if (token !== pivotToken) throw new SupersededError();
-      const pivotService = await getPivotService(corePlusDh, pspWidget);
+      const pivotService = await getPivotService(corePlusDh);
       if (token !== pivotToken) throw new SupersededError();
       let pivotTable: CorePlusDhType.coreplus.pivot.PivotTable;
       try {

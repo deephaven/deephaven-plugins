@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactElement,
 } from 'react';
@@ -12,11 +11,7 @@ import {
   type IrisGridViewProps,
   type TableOptionsTransform,
 } from '@deephaven/iris-grid';
-import {
-  useApi,
-  useObjectFetcher,
-  useWorkerVariables,
-} from '@deephaven/jsapi-bootstrap';
+import { useApi } from '@deephaven/jsapi-bootstrap';
 import {
   isCorePlusDh,
   usePivotMouseHandlers,
@@ -26,7 +21,6 @@ import {
 } from '@deephaven/js-plugin-pivot';
 import { ToastQueue } from '@deephaven/components';
 import Log from '@deephaven/log';
-import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   isPivotBuilderIrisGridModel,
   PIVOT_BUILDER_ERROR,
@@ -38,15 +32,9 @@ import {
 import { makeCreatePivotTransform } from './makeCreatePivotTransform';
 import { makePivotModelTransform } from './makePivotModelTransform';
 import {
-  closePivotServiceWidget,
-  pickPivotServiceDescriptor,
-  PIVOT_SERVICE_TYPE,
-} from './resolvePivotService';
-import {
   PivotServiceContext,
   type PivotServiceStatus,
 } from './PivotServiceContext';
-import { useWaitForWorkerVariables } from './useWaitForWorkerVariables';
 import { addModelListener } from './modelEvents';
 
 const log = Log.module(
@@ -80,8 +68,6 @@ function getErrorMessage(error: unknown): string {
 }
 
 export interface PivotBuilderMiddlewareCoreParams {
-  /** The widget/panel metadata used to route the PivotService fetch. */
-  metadata: DhType.ide.VariableDescriptor | null | undefined;
   /** Upstream Table Options transform threaded down the middleware chain. */
   transformTableOptions: TableOptionsTransform | undefined;
   /** Upstream model transform threaded down the middleware chain. */
@@ -118,28 +104,25 @@ export interface PivotBuilderMiddlewareCore {
  *
  * Both paths augment the host-built model into a `PivotBuilderProxyModel`,
  * compose the unified Create Pivot Table Options page on top of any upstream
- * transform, lazily resolve the CorePlus PivotService widget, gate the pivot
- * IrisGrid overrides on whether the proxy is currently in pivot mode, and
- * surface recoverable pivot build failures as a toast. Only the
- * differences (panel persistence + PSP-status context wrap; widget has
- * neither) stay in the individual middleware components.
+ * transform, gate the pivot IrisGrid overrides on whether the proxy is
+ * currently in pivot mode, and surface recoverable pivot build failures as a
+ * toast. Only the differences (panel persistence + PSP-status context wrap;
+ * widget has neither) stay in the individual middleware components.
  *
  * The model transform is installed on every worker, not just CorePlus: rollup
  * and aggregate (totals) are generic iris-grid features that operate on the
  * source table and work on Legacy workers too. Only the pivot path requires
- * CorePlus and is gated separately (the PSP availability probe disables the
- * Pivot card, and `augmentPivotBuilderModel`'s `applyPivotConfig` guards the
- * build).
+ * CorePlus and is gated separately (CorePlus availability disables the Pivot
+ * card on Core/Legacy, and `augmentPivotBuilderModel`'s `applyPivotConfig`
+ * guards the build).
  */
 export function usePivotBuilderMiddlewareCore({
-  metadata,
   transformTableOptions,
   upstreamTransformModel,
   getPersistedConfig = noPersistedConfig,
 }: PivotBuilderMiddlewareCoreParams): PivotBuilderMiddlewareCore {
   const dh = useApi();
   const corePlusAvailable = isCorePlusDh(dh) === true;
-  const objectFetcher = useObjectFetcher();
 
   // Pivot overrides. Hooks must be unconditional. The renderer, mouse
   // handlers, metric-calculator factory, and theme are passed to the host as
@@ -159,88 +142,13 @@ export function usePivotBuilderMiddlewareCore({
     [transformTableOptions]
   );
 
-  // Stash latest `metadata` / `objectFetcher` in refs so the lazy PSP fetcher
-  // keeps a stable identity and the transform does not change.
-  const metadataRef = useRef(metadata);
-  metadataRef.current = metadata;
-  const objectFetcherRef = useRef(objectFetcher);
-  objectFetcherRef.current = objectFetcher;
-  const pspWidgetRef = useRef<DhType.Widget | null>(null);
-  const unmountedRef = useRef(false);
-
-  // Close the cached PivotService widget when the middleware unmounts so the
-  // fetched service handle (and any objects it exported) is released
-  // server-side, honoring the `useWidget` ownership contract.
-  useEffect(
-    () => () => {
-      unmountedRef.current = true;
-      closePivotServiceWidget(pspWidgetRef.current);
-      pspWidgetRef.current = null;
-    },
-    []
-  );
-
-  // Push-based PSP availability: subscribe to the worker's variable list and
-  // wait for the first non-null snapshot before the lazy fetch picks the
-  // PivotService descriptor. The wait avoids racing the initial subscription
-  // when the model transform runs (restoring a persisted pivot) before the
-  // field-updates stream has flushed.
-  const workerVariables = useWorkerVariables(metadata);
-  const waitForWorkerVariables = useWaitForWorkerVariables(workerVariables);
-
-  const getPspWidget = useCallback(async (): Promise<DhType.Widget> => {
-    if (pspWidgetRef.current != null) {
-      return pspWidgetRef.current;
-    }
-    const md = metadataRef.current;
-    if (md == null) {
-      throw new Error('Cannot fetch PivotService: widget metadata is missing');
-    }
-    const variables = await waitForWorkerVariables();
-    const descriptor = pickPivotServiceDescriptor(md, variables);
-    if (descriptor == null) {
-      throw new Error('PivotService not available on this worker');
-    }
-    const widget = await objectFetcherRef.current<DhType.Widget>(descriptor);
-    if (unmountedRef.current) {
-      // The middleware unmounted while the fetch was in flight. The cleanup
-      // effect already ran and will never see this widget, so close it here
-      // instead of caching it to avoid leaking the server-side handle.
-      closePivotServiceWidget(widget);
-      throw new Error('PivotService fetch aborted: middleware unmounted');
-    }
-    pspWidgetRef.current = widget;
-    return widget;
-  }, [waitForWorkerVariables]);
-
-  // Drop any cached PivotService widget so the next fetch re-resolves it,
-  // closing the stale handle first so it is released server-side. The
-  // transform calls this on model re-builds (worker/query restart) to avoid
-  // building the pivot against a widget bound to the dead worker.
-  const resetPspWidget = useCallback(() => {
-    closePivotServiceWidget(pspWidgetRef.current);
-    pspWidgetRef.current = null;
-  }, []);
-
   // The model transform handed to the host. Augments the host-built proxy into
   // a pivot-builder model (and, for the panel, hydrates persisted config).
   // Stable across renders so the host does not rebuild the model.
   const transformModel = useMemo(
     () =>
-      makePivotModelTransform(
-        dh,
-        getPspWidget,
-        getPersistedConfig,
-        upstreamTransformModel,
-        resetPspWidget
-      ),
-    [
-      dh,
-      getPspWidget,
-      getPersistedConfig,
-      upstreamTransformModel,
-      resetPspWidget,
-    ]
+      makePivotModelTransform(dh, getPersistedConfig, upstreamTransformModel),
+    [dh, getPersistedConfig, upstreamTransformModel]
   );
 
   // Track whether the proxy is currently in pivot mode (gates the pivot theme,
@@ -347,23 +255,12 @@ export function usePivotBuilderMiddlewareCore({
 
   // PivotService availability, derived once here so both the widget- and
   // panel-path middlewares expose it to the sidebar identically (no
-  // per-path duplication).
-  const pivotServiceStatus: PivotServiceStatus = useMemo(() => {
-    if (!corePlusAvailable) return 'unavailable';
-    if (workerVariables == null) return 'loading';
-    return workerVariables.some(v => v.type === PIVOT_SERVICE_TYPE)
-      ? 'ready'
-      : 'unavailable';
-  }, [corePlusAvailable, workerVariables]);
-
-  // Drop the cached PSP widget whenever the worker stops publishing a
-  // PivotService variable (e.g. a restart onto a worker without PSP, or the
-  // user closed the service). The next Apply re-fetches.
-  useEffect(() => {
-    if (pivotServiceStatus !== 'ready') {
-      resetPspWidget();
-    }
-  }, [pivotServiceStatus, resetPspWidget]);
+  // per-path duplication). Pivot is a CorePlus-only feature; Core and Legacy
+  // workers get the Pivot card disabled. CorePlus always exposes the
+  // PivotService, so availability tracks the API flavor directly.
+  const pivotServiceStatus: PivotServiceStatus = corePlusAvailable
+    ? 'ready'
+    : 'unavailable';
 
   const pivotServiceContextValue = useMemo(
     () => ({ status: pivotServiceStatus }),

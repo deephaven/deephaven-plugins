@@ -105,10 +105,9 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       []
     );
 
-    // Shared middleware core: model augmentation, lazy PSP resolution, pivot
-    // IrisGrid overrides, and the recoverable-error toast. The panel passes
-    // `getPersistedConfig` so the transform hydrates persisted state before the
-    // model is published.
+    // Shared middleware core: model augmentation, pivot IrisGrid overrides, and
+    // the recoverable-error toast. The panel passes `getPersistedConfig` so the
+    // transform hydrates persisted state before the model is published.
     const {
       transformModel,
       composedTransform,
@@ -117,10 +116,6 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
       model,
       wrap,
     } = usePivotBuilderMiddlewareCore({
-      metadata: props.metadata as
-        | DhType.ide.VariableDescriptor
-        | null
-        | undefined,
       transformTableOptions,
       upstreamTransformModel,
       getPersistedConfig,
@@ -149,10 +144,11 @@ export const PivotBuilderPanelMiddleware = createPanelMiddleware<
 
     // `transformModel` is installed on every worker, so the host always gets a
     // pivot-builder proxy (rollup/aggregate work on Legacy; the Pivot card is
-    // gated by the PSP probe). The factory owns the `forwardRef` ceremony and
-    // forwards the ref golden-layout injects to the inner `IrisGridPanel`, so
-    // panel state (sorts, filters, column moves, etc.) persists; we only declare
-    // what to inject and a `wrap` that exposes the PSP status via context.
+    // gated by CorePlus availability). The factory owns the `forwardRef`
+    // ceremony and forwards the ref golden-layout injects to the inner
+    // `IrisGridPanel`, so panel state (sorts, filters, column moves, etc.)
+    // persists; we only declare what to inject and a `wrap` that exposes the
+    // PSP status via context.
     return {
       inject: {
         transformModel,

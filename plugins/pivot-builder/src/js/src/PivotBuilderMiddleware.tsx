@@ -40,8 +40,8 @@ type ChainedWidgetProps = WidgetComponentProps<DhType.Table> &
  *
  * The widget path does not persist config (there is no panel state to restore
  * into), so it wires the shared core with no `getPersistedConfig`. All shared
- * behavior — model augmentation, lazy PSP resolution, pivot IrisGrid overrides,
- * and the recoverable-error toast — lives in
+ * behavior — model augmentation, pivot IrisGrid overrides, and the
+ * recoverable-error toast — lives in
  * {@link usePivotBuilderMiddlewareCore}.
  */
 export const PivotBuilderMiddleware = createWidgetMiddleware<
@@ -60,10 +60,6 @@ export const PivotBuilderMiddleware = createWidgetMiddleware<
       onModelChanged,
       wrap,
     } = usePivotBuilderMiddlewareCore({
-      metadata: props.metadata as
-        | DhType.ide.VariableDescriptor
-        | null
-        | undefined,
       transformTableOptions,
       upstreamTransformModel,
     });
