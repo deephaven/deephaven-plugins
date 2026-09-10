@@ -5,6 +5,7 @@ import { type dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { type Operation } from 'fast-json-patch';
+import { CALLABLE_KEY } from '../elements/utils/ElementUtils';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
 import { type DocumentHandlerProps } from './DocumentHandler';
 import { type WidgetMessageEvent } from './WidgetTypes';
@@ -99,7 +100,8 @@ it('updates the document when event is received', async () => {
   const { unmount } = render(
     makeWidgetHandler({ widgetDescriptor: widget, initialData })
   );
-  expect(mockAddEventListener).toHaveBeenCalledTimes(1);
+  // One listener for 'message', one for 'reconnect'
+  expect(mockAddEventListener).toHaveBeenCalledTimes(2);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
 
   // Verify setState was called with component state and appState
@@ -158,7 +160,97 @@ it('updates the document when event is received', async () => {
 
   expect(cleanup).not.toHaveBeenCalled();
   unmount();
-  expect(cleanup).toHaveBeenCalledTimes(1);
+  // Both the 'message' and 'reconnect' listeners are cleaned up
+  expect(cleanup).toHaveBeenCalledTimes(2);
+});
+
+it('resets the document and re-sends the last state when the widget reconnects', async () => {
+  const widget = makeWidgetDescriptor();
+  const mockAddEventListener = jest.fn((() =>
+    jest.fn()) as dh.Widget['addEventListener']);
+  const mockSendMessage = jest.fn();
+  const initialData = { state: { count: 0 } };
+  mockWidgetWrapper = {
+    widget: makeWidget({
+      addEventListener: mockAddEventListener,
+      getDataAsString: jest.fn(() => ''),
+      sendMessage: mockSendMessage,
+    }),
+    error: null,
+    api: jest.fn() as unknown as typeof dh,
+  };
+
+  const { unmount } = render(
+    makeWidgetHandler({ widgetDescriptor: widget, initialData })
+  );
+
+  const messageListener = mockAddEventListener.mock.calls.find(
+    call => call[0] === 'message'
+  )?.[1] as (event: WidgetMessageEvent) => void;
+  const reconnectListener = mockAddEventListener.mock.calls.find(
+    call => call[0] === 'reconnect'
+  )?.[1] as () => void;
+
+  // Respond to the initial setState, then send the initial document
+  // containing a callable, along with the latest widget state
+  await act(async () => {
+    messageListener(makeWidgetEventJsonRpcResponse(0));
+    messageListener(
+      makeWidgetEventDocumentPatched(
+        [
+          { op: 'add', path: '/foo', value: 'bar' },
+          { op: 'add', path: '/action', value: { [CALLABLE_KEY]: 'cb0' } },
+        ],
+        JSON.stringify({ count: 3 })
+      )
+    );
+  });
+
+  expect(mockDocumentHandler).toHaveBeenCalledTimes(1);
+  const staleDocument = mockDocumentHandler.mock.calls[0][0]
+    .children as unknown as {
+    foo: string;
+    action: unknown;
+  };
+  expect(typeof staleDocument.action).toBe('function');
+
+  mockSendMessage.mockClear();
+  mockDocumentHandler.mockClear();
+
+  // The same widget object fires 'reconnect' after reopening its stream
+  await act(async () => {
+    reconnectListener();
+  });
+
+  // setState is re-sent with the last state received from the server
+  expect(mockSendMessage).toHaveBeenCalledTimes(1);
+  const setStatePayload = JSON.parse(
+    mockSendMessage.mock.calls[0][0] as string
+  );
+  expect(setStatePayload.method).toBe('setState');
+  expect(setStatePayload.params[0]).toMatchObject({ count: 3 });
+
+  // The new stream renders from scratch: its from-empty patch must replace the
+  // stale document instead of merging with it, and callables must not be reused
+  await act(async () => {
+    messageListener(makeWidgetEventJsonRpcResponse(1));
+    messageListener(
+      makeWidgetEventDocumentPatched([
+        { op: 'add', path: '/action', value: { [CALLABLE_KEY]: 'cb0' } },
+      ])
+    );
+  });
+
+  expect(mockDocumentHandler).toHaveBeenCalledTimes(1);
+  const freshDocument = mockDocumentHandler.mock.calls[0][0]
+    .children as unknown as {
+    action: unknown;
+  };
+  expect(Object.keys(freshDocument)).toEqual(['action']);
+  expect(typeof freshDocument.action).toBe('function');
+  expect(freshDocument.action).not.toBe(staleDocument.action);
+
+  unmount();
 });
 
 it('updates the initial data only when widget has changed', async () => {
@@ -189,7 +281,7 @@ it('updates the initial data only when widget has changed', async () => {
       onClose,
     })
   );
-  expect(addEventListener).toHaveBeenCalledTimes(1);
+  expect(addEventListener).toHaveBeenCalledTimes(2);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
   // Verify setState was called with component state and appState
   const setStatePayload1 = JSON.parse(sendMessage.mock.calls[0][0] as string);
@@ -257,8 +349,8 @@ it('updates the initial data only when widget has changed', async () => {
     })
   );
 
-  // Should have been called when the widget was updated
-  expect(cleanup).toHaveBeenCalledTimes(1);
+  // Should have been called for both listeners when the widget was updated
+  expect(cleanup).toHaveBeenCalledTimes(2);
   cleanup.mockClear();
 
   // eslint-disable-next-line prefer-destructuring
@@ -291,7 +383,8 @@ it('updates the initial data only when widget has changed', async () => {
 
   expect(cleanup).not.toHaveBeenCalled();
   unmount();
-  expect(cleanup).toHaveBeenCalledTimes(1);
+  // Both the 'message' and 'reconnect' listeners are cleaned up
+  expect(cleanup).toHaveBeenCalledTimes(2);
 });
 
 it('handles rendering widget error if widget is null (query disconnected)', async () => {
@@ -320,7 +413,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
       initialData: data1,
     })
   );
-  expect(mockAddEventListener).toHaveBeenCalledTimes(1);
+  expect(mockAddEventListener).toHaveBeenCalledTimes(2);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
   const setStatePayloadErr = JSON.parse(sendMessage.mock.calls[0][0] as string);
   expect(setStatePayloadErr.method).toBe('setState');
