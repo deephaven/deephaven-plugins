@@ -800,6 +800,49 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ![Example of quick filters](../_assets/table_quick_filter.png)
 
+### Controlled quick filters
+
+Pass `on_quick_filters_change` along with `quick_filters` to control the filters from your own state. The callback is invoked with the complete filter state the user proposed, as a dictionary of column name to filter expression. Columns the user cleared are omitted from the dictionary.
+
+In this example, a `picker` drives the `Sym` filter, and the callback keeps the picker in sync when the user edits the filter bar directly.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+
+@ui.component
+def ui_filtered_table(table):
+    sym, set_sym = ui.use_state("CAT")
+
+    def handle_quick_filters_change(filters):
+        set_sym(filters.get("Sym"))
+
+    return [
+        ui.picker(
+            "CAT",
+            "DOG",
+            "FISH",
+            "BIRD",
+            "LIZARD",
+            label="Sym filter",
+            selected_key=sym,
+            on_change=set_sym,
+        ),
+        ui.table(
+            table,
+            show_quick_filters=True,
+            quick_filters={"Sym": sym} if sym else {},
+            on_quick_filters_change=handle_quick_filters_change,
+        ),
+    ]
+
+
+t = ui_filtered_table(_stocks)
+```
+
 Set `is_quick_filters_read_only` to prevent the user from changing the quick filters. Applied filters are still visible, but the filter bar is not editable and filter actions are disabled. This is useful alongside `quick_filters` to make it clear that the filters are controlled by the server.
 
 ```python order=t,_stocks
@@ -860,6 +903,46 @@ t_string_sort = ui.table(
 - `column`: The column name to sort by.
 - `direction`: `"ASC"` or `"DESC"`.
 - `is_abs`: If `True`, sort by absolute value.
+
+### Controlled sorts
+
+Pass `on_sorts_change` along with `sorts` to control the sorts from your own state. The callback is invoked with the complete ordered sort state the user proposed, as a list of dictionaries with `column`, `direction`, and `is_abs` keys.
+
+In this example, a `picker` selects the sort column, and the callback keeps the picker in sync when the user sorts from the column header.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+
+@ui.component
+def ui_sorted_table(table):
+    sort_column, set_sort_column = ui.use_state("Sym")
+
+    def handle_sorts_change(sorts):
+        set_sort_column(sorts[0]["column"] if sorts else None)
+
+    return [
+        ui.picker(
+            "Sym",
+            "Exchange",
+            "Price",
+            label="Sort column",
+            selected_key=sort_column,
+            on_change=set_sort_column,
+        ),
+        ui.table(
+            table,
+            sorts=ui.TableSort(column=sort_column) if sort_column else [],
+            on_sorts_change=handle_sorts_change,
+        ),
+    ]
+
+
+t = ui_sorted_table(_stocks)
+```
 
 Set `is_sorts_read_only` to prevent the user from changing the sorts. Applied sorts are still visible, but sorting actions are disabled. This is useful alongside `sorts` to make it clear that the sorts are controlled by the server. Note that this does not affect `reverse`.
 
