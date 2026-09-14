@@ -47,17 +47,34 @@ _pins_blink, _pins_pub = table_publisher(
 pinned = _pins_blink.tail(500)
 
 
+def _pressed_price(event: dict) -> float | None:
+    """Value of the hovered series at the press, or None if no series was hit.
+
+    The press event carries no top-level price; it has to be read out of
+    ``seriesData`` for whichever series the cursor was over.
+    """
+    series = event.get("hoveredSeries")
+    if series is None:
+        return None
+    point = (event.get("seriesData") or {}).get(series)
+    if isinstance(point, dict):
+        value = point.get("close", point.get("value"))
+    else:
+        value = point
+    return None if value is None else float(value)
+
+
 def _pin(event: dict) -> None:
     """Append a pressed (time, series, price) to the live log table."""
-    t = event.get("time")
-    price = event.get("price")
+    t = event.get("timestamp")
+    price = _pressed_price(event)
     if t is None or price is None:
         return  # press landed on empty area beyond the data - nothing to pin
     _pins_pub.add(
         new_table(
             [
                 datetime_col("Time", [t]),
-                string_col("Series", [event.get("seriesId", "(between series)")]),
+                string_col("Series", [event.get("hoveredSeries", "(between series)")]),
                 double_col("Price", [price]),
             ]
         )
@@ -101,7 +118,7 @@ def _series_snapshot(event: dict):
 
 def _window(event: dict):
     """Filter the raw data to a +/- 10-day window around the pressed time."""
-    t = event.get("time")
+    t = event.get("timestamp")
     if t is None:
         return candles.where("false")  # empty
     # `t` is a real Deephaven Instant; reference it directly in the formula.
@@ -152,9 +169,9 @@ def inspector(selected: dict | None):
             width="100%",
         )
 
-    series = selected.get("seriesId", "(between series)")
-    price = selected.get("price")
-    t = selected.get("time")
+    series = selected.get("hoveredSeries", "(between series)")
+    price = _pressed_price(selected)
+    t = selected.get("timestamp")
     pane = selected.get("paneIndex")
 
     chips = [
@@ -193,7 +210,7 @@ def inspector(selected: dict | None):
 # --------------------------------------------------------------------------- #
 @ui.component
 def drilldown(selected: dict | None):
-    has_time = bool(selected) and selected.get("time") is not None
+    has_time = bool(selected) and selected.get("timestamp") is not None
     windowed = ui.use_memo(
         lambda: _window(selected) if has_time else None,
         [selected],

@@ -104,7 +104,7 @@ def marker_tool():
             set_tool(key)
 
     def handle_press(event: dict):
-        t = event.get("time")
+        t = event.get("timestamp")
         if t is None:
             return  # pressed empty area beyond the data - nothing to stamp
         spec = TOOLS[tool_ref.current]
