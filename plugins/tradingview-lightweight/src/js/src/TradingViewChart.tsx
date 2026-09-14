@@ -1421,7 +1421,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
 
       // Let the chart settle for 1s after init (fitContent, resize, etc.)
       // before we start listening to range changes.
-      setTimeout(() => {
+      const settleTimer = setTimeout(() => {
         settled = true;
         try {
           const vr = timeScale.getVisibleRange();
@@ -1780,6 +1780,8 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         container.removeEventListener('dblclick', onDblClick);
         unsubSize();
         if (debounceTimer) clearTimeout(debounceTimer);
+        // Would otherwise call performAutoBin on an already-closed model.
+        clearTimeout(settleTimer);
         container.removeEventListener('pointerdown', onDown, true);
         window.removeEventListener('pointerup', onUp, true);
         window.removeEventListener('pointercancel', onUp, true);

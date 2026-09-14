@@ -709,3 +709,51 @@ describe('TradingViewChart unmount during fetch', () => {
     expect(mockModelInstances).toHaveLength(modelsBefore);
   });
 });
+
+describe('TradingViewChart settle timer teardown', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    mockVisibleRange = { from: 0, to: 100 };
+    mockVisibleRangeHandlers.length = 0;
+    mockSizeHandlers.length = 0;
+    mockModelInstances.length = 0;
+    mockRendererInstances.length = 0;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('fires the post-init autobin while mounted', async () => {
+    const { unmount } = await renderChart();
+    const model = mockModelInstances[0] as {
+      isAutoBinned: jest.Mock;
+      performAutoBin: jest.Mock;
+    };
+    model.isAutoBinned.mockReturnValue(true);
+
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(model.performAutoBin).toHaveBeenCalled();
+    unmount();
+  });
+
+  it('does not autobin when unmounted before the settle timer fires', async () => {
+    const { unmount } = await renderChart();
+    const model = mockModelInstances[0] as {
+      isAutoBinned: jest.Mock;
+      performAutoBin: jest.Mock;
+    };
+    model.isAutoBinned.mockReturnValue(true);
+
+    unmount();
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(model.performAutoBin).not.toHaveBeenCalled();
+  });
+});
