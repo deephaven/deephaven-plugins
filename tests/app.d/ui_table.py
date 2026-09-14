@@ -1,3 +1,5 @@
+from typing import Any
+
 from deephaven import ui
 from deephaven import empty_table, new_table
 from deephaven.column import int_col, string_col
@@ -493,6 +495,109 @@ t_default = ui.table(
     quick_filters={"Sym": "CAT"},
     show_quick_filters=True,
 )
+
+
+def _format_sorts(sorts: list[Any]) -> str:
+    def describe(sort: Any) -> str:
+        if isinstance(sort, ui.TableSort):
+            column, direction, is_abs = sort.column, sort.direction, sort.is_abs
+        else:
+            column, direction, is_abs = (
+                sort["column"],
+                sort["direction"],
+                sort.get("is_abs", False),
+            )
+        return f"{column}:{direction}{':ABS' if is_abs else ''}"
+
+    return ", ".join(describe(sort) for sort in sorts) if sorts else "None"
+
+
+def _format_quick_filters(quick_filters: dict[str, str]) -> str:
+    return (
+        ", ".join(f"{col}={value}" for col, value in sorted(quick_filters.items()))
+        if quick_filters
+        else "None"
+    )
+
+
+@ui.component
+def t_controlled_roundtrip_component():
+    # Both controlled. User changes in the grid flow up through the callbacks and
+    # back down as the new controlled values.
+    sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
+    quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
+    return ui.flex(
+        ui.text(f"Sorts: {_format_sorts(sorts)}"),
+        ui.text(f"Filters: {_format_quick_filters(quick_filters)}"),
+        ui.table(
+            _persist_table,
+            sorts=sorts,
+            on_sorts_change=set_sorts,
+            quick_filters=quick_filters,
+            on_quick_filters_change=set_quick_filters,
+            show_quick_filters=True,
+        ),
+        direction="column",
+    )
+
+
+t_controlled_roundtrip = t_controlled_roundtrip_component()
+
+
+@ui.component
+def t_sorts_controlled_component():
+    # `sorts` is controlled; `quick_filters` has no change callback, so its value
+    # is only the initial state and later changes to it are ignored.
+    sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
+    quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
+    return ui.flex(
+        ui.button(
+            "Update sort and filter",
+            on_press=lambda _: (
+                set_sorts([ui.TableSort(column="Size", direction="DESC")]),
+                set_quick_filters({"Sym": "BEAR"}),
+            ),
+        ),
+        ui.table(
+            _persist_table,
+            sorts=sorts,
+            on_sorts_change=set_sorts,
+            quick_filters=quick_filters,
+            show_quick_filters=True,
+        ),
+        direction="column",
+    )
+
+
+t_sorts_controlled = t_sorts_controlled_component()
+
+
+@ui.component
+def t_quick_filters_controlled_component():
+    # `quick_filters` is controlled; `sorts` has no change callback, so its value
+    # is only the initial state and later changes to it are ignored.
+    sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
+    quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
+    return ui.flex(
+        ui.button(
+            "Update sort and filter",
+            on_press=lambda _: (
+                set_sorts([ui.TableSort(column="Size", direction="DESC")]),
+                set_quick_filters({"Sym": "BEAR"}),
+            ),
+        ),
+        ui.table(
+            _persist_table,
+            sorts=sorts,
+            quick_filters=quick_filters,
+            on_quick_filters_change=set_quick_filters,
+            show_quick_filters=True,
+        ),
+        direction="column",
+    )
+
+
+t_quick_filters_controlled = t_quick_filters_controlled_component()
 
 from deephaven import agg
 
