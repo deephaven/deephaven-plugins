@@ -21,6 +21,7 @@ import {
   type DehydratedIrisGridState,
   type DehydratedGridState,
   isIrisGridTableModelTemplate,
+  type ReadonlyQuickFilterMap,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -45,6 +46,7 @@ import {
   usePersistentState,
 } from '@deephaven/dashboard';
 import { type dh as DhType } from '@deephaven/jsapi-types';
+import type { SortDescriptor } from '@deephaven/jsapi-utils';
 import Log from '@deephaven/log';
 import { getSettings, type RootState } from '@deephaven/redux';
 import {
@@ -426,11 +428,7 @@ export function UITable({
   );
 
   const handleQuickFiltersChange = useCallback(
-    (
-      nextQuickFilters: Parameters<
-        typeof IrisGridUtils.dehydrateQuickFilters
-      >[0]
-    ) => {
+    (nextQuickFilters: ReadonlyQuickFilterMap) => {
       onQuickFiltersChange?.(
         getUITableQuickFilters(
           IrisGridUtils.dehydrateQuickFilters(nextQuickFilters),
@@ -442,7 +440,7 @@ export function UITable({
   );
 
   const handleSortsChange = useCallback(
-    (nextSorts: Parameters<typeof IrisGridUtils.dehydrateSort>[0]) => {
+    (nextSorts: readonly SortDescriptor[]) => {
       onSortsChange?.(getUITableSorts(IrisGridUtils.dehydrateSort(nextSorts)));
     },
     [onSortsChange]
