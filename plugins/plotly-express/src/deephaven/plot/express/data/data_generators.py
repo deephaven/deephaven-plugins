@@ -353,7 +353,9 @@ def stocks(
                     "Timestamp = base_time + (long)(Index * SECOND / ticks_per_second)",
                     "RandomDouble = (double)random_gauss(Index + 99999)",  # nicer looking starting seed
                     "Sym = random_list_sym(Index)",
-                    "Exchange = random_list_exchange(Index)",
+                    # seeds must be offset per column, otherwise every column seeded with Index
+                    # draws the same underlying value and the columns end up fully correlated
+                    "Exchange = random_list_exchange(Index + 1000000)",
                     "Side = RandomDouble >= 0 ? `buy` : `sell`",
                     "Size = random_trade_size(RandomDouble)",
                     "SymIndex = (int)sym_dict[Sym]",
