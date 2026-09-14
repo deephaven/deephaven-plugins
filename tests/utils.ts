@@ -433,7 +433,10 @@ export async function clickGridColumnHeader(
  * Types a quick filter into the quick filter bar for a column and applies it.
  * Assumes the quick filter bar is shown (e.g. `show_quick_filters=True`).
  * @param gridContainer The Playwright Locator of the grid container
- * @param x The horizontal pixel offset of the column's filter cell to click
+ * @param x The horizontal pixel offset of the column's filter cell to click.
+ * Keep this near the left edge of the column: a cell with a filter already
+ * applied draws a dropdown icon on its right which opens a value picker
+ * instead of focusing the cell for editing.
  * @param text The filter expression to type
  */
 export async function setGridQuickFilter(
@@ -448,6 +451,9 @@ export async function setGridQuickFilter(
   await gridContainer.locator('.grid-wrapper').click({
     position: { x, y: COLUMN_HEADER_HEIGHT + ROW_HEIGHT / 2 },
   });
-  await gridContainer.page().keyboard.type(text);
-  await gridContainer.page().keyboard.press('Enter');
+  const { keyboard } = gridContainer.page();
+  // Replace any existing filter expression rather than appending to it.
+  await keyboard.press('ControlOrMeta+A');
+  await keyboard.type(text);
+  await keyboard.press('Enter');
 }
