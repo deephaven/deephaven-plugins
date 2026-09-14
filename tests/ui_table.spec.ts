@@ -6,6 +6,7 @@ import {
   clickGridRow,
   waitForGridRender,
   clickGridColumnHeader,
+  clickGridQuickFilterCell,
   setGridQuickFilter,
   waitForLoad,
 } from './utils';
@@ -270,5 +271,64 @@ test('UI table controlled filters with uncontrolled sorts', async ({
   // the filter applies; the sort stays on the user's `Sym:ASC`.
   await locator.getByRole('button', { name: 'Update sort and filter' }).click();
   await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `is_sorts_read_only` disables sorting without disabling filtering.
+// The successful filter edit afterwards proves the widget was live, so the
+// unchanged sort is the prop taking effect rather than a dropped interaction.
+test('UI table read-only sorts', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_sorts_read_only',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+  await expect(locator.getByText('Sorts: Size:ASC')).toBeVisible();
+
+  // Clicking the `Sym` header would normally sort by it.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+
+  // Filtering is still allowed.
+  await setGridQuickFilter(grid, 10, 'DOG');
+  await waitForLoad(page);
+  await expect(locator.getByText('Filters: Sym=DOG')).toBeVisible();
+
+  await expect(locator.getByText('Sorts: Size:ASC')).toBeVisible();
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `is_quick_filters_read_only` disables filtering without disabling
+// sorting. The successful sort afterwards proves the widget was live.
+test('UI table read-only quick filters', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_quick_filters_read_only',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+  await expect(locator.getByText('Filters: Sym=CAT')).toBeVisible();
+
+  // Editing the `Sym` filter cell would normally replace `CAT` with `DOG`.
+  await clickGridQuickFilterCell(grid, 10);
+  await page.keyboard.type('DOG');
+  await page.keyboard.press('Enter');
+  await waitForLoad(page);
+
+  // Sorting is still allowed.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await expect(locator.getByText('Sorts: Sym:ASC')).toBeVisible();
+
+  await expect(locator.getByText('Filters: Sym=CAT')).toBeVisible();
   await expect(locator).toHaveScreenshot();
 });
