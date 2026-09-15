@@ -30,3 +30,4 @@ file_23=ui_shared_state.py
 file_24=ui_dashboard_headers.py
 file_25=tradingview_lightweight.py
 file_26=tvl_events.py
+file_27=tvl_tooltip.py

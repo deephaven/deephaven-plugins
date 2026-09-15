@@ -351,84 +351,47 @@ npx tsc --noEmit
 
 ## End-to-End Tests (Playwright)
 
-The unit tests (jest + jsdom) simulate the DOM. The **e2e** suite under
-`src/js/e2e/` runs the real plugin in a real Deephaven IDE in Chromium via
-Playwright, so it catches wiring / serialization / render bugs the unit tests
-can't. It is self-booting: Playwright's `webServer` starts and tears down the
-Deephaven server for you.
+The unit tests (jest + jsdom) simulate the DOM. The **e2e** suite runs the real
+plugin in a real Deephaven IDE via Playwright, so it catches wiring /
+serialization / render bugs the unit tests can't.
 
-### One-time setup
-
-```bash
-cd src/js
-npm run test:e2e:setup           # provision a venv with deephaven-server + this plugin
-```
-
-`test:e2e:setup` runs `e2e/setup-venv.sh`: it `uv venv`s `<plugin>/.venv`,
-installs `deephaven-server` + `deephaven-plugin-utilities`, builds the JS
-bundle, and installs the plugin into that venv. Re-run it only when the
-**Python** deps change — after JS changes you don't need to (see below).
-
-**Browser.** The config resolves Chromium in this order: `TVL_E2E_CHROMIUM`
-env var → a system Chromium at `/usr/bin/chromium` → Playwright's bundled
-browser. So if a system Chromium is present (common in CI images and this
-sandbox) nothing extra is needed. Otherwise install the bundled browser once:
+TVL uses the **repo-root** Playwright harness, same as every other plugin —
+there is no plugin-local config. Specs live in `tests/` at the repo root and
+run in Docker:
 
 ```bash
-npx playwright install chromium chromium-headless-shell
+npm run e2e:docker -- ./tests/tradingview_lightweight.spec.ts --reporter=list
+npm run e2e:update-snapshots -- ./tests/tradingview_lightweight.spec.ts
 ```
 
-> Browsers live in the shared `~/.cache/ms-playwright`. There is no separate
-> "plugin" vs "root" Playwright — both use the repo-root `@playwright/test`
-> and the same browser cache. `npx playwright install` prunes builds that
-> don't match the installed Playwright version, so install once and reuse.
-> Chromium runs with `--no-sandbox` (required as root).
+Current TVL specs: `tradingview_lightweight.spec.ts` (render snapshots),
+`_autobin`, `_events`, and `_tooltip`.
 
-### Running
+Stale containers from an interrupted run will block the next one:
 
 ```bash
-cd src/js
-npm run test:e2e                 # builds JS, boots a server, runs the specs, tears it down
+docker ps -a --format '{{.Names}}' | grep tests- | xargs -r docker rm -f
 ```
 
-`test:e2e` = `build` then `test:e2e:run` (Playwright). On each run
-`e2e/start-server.sh` **syncs the freshly built bundle into the installed
-package**, so the suite always exercises HEAD — you never reinstall the wheel
-after a JS change, just `npm run test:e2e` again. For fast iteration against a
-server you already have up, `reuseExistingServer` is on locally, so a running
-server on :10000 is reused instead of booting a new one.
+### Fixtures
 
-### How the server is launched (two load-bearing quirks)
-
-`e2e/start-server.sh` boots Deephaven with anonymous auth and
-`-Ddeephaven.application.dir=e2e/app.d` (which auto-opens the
-`tooltip_demo.py` chart as a panel). Two things are required in this sandbox
-and are easy to get wrong:
-
-1. **stdin must stay open.** The `deephaven` CLI prints "Press Control-C to
-   exit" and reads stdin; on stdin EOF (what a backgrounded/non-TTY process
-   gets) it aborts immediately with `Aborted!`. We feed it `tail -f /dev/null |`
-   so stdin never closes. (`< /dev/zero` does NOT work — that floods stdin with
-   bytes and the CLI exits.)
-2. **stdout must be a pipe, not a file.** We append `| cat`. Redirecting the
-   server's stdout to a file makes the JVM abort.
-
-Letting Playwright's `webServer` own the process handles teardown cleanly and
-sidesteps the sandbox rule that a hand-backgrounded JVM gets reaped.
-
-> **Never use shell `sleep` in this sandbox — it exits 144 and kills the
-> script.** Wait via Playwright's own APIs (`page.waitForSelector`,
-> `page.waitForTimeout`) or a `timeout … bash -c 'until curl -sf URL; do :; done'`
-> busy-loop, not `sleep`.
+Server-side fixtures are Application-mode scripts in `tests/app.d/`, registered
+by adding a `file_N=` line to `tests/app.d/tests.app`. A spec opens one by field
+name with `openPanel(page, '<field>')`.
 
 ### Writing e2e tests
 
-Add a `*.spec.ts` under `src/js/e2e/`. Assert against the DOM seams the
-components publish rather than screenshotting the canvas:
+Add a `*.spec.ts` under `tests/` and reuse the shared helpers from
+`tests/utils.ts` (`gotoPage`, `openPanel`, `waitForTvlSettled`) rather than
+hand-rolling panel-opening logic. Prefer the DOM seams the components publish
+over screenshotting the canvas:
 
 - `.tvl-tooltip` + its `data-tvl-tooltip` attribute — the tracking tooltip's
-  rendered `title | value | date` (see `tooltip.spec.ts`).
+  rendered `title | value | date` (see `tradingview_lightweight_tooltip.spec.ts`).
 - `data-tvl-last-event` on the chart container — the last press-event payload.
+- `data-tvl-state` on the chart container — drives `waitForTvlSettled`; always
+  settle before a screenshot, and in an `afterEach` so a teardown mid-snapshot
+  doesn't spray "Stream was terminated by error" into other sessions' logs.
 
 Hover the chart via `page.mouse.move(...)` over the `.dh-tvl-chart` bounding
 box; the tooltip follows the crosshair just like a real cursor.

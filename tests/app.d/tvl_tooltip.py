@@ -1,8 +1,7 @@
 """E2E fixture: a two-series line chart with the tracking tooltip enabled.
 
-Loaded as a Deephaven Application-mode field (see ``tooltip.app``) so the chart
-auto-opens as a panel when the e2e server boots. The Playwright spec hovers the
-chart and asserts the ``data-tvl-tooltip`` DOM seam.
+The Playwright spec hovers the chart and asserts the ``data-tvl-tooltip`` DOM
+seam.
 """
 
 from deephaven import empty_table
@@ -18,9 +17,8 @@ _t = empty_table(500).update(
     ]
 )
 
-tooltip_chart = tvl.chart(
+tvl_tooltip_chart = tvl.chart(
     tvl.line(_t, timestamp="Timestamp", value="Price", title="Price"),
     tvl.line(_t, timestamp="Timestamp", value="Ema", title="EMA"),
-    tooltip_visible=True,
-    tooltip_value_precision=2,
+    tooltip=tvl.tooltip(visible=True, value_precision=2),
 )
