@@ -5,6 +5,10 @@ import {
   gotoPage,
   clickGridRow,
   waitForGridRender,
+  clickGridColumnHeader,
+  clickGridQuickFilterCell,
+  setGridQuickFilter,
+  waitForLoad,
 } from './utils';
 
 test.describe('UI table', () => {
@@ -126,4 +130,205 @@ test('UI table with tree table', async ({ page }) => {
 
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   await expect(locator.locator('.iris-grid')).toBeVisible();
+});
+
+// DH-22976: Explicit controlled props re-apply when their values change
+// programmatically. The quick-filter change exercises IrisGrid's
+// `updateQuickFilters` path.
+test('UI table sorts and filters update programmatically', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_controlled',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  await expect(locator.locator('.iris-grid')).toBeVisible();
+  await expect(locator).toHaveScreenshot();
+
+  await locator.getByRole('button', { name: 'Update sort and filter' }).click();
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: Existing user-owned sorts and quick filters persist after refresh.
+test('UI table user sorts and filters persist after refresh', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(page, 't_default', SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+
+  // User changes the sort by clicking a column header and sets a quick filter.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await setGridQuickFilter(grid, 10, 'DOG');
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+
+  // Disable "Close Panels on Disconnect" so the layout is persisted on refresh.
+  await page
+    .getByRole('button', { name: 'More Actions...', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Close Panels on Disconnect', exact: true })
+    .click();
+  // Wait for the debounced setting to save before refreshing.
+  await page.waitForTimeout(2000);
+
+  await page.reload();
+  await waitForLoad(page);
+
+  // The user's sort and quick filter are restored from the persisted layout.
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: Controlled sorts and quick filters report user changes back to the
+// server, and the round-tripped values become the new controlled values.
+test('UI table controlled sorts and filters round-trip user changes', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_controlled_roundtrip',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+  await expect(locator.getByText('Sorts: Size:ASC')).toBeVisible();
+  await expect(locator.getByText('Filters: Sym=CAT')).toBeVisible();
+
+  // Editing the `Sym` quick filter invokes `on_quick_filters_change`.
+  await setGridQuickFilter(grid, 10, 'DOG');
+  await waitForLoad(page);
+  await expect(locator.getByText('Filters: Sym=DOG')).toBeVisible();
+
+  // Sorting by clicking the `Sym` header invokes `on_sorts_change`.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await expect(locator.getByText('Sorts: Sym:ASC')).toBeVisible();
+
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `sorts` is controlled, `quick_filters` is not. A server update
+// re-applies the sort but must leave the user's quick filter alone.
+test('UI table controlled sorts with uncontrolled filters', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_sorts_controlled',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+
+  // User owns the quick filter, so replace the initial `CAT` with `DOG`.
+  await setGridQuickFilter(grid, 10, 'DOG');
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+
+  // The server sets sorts to `Size:DESC` and quick filters to `Sym=BEAR`. Only
+  // the sort applies; the filter stays on the user's `DOG`.
+  await locator.getByRole('button', { name: 'Update sort and filter' }).click();
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `quick_filters` is controlled, `sorts` is not. A server update
+// re-applies the quick filter but must leave the user's sort alone.
+test('UI table controlled filters with uncontrolled sorts', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_quick_filters_controlled',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+
+  // User owns the sort, so replace the initial `Size:ASC` with `Sym:ASC`.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+
+  // The server sets sorts to `Size:DESC` and quick filters to `Sym=BEAR`. Only
+  // the filter applies; the sort stays on the user's `Sym:ASC`.
+  await locator.getByRole('button', { name: 'Update sort and filter' }).click();
+  await waitForLoad(page);
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `is_sorts_read_only` disables sorting without disabling filtering.
+// The successful filter edit afterwards proves the widget was live, so the
+// unchanged sort is the prop taking effect rather than a dropped interaction.
+test('UI table read-only sorts', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_sorts_read_only',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+  await expect(locator.getByText('Sorts: Size:ASC')).toBeVisible();
+
+  // Clicking the `Sym` header would normally sort by it.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+
+  // Filtering is still allowed.
+  await setGridQuickFilter(grid, 10, 'DOG');
+  await waitForLoad(page);
+  await expect(locator.getByText('Filters: Sym=DOG')).toBeVisible();
+
+  await expect(locator.getByText('Sorts: Size:ASC')).toBeVisible();
+  await expect(locator).toHaveScreenshot();
+});
+
+// DH-22976: `is_quick_filters_read_only` disables filtering without disabling
+// sorting. The successful sort afterwards proves the widget was live.
+test('UI table read-only quick filters', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_quick_filters_read_only',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = locator.locator('.iris-grid');
+  await expect(grid).toBeVisible();
+  await expect(locator.getByText('Filters: Sym=CAT')).toBeVisible();
+
+  // Editing the `Sym` filter cell would normally replace `CAT` with `DOG`.
+  await clickGridQuickFilterCell(grid, 10);
+  await page.keyboard.type('DOG');
+  await page.keyboard.press('Enter');
+  await waitForLoad(page);
+
+  // Sorting is still allowed.
+  await clickGridColumnHeader(grid, 50);
+  await waitForLoad(page);
+  await expect(locator.getByText('Sorts: Sym:ASC')).toBeVisible();
+
+  await expect(locator.getByText('Filters: Sym=CAT')).toBeVisible();
+  await expect(locator).toHaveScreenshot();
 });
