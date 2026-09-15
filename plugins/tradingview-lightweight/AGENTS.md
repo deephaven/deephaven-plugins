@@ -171,7 +171,7 @@ TradingViewPlugin (plugin registration)
 | `src/js/src/TradingViewChart.css`             | Downsample scrim/status bar styles (inlined via `?inline` import) |
 | `src/deephaven/.../auto_bin.py`               | Server-side time-bin aggregation for Histogram/Candlestick/Bar    |
 | `src/deephaven/.../events.py`                 | Press-event payloads + handler plumbing (`wrap_callable`)         |
-| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT        |
+| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT       |
 
 ### CSS Injection
 
@@ -274,9 +274,9 @@ to pre-load them as panels:
 - `disconnect_test.py` — grid + plotly + tvl for disconnect comparison
 - `downsample_compare.py` — 100K table for downsample size comparison
 
-The docs snapshotter (`tools/image-snapshotter`) generates its own per-block
-app.d into `snapshot-results/<plugin>-app.d/` at run time; that directory
-is build output and not checked in.
+The chart images under `docs/snapshots/assets/` were produced by a Playwright
+snapshotter that is not in this repo; they are committed fixtures with no
+regeneration path today (see the plugin README).
 
 ## Downsample Benchmarking
 

@@ -359,7 +359,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     const pendingResample = model.pendingDownsample || model.pendingAutoBin;
     return JSON.stringify({
       // Snapshot-relevant readiness signal: true once every known series
-      // has its first row of data. Polled by the image-snapshotter so it
+      // has its first row of data. Polled by waitForTvlSettled in the e2e suite so it
       // can take a stable screenshot without hard-coded waits — especially
       // important for `by`-partitioned charts where series are pushed in
       // asynchronously after the container box has already stabilized.
@@ -399,7 +399,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         buildStateJson(model, renderer)
       );
       // Generic readiness signal for plugin-agnostic consumers (the docs
-      // image-snapshotter polls this). True once every known series has
+      // waitForTvlSettled polls this). True once every known series has
       // its first row of data AND nothing is mid-resample.
       const pendingResample = model
         ? model.pendingDownsample || model.pendingAutoBin

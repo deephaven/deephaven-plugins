@@ -1473,7 +1473,7 @@ class TradingViewChartModel {
    * For non-partitioned charts this becomes true on the first DATA_UPDATED
    * after model.init. For ``by``-partitioned charts it additionally
    * requires at least one runtime partition series to have been discovered.
-   * The image-snapshotter polls this signal to know when to take a stable
+   * The e2e suite polls this signal to know when to take a stable
    * screenshot without resorting to hard-coded waits.
    */
   isReady(): boolean {

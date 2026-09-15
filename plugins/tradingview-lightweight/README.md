@@ -82,68 +82,15 @@ npm run docs
 BUILT=true npm run docs
 ```
 
-### Snapshot pipeline
+### Doc snapshots
 
-Doc snapshots are split into two passes:
+TVL has none. `docker-compose.docs-snapshots.yml` — which backs
+`npm run update-doc-snapshots` and `plugin_builder.py --snapshots` — names only
+`ui` and `plotly-express` in its extractor, snapshotter, and validator
+services, so running either is a no-op for this plugin.
 
-1. **Pass 1 — salmon snapshotter.** Walks `docs/*.md`, executes each
-   `python order=...` code block against a test Deephaven server, and writes
-   `docs/snapshots/<code_md5>.json` for the `Table` objects in `order=`.
-   `TvlChart` objects are skipped with a warning — Pass 1 doesn't know how
-   to render canvas-based charts.
-
-2. **Pass 2 — image-snapshotter.** Lives at `tools/image-snapshotter/` at
-   the repo root (shared across plugins). Drives Playwright against a live
-   DH server, screenshots every `TvlChart` in the docs (selector and widget
-   type are passed in via `SNAPSHOTTER_TARGET_SELECTOR` /
-   `SNAPSHOTTER_WIDGET_TYPE`), hashes the PNG, writes
-   `docs/snapshots/assets/<image_sha>.png`, and merges the chart entry
-   into the same `<code_md5>.json` file Pass 1 wrote.
-
-Both passes are wired into the repo-root docker pipeline. From the repo
-root run:
-
-```shell
-npm run update-doc-snapshots
-```
-
-or equivalently:
-
-```shell
-python tools/plugin_builder.py --snapshots tradingview-lightweight
-```
-
-This brings up the salmon extractor + snapshotter + validator, and then a
-fourth service (`deephaven-plugins-docs-image-snapshotter-tvl`) that runs
-Pass 2 inside Playwright's official Docker image against a fresh server.
-No hand-started DH server is required.
-
-The merged JSON envelope carries both the Pass-1 `Table` entries and the
-Pass-2 `TvlChart` entries, keyed by the `order=` symbol names. Salmon
-renders the table entries directly; the chart entries point at the
-content-addressed PNG asset.
-
-#### Local iteration (no docker)
-
-The plugin-local `make docs-snapshots` target still exists for tight
-iteration loops against a hand-started server, but it is **not** how CI
-generates snapshots — use the repo-root command above for anything that
-needs to match CI.
-
-```shell
-python tools/plugin_builder.py --plugin tradingview-lightweight   # separate terminal
-make docs-snapshots                                                # build + run Playwright + prune orphans
-```
-
-Or, even more manually:
-
-```shell
-cd tools/image-snapshotter
-npm install
-npx playwright install chromium   # one-time
-npm run build
-SNAPSHOTTER_PLUGIN_ROOT=$PWD/../../plugins/tradingview-lightweight \
-  SNAPSHOTTER_TARGET_SELECTOR=.dh-tvl-chart \
-  SNAPSHOTTER_WIDGET_TYPE=deephaven.plot.tradingview_lightweight.TvlChart \
-  node dist/cli.js --update         # local; `--check` for CI gate
-```
+An earlier `docs/snapshots/` directory was removed: it had been produced by
+out-of-repo tooling, nothing in CI could regenerate or validate it, and the
+chart entries pointed at PNGs in a form Salmon has no renderer for. Wiring TVL
+into the shared pipeline is follow-up work; snapshots should come back from
+that pipeline rather than by hand.

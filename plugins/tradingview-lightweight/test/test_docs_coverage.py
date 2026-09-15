@@ -1,8 +1,9 @@
 """Docs coverage tests for the tradingview-lightweight plugin.
 
-Implements the seven test cases described in
-``notes/subplan-coverage.md`` section B. These exercise the same matrix
-logic as ``tools/build_coverage_matrix.py`` but as unit tests.
+Checks that every public symbol, chart parameter, and Literal value is
+exercised somewhere under ``docs/``, and that the sidebar and
+``dhautofunction`` directives stay in sync with the package. Shares its
+parsers with ``tools/build_coverage_matrix.py``.
 
 The tests do not require a running Deephaven server. The plugin's
 ``deephaven.plugin*`` host modules are mocked, and chart.py's optional
@@ -44,8 +45,6 @@ _BCM_SPEC.loader.exec_module(bcm)
 
 
 DOCS = PLUGIN_ROOT / "docs"
-SNAPSHOTS = DOCS / "snapshots"
-ASSETS = SNAPSHOTS / "assets"
 SIDEBAR = DOCS / "sidebar.json"
 
 # Chart-type pages -> primary function name. Reuses the canonical mapping in
@@ -209,74 +208,6 @@ class TestEnumCoverage(unittest.TestCase):
             missing,
             {},
             f"Enum/Literal values not used in any code block: {missing}",
-        )
-
-
-class TestAssetReferenceIntegrity(unittest.TestCase):
-    """Test 4 — every image path referenced in a snapshot JSON resolves to a
-    real file under docs/snapshots/assets/."""
-
-    def test_asset_reference_integrity(self) -> None:
-        if not SNAPSHOTS.exists():
-            self.skipTest("docs/snapshots/ does not exist")
-        broken: list[str] = []
-        for jf in sorted(SNAPSHOTS.glob("*.json")):
-            try:
-                doc = json.loads(jf.read_text(encoding="utf-8"))
-            except json.JSONDecodeError as e:
-                self.fail(f"{jf.name}: invalid JSON ({e})")
-            objects = doc.get("objects") or {}
-            # `objects` is a dict keyed by `order=` name; iterate its values.
-            # Some entries (e.g. salmon's `:log` type) carry a string `data`
-            # rather than a dict — only TvlChart entries point at an asset.
-            for obj in objects.values():
-                data = obj.get("data") if isinstance(obj, dict) else None
-                if not isinstance(data, dict):
-                    continue
-                image = data.get("image")
-                if not image:
-                    continue
-                # `image` is expected to be a path relative to docs/snapshots/.
-                target = (SNAPSHOTS / image).resolve()
-                if not target.exists():
-                    broken.append(f"{jf.name} -> {image}")
-        self.assertEqual(
-            broken,
-            [],
-            f"Snapshot JSONs reference missing assets: {broken}",
-        )
-
-
-class TestNoOrphanAssets(unittest.TestCase):
-    """Test 5 — every PNG under docs/snapshots/assets/ is referenced by at
-    least one JSON under docs/snapshots/."""
-
-    def test_no_orphan_assets(self) -> None:
-        if not ASSETS.exists():
-            self.skipTest("docs/snapshots/assets/ does not exist")
-        pngs = sorted(ASSETS.glob("*.png"))
-        if not pngs:
-            self.skipTest("no PNG assets present")
-        # Collect every image-path string referenced by any snapshot JSON.
-        referenced: set[Path] = set()
-        for jf in sorted(SNAPSHOTS.glob("*.json")):
-            try:
-                doc = json.loads(jf.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                continue
-            objects = doc.get("objects") or {}
-            for obj in objects.values():
-                data = obj.get("data") if isinstance(obj, dict) else None
-                if not isinstance(data, dict):
-                    continue
-                image = data.get("image")
-                if image:
-                    referenced.add((SNAPSHOTS / image).resolve())
-        orphans = [p.name for p in pngs if p.resolve() not in referenced]
-        self.assertEqual(
-            orphans,
-            [],
-            f"PNG assets not referenced by any snapshot JSON: {orphans}",
         )
 
 
