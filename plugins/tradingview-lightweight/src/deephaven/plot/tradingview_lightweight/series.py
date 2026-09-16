@@ -22,7 +22,7 @@ from .options import (
 from .markers import Marker, PriceLine, MarkerSpec
 from ._colors import Color
 
-# TODO: createUpDownMarkers plugin support — see notes/coverage-plan/18-utility-types-and-functions.md §3.3
+# TODO: createUpDownMarkers plugin support.
 # When implementing, add up_down_markers, up_down_marker_up_color, up_down_marker_down_color
 # params to series creation functions and serialize as seriesOptions.upDownMarkers.
 

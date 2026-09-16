@@ -25,8 +25,7 @@ Limitation: Sphinx ``autodoc`` cannot render ``Literal`` aliases as full
 documented members on their own.  The ``__doc__`` attribute on a
 ``Literal`` alias is only visible through ``help()`` / ``__doc__``
 introspection; the recommended docs surface is to refer back to this
-module's docstring for the enumerated values.  See
-``notes/docstring-audit-limitations.md`` for details.
+module's docstring for the enumerated values.
 """
 
 from __future__ import annotations
@@ -76,7 +75,6 @@ rejected as invalid.
 # Coordinate and Logical are JS-only nominal types used by ITimeScaleApi
 # (logicalToCoordinate, coordinateToLogical) and mouse event handlers.
 # These APIs are architecturally unavailable from Python (no live chart handle).
-# See: notes/api-coverage-report.md §16, §26.
 
 HorzAlign = Literal["left", "center", "right"]
 """Horizontal alignment for text watermarks.
@@ -1744,11 +1742,9 @@ def scale(
 #   { type: 'custom'; formatter: (priceValue: BarPrice) => string; minMove?: number }
 # The 'formatter' field is a JavaScript callback. Since this plugin serializes
 # configuration to JSON, there is no way to express a Python callable as JS code.
-# See: notes/api-coverage-report.md §26.
 
 # customSeriesDefaultOptions is not implemented.
 # It is only meaningful in the context of custom series (ICustomSeriesView).
 # Custom series require user-supplied JavaScript ICustomSeriesView implementations,
 # which the Python plugin has no mechanism to accept or forward.
 # Implementation is blocked until custom series support is added.
-# See: notes/api-coverage-report.md §10, §27.

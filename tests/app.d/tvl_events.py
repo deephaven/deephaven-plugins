@@ -43,31 +43,35 @@ _src = new_table(
     ]
 )
 
-# Result table the handler appends to (round-trip proof). Time is stored as
-# epoch seconds (double) to keep the handler free of Instant conversions.
+# Result table the handler appends to (round-trip proof).
 _result_pub_table, _result_pub = table_publisher(
     "tvl_events_result",
     {
         "Type": dht.string,
         "SeriesId": dht.string,
         "Price": dht.double,
-        "TimeSec": dht.double,
+        "Time": dht.Instant,
     },
 )
 tvl_events_result = _result_pub_table.tail(50)
 
 
 def _on_press(e: Any) -> None:
-    time_val = e.get("time")
+    # The press event has no top-level price; it lives in seriesData under the
+    # hovered series' friendly id.
+    series = e.get("hoveredSeries")
+    point = (e.get("seriesData") or {}).get(series) if series is not None else None
+    price = point.get("value") if isinstance(point, dict) else None
+    t = e.get("timestamp")
+    if t is None or price is None:
+        return  # press landed off the data - nothing to round-trip
     _result_pub.add(
         new_table(
             [
                 string_col("Type", [str(e.get("type", ""))]),
-                string_col("SeriesId", [str(e.get("seriesId") or "")]),
-                double_col("Price", [float(e.get("price") or 0.0)]),
-                double_col(
-                    "TimeSec", [time_val.timestamp() if time_val is not None else 0.0]
-                ),
+                string_col("SeriesId", [str(series)]),
+                double_col("Price", [float(price)]),
+                datetime_col("Time", [t]),
             ]
         )
     )
