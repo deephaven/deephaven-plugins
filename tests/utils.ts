@@ -160,6 +160,68 @@ export async function waitForPlotlyIndicator(
     .toBe(true);
 }
 
+/**
+ * Waits until every TradingView Lightweight chart on the page reports
+ * quiescent — no resample pending or queued, no retirement draining, every
+ * active subscription's initial snapshot delivered — and holds that state
+ * long enough to cover the chart's 200ms zoom-resample debounce.
+ *
+ * Why: a page that closes while the server is still propagating a Barrage
+ * snapshot for one of its charts makes the server race its own cleanup and
+ * log "IllegalStateException: Stream was terminated by error". That noise
+ * lands in the console history of OTHER sessions' UIs and can bleed into
+ * unrelated tests' screenshots. Call this (e.g. from afterEach) so tvl
+ * tests never tear the page down mid-swap.
+ *
+ * Never throws: on timeout or a closed page it simply returns — it is a
+ * noise reducer, not a correctness gate.
+ *
+ * @param page The page
+ * @param timeout Maximum time to wait for quiescence, in ms
+ */
+export async function waitForTvlSettled(
+  page: Page,
+  timeout = 20000
+): Promise<void> {
+  const isSettled = (): Promise<boolean> =>
+    page.evaluate(() => {
+      const charts = document.querySelectorAll('.dh-tvl-chart');
+      return Array.from(charts).every(el => {
+        const raw = el.getAttribute('data-tvl-state');
+        // No state attribute: the chart never finished initializing, so
+        // there is no swap in flight worth waiting for.
+        if (raw == null) return true;
+        try {
+          // Missing field (older plugin build) counts as settled.
+          return JSON.parse(raw).quiescent !== false;
+        } catch {
+          return true;
+        }
+      });
+    });
+
+  try {
+    const deadline = Date.now() + timeout;
+    let stableSince: number | null = null;
+    /* eslint-disable no-await-in-loop */
+    while (Date.now() < deadline) {
+      if (await isSettled()) {
+        stableSince = stableSince ?? Date.now();
+        // Hold through the chart's 200ms resample debounce: a gesture that
+        // just ended schedules its swap up to 200ms later, during which the
+        // chart still reads as quiescent.
+        if (Date.now() - stableSince >= 350) return;
+      } else {
+        stableSince = null;
+      }
+      await page.waitForTimeout(100);
+    }
+    /* eslint-enable no-await-in-loop */
+  } catch {
+    // Page closed or crashed — nothing left to settle.
+  }
+}
+
 /** Escapes a string so it can be embedded literally in a `RegExp`. */
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

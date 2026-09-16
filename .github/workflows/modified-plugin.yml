@@ -17,6 +17,7 @@ on:
       - 'packaging-v*'
       - 'theme-pack-v*'
       - 'python-remote-file-source-v*'
+      - 'tradingview-lightweight-v*'
 
 jobs:
   changes:

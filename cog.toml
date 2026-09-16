@@ -87,6 +87,7 @@ plotly-express = { path = "plugins/plotly-express", public_api=false }
 python-remote-file-source = { path = "plugins/python-remote-file-source", public_api=false }
 table-example = { path = "plugins/table-example", public_api=false }
 theme-pack = { path = "plugins/theme-pack", public_api=false }
+tradingview-lightweight = { path = "plugins/tradingview-lightweight", public_api=false }
 ui = { path = "plugins/ui", public_api=false }
 packaging = { path = "plugins/packaging", public_api=false }
 utilities = { path = "plugins/utilities", public_api=false }
