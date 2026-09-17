@@ -53,6 +53,19 @@
       "tags": ["tables", "ui", "python"]
     },
     {
+      "name": "TradingView Lightweight Charts",
+      "description": "Build financial charts from real-time Deephaven tables using TradingView Lightweight Charts.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/tradingview-lightweight",
+      "image": "/marketplace/images/tradingview-lightweight.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-tradingview-lightweight",
+        "url": "https://pypi.org/project/deephaven-plugin-tradingview-lightweight/"
+      },
+      "tags": ["plotting", "finance", "python"]
+    },
+    {
       "name": "Theme Pack",
       "description": "A pack of additional UI themes for customizing the look of the Deephaven web IDE.",
       "author": "Deephaven",
