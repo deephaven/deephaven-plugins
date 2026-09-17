@@ -159,8 +159,8 @@
     {
       "name": "Pyinstrument",
       "description": "Deephaven plugin for displaying pyinstrument profiling reports.",
-      "author": "gzh2003",
-      "repo": "https://github.com/gzh2003/pyinstrument-plugin",
+      "author": "gzh20",
+      "repo": "https://github.com/gzh20/pyinstrument-plugin",
       "image": "/marketplace/images/pyinstrument.png",
       "registry": {
         "kind": "pypi",
