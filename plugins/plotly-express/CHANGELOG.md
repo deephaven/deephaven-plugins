@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## plotly-express-v0.20.1 - 2026-09-17
+
+#### Bug Fixes
+
+- **(plotly-express)** Decorrelate Exchange from Sym in stocks data ([#1409](https://github.com/deephaven/deephaven-plugins/pull/1409)) - (4df0454) - mofojed
+
+- - -
+
+
 ## plotly-express-v0.20.0 - 2026-07-29
 
 #### Features
