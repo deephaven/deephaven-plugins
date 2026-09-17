@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-tradingview-lightweight",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Deephaven TradingView Lightweight Charts plugin",
   "keywords": [
     "Deephaven",
