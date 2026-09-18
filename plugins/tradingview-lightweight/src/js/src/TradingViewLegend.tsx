@@ -46,7 +46,9 @@ export interface TradingViewLegendProps {
  * readout from the upstream legend tutorial.
  *
  * With no crosshair it shows each series' last value rather than going blank,
- * so it is populated on first paint.
+ * so it is populated on first paint. Under an active crosshair a series with
+ * no point in the hovered slice shows nothing: its latest value belongs to a
+ * different time than the one the legend displays.
  */
 export function TradingViewLegend({
   source,
@@ -103,11 +105,14 @@ export function TradingViewLegend({
 
   const pointFor = useCallback(
     (entry: TvlLegendEntry): TvlSeriesPointData | undefined => {
-      const fromCrosshair =
+      // Only fall back to the latest point when no crosshair is active. Under
+      // one, a series missing from the slice has no value at that time, and
+      // showing its latest point would put a value from another (possibly
+      // later) time under the crosshair's timestamp.
+      const item =
         crosshair?.time != null
           ? crosshair.seriesData.get(entry.series)
-          : undefined;
-      const item = fromCrosshair ?? source.getLastSeriesPoint(entry.id);
+          : source.getLastSeriesPoint(entry.id);
       return extractSeriesPoint(item)?.data;
     },
     [crosshair, source]

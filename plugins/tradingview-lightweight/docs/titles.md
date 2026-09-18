@@ -23,7 +23,7 @@ One title covers four places:
 - Each [legend](legend.md) row's label.
 - [Press events](events.md), which name the series under the cursor in `hoveredSeries` and key `seriesData` by it.
 
-Without a title all four fall back to the generated id, `series_0` and so on: fine on a single-series chart, poor on anything else.
+Without a title the badge shows just the number. The other three fall back to the generated id, `series_0` and so on: fine on a single-series chart, poor on anything else.
 
 A `by=` chart needs no title: each partition is titled with its key, so `by="Sym"` labels its series `AAPL`, `MSFT`, and so on. A title set on a partitioned series is replaced by the key.
 

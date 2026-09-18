@@ -1843,6 +1843,40 @@ describe('TradingViewChartRenderer', () => {
       expect(renderer.getLegendOptions()).toEqual({ variant: 'rows' });
     });
 
+    describe('getLegendEntries', () => {
+      afterEach(() => {
+        // `options` is shared by every mocked series; restore its default so
+        // a title set here cannot leak into later tests.
+        mockSeriesInstance.options.mockImplementation(() => ({}));
+      });
+
+      it('reads the title off the series and falls back to the id', () => {
+        const renderer = createRenderer();
+        mockSeriesInstance.options.mockImplementation(() => ({
+          title: 'Price',
+        }));
+        renderer.configureSeries([
+          {
+            id: 'series_0',
+            type: 'Line',
+            options: { title: 'Price' },
+            dataMapping: { tableId: 0, columns: { time: 'T' } },
+          },
+        ]);
+        expect(renderer.getLegendEntries()).toEqual([
+          expect.objectContaining({
+            id: 'series_0',
+            title: 'Price',
+            kind: 'Line',
+            visible: true,
+          }),
+        ]);
+
+        mockSeriesInstance.options.mockImplementation(() => ({}));
+        expect(renderer.getLegendEntries()[0].title).toBe('series_0');
+      });
+    });
+
     it('subscribeCrosshairMove subscribes and its cleanup unsubscribes', () => {
       const renderer = createRenderer();
       const handler = jest.fn();

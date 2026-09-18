@@ -319,9 +319,10 @@ def candlestick_series(
         wick_down_color (Optional[Color]): Wick color for down-bars.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Whether the series is visible.
         last_value_visible (Optional[bool]): Show the last-value
             badge on the price scale.
@@ -481,9 +482,10 @@ def bar_series(
         thin_bars (Optional[bool]): Use thin bar style.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Series visibility.
         last_value_visible (Optional[bool]): Show the last-value
             badge.
@@ -618,9 +620,10 @@ def line_series(
         last_value_visible (Optional[bool]): Show the last-value badge.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
@@ -763,9 +766,10 @@ def area_series(
         last_value_visible (Optional[bool]): Show the last-value badge.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
@@ -926,9 +930,10 @@ def baseline_series(
         last_value_visible (Optional[bool]): Show the last-value badge.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.
@@ -1075,9 +1080,10 @@ def histogram_series(
             badge.
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         visible (Optional[bool]): Series visibility.
         price_scale_id (Optional[str]): Price-scale ID.
         price_format (Optional[PriceFormat]): Per-series price format.

@@ -1625,7 +1625,7 @@ class TradingViewChartRenderer {
       entries.push({
         id,
         series,
-        title: this.getSeriesTitleForApi(series) ?? id,
+        title: TradingViewChartRenderer.readSeriesTitle(series) ?? id,
         color: this.seriesColors.get(id),
         kind: this.seriesKinds.get(id) ?? 'Line',
         visible: TradingViewChartRenderer.isSeriesVisible(series),
@@ -1688,9 +1688,21 @@ class TradingViewChartRenderer {
     return found;
   }
 
-  /** User-facing title for a series API, when set. */
+  /** User-facing title for a series API, when set and the series is ours. */
   getSeriesTitleForApi(series: ISeriesApi<SeriesType>): string | undefined {
     if (this.getSeriesIdForApi(series) == null) return undefined;
+    return TradingViewChartRenderer.readSeriesTitle(series);
+  }
+
+  /**
+   * The `title` a series was created with, or undefined when untitled. No
+   * membership check: callers iterating `seriesMap` already hold the series,
+   * and repeating the reverse lookup per entry made every legend rebuild
+   * quadratic in the series count.
+   */
+  private static readSeriesTitle(
+    series: ISeriesApi<SeriesType>
+  ): string | undefined {
     try {
       const opts = series.options() as { title?: string };
       const title = opts?.title;

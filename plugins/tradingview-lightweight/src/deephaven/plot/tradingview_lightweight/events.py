@@ -66,9 +66,9 @@ class TvlPressEvent(TypedDict, total=False):
     :attr:`seriesData`."""
 
     hoveredSeriesId: str
-    """TVL's generated ``series_<n>`` id for the hovered series — a stable
-    handle that does not change with title/key, for unambiguous server-side
-    lookup. Omitted when no series is hovered."""
+    """The generated id of the hovered series: ``series_<n>``, or
+    ``series_<n>_<key>`` for a ``by=`` partition. Independent of ``title=``,
+    for unambiguous server-side lookup. Omitted when no series is hovered."""
 
     seriesData: dict
     """Data of every series at the event location, keyed by friendly series id
@@ -232,12 +232,14 @@ class TvlSeriesToggleEvent(TypedDict, total=False):
 
     series: str
     """Friendly id of the toggled series: its rendered title, or the ``by=``
-    partition key, falling back to ``series_<n>`` when it has neither. Matches
-    the ``hoveredSeries`` key used by press events."""
+    partition key, falling back to the generated id when it has neither.
+    Matches the ``hoveredSeries`` key used by press events."""
 
     seriesId: str
-    """TVL's generated ``series_<n>`` id — a stable handle that does not change
-    with title or key, for unambiguous server-side lookup."""
+    """The generated id: ``series_<n>`` for a series passed directly to the
+    chart, or ``series_<n>_<key>`` for each partition of a ``by=`` series.
+    Independent of ``title=``, so it survives a retitle; a partition's id
+    embeds its key. Use it for unambiguous server-side lookup."""
 
     visible: bool
     """``True`` when the series was just shown, ``False`` when hidden."""

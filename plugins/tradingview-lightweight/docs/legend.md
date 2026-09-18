@@ -21,7 +21,7 @@ chart = tvl.chart(
 chart = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), legend=True)
 ```
 
-Unlike the [tracking tooltip](tooltip.md), the legend does not wait for a cursor. It shows each series' latest value as soon as the chart paints, switches to the values under the crosshair as you move across the plot, and returns to the latest values when you move off.
+Unlike the [tracking tooltip](tooltip.md), the legend does not wait for a cursor. It shows each series' latest value as soon as the chart paints, switches to the values under the crosshair as you move across the plot, and returns to the latest values when you move off. A series with no point at the hovered time shows a blank value, not its latest one.
 
 Each row's label comes from that series' `title=`. A series without one falls back to its generated id (`series_0`), and a `by=` series uses its partition key. See [series titles](titles.md).
 
@@ -227,15 +227,15 @@ chart = tvl.chart(
 
 The handler receives a `TvlSeriesToggleEvent` dict, or no argument at all, like every other TVL handler (see [events](events.md)):
 
-| Key               | Value                                                                           |
-| ----------------- | ------------------------------------------------------------------------------- |
-| `type`            | Always `"seriesToggle"`.                                                        |
-| `series`          | Friendly id: the series' title, or its `by=` key, falling back to `series_<n>`. |
-| `seriesId`        | The generated `series_<n>` id, stable across title and key changes.             |
-| `visible`         | `True` when the series was just shown, `False` when hidden.                     |
-| `hiddenSeriesIds` | Generated ids of every currently hidden series, after this toggle.              |
+| Key               | Value                                                                                                      |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `type`            | Always `"seriesToggle"`.                                                                                   |
+| `series`          | Friendly id: the series' title, or its `by=` key, falling back to the generated id.                        |
+| `seriesId`        | The generated id: `series_<n>` for a series passed to the chart, `series_<n>_<key>` for a `by=` partition. |
+| `visible`         | `True` when the series was just shown, `False` when hidden.                                                |
+| `hiddenSeriesIds` | Generated ids of every currently hidden series, after this toggle.                                         |
 
-Store state against `seriesId`; `series` is for display and changes if the title does. `hiddenSeriesIds` saves reconstructing the full picture from individual events.
+Store state against `seriesId`; `series` is for display and changes if the title does. A partition's `seriesId` includes its key, so `series_0_AAPL` is `series_0_AAPL` every time the chart loads. `hiddenSeriesIds` saves reconstructing the full picture from individual events.
 
 A legend with no `on_series_toggle` sends nothing over the wire.
 

@@ -193,6 +193,37 @@ describe('TradingViewLegend', () => {
     expect(rowText()).toEqual(['Index 3.00']);
   });
 
+  it('leaves a row blank when the crosshair slice lacks that series', () => {
+    const series = [
+      stub('a', 'Index', { last: { value: 7, time: 42 } }),
+      stub('b', 'Sparse', { last: { value: 99, time: 50 } }),
+    ];
+    const { emit } = renderLegend(series);
+    act(() => {
+      // Only `a` has a point at the hovered time. `b`'s latest point is from
+      // a later time and must not appear under this timestamp.
+      emit(makeParams([[series[0].api, { value: 3 }]]));
+    });
+    expect(rowText()).toEqual(['Index 3.00', 'Sparse']);
+    expect(document.querySelector('.tvl-legend-time')?.textContent).toBe(
+      'T:1700000000'
+    );
+  });
+
+  it('returns to latest values when the crosshair leaves the data', () => {
+    const series = [stub('a', 'Index', { last: { value: 7, time: 42 } })];
+    const { emit } = renderLegend(series);
+    act(() => {
+      emit(makeParams([[series[0].api, { value: 3 }]]));
+    });
+    expect(rowText()).toEqual(['Index 3.00']);
+    act(() => {
+      // Off the data LWC reports no time and an empty slice.
+      emit(makeParams([], { time: undefined }));
+    });
+    expect(rowText()).toEqual(['Index 7.00']);
+  });
+
   it('ignores the crosshair when followCursor is false', () => {
     const series = [stub('a', 'Index', { last: { value: 7, time: 42 } })];
     const { emit } = renderLegend(series, {

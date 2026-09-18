@@ -1280,9 +1280,10 @@ def yield_curve(
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color
             (overrides ``color``).
         top_color (Optional[Color]): Area-only: top gradient fill color.
@@ -1391,9 +1392,10 @@ def options_chart(
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color.
         top_color (Optional[Color]): Area-only: top gradient fill color.
         bottom_color (Optional[Color]): Area-only: bottom gradient fill
@@ -1501,9 +1503,10 @@ def custom_numeric(
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
         title (Optional[str]): Series name. Labels the price-scale
             badge, the tracking tooltip, and any legend row, and
-            identifies the series in press events. Defaults to the
-            generated ``series_<n>`` id; a ``by=`` series is titled
-            with its partition key.
+            identifies the series in press events. Without one the
+            badge shows only the number; the tooltip, legend, and
+            events fall back to the generated ``series_<n>`` id. A
+            ``by=`` series is titled with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color.
         top_color (Optional[Color]): Area-only: top gradient fill color.
         bottom_color (Optional[Color]): Area-only: bottom gradient fill

@@ -30,7 +30,8 @@ function makeParams(
 
 function setup(
   series: Array<{ api: unknown; id: string; color?: string }>,
-  options: TvlTooltipOptions = {}
+  options: TvlTooltipOptions = {},
+  hostSize: { width: number; height: number } = { width: 800, height: 600 }
 ) {
   const byApi = new Map(series.map(s => [s.api, s]));
   let handler: ((p: MouseEventParams) => void) | undefined;
@@ -48,8 +49,8 @@ function setup(
 
   // A host with a stubbed client size, standing in for the chart host.
   const host = document.createElement('div');
-  Object.defineProperty(host, 'clientWidth', { value: 800 });
-  Object.defineProperty(host, 'clientHeight', { value: 600 });
+  Object.defineProperty(host, 'clientWidth', { value: hostSize.width });
+  Object.defineProperty(host, 'clientHeight', { value: hostSize.height });
   document.body.appendChild(host);
   const hostRef = createRef<HTMLDivElement>();
   (hostRef as { current: HTMLDivElement }).current = host;
@@ -67,6 +68,19 @@ function el(): HTMLElement | null {
 /** The box stays mounted and hides with `display`, so "hidden" is a style. */
 function isHidden(): boolean {
   return el()?.style.display === 'none';
+}
+
+/** Stub the box's measured size, which jsdom otherwise reports as zero. */
+function stubTooltipSize(width: number, height: number): void {
+  const box = el() as HTMLElement;
+  Object.defineProperty(box, 'offsetWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(box, 'offsetHeight', {
+    value: height,
+    configurable: true,
+  });
 }
 
 describe('TradingViewTooltip', () => {
@@ -147,6 +161,41 @@ describe('TradingViewTooltip', () => {
     expect(el()?.getAttribute('data-tvl-tooltip')).toBe(
       'P | 2.00 | T:1700000000'
     );
+  });
+
+  describe('positioning', () => {
+    const hostSize = { width: 200, height: 200 };
+
+    it('sits below and to the right of the cursor when that fits', () => {
+      const api = makeSeries({ title: 'X', coordinate: 100 });
+      const { emit } = setup([{ api, id: 'x' }], {}, hostSize);
+      stubTooltipSize(100, 80);
+      emit(makeParams([[api, { value: 1 }]], { point: { x: 20, y: 20 } }));
+      // 20 + 15 margin on each axis; both fit inside 200.
+      expect(el()?.style.left).toBe('35px');
+      expect(el()?.style.top).toBe('35px');
+    });
+
+    it('flips to the other side of the cursor when it would overflow', () => {
+      const api = makeSeries({ title: 'X', coordinate: 100 });
+      const { emit } = setup([{ api, id: 'x' }], {}, hostSize);
+      stubTooltipSize(100, 80);
+      emit(makeParams([[api, { value: 1 }]], { point: { x: 180, y: 180 } }));
+      // left = 180 + 15 = 195 > (200 - 100) → flip to 180 - 15 - 100 = 65
+      expect(el()?.style.left).toBe('65px');
+      // top = 180 + 15 = 195 > (200 - 80) → flip to 180 - 80 - 15 = 85
+      expect(el()?.style.top).toBe('85px');
+    });
+
+    it('clamps to the host edge when neither side fits', () => {
+      const api = makeSeries({ title: 'X', coordinate: 100 });
+      const { emit } = setup([{ api, id: 'x' }], {}, hostSize);
+      stubTooltipSize(190, 190);
+      emit(makeParams([[api, { value: 1 }]], { point: { x: 20, y: 20 } }));
+      // 20 + 15 = 35 > (200 - 190), and the flip lands at 20 - 15 - 190 < 0.
+      expect(el()?.style.left).toBe('0px');
+      expect(el()?.style.top).toBe('0px');
+    });
   });
 
   it('hides again when the cursor leaves the data', () => {

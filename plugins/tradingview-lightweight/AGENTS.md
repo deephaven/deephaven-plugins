@@ -141,7 +141,9 @@ its color, title, and value. Built on the same pattern as the tracking tooltip.
   no DOM for it and only exposes data (`getLegendEntries`, `getLastSeriesPoint`)
   and subscriptions. Two layouts (`rows` / `detailed`); `rows` flows vertically
   or as wrapping chips. With no crosshair it falls back to each series' last
-  rendered point, so it is populated on first paint.
+  rendered point, so it is populated on first paint. Under a crosshair it does
+  not: a series with no point at that time shows a blank value, because its
+  last point is from some other time.
 - **Update path**: the renderer owns a `Set` of overlay-update handlers and
   calls `notifyOverlayUpdate()` after data changes; the component bumps a
   counter and re-reads entries. Deliberately NOT React state set from the data
