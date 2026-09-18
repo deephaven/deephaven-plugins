@@ -551,7 +551,7 @@ def watermark_line(
         passing inside ``watermark_lines=[...]``.
 
     Example:
-        >>> wl = tvl.watermark_line("AAPL", color="#888", font_size=72)
+        >>> wl = tvl.watermark_line("ACME CAPITAL", color="#888", font_size=72)
     """
     return WatermarkLine(
         text=text,
@@ -1444,9 +1444,10 @@ def watermark(
         Watermark: A text-watermark config for ``tvl.chart(watermark=...)``.
 
     Example:
-        >>> tvl.chart(..., watermark=tvl.watermark(text="AAPL", color="#888"))
+        >>> tvl.chart(..., watermark=tvl.watermark(text="ACME CAPITAL", color="#888"))
         >>> tvl.chart(..., watermark=tvl.watermark(
-        ...     lines=[tvl.watermark_line("AAPL"), tvl.watermark_line("Daily")]))
+        ...     lines=[tvl.watermark_line("ACME CAPITAL"),
+        ...            tvl.watermark_line("Internal use only")]))
     """
     return Watermark(
         text=text,
@@ -1542,82 +1543,203 @@ class Tooltip:
     """Tracking-tooltip configuration. Pass to ``tvl.chart(tooltip=...)``.
 
     A tooltip is a cursor-following overlay showing the focused series' title,
-    value, and time. Constructing one implies ``visible=True`` unless you set
-    ``visible=False`` explicitly (in which case no detail options may be set).
+    value, and time. Building one enables it; pass ``tooltip=False`` (or leave
+    it out) on ``tvl.chart`` for no tooltip.
 
     Args:
-        visible: Master switch (default ``True`` when the object is built).
         show_title: Show the series title line.
         show_value: Show the series value at the cursor.
         show_date: Show the time/date line.
-        value_precision: Decimal places for the value line (defaults to the
-            series' own price format when unset).
+
+    Values are formatted by the focused series' own price format; set
+    ``price_format=`` on the series to change them.
     """
 
-    visible: bool = True
     show_title: Optional[bool] = None
     show_value: Optional[bool] = None
     show_date: Optional[bool] = None
-    value_precision: Optional[int] = None
-
-    def __post_init__(self) -> None:
-        if not self.visible and any(
-            v is not None
-            for v in (
-                self.show_title,
-                self.show_value,
-                self.show_date,
-                self.value_precision,
-            )
-        ):
-            raise ValueError(
-                "tooltip(show_title/show_value/show_date/value_precision=...) require "
-                "visible=True."
-            )
 
     def to_dict(self) -> dict:
-        """Serialise to the JS tooltip shape (camelCase, None omitted)."""
-        if not self.visible:
-            return {}
+        """Serialise to the JS tooltip shape (camelCase, None omitted).
+
+        There is no on/off field: emitting the block at all is what enables
+        the tooltip, and ``tvl.chart`` only emits it when one was asked for.
+        """
         pairs = [
-            ("visible", True),
             ("showTitle", self.show_title),
             ("showValue", self.show_value),
             ("showDate", self.show_date),
-            ("valuePrecision", self.value_precision),
         ]
         return {k: v for k, v in pairs if v is not None}
 
 
 def tooltip(
-    visible: bool = True,
     show_title: Optional[bool] = None,
     show_value: Optional[bool] = None,
     show_date: Optional[bool] = None,
-    value_precision: Optional[int] = None,
 ) -> Tooltip:
     """Create a :class:`Tooltip` config for ``tvl.chart(tooltip=...)``.
 
     Args:
-        visible: Master switch (default ``True`` when the object is built).
         show_title: Show the series title line.
         show_value: Show the series value at the cursor.
         show_date: Show the time/date line.
-        value_precision: Decimal places for the value line (defaults to the
-            series' own price format when unset).
 
     Returns:
         Tooltip: A tracking-tooltip config for ``tvl.chart(tooltip=...)``.
+        ``tvl.chart(tooltip=True)`` is shorthand for this with all defaults,
+        and ``tooltip=False`` (or omitting it) means no tooltip.
 
     Example:
-        >>> tvl.chart(..., tooltip=tvl.tooltip(show_value=True, value_precision=2))
+        >>> tvl.chart(..., tooltip=tvl.tooltip(show_value=True, show_date=False))
     """
     return Tooltip(
-        visible=visible,
         show_title=show_title,
         show_value=show_value,
         show_date=show_date,
-        value_precision=value_precision,
+    )
+
+
+LEGEND_VARIANTS = ("auto", "rows", "detailed")
+LEGEND_ORIENTATIONS = ("vertical", "horizontal")
+
+
+@dataclass
+class Legend:
+    """In-chart legend configuration. Pass to ``tvl.chart(legend=...)``.
+
+    The legend is a fixed overlay in the chart's top-left listing each series
+    with its color, title, and value at the crosshair. With the cursor off the
+    chart it shows each series' last value, so it is populated on first paint.
+
+    Building one enables it; pass ``legend=False`` (or leave it out) on
+    ``tvl.chart`` for no legend.
+
+    Args:
+        variant: ``"rows"`` lists every series; ``"detailed"`` is a large
+            single-series readout. ``"auto"`` (the default) picks
+            ``"detailed"`` for a one-series chart and ``"rows"`` otherwise.
+            A ``by=`` chart is always ``"rows"``, since its series count is
+            not known until partition keys arrive.
+        orientation: ``"vertical"`` stacks one row per series;
+            ``"horizontal"`` flows them as wrapping chips. Only affects
+            ``variant="rows"``.
+        max_rows: Rows shown before the rest collapse into a ``+N more``
+            line (default 6). The series under the cursor is always shown,
+            taking the last row's place rather than adding one, so the
+            legend's height stays fixed.
+        show_ohlc: Expand candlestick / bar rows to O/H/L/C instead of just
+            the close. Default ``True``.
+        show_time: Show the shared time line. Default ``True``.
+        interactive: Clicking a row hides or shows that series. Default
+            ``True``. Hidden series keep a dimmed row so they can be brought
+            back. Wire ``tvl.chart(on_series_toggle=...)`` to observe the
+            change server-side.
+        follow_cursor: Track the crosshair, showing each series' value at the
+            hovered time. Default ``True``. Set ``False`` for a legend that
+            always shows the latest value and never reacts to the cursor —
+            useful on a dashboard read from a distance, or alongside a
+            tracking tooltip that already does the hover readout.
+
+    Values are formatted by each series' own price format, so the legend
+    agrees with the price axis; set ``price_format=`` on a series to change
+    them.
+    """
+
+    variant: str = "auto"
+    orientation: str = "vertical"
+    max_rows: Optional[int] = None
+    show_ohlc: Optional[bool] = None
+    show_time: Optional[bool] = None
+    interactive: Optional[bool] = None
+    follow_cursor: Optional[bool] = None
+
+    def __post_init__(self) -> None:
+        if self.variant not in LEGEND_VARIANTS:
+            raise ValueError(
+                f"Invalid legend variant {self.variant!r}. "
+                f"Must be one of {list(LEGEND_VARIANTS)}"
+            )
+        if self.orientation not in LEGEND_ORIENTATIONS:
+            raise ValueError(
+                f"Invalid legend orientation {self.orientation!r}. "
+                f"Must be one of {list(LEGEND_ORIENTATIONS)}"
+            )
+        if self.max_rows is not None and self.max_rows < 1:
+            raise ValueError(
+                f"Invalid legend max_rows {self.max_rows!r}. Must be >= 1."
+            )
+
+    def resolve_variant(self, series_count: int, partitioned: bool) -> str:
+        """Resolve ``variant="auto"`` against the chart's series.
+
+        ``detailed`` only reads well with a single series, so it is chosen
+        only for a static one-series chart. A partitioned (``by=``) chart
+        renders one series per key at runtime — it would start as one series
+        and grow — so it stays on ``rows`` to avoid the layout flipping
+        under the user mid-stream.
+        """
+        if self.variant != "auto":
+            return self.variant
+        if partitioned or series_count != 1:
+            return "rows"
+        return "detailed"
+
+    def to_dict(self, series_count: int = 1, partitioned: bool = False) -> dict:
+        """Serialise to the JS legend shape (camelCase, None omitted).
+
+        There is no on/off field: emitting the block at all is what enables
+        the legend, and ``tvl.chart`` only emits it when one was asked for.
+        """
+        pairs = [
+            ("variant", self.resolve_variant(series_count, partitioned)),
+            ("orientation", self.orientation),
+            ("maxRows", self.max_rows),
+            ("showOhlc", self.show_ohlc),
+            ("showTime", self.show_time),
+            ("interactive", self.interactive),
+            ("followCursor", self.follow_cursor),
+        ]
+        return {k: v for k, v in pairs if v is not None}
+
+
+def legend(
+    variant: str = "auto",
+    orientation: str = "vertical",
+    max_rows: Optional[int] = None,
+    show_ohlc: Optional[bool] = None,
+    show_time: Optional[bool] = None,
+    interactive: Optional[bool] = None,
+    follow_cursor: Optional[bool] = None,
+) -> Legend:
+    """Create a :class:`Legend` config for ``tvl.chart(legend=...)``.
+
+    Args:
+        variant: ``"auto"`` (default), ``"rows"``, or ``"detailed"``.
+        orientation: ``"vertical"`` (default) or ``"horizontal"``.
+        max_rows: Rows shown before a ``+N more`` line (default 6).
+        show_ohlc: Expand candlestick / bar rows to O/H/L/C. Default ``True``.
+        show_time: Show the shared time line. Default ``True``.
+        interactive: Clicking a row toggles the series. Default ``True``.
+        follow_cursor: Track the crosshair. Default ``True``; ``False`` pins
+            the legend to each series' latest value.
+
+    Returns:
+        Legend: An in-chart legend config for ``tvl.chart(legend=...)``.
+        ``tvl.chart(legend=True)`` is shorthand for this with all defaults,
+        and ``legend=False`` (or omitting it) means no legend.
+
+    Example:
+        >>> tvl.chart(..., legend=tvl.legend(orientation="horizontal"))
+    """
+    return Legend(
+        variant=variant,
+        orientation=orientation,
+        max_rows=max_rows,
+        show_ohlc=show_ohlc,
+        show_time=show_time,
+        interactive=interactive,
+        follow_cursor=follow_cursor,
     )
 
 

@@ -149,9 +149,25 @@ jest.mock('../TradingViewChartRenderer', () => {
 
     subscribeDblClick = jest.fn(() => () => undefined);
 
-    hasTooltip = jest.fn(() => false);
+    getLegendOptions = jest.fn(() => undefined);
 
-    setupTooltip = jest.fn(() => () => undefined);
+    getTooltipOptions = jest.fn(() => undefined);
+
+    getLegendEntries = jest.fn(() => []);
+
+    getHiddenSeriesIds = jest.fn(() => []);
+
+    getLastSeriesPoint = jest.fn(() => undefined);
+
+    setSeriesVisible = jest.fn();
+
+    subscribeCrosshairMove = jest.fn(() => () => undefined);
+
+    subscribeOverlayUpdate = jest.fn(() => () => undefined);
+
+    notifyOverlayUpdate = jest.fn();
+
+    formatTime = jest.fn((t: unknown) => String(t));
 
     resize = jest.fn();
 

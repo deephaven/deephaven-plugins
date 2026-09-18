@@ -9,8 +9,10 @@ from .series import SeriesSpec
 from .markers import Marker, MarkerSpec, PriceLine
 from .events import (
     PressEventCallable,
+    SeriesToggleEventCallable,
     PRESS,
     DOUBLE_PRESS,
+    SERIES_TOGGLE,
 )
 
 # Optional imports — unavailable in test environments without a Deephaven server
@@ -46,6 +48,7 @@ from .options import (
     Watermark,
     WatermarkImage,
     Tooltip,
+    Legend,
     Scroll,
     Scale,
     CHART_TYPE_MAP,
@@ -216,6 +219,7 @@ class TvlChart:
         chart_type: str = "standard",
         on_press: Optional[PressEventCallable] = None,
         on_double_press: Optional[PressEventCallable] = None,
+        on_series_toggle: Optional[SeriesToggleEventCallable] = None,
     ):
         self._series_list = series_list
         self._chart_options = chart_options
@@ -224,6 +228,7 @@ class TvlChart:
         self._chart_type = chart_type
         self._on_press = on_press
         self._on_double_press = on_double_press
+        self._on_series_toggle = on_series_toggle
 
         # Liveness: manage refreshing tables so they survive GC
         self._liveness_scope = None
@@ -286,6 +291,10 @@ class TvlChart:
     def on_double_press(self) -> Optional[PressEventCallable]:
         return self._on_double_press
 
+    @property
+    def on_series_toggle(self) -> Optional[SeriesToggleEventCallable]:
+        return self._on_series_toggle
+
     def enabled_handlers(self) -> list[str]:
         """Handler ids that are wired, in advertise order.
 
@@ -298,6 +307,8 @@ class TvlChart:
             handlers.append(PRESS)
         if self._on_double_press is not None:
             handlers.append(DOUBLE_PRESS)
+        if self._on_series_toggle is not None:
+            handlers.append(SERIES_TOGGLE)
         return handlers
 
     def get_tables(self) -> list[Any]:
@@ -420,10 +431,13 @@ def chart(
     tracking_mode_exit_mode: Optional[TrackingModeExitMode] = None,
     add_default_pane: Optional[bool] = None,
     # Tracking tooltip (cursor-following overlay)
-    tooltip: Optional[Tooltip] = None,
+    tooltip: Optional[Union[bool, Tooltip]] = None,
+    # In-chart legend (fixed top-left overlay)
+    legend: Optional[Union[bool, Legend]] = None,
     # Event handlers
     on_press: Optional[PressEventCallable] = None,
     on_double_press: Optional[PressEventCallable] = None,
+    on_series_toggle: Optional[SeriesToggleEventCallable] = None,
 ) -> TvlChart:
     """Compose one or more series into a TradingView Lightweight chart.
 
@@ -556,19 +570,34 @@ def chart(
             chart creation (default ``True``).  Set ``False`` for
             advanced multi-pane setups that fully specify their own
             panes.
-        tooltip (Optional[Tooltip]): Tracking-tooltip configuration built
-            with :func:`tooltip` — a small overlay that follows the cursor
-            and shows the focused series' title, value, and time. Constructing
-            a ``tvl.tooltip(...)`` enables it; its colors come from the active
-            Deephaven theme (no color options). In a multi-series chart it
-            shows the single series under the cursor (falling back to the one
-            whose value is nearest).
+        tooltip (Optional[Union[bool, Tooltip]]): Tracking tooltip — a small
+            overlay that follows the cursor and shows the focused series'
+            title, value, and time. Pass ``True`` for the default tooltip,
+            ``False`` for none, or a ``tvl.tooltip(...)`` to configure it;
+            ``tooltip=True`` and ``tooltip=tvl.tooltip()`` are equivalent.
+            Its colors come from the active Deephaven theme (no color
+            options). In a multi-series chart it shows the single series
+            under the cursor (falling back to the one whose value is
+            nearest).
+        legend (Optional[Union[bool, Legend]]): In-chart legend — a fixed
+            overlay in the top-left listing each series with its color,
+            title, and value at the crosshair. Pass ``True`` for the default
+            legend, ``False`` for none, or a ``tvl.legend(...)`` to configure
+            it; ``legend=True`` and ``legend=tvl.legend()`` are
+            equivalent. With the cursor off the chart it shows each
+            series' last value, so it is populated on first paint. Rows
+            are clickable by default and hide or show their series; pair
+            with ``on_series_toggle`` to observe that server-side.
         on_press (Optional[PressEventCallable]): Server-side callback
             invoked when the user presses (clicks) on the chart. Receives
             a ``TvlPressEvent`` dict (or no argument). See
             :mod:`deephaven.plot.tradingview_lightweight.events`.
         on_double_press (Optional[PressEventCallable]): Server-side
             callback invoked when the user double-presses on the chart.
+        on_series_toggle (Optional[SeriesToggleEventCallable]): Server-side
+            callback invoked when a legend row hides or shows a series.
+            Receives a ``TvlSeriesToggleEvent`` dict (or no argument). The
+            chart applies the toggle itself; this is purely informational.
 
     Returns:
         TvlChart: A chart object that can be displayed in Deephaven.
@@ -795,10 +824,27 @@ def chart(
         chart_options["defaultVisiblePriceScaleId"] = default_visible_price_scale_id
 
     # --- Tracking tooltip ---
-    if tooltip is not None:
-        tt = tooltip.to_dict()
-        if tt:
-            chart_options["tooltip"] = tt
+    # `tooltip=True` is shorthand for an all-defaults tooltip, `False` for
+    # none, mirroring `legend=` below. The block is emitted whenever a tooltip
+    # was asked for, even when it carries no options: its presence is what
+    # turns the overlay on client-side.
+    if tooltip is not None and tooltip is not False:
+        resolved_tooltip = Tooltip() if tooltip is True else tooltip
+        chart_options["tooltip"] = resolved_tooltip.to_dict()
+
+    # --- In-chart legend ---
+    # `variant="auto"` resolves here, where the series are known: a lone
+    # static series gets the large `detailed` readout, anything else gets
+    # rows. A `by=` chart stays on rows because its key count is only known
+    # once partitions arrive client-side.
+    # `legend=True` is shorthand for an all-defaults legend, `False` for
+    # none, mirroring handle_scroll / handle_scale.
+    if legend is not None and legend is not False:
+        resolved_legend = Legend() if legend is True else legend
+        chart_options["legend"] = resolved_legend.to_dict(
+            series_count=len(series_list),
+            partitioned=any(s.by is not None for s in series_list),
+        )
 
     return TvlChart(
         series_list=series_list,
@@ -808,6 +854,7 @@ def chart(
         chart_type=resolved_type,
         on_press=on_press,
         on_double_press=on_double_press,
+        on_series_toggle=on_series_toggle,
     )
 
 
@@ -1231,8 +1278,11 @@ def yield_curve(
         color (Optional[Color]): Line color (also used as the area's
             line color when ``line_color`` is not set).
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
-        title (Optional[str]): Title shown in the series tooltip /
-            legend.
+        title (Optional[str]): Series name. Labels the price-scale
+            badge, the tracking tooltip, and any legend row, and
+            identifies the series in press events. Defaults to the
+            generated ``series_<n>`` id; a ``by=`` series is titled
+            with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color
             (overrides ``color``).
         top_color (Optional[Color]): Area-only: top gradient fill color.
@@ -1339,8 +1389,11 @@ def options_chart(
         color (Optional[Color]): Line / histogram color.  For area
             series, falls back to ``line_color`` when set.
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
-        title (Optional[str]): Title shown in the series tooltip /
-            legend.
+        title (Optional[str]): Series name. Labels the price-scale
+            badge, the tracking tooltip, and any legend row, and
+            identifies the series in press events. Defaults to the
+            generated ``series_<n>`` id; a ``by=`` series is titled
+            with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color.
         top_color (Optional[Color]): Area-only: top gradient fill color.
         bottom_color (Optional[Color]): Area-only: bottom gradient fill
@@ -1446,8 +1499,11 @@ def custom_numeric(
             ``"histogram"``.
         color (Optional[Color]): Line / histogram color.
         line_width (Optional[LineWidth]): Stroke width in pixels (1–4).
-        title (Optional[str]): Title shown in the series tooltip /
-            legend.
+        title (Optional[str]): Series name. Labels the price-scale
+            badge, the tracking tooltip, and any legend row, and
+            identifies the series in press events. Defaults to the
+            generated ``series_<n>`` id; a ``by=`` series is titled
+            with its partition key.
         line_color (Optional[Color]): Area-only: explicit line color.
         top_color (Optional[Color]): Area-only: top gradient fill color.
         bottom_color (Optional[Color]): Area-only: bottom gradient fill

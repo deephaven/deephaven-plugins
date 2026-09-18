@@ -20,5 +20,5 @@ _t = empty_table(500).update(
 tvl_tooltip_chart = tvl.chart(
     tvl.line(_t, timestamp="Timestamp", value="Price", title="Price"),
     tvl.line(_t, timestamp="Timestamp", value="Ema", title="EMA"),
-    tooltip=tvl.tooltip(visible=True, value_precision=2),
+    tooltip=tvl.tooltip(),
 )

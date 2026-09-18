@@ -1820,40 +1820,36 @@ describe('TradingViewChartRenderer', () => {
     });
   });
 
-  describe('tracking tooltip', () => {
-    // Regression: the figure's chartOptions (incl. `tooltip`) reach the
-    // renderer via applyOptions, NOT the constructor. hasTooltip() must read
-    // those merged options, else setupTooltip() is a no-op and the tooltip
-    // element is never created (caught originally only by the e2e suite).
-    it('hasTooltip reflects tooltip options applied via applyOptions', () => {
+  describe('overlay options', () => {
+    // Regression: the figure's chartOptions (incl. `tooltip` / `legend`) reach
+    // the renderer via applyOptions, NOT the constructor. The getters must read
+    // those merged options, else the React overlays never mount (caught
+    // originally only by the e2e suite).
+    it('getTooltipOptions reflects options applied via applyOptions', () => {
       const renderer = createRenderer();
-      expect(renderer.hasTooltip()).toBe(false);
+      expect(renderer.getTooltipOptions()).toBeUndefined();
+      // The block's presence is what enables the overlay; it carries only
+      // detail options, and an all-defaults tooltip sends an empty one.
+      renderer.applyOptions({ tooltip: {} } as never);
+      expect(renderer.getTooltipOptions()).toEqual({});
+    });
+
+    it('getLegendOptions reflects options applied via applyOptions', () => {
+      const renderer = createRenderer();
+      expect(renderer.getLegendOptions()).toBeUndefined();
       renderer.applyOptions({
-        tooltip: { visible: true },
+        legend: { variant: 'rows' },
       } as never);
-      expect(renderer.hasTooltip()).toBe(true);
+      expect(renderer.getLegendOptions()).toEqual({ variant: 'rows' });
     });
 
-    it('setupTooltip creates the tooltip element and subscribes to crosshair moves', () => {
-      const container = document.createElement('div');
-      const renderer = new TradingViewChartRenderer(container);
-      renderer.applyOptions({ tooltip: { visible: true } } as never);
-
-      const cleanup = renderer.setupTooltip();
-      expect(container.querySelector('.tvl-tooltip')).not.toBeNull();
+    it('subscribeCrosshairMove subscribes and its cleanup unsubscribes', () => {
+      const renderer = createRenderer();
+      const handler = jest.fn();
+      const cleanup = renderer.subscribeCrosshairMove(handler);
       expect(mockChart.subscribeCrosshairMove).toHaveBeenCalledTimes(1);
-
       cleanup();
-      expect(container.querySelector('.tvl-tooltip')).toBeNull();
       expect(mockChart.unsubscribeCrosshairMove).toHaveBeenCalledTimes(1);
-    });
-
-    it('setupTooltip is a no-op when no tooltip is configured', () => {
-      const container = document.createElement('div');
-      const renderer = new TradingViewChartRenderer(container);
-      renderer.setupTooltip();
-      expect(container.querySelector('.tvl-tooltip')).toBeNull();
-      expect(mockChart.subscribeCrosshairMove).not.toHaveBeenCalled();
     });
   });
 });

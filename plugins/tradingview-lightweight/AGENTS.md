@@ -62,7 +62,11 @@ TradingViewPlugin (plugin registration)
 | `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, autobin/EVENT       |
 | `src/js/src/TradingViewChartRenderer.ts`      | LWC wrapper — chart creation, series CRUD, markers, price lines   |
 | `src/js/src/TradingViewEventPayload.ts`       | Builds the press-event payload sent to Python (hit test, series)  |
-| `src/js/src/TradingViewChart.css`             | Downsample scrim/status bar styles (inlined via `?inline` import) |
+| `src/js/src/TradingViewLegend.tsx`            | In-chart legend overlay — rows/detailed layouts, toggling         |
+| `src/js/src/TradingViewLegendModel.ts`        | Legend's pure logic — value formatting, row capping/promotion     |
+| `src/js/src/TradingViewTooltip.tsx`           | Tracking tooltip overlay — focused series, cursor-clamped box     |
+| `src/js/src/TradingViewOverlayTypes.ts`       | Shared overlay types + series value formatting                    |
+| `src/js/src/TradingViewChart.css`             | Overlay styles — legend, tooltip, scrim (inlined via `?inline`)   |
 | `src/deephaven/.../auto_bin.py`               | Server-side time-bin aggregation for Histogram/Candlestick/Bar    |
 | `src/deephaven/.../events.py`                 | Press-event payloads + handler plumbing (`wrap_callable`)         |
 | `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT       |
@@ -127,6 +131,46 @@ callable receiving one camelCase-keyed event dict, or no argument).
   the data range omits `timestamp`; not over a series omits `hoveredSeries`)
 - User-facing docs: `docs/events.md`
 
+### Legend
+
+An opt-in overlay (`tvl.chart(legend=tvl.legend())`) listing every series with
+its color, title, and value. Built on the same pattern as the tracking tooltip.
+
+- **JS side** (`TradingViewLegend.tsx`): a React component rendered as a
+  sibling of the chart host, like the downsample scrim — the renderer builds
+  no DOM for it and only exposes data (`getLegendEntries`, `getLastSeriesPoint`)
+  and subscriptions. Two layouts (`rows` / `detailed`); `rows` flows vertically
+  or as wrapping chips. With no crosshair it falls back to each series' last
+  rendered point, so it is populated on first paint.
+- **Update path**: the renderer owns a `Set` of overlay-update handlers and
+  calls `notifyOverlayUpdate()` after data changes; the component bumps a
+  counter and re-reads entries. Deliberately NOT React state set from the data
+  path — doing that re-runs the effect that sets it and loops forever.
+- **Capping**: `max_rows` (default 6) bounds the height, with a `+N more`
+  line. The crosshair-focused series is always shown — it *replaces* the last
+  visible row rather than being appended, so the legend's height never changes
+  as the cursor moves.
+- **Toggling**: rows are `<button>`s that call `renderer.setSeriesVisible()`.
+  Visibility is read from `series.options().visible`, so a series hidden from
+  Python (`visible=False`) is dimmed on first paint. Legend toggles are also
+  recorded in `TradingViewChartRenderer.visibilityOverrides` and reapplied in
+  `configureSeries`, because a chart-type change or a late `by=` partition
+  rebuilds every series and would otherwise undo them. Hidden series keep a
+  dimmed row (dropping it would make them unreachable).
+- **Python side**: `Legend` in `options.py`. `variant="auto"` is resolved in
+  `chart()`, where the series are known — `detailed` only for a single static
+  series, always `rows` when a `by=` template is present (its key count is a
+  runtime fact, and auto-detection would flip the layout mid-stream).
+- **`on_series_toggle`**: optional callback, advertised as the `seriesToggle`
+  handler. The chart applies toggles itself; the event is informational and is
+  only put on the wire when a handler is wired. Unlike press, it carries no
+  timestamp, so the listener skips time-column resolution for it.
+- Pointer events: `.tvl-legend` is `pointer-events: none` with rows re-enabling
+  them, so only the rows themselves are a crosshair dead zone.
+- DOM seams: `data-tvl-legend` (rendered text) and `data-tvl-last-toggle` (last
+  toggle payload, kept separate from `data-tvl-last-event`).
+- User-facing docs: `docs/legend.md`, `docs/titles.md`
+
 ### Disconnect Handling
 
 Uses `WidgetPanel` from `@deephaven/dashboard-core-plugins` for session-level disconnect detection. Panel wrapper passes `onSessionClose`/`onSessionOpen` callbacks that set error state → WidgetPanel's LoadingOverlay shows "Chart disconnected". Model also listens for `Widget.EVENT_CLOSE` and `Table.EVENT_DISCONNECT/RECONNECT`.
@@ -170,7 +214,12 @@ markers, and restores the saved visible range. Two non-obvious requirements:
 Server-side fixtures are Application-mode scripts under `tests/app.d/` at the
 repo root, registered by a `file_N=` line in `tests/app.d/tests.app`. A spec
 opens one by field name with `openPanel(page, '<field>')`. TVL's are
-`tradingview_lightweight.py`, `tvl_events.py`, and `tvl_tooltip.py`.
+`tradingview_lightweight.py`, `tvl_events.py`, `tvl_tooltip.py`, and
+`tvl_legend.py`.
+
+Both overlays publish a display-based contract: `.tvl-tooltip` stays mounted
+and toggles `display` rather than unmounting, so "off the data" is a hidden
+element, not a missing one.
 
 ## Running Unit Tests
 
@@ -205,7 +254,7 @@ npm run e2e:update-snapshots -- ./tests/tradingview_lightweight.spec.ts
 ```
 
 Current TVL specs: `tradingview_lightweight.spec.ts` (render snapshots),
-`_autobin`, `_events`, and `_tooltip`.
+`_autobin`, `_events`, `_tooltip`, and `_legend`.
 
 Stale containers from an interrupted run will block the next one:
 
@@ -228,6 +277,8 @@ over screenshotting the canvas:
 
 - `.tvl-tooltip` + its `data-tvl-tooltip` attribute — the tracking tooltip's
   rendered `title | value | date` (see `tradingview_lightweight_tooltip.spec.ts`).
+- `.tvl-legend` + its `data-tvl-legend` attribute — the legend's rendered rows
+  (see `tradingview_lightweight_legend.spec.ts`).
 - `data-tvl-last-event` on the chart container — the last press-event payload.
 - `data-tvl-state` on the chart container — drives `waitForTvlSettled`; always
   settle before a screenshot, and in an `afterEach` so a teardown mid-snapshot

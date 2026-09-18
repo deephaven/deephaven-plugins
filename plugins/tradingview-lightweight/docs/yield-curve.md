@@ -62,7 +62,7 @@ The gradient fades down to transparent so the area looks like a "rising tide" sh
 
 ### Customize color and width (line mode)
 
-In line mode, `color` is the line CSS color and `line_width` is the integer pixel width (1-4, default 3). `title` is the legend label.
+In line mode, `color` is the line CSS color and `line_width` is the integer pixel width (1-4, default 3). `title` names the series wherever it is labeled — see [series titles](titles.md).
 
 ```python order=yield_curve,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -79,7 +79,7 @@ yield_curve = tvl.yield_curve(
 )
 ```
 
-The line is now red, one pixel wide, with a custom legend entry.
+The line is now red, one pixel wide, and identifies itself by its title.
 
 ### Tune the maturity axis
 

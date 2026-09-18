@@ -6,7 +6,8 @@ camelCase keys), or no argument at all. :func:`wrap_callable` adapts a handler
 so the dispatcher can always call it with one positional argument regardless of
 how many the handler actually declares.
 
-Only ``on_press`` / ``on_double_press`` are supported in v1.
+Supported handlers: ``on_press``, ``on_double_press``, and
+``on_series_toggle`` (fired when a legend row hides or shows a series).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ _NS_PER_SECOND = 1_000_000_000
 # Public handler ids advertised to the client in ``enabledHandlers``.
 PRESS = "press"
 DOUBLE_PRESS = "doublePress"
+SERIES_TOGGLE = "seriesToggle"
 
 PressEventType = Literal["press", "doublePress"]
 
@@ -213,6 +215,61 @@ def build_press_event(
             event["timestamp"] = time_converter(time_ns)
         except Exception:  # noqa: BLE001 - never lose the press over a bad convert
             event["timestamp"] = ns_to_datetime(time_ns)
+    return event
+
+
+class TvlSeriesToggleEvent(TypedDict, total=False):
+    """A series hidden or shown by a click on an interactive legend row.
+
+    The chart applies the toggle itself, client-side — this event is purely
+    informational, for code that wants to mirror the visibility elsewhere
+    (persist a view, drive a linked chart, update a side panel). Ignoring it
+    does not change what the chart does.
+    """
+
+    type: Literal["seriesToggle"]
+    """Always ``"seriesToggle"``."""
+
+    series: str
+    """Friendly id of the toggled series: its rendered title, or the ``by=``
+    partition key, falling back to ``series_<n>`` when it has neither. Matches
+    the ``hoveredSeries`` key used by press events."""
+
+    seriesId: str
+    """TVL's generated ``series_<n>`` id — a stable handle that does not change
+    with title or key, for unambiguous server-side lookup."""
+
+    visible: bool
+    """``True`` when the series was just shown, ``False`` when hidden."""
+
+    hiddenSeriesIds: list
+    """Generated ids of every series currently hidden, after this toggle. Lets
+    a handler read the whole visibility state without tracking each event."""
+
+
+# A toggle handler takes the event dict, or nothing at all.
+SeriesToggleEventCallable = Union[
+    Callable[[TvlSeriesToggleEvent], None], Callable[[], None]
+]
+
+
+def build_series_toggle_event(payload: dict) -> "TvlSeriesToggleEvent":
+    """Build a :class:`TvlSeriesToggleEvent` from the client EVENT payload.
+
+    The payload is already camelCase and JSON-safe, so this only normalises
+    types and drops anything the client did not send.
+    """
+    event: TvlSeriesToggleEvent = {"type": "seriesToggle"}
+    series = payload.get("series")
+    if series is not None:
+        event["series"] = str(series)
+    series_id = payload.get("seriesId")
+    if series_id is not None:
+        event["seriesId"] = str(series_id)
+    event["visible"] = bool(payload.get("visible", True))
+    hidden = payload.get("hiddenSeriesIds")
+    if isinstance(hidden, list):
+        event["hiddenSeriesIds"] = [str(h) for h in hidden]
     return event
 
 
