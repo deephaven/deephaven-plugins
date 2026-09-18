@@ -1,6 +1,7 @@
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import TradingViewChart from '../TradingViewChart';
+import type { TvlLegendEntry } from '../TradingViewOverlayTypes';
 
 const mockFigure = {
   chartType: 'standard',
@@ -41,6 +42,12 @@ let mockVisibleRange: { from: number; to: number } | null = {
 let mockIsResampling = true;
 const mockVisibleRangeHandlers: Array<() => void> = [];
 const mockSizeHandlers: Array<() => void> = [];
+// Legend overlay state, so a test can mount the legend and drive a row click
+// through the real component against the mocked renderer and model.
+let mockLegendOptions: Record<string, unknown> | undefined;
+let mockLegendEntries: TvlLegendEntry[] = [];
+const mockHiddenSeriesIds = new Set<string>();
+let mockEnabledHandlers: string[] = [];
 const mockModelInstances: unknown[] = [];
 const mockRendererInstances: unknown[] = [];
 const mockDh = {};
@@ -149,17 +156,23 @@ jest.mock('../TradingViewChartRenderer', () => {
 
     subscribeDblClick = jest.fn(() => () => undefined);
 
-    getLegendOptions = jest.fn(() => undefined);
+    getLegendOptions = jest.fn(() => mockLegendOptions);
 
     getTooltipOptions = jest.fn(() => undefined);
 
-    getLegendEntries = jest.fn(() => []);
+    getLegendEntries = jest.fn(() => mockLegendEntries);
 
-    getHiddenSeriesIds = jest.fn(() => []);
+    getHiddenSeriesIds = jest.fn(() => Array.from(mockHiddenSeriesIds));
 
     getLastSeriesPoint = jest.fn(() => undefined);
 
-    setSeriesVisible = jest.fn();
+    setSeriesVisible = jest.fn((id: string, visible: boolean) => {
+      if (visible) {
+        mockHiddenSeriesIds.delete(id);
+      } else {
+        mockHiddenSeriesIds.add(id);
+      }
+    });
 
     subscribeCrosshairMove = jest.fn(() => () => undefined);
 
@@ -223,7 +236,8 @@ jest.mock('../TradingViewChartModel', () => ({
       isReady: jest.fn(() => true),
       isQuiescent: jest.fn(() => true),
       getTimeZone: jest.fn(() => 'UTC'),
-      getEnabledHandlers: jest.fn(() => []),
+      getEnabledHandlers: jest.fn(() => mockEnabledHandlers),
+      sendEvent: jest.fn(),
       performResample: jest.fn(),
       performAutoBin: jest.fn(),
       pendingDownsample: false,
@@ -771,5 +785,96 @@ describe('TradingViewChart settle timer teardown', () => {
     });
 
     expect(model.performAutoBin).not.toHaveBeenCalled();
+  });
+});
+
+describe('TradingViewChart legend toggle bridge', () => {
+  // The browser-to-Python leg of a legend toggle: a click on a real legend
+  // row, rendered by the chart, must reach `model.sendEvent` with the full
+  // payload when the figure advertised `seriesToggle`, and must not when it
+  // did not. The legend and Python tests each stop one step short of this.
+  const entry: TvlLegendEntry = {
+    id: 's0',
+    series: {} as never,
+    title: 'Area',
+    color: '#48a',
+    kind: 'Area',
+    visible: true,
+  };
+
+  function resetLegendMocks(): void {
+    mockLegendOptions = undefined;
+    mockLegendEntries = [];
+    mockHiddenSeriesIds.clear();
+    mockEnabledHandlers = [];
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    mockVisibleRange = { from: 0, to: 100 };
+    mockVisibleRangeHandlers.length = 0;
+    mockSizeHandlers.length = 0;
+    mockModelInstances.length = 0;
+    mockRendererInstances.length = 0;
+    resetLegendMocks();
+    mockLegendOptions = { variant: 'rows' };
+    mockLegendEntries = [entry];
+  });
+
+  afterEach(() => {
+    resetLegendMocks();
+    jest.useRealTimers();
+  });
+
+  it('sends seriesToggle to Python when the handler is advertised', async () => {
+    mockEnabledHandlers = ['seriesToggle'];
+    const { container, unmount } = await renderChart();
+    const model = mockModelInstances[0] as { sendEvent: jest.Mock };
+    const renderer = mockRendererInstances[0] as {
+      setSeriesVisible: jest.Mock;
+    };
+
+    const row = container.querySelector('.tvl-legend-row') as HTMLElement;
+    expect(row).not.toBeNull();
+    fireEvent.click(row);
+
+    // The chart applies the toggle itself before reporting it.
+    expect(renderer.setSeriesVisible).toHaveBeenCalledWith('s0', false);
+    const payload = {
+      type: 'seriesToggle',
+      series: 'Area',
+      seriesId: 's0',
+      visible: false,
+      hiddenSeriesIds: ['s0'],
+    };
+    expect(model.sendEvent).toHaveBeenCalledTimes(1);
+    expect(model.sendEvent).toHaveBeenCalledWith('seriesToggle', payload);
+    // The DOM seam carries the same payload for the e2e specs.
+    expect(
+      JSON.parse(
+        container.firstElementChild?.getAttribute('data-tvl-last-toggle') ??
+          'null'
+      )
+    ).toEqual(payload);
+    unmount();
+  });
+
+  it('applies the toggle locally but sends nothing without a handler', async () => {
+    const { container, unmount } = await renderChart();
+    const model = mockModelInstances[0] as { sendEvent: jest.Mock };
+    const renderer = mockRendererInstances[0] as {
+      setSeriesVisible: jest.Mock;
+    };
+
+    fireEvent.click(container.querySelector('.tvl-legend-row') as HTMLElement);
+
+    expect(renderer.setSeriesVisible).toHaveBeenCalledWith('s0', false);
+    expect(model.sendEvent).not.toHaveBeenCalled();
+    // Still observable client-side, so a legend costs nothing server-side.
+    expect(
+      container.firstElementChild?.getAttribute('data-tvl-last-toggle')
+    ).toContain('"seriesId":"s0"');
+    unmount();
   });
 });

@@ -1665,10 +1665,19 @@ class Legend:
                 f"Invalid legend orientation {self.orientation!r}. "
                 f"Must be one of {list(LEGEND_ORIENTATIONS)}"
             )
-        if self.max_rows is not None and self.max_rows < 1:
-            raise ValueError(
-                f"Invalid legend max_rows {self.max_rows!r}. Must be >= 1."
-            )
+        if self.max_rows is not None:
+            # bool is an int subclass, so check it first: `True` would
+            # otherwise slip through as one row. JS slices by this value and
+            # subtracts it for the `+N more` count, so a float renders a
+            # truncated row count with a fractional overflow.
+            if isinstance(self.max_rows, bool) or not isinstance(self.max_rows, int):
+                raise TypeError(
+                    f"Invalid legend max_rows {self.max_rows!r}. Must be an int."
+                )
+            if self.max_rows < 1:
+                raise ValueError(
+                    f"Invalid legend max_rows {self.max_rows!r}. Must be >= 1."
+                )
 
     def resolve_variant(self, series_count: int, partitioned: bool) -> str:
         """Resolve ``variant="auto"`` against the chart's series.

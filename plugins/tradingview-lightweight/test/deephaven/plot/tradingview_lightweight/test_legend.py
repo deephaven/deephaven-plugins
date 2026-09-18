@@ -99,6 +99,16 @@ class TestLegendConfig(unittest.TestCase):
             legend(max_rows=0)
         self.assertIn("Must be >= 1", str(ctx.exception))
 
+    def test_non_integral_max_rows_raises(self):
+        # JS uses max_rows as a slice bound and in the `+N more` count, so a
+        # float or a bool (an int subclass) must be rejected, not truncated.
+        bad_values: tuple = (2.5, True, "3")
+        for bad in bad_values:
+            with self.subTest(max_rows=bad):
+                with self.assertRaises(TypeError) as ctx:
+                    legend(max_rows=bad)
+                self.assertIn("Must be an int", str(ctx.exception))
+
 
 class TestLegendVariantResolution(unittest.TestCase):
     """`variant="auto"` resolves against the chart's series."""
