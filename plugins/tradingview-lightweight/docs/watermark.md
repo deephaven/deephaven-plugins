@@ -1,6 +1,6 @@
 # Watermark
 
-A watermark is a faint label drawn behind the data of a chart, typically the ticker symbol, the dataset name, or the chart title. Use one when you want chart context that doesn't compete with the price action for attention.
+A watermark is a faint mark drawn behind the data of a chart — a brand, a disclaimer, an environment name like "staging", an "as of" stamp. It is styled to recede behind the series, so it marks the chart without being read as part of it.
 
 There are two ways to add a watermark. The single-line shortcut uses `tvl.chart(watermark=tvl.watermark(text=..., color=..., ...))`. The multi-line form takes a list of [`tvl.watermark_line(...)`](#api-reference) entries via `tvl.watermark(lines=[...])`, one per row of text, each with its own color, font size, line height, and font style.
 
@@ -11,9 +11,10 @@ There are two ways to add a watermark. The single-line shortcut uses `tvl.chart(
 
 ## What watermarks are useful for?
 
-- **Branding the chart**: A ticker symbol or dataset name in the background tells the viewer what they're looking at without occupying a corner.
-- **Stating context**: A two-line watermark can show, for example, `AAPL` above and `Daily` below: instrument plus timeframe.
-- **Styling for theme**: Adjusting color and font-style lets a watermark blend with light or dark themes.
+- **Branding**: an organisation or product name behind the data, marking where the chart came from.
+- **Disclaiming**: a standing notice such as "internal use only", "not investment advice", or "sample data".
+- **Flagging the environment**: "staging", "dev", or "replay", so a screenshot cannot be mistaken for production.
+- **Styling for theme**: adjusting color and font-style lets a watermark blend with light or dark themes.
 - **Positioning to taste**: `horz_align` and `vert_align` on `tvl.watermark(...)` cover the nine canonical anchor points on the chart.
 
 ## Examples
@@ -28,10 +29,10 @@ import deephaven.plot.tradingview_lightweight as tvl
 ohlc = tvl.data.ohlc()
 
 price = tvl.candlestick(ohlc)
-basic_watermark = tvl.chart(price, watermark=tvl.watermark(text="AAPL"))
+basic_watermark = tvl.chart(price, watermark=tvl.watermark(text="ACME CAPITAL"))
 ```
 
-The chart shows `AAPL` faintly centered behind the price.
+The chart shows `ACME CAPITAL` faintly centered behind the price.
 
 ### Style the single-line watermark
 
@@ -47,7 +48,7 @@ price = tvl.candlestick(ohlc)
 styled_watermark = tvl.chart(
     price,
     watermark=tvl.watermark(
-        text="AAPL",
+        text="ACME CAPITAL",
         color="rgba(25,118,210,0.25)",
         font_size=80,
         font_style="italic",
@@ -57,7 +58,7 @@ styled_watermark = tvl.chart(
 )
 ```
 
-The watermark is now a large, semi-transparent, italicized blue label.
+The watermark is now a large, semi-transparent, italicized blue mark.
 
 ### Multi-line watermark
 
@@ -72,13 +73,13 @@ price = tvl.candlestick(ohlc)
 
 lines = [
     tvl.watermark_line(
-        "AAPL",
+        "ACME CAPITAL",
         color="rgba(25,118,210,0.35)",
         font_size=72,
         line_height=80.0,
     ),
     tvl.watermark_line(
-        "Daily",
+        "Internal use only",
         color="rgba(150, 150, 150, 0.55)",
         font_size=32,
         line_height=40.0,
@@ -138,7 +139,7 @@ price = tvl.candlestick(ohlc)
 hidden_watermark = tvl.chart(
     price,
     watermark=tvl.watermark(
-        text="AAPL",
+        text="ACME CAPITAL",
         color="rgba(25,118,210,0.35)",
         visible=False,
     ),
@@ -178,7 +179,7 @@ The text watermark is configured with `tvl.watermark(...)` (returning a
 `Watermark`) passed to `watermark=` on `tvl.chart()`; the image watermark uses
 `tvl.watermark_image(...)` (returning a `WatermarkImage`) passed to
 `watermark_image=`. `tvl.watermark_line(...)` builds each entry of the
-multi-line form. See the [Chart container](chart.md) page for the full
+multi-line form, returning a `WatermarkLine`. See the [Chart container](chart.md) page for the full
 `tvl.chart` API.
 
 ```{eval-rst}

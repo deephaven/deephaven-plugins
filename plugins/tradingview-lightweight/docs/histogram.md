@@ -11,8 +11,8 @@
   time_visible -> time-scale.md
   watermark_text -> watermark.md
   base -> line.md
-  last_value_visible -> titles-legends.md
-  visible -> titles-legends.md
+  last_value_visible -> titles.md
+  visible -> titles.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
   last_price_line -> price-lines.md
@@ -112,9 +112,9 @@ hist_last = tvl.histogram(data, timestamp="Timestamp", value="Size", agg="last",
 
 See [autobin](autobin.md) for the full story on when each value is the right pick.
 
-### Set a chart title
+### Name the series
 
-`title` is the series legend label and shows up on hover. Use it when the chart is embedded next to other content where "Volume" alone is too generic.
+`title` names the series: it labels the price-scale badge, the [tooltip](tooltip.md), and any [legend](legend.md) row. Use it when the chart is embedded next to other content where "Volume" alone is too generic.
 
 ```python order=histogram,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -123,7 +123,7 @@ data = tvl.data.volume()
 histogram = tvl.histogram(data, timestamp="Timestamp", value="Volume", title="Daily traded volume")
 ```
 
-The legend now reads "Daily traded volume".
+The series now identifies itself as "Daily traded volume" wherever it is named.
 
 ### Continuous bars
 

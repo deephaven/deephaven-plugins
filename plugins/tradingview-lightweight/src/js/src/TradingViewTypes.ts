@@ -95,21 +95,56 @@ export interface TvlFigureData {
  * color for the title), so there are no color fields here.
  */
 export interface TvlTooltipOptions {
-  /** Master switch. The block is only emitted when this is true. */
-  visible?: boolean;
   /** Show the series title line (tinted with the series color). Default true. */
   showTitle?: boolean;
   /** Show the value line. Default true. */
   showValue?: boolean;
   /** Show the date/time line. Default true. */
   showDate?: boolean;
-  /** Override decimal places for the value; unset = use the series price format. */
-  valuePrecision?: number;
 }
+
+/**
+ * In-chart legend options, emitted by the Python API as
+ * ``chartOptions.legend``. The legend is a fixed overlay in the chart's
+ * top-left listing each series with its color, title, and value at the
+ * crosshair. Colors come from the active Deephaven theme plus each series'
+ * own resolved color, so there are no color fields here.
+ */
+export interface TvlLegendOptions {
+  /**
+   * Layout. ``rows`` lists every series; ``detailed`` is the large
+   * single-series readout. Python resolves ``auto`` before emitting.
+   */
+  variant?: 'rows' | 'detailed';
+  /** Flow direction for the ``rows`` variant. Default vertical. */
+  orientation?: 'vertical' | 'horizontal';
+  /** Rows shown before collapsing into "+N more". Default 6. */
+  maxRows?: number;
+  /** Expand Candlestick / Bar rows to O/H/L/C. Default true. */
+  showOhlc?: boolean;
+  /** Show the shared time line. Default true. */
+  showTime?: boolean;
+  /** Clicking a row toggles that series' visibility. Default true. */
+  interactive?: boolean;
+  /**
+   * Track the crosshair. Default true. When false the legend ignores cursor
+   * movement entirely and always shows each series' latest value.
+   */
+  followCursor?: boolean;
+}
+
+/** Series discriminant shared by the figure payload and the legend. */
+export type TvlSeriesKind =
+  | 'Candlestick'
+  | 'Bar'
+  | 'Line'
+  | 'Area'
+  | 'Baseline'
+  | 'Histogram';
 
 export interface TvlSeriesConfig {
   id: string;
-  type: 'Candlestick' | 'Bar' | 'Line' | 'Area' | 'Baseline' | 'Histogram';
+  type: TvlSeriesKind;
   /**
    * Continuous (end-to-end) rendering for Histogram / Candlestick / Bar.
    * When not false, these types render via a custom series whose bodies

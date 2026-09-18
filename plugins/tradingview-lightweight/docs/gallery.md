@@ -81,7 +81,7 @@ with_watermark = tvl.chart(
 
 with_tooltip = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    tooltip=tvl.tooltip(visible=True),
+    tooltip=tvl.tooltip(),
     crosshair=tvl.crosshair(mode="magnet"),
 )
 
