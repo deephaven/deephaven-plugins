@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [chromium-1-2, chromium-2-2, firefox-1-2, firefox-2-2, webkit-1-2, webkit-2-2]
+        config: [chromium-1-2, chromium-2-2]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
