@@ -1,7 +1,12 @@
 import { expect, test, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SELECTORS, waitForLoad } from './utils';
+import {
+  SELECTORS,
+  waitForGridRender,
+  waitForLoad,
+  waitForPlotlyData,
+} from './utils';
 
 // Parse theme names directly from theme-pack source
 // Can't just import due to vite ?inline statements
@@ -42,6 +47,12 @@ async function fillThemeName(page: Page, themeName: string): Promise<void> {
 
 async function takeScreenshot(page: Page, themeName: string): Promise<void> {
   await waitForLoad(page);
+  // This shoots the whole page, and the demo has two panels that paint
+  // asynchronously after the spinner clears: the "Price by Symbol" plot and
+  // the "Stocks Table" grid. Wait for both, or the baseline can capture an
+  // empty chart or a blank grid.
+  await waitForPlotlyData(page);
+  await waitForGridRender(page.locator('.iris-grid').first());
   await page.mouse.move(-1, -1); // Move mouse out of the way for screenshot
   await expect(page).toHaveScreenshot(`theme-${themeName}.png`);
 }

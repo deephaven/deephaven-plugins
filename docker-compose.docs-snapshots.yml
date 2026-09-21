@@ -36,7 +36,9 @@ services:
         'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express --errors /errors/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui --errors /errors/ui',
       ]
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # Allows the snapshotter to start its own docker containers for the test server
+      # Allows the snapshotter to start its own docker containers for the test server.
+      # DOCKER_SOCKET is set by tools/run_docker.sh so rootless Docker sockets also work.
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
       - ${PWD}:${PWD} # Needed so docker/python/docker-compose.yml resolves the correct paths on the host
       - test-sets:/test-sets
       # Map all the results back to the snapshots directory for those docs

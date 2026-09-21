@@ -19,8 +19,10 @@ try:
     # maintain compatibility with 41.x, where ImportError is caught and the transform is enforced.
     from deephaven.configuration import get_configuration  # type: ignore[import-untyped,import-not-found]
 
-    skip_transform = get_configuration().get_bool(
-        _DISABLE_AUTHORIZATION_EXPORT_TRANSFORM_PROPERTY, False
+    skip_transform = bool(
+        get_configuration().get_bool(
+            _DISABLE_AUTHORIZATION_EXPORT_TRANSFORM_PROPERTY, False
+        )
     )
 except Exception:
     skip_transform = False

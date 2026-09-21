@@ -53,6 +53,19 @@
       "tags": ["tables", "ui", "python"]
     },
     {
+      "name": "TradingView Lightweight Charts",
+      "description": "Build financial charts from real-time Deephaven tables using TradingView Lightweight Charts.",
+      "author": "Deephaven",
+      "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/tradingview-lightweight",
+      "image": "/marketplace/images/tradingview-lightweight.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-tradingview-lightweight",
+        "url": "https://pypi.org/project/deephaven-plugin-tradingview-lightweight/"
+      },
+      "tags": ["plotting", "finance", "python"]
+    },
+    {
       "name": "Theme Pack",
       "description": "A pack of additional UI themes for customizing the look of the Deephaven web IDE.",
       "author": "Deephaven",
@@ -118,6 +131,19 @@
       "tags": ["audio", "tables", "python"]
     },
     {
+      "name": "Notification",
+      "description": "A deephaven.ui plugin that raises OS-level system notifications from Python, with a toast fallback when notifications are unavailable.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-notification",
+      "image": "/marketplace/images/notification.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-notification",
+        "url": "https://pypi.org/project/deephaven-plugin-notification/"
+      },
+      "tags": ["notifications", "ui", "python"]
+    },
+    {
       "name": "Notebook",
       "description": "An experimental plugin that creates and embeds simple Jupyter notebooks within Deephaven.",
       "author": "jnumainville",
@@ -133,8 +159,8 @@
     {
       "name": "Pyinstrument",
       "description": "Deephaven plugin for displaying pyinstrument profiling reports.",
-      "author": "gzh2003",
-      "repo": "https://github.com/gzh2003/pyinstrument-plugin",
+      "author": "gzh20",
+      "repo": "https://github.com/gzh20/pyinstrument-plugin",
       "image": "/marketplace/images/pyinstrument.png",
       "registry": {
         "kind": "pypi",
@@ -142,6 +168,32 @@
         "url": "https://pypi.org/project/deephaven-plugin-pyinstrument/"
       },
       "tags": ["python"]
+    },
+    {
+      "name": "Clockface",
+      "description": "A deephaven.ui element that renders a live clock in one of seven faces: digital, retro seven-segment, analog, split-flap, binary, nixie tube, or word clock, themed to match the Deephaven UI.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-clockface",
+      "image": "/marketplace/images/clockface.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-clockface",
+        "url": "https://pypi.org/project/deephaven-plugin-clockface/"
+      },
+      "tags": ["ui", "python"]
+    },
+    {
+      "name": "Speed Reader",
+      "description": "A deephaven.ui element that displays text one word at a time using rapid serial visual presentation, with pivot-letter alignment and adjustable words per minute.",
+      "author": "mofojed",
+      "repo": "https://github.com/mofojed/deephaven-plugin-speed-reader",
+      "image": "/marketplace/images/speed-reader.png",
+      "registry": {
+        "kind": "pypi",
+        "package": "deephaven-plugin-speed-reader",
+        "url": "https://pypi.org/project/deephaven-plugin-speed-reader/"
+      },
+      "tags": ["ui", "python"]
     }
   ]
 }

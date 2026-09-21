@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
@@ -32,17 +32,25 @@ function useDebouncedOnChange<T, P = T>(
     setValue(propValue);
   }
 
+  // useDebouncedCallback cancels its pending call when the callback identity
+  // changes, and an unmemoized server handler is a new callable every render.
+  // Keying the debounce on propOnChange would drop the user's last keystrokes
+  // whenever a re-render landed mid-typing, so keep one debounced instance and
+  // read the latest callable when it fires.
+  const propOnChangeRef = useRef(propOnChange);
+  propOnChangeRef.current = propOnChange;
+
   const propDebouncedOnChange = useCallback(
     async (newValue: T) => {
       try {
-        await propOnChange?.(newValue);
+        await propOnChangeRef.current?.(newValue);
       } catch (e) {
         log.warn('Error returned from onChange', e);
       }
       setPending(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [propOnChange]
+    []
   );
 
   const debouncedOnChange = useDebouncedCallback(

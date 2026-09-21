@@ -1,5 +1,4 @@
 import React, {
-  type PropsWithChildren,
   useCallback,
   useEffect,
   useMemo,
@@ -14,7 +13,7 @@ import {
 import Log from '@deephaven/log';
 import { useDashboardPlugins } from '@deephaven/plugin';
 import { useThrottledCallback } from '@deephaven/react-hooks';
-import { type ElementIdProps } from './LayoutUtils';
+import type { DashboardElementProps, ElementIdProps } from './LayoutUtils';
 import { InitialLayoutConfigContext } from './InitialLayoutConfigContext';
 import PortalPanelManager from './PortalPanelManager';
 import { usePanelManager } from './usePanelManager';
@@ -28,12 +27,7 @@ const log = Log.module('@deephaven/js-plugin-ui/NestedDashboard');
 
 const DATA_CHANGE_THROTTLE_MS = 1000;
 
-type NestedDashboardProps = PropsWithChildren<ElementIdProps> & {
-  /**
-   * Whether to show the headers on panels in this dashboard. Defaults to `true`
-   */
-  showHeaders?: boolean;
-};
+type NestedDashboardProps = ElementIdProps & DashboardElementProps;
 
 type DashboardData = {
   layoutConfig?: DashboardLayoutConfig;

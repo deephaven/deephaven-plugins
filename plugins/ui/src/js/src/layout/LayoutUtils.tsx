@@ -116,9 +116,12 @@ export function isStackElementNode(obj: unknown): obj is StackElementNode {
   );
 }
 
-export type DashboardElementProps = React.PropsWithChildren<
-  Record<string, unknown>
->;
+export type DashboardElementProps = React.PropsWithChildren<{
+  /**
+   * Whether to show the headers on panels in this dashboard. Defaults to `true`
+   */
+  showHeaders?: boolean;
+}>;
 
 /**
  * Elements rendered via deephaven.ui will have a unique element assigned to them.
