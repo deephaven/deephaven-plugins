@@ -130,6 +130,10 @@
             "label": "Interact",
             "items": [
               {
+                "label": "Pan and zoom",
+                "path": "navigation.md"
+              },
+              {
                 "label": "Press events",
                 "path": "events.md"
               },

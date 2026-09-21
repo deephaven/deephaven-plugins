@@ -60,6 +60,12 @@ Three series, two panes, one shared time axis. `pane=0` / `pane=1` route series 
 - [Price scale](price-scale.md). The vertical axes.
 - [Price formats](price-formats.md). Number formatting on price labels.
 
+**Interact**
+
+- [Pan and zoom](navigation.md). What dragging, scrolling, and double-clicking do, and how a live chart follows new bars.
+- [Press events](events.md). Calling back into Python on a press or double press.
+- [Tracking tooltip](tooltip.md). A cursor-following readout of the hovered series.
+
 ## API Reference
 
 ```{eval-rst}

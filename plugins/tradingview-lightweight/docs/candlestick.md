@@ -122,7 +122,7 @@ candlestick = tvl.candlestick(
 
 Both wicks are now grey; the bodies keep their defaults.
 
-### Set the chart title
+### Name the series
 
 `title` names the series: it labels the price-scale badge, the [tooltip](tooltip.md), and any [legend](legend.md) row. Use it whenever you have more than one series on a chart, or when the chart will be embedded somewhere a column name (`Open`/`Close`) is too generic.
 

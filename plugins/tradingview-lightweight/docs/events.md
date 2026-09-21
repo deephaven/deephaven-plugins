@@ -99,6 +99,8 @@ When no series is hovered, TVL uses the shared type if every series agrees, othe
 
 When both handlers are registered, a double press fires one `press` followed by one `double_press`. The underlying chart library reports the first click of a double-click as a normal click and does not suppress it. This is intentional. TVL adds no debounce delay, because that would tax every single press to smooth over a rare, predictable overlap.
 
+A double-click also resets the chart to the full data range, with or without a handler registered. See [Pan and zoom](navigation.md#reset-the-view).
+
 If you need a double press to not also count as a single press, branch on it yourself, for example by recording the press time in `on_press` and ignoring a follow-up that arrives within your own window. Most apps do not need this.
 
 ## Handlers run server-side

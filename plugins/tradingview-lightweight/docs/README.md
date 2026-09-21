@@ -31,6 +31,7 @@ chart = tvl.chart(
 ## Key Features
 
 - **Live Table Support**: Direct integration with real-time Deephaven tables, so charts update as the underlying data ticks.
+- **Interactive Navigation**: Drag to pan, scroll or pinch to zoom, drag an axis to rescale it, and double-click to reset. See [Pan and zoom](navigation.md).
 - **Viewport-Aware Downsampling**: Pixel-accurate, whitespace-based downsampling that keeps panning and zooming smooth on multi-million-row series.
 - **Server-Side Autobinning**: Histograms compute bin widths and counts directly in the Deephaven query engine, avoiding round-trips of raw data.
 - **Multi-Pane Stacks**: Price, volume, and indicator series can be stacked into separate panes with independent height ratios via `pane`.
