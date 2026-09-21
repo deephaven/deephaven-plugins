@@ -196,6 +196,28 @@ it('re-attaches the topmost detached ancestor to the root before opening the pan
   );
 });
 
+it('does not re-attach when the parent is the layout root', () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  const { root } = (useLayoutManager as jest.Mock)();
+  // A real golden-layout root has a null parent. Without the guard, root would be
+  // misdetected as detached and re-added into its own child, throwing a DOM
+  // hierarchy error when rehydrating a layout with a new panel (DH-23527).
+  root.parent = null;
+
+  render(
+    <ParentItemContext.Provider value={root}>
+      {makeTestComponent({ onOpen, onClose })}
+    </ParentItemContext.Provider>
+  );
+
+  expect(root.addChild).not.toHaveBeenCalled();
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({ root })
+  );
+});
+
 it('only calls open once if the panel has not closed and only children change', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
