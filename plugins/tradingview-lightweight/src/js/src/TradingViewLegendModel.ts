@@ -45,3 +45,14 @@ export function selectVisibleEntries(
   }
   return shown;
 }
+
+/**
+ * The time to print under rows that each show their own series' latest point.
+ * Independent or sparse series need not agree on when that was, so it is the
+ * latest of them: the moment the readout as a whole is current as of. Chart
+ * times are UTC epoch seconds (see convertTime); anything else is ignored.
+ */
+export function latestTime(times: unknown[]): number | undefined {
+  const numeric = times.filter((t): t is number => typeof t === 'number');
+  return numeric.length > 0 ? Math.max(...numeric) : undefined;
+}

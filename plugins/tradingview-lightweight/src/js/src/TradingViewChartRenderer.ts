@@ -1677,6 +1677,29 @@ class TradingViewChartRenderer {
     }
   }
 
+  /**
+   * The point a series rendered at `time`, or undefined when it has none
+   * there. The legend reads hovered values through this, by id, rather than
+   * off the crosshair event, which is keyed by series API and goes stale when
+   * `configureSeries` rebuilds the series or a tick rewrites the hovered bar.
+   */
+  getSeriesPointAt(seriesId: string, time: unknown): unknown {
+    const items = this.seriesDataItems.get(seriesId);
+    if (typeof time !== 'number' || items == null) return undefined;
+    // Items are kept ascending by time (sortByTime; updateSeriesPoint only
+    // rewrites the last bar or appends).
+    let lo = 0;
+    let hi = items.length - 1;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      const t = items[mid].time as number;
+      if (t === time) return items[mid];
+      if (t < time) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    return undefined;
+  }
+
   /** Reverse lookup: find our series id for a given ISeriesApi. */
   getSeriesIdForApi(series: ISeriesApi<SeriesType>): string | undefined {
     let found: string | undefined;

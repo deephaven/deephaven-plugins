@@ -143,11 +143,17 @@ its color, title, and value. Built on the same pattern as the tracking tooltip.
   or as wrapping chips. With no crosshair it falls back to each series' last
   rendered point, so it is populated on first paint. Under a crosshair it does
   not: a series with no point at that time shows a blank value, because its
-  last point is from some other time.
+  last point is from some other time. The time line at rest is the latest of
+  the displayed rows' times (`latestTime`); under a crosshair, the hovered one.
 - **Update path**: the renderer owns a `Set` of overlay-update handlers and
   calls `notifyOverlayUpdate()` after data changes; the component bumps a
   counter and re-reads entries. Deliberately NOT React state set from the data
   path — doing that re-runs the effect that sets it and loops forever.
+- **Crosshair snapshot**: the component keeps `{ time, focusedId }`, not the
+  raw `MouseEventParams`. That object is keyed by series API and frozen at the
+  last mouse move, so it went blank after `configureSeries` rebuilt the series
+  and kept an old value when a tick rewrote the hovered bar. Values are
+  re-read by id and time through `renderer.getSeriesPointAt()` instead.
 - **Capping**: `max_rows` (default 6) bounds the height, with a `+N more`
   line. The crosshair-focused series is always shown — it *replaces* the last
   visible row rather than being appended, so the legend's height never changes

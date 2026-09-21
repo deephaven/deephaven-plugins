@@ -1630,7 +1630,10 @@ class Legend:
             legend's height stays fixed.
         show_ohlc: Expand candlestick / bar rows to O/H/L/C instead of just
             the close. Default ``True``.
-        show_time: Show the shared time line. Default ``True``.
+        show_time: Show the time line under the rows. Default ``True``.
+            Under the crosshair it is the hovered time. At rest it is the
+            latest time among the displayed rows' last points, so a series
+            that ticks less often shows its last value as of that moment.
         interactive: Clicking a row hides or shows that series. Default
             ``True``. Hidden series keep a dimmed row so they can be brought
             back. Wire ``tvl.chart(on_series_toggle=...)`` to observe the
@@ -1728,7 +1731,8 @@ def legend(
         orientation: ``"vertical"`` (default) or ``"horizontal"``.
         max_rows: Rows shown before a ``+N more`` line (default 6).
         show_ohlc: Expand candlestick / bar rows to O/H/L/C. Default ``True``.
-        show_time: Show the shared time line. Default ``True``.
+        show_time: Show the time line under the rows. Default ``True``. At
+            rest it is the latest of the displayed rows' last-point times.
         interactive: Clicking a row toggles the series. Default ``True``.
         follow_cursor: Track the crosshair. Default ``True``; ``False`` pins
             the legend to each series' latest value.

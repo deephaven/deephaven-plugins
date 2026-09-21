@@ -21,7 +21,7 @@ chart = tvl.chart(
 chart = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), legend=True)
 ```
 
-Unlike the [tracking tooltip](tooltip.md), the legend does not wait for a cursor. It shows each series' latest value as soon as the chart paints, switches to the values under the crosshair as you move across the plot, and returns to the latest values when you move off. A series with no point at the hovered time shows a blank value, not its latest one.
+Unlike the [tracking tooltip](tooltip.md), the legend does not wait for a cursor. It shows each series' latest value as soon as the chart paints, switches to the values under the crosshair as you move across the plot, and returns to the latest values when you move off. A series with no point at the hovered time shows a blank value, not its latest one. The time line at the bottom names the time the values belong to: the hovered time under the crosshair, and at rest the latest time among the displayed rows. A series that ticks less often shows its last value as of that moment.
 
 Each row's label comes from that series' `title=`. A series without one falls back to its generated id (`series_0`), and a `by=` series uses its partition key. See [series titles](titles.md).
 

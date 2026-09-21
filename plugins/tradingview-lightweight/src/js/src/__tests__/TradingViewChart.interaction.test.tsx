@@ -166,6 +166,10 @@ jest.mock('../TradingViewChartRenderer', () => {
 
     getLastSeriesPoint = jest.fn(() => undefined);
 
+    getSeriesPointAt = jest.fn(() => undefined);
+
+    getSeriesIdForApi = jest.fn(() => undefined);
+
     setSeriesVisible = jest.fn((id: string, visible: boolean) => {
       if (visible) {
         mockHiddenSeriesIds.delete(id);

@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { MouseEventParams } from 'lightweight-charts';
+import type {
+  ISeriesApi,
+  MouseEventParams,
+  SeriesType,
+  Time,
+} from 'lightweight-charts';
 import type { TvlLegendOptions } from './TradingViewTypes';
 import {
   DEFAULT_MAX_ROWS,
   OHLC_KINDS,
   type TvlLegendEntry,
 } from './TradingViewOverlayTypes';
-import { formatPoint, selectVisibleEntries } from './TradingViewLegendModel';
+import {
+  formatPoint,
+  latestTime,
+  selectVisibleEntries,
+} from './TradingViewLegendModel';
 import {
   extractSeriesPoint,
   resolveFocusedSeriesPoint,
@@ -16,6 +25,9 @@ import {
 /** Renderer surface the legend needs. Data only — no DOM. */
 export interface TvlLegendSource {
   getLegendEntries: () => TvlLegendEntry[];
+  getSeriesIdForApi: (series: ISeriesApi<SeriesType>) => string | undefined;
+  /** A series' point at a time, or undefined when it has none there. */
+  getSeriesPointAt: (id: string, time: unknown) => unknown;
   getLastSeriesPoint: (id: string) => unknown;
   formatTime: (time: unknown) => string;
   setSeriesVisible: (id: string, visible: boolean) => void;
@@ -34,6 +46,19 @@ export interface TradingViewLegendProps {
 }
 
 /**
+ * The crosshair, reduced to what survives a series rebuild. The raw
+ * `MouseEventParams` is keyed by series API and frozen at the last mouse move,
+ * so after `configureSeries` swaps the APIs, or a tick rewrites the hovered
+ * bar, it is stale until the cursor moves. Ids are stable, and values are
+ * re-read from the renderer by id and time on every render instead.
+ */
+interface CrosshairSnapshot {
+  time: Time;
+  /** Id of the series vertically nearest the cursor, when one resolved. */
+  focusedId: string | undefined;
+}
+
+/**
  * In-chart legend: a fixed overlay in the chart's top-left listing each series
  * with its color, title, and value at the crosshair.
  *
@@ -48,7 +73,8 @@ export interface TradingViewLegendProps {
  * With no crosshair it shows each series' last value rather than going blank,
  * so it is populated on first paint. Under an active crosshair a series with
  * no point in the hovered slice shows nothing: its latest value belongs to a
- * different time than the one the legend displays.
+ * different time than the one the legend displays. The time line at rest is
+ * the latest of the displayed rows' times; under a crosshair, the hovered one.
  */
 export function TradingViewLegend({
   source,
@@ -56,7 +82,7 @@ export function TradingViewLegend({
   onToggle,
 }: TradingViewLegendProps): JSX.Element | null {
   const [expanded, setExpanded] = useState(false);
-  const [params, setParams] = useState<MouseEventParams | undefined>();
+  const [snapshot, setSnapshot] = useState<CrosshairSnapshot | undefined>();
   /**
    * Bumped on a toggle and on every renderer update, so entries are re-read.
    * A counter rather than storing entries: the renderer owns them, and this
@@ -84,7 +110,20 @@ export function TradingViewLegend({
   // it never subscribes at all rather than subscribing and discarding.
   useEffect(() => {
     if (!followsCursor) return undefined;
-    return source.subscribeCrosshairMove(setParams);
+    return source.subscribeCrosshairMove(params => {
+      if (params.time == null) {
+        // Off the data LWC reports no time and an empty slice.
+        setSnapshot(undefined);
+        return;
+      }
+      // Resolve focus to an id now, while seriesData still holds live APIs.
+      const focused = resolveFocusedSeriesPoint(params)?.series;
+      setSnapshot({
+        time: params.time,
+        focusedId:
+          focused != null ? source.getSeriesIdForApi(focused) : undefined,
+      });
+    });
   }, [source, followsCursor]);
 
   const entries = useMemo(
@@ -93,15 +132,7 @@ export function TradingViewLegend({
     [source, entryTick]
   );
 
-  const crosshair = followsCursor ? params : undefined;
-
-  const focusedSeries = useMemo(
-    () =>
-      crosshair != null
-        ? resolveFocusedSeriesPoint(crosshair)?.series
-        : undefined,
-    [crosshair]
-  );
+  const crosshair = followsCursor ? snapshot : undefined;
 
   const pointFor = useCallback(
     (entry: TvlLegendEntry): TvlSeriesPointData | undefined => {
@@ -110,8 +141,8 @@ export function TradingViewLegend({
       // showing its latest point would put a value from another (possibly
       // later) time under the crosshair's timestamp.
       const item =
-        crosshair?.time != null
-          ? crosshair.seriesData.get(entry.series)
+        crosshair != null
+          ? source.getSeriesPointAt(entry.id, crosshair.time)
           : source.getLastSeriesPoint(entry.id);
       return extractSeriesPoint(item)?.data;
     },
@@ -130,19 +161,27 @@ export function TradingViewLegend({
 
   if (entries.length === 0) return null;
 
-  const focusedId =
-    focusedSeries != null
-      ? entries.find(e => e.series === focusedSeries)?.id
-      : undefined;
+  const focusedId = crosshair?.focusedId;
   const shown = selectVisibleEntries(entries, maxRows, focusedId, expanded);
   const hiddenCount = Math.max(0, entries.length - maxRows);
 
-  const referenceEntry = shown[0] ?? entries[0];
+  // The detailed variant reads out one series: the focused one, else the first.
+  const detailEntry =
+    focusedId != null
+      ? entries.find(e => e.id === focusedId) ?? entries[0]
+      : entries[0];
+  // Every row whose value is on screen; the time line describes exactly these.
+  const displayed = variant === 'detailed' ? [detailEntry] : shown;
+
   let timeText = '';
   if (showTime) {
     const time =
       crosshair?.time ??
-      extractSeriesPoint(source.getLastSeriesPoint(referenceEntry.id))?.time;
+      latestTime(
+        displayed.map(
+          e => extractSeriesPoint(source.getLastSeriesPoint(e.id))?.time
+        )
+      );
     timeText = time != null ? source.formatTime(time) : '';
   }
 
@@ -160,12 +199,12 @@ export function TradingViewLegend({
   // content without screenshotting the canvas (matches data-tvl-tooltip).
   const seamParts: string[] = [];
   if (variant === 'detailed') {
-    const entry =
-      focusedId != null
-        ? entries.find(e => e.id === focusedId) ?? entries[0]
-        : entries[0];
     seamParts.push(
-      `${entry.title} ${formatPoint(entry, pointFor(entry), showOhlc)}`.trim()
+      `${detailEntry.title} ${formatPoint(
+        detailEntry,
+        pointFor(detailEntry),
+        showOhlc
+      )}`.trim()
     );
   } else {
     shown.forEach(entry => {
@@ -181,21 +220,17 @@ export function TradingViewLegend({
   if (timeText !== '') seamParts.push(timeText);
 
   if (variant === 'detailed') {
-    const entry =
-      focusedId != null
-        ? entries.find(e => e.id === focusedId) ?? entries[0]
-        : entries[0];
     return (
       <div className={className} data-tvl-legend={seamParts.join(' | ')}>
         <div className="tvl-legend-body">
           <div
             className="tvl-legend-detail-title"
-            style={{ color: entry.color }}
+            style={{ color: detailEntry.color }}
           >
-            {entry.title}
+            {detailEntry.title}
           </div>
           <div className="tvl-legend-detail-value">
-            {formatPoint(entry, pointFor(entry), showOhlc)}
+            {formatPoint(detailEntry, pointFor(detailEntry), showOhlc)}
           </div>
         </div>
         {showTime && <div className="tvl-legend-time">{timeText}</div>}

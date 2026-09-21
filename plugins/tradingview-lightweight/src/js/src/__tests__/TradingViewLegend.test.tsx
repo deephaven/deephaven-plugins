@@ -1,7 +1,11 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import type { MouseEventParams } from 'lightweight-charts';
 import { TradingViewLegend, type TvlLegendSource } from '../TradingViewLegend';
-import { formatPoint, selectVisibleEntries } from '../TradingViewLegendModel';
+import {
+  formatPoint,
+  latestTime,
+  selectVisibleEntries,
+} from '../TradingViewLegendModel';
 import type { TvlLegendEntry } from '../TradingViewOverlayTypes';
 import type { TvlLegendOptions, TvlSeriesKind } from '../TradingViewTypes';
 
@@ -19,7 +23,10 @@ interface StubSeries {
   color?: string;
   kind?: TvlSeriesKind;
   visible?: boolean;
+  /** Latest rendered point, for the idle readout. */
   last?: unknown;
+  /** Points by time, for the crosshair readout. */
+  at?: Record<number, unknown>;
   api: ReturnType<typeof makeSeries>;
 }
 
@@ -58,6 +65,9 @@ function makeSource(series: StubSeries[]): {
     notifyUpdate: () => updateHandler?.(),
     source: {
       getLegendEntries: () => series.map(entryOf),
+      getSeriesIdForApi: api => series.find(s => s.api === api)?.id,
+      getSeriesPointAt: (id, time) =>
+        series.find(s => s.id === id)?.at?.[time as number],
       getLastSeriesPoint: id => series.find(s => s.id === id)?.last,
       formatTime: t => `T:${t}`,
       setSeriesVisible: (id, visible) => {
@@ -167,6 +177,13 @@ describe('formatPoint', () => {
   });
 });
 
+describe('latestTime', () => {
+  it('picks the latest, skipping rows without a point', () => {
+    expect(latestTime([])).toBeUndefined();
+    expect(latestTime([undefined, 5, 9, 6])).toBe(9);
+  });
+});
+
 describe('TradingViewLegend', () => {
   it('renders a row per series before any crosshair', () => {
     renderLegend([
@@ -185,7 +202,12 @@ describe('TradingViewLegend', () => {
   });
 
   it('prefers the crosshair value over the last value', () => {
-    const series = [stub('a', 'Index', { last: { value: 7, time: 42 } })];
+    const series = [
+      stub('a', 'Index', {
+        last: { value: 7, time: 42 },
+        at: { 1700000000: { value: 3 } },
+      }),
+    ];
     const { emit } = renderLegend(series);
     act(() => {
       emit(makeParams([[series[0].api, { value: 3 }]]));
@@ -195,7 +217,10 @@ describe('TradingViewLegend', () => {
 
   it('leaves a row blank when the crosshair slice lacks that series', () => {
     const series = [
-      stub('a', 'Index', { last: { value: 7, time: 42 } }),
+      stub('a', 'Index', {
+        last: { value: 7, time: 42 },
+        at: { 1700000000: { value: 3 } },
+      }),
       stub('b', 'Sparse', { last: { value: 99, time: 50 } }),
     ];
     const { emit } = renderLegend(series);
@@ -211,7 +236,12 @@ describe('TradingViewLegend', () => {
   });
 
   it('returns to latest values when the crosshair leaves the data', () => {
-    const series = [stub('a', 'Index', { last: { value: 7, time: 42 } })];
+    const series = [
+      stub('a', 'Index', {
+        last: { value: 7, time: 42 },
+        at: { 1700000000: { value: 3 } },
+      }),
+    ];
     const { emit } = renderLegend(series);
     act(() => {
       emit(makeParams([[series[0].api, { value: 3 }]]));
@@ -225,7 +255,12 @@ describe('TradingViewLegend', () => {
   });
 
   it('ignores the crosshair when followCursor is false', () => {
-    const series = [stub('a', 'Index', { last: { value: 7, time: 42 } })];
+    const series = [
+      stub('a', 'Index', {
+        last: { value: 7, time: 42 },
+        at: { 1700000000: { value: 3 } },
+      }),
+    ];
     const { emit } = renderLegend(series, {
       followCursor: false,
     });
@@ -233,6 +268,102 @@ describe('TradingViewLegend', () => {
       emit(makeParams([[series[0].api, { value: 3 }]]));
     });
     expect(rowText()).toEqual(['Index 7.00']);
+  });
+
+  it('keeps hovered values current when the series rebuild under the cursor', () => {
+    const series = [
+      stub('a', 'Index', {
+        last: { value: 7, time: 42 },
+        at: { 1700000000: { value: 3 } },
+      }),
+    ];
+    const { emit, notifyUpdate } = renderLegend(series);
+    act(() => {
+      emit(makeParams([[series[0].api, { value: 3 }]]));
+    });
+    expect(rowText()).toEqual(['Index 3.00']);
+
+    // configureSeries (a late `by=` key, a theme rebuild) replaces every
+    // series API. The cursor has not moved, so LWC sends no new params: the
+    // value must still resolve, by id and time, against the new series.
+    series[0].api = makeSeries();
+    series.push(stub('b', 'Late', { at: { 1700000000: { value: 9 } } }));
+    act(() => notifyUpdate());
+
+    expect(rowText()).toEqual(['Index 3.00', 'Late 9.00']);
+    expect(document.querySelector('.tvl-legend-time')?.textContent).toBe(
+      'T:1700000000'
+    );
+  });
+
+  it('refreshes the hovered value when a tick rewrites that bar', () => {
+    const series = [stub('a', 'Index', { at: { 1700000000: { value: 3 } } })];
+    const { emit, notifyUpdate } = renderLegend(series);
+    act(() => {
+      emit(makeParams([[series[0].api, { value: 3 }]]));
+    });
+    expect(rowText()).toEqual(['Index 3.00']);
+
+    // The live bar under the cursor updates in place.
+    series[0].at = { 1700000000: { value: 3.5 } };
+    act(() => notifyUpdate());
+    expect(rowText()).toEqual(['Index 3.50']);
+  });
+
+  it('keeps the focused series promoted across a rebuild', () => {
+    const series = Array.from({ length: 3 }, (_, i) =>
+      stub(`s${i}`, `S${i}`, {
+        last: { value: i, time: 1 },
+        at: { 1700000000: { value: i } },
+      })
+    );
+    const { emit, notifyUpdate } = renderLegend(series, { maxRows: 1 });
+    expect(rowText()).toEqual(['S0 0.00']);
+
+    act(() => {
+      emit(makeParams([[series[2].api, { value: 2 }]]));
+    });
+    expect(rowText()).toEqual(['S2 2.00']);
+
+    // Focus was resolved to an id when the crosshair arrived, so it survives
+    // the APIs it was resolved from being replaced.
+    for (let i = 0; i < series.length; i += 1) {
+      series[i].api = makeSeries();
+    }
+    act(() => notifyUpdate());
+    expect(rowText()).toEqual(['S2 2.00']);
+  });
+
+  it('dates the idle readout by the latest of the displayed rows', () => {
+    const series = [
+      stub('a', 'Index', { last: { value: 7, time: 42 } }),
+      stub('b', 'Sparse', { last: { value: 99, time: 50 } }),
+    ];
+    const { notifyUpdate } = renderLegend(series);
+    // The rows come from different times: the readout is current as of the
+    // most recent of them, not the first row's.
+    expect(document.querySelector('.tvl-legend-time')?.textContent).toBe(
+      'T:50'
+    );
+    expect(seam()).toBe('Index 7.00 | Sparse 99.00 | T:50');
+
+    series[0].last = { value: 8, time: 60 };
+    act(() => notifyUpdate());
+    expect(document.querySelector('.tvl-legend-time')?.textContent).toBe(
+      'T:60'
+    );
+  });
+
+  it('dates the detailed readout by its own series alone', () => {
+    renderLegend(
+      [
+        stub('a', 'AEROSPACE', { last: { value: 104.28, time: 9 } }),
+        stub('b', 'Other', { last: { value: 1, time: 30 } }),
+      ],
+      { variant: 'detailed' }
+    );
+    // Only one series is displayed, so a later time elsewhere does not count.
+    expect(document.querySelector('.tvl-legend-time')?.textContent).toBe('T:9');
   });
 
   it('caps rows and offers an expand toggle', () => {
