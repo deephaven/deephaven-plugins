@@ -80,7 +80,7 @@ volume = tvl.data.volume()
 
 ## yields
 
-An 11-point Treasury yield curve: 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y, and 40Y, emitted in months (3, 6, 12, 24, 36, 60, 84, 120, 240, 360, 480), the unit LWC's yield-curve axis expects. The curve slopes upward, steeply at the short end and flattening out past ten years. It feeds the `yield_curve` examples.
+An 11-point Treasury yield curve: 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y, and 40Y, emitted in months (3, 6, 12, 24, 36, 60, 84, 120, 240, 360, 480), which is the unit LWC's yield-curve axis expects. The curve slopes upward, steeply at the short end and flattening out past ten years. It feeds the `yield_curve` examples.
 
 Columns: `Tenor`, `Yield`.
 
