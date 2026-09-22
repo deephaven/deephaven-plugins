@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { LayoutManagerContext, useLayoutManager } from '@deephaven/dashboard';
 import Dashboard from './Dashboard';
 import { ReactPanelContext } from './ReactPanelContext';
+import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 
 // Mock the child layout components to avoid GoldenLayout complexity
 jest.mock('./LayoutUtils', () => ({
@@ -28,8 +29,14 @@ const mockLayout = {
   eventHub: {
     on: jest.fn(),
     off: jest.fn(),
+    emit: jest.fn(),
   },
   createContentItem: jest.fn(() => ({ setSize: jest.fn() })),
+};
+
+const mockWidgetStatus: WidgetStatus = {
+  status: 'ready',
+  descriptor: { name: 'test-name', type: 'test-type' },
 };
 
 beforeEach(() => {
@@ -41,9 +48,11 @@ describe('Dashboard', () => {
   it('renders at top level with existing layout manager', () => {
     render(
       <LayoutManagerContext.Provider value={mockLayout as never}>
-        <Dashboard>
-          <div data-testid="child-content">Test Content</div>
-        </Dashboard>
+        <WidgetStatusContext.Provider value={mockWidgetStatus}>
+          <Dashboard>
+            <div data-testid="child-content">Test Content</div>
+          </Dashboard>
+        </WidgetStatusContext.Provider>
       </LayoutManagerContext.Provider>
     );
 
@@ -71,10 +80,12 @@ describe('Dashboard', () => {
   it('normalizes children correctly when not nested', () => {
     render(
       <LayoutManagerContext.Provider value={mockLayout as never}>
-        <Dashboard>
-          <div>Child 1</div>
-          <div>Child 2</div>
-        </Dashboard>
+        <WidgetStatusContext.Provider value={mockWidgetStatus}>
+          <Dashboard>
+            <div>Child 1</div>
+            <div>Child 2</div>
+          </Dashboard>
+        </WidgetStatusContext.Provider>
       </LayoutManagerContext.Provider>
     );
 
@@ -86,9 +97,11 @@ describe('Dashboard', () => {
   it('does not render nested dashboard container when at top level', () => {
     render(
       <LayoutManagerContext.Provider value={mockLayout as never}>
-        <Dashboard>
-          <div>Top Level Content</div>
-        </Dashboard>
+        <WidgetStatusContext.Provider value={mockWidgetStatus}>
+          <Dashboard>
+            <div>Top Level Content</div>
+          </Dashboard>
+        </WidgetStatusContext.Provider>
       </LayoutManagerContext.Provider>
     );
 

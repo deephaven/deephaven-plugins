@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { nanoid } from 'nanoid';
 import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { type ReactPanelManager } from './ReactPanelManager';
+import WidgetStatusContext from './WidgetStatusContext';
 import {
   type ReadonlyWidgetData,
   type WidgetData,
@@ -14,6 +22,18 @@ import {
 const log = Log.module('@deephaven/js-plugin-ui/usePanelManager');
 
 const EMPTY_OBJECT = Object.freeze({});
+
+/**
+ * Derive a stable id for a widget document, used to scope panel/document events to
+ * the document they belong to.
+ */
+export function getWidgetId(
+  widget: WidgetDescriptor | UriVariableDescriptor | string
+): string {
+  return typeof widget === 'string'
+    ? widget
+    : `${widget.id}-${widget.name}-${widget.type}`;
+}
 
 export interface UsePanelManagerProps {
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
@@ -70,13 +90,12 @@ export function usePanelManager({
   // We may need to check if we need to close this widget if all panels are closed
   const [isPanelsDirty, setPanelsDirty] = useState(false);
 
-  const id = useMemo(
-    () =>
-      typeof widget === 'string'
-        ? widget
-        : `${widget.id}-${widget.name}-${widget.type}`,
-    [widget]
-  );
+  const id = useMemo(() => getWidgetId(widget), [widget]);
+
+  // Read non-throwing so isolated tests without a provider simply never prune.
+  const widgetStatus = useContext(WidgetStatusContext);
+  const isDocumentReady =
+    widgetStatus != null && widgetStatus.status !== 'loading';
 
   const handleOpen = useCallback(
     (panelId: string) => {
@@ -147,6 +166,35 @@ export function usePanelManager({
       }
     },
     [isPanelsDirty, id, onClose, onDataChange, widgetData]
+  );
+
+  useEffect(
+    /**
+     * Once the document has finished loading, every panel it will open has opened
+     * (child panel `onOpen` effects run before this parent effect). Any leftover
+     * persisted state therefore belongs to panels the current document no longer has
+     * - the saved layout had more panels than the document - so drop it to keep it
+     * from being re-persisted. Safe because `getInitialData` reads the immutable
+     * `widgetData` snapshot, not this ref.
+     */
+    function pruneOrphanedPanelStates() {
+      if (!isDocumentReady) {
+        return;
+      }
+      const openIds = new Set(panelIds.current);
+      const entries = Object.entries(panelStatesRef.current);
+      const keptEntries = entries.filter(([panelId]) => openIds.has(panelId));
+      if (keptEntries.length === entries.length) {
+        return;
+      }
+      panelStatesRef.current = Object.fromEntries(keptEntries);
+      onDataChange({
+        ...widgetData,
+        panelStates: { ...panelStatesRef.current },
+        panelIds: [...panelIds.current],
+      });
+    },
+    [isDocumentReady, onDataChange, widgetData]
   );
 
   const getPanelId = useCallback(() => {

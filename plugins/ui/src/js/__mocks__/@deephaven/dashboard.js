@@ -12,6 +12,7 @@ const mockLayout = {
   eventHub: {
     on: jest.fn(),
     off: jest.fn(),
+    emit: jest.fn(),
   },
   createContentItem: jest.fn(() => ({
     setSize: jest.fn(),
