@@ -9,6 +9,8 @@ on:
     branches:
       - main
       - 'release/**'
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   e2e-tests:
@@ -19,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [chromium-1-2, chromium-2-2]
+        config: ${{ (github.event_name == 'push' || github.event_name == 'pull_request') && fromJSON('["chromium-1-2", "chromium-2-2"]') || fromJSON('["chromium-1-2", "chromium-2-2", "firefox-1-2", "firefox-2-2", "webkit-1-2", "webkit-2-2"]') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
