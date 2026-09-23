@@ -50,6 +50,7 @@ function renderPortalPanel(
 ) {
   return render(
     <PortalPanel
+      localDashboardId="test-dashboard-id"
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       glContainer={glContainer as any}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
