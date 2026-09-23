@@ -79,7 +79,13 @@ jobs:
         with:
           script: |
             const env = process.env;
-            const path = env.package === 'ui' ? 'core/ui' : 'core/plotly'
+            const paths = {
+              'ui': 'core/ui',
+              'plotly-express': 'core/plotly',
+              'tradingview-lightweight': 'core/tradingview-lightweight',
+            };
+            const path = paths[env.package];
+            if (!path) return;
             github.rest.issues.createComment({
               issue_number: env.version.replace('pr-', ''),
               owner: context.repo.owner,

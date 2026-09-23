@@ -5,37 +5,19 @@ A Deephaven plugin for creating TradingView Lightweight Charts from Python.
 ## Usage
 
 ```python
-from deephaven.plot import tradingview_lightweight as tvl
+import deephaven.plot.tradingview_lightweight as tvl
 
-# Simple candlestick chart
-chart = tvl.candlestick(
-    ohlc_table,
-    timestamp="Timestamp",
-    open="Open",
-    high="High",
-    low="Low",
-    close="Close",
-)
+# Example daily OHLCV data: Timestamp, Open, High, Low, Close, Volume, Ema
+ohlc = tvl.data.ohlc()
 
-# Multi-series chart
+# Candlesticks with an EMA overlay on top, volume histogram in a second pane below
 chart = tvl.chart(
-    tvl.candlestick(
-        ohlc_table,
-        timestamp="Timestamp",
-        open="Open",
-        high="High",
-        low="Low",
-        close="Close",
-    ),
-    tvl.line(
-        sma_table,
-        timestamp="Timestamp",
-        value="SMA_20",
-        color="#2962FF",
-        title="SMA 20",
-    ),
-    crosshair=tvl.crosshair(mode="magnet"),
-    time_scale=tvl.time_scale(time_visible=True),
+    tvl.candlestick(ohlc),
+    tvl.line(ohlc, timestamp="Timestamp", value="Ema"),
+    tvl.histogram(ohlc, timestamp="Timestamp", value="Volume", pane=1),
+    pane_stretch_factors=[3, 1],
+    # Daily data: label the time axis with dates rather than time of day
+    time_scale=tvl.time_scale(time_visible=False),
 )
 ```
 
