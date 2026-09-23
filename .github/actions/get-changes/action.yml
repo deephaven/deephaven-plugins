@@ -58,3 +58,4 @@ runs:
           tradingview-lightweight:
             - plugins/tradingview-lightweight/**
             - .github/workflows/test-*.yml
+            - sphinx_ext/*

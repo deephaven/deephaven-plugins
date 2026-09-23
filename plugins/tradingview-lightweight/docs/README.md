@@ -25,6 +25,7 @@ chart = tvl.chart(
     tvl.line(ohlc, timestamp="Timestamp", value="Ema"),
     tvl.histogram(ohlc, timestamp="Timestamp", value="Volume", pane=1),
     pane_stretch_factors=[3, 1],
+    time_scale=tvl.time_scale(time_visible=False),
 )
 ```
 
