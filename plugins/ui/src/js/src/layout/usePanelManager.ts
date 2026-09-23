@@ -94,8 +94,7 @@ export function usePanelManager({
 
   // Read non-throwing so isolated tests without a provider simply never prune.
   const widgetStatus = useContext(WidgetStatusContext);
-  const isDocumentReady =
-    widgetStatus != null && widgetStatus.status !== 'loading';
+  const isDocumentReady = widgetStatus?.status === 'ready';
 
   const handleOpen = useCallback(
     (panelId: string) => {
@@ -189,12 +188,11 @@ export function usePanelManager({
       }
       panelStatesRef.current = Object.fromEntries(keptEntries);
       onDataChange({
-        ...widgetData,
         panelStates: { ...panelStatesRef.current },
         panelIds: [...panelIds.current],
       });
     },
-    [isDocumentReady, onDataChange, widgetData]
+    [isDocumentReady, onDataChange]
   );
 
   const getPanelId = useCallback(() => {

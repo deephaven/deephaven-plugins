@@ -4,6 +4,8 @@ import { LayoutManagerContext, useLayoutManager } from '@deephaven/dashboard';
 import Dashboard from './Dashboard';
 import { ReactPanelContext } from './ReactPanelContext';
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
+import { DOCUMENT_RENDERED } from './PortalPanelEvent';
+import { getWidgetId } from './usePanelManager';
 
 // Mock the child layout components to avoid GoldenLayout complexity
 jest.mock('./LayoutUtils', () => ({
@@ -45,6 +47,42 @@ beforeEach(() => {
 });
 
 describe('Dashboard', () => {
+  it('only signals document rendering after a successful load', () => {
+    const renderDashboard = (status: WidgetStatus) => (
+      <LayoutManagerContext.Provider value={mockLayout as never}>
+        <WidgetStatusContext.Provider value={status}>
+          <Dashboard>
+            <div>Panel content</div>
+          </Dashboard>
+        </WidgetStatusContext.Provider>
+      </LayoutManagerContext.Provider>
+    );
+    const { descriptor } = mockWidgetStatus;
+    const { rerender } = render(
+      renderDashboard({ status: 'loading', descriptor })
+    );
+
+    expect(mockLayout.eventHub.emit).not.toHaveBeenCalled();
+
+    rerender(
+      renderDashboard({
+        status: 'error',
+        descriptor,
+        error: new Error('Load failed'),
+      })
+    );
+    expect(mockLayout.eventHub.emit).not.toHaveBeenCalled();
+
+    rerender(renderDashboard({ status: 'loading', descriptor }));
+    expect(mockLayout.eventHub.emit).not.toHaveBeenCalled();
+
+    rerender(renderDashboard({ status: 'ready', descriptor }));
+    expect(mockLayout.eventHub.emit).toHaveBeenCalledTimes(1);
+    expect(mockLayout.eventHub.emit).toHaveBeenCalledWith(DOCUMENT_RENDERED, {
+      widgetId: getWidgetId(descriptor),
+    });
+  });
+
   it('renders at top level with existing layout manager', () => {
     render(
       <LayoutManagerContext.Provider value={mockLayout as never}>

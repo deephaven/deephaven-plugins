@@ -24,7 +24,7 @@ function DashboardContent({ children }: DashboardContentProps): JSX.Element {
   // portals. Signal so any PortalPanel restored from a saved layout that this document
   // no longer fills (fewer panels than were saved) can evict itself instead of showing blank.
   useEffect(() => {
-    if (status.status !== 'loading') {
+    if (status.status === 'ready') {
       emitDocumentRendered(eventHub, { widgetId });
     }
   }, [eventHub, status.status, widgetId, normalizedChildren]);
