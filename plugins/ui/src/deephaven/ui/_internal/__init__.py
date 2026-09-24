@@ -14,6 +14,7 @@ from .RenderContext import (
     get_context,
     NoContextException,
     ExportedRenderState,
+    RestoredStateMismatchError,
     _get_context_stacks,
     _get_context_stack,
 )

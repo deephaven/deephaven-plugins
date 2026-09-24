@@ -173,6 +173,11 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     _url: str
     """The full URL."""
 
+    _is_restore_render: bool
+    """
+    Whether the next render is the first one after the client sent saved state.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -204,6 +209,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._exec_context = get_exec_ctx()
         self._is_closed = False
         self._last_document = {}
+        self._is_restore_render = False
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -214,19 +220,51 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             state_update()
 
         self._is_dirty = False
+        is_restore_render = self._is_restore_render
+        self._is_restore_render = False
 
         try:
-            node = self._renderer.render(self._element)
-            state = self._context.export_state()
-            self._send_document_patch(node, state)
+            self._render_document()
+            return
         except Exception as e:
-            # Send the error to the client for displaying to the user
-            # If there's an error sending it to the client, then it will be caught by the render exception handler
-            # and logged as an error message.
-            # Just log it as debug here so we don't show it in the console and in the error panel.
-            stack_trace = traceback.format_exc()
-            logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
-            self._send_document_error(e, stack_trace)
+            if not is_restore_render:
+                self._handle_render_error(e)
+                return
+            logger.warning(
+                "Rendering with the saved state failed, rendering again without it: %r",
+                e,
+            )
+
+        # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
+        # A successful render replaces it on the client.
+        self._context.import_state({})
+        try:
+            self._render_document()
+        except Exception as e:
+            self._handle_render_error(e)
+
+    def _render_document(self) -> None:
+        """
+        Render the element and send the document and its state to the client.
+        """
+        node = self._renderer.render(self._element)
+        state = self._context.export_state()
+        self._send_document_patch(node, state)
+
+    def _handle_render_error(self, e: Exception) -> None:
+        """
+        Send a render error to the client. Must be called from the `except` block that caught the error.
+
+        Args:
+            e: The error raised while rendering.
+        """
+        # Send the error to the client for displaying to the user
+        # If there's an error sending it to the client, then it will be caught by the render exception handler
+        # and logged as an error message.
+        # Just log it as debug here so we don't show it in the console and in the error panel.
+        stack_trace = traceback.format_exc()
+        logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
+        self._send_document_error(e, stack_trace)
 
     def _process_callable_queue(self) -> None:
         """
@@ -424,6 +462,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             if url is not None:
                 self.set_url(url)
         self._context.import_state(state)
+        self._is_restore_render = bool(state)
         self._mark_dirty()
 
     def _set_url_state(self, url: str) -> None:
