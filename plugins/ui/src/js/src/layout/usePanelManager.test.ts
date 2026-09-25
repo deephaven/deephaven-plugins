@@ -1,7 +1,9 @@
+import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { usePanelManager } from './usePanelManager';
+import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 import { type ReadonlyWidgetData } from '../widget/WidgetTypes';
 
 // Mock nanoid to return predictable values
@@ -296,6 +298,146 @@ describe('usePanelManager', () => {
       const { result } = renderHook(() => usePanelManager({ widget }));
 
       expect(result.current.metadata).toBe(widget);
+    });
+  });
+
+  describe('pruneOrphanedPanelStates', () => {
+    it('drops persisted state for panels the document did not reopen once ready', () => {
+      const widget = makeWidget();
+      const onDataChange = jest.fn();
+      const initialData: ReadonlyWidgetData = {
+        state: { version: 'initial' },
+        panelIds: ['alive', 'orphan'],
+        panelStates: {
+          alive: [{ a: 1 }],
+          orphan: [{ b: 2 }],
+        },
+      };
+
+      let status: WidgetStatus = { status: 'loading', descriptor: widget };
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(
+          WidgetStatusContext.Provider,
+          { value: status },
+          children
+        );
+
+      const { result, rerender } = renderHook(
+        () => usePanelManager({ widget, initialData, onDataChange }),
+        { wrapper }
+      );
+
+      // Only one of the two persisted panels is reopened by the current document.
+      act(() => {
+        result.current.onOpen('alive');
+      });
+
+      onDataChange.mockClear();
+
+      // Document finishes loading -> the orphaned panel's state should be dropped.
+      status = { status: 'ready', descriptor: widget };
+      act(() => {
+        rerender();
+      });
+
+      expect(onDataChange).toHaveBeenCalledTimes(1);
+      expect(onDataChange).toHaveBeenCalledWith({
+        panelStates: { alive: [{ a: 1 }] },
+        panelIds: ['alive'],
+      });
+    });
+
+    it('preserves panel state after an error until a successful retry', () => {
+      const widget = makeWidget();
+      const onDataChange = jest.fn();
+      const initialData: ReadonlyWidgetData = {
+        panelStates: {
+          alive: [{ a: 1 }],
+          retry: [{ b: 2 }],
+          orphan: [{ c: 3 }],
+        },
+      };
+      let status: WidgetStatus = { status: 'loading', descriptor: widget };
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(
+          WidgetStatusContext.Provider,
+          { value: status },
+          children
+        );
+      const { result, rerender } = renderHook(
+        () => usePanelManager({ widget, initialData, onDataChange }),
+        { wrapper }
+      );
+
+      act(() => {
+        result.current.onOpen('alive');
+      });
+      onDataChange.mockClear();
+
+      status = {
+        status: 'error',
+        descriptor: widget,
+        error: new Error('Load failed'),
+      };
+      rerender();
+      expect(onDataChange).not.toHaveBeenCalled();
+
+      status = { status: 'loading', descriptor: widget };
+      rerender();
+      expect(onDataChange).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.onOpen('retry');
+      });
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ panelStates: initialData.panelStates })
+      );
+      onDataChange.mockClear();
+
+      status = { status: 'ready', descriptor: widget };
+      rerender();
+      expect(onDataChange).toHaveBeenCalledTimes(1);
+      expect(onDataChange).toHaveBeenCalledWith({
+        panelIds: ['alive', 'retry'],
+        panelStates: { alive: [{ a: 1 }], retry: [{ b: 2 }] },
+      });
+    });
+
+    it('retains persisted state while the document is still loading', () => {
+      const widget = makeWidget();
+      const onDataChange = jest.fn();
+      const initialData: ReadonlyWidgetData = {
+        panelStates: {
+          alive: [{ a: 1 }],
+          orphan: [{ b: 2 }],
+        },
+      };
+
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(
+          WidgetStatusContext.Provider,
+          { value: { status: 'loading', descriptor: widget } },
+          children
+        );
+
+      const { result } = renderHook(
+        () => usePanelManager({ widget, initialData, onDataChange }),
+        { wrapper }
+      );
+
+      act(() => {
+        result.current.onOpen('alive');
+      });
+
+      // Still loading, so the not-yet-opened panel's state is retained.
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelStates: {
+            alive: [{ a: 1 }],
+            orphan: [{ b: 2 }],
+          },
+        })
+      );
     });
   });
 
