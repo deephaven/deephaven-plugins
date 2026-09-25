@@ -403,8 +403,6 @@ class RenderContext:
         old_contexts = self._collected_contexts
         self._collected_contexts = []
 
-        restored_hook_count: Optional[int] = None
-
         try:
             with self._top_level_scope.open():
                 yield self
@@ -413,6 +411,21 @@ class RenderContext:
                 for cleanup in reversed(self._open_context_cleanups):
                     cleanup()
                 self._open_context_cleanups = []
+
+                # Checked before any effects run, so effects from a rejected restore are never committed
+                restored_hook_count = self._restored_hook_count
+                self._restored_hook_count = None
+                self._restored_sites = {}
+                used_hook_count = self._hook_index + 1
+                if (
+                    restored_hook_count is not None
+                    and restored_hook_count != used_hook_count
+                ):
+                    raise RestoredStateMismatchError(
+                        "Saved state was for {} hooks, but the component used {}".format(
+                            restored_hook_count, used_hook_count
+                        )
+                    )
 
                 # Reset the dirty state before processing effects, so that any state changes in effects will mark the context as dirty for the next render.
                 self.mark_clean()
@@ -447,10 +460,6 @@ class RenderContext:
             if self._hook_count < 0:
                 self._hook_count = hook_count
                 del self._hook_sites[hook_count:]
-
-            restored_hook_count = self._restored_hook_count
-            self._restored_hook_count = None
-            self._restored_sites = {}
         except Exception as e:
             # An error occurred at some point when executing the FunctionElement - we don't know what parts of the
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
@@ -473,13 +482,6 @@ class RenderContext:
 
             # Reset the after render listeners. No need to retain the old ones.
             self._collected_effects = []
-
-        if restored_hook_count is not None and restored_hook_count != hook_count:
-            raise RestoredStateMismatchError(
-                "Saved state was for {} hooks, but the component used {}".format(
-                    restored_hook_count, hook_count
-                )
-            )
 
         if self._hook_count != hook_count:
             # It isn't ideal to throw this anywhere - but this speaks to a malformed component, and there is no

@@ -224,8 +224,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._is_restore_render = False
 
         try:
-            self._render_document()
-            return
+            node, state = self._render_node()
         except Exception as e:
             if not is_restore_render:
                 self._handle_render_error(e)
@@ -234,22 +233,29 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
                 "Rendering with the saved state failed, rendering again without it: %r",
                 e,
             )
+            # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
+            # A successful render replaces it on the client.
+            self._context.import_state({})
+            try:
+                node, state = self._render_node()
+            except Exception as retry_error:
+                self._handle_render_error(retry_error)
+                return
 
-        # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
-        # A successful render replaces it on the client.
-        self._context.import_state({})
         try:
-            self._render_document()
+            self._send_document_patch(node, state)
         except Exception as e:
             self._handle_render_error(e)
 
-    def _render_document(self) -> None:
+    def _render_node(self) -> tuple[RenderedNode, ExportedRenderState]:
         """
-        Render the element and send the document and its state to the client.
+        Render the element and export its state.
+
+        Returns:
+            The rendered node and the state to send with it.
         """
         node = self._renderer.render(self._element)
-        state = self._context.export_state()
-        self._send_document_patch(node, state)
+        return node, self._context.export_state()
 
     def _handle_render_error(self, e: Exception) -> None:
         """

@@ -226,21 +226,6 @@ class RenderImportTestCase(BaseTestCase):
             self.assertEqual(rc.has_state(0), True)
             self.assertEqual(rc.get_state(0), 3)
 
-    def test_import_discards_state_without_sites(self):
-        rc = make_render_context()
-        rc.import_state(
-            {
-                "state": {0: 3},
-                "children": {"0": {"state": {0: 4}, "sites": {0: "site"}, "hooks": 1}},
-            }
-        )
-        with rc.open():
-            self.assertEqual(rc.has_state(0), False)
-            child_context0 = rc.get_child_context("0")
-            with child_context0.open():
-                child_context0.next_hook_index()
-                self.assertEqual(child_context0.get_state(0), 4)
-
     def test_import_nested_state(self):
         rc = make_render_context()
         state = {
@@ -375,24 +360,46 @@ class RenderRestoreTestCase(BaseTestCase):
         self.assertEqual(values[-1], ("a", "b"))
 
     def test_restore_with_different_hook_count(self):
-        from deephaven.ui.hooks import use_memo, use_state
+        from deephaven.ui.hooks import use_effect, use_memo, use_state
 
         regions = ["Americas", "Europe", "Asia"]
+        effect_calls: List[Any] = []
 
         def component():
             for region in regions:
                 use_memo(lambda r=region: r.upper(), [region])
             use_state(regions[0])
+            use_effect(lambda: effect_calls.append(len(regions)), [])
 
         rc = make_render_context()
         render_component(rc, component)
         rc.set_state(2 * len(regions), "Europe")
+        effect_calls.clear()
 
         regions.append("Africa")
         restored = save_and_restore(rc)
         # The saved string must not reach the new memo in its slot
         with self.assertRaises(RestoredStateMismatchError):
             render_component(restored, component)
+        self.assertEqual(effect_calls, [])
 
         restored.import_state({})
         render_component(restored, component)
+        self.assertEqual(effect_calls, [4])
+
+    def test_restore_discards_old_format_state(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+
+        def component():
+            value, _ = use_state("Americas")
+            values.append(value)
+
+        rc = make_render_context()
+        rc.import_state({"state": {"0": "Europe"}})
+        render_component(rc, component)
+
+        self.assertEqual(values[-1], "Americas")
+        # Saving again uses the current format
+        self.assertIn("sites", rc.export_state())
