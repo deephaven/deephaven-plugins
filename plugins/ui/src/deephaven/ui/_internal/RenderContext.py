@@ -461,6 +461,17 @@ class RenderContext:
                 self._hook_count = hook_count
                 del self._hook_sites[hook_count:]
         except Exception as e:
+            # Pop context values pushed during this render, or they leak into later renders on this thread
+            pending_cleanups = self._open_context_cleanups
+            self._open_context_cleanups = []
+            for cleanup in reversed(pending_cleanups):
+                try:
+                    cleanup()
+                except Exception:
+                    logger.exception(
+                        "Error running context cleanup after a failed render"
+                    )
+
             # An error occurred at some point when executing the FunctionElement - we don't know what parts of the
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
             # successful render.
