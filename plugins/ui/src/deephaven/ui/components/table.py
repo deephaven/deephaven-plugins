@@ -258,13 +258,54 @@ def _resolve_selection(
     return combined.snapshot()
 
 
+def _resolve_keyed_selection(
+    selected_keys: dict,
+    tbl: Table,
+) -> Table:
+    """Resolve a key-based selection into a static snapshot Table.
+
+    Mirrors IrisGrid's ``createFilteredByKeysTable``: an empty non-inverted
+    selection matches no rows, while an empty inverted selection matches all rows.
+
+    Args:
+        selected_keys: Dict with ``key_columns``, ``key_values`` and ``inverted``.
+            ``key_values`` holds one list of values per selected row, ordered to
+            match ``key_columns``.
+        tbl: The source Table to filter, in the sort/filter state the user sees.
+
+    Returns:
+        A static snapshot Table containing the selected rows.
+    """
+    from deephaven import new_table
+
+    key_columns = selected_keys.get("key_columns") or []
+    key_values = selected_keys.get("key_values") or []
+    inverted = bool(selected_keys.get("inverted"))
+
+    if not key_columns or not key_values:
+        return (tbl if inverted else tbl.slice(0, 0)).snapshot()
+
+    key_table = new_table(
+        {name: [row[i] for row in key_values] for i, name in enumerate(key_columns)}
+    )
+    filtered = (
+        tbl.where_not_in(key_table, key_columns)
+        if inverted
+        else tbl.where_in(key_table, key_columns)
+    )
+    return filtered.snapshot()
+
+
 def _add_selected_rows(data: dict, tbl: Table) -> dict:
     """Enrich a context menu callback data dict with a ``selected_rows`` Table.
 
-    Pops the internal ``_table``, ``_visible_columns``, and ``selected_ranges``
-    keys from *data*, resolves the selection into a snapshot Table, optionally
-    applies column ordering/visibility, and stores the result as
+    Pops the internal ``_table``, ``_visible_columns``, ``selected_ranges`` and
+    ``selected_keys`` entries from *data*, resolves the selection into a snapshot
+    Table, optionally applies column ordering/visibility, and stores the result as
     ``data["selected_rows"]``.
+
+    Keyed tables (created with ``with_keys``) send ``selected_keys`` and are matched
+    by value; all other tables send ``selected_ranges`` and are matched by position.
 
     Args:
         data: Raw callback params dict received from the JS callable invocation.
@@ -278,7 +319,13 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
     # Use the model table injected by JS (sorted/filtered) when available.
     model_tbl = data.pop("_table", tbl)
     visible_columns = data.pop("_visible_columns", None)
-    selected_rows = _resolve_selection(data.pop("selected_ranges", []), model_tbl)
+    selected_keys = data.pop("selected_keys", None)
+    selected_ranges = data.pop("selected_ranges", [])
+    selected_rows = (
+        _resolve_keyed_selection(selected_keys, model_tbl)
+        if selected_keys
+        else _resolve_selection(selected_ranges, model_tbl)
+    )
     # Apply column order/visibility to match what the user sees (moves + hidden columns).
     if visible_columns:
         selected_rows = selected_rows.view(visible_columns)

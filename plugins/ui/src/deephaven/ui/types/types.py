@@ -350,6 +350,10 @@ class ContextMenuActionParams(TypedDict):
     A static snapshot of the currently selected rows as a Deephaven Table.
     For cell selections the full row is included, matching IrisGrid convention.
     An empty table (no rows) is returned when nothing is selected.
+
+    For a table created with ``with_keys`` the selection is matched by key value,
+    so it stays correct even as rows move. Otherwise it is matched by row position,
+    which is only reliable while the rows are not shifting.
     """
 
 

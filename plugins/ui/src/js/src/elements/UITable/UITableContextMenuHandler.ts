@@ -1,4 +1,9 @@
-import { GridRange, type GridPoint, type ModelIndex } from '@deephaven/grid';
+import {
+  GridRange,
+  type GridPoint,
+  type ModelIndex,
+  isRangedSelection,
+} from '@deephaven/grid';
 import type {
   ContextAction,
   ResolvableContextAction,
@@ -8,6 +13,8 @@ import {
   type IrisGridModel,
   type IrisGridType,
   IrisGridContextMenuHandler,
+  KeyedSelection,
+  isKeyedGridModel,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
@@ -33,6 +40,15 @@ interface UIContextItemParams {
     start_column: number | null;
     end_column: number | null;
   }[];
+  /**
+   * Populated instead of `selected_ranges` when the table declares key columns
+   * (`with_keys`). Identifies rows by value so the selection survives ticks.
+   */
+  selected_keys: {
+    key_columns: string[];
+    key_values: unknown[][];
+    inverted: boolean;
+  } | null;
   _visible_columns: string[];
 }
 
@@ -53,7 +69,8 @@ function wrapUIContextItem(
   data: IrisGridContextMenuData,
   alwaysFetchColumns: RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
-  visibleColumns: string[]
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys']
 ): ContextAction {
   return {
     group: 999999, // Default to the end of the menu
@@ -72,6 +89,7 @@ function wrapUIContextItem(
             is_row_header: data.columnIndex == null,
             always_fetch_columns: alwaysFetchColumns,
             selected_ranges: selectedRanges,
+            selected_keys: selectedKeys,
             _visible_columns: visibleColumns,
           });
         }
@@ -82,7 +100,8 @@ function wrapUIContextItem(
           data,
           alwaysFetchColumns,
           selectedRanges,
-          visibleColumns
+          visibleColumns,
+          selectedKeys
         )
       : undefined,
   } satisfies ContextAction;
@@ -93,7 +112,8 @@ function wrapUIContextItems(
   data: IrisGridContextMenuData,
   alwaysFetchColumns: RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
-  visibleColumns: string[]
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys']
 ): ContextAction[] {
   return ensureArray(items).map(item =>
     wrapUIContextItem(
@@ -101,7 +121,8 @@ function wrapUIContextItems(
       data,
       alwaysFetchColumns,
       selectedRanges,
-      visibleColumns
+      visibleColumns,
+      selectedKeys
     )
   );
 }
@@ -118,7 +139,8 @@ export function wrapContextActions(
   data: IrisGridContextMenuData,
   alwaysFetchColumns: ColumnName[] | RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
-  visibleColumns: string[]
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys'] = null
 ): ResolvableContextAction[] {
   let alwaysFetchColumnsMap: RowDataMap = {};
   if (Array.isArray(alwaysFetchColumns)) {
@@ -146,12 +168,14 @@ export function wrapContextActions(
             is_row_header: data.columnIndex == null,
             always_fetch_columns: alwaysFetchColumnsMap,
             selected_ranges: selectedRanges,
+            selected_keys: selectedKeys,
             _visible_columns: visibleColumns,
           })) ?? [],
           data,
           alwaysFetchColumnsMap,
           selectedRanges,
-          visibleColumns
+          visibleColumns,
+          selectedKeys
         );
     }
 
@@ -160,46 +184,28 @@ export function wrapContextActions(
       data,
       alwaysFetchColumnsMap,
       selectedRanges,
-      visibleColumns
+      visibleColumns,
+      selectedKeys
     );
   });
 }
 
 /**
  * Converts the viewport-space selected ranges from IrisGrid to model-index ranges.
- * If the right-clicked row is outside the current selection the state may be stale,
- * so fall back to treating just that row as the selection.
+ * Returns empty for keyed selections, which are sent via `getSelectedKeys` instead.
  */
 export function getModelSelectedRanges(
   irisGrid: IrisGridType,
   contextMenuData: IrisGridContextMenuData
 ): UIContextItemParams['selected_ranges'] {
-  const { selectedRanges } = irisGrid.state;
-  const { rowIndex, modelRow } = contextMenuData;
-
-  // When right-clicking outside the selection, IrisGrid updates selectedRanges
-  // via setState which may not have flushed yet — detect staleness by checking
-  // if the clicked viewport row is already covered by the current ranges.
-  const clickedRowInSelection =
-    rowIndex == null ||
-    selectedRanges.some(
-      r =>
-        (r.startRow == null || r.startRow <= rowIndex) &&
-        (r.endRow == null || r.endRow >= rowIndex)
-    );
-
-  if (!clickedRowInSelection && modelRow != null) {
-    return [
-      {
-        start_row: modelRow,
-        end_row: modelRow,
-        start_column: null,
-        end_column: null,
-      },
-    ];
+  // `selection` is already the effective selection: IrisGrid substitutes the
+  // clicked row when the right-click lands outside the current selection.
+  const selection = contextMenuData.selection ?? irisGrid.state.gridSelection;
+  if (selection == null || !isRangedSelection(selection)) {
+    return [];
   }
 
-  return GridRange.consolidate(selectedRanges)
+  return GridRange.consolidate(selection.toRanges())
     .sort((a, b) => (a.startRow ?? 0) - (b.startRow ?? 0))
     .map(range => ({
       start_row:
@@ -219,6 +225,32 @@ export function getModelSelectedRanges(
           ? irisGrid.getModelColumn(range.endColumn) ?? null
           : null,
     }));
+}
+
+/**
+ * Extracts the key-based selection for tables that declare key columns, or null
+ * when the selection is positional. Key values are sent instead of row positions
+ * so the server resolves the same rows even if they move.
+ */
+export function getSelectedKeys(
+  irisGrid: IrisGridType,
+  contextMenuData: IrisGridContextMenuData
+): UIContextItemParams['selected_keys'] {
+  const selection = contextMenuData.selection ?? irisGrid.state.gridSelection;
+  if (!(selection instanceof KeyedSelection)) {
+    return null;
+  }
+
+  const { model } = contextMenuData;
+  return {
+    key_columns: isKeyedGridModel(model)
+      ? model.selectionKeyColumnIndices.map(i => model.columns[i].name)
+      : [],
+    key_values: Array.from(selection.selectedKeyValues.values()).map(values => [
+      ...values,
+    ]),
+    inverted: selection.invertedSelection,
+  };
 }
 
 /**
@@ -311,7 +343,8 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
         headerContextMenuData,
         this.alwaysFetchColumns,
         getModelSelectedRanges(irisGrid, headerContextMenuData),
-        getVisibleColumnNames(irisGrid, model)
+        getVisibleColumnNames(irisGrid, model),
+        getSelectedKeys(irisGrid, headerContextMenuData)
       ),
     ];
   }
