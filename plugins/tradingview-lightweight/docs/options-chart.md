@@ -75,7 +75,7 @@ One purple bar rises at each of the 21 strikes.
 
 ### Customize color and width (line mode)
 
-`color` is the line CSS color; `line_width` is the integer pixel width (1-4); `title` is the legend label.
+`color` is the line CSS color; `line_width` is the integer pixel width (1-4); `title` names the series — see [series titles](titles.md).
 
 ```python order=options_chart,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -91,7 +91,7 @@ options_chart = tvl.options_chart(
 )
 ```
 
-The line is green, two pixels wide, with a custom legend entry.
+The line is green, two pixels wide, and identifies itself by its title.
 
 ### Plot a different value column
 

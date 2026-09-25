@@ -32,6 +32,7 @@ chart = tvl.chart(
 ## Key Features
 
 - **Live Table Support**: Direct integration with real-time Deephaven tables, so charts update as the underlying data ticks.
+- **Interactive Navigation**: Drag to pan, scroll or pinch to zoom, drag an axis to rescale it, and double-click to reset. See [Pan and zoom](navigation.md).
 - **Viewport-Aware Downsampling**: Pixel-accurate, whitespace-based downsampling that keeps panning and zooming smooth on multi-million-row series.
 - **Server-Side Autobinning**: Histograms compute bin widths and counts directly in the Deephaven query engine, avoiding round-trips of raw data.
 - **Multi-Pane Stacks**: Price, volume, and indicator series can be stacked into separate panes with independent height ratios via `pane`.
@@ -63,7 +64,7 @@ The documentation for Deephaven TradingView Lightweight Charts routinely uses so
 - **Price scale**: The vertical axis a series is drawn against. Each pane has a left and right price scale, plus optional overlay scales identified by `price_scale_id`.
 - **Price line**: A horizontal line drawn at a specific price level, optionally labeled. Useful for marking last close, breakeven, stop-loss, etc.
 - **Marker**: An annotation pinned to a specific time on a specific series: an arrow, circle, or labeled shape used to highlight events such as trades, news, or signals.
-- **Watermark**: Static text or an image drawn behind the chart, typically used for branding or to label the instrument being shown.
+- **Watermark**: Static text or an image drawn behind the chart, for branding, a disclaimer, or an environment name.
 - **Time scale**: The horizontal time axis shared by all panes. Tick mark density and business-day handling are configured here.
 - **Downsampling**: The viewport-aware reduction of plotted points so that the displayed series never contains more visually distinguishable points than the chart has horizontal pixels. Lossless at the visible resolution.
 - **Autobin**: Server-side selection of histogram bin width and edges from the data, avoiding the need to specify `bin_width` manually.

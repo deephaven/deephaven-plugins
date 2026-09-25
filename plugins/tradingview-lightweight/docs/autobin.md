@@ -30,7 +30,7 @@ Default policy: when `auto_bin is None`, the chart auto-enables binning if the i
 
 ## How the bin width is chosen
 
-When you don't set `bin_width`, TVL picks one for you: it divides the visible time range by a target bin count (derived from the chart's width, so bars stay at least a few pixels wide) and rounds up to the next "nice" duration — 1s, 5s, 15s, 1m, 5m, 1h, 1d, and so on. As you zoom in, the bin width refines to a finer cadence so the chart stays informative. All of the aggregation happens in the Deephaven engine; the browser only receives the finished bars.
+When you don't set `bin_width`, TVL picks one for you: it divides the visible time range by a target bin count (derived from the chart's width, so bars stay at least a few pixels wide) and rounds up to the next "nice" duration — 1s, 5s, 15s, 1m, 5m, 1h, 1d, and so on. As you [zoom in](navigation.md), the bin width refines to a finer cadence so the chart stays informative. All of the aggregation happens in the Deephaven engine; the browser only receives the finished bars.
 
 ## Examples
 

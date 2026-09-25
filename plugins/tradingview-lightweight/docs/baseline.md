@@ -15,9 +15,9 @@
   crosshair_marker -> line.md
   last_price_animation -> line.md
   continuous -> line.md
-  last_value_visible -> titles-legends.md
-  title -> titles-legends.md
-  visible -> titles-legends.md
+  last_value_visible -> titles.md
+  title -> titles.md
+  visible -> titles.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
   last_price_line -> price-lines.md

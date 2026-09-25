@@ -60,7 +60,7 @@ large = tvl.data.large_prices()
 chart = tvl.line(large, timestamp="Timestamp", value="Price")
 ```
 
-Pan and zoom the chart: the curve refines as you zoom in. Local minima and maxima stay visible at every zoom level.
+[Pan and zoom](navigation.md) the chart: the curve refines as you zoom in. Local minima and maxima stay visible at every zoom level.
 
 ### Compare a small vs. large table
 

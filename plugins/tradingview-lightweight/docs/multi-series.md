@@ -88,7 +88,7 @@ sma = tvl.line(
     color="#ff9800", line_width=2,
 )
 
-# watermark= adds a faint background label to the whole chart.
+# watermark= adds a faint background mark to the whole chart.
 overlay_chart = tvl.chart(bars, sma, watermark=tvl.watermark(text="Price + SMA(3)"))
 ```
 
@@ -96,7 +96,7 @@ The candlestick TvlChart provides the price axis; the SMA line draws on the same
 
 ### Compare two line series on one axis
 
-For pure comparison, build one `line` per group and pass both to `tvl.chart()`. Each series is given an explicit `title` so the legend distinguishes them.
+For pure comparison, build one `line` per group and pass both to `tvl.chart()`. Each series is given an explicit `title` so they can be told apart — on the price scale, and in the [tooltip](tooltip.md) or [legend](legend.md).
 
 ```python order=compare_chart,aaa,bbb,stocks
 import deephaven.plot.tradingview_lightweight as tvl

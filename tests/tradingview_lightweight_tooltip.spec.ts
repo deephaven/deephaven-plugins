@@ -81,7 +81,8 @@ test('tracking tooltip shows the focused series on hover', async ({ page }) => {
   // Title is one of our two series, tinted with the series color.
   expect(['Price', 'EMA']).toContain(reading?.title);
   expect(reading?.titleColor).toMatch(/rgb|#/);
-  // Seam carries title | value | date; value reflects value_precision=2.
+  // Seam carries title | value | date; decimals come from the series'
+  // price format.
   expect(reading?.data).toMatch(/\d+\.\d{2}/);
   expect(reading?.data).toContain(reading?.title);
 });

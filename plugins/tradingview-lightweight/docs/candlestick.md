@@ -10,8 +10,8 @@
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md
-  visible -> titles-legends.md
-  last_value_visible -> titles-legends.md
+  visible -> titles.md
+  last_value_visible -> titles.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
   last_price_line -> price-lines.md
@@ -122,9 +122,9 @@ candlestick = tvl.candlestick(
 
 Both wicks are now grey; the bodies keep their defaults.
 
-### Set the chart title
+### Name the series
 
-`title` is the legend label for the series. It appears on hover and in the chart toolbar. Use it whenever you have more than one series on a chart, or when the chart will be embedded somewhere a column name (`Open`/`Close`) is too generic.
+`title` names the series: it labels the price-scale badge, the [tooltip](tooltip.md), and any [legend](legend.md) row. Use it whenever you have more than one series on a chart, or when the chart will be embedded somewhere a column name (`Open`/`Close`) is too generic.
 
 ```python order=candlestick,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -133,7 +133,7 @@ data = tvl.data.ohlc()
 candlestick = tvl.candlestick(data, title="AAPL daily OHLC")
 ```
 
-The legend now reads "AAPL daily OHLC" instead of the default series name.
+The series now identifies itself as "AAPL daily OHLC" instead of by its generated id.
 
 ### Server-side autobinning
 

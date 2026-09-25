@@ -11,6 +11,7 @@ const mockPriceLine = {
 
 const mockSeriesInstance = {
   setData: jest.fn(),
+  update: jest.fn(),
   data: jest.fn(() => []),
   dataByIndex: jest.fn(() => null),
   createPriceLine: jest.fn(() => mockPriceLine),

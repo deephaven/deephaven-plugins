@@ -1,4 +1,5 @@
-/* Ensure WidgetPanel's LoadingOverlay sits above the chart container */
+/* Overlay stack: scrim 10, status bar 30, legend 39, tooltip 40, and
+   WidgetPanel's LoadingOverlay 50 so disconnect/error states win. */
 .dh-tvl-panel > .fill-parent-absolute {
   z-index: 50;
 }
@@ -17,18 +18,17 @@
   text-align: left;
   white-space: nowrap;
   pointer-events: none;
-  /* Above the downsample scrim (10) and status bar (30); below the
-     WidgetPanel LoadingOverlay (50) so disconnect/error overlays win. */
   z-index: 40;
   background: var(--dh-color-content-bg, #2d2a2e);
   color: var(--dh-color-fg, #f0f0ee);
   border: 1px solid var(--dh-color-gray-500, #555);
   border-radius: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
+/* Color comes from the focused series, set inline. */
 .tvl-tooltip-title {
   font-weight: 600;
-  /* Color is set inline to the focused series' color; falls back to `fg`. */
 }
 
 .tvl-tooltip-value {
@@ -38,6 +38,200 @@
 
 .tvl-tooltip-date {
   color: var(--dh-color-gray-700, #888);
+}
+
+/* ---- In-chart legend (fixed top-left overlay) ---- */
+
+.tvl-legend {
+  position: absolute;
+  box-sizing: border-box;
+  top: 8px;
+  left: 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  /* Click-through; interactive rows re-enable events on themselves, so the
+     gaps stay transparent to the crosshair. */
+  pointer-events: none;
+  z-index: 39;
+  /* No panel or border, so the legend reads as part of the chart. The
+     repeated halo does the legibility work a panel would — one shadow is too
+     faint over a dense plot. */
+  color: var(--dh-color-fg, #f0f0ee);
+  text-shadow:
+    0 0 4px var(--dh-color-content-bg, #2d2a2e),
+    0 0 4px var(--dh-color-content-bg, #2d2a2e),
+    0 0 3px var(--dh-color-content-bg, #2d2a2e),
+    0 0 2px var(--dh-color-content-bg, #2d2a2e);
+  /* Bounds the overlay to the plot, and gives horizontal chips something to
+     wrap against (absolutely positioned, so it shrink-wraps). */
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 12px);
+}
+
+/* Expanded, the rows can be far taller than the plot: only they scroll, so
+   "Show less" and the time line stay reachable. */
+.tvl-legend-expanded {
+  display: flex;
+  flex-direction: column;
+}
+
+.tvl-legend-expanded .tvl-legend-body {
+  min-height: 0;
+  overflow-y: auto;
+  /* The chart owns the wheel everywhere else. */
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+/* Bled outside the box rather than added as padding, which would push the
+   rows down and right every time you expanded. */
+.tvl-legend-expanded::before {
+  content: '';
+  position: absolute;
+  inset: -3px -5px;
+  z-index: -1;
+  background: color-mix(
+    in srgb,
+    var(--dh-color-content-bg, #2d2a2e) 86%,
+    transparent
+  );
+  border-radius: 2px;
+}
+
+/* swatch | title | value. Rows join the parent's columns via subgrid so
+   values right-align across every row. */
+.tvl-legend-rows .tvl-legend-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 0;
+}
+
+.tvl-legend-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  /* Reset the button element used for interactive rows. */
+  appearance: none;
+  margin: 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+
+@supports not (grid-template-columns: subgrid) {
+  .tvl-legend-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+.tvl-legend-interactive .tvl-legend-row {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.tvl-legend-interactive .tvl-legend-row:hover {
+  background: var(--dh-color-hover-bg, rgb(255 255 255 / 8%));
+}
+
+.tvl-legend-interactive .tvl-legend-row:focus-visible {
+  outline: 1px solid var(--dh-color-accent-bg, #4c90f0);
+  outline-offset: -1px;
+}
+
+.tvl-legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tvl-legend-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tvl-legend-value {
+  text-align: right;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.tvl-legend-row-hidden {
+  opacity: 0.45;
+}
+
+.tvl-legend-row-hidden .tvl-legend-value {
+  text-decoration: line-through;
+}
+
+/* Chips: each is an inline grid so its own columns still align, and wraps
+   whole against the legend's max-width. */
+.tvl-legend-horizontal .tvl-legend-body {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 14px;
+  row-gap: 2px;
+}
+
+.tvl-legend-horizontal .tvl-legend-row {
+  display: inline-grid;
+  grid-column: auto;
+  grid-template-columns: auto auto auto;
+  column-gap: 6px;
+  flex: 0 0 auto;
+}
+
+/* Floor under the value so a chip keeps its width as digits change,
+   otherwise the whole line shuffles on every tick. */
+.tvl-legend-horizontal .tvl-legend-value {
+  min-width: 6ch;
+}
+
+.tvl-legend-overflow,
+.tvl-legend-time {
+  padding-left: 2px;
+  color: var(--dh-color-gray-700, #888);
+}
+
+.tvl-legend-overflow {
+  appearance: none;
+  margin: 0;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline dotted;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.tvl-legend-overflow:hover {
+  color: var(--dh-color-fg, #f0f0ee);
+}
+
+.tvl-legend-detailed .tvl-legend-detail-title {
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.tvl-legend-detailed .tvl-legend-detail-value {
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.tvl-legend-detailed .tvl-legend-time {
+  font-size: 14px;
 }
 
 /* ---- Pending downsample scrim ---- */
@@ -51,7 +245,8 @@
   background: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--dh-color-grid-scrim, #000) 40%, transparent),
-    color-mix(in srgb, var(--dh-color-grid-scrim, #000) 40%, transparent) calc(100% - 25px),
+    color-mix(in srgb, var(--dh-color-grid-scrim, #000) 40%, transparent)
+      calc(100% - 25px),
     transparent 100%
   );
   transition: height 150ms ease-out;

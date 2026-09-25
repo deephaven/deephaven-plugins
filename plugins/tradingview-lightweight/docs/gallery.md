@@ -81,7 +81,7 @@ with_watermark = tvl.chart(
 
 with_tooltip = tvl.chart(
     tvl.line(values, timestamp="Timestamp", value="Value"),
-    tooltip=tvl.tooltip(visible=True),
+    tooltip=tvl.tooltip(),
     crosshair=tvl.crosshair(mode="magnet"),
 )
 
@@ -236,6 +236,8 @@ what spaces the bars by elapsed time in the middle chart; and
   Drag the panel dividers to give a section more room.
 - Fixtures come from [`tvl.data`](example-data.md). They tick once per second by
   default; pass `ticking=False` to any of them for a static snapshot.
+- Drag a chart to pan, scroll to zoom, and double-click to snap back to the full
+  view. See [Pan and zoom](navigation.md).
 - The `continuous` comparison is easiest to read on data with uneven spacing.
   The default chart spaces its bars by elapsed time while `continuous=False`
   spaces them evenly.

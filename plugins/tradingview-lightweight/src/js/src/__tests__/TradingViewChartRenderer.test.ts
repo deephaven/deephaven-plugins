@@ -1820,40 +1820,126 @@ describe('TradingViewChartRenderer', () => {
     });
   });
 
-  describe('tracking tooltip', () => {
-    // Regression: the figure's chartOptions (incl. `tooltip`) reach the
-    // renderer via applyOptions, NOT the constructor. hasTooltip() must read
-    // those merged options, else setupTooltip() is a no-op and the tooltip
-    // element is never created (caught originally only by the e2e suite).
-    it('hasTooltip reflects tooltip options applied via applyOptions', () => {
+  describe('overlay options', () => {
+    // Regression: the figure's chartOptions (incl. `tooltip` / `legend`) reach
+    // the renderer via applyOptions, NOT the constructor. The getters must read
+    // those merged options, else the React overlays never mount (caught
+    // originally only by the e2e suite).
+    it('getTooltipOptions reflects options applied via applyOptions', () => {
       const renderer = createRenderer();
-      expect(renderer.hasTooltip()).toBe(false);
+      expect(renderer.getTooltipOptions()).toBeUndefined();
+      // The block's presence is what enables the overlay; it carries only
+      // detail options, and an all-defaults tooltip sends an empty one.
+      renderer.applyOptions({ tooltip: {} } as never);
+      expect(renderer.getTooltipOptions()).toEqual({});
+    });
+
+    it('getLegendOptions reflects options applied via applyOptions', () => {
+      const renderer = createRenderer();
+      expect(renderer.getLegendOptions()).toBeUndefined();
       renderer.applyOptions({
-        tooltip: { visible: true },
+        legend: { variant: 'rows' },
       } as never);
-      expect(renderer.hasTooltip()).toBe(true);
+      expect(renderer.getLegendOptions()).toEqual({ variant: 'rows' });
     });
 
-    it('setupTooltip creates the tooltip element and subscribes to crosshair moves', () => {
-      const container = document.createElement('div');
-      const renderer = new TradingViewChartRenderer(container);
-      renderer.applyOptions({ tooltip: { visible: true } } as never);
+    describe('getLegendEntries', () => {
+      afterEach(() => {
+        // `options` is shared by every mocked series; restore its default so
+        // a title set here cannot leak into later tests.
+        mockSeriesInstance.options.mockImplementation(() => ({}));
+      });
 
-      const cleanup = renderer.setupTooltip();
-      expect(container.querySelector('.tvl-tooltip')).not.toBeNull();
+      it('reads the title off the series and falls back to the id', () => {
+        const renderer = createRenderer();
+        mockSeriesInstance.options.mockImplementation(() => ({
+          title: 'Price',
+        }));
+        renderer.configureSeries([
+          {
+            id: 'series_0',
+            type: 'Line',
+            options: { title: 'Price' },
+            dataMapping: { tableId: 0, columns: { time: 'T' } },
+          },
+        ]);
+        expect(renderer.getLegendEntries()).toEqual([
+          expect.objectContaining({
+            id: 'series_0',
+            title: 'Price',
+            kind: 'Line',
+            visible: true,
+          }),
+        ]);
+
+        mockSeriesInstance.options.mockImplementation(() => ({}));
+        expect(renderer.getLegendEntries()[0].title).toBe('series_0');
+      });
+    });
+
+    describe('getSeriesPointAt', () => {
+      // The legend resolves crosshair values through this, by id and time,
+      // rather than off the MouseEventParams snapshot, so a series rebuild or
+      // a tick under the cursor refreshes the legend without a mouse move.
+      function configured(): TradingViewChartRenderer {
+        const renderer = createRenderer();
+        renderer.configureSeries([
+          {
+            id: 'series_0',
+            type: 'Line',
+            options: {},
+            dataMapping: { tableId: 0, columns: { time: 'T' } },
+          },
+        ]);
+        renderer.setSeriesData('series_0', [
+          { time: 1, value: 10 },
+          { time: 2, value: 20 },
+          { time: 3, value: 30 },
+        ]);
+        return renderer;
+      }
+
+      it('finds the point at a time, and nothing between points', () => {
+        const renderer = configured();
+        expect(renderer.getSeriesPointAt('series_0', 1)).toEqual({
+          time: 1,
+          value: 10,
+        });
+        expect(renderer.getSeriesPointAt('series_0', 2)).toEqual({
+          time: 2,
+          value: 20,
+        });
+        expect(renderer.getSeriesPointAt('series_0', 3)).toEqual({
+          time: 3,
+          value: 30,
+        });
+        expect(renderer.getSeriesPointAt('series_0', 2.5)).toBeUndefined();
+        expect(renderer.getSeriesPointAt('series_0', 4)).toBeUndefined();
+        expect(renderer.getSeriesPointAt('missing', 2)).toBeUndefined();
+      });
+
+      it('sees a tick that rewrites or extends the data', () => {
+        const renderer = configured();
+        renderer.updateSeriesPoint('series_0', { time: 3, value: 31 });
+        expect(renderer.getSeriesPointAt('series_0', 3)).toEqual({
+          time: 3,
+          value: 31,
+        });
+        renderer.updateSeriesPoint('series_0', { time: 4, value: 40 });
+        expect(renderer.getSeriesPointAt('series_0', 4)).toEqual({
+          time: 4,
+          value: 40,
+        });
+      });
+    });
+
+    it('subscribeCrosshairMove subscribes and its cleanup unsubscribes', () => {
+      const renderer = createRenderer();
+      const handler = jest.fn();
+      const cleanup = renderer.subscribeCrosshairMove(handler);
       expect(mockChart.subscribeCrosshairMove).toHaveBeenCalledTimes(1);
-
       cleanup();
-      expect(container.querySelector('.tvl-tooltip')).toBeNull();
       expect(mockChart.unsubscribeCrosshairMove).toHaveBeenCalledTimes(1);
-    });
-
-    it('setupTooltip is a no-op when no tooltip is configured', () => {
-      const container = document.createElement('div');
-      const renderer = new TradingViewChartRenderer(container);
-      renderer.setupTooltip();
-      expect(container.querySelector('.tvl-tooltip')).toBeNull();
-      expect(mockChart.subscribeCrosshairMove).not.toHaveBeenCalled();
     });
   });
 });
