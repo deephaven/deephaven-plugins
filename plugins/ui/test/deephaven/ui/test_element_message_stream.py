@@ -60,4 +60,6 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
 
         messages = _sent_messages(connection)
         self.assertEqual([m["method"] for m in messages], ["documentPatched"])
-        self.assertEqual(json.loads(messages[0]["params"][1])["state"], {"0": "Americas"})
+        self.assertEqual(
+            json.loads(messages[0]["params"][1])["state"], {"0": "Americas"}
+        )

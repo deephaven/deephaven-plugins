@@ -231,9 +231,7 @@ class RenderImportTestCase(BaseTestCase):
         rc.import_state(
             {
                 "state": {0: 3},
-                "children": {
-                    "0": {"state": {0: 4}, "sites": {0: "site"}, "hooks": 1}
-                },
+                "children": {"0": {"state": {0: 4}, "sites": {0: "site"}, "hooks": 1}},
             }
         )
         with rc.open():
