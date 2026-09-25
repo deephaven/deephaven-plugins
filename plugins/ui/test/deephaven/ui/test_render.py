@@ -387,6 +387,39 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(restored, component)
         self.assertEqual(effect_calls, [4])
 
+    def test_restore_with_different_hook_count_in_child(self):
+        from deephaven import ui
+        from deephaven.ui.hooks import use_memo, use_state
+
+        regions = ["Americas", "Europe"]
+        child_values: List[Any] = []
+        child_setters: List[Callable[[Any], None]] = []
+
+        @ui.component
+        def child():
+            for region in regions:
+                use_memo(lambda r=region: r.upper(), [region])
+            value, set_value = use_state("Americas")
+            child_setters.append(set_value)
+            child_values.append(value)
+
+        def parent():
+            use_state("parent")
+            return child()
+
+        rc = make_render_context()
+        render_component(rc, parent)
+        child_setters[-1]("Europe")
+
+        regions.append("Africa")
+        restored = save_and_restore(rc)
+        with self.assertRaises(RestoredStateMismatchError):
+            render_component(restored, parent)
+
+        restored.import_state({})
+        render_component(restored, parent)
+        self.assertEqual(child_values[-1], "Americas")
+
     def test_restore_discards_old_format_state(self):
         from deephaven.ui.hooks import use_state
 

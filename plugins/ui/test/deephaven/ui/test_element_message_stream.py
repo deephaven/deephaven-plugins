@@ -56,7 +56,11 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
         restored, connection = self._make_stream(region_text())
         with patch.object(ElementMessageStream, "_queue_render"):
             restored._set_state(saved)
-        restored._render()
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ) as logs:
+            restored._render()
+        self.assertIn("KeyError('Europe')", logs.output[0])
 
         messages = _sent_messages(connection)
         self.assertEqual([m["method"] for m in messages], ["documentPatched"])

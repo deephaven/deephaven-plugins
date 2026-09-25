@@ -81,8 +81,8 @@ The serializable state of a RenderContext. Used to serialize the state for the c
 
 class RestoredStateMismatchError(Exception):
     """
-    Raised at the end of the first render after a state import when the component used a different number of hooks
-    than when the state was saved, so the restored values can't be trusted.
+    Raised by the first render after a state import, before any effects run, when the component used a different
+    number of hooks than when the state was saved, so the restored values can't be trusted.
     """
 
 
@@ -102,6 +102,10 @@ def _is_library_file(filename: str) -> bool:
     Returns:
         True if the file is part of deephaven.ui, False otherwise.
     """
+    if filename.startswith("<"):
+        # Code compiled from a string, such as console input, is never library code.
+        # These names can be unique per execution, so they are not cached.
+        return False
     result = _is_library_file_cache.get(filename)
     if result is None:
         result = os.path.realpath(filename).startswith(_UI_PACKAGE_DIR + os.sep)
@@ -138,9 +142,9 @@ def _get_hook_site(frame: FrameType | None) -> str:
             # Library line numbers change between plugin versions, and the function name already identifies the hook
             parts.append(name)
         else:
-            parts.append(
-                f"{code.co_filename}:{name}:{frame.f_lineno - code.co_firstlineno}"
-            )
+            # f_lineno can be None for instructions without line information
+            line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
+            parts.append(f"{code.co_filename}:{name}:{line}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
