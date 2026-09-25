@@ -18,8 +18,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@deephaven/components": "^1.17.0",
-    "@deephaven/jsapi-types": "^1.0.0-dev0.39.6"
+    "@deephaven/components": "^1.30.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.39.6",
+    "@deephaven/plugin": "^1.30.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",
