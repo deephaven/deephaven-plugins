@@ -192,6 +192,19 @@ class UseTableTestCase(BaseTestCase):
 
         self.assertEqual(result, expected)
 
+    def test_table_data_is_not_saved(self):
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+        table = DynamicTableWriter(column_definitions).table
+
+        def _test_table_data(t=table):
+            return use_table_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_table_data)
+
+        self.assertEqual(render_result["result"], "sentinel")
+        # Restoring the sentinel or is_sentinel without the other would leave them inconsistent
+        self.assertEqual(render_result["context"].export_state(), {})
+
     def verify_queue_has_size(self, queue: NotifyQueue, size: int):
         """
         Verify that the queue has the expected size in a multi-threaded context

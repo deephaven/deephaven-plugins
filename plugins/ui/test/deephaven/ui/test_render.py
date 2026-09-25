@@ -1,6 +1,11 @@
 from __future__ import annotations
-from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
-from typing import Dict, Any
+import json
+from deephaven.ui._internal.RenderContext import (
+    RenderContext,
+    OnChangeCallable,
+    RestoredStateMismatchError,
+)
+from typing import Any, Callable, Dict, List
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 from .test_utils_root import TestRoot
@@ -143,7 +148,7 @@ class RenderExportTestCase(BaseTestCase):
             rc.init_state(2, 3)
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}})
+        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}, "hooks": 0})
 
     def test_export_nested_state(self):
         rc = make_render_context()
@@ -164,10 +169,12 @@ class RenderExportTestCase(BaseTestCase):
             state,
             {
                 "state": {0: 1},
+                "hooks": 0,
                 "children": {
                     "0": {
                         "state": {0: 2, 1: 3},
-                        "children": {"0": {"state": {0: 4, 1: 5}}},
+                        "hooks": 0,
+                        "children": {"0": {"state": {0: 4, 1: 5}, "hooks": 0}},
                     }
                 },
             },
@@ -212,9 +219,10 @@ class RenderImportTestCase(BaseTestCase):
 
     def test_import_basic_state(self):
         rc = make_render_context()
-        state = {"state": {0: 3}}
+        state = {"state": {0: 3}, "sites": {0: "site"}, "hooks": 1}
         rc.import_state(state)
         with rc.open():
+            rc.next_hook_index()
             self.assertEqual(rc.has_state(0), True)
             self.assertEqual(rc.get_state(0), 3)
 
@@ -222,26 +230,55 @@ class RenderImportTestCase(BaseTestCase):
         rc = make_render_context()
         state = {
             "state": {0: 1},
+            "sites": {0: "a"},
+            "hooks": 1,
             "children": {
-                "0": {"state": {0: 2, 1: 3}, "children": {"0": {"state": {0: 4, 1: 5}}}}
+                "0": {
+                    "state": {0: 2, 1: 3},
+                    "sites": {0: "b", 1: "c"},
+                    "hooks": 2,
+                    "children": {
+                        "0": {
+                            "state": {0: 4, 1: 5},
+                            "sites": {0: "d", 1: "e"},
+                            "hooks": 2,
+                        }
+                    },
+                }
             },
         }
         rc.import_state(state)
         with rc.open():
+            rc.next_hook_index()
             self.assertEqual(rc.has_state(0), True)
             self.assertEqual(rc.get_state(0), 1)
             child_context0 = rc.get_child_context("0")
             with child_context0.open():
+                child_context0.next_hook_index()
+                child_context0.next_hook_index()
                 self.assertEqual(child_context0.has_state(0), True)
                 self.assertEqual(child_context0.get_state(0), 2)
                 self.assertEqual(child_context0.has_state(1), True)
                 self.assertEqual(child_context0.get_state(1), 3)
                 child_context1 = child_context0.get_child_context("0")
                 with child_context1.open():
+                    child_context1.next_hook_index()
+                    child_context1.next_hook_index()
                     self.assertEqual(child_context1.has_state(0), True)
                     self.assertEqual(child_context1.get_state(0), 4)
                     self.assertEqual(child_context1.has_state(1), True)
                     self.assertEqual(child_context1.get_state(1), 5)
+
+    def test_import_unmounts_previous_children(self):
+        rc = make_render_context()
+        unmount_listener = Mock()
+        with rc.open():
+            child_context0 = rc.get_child_context("0")
+            with child_context0.open():
+                child_context0.add_unmount_listener(unmount_listener)
+
+        rc.import_state({})
+        unmount_listener.assert_called_once()
 
 
 class RenderUnmountChildrenTestCase(BaseTestCase):
@@ -264,4 +301,138 @@ class RenderUnmountChildrenTestCase(BaseTestCase):
             pass
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1}})
+        self.assertEqual(state, {"state": {0: 1}, "hooks": 0})
+
+
+def render_component(rc: RenderContext, fn: Callable[[], Any]) -> None:
+    from deephaven.ui.elements import FunctionElement
+    from deephaven.ui.renderer import Renderer
+
+    Renderer(rc).render(FunctionElement("test_component", fn))
+
+
+def save_and_restore(rc: RenderContext) -> RenderContext:
+    """Export the state of `rc` through JSON, as the client does, and import it into a new context."""
+    restored = make_render_context()
+    restored.import_state(json.loads(json.dumps(rc.export_state())))
+    return restored
+
+
+class RenderRestoreTestCase(BaseTestCase):
+    def test_restore_round_trip(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+
+        def component():
+            value, _ = use_state("Americas")
+            values.append(value)
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(0, "Europe")
+
+        render_component(save_and_restore(rc), component)
+        self.assertEqual(values[-1], "Europe")
+
+    def test_restore_discards_value_saved_by_another_hook(self):
+        from deephaven.ui.hooks import use_state
+
+        swapped = False
+        values: List[Any] = []
+
+        def component():
+            if swapped:
+                b, _ = use_state("b")
+                a, _ = use_state("a")
+            else:
+                a, _ = use_state("a")
+                b, _ = use_state("b")
+            values.append((a, b))
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(0, "saved a")
+        rc.set_state(1, "saved b")
+
+        swapped = True
+        render_component(save_and_restore(rc), component)
+        self.assertEqual(values[-1], ("a", "b"))
+
+    def test_restore_with_different_hook_count(self):
+        from deephaven.ui.hooks import use_effect, use_memo, use_state
+
+        regions = ["Americas", "Europe", "Asia"]
+        effect_calls: List[Any] = []
+
+        def component():
+            for region in regions:
+                use_memo(lambda r=region: r.upper(), [region])
+            use_state(regions[0])
+            use_effect(lambda: effect_calls.append(len(regions)), [])
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(2 * len(regions), "Europe")
+        effect_calls.clear()
+
+        regions.append("Africa")
+        restored = save_and_restore(rc)
+        # The saved string must not reach the new memo in its slot
+        with self.assertRaises(RestoredStateMismatchError):
+            render_component(restored, component)
+        self.assertEqual(effect_calls, [])
+
+        restored.import_state({})
+        render_component(restored, component)
+        self.assertEqual(effect_calls, [4])
+
+    def test_restore_with_different_hook_count_in_child(self):
+        from deephaven import ui
+        from deephaven.ui.hooks import use_memo, use_state
+
+        regions = ["Americas", "Europe"]
+        child_values: List[Any] = []
+        child_setters: List[Callable[[Any], None]] = []
+
+        @ui.component
+        def child():
+            for region in regions:
+                use_memo(lambda r=region: r.upper(), [region])
+            value, set_value = use_state("Americas")
+            child_setters.append(set_value)
+            child_values.append(value)
+
+        def parent():
+            use_state("parent")
+            return child()
+
+        rc = make_render_context()
+        render_component(rc, parent)
+        child_setters[-1]("Europe")
+
+        regions.append("Africa")
+        restored = save_and_restore(rc)
+        with self.assertRaises(RestoredStateMismatchError):
+            render_component(restored, parent)
+
+        restored.import_state({})
+        render_component(restored, parent)
+        self.assertEqual(child_values[-1], "Americas")
+
+    def test_restore_discards_old_format_state(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+
+        def component():
+            value, _ = use_state("Americas")
+            values.append(value)
+
+        rc = make_render_context()
+        rc.import_state({"state": {"0": "Europe"}})
+        render_component(rc, component)
+
+        self.assertEqual(values[-1], "Americas")
+        # Saving again uses the current format
+        self.assertIn("sites", rc.export_state())

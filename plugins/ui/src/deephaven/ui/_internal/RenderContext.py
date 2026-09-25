@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import hashlib
+import os
 import threading
 import logging
+from types import FrameType
 from typing import (
     Any,
     Callable,
@@ -74,6 +77,77 @@ ExportedRenderState = Dict[str, Any]
 """
 The serializable state of a RenderContext. Used to serialize the state for the client.
 """
+
+
+class RestoredStateMismatchError(Exception):
+    """
+    Raised by the first render after a state import, before any effects run, when the component used a different
+    number of hooks than when the state was saved, so the restored values can't be trusted.
+    """
+
+
+_UI_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+_MAX_HOOK_SITE_DEPTH = 64
+_is_library_file_cache: Dict[str, bool] = {}
+_function_element_render_code: Any = None
+
+
+def _is_library_file(filename: str) -> bool:
+    """
+    Check whether a file belongs to the deephaven.ui package.
+
+    Args:
+        filename: The filename from a code object.
+
+    Returns:
+        True if the file is part of deephaven.ui, False otherwise.
+    """
+    if filename.startswith("<"):
+        # Code compiled from a string, such as console input, is never library code.
+        # These names can be unique per execution, so they are not cached.
+        return False
+    result = _is_library_file_cache.get(filename)
+    if result is None:
+        result = os.path.realpath(filename).startswith(_UI_PACKAGE_DIR + os.sep)
+        _is_library_file_cache[filename] = result
+    return result
+
+
+def _get_hook_site(frame: FrameType | None) -> str:
+    """
+    Get a stable identifier for where a hook was called from, by walking the stack up to the component's render call.
+
+    Args:
+        frame: The frame that called `use_state`.
+
+    Returns:
+        A short hash identifying the call site.
+    """
+    global _function_element_render_code
+    if _function_element_render_code is None:
+        from ..elements.FunctionElement import FunctionElement
+
+        _function_element_render_code = FunctionElement.render.__code__
+
+    parts: List[str] = []
+    depth = 0
+    while (
+        frame is not None
+        and frame.f_code is not _function_element_render_code
+        and depth < _MAX_HOOK_SITE_DEPTH
+    ):
+        code = frame.f_code
+        name = getattr(code, "co_qualname", code.co_name)
+        if _is_library_file(code.co_filename):
+            # Library line numbers change between plugin versions, and the function name already identifies the hook
+            parts.append(name)
+        else:
+            # f_lineno can be None for instructions without line information
+            line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
+            parts.append(f"{code.co_filename}:{name}:{line}")
+        frame = frame.f_back
+        depth += 1
+    return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
 
 
 def _should_retain_value(value: ValueWithLiveness[Any]) -> bool:
@@ -240,6 +314,21 @@ class RenderContext:
     id, causing the client to receive a new prop - e.g. `onChange` - every render).
     """
 
+    _hook_sites: List[str]
+    """
+    Call site of each hook slot, recorded on the first successful render and saved with the state.
+    """
+
+    _restored_sites: Dict[StateKey, str]
+    """
+    Saved call sites of imported values that haven't been checked against the current hooks yet.
+    """
+
+    _restored_hook_count: Optional[int]
+    """
+    Hook count saved with the imported state, checked at the end of the first render after the import.
+    """
+
     def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
@@ -263,6 +352,9 @@ class RenderContext:
         self._is_dirty = True
         self._cache = None
         self._hook_setters = {}
+        self._hook_sites = []
+        self._restored_sites = {}
+        self._restored_hook_count = None
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -324,6 +416,21 @@ class RenderContext:
                     cleanup()
                 self._open_context_cleanups = []
 
+                # Checked before any effects run, so effects from a rejected restore are never committed
+                restored_hook_count = self._restored_hook_count
+                self._restored_hook_count = None
+                self._restored_sites = {}
+                used_hook_count = self._hook_index + 1
+                if (
+                    restored_hook_count is not None
+                    and restored_hook_count != used_hook_count
+                ):
+                    raise RestoredStateMismatchError(
+                        "Saved state was for {} hooks, but the component used {}".format(
+                            restored_hook_count, used_hook_count
+                        )
+                    )
+
                 # Reset the dirty state before processing effects, so that any state changes in effects will mark the context as dirty for the next render.
                 self.mark_clean()
 
@@ -356,7 +463,19 @@ class RenderContext:
             hook_count = self._hook_index + 1
             if self._hook_count < 0:
                 self._hook_count = hook_count
+                del self._hook_sites[hook_count:]
         except Exception as e:
+            # Pop context values pushed during this render, or they leak into later renders on this thread
+            pending_cleanups = self._open_context_cleanups
+            self._open_context_cleanups = []
+            for cleanup in reversed(pending_cleanups):
+                try:
+                    cleanup()
+                except Exception:
+                    logger.exception(
+                        "Error running context cleanup after a failed render"
+                    )
+
             # An error occurred at some point when executing the FunctionElement - we don't know what parts of the
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
             # successful render.
@@ -544,6 +663,32 @@ class RenderContext:
             setter = set_value
         return setter
 
+    def record_hook_site(self, key: StateKey, frame: FrameType | None) -> None:
+        """
+        Record where the hook at `key` was called from, and discard an imported value for `key` if it was saved by
+        a hook called from somewhere else. Only does work until the first successful render.
+
+        Args:
+            key: The state key (hook index) of the hook.
+            frame: The frame that called the hook.
+        """
+        if self._hook_count >= 0:
+            return
+
+        site = _get_hook_site(frame)
+        if key < len(self._hook_sites):
+            self._hook_sites[key] = site
+        else:
+            self._hook_sites.append(site)
+
+        restored_site = self._restored_sites.pop(key, None)
+        if restored_site is not None and restored_site != site:
+            logger.info(
+                "Discarding restored value for hook %s, it was saved by a different hook",
+                key,
+            )
+            self._state.pop(key, None)
+
     def get_child_context(
         self, key: ContextKey, fetch_only: bool = False
     ) -> "RenderContext":
@@ -662,6 +807,14 @@ class RenderContext:
 
         if len(state := dict(retained_values(self._state))) > 0:
             exported_state["state"] = state
+            sites = {
+                key: self._hook_sites[key]
+                for key in state
+                if key < len(self._hook_sites)
+            }
+            if len(sites) > 0:
+                exported_state["sites"] = sites
+            exported_state["hooks"] = self._hook_count
 
         # Now iterate through all the children contexts, and only include them in the export if they're not empty
         def retained_children(children: ChildrenContextDict):
@@ -678,23 +831,54 @@ class RenderContext:
         """
         Import the state of this context. This is used to deserialize the state from the client.
 
+        Values are only kept if they were saved with the call site of their hook, so the first render can discard
+        values that no longer belong to the same hook.
+
         Args:
             state: The state to import.
         """
-        self._state.clear()
-        self._children_context.clear()
+        self._reset()
         self.mark_dirty()
 
-        if "state" in state:
-            for key, value in state["state"].items():
-                # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
-                self._state[int(key)] = ValueWithLiveness(
-                    value=value, liveness_scope=None
-                )
+        values = state.get("state")
+        if values and "hooks" in state:
+            # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
+            sites = {int(key): site for key, site in state.get("sites", {}).items()}
+            for key, value in values.items():
+                index = int(key)
+                if index in sites:
+                    self._state[index] = ValueWithLiveness(
+                        value=value, liveness_scope=None
+                    )
+                    self._restored_sites[index] = sites[index]
+            self._restored_hook_count = state["hooks"]
+        elif values:
+            logger.info("Discarding saved state that has no hook call sites")
+
         if "children" in state:
             for key, child_state in state["children"].items():
                 self.get_child_context(key).import_state(child_state)
         logger.debug("New state is %s", self._state)
+
+    def _reset(self) -> None:
+        """
+        Clear the state of this context and unmount its children, so it renders as if for the first time.
+        """
+        for context in self._children_context.values():
+            context.unmount()
+        for listener in self._collected_unmount_listeners:
+            listener()
+
+        self._hook_count = -1
+        self._state.clear()
+        self._children_context.clear()
+        self._collected_contexts = []
+        self._collected_unmount_listeners = []
+        self._hook_setters.clear()
+        self._hook_sites = []
+        self._restored_sites = {}
+        self._restored_hook_count = None
+        self._cache = None
 
     def unmount(self) -> None:
         """
@@ -720,6 +904,9 @@ class RenderContext:
         self._collected_unmount_listeners.clear()
         self._collected_contexts.clear()
         self._hook_setters.clear()
+        self._hook_sites = []
+        self._restored_sites = {}
+        self._restored_hook_count = None
 
     @property
     def cache(self) -> Any:
