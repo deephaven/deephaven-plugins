@@ -68,6 +68,52 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
             json.loads(messages[0]["params"][1])["state"], {"0": "Americas"}
         )
 
+    def test_failed_restore_render_cleans_up_sibling_effects_before_retry(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        events: List[str] = []
+
+        @ui.component
+        def tracker():
+            def effect():
+                events.append("mount")
+                return lambda: events.append("cleanup")
+
+            ui.use_effect(effect, [])
+            return ui.text("tracker")
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            if region not in ("Americas", "Asia"):
+                raise KeyError(region)
+            return ui.text(region)
+
+        @ui.component
+        def app():
+            return ui.flex(tracker(), region_text())
+
+        stream, _ = self._make_stream(app())
+        stream._render()
+        saved = json.loads(
+            json.dumps(stream._context.export_state()).replace('"Americas"', '"Europe"')
+        )
+
+        events.clear()
+        restored, _ = self._make_stream(app())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ):
+            restored._render()
+
+        # The sibling's effect already ran in the failed pass; the retry unmounts it before mounting it again
+        self.assertEqual(events, ["mount", "cleanup", "mount"])
+
     def test_send_failure_after_restore_keeps_saved_state(self):
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import (
