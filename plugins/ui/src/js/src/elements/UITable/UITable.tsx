@@ -762,19 +762,24 @@ export function UITable({
    * Otherwise, we have received changes from the server and we should use those over client state.
    * In the future we may want to do a smarter merge of these.
    */
-  const mergedIrisGridProps = useMemo(
-    () =>
-      initialIrisGridServerProps.current === irisGridServerProps
-        ? {
-            ...irisGridServerProps,
-            ...(initialHydratedState ?? {}),
-          }
-        : {
-            ...(initialHydratedState ?? {}),
-            ...irisGridServerProps,
-          },
-    [irisGridServerProps, initialHydratedState]
-  );
+  const mergedIrisGridProps = useMemo(() => {
+    // Controlled fields always come from props, never from persisted client state
+    const clientState = { ...(initialHydratedState ?? {}) };
+    if (isSortsControlled) {
+      delete clientState.sorts;
+    }
+    if (isQuickFiltersControlled) {
+      delete clientState.quickFilters;
+    }
+    return initialIrisGridServerProps.current === irisGridServerProps
+      ? { ...irisGridServerProps, ...clientState }
+      : { ...clientState, ...irisGridServerProps };
+  }, [
+    irisGridServerProps,
+    initialHydratedState,
+    isSortsControlled,
+    isQuickFiltersControlled,
+  ]);
 
   const inputFilters = useDashboardColumnFilters(
     model?.columns ?? null,

@@ -11,6 +11,11 @@ import { type dh } from '@deephaven/jsapi-types';
 import { UITable } from './UITable';
 
 const mockEmit = jest.fn();
+let mockPersistedState: unknown;
+const mockPersistedSorts = ['persisted-sort'];
+const mockPersistedQuickFilters = new Map([[0, { text: 'persisted' }]]);
+const mockControlledQuickFilters = new Map([[0, { text: 'controlled' }]]);
+const mockControlledSorts = ['controlled-sort'];
 const mockTable = {} as dh.Table;
 const mockModel = {
   columns: [] as dh.Column[],
@@ -34,7 +39,9 @@ jest.mock('@deephaven/dashboard', () => {
     useListener: jest.fn(),
     usePersistentState: (initialValue: unknown) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [state, setState] = react.useState(initialValue);
+      const [state, setState] = react.useState(
+        mockPersistedState ?? initialValue
+      );
       return [state, setState];
     },
   };
@@ -102,10 +109,17 @@ jest.mock('@deephaven/iris-grid', () => {
       capturedOnCreateChart = props.onCreateChart;
       return <div data-testid="iris-grid" />;
     }),
-    IrisGridUtils: jest.fn(() => ({
-      hydrateSort: jest.fn(),
-      hydrateQuickFilters: jest.fn(),
-    })),
+    IrisGridUtils: Object.assign(
+      jest.fn(() => ({
+        hydrateSort: jest.fn(() => mockControlledSorts),
+        hydrateQuickFilters: jest.fn(() => mockControlledQuickFilters),
+        hydrateIrisGridState: jest.fn(() => ({
+          sorts: mockPersistedSorts,
+          quickFilters: mockPersistedQuickFilters,
+        })),
+      })),
+      { hydrateGridState: jest.fn(() => ({})) }
+    ),
     IrisGridCacheUtils: {
       makeMemoizedCombinedGridStateDehydrator: jest.fn(() => jest.fn()),
     },
@@ -122,6 +136,8 @@ const mockExportedTable = {} as dh.WidgetExportedObject;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPersistedState = undefined;
+  (mockModel as { columns: dh.Column[] }).columns = [];
   capturedOnCreateChart = undefined;
   capturedIrisGridProps = undefined;
 });
@@ -322,5 +338,57 @@ describe('UITable controlled state', () => {
         })
       );
     });
+  });
+
+  it('does not let persisted state override controlled values', async () => {
+    mockPersistedState = {};
+    // Controlled sorts are only hydrated once the model has columns
+    (mockModel as { columns: dh.Column[] }).columns = [
+      { name: 'A' } as dh.Column,
+    ];
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          quickFilters={{}}
+          sorts={[]}
+          onQuickFiltersChange={jest.fn()}
+          onSortsChange={jest.fn()}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toBeDefined();
+    });
+    expect(capturedIrisGridProps?.quickFilters).toBe(
+      mockControlledQuickFilters
+    );
+    expect(capturedIrisGridProps?.sorts).toBe(mockControlledSorts);
+  });
+
+  it('uses persisted state for uncontrolled values', async () => {
+    mockPersistedState = {};
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toBeDefined();
+    });
+    expect(capturedIrisGridProps?.quickFilters).toBe(mockPersistedQuickFilters);
+    expect(capturedIrisGridProps?.sorts).toBe(mockPersistedSorts);
   });
 });
