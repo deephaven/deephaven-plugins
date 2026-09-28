@@ -272,6 +272,33 @@ describe('UITable controlled state', () => {
     });
   });
 
+  it('controls IrisGrid when only change callbacks are provided', async () => {
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          onQuickFiltersChange={jest.fn()}
+          onSortsChange={jest.fn()}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toEqual(
+        expect.objectContaining({
+          isQuickFiltersControlled: true,
+          isSortsControlled: true,
+          onQuickFiltersChange: expect.any(Function),
+          onSortsChange: expect.any(Function),
+        })
+      );
+    });
+  });
+
   it('does not control IrisGrid when no change callbacks are provided', async () => {
     await act(async () => {
       render(

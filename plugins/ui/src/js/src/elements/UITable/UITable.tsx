@@ -447,9 +447,8 @@ export function UITable({
   );
 
   // Providing a change callback makes the corresponding value prop controlled.
-  const isSortsControlled = sorts !== undefined && onSortsChange != null;
-  const isQuickFiltersControlled =
-    quickFilters !== undefined && onQuickFiltersChange != null;
+  const isSortsControlled = onSortsChange != null;
+  const isQuickFiltersControlled = onQuickFiltersChange != null;
 
   // Without a change callback, the value props are user-owned defaults.
   // Capture them once on mount. These provide the initial values only when
@@ -460,23 +459,19 @@ export function UITable({
   );
 
   // Controlled values remain live IrisGrid props.
+  // An omitted controlled value means empty, not client-owned.
   const hydratedControlledSorts = useMemo(() => {
-    if (
-      !isSortsControlled ||
-      sorts === undefined ||
-      utils == null ||
-      columns.length === 0
-    ) {
+    if (!isSortsControlled || utils == null || columns.length === 0) {
       return undefined;
     }
     log.debug('Hydrating controlled sorts', sorts);
-    return utils.hydrateSort(columns, sorts);
+    return utils.hydrateSort(columns, sorts ?? EMPTY_ARRAY);
   }, [isSortsControlled, sorts, utils, columns]);
 
   const hydratedControlledQuickFilters = useMemo(
     () =>
       hydrateUITableQuickFilters(
-        isQuickFiltersControlled ? quickFilters : undefined,
+        isQuickFiltersControlled ? quickFilters ?? EMPTY_OBJECT : undefined,
         model,
         columns,
         utils
@@ -665,11 +660,12 @@ export function UITable({
       showSearchBar,
       sorts: hydratedControlledSorts,
       isSortsControlled,
-      onSortsChange: onSortsChange == null ? undefined : handleSortsChange,
+      onSortsChange: isSortsControlled ? handleSortsChange : undefined,
       quickFilters: hydratedControlledQuickFilters,
       isQuickFiltersControlled,
-      onQuickFiltersChange:
-        onQuickFiltersChange == null ? undefined : handleQuickFiltersChange,
+      onQuickFiltersChange: isQuickFiltersControlled
+        ? handleQuickFiltersChange
+        : undefined,
       isFilterBarShown: showQuickFilters,
       reverse,
       density,
@@ -723,8 +719,6 @@ export function UITable({
     hydratedControlledQuickFilters,
     isSortsControlled,
     isQuickFiltersControlled,
-    onSortsChange,
-    onQuickFiltersChange,
     handleSortsChange,
     handleQuickFiltersChange,
     reverse,
