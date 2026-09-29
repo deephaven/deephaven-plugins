@@ -1,4 +1,4 @@
-import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
+import type { Layout, Data, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   type DateTimeColumnFormatter,
@@ -9,6 +9,7 @@ import {
   ChartUtils,
   type FilterColumnMap,
   type FilterMap,
+  type PlotData,
 } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
@@ -228,7 +229,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.delete(id);
   }
 
-  override getData(): Partial<Data>[] {
+  override getData(): Partial<PlotData>[] {
     const hydratedData = [...this.plotlyData];
 
     this.tableColumnReplacementMap.forEach((columnReplacements, tableId) => {
@@ -261,7 +262,9 @@ export class PlotlyExpressChartModel extends ChartModel {
       });
     });
 
-    return hydratedData;
+    // PlotData only covers the traces in @deephaven/chart's partial bundle, but
+    // plotly-express renders with the full bundle so any trace type is valid.
+    return hydratedData as Partial<PlotData>[];
   }
 
   override getLayout(): Partial<Layout> {
@@ -814,14 +817,16 @@ export class PlotlyExpressChartModel extends ChartModel {
             return downsampleFailMessage;
           }
           xCol = columnName;
-          const axisName = `${series.xaxis[0]}axis${series.xaxis[1] ?? ''}`;
+          const xaxisRef = series.xaxis ?? 'x';
+          const axisName = `${xaxisRef[0]}axis${xaxisRef[1] ?? ''}`;
           xAxis = this.layout[axisName as 'xaxis']; // The cast makes TS happy
           if (xAxis != null && !isLinearAxis(xAxis) && !isAutoAxis(xAxis)) {
             return 'Cannot downsample non-linear x axis';
           }
         } else {
           yCols.push(columnName);
-          const axisName = `${series.yaxis[0]}axis${series.yaxis[1] ?? ''}`;
+          const yaxisRef = series.yaxis ?? 'y';
+          const axisName = `${yaxisRef[0]}axis${yaxisRef[1] ?? ''}`;
           const yAxis = this.layout[axisName as 'yaxis']; // The cast makes TS happy
           if (yAxis != null && !isLinearAxis(yAxis) && !isAutoAxis(yAxis)) {
             return 'Cannot downsample non-linear y axis';
