@@ -53,7 +53,10 @@ beforeEach(() => {
 describe('Dashboard', () => {
   it('only signals document rendering after a successful load', () => {
     const onDocumentRendered = jest.fn();
-    const panelManager = { onDocumentRendered } as unknown as ReactPanelManager;
+    const panelManager = {
+      onDocumentRendered,
+      getOpenPanelIds: () => ['panel-1'],
+    } as unknown as ReactPanelManager;
     const renderDashboard = (status: WidgetStatus) => (
       <LayoutManagerContext.Provider value={mockLayout as never}>
         <WidgetStatusContext.Provider value={status}>
@@ -90,6 +93,7 @@ describe('Dashboard', () => {
     expect(mockLayout.eventHub.emit).toHaveBeenCalledTimes(1);
     expect(mockLayout.eventHub.emit).toHaveBeenCalledWith(DOCUMENT_RENDERED, {
       widgetId: getWidgetId(descriptor),
+      panelIds: ['panel-1'],
     });
   });
 

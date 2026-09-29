@@ -37,8 +37,9 @@ function makeEventHub() {
   };
 }
 
-function makeGlContainer() {
+function makeGlContainer(panelId = 'panel-id') {
   return {
+    _config: { id: panelId },
     parent: { remove: jest.fn() },
   };
 }
@@ -60,44 +61,45 @@ function renderPortalPanel(
   );
 }
 
-it('removes itself when its document renders and it was never claimed', () => {
-  const glContainer = makeGlContainer();
+it('removes itself when its document renders without it', () => {
+  const glContainer = makeGlContainer('orphan');
   const glEventHub = makeEventHub();
   renderPortalPanel(glContainer, glEventHub);
 
   act(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    emitDocumentRendered(glEventHub as any, { widgetId });
+    emitDocumentRendered(glEventHub as any, { widgetId, panelIds: ['alive'] });
   });
 
   expect(glContainer.parent.remove).toHaveBeenCalledTimes(1);
 });
 
-it('does not remove itself when a ReactPanel has portaled content into it', () => {
-  const glContainer = makeGlContainer();
+it('keeps itself when its panel is open, even before content is portaled in', () => {
+  const glContainer = makeGlContainer('alive');
   const glEventHub = makeEventHub();
   const { container } = renderPortalPanel(glContainer, glEventHub);
 
-  // Simulate a ReactPanel claiming this portal by portaling content into it.
-  const portal = container.querySelector('.ui-portal-panel');
-  portal?.appendChild(document.createElement('div'));
+  expect(container.querySelector('.ui-portal-panel')).toBeEmptyDOMElement();
 
   act(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    emitDocumentRendered(glEventHub as any, { widgetId });
+    emitDocumentRendered(glEventHub as any, { widgetId, panelIds: ['alive'] });
   });
 
   expect(glContainer.parent.remove).not.toHaveBeenCalled();
 });
 
 it('ignores document-rendered events from a different document', () => {
-  const glContainer = makeGlContainer();
+  const glContainer = makeGlContainer('orphan');
   const glEventHub = makeEventHub();
   renderPortalPanel(glContainer, glEventHub);
 
   act(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    emitDocumentRendered(glEventHub as any, { widgetId: 'some-other-widget' });
+    emitDocumentRendered(glEventHub as any, {
+      widgetId: 'some-other-widget',
+      panelIds: [],
+    });
   });
 
   expect(glContainer.parent.remove).not.toHaveBeenCalled();

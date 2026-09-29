@@ -321,7 +321,7 @@ describe('usePanelManager', () => {
       onDataChange.mockClear();
 
       act(() => {
-        result.current.onDocumentRendered?.();
+        result.current.onDocumentRendered();
       });
 
       expect(onDataChange).toHaveBeenCalledTimes(1);
@@ -329,6 +329,25 @@ describe('usePanelManager', () => {
         panelStates: { alive: [{ a: 1 }] },
         panelIds: ['alive'],
       });
+      expect(result.current.getOpenPanelIds()).toEqual(['alive']);
+    });
+
+    it('does not hand out orphaned saved ids to panels added afterwards', () => {
+      const widget = makeWidget();
+      const initialData: ReadonlyWidgetData = {
+        panelIds: ['alive', 'orphan'],
+      };
+      const { result } = renderHook(() =>
+        usePanelManager({ widget, initialData })
+      );
+
+      expect(result.current.getPanelId()).toBe('alive');
+      act(() => {
+        result.current.onOpen('alive');
+        result.current.onDocumentRendered();
+      });
+
+      expect(result.current.getPanelId()).not.toBe('orphan');
     });
 
     it('retains persisted state until the document has rendered', () => {

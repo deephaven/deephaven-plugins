@@ -119,6 +119,9 @@ export interface DocumentRenderedPayload {
    * different document sharing the same event hub ignore the event.
    */
   widgetId: string;
+
+  /** Ids of the panels the document has open. */
+  panelIds: readonly string[];
 }
 
 export const {

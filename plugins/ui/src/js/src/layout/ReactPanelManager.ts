@@ -42,7 +42,10 @@ export interface ReactPanelManager {
   /**
    * Called after the document has rendered and all of its panels have opened.
    */
-  onDocumentRendered?: () => void;
+  onDocumentRendered: () => void;
+
+  /** Ids of the panels currently open in this document. */
+  getOpenPanelIds: () => readonly string[];
 }
 
 /** Interface for using a react panel */

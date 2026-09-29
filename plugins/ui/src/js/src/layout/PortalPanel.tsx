@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   type DashboardPanelProps,
+  LayoutUtils,
   type WidgetDescriptor,
 } from '@deephaven/dashboard';
 import { CorePanel } from '@deephaven/dashboard-core-plugins';
@@ -45,19 +46,16 @@ function PortalPanel({
   );
 
   const handleDocumentRendered = useCallback(
-    ({ widgetId: renderedWidgetId }: DocumentRenderedPayload) => {
-      // Only react to our own document, since panels from other documents may
-      // share this event hub (e.g. a top-level dashboard).
+    ({ widgetId: renderedWidgetId, panelIds }: DocumentRenderedPayload) => {
+      // Other documents' panels may share this event hub (e.g. a top-level dashboard)
       if (renderedWidgetId !== widgetId) {
         return;
       }
-      // A claimed panel always has the portaled ReactPanel content as a child. An
-      // empty container means the current document has no ReactPanel for this panel
-      // (the saved layout had more panels than the document), so remove it instead
-      // of leaving a blank panel. `remove` is used rather than `close` because
-      // panels nested in a dashboard are not closable.
-      if (ref.current?.childElementCount === 0) {
-        log.debug('Removing unclaimed portal panel', glContainer);
+      const containerId = LayoutUtils.getIdFromContainer(glContainer);
+      const panelId = Array.isArray(containerId) ? containerId[0] : containerId;
+      if (panelId != null && !panelIds.includes(panelId)) {
+        log.debug('Removing orphaned portal panel', panelId);
+        // `remove` rather than `close`, since panels in a nested dashboard aren't closable
         glContainer.parent?.remove();
       }
     },

@@ -162,6 +162,11 @@ export function usePanelManager({
    * so this doesn't affect rehydration.
    */
   const handleDocumentRendered = useCallback(() => {
+    // Saved ids not claimed by now belong to orphans; panels added later must not inherit them
+    panelIdIndex.current = Math.max(
+      panelIdIndex.current,
+      widgetData.panelIds?.length ?? 0
+    );
     const openIds = new Set(panelIds.current);
     const entries = Object.entries(panelStatesRef.current);
     const keptEntries = entries.filter(([panelId]) => openIds.has(panelId));
@@ -173,7 +178,9 @@ export function usePanelManager({
       panelStates: { ...panelStatesRef.current },
       panelIds: [...panelIds.current],
     });
-  }, [onDataChange]);
+  }, [onDataChange, widgetData]);
+
+  const getOpenPanelIds = useCallback(() => [...panelIds.current], []);
 
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
@@ -201,6 +208,7 @@ export function usePanelManager({
       getPanelId,
       getInitialData,
       onDocumentRendered: handleDocumentRendered,
+      getOpenPanelIds,
     }),
     [
       widget,
@@ -210,6 +218,7 @@ export function usePanelManager({
       handleDataChange,
       getInitialData,
       handleDocumentRendered,
+      getOpenPanelIds,
     ]
   );
 

@@ -20,25 +20,20 @@ function DashboardContent({ children }: DashboardContentProps): JSX.Element {
   const { eventHub } = useLayoutManager();
   const status = useWidgetStatus();
   const widgetId = getWidgetId(status.descriptor);
-  const onDocumentRendered = useContext(ReactPanelManagerContext)
-    ?.onDocumentRendered;
+  const panelManager = useContext(ReactPanelManagerContext);
 
-  // Once the document is done loading, all of its panels have rendered into their
-  // portals. Signal so any PortalPanel restored from a saved layout that this document
-  // no longer fills (fewer panels than were saved) can evict itself instead of showing blank.
-  // Child panels open in their own effects, which run before this one.
+  // Child panels open in effects that run before this one, so the open ids are complete
+  // here; portal contents aren't, since portals are only claimed on a later render.
   useEffect(() => {
-    if (status.status === 'ready') {
-      onDocumentRendered?.();
-      emitDocumentRendered(eventHub, { widgetId });
+    if (status.status !== 'ready' || panelManager == null) {
+      return;
     }
-  }, [
-    eventHub,
-    status.status,
-    widgetId,
-    normalizedChildren,
-    onDocumentRendered,
-  ]);
+    panelManager.onDocumentRendered();
+    emitDocumentRendered(eventHub, {
+      widgetId,
+      panelIds: panelManager.getOpenPanelIds(),
+    });
+  }, [eventHub, panelManager, status.status, widgetId, normalizedChildren]);
 
   return (
     // Reset the root so that any children fetching the parent item will default to the layoutManager's root.

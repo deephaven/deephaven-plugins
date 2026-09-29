@@ -397,6 +397,9 @@ describe('NestedDashboard', () => {
     });
 
     afterEach(() => {
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
       jest.useRealTimers();
     });
 
