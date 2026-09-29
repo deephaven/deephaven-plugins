@@ -1,9 +1,4 @@
-import {
-  GridRange,
-  type GridPoint,
-  type ModelIndex,
-  isRangedSelection,
-} from '@deephaven/grid';
+import { GridRange, type GridPoint, type ModelIndex } from '@deephaven/grid';
 import type {
   ContextAction,
   ResolvableContextAction,
@@ -20,6 +15,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
 import { ensureArray } from '@deephaven/utils';
 import {
+  asRangedSelection,
   getRowDataMap,
   type RowDataMap,
   type UITableProps,
@@ -200,8 +196,10 @@ export function getModelSelectedRanges(
 ): UIContextItemParams['selected_ranges'] {
   // `selection` is already the effective selection: IrisGrid substitutes the
   // clicked row when the right-click lands outside the current selection.
-  const selection = contextMenuData.selection ?? irisGrid.state.gridSelection;
-  if (selection == null || !isRangedSelection(selection)) {
+  const selection = asRangedSelection(
+    contextMenuData.selection ?? irisGrid.state.gridSelection
+  );
+  if (selection == null) {
     return [];
   }
 
