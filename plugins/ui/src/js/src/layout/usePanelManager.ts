@@ -1,18 +1,10 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { type WidgetDescriptor } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { type ReactPanelManager } from './ReactPanelManager';
-import WidgetStatusContext from './WidgetStatusContext';
 import {
   type ReadonlyWidgetData,
   type WidgetData,
@@ -92,10 +84,6 @@ export function usePanelManager({
 
   const id = useMemo(() => getWidgetId(widget), [widget]);
 
-  // Read non-throwing so isolated tests without a provider simply never prune.
-  const widgetStatus = useContext(WidgetStatusContext);
-  const isDocumentReady = widgetStatus?.status === 'ready';
-
   const handleOpen = useCallback(
     (panelId: string) => {
       if (panelIds.current.includes(panelId)) {
@@ -167,33 +155,25 @@ export function usePanelManager({
     [isPanelsDirty, id, onClose, onDataChange, widgetData]
   );
 
-  useEffect(
-    /**
-     * Once the document has finished loading, every panel it will open has opened
-     * (child panel `onOpen` effects run before this parent effect). Any leftover
-     * persisted state therefore belongs to panels the current document no longer has
-     * - the saved layout had more panels than the document - so drop it to keep it
-     * from being re-persisted. Safe because `getInitialData` reads the immutable
-     * `widgetData` snapshot, not this ref.
-     */
-    function pruneOrphanedPanelStates() {
-      if (!isDocumentReady) {
-        return;
-      }
-      const openIds = new Set(panelIds.current);
-      const entries = Object.entries(panelStatesRef.current);
-      const keptEntries = entries.filter(([panelId]) => openIds.has(panelId));
-      if (keptEntries.length === entries.length) {
-        return;
-      }
-      panelStatesRef.current = Object.fromEntries(keptEntries);
-      onDataChange({
-        panelStates: { ...panelStatesRef.current },
-        panelIds: [...panelIds.current],
-      });
-    },
-    [isDocumentReady, onDataChange]
-  );
+  /**
+   * Every panel the document renders has opened by now, so leftover persisted state
+   * belongs to panels from a saved layout the document no longer has. Drop it so it
+   * isn't re-persisted. `getInitialData` reads the immutable `widgetData` snapshot,
+   * so this doesn't affect rehydration.
+   */
+  const handleDocumentRendered = useCallback(() => {
+    const openIds = new Set(panelIds.current);
+    const entries = Object.entries(panelStatesRef.current);
+    const keptEntries = entries.filter(([panelId]) => openIds.has(panelId));
+    if (keptEntries.length === entries.length) {
+      return;
+    }
+    panelStatesRef.current = Object.fromEntries(keptEntries);
+    onDataChange({
+      panelStates: { ...panelStatesRef.current },
+      panelIds: [...panelIds.current],
+    });
+  }, [onDataChange]);
 
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
@@ -220,6 +200,7 @@ export function usePanelManager({
       onDataChange: handleDataChange,
       getPanelId,
       getInitialData,
+      onDocumentRendered: handleDocumentRendered,
     }),
     [
       widget,
@@ -228,6 +209,7 @@ export function usePanelManager({
       handleOpen,
       handleDataChange,
       getInitialData,
+      handleDocumentRendered,
     ]
   );
 

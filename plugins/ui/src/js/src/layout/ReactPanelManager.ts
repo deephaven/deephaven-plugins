@@ -38,6 +38,11 @@ export interface ReactPanelManager {
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
    */
   getPanelId: () => string;
+
+  /**
+   * Called after the document has rendered and all of its panels have opened.
+   */
+  onDocumentRendered?: () => void;
 }
 
 /** Interface for using a react panel */

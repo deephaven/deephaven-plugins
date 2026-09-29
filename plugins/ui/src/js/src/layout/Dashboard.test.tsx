@@ -3,6 +3,10 @@ import { render, screen } from '@testing-library/react';
 import { LayoutManagerContext, useLayoutManager } from '@deephaven/dashboard';
 import Dashboard from './Dashboard';
 import { ReactPanelContext } from './ReactPanelContext';
+import {
+  ReactPanelManagerContext,
+  type ReactPanelManager,
+} from './ReactPanelManager';
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 import { DOCUMENT_RENDERED } from './PortalPanelEvent';
 import { getWidgetId } from './usePanelManager';
@@ -48,12 +52,16 @@ beforeEach(() => {
 
 describe('Dashboard', () => {
   it('only signals document rendering after a successful load', () => {
+    const onDocumentRendered = jest.fn();
+    const panelManager = { onDocumentRendered } as unknown as ReactPanelManager;
     const renderDashboard = (status: WidgetStatus) => (
       <LayoutManagerContext.Provider value={mockLayout as never}>
         <WidgetStatusContext.Provider value={status}>
-          <Dashboard>
-            <div>Panel content</div>
-          </Dashboard>
+          <ReactPanelManagerContext.Provider value={panelManager}>
+            <Dashboard>
+              <div>Panel content</div>
+            </Dashboard>
+          </ReactPanelManagerContext.Provider>
         </WidgetStatusContext.Provider>
       </LayoutManagerContext.Provider>
     );
@@ -75,8 +83,10 @@ describe('Dashboard', () => {
 
     rerender(renderDashboard({ status: 'loading', descriptor }));
     expect(mockLayout.eventHub.emit).not.toHaveBeenCalled();
+    expect(onDocumentRendered).not.toHaveBeenCalled();
 
     rerender(renderDashboard({ status: 'ready', descriptor }));
+    expect(onDocumentRendered).toHaveBeenCalledTimes(1);
     expect(mockLayout.eventHub.emit).toHaveBeenCalledTimes(1);
     expect(mockLayout.eventHub.emit).toHaveBeenCalledWith(DOCUMENT_RENDERED, {
       widgetId: getWidgetId(descriptor),
