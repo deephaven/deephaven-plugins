@@ -277,6 +277,7 @@ def _resolve_keyed_selection(
         A static snapshot Table containing the selected rows.
     """
     from deephaven import new_table
+    from deephaven.column import InputColumn
 
     key_columns = selected_keys.get("key_columns") or []
     key_values = selected_keys.get("key_values") or []
@@ -285,8 +286,20 @@ def _resolve_keyed_selection(
     if not key_columns or not key_values:
         return (tbl if inverted else tbl.slice(0, 0)).snapshot()
 
+    # Build the filter columns with the source table's own dtypes. Letting
+    # new_table infer from the JSON values produces a mismatched (often PyObject)
+    # column type, which where_in rejects.
+    source_types = {c.name: c.data_type for c in tbl.columns}
     key_table = new_table(
-        {name: [row[i] for row in key_values] for i, name in enumerate(key_columns)}
+        [
+            InputColumn(
+                name=name,
+                data_type=source_types[name],
+                input_data=[row[i] for row in key_values],
+            )
+            for i, name in enumerate(key_columns)
+            if name in source_types
+        ]
     )
     filtered = (
         tbl.where_not_in(key_table, key_columns)
