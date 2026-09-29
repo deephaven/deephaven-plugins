@@ -39,12 +39,17 @@ interface UIContextItemParams {
   /**
    * Populated instead of `selected_ranges` when the table declares key columns
    * (`with_keys`). Identifies rows by value so the selection survives ticks.
+   * Sends `too_large` instead of the values when the key count exceeds
+   * `MAX_SELECTED_KEYS`, so the server can reject without a huge payload.
    */
-  selected_keys: {
-    key_columns: string[];
-    key_values: unknown[][];
-    inverted: boolean;
-  } | null;
+  selected_keys:
+    | {
+        key_columns: string[];
+        key_values: unknown[][];
+        inverted: boolean;
+      }
+    | { too_large: true; count: number }
+    | null;
   _visible_columns: string[];
 }
 
@@ -206,13 +211,17 @@ export function getModelSelectedRanges(
   return GridRange.consolidate(selection.toRanges())
     .sort((a, b) => (a.startRow ?? 0) - (b.startRow ?? 0))
     .map(range => ({
+      // `getModelRow` only resolves rendered rows, so a selection extending past
+      // the viewport would otherwise lose its bounds. Selections are only resolved
+      // for flat tables, where the model row equals the view row, so fall back to
+      // the view index rather than dropping the range.
       start_row:
         range.startRow != null
-          ? irisGrid.getModelRow(range.startRow) ?? null
+          ? irisGrid.getModelRow(range.startRow) ?? range.startRow
           : null,
       end_row:
         range.endRow != null
-          ? irisGrid.getModelRow(range.endRow) ?? null
+          ? irisGrid.getModelRow(range.endRow) ?? range.endRow
           : null,
       start_column:
         range.startColumn != null
@@ -224,6 +233,12 @@ export function getModelSelectedRanges(
           : null,
     }));
 }
+
+/**
+ * Upper bound on keys serialized into a single callable payload. Sized to avoid
+ * a multi-megabyte message; the server applies its own, lower row limit.
+ */
+const MAX_SELECTED_KEYS = 100_000;
 
 /**
  * Extracts the key-based selection for tables that declare key columns, or null
@@ -239,12 +254,17 @@ export function getSelectedKeys(
     return null;
   }
 
+  const { selectedKeyValues } = selection;
+  if (selectedKeyValues.size > MAX_SELECTED_KEYS) {
+    return { too_large: true, count: selectedKeyValues.size };
+  }
+
   const { model } = contextMenuData;
   return {
     key_columns: isKeyedGridModel(model)
       ? model.selectionKeyColumnIndices.map(i => model.columns[i].name)
       : [],
-    key_values: Array.from(selection.selectedKeyValues.values()).map(values => [
+    key_values: Array.from(selectedKeyValues.values()).map(values => [
       ...values,
     ]),
     inverted: selection.invertedSelection,

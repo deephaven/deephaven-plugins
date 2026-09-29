@@ -340,13 +340,48 @@ def _resolve_keyed_selection(
     return _snapshot_selection(filtered)
 
 
+class _ContextMenuData(dict):
+    """Callback data whose ``selected_rows`` Table is resolved on first access.
+
+    Resolving a selection slices/filters and snapshots the table, and is subject to
+    ``_MAX_SELECTED_ROWS``. Most callbacks never look at the selection, so doing that
+    work eagerly would both waste time and reject large selections for actions that
+    do not care about them.
+
+    Note ``keys()``, ``items()`` and iteration only include ``selected_rows`` once it
+    has been accessed, since listing it would force the resolution this class exists
+    to avoid.
+    """
+
+    def __init__(self, data: dict, resolver: Any) -> None:
+        super().__init__(data)
+        self._resolver = resolver
+
+    def _resolve_selected_rows(self) -> Table:
+        if not super().__contains__("selected_rows"):
+            super().__setitem__("selected_rows", self._resolver())
+        return super().__getitem__("selected_rows")
+
+    def __getitem__(self, key: str) -> Any:
+        if key == "selected_rows":
+            return self._resolve_selected_rows()
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "selected_rows":
+            return self._resolve_selected_rows()
+        return super().get(key, default)
+
+    def __contains__(self, key: object) -> bool:
+        return key == "selected_rows" or super().__contains__(key)
+
+
 def _add_selected_rows(data: dict, tbl: Table) -> dict:
     """Enrich a context menu callback data dict with a ``selected_rows`` Table.
 
     Pops the internal ``_table``, ``_visible_columns``, ``selected_ranges`` and
-    ``selected_keys`` entries from *data*, resolves the selection into a snapshot
-    Table, optionally applies column ordering/visibility, and stores the result as
-    ``data["selected_rows"]``.
+    ``selected_keys`` entries from *data* and exposes the selection as
+    ``data["selected_rows"]``, resolved lazily on first access.
 
     Keyed tables (created with ``with_keys``) send ``selected_keys`` and are matched
     by value; all other tables send ``selected_ranges`` and are matched by position.
@@ -357,7 +392,7 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
             reference was injected by JS).
 
     Returns:
-        A copy of *data* with ``selected_rows`` populated and internal keys removed.
+        A copy of *data* with ``selected_rows`` available and internal keys removed.
     """
     data = dict(data)
     # Use the model table injected by JS (sorted/filtered) when available.
@@ -365,16 +400,25 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
     visible_columns = data.pop("_visible_columns", None)
     selected_keys = data.pop("selected_keys", None)
     selected_ranges = data.pop("selected_ranges", [])
-    selected_rows = (
-        _resolve_keyed_selection(selected_keys, model_tbl)
-        if selected_keys
-        else _resolve_selection(selected_ranges, model_tbl)
-    )
-    # Apply column order/visibility to match what the user sees (moves + hidden columns).
-    if visible_columns:
-        selected_rows = selected_rows.view(visible_columns)
-    data["selected_rows"] = selected_rows
-    return data
+
+    def resolve() -> Table:
+        # The client sends a marker instead of the keys when there are too many to
+        # serialize. Raise only here, so actions that ignore the selection still run.
+        if selected_keys and selected_keys.get("too_large"):
+            raise ValueError(
+                f"ui.table selection of {selected_keys.get('count')} rows is too "
+                "large to send to the server. Narrow the selection before running "
+                "this action."
+            )
+        selected_rows = (
+            _resolve_keyed_selection(selected_keys, model_tbl)
+            if selected_keys
+            else _resolve_selection(selected_ranges, model_tbl)
+        )
+        # Apply column order/visibility to match what the user sees.
+        return selected_rows.view(visible_columns) if visible_columns else selected_rows
+
+    return _ContextMenuData(data, resolve)
 
 
 def _wrap_context_menu_item(
