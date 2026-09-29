@@ -402,6 +402,13 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
     selected_ranges = data.pop("selected_ranges", [])
 
     def resolve() -> Table:
+        # A rollup or tree applied in the UI replaces the model table with a
+        # hierarchical one, whose rows are aggregates rather than source rows.
+        if not isinstance(model_tbl, Table):
+            raise ValueError(
+                "ui.table context menu selection is not supported for rollup or "
+                "tree tables."
+            )
         # The client sends a marker instead of the keys when there are too many to
         # serialize. Raise only here, so actions that ignore the selection still run.
         if selected_keys and selected_keys.get("too_large"):
