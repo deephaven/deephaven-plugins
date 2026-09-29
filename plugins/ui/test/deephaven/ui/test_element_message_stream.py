@@ -68,6 +68,44 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
             json.loads(messages[0]["params"][1])["state"], {"0": "Americas"}
         )
 
+    def test_restore_with_different_hook_count_renders_without_saved_state(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        regions = ["Americas", "Europe"]
+
+        @ui.component
+        def region_text():
+            for region in regions:
+                ui.use_memo(lambda r=region: r.upper(), [region])
+            region, _ = ui.use_state("Americas")
+            return ui.text(region)
+
+        stream, _ = self._make_stream(region_text())
+        stream._render()
+        saved = stream._context.export_state()
+        saved["state"][2 * len(regions)] = "Europe"
+        saved = json.loads(json.dumps(saved))
+
+        regions.append("Asia")
+        restored, connection = self._make_stream(region_text())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ) as logs:
+            restored._render()
+        self.assertIn("RestoredStateMismatchError", logs.output[0])
+
+        messages = _sent_messages(connection)
+        self.assertEqual([m["method"] for m in messages], ["documentPatched"])
+        self.assertEqual(
+            json.loads(messages[0]["params"][1])["state"],
+            {str(2 * len(regions)): "Americas"},
+        )
+
     def test_failed_restore_render_cleans_up_sibling_effects_before_retry(self):
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import (

@@ -165,7 +165,9 @@ def _get_hook_site(frame: FrameType | None) -> str:
             # f_lineno can be None for instructions without line information
             line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
             column = _get_call_column(frame)
-            parts.append(f"{code.co_filename}:{name}:{line}:{column}")
+            # Module name rather than file path, so moving the install directory doesn't change the site
+            module = frame.f_globals.get("__name__") or code.co_filename
+            parts.append(f"{module}:{name}:{line}:{column}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
@@ -835,7 +837,8 @@ class RenderContext:
             }
             if len(sites) > 0:
                 exported_state["sites"] = sites
-            exported_state["hooks"] = self._hook_count
+            if self._hook_count >= 0:
+                exported_state["hooks"] = self._hook_count
 
         # Now iterate through all the children contexts, and only include them in the export if they're not empty
         def retained_children(children: ChildrenContextDict):

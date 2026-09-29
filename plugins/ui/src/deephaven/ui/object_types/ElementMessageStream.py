@@ -232,6 +232,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             logger.warning(
                 "Rendering with the saved state failed, rendering again without it: %r",
                 e,
+                exc_info=True,
             )
             # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
             # A successful render replaces it on the client.

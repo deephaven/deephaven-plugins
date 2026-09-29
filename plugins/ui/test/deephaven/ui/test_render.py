@@ -145,38 +145,37 @@ class RenderExportTestCase(BaseTestCase):
         rc = make_render_context()
 
         with rc.open():
-            rc.init_state(0, 1)
-            rc.init_state(1, 2)
-            rc.init_state(2, 3)
+            for i in range(3):
+                rc.init_state(rc.next_hook_index(), i + 1)
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}, "hooks": 0})
+        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}, "hooks": 3})
 
     def test_export_nested_state(self):
         rc = make_render_context()
 
         with rc.open():
-            rc.init_state(0, 1)
+            rc.init_state(rc.next_hook_index(), 1)
             child_context0 = rc.get_child_context("0")
             with child_context0.open():
-                child_context0.init_state(0, 2)
-                child_context0.init_state(1, 3)
+                child_context0.init_state(child_context0.next_hook_index(), 2)
+                child_context0.init_state(child_context0.next_hook_index(), 3)
                 child_context1 = child_context0.get_child_context("0")
                 with child_context1.open():
-                    child_context1.init_state(0, 4)
-                    child_context1.init_state(1, 5)
+                    child_context1.init_state(child_context1.next_hook_index(), 4)
+                    child_context1.init_state(child_context1.next_hook_index(), 5)
 
         state = rc.export_state()
         self.assertEqual(
             state,
             {
                 "state": {0: 1},
-                "hooks": 0,
+                "hooks": 1,
                 "children": {
                     "0": {
                         "state": {0: 2, 1: 3},
-                        "hooks": 0,
-                        "children": {"0": {"state": {0: 4, 1: 5}, "hooks": 0}},
+                        "hooks": 2,
+                        "children": {"0": {"state": {0: 4, 1: 5}, "hooks": 2}},
                     }
                 },
             },
@@ -288,7 +287,7 @@ class RenderUnmountChildrenTestCase(BaseTestCase):
         rc = make_render_context()
 
         with rc.open():
-            rc.init_state(0, 1)
+            rc.init_state(rc.next_hook_index(), 1)
             child_context0 = rc.get_child_context("0")
             with child_context0.open():
                 child_context0.init_state(0, 2)
@@ -300,10 +299,10 @@ class RenderUnmountChildrenTestCase(BaseTestCase):
 
         with rc.open():
             # Children should be unmounted if nothing is rendered while this context is opened
-            pass
+            rc.next_hook_index()
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1}, "hooks": 0})
+        self.assertEqual(state, {"state": {0: 1}, "hooks": 1})
 
 
 def render_component(rc: RenderContext, fn: Callable[[], Any]) -> None:
@@ -458,3 +457,35 @@ class RenderRestoreTestCase(BaseTestCase):
         self.assertEqual(values[-1], "Americas")
         # Saving again uses the current format
         self.assertIn("sites", rc.export_state())
+
+    def test_restore_after_the_module_moves(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+        source = "def component():\n    value, _ = use_state('Americas')\n    values.append(value)\n"
+
+        def load_component(path: str) -> Callable[[], None]:
+            namespace = {
+                "__name__": "user_module",
+                "use_state": use_state,
+                "values": values,
+            }
+            exec(compile(source, path, "exec"), namespace)
+            return namespace["component"]
+
+        rc = make_render_context()
+        render_component(rc, load_component("/old/site-packages/user_module.py"))
+        rc.set_state(0, "Europe")
+
+        render_component(
+            save_and_restore(rc), load_component("/new/site-packages/user_module.py")
+        )
+        self.assertEqual(values[-1], "Europe")
+
+    def test_is_library_file(self):
+        import inspect
+        from deephaven.ui._internal.RenderContext import _is_library_file
+
+        self.assertTrue(_is_library_file(inspect.getfile(RenderContext)))
+        self.assertFalse(_is_library_file(__file__))
+        self.assertFalse(_is_library_file("<string>"))
