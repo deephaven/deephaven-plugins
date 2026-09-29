@@ -1,13 +1,30 @@
 import { ensureArray } from '@deephaven/utils';
 import { dhTruck } from '@deephaven/icons';
 import { TestUtils } from '@deephaven/test-utils';
-import type { IrisGridModel } from '@deephaven/iris-grid';
+import {
+  type IrisGridContextMenuData,
+  type IrisGridModel,
+  type IrisGridType,
+  type KeyedGridModel,
+  KeyedSelection,
+} from '@deephaven/iris-grid';
+import {
+  GridRange,
+  type GridMetrics,
+  type GridModel,
+  RangedSelection,
+} from '@deephaven/grid';
 import type { dh } from '@deephaven/jsapi-types';
 import type {
   ContextAction,
   ResolvableContextAction,
 } from '@deephaven/components';
-import { wrapContextActions } from './UITableContextMenuHandler';
+import {
+  getModelSelectedRanges,
+  getSelectedKeys,
+  getVisibleColumnNames,
+  wrapContextActions,
+} from './UITableContextMenuHandler';
 
 const MOCK_MODEL = TestUtils.createMockProxy<IrisGridModel>({
   columns: [
@@ -85,7 +102,14 @@ describe('wrapContextActions', () => {
     const action = {
       action: jest.fn(),
     };
-    const wrapped = wrapContextActions(action, CLIENT_CELL_DATA, [], [], [], null);
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_CELL_DATA,
+      [],
+      [],
+      [],
+      null
+    );
     expect(wrapped).toEqual([
       expect.objectContaining({
         icon: undefined,
@@ -104,7 +128,14 @@ describe('wrapContextActions', () => {
       action: jest.fn(),
       icon: 'dhTruck',
     };
-    const wrapped = wrapContextActions(action, CLIENT_CELL_DATA, [], [], [], null);
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_CELL_DATA,
+      [],
+      [],
+      [],
+      null
+    );
     expect(wrapped).toEqual([
       expect.objectContaining({
         icon: dhTruck,
@@ -118,7 +149,14 @@ describe('wrapContextActions', () => {
     const action = {
       action: jest.fn(),
     };
-    const wrapped = wrapContextActions(action, CLIENT_HEADER_DATA, [], [], [], null);
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_HEADER_DATA,
+      [],
+      [],
+      [],
+      null
+    );
     expect(wrapped).toEqual([
       expect.objectContaining({
         icon: undefined,
@@ -139,7 +177,14 @@ describe('wrapContextActions', () => {
         action: mockAction,
       })
     );
-    const wrapped = wrapContextActions(action, CLIENT_CELL_DATA, [], [], [], null);
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_CELL_DATA,
+      [],
+      [],
+      [],
+      null
+    );
     expect(wrapped).toEqual([expect.any(Function)]);
     const resolvedAction = await resolveContextAction(wrapped[0]);
     expect(resolvedAction.length).toBe(1);
@@ -158,7 +203,14 @@ describe('wrapContextActions', () => {
         },
       ],
     };
-    const wrapped = wrapContextActions(action, CLIENT_CELL_DATA, [], [], [], null);
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_CELL_DATA,
+      [],
+      [],
+      [],
+      null
+    );
     expect(wrapped).toEqual([
       expect.objectContaining({
         icon: undefined,
@@ -173,5 +225,244 @@ describe('wrapContextActions', () => {
     expect(resolvedChildAction.length).toBe(1);
     resolvedChildAction[0].action?.(null as unknown as Event);
     expect(action.actions[0].action).toHaveBeenCalledWith(SERVER_CELL_DATA);
+  });
+
+  test('passes the selection payload to the callback', async () => {
+    const action = { action: jest.fn() };
+    const ranges = [
+      { start_row: 2, end_row: 4, start_column: null, end_column: null },
+    ];
+    const keys = {
+      key_columns: ['Sym'],
+      key_values: [['AAPL']],
+      inverted: false,
+    };
+
+    const wrapped = wrapContextActions(
+      action,
+      CLIENT_CELL_DATA,
+      [],
+      ranges,
+      ['column0'],
+      keys
+    );
+    const resolved = await resolveContextAction(wrapped[0]);
+    resolved[0].action?.(null as unknown as Event);
+
+    expect(action.action).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selected_ranges: ranges,
+        selected_keys: keys,
+        _visible_columns: ['column0'],
+      })
+    );
+  });
+
+  test('nested actions inherit the selection payload', async () => {
+    const child = { title: 'child', action: jest.fn() };
+    const ranges = [
+      { start_row: 7, end_row: 7, start_column: null, end_column: null },
+    ];
+
+    const wrapped = wrapContextActions(
+      { title: 'parent', actions: [child] },
+      CLIENT_CELL_DATA,
+      [],
+      ranges,
+      ['column1'],
+      null
+    );
+    const parent = await resolveContextAction(wrapped[0]);
+    const resolvedChild = await resolveContextAction(parent[0].actions?.[0]);
+    resolvedChild[0].action?.(null as unknown as Event);
+
+    expect(child.action).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selected_ranges: ranges,
+        _visible_columns: ['column1'],
+      })
+    );
+  });
+});
+
+/** Mock grid whose viewport only resolves model rows below `viewportEnd`. */
+function makeIrisGrid({
+  viewportEnd = Infinity,
+  metrics,
+}: {
+  viewportEnd?: number;
+  metrics?: Partial<GridMetrics>;
+} = {}): IrisGridType {
+  return TestUtils.createMockProxy<IrisGridType>({
+    getModelRow: ((row: number) =>
+      row <= viewportEnd ? row : undefined) as IrisGridType['getModelRow'],
+    getModelColumn: ((column: number) =>
+      column) as IrisGridType['getModelColumn'],
+    state: { gridSelection: null, metrics } as IrisGridType['state'],
+  });
+}
+
+function makeRangedSelection(ranges: GridRange[]): RangedSelection {
+  return new RangedSelection(ranges, () =>
+    TestUtils.createMockProxy<GridModel>()
+  );
+}
+
+function makeKeyedSelection(
+  keyValues: ReadonlyMap<string, readonly unknown[]>,
+  inverted = false
+): KeyedSelection {
+  return new KeyedSelection({
+    getModel: () => TestUtils.createMockProxy<IrisGridModel & KeyedGridModel>(),
+    selectedKeys: new Set(keyValues.keys()),
+    selectedKeyValues: keyValues,
+    invertedSelection: inverted,
+  });
+}
+
+function makeContextMenuData(
+  selection: IrisGridContextMenuData['selection'],
+  model: IrisGridModel = MOCK_MODEL
+): IrisGridContextMenuData {
+  return { ...CLIENT_CELL_DATA, model, selection };
+}
+
+describe('getModelSelectedRanges', () => {
+  test('converts a ranged selection to model-index ranges', () => {
+    const selection = makeRangedSelection([new GridRange(null, 2, null, 4)]);
+
+    expect(
+      getModelSelectedRanges(makeIrisGrid(), makeContextMenuData(selection))
+    ).toEqual([
+      { start_row: 2, end_row: 4, start_column: null, end_column: null },
+    ]);
+  });
+
+  test('keeps bounds for a range extending past the viewport', () => {
+    // getModelRow only resolves rendered rows; the far end must not be dropped.
+    const selection = makeRangedSelection([
+      new GridRange(null, 0, null, 49999),
+    ]);
+
+    expect(
+      getModelSelectedRanges(
+        makeIrisGrid({ viewportEnd: 10 }),
+        makeContextMenuData(selection)
+      )
+    ).toEqual([
+      { start_row: 0, end_row: 49999, start_column: null, end_column: null },
+    ]);
+  });
+
+  test('returns empty for a keyed selection', () => {
+    const selection = makeKeyedSelection(new Map([['a', ['a']]]));
+
+    expect(
+      getModelSelectedRanges(makeIrisGrid(), makeContextMenuData(selection))
+    ).toEqual([]);
+  });
+
+  test('returns empty when there is no selection', () => {
+    expect(
+      getModelSelectedRanges(makeIrisGrid(), makeContextMenuData(null))
+    ).toEqual([]);
+  });
+});
+
+describe('getSelectedKeys', () => {
+  const KEYED_MODEL = TestUtils.createMockProxy<IrisGridModel>({
+    columns: [
+      { name: 'Sym', type: 'string' },
+      { name: 'Exchange', type: 'string' },
+    ] as unknown as IrisGridModel['columns'],
+    selectionKeyColumnIndices: [0, 1],
+  } as Partial<IrisGridModel>);
+
+  test('returns key columns, values and inverted flag', () => {
+    const selection = makeKeyedSelection(
+      new Map([
+        ['AAPL|NY', ['AAPL', 'NY']],
+        ['GOOG|NASDAQ', ['GOOG', 'NASDAQ']],
+      ])
+    );
+
+    expect(
+      getSelectedKeys(
+        makeIrisGrid(),
+        makeContextMenuData(selection, KEYED_MODEL)
+      )
+    ).toEqual({
+      key_columns: ['Sym', 'Exchange'],
+      key_values: [
+        ['AAPL', 'NY'],
+        ['GOOG', 'NASDAQ'],
+      ],
+      inverted: false,
+    });
+  });
+
+  test('propagates inverted selections', () => {
+    const selection = makeKeyedSelection(
+      new Map([['AAPL|NY', ['AAPL', 'NY']]]),
+      true
+    );
+
+    expect(
+      getSelectedKeys(
+        makeIrisGrid(),
+        makeContextMenuData(selection, KEYED_MODEL)
+      )
+    ).toEqual(expect.objectContaining({ inverted: true }));
+  });
+
+  test('returns null for a ranged selection', () => {
+    const selection = makeRangedSelection([new GridRange(null, 0, null, 1)]);
+
+    expect(
+      getSelectedKeys(makeIrisGrid(), makeContextMenuData(selection))
+    ).toBeNull();
+  });
+
+  test('sends a marker instead of the keys when there are too many', () => {
+    const count = 100_001;
+    const keyValues = new Map(
+      Array.from({ length: count }, (_, i) => [String(i), [String(i)]] as const)
+    );
+
+    expect(
+      getSelectedKeys(
+        makeIrisGrid(),
+        makeContextMenuData(makeKeyedSelection(keyValues), KEYED_MODEL)
+      )
+    ).toEqual({ too_large: true, count });
+  });
+});
+
+describe('getVisibleColumnNames', () => {
+  test('uses visual order and excludes hidden columns', () => {
+    const model = TestUtils.createMockProxy<IrisGridModel>({
+      columns: [
+        { name: 'A', type: 'string' },
+        { name: 'B', type: 'string' },
+        { name: 'C', type: 'string' },
+      ] as unknown as IrisGridModel['columns'],
+    });
+    const irisGrid = TestUtils.createMockProxy<IrisGridType>({
+      // Visible order is B, A, C; C is hidden (zero width).
+      getModelColumn: ((visIdx: number) =>
+        [1, 0, 2][visIdx]) as IrisGridType['getModelColumn'],
+      state: {
+        metrics: {
+          columnCount: 3,
+          allColumnWidths: new Map([
+            [0, 100],
+            [1, 100],
+            [2, 0],
+          ]),
+        },
+      } as IrisGridType['state'],
+    });
+
+    expect(getVisibleColumnNames(irisGrid, model)).toEqual(['B', 'A']);
   });
 });
