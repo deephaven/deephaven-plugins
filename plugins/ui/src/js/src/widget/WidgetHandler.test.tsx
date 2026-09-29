@@ -6,6 +6,9 @@ import { TestUtils } from '@deephaven/test-utils';
 import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { type Operation } from 'fast-json-patch';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
+import WidgetCallableContext, {
+  type SetNextCallableRefs,
+} from './WidgetCallableContext';
 import { type DocumentHandlerProps } from './DocumentHandler';
 import { type WidgetMessageEvent } from './WidgetTypes';
 import { LEGACY_NAVIGATE_EVENT, NAVIGATE_EVENT } from '../events/Navigate';
@@ -31,14 +34,19 @@ const defaultWidgetWrapper: ReturnType<typeof useWidget> = {
   api: jest.fn() as unknown as typeof dh,
 };
 let mockWidgetWrapper: ReturnType<typeof useWidget> = defaultWidgetWrapper;
+let capturedSetNextCallableRefs: SetNextCallableRefs | null = null;
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useApi: jest.fn(() => mockApi),
   useWidget: jest.fn(() => mockWidgetWrapper),
 }));
 
-const mockDocumentHandler = jest.fn((props: DocumentHandlerProps) => (
-  <div>DocumentHandler</div>
-));
+function mockRenderDocumentHandler(props: DocumentHandlerProps) {
+  // Rendered inside WidgetCallableContext.Provider, so this is the only place a
+  // test can reach the ref setter.
+  capturedSetNextCallableRefs = React.useContext(WidgetCallableContext);
+  return <div>DocumentHandler</div>;
+}
+const mockDocumentHandler = jest.fn(mockRenderDocumentHandler);
 jest.mock(
   './DocumentHandler',
   () => (props: DocumentHandlerProps) => mockDocumentHandler(props)
@@ -71,6 +79,8 @@ function makeWidgetHandler({
 beforeEach(() => {
   mockWidgetWrapper = defaultWidgetWrapper;
   mockDocumentHandler.mockClear();
+  // Undo any per-describe override so it does not leak into later tests.
+  mockDocumentHandler.mockImplementation(mockRenderDocumentHandler);
 });
 
 it('mounts and unmounts', async () => {
@@ -1014,6 +1024,76 @@ describe('event plugin handling', () => {
     });
 
     expect(handler).toHaveBeenCalledWith({ foo: 'bar' });
+
+    unmount();
+  });
+});
+
+describe('callable object references', () => {
+  beforeEach(() => {
+    capturedSetNextCallableRefs = null;
+  });
+
+  /**
+   * DocumentHandler only mounts once a document exists, and it is where the test
+   * reads the ref setter from context — so a document must be sent first.
+   */
+  async function setupWithDocument() {
+    const setup = await setupWidgetWithListener();
+    act(() => {
+      setup.listener(
+        makeWidgetEventDocumentPatched([
+          { op: 'add', path: '/foo', value: 'bar' },
+        ])
+      );
+    });
+    setup.mockSendMessage.mockClear();
+    expect(capturedSetNextCallableRefs).not.toBeNull();
+    return setup;
+  }
+
+  /** Any jsonClient request works as a trigger; navigation sends `setUrlState`. */
+  function navigate(listener: (event: WidgetMessageEvent) => void) {
+    return act(async () => {
+      listener(
+        makeWidgetEventMethodEvent(NAVIGATE_EVENT, { queryParams: 'page=1' })
+      );
+    });
+  }
+
+  it('sends refs set on the context with the next message', async () => {
+    const { listener, mockSendMessage, unmount } = await setupWithDocument();
+    const table = TestUtils.createMockProxy<dh.Table>();
+
+    capturedSetNextCallableRefs?.([table]);
+    await navigate(listener);
+
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), [table]);
+
+    unmount();
+  });
+
+  it('drains the refs so they apply to exactly one message', async () => {
+    const { listener, mockSendMessage, unmount } = await setupWithDocument();
+    const table = TestUtils.createMockProxy<dh.Table>();
+
+    capturedSetNextCallableRefs?.([table]);
+    await navigate(listener);
+    mockSendMessage.mockClear();
+
+    await navigate(listener);
+
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), []);
+
+    unmount();
+  });
+
+  it('sends an empty ref list when none are set', async () => {
+    const { listener, mockSendMessage, unmount } = await setupWithDocument();
+
+    await navigate(listener);
+
+    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), []);
 
     unmount();
   });
