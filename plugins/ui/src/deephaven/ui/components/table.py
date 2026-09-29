@@ -229,6 +229,31 @@ def _validate_table_format(
                 raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
 
+_MAX_SELECTED_ROWS = 10_000
+"""Maximum rows a context menu selection may snapshot before it is rejected."""
+
+
+def _snapshot_selection(filtered: Table) -> Table:
+    """Snapshot a resolved selection, rejecting selections that are too large.
+
+    Args:
+        filtered: The resolved (still live) selection to snapshot.
+
+    Returns:
+        A static snapshot of *filtered*.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
+    """
+    size = filtered.size
+    if size > _MAX_SELECTED_ROWS:
+        raise ValueError(
+            f"ui.table selection of {size} rows exceeds the maximum of "
+            f"{_MAX_SELECTED_ROWS}. Narrow the selection before running this action."
+        )
+    return filtered.snapshot()
+
+
 def _resolve_selection(
     selected_ranges: list[dict],
     tbl: Table,
@@ -243,6 +268,9 @@ def _resolve_selection(
     Returns:
         A static snapshot Table containing the selected rows.  An empty table
         with the same schema is returned when ``selected_ranges`` is empty.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
     """
     from deephaven import merge
 
@@ -255,7 +283,7 @@ def _resolve_selection(
     combined = (
         merge(slices) if len(slices) > 1 else slices[0] if slices else tbl.slice(0, 0)
     )
-    return combined.snapshot()
+    return _snapshot_selection(combined)
 
 
 def _resolve_keyed_selection(
@@ -275,6 +303,9 @@ def _resolve_keyed_selection(
 
     Returns:
         A static snapshot Table containing the selected rows.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
     """
     from deephaven import new_table
     from deephaven.column import InputColumn
@@ -284,7 +315,7 @@ def _resolve_keyed_selection(
     inverted = bool(selected_keys.get("inverted"))
 
     if not key_columns or not key_values:
-        return (tbl if inverted else tbl.slice(0, 0)).snapshot()
+        return _snapshot_selection(tbl if inverted else tbl.slice(0, 0))
 
     # Build the filter columns with the source table's own dtypes. Letting
     # new_table infer from the JSON values produces a mismatched (often PyObject)
@@ -306,7 +337,7 @@ def _resolve_keyed_selection(
         if inverted
         else tbl.where_in(key_table, key_columns)
     )
-    return filtered.snapshot()
+    return _snapshot_selection(filtered)
 
 
 def _add_selected_rows(data: dict, tbl: Table) -> dict:
