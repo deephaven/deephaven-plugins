@@ -1,5 +1,7 @@
 from __future__ import annotations
 import json
+import sys
+import unittest
 from deephaven.ui._internal.RenderContext import (
     RenderContext,
     OnChangeCallable,
@@ -358,6 +360,26 @@ class RenderRestoreTestCase(BaseTestCase):
         swapped = True
         render_component(save_and_restore(rc), component)
         self.assertEqual(values[-1], ("a", "b"))
+
+    @unittest.skipIf(sys.version_info < (3, 11), "needs co_positions")
+    def test_restore_discards_value_saved_by_another_hook_on_the_same_line(self):
+        from deephaven.ui.hooks import use_state
+
+        swapped = False
+        values: List[Any] = []
+
+        def component():
+            pair = (use_state("b")[0], use_state("a")[0]) if swapped else (use_state("a")[0], use_state("b")[0])  # fmt: skip
+            values.append(pair)
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(0, "saved a")
+        rc.set_state(1, "saved b")
+
+        swapped = True
+        render_component(save_and_restore(rc), component)
+        self.assertEqual(values[-1], ("b", "a"))
 
     def test_restore_with_different_hook_count(self):
         from deephaven.ui.hooks import use_effect, use_memo, use_state

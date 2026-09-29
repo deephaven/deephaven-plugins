@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import itertools
 import os
 import threading
 import logging
@@ -81,8 +82,9 @@ The serializable state of a RenderContext. Used to serialize the state for the c
 
 class RestoredStateMismatchError(Exception):
     """
-    Raised by the first render after a state import, before any effects run, when the component used a different
-    number of hooks than when the state was saved, so the restored values can't be trusted.
+    Raised by the first render after a state import, before the effects of the mismatched context run, when the
+    component used a different number of hooks than when the state was saved, so the restored values can't be trusted.
+    Contexts that finished rendering earlier in the same pass may already have run their effects.
     """
 
 
@@ -111,6 +113,24 @@ def _is_library_file(filename: str) -> bool:
         result = os.path.realpath(filename).startswith(_UI_PACKAGE_DIR + os.sep)
         _is_library_file_cache[filename] = result
     return result
+
+
+def _get_call_column(frame: FrameType) -> int | None:
+    """
+    Get the source column of the instruction a frame is executing, so hook calls on the same line can be told apart.
+
+    Args:
+        frame: The frame to inspect.
+
+    Returns:
+        The start column, or None if it isn't available (before Python 3.11).
+    """
+    positions = getattr(frame.f_code, "co_positions", None)
+    if positions is None or frame.f_lasti < 0:
+        return None
+    # co_positions yields one entry per 2-byte code unit, and f_lasti is a byte offset
+    position = next(itertools.islice(positions(), frame.f_lasti // 2, None), None)
+    return position[2] if position is not None else None
 
 
 def _get_hook_site(frame: FrameType | None) -> str:
@@ -144,7 +164,8 @@ def _get_hook_site(frame: FrameType | None) -> str:
         else:
             # f_lineno can be None for instructions without line information
             line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
-            parts.append(f"{code.co_filename}:{name}:{line}")
+            column = _get_call_column(frame)
+            parts.append(f"{code.co_filename}:{name}:{line}:{column}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
@@ -416,7 +437,7 @@ class RenderContext:
                     cleanup()
                 self._open_context_cleanups = []
 
-                # Checked before any effects run, so effects from a rejected restore are never committed
+                # Checked before this context's effects run, so they aren't committed for a rejected restore
                 restored_hook_count = self._restored_hook_count
                 self._restored_hook_count = None
                 self._restored_sites = {}
