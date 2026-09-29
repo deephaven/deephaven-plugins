@@ -14,7 +14,11 @@ import {
   type ModelIndex,
   type RangedSelection,
 } from '@deephaven/grid';
-import { assertNotNull } from '@deephaven/utils';
+import { assertNotNull, ensureArray } from '@deephaven/utils';
+import {
+  type ContextAction,
+  type ResolvableContextAction,
+} from '@deephaven/components';
 import {
   ELEMENT_KEY,
   type ElementNode,
@@ -268,4 +272,62 @@ export function getSelectionDataMap(
     }
   }
   return dataMaps;
+}
+
+/**
+ * Recursively wraps ResolvableContextActions so that model.table is set as a
+ * callable reference immediately before each action fires. This ensures Python
+ * receives the sorted/filtered table rather than the original exported table.
+ */
+function wrapContextActionWithTableRef(
+  action: ContextAction,
+  tableRef: dh.Table | dh.TreeTable,
+  setRef: (refs: Array<dh.Table | dh.TreeTable>) => void
+): ContextAction {
+  return {
+    ...action,
+    ...(action.action != null
+      ? {
+          action: (event: Event) => {
+            setRef([tableRef]);
+            action.action?.(event);
+          },
+        }
+      : {}),
+    ...(action.actions != null
+      ? {
+          actions: wrapActionsWithTableRef(action.actions, tableRef, setRef),
+        }
+      : {}),
+  };
+}
+
+/**
+ * Recursively wraps ResolvableContextActions so that model.table is set as a
+ * callable reference immediately before each action fires. This ensures Python
+ * receives the sorted/filtered table rather than the original exported table.
+ */
+export function wrapActionsWithTableRef(
+  actions: readonly ResolvableContextAction[],
+  tableRef: dh.Table | dh.TreeTable,
+  setRef: (refs: Array<dh.Table | dh.TreeTable>) => void
+): ResolvableContextAction[] {
+  return actions.map(action => {
+    if (typeof action === 'function') {
+      return async (): Promise<ContextAction[]> => {
+        setRef([tableRef]);
+        const result = await action();
+        return ensureArray(result ?? []).map(item =>
+          wrapContextActionWithTableRef(item, tableRef, setRef)
+        );
+      };
+    }
+    if (action instanceof Promise) {
+      // Pre-resolved promise — no callable invocation, just wrap the resolved items.
+      return action.then(items =>
+        items.map(item => wrapContextActionWithTableRef(item, tableRef, setRef))
+      );
+    }
+    return wrapContextActionWithTableRef(action, tableRef, setRef);
+  });
 }
