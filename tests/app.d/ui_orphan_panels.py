@@ -17,12 +17,14 @@ Supported ``cfg`` keys:
 - ``label``: prefix for panel titles and content (default ``"Orphan"``).
 """
 
+from typing import Any
+
 from deephaven import ui, empty_table
 
 _orphan_table = empty_table(20).update(["a = i", "b = i * 2"])
 
 
-def _tabs_panel(label, index):
+def _tabs_panel(label: str, index: int):
     return ui.panel(
         ui.tabs(
             ui.tab(ui.text(f"{label} panel {index} first tab"), title="Tab One"),
@@ -34,7 +36,7 @@ def _tabs_panel(label, index):
 
 
 @ui.component
-def _orphan_panels(cfg):
+def _orphan_panels(cfg: dict[str, Any]):
     clicks, set_clicks = ui.use_state(0)
     extra, set_extra = ui.use_state(False)
 
@@ -64,12 +66,12 @@ def _orphan_panels(cfg):
     return ui.stack(controls, *panels)
 
 
-def orphan_nested(cfg):
+def orphan_nested(cfg: dict[str, Any]):
     """Panels in a dashboard nested inside a single panel."""
     return ui.panel(ui.dashboard(_orphan_panels(cfg)), title="Orphan Host")
 
 
-def orphan_deep(cfg):
+def orphan_deep(cfg: dict[str, Any]):
     """An outer nested dashboard containing an inner one with the same widget."""
     return ui.panel(
         ui.dashboard(
