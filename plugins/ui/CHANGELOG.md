@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.42.1 - 2026-09-25
+
+#### Bug Fixes
+
+- **(plotly-express)** Decorrelate Exchange from Sym in stocks data ([#1409](https://github.com/deephaven/deephaven-plugins/pull/1409)) - (4df0454) - mofojed
+- DH-23527: Fix HierarchyRequestError when new layout has more panels than stored ([#1414](https://github.com/deephaven/deephaven-plugins/pull/1414)) - (5824dc4) - vbabich
+
+- - -
+
+
 ## ui-v0.42.0 - 2026-09-03
 
 #### Features

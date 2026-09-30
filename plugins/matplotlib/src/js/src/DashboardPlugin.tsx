@@ -63,7 +63,9 @@ export function DashboardPlugin({
 
   useEffect(() => {
     const cleanups = [
-      registerComponent(MatplotlibPanel.COMPONENT, MatplotlibPanel),
+      // The fetch does get passed through, but isn't part of DashboardPanelProps.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      registerComponent(MatplotlibPanel.COMPONENT, MatplotlibPanel as any),
     ];
 
     return () => {
