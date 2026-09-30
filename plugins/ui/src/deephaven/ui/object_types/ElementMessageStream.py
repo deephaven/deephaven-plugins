@@ -260,7 +260,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
 
     def _handle_render_error(self, e: Exception) -> None:
         """
-        Send a render error to the client. Must be called from the `except` block that caught the error.
+        Send a render error to the client.
 
         Args:
             e: The error raised while rendering.
@@ -269,8 +269,8 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         # If there's an error sending it to the client, then it will be caught by the render exception handler
         # and logged as an error message.
         # Just log it as debug here so we don't show it in the console and in the error panel.
-        stack_trace = traceback.format_exc()
-        logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
+        stack_trace = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+        logger.debug("Error rendering document: %s %s", repr(e), stack_trace)
         self._send_document_error(e, stack_trace)
 
     def _process_callable_queue(self) -> None:

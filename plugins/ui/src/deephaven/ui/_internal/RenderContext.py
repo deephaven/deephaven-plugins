@@ -5,7 +5,7 @@ import itertools
 import os
 import threading
 import logging
-from types import FrameType
+from types import CodeType, FrameType
 from typing import (
     Any,
     Callable,
@@ -91,7 +91,7 @@ class RestoredStateMismatchError(Exception):
 _UI_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 _MAX_HOOK_SITE_DEPTH = 64
 _is_library_file_cache: Dict[str, bool] = {}
-_function_element_render_code: Any = None
+_function_element_render_code: Optional[CodeType] = None
 
 
 def _is_library_file(filename: str) -> bool:
@@ -337,7 +337,7 @@ class RenderContext:
     id, causing the client to receive a new prop - e.g. `onChange` - every render).
     """
 
-    _hook_sites: List[str]
+    _hook_sites: Dict[StateKey, str]
     """
     Call site of each hook slot, recorded on the first successful render and saved with the state.
     """
@@ -375,7 +375,7 @@ class RenderContext:
         self._is_dirty = True
         self._cache = None
         self._hook_setters = {}
-        self._hook_sites = []
+        self._hook_sites = {}
         self._restored_sites = {}
         self._restored_hook_count = None
 
@@ -486,7 +486,11 @@ class RenderContext:
             hook_count = self._hook_index + 1
             if self._hook_count < 0:
                 self._hook_count = hook_count
-                del self._hook_sites[hook_count:]
+                self._hook_sites = {
+                    key: site
+                    for key, site in self._hook_sites.items()
+                    if key < hook_count
+                }
         except Exception as e:
             # Pop context values pushed during this render, or they leak into later renders on this thread
             pending_cleanups = self._open_context_cleanups
@@ -699,10 +703,7 @@ class RenderContext:
             return
 
         site = _get_hook_site(frame)
-        if key < len(self._hook_sites):
-            self._hook_sites[key] = site
-        else:
-            self._hook_sites.append(site)
+        self._hook_sites[key] = site
 
         restored_site = self._restored_sites.pop(key, None)
         if restored_site is not None and restored_site != site:
@@ -831,9 +832,7 @@ class RenderContext:
         if len(state := dict(retained_values(self._state))) > 0:
             exported_state["state"] = state
             sites = {
-                key: self._hook_sites[key]
-                for key in state
-                if key < len(self._hook_sites)
+                key: self._hook_sites[key] for key in state if key in self._hook_sites
             }
             if len(sites) > 0:
                 exported_state["sites"] = sites
@@ -900,7 +899,7 @@ class RenderContext:
         self._collected_contexts = []
         self._collected_unmount_listeners = []
         self._hook_setters.clear()
-        self._hook_sites = []
+        self._hook_sites = {}
         self._restored_sites = {}
         self._restored_hook_count = None
         self._cache = None
@@ -913,25 +912,11 @@ class RenderContext:
 
         logger.debug("Unmounting context %s", self)
         self._is_mounted = False
-        for context in self._children_context.values():
-            context.unmount()
-
-        for listener in self._collected_unmount_listeners:
-            listener()
-
         # Clear all our children states so we don't hold a reference to anything.
+        self._reset()
         self._hook_index = _READY_TO_OPEN
-        self._hook_count = -1
-        self._state.clear()
-        self._children_context.clear()
         self._collected_scopes.clear()
         self._collected_effects.clear()
-        self._collected_unmount_listeners.clear()
-        self._collected_contexts.clear()
-        self._hook_setters.clear()
-        self._hook_sites = []
-        self._restored_sites = {}
-        self._restored_hook_count = None
 
     @property
     def cache(self) -> Any:
