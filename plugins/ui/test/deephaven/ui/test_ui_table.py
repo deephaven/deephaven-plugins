@@ -534,10 +534,10 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def _x_values(self, tbl) -> list:
+    def _column_values(self, tbl, name: str = "X") -> list:
         import deephaven.pandas as dhpd
 
-        return dhpd.to_pandas(tbl)["X"].tolist()
+        return dhpd.to_pandas(tbl)[name].tolist()
 
     def _resolve_ranged(self, ranges: list[dict]):
         from deephaven.ui.components.table import _resolve_selection
@@ -547,7 +547,7 @@ class UITableTestCase(BaseTestCase):
     def test_resolve_selection_single_range(self):
         result = self._resolve_ranged([{"start_row": 2, "end_row": 4}])
 
-        self.assertEqual(self._x_values(result), [2, 3, 4])
+        self.assertEqual(self._column_values(result), [2, 3, 4])
 
     def test_resolve_selection_multiple_ranges(self):
         # Ranges arrive already sorted ascending from the JS side.
@@ -558,7 +558,7 @@ class UITableTestCase(BaseTestCase):
             ]
         )
 
-        self.assertEqual(self._x_values(result), [0, 1, 5, 6])
+        self.assertEqual(self._column_values(result), [0, 1, 5, 6])
 
     def test_resolve_selection_empty_preserves_schema(self):
         result = self._resolve_ranged([])
@@ -576,4 +576,74 @@ class UITableTestCase(BaseTestCase):
             ]
         )
 
-        self.assertEqual(self._x_values(result), [1, 2])
+        self.assertEqual(self._column_values(result), [1, 2])
+
+    def _resolve_keyed(self, selected_keys: dict, tbl=None):
+        from deephaven.ui.components.table import _resolve_keyed_selection
+
+        return _resolve_keyed_selection(
+            selected_keys, self.source if tbl is None else tbl
+        )
+
+    def test_resolve_keyed_selection(self):
+        # X is an int column; inferring the key dtype from the JSON values yields
+        # long, which where_in rejects as a key type mismatch.
+        result = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [[3], [7]], "inverted": False}
+        )
+
+        self.assertEqual(self._column_values(result), [3, 7])
+
+    def test_resolve_keyed_selection_inverted(self):
+        result = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [[3], [7]], "inverted": True}
+        )
+
+        values = self._column_values(result)
+        self.assertEqual(len(values), 98)
+        self.assertNotIn(3, values)
+        self.assertNotIn(7, values)
+
+    def test_resolve_keyed_selection_empty_keys(self):
+        # Mirrors createFilteredByKeysTable: empty means "none" unless inverted.
+        none_selected = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [], "inverted": False}
+        )
+        self.assertEqual(none_selected.size, 0)
+
+        all_selected = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [], "inverted": True}
+        )
+        self.assertEqual(all_selected.size, self.source.size)
+
+    def test_resolve_keyed_selection_multiple_key_columns(self):
+        from deephaven import empty_table
+
+        source = empty_table(5).update(["Name = `row` + i", "Amount = (long) i * 10"])
+
+        result = self._resolve_keyed(
+            {
+                "key_columns": ["Name", "Amount"],
+                "key_values": [["row1", 10], ["row3", 30]],
+                "inverted": False,
+            },
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Name"), ["row1", "row3"])
+        self.assertEqual(self._column_values(result, "Amount"), [10, 30])
+
+    def test_resolve_keyed_selection_null_key(self):
+        from deephaven import empty_table
+
+        # A null among the values makes dtype inference produce PyObject, which
+        # where_in rejects against the source String column.
+        source = empty_table(3).update(["Key = i == 1 ? (String) null : `k` + i"])
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [[None]], "inverted": False},
+            source,
+        )
+
+        # Only row 1 is null, so a single match means where_in is null-safe.
+        self.assertEqual(result.size, 1)
