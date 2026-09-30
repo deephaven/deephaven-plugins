@@ -855,8 +855,9 @@ class RenderContext:
         """
         Import the state of this context. This is used to deserialize the state from the client.
 
-        Values are only kept if they were saved with the call site of their hook, so the first render can discard
-        values that no longer belong to the same hook.
+        Values saved with call sites are only kept if they were saved by the same hook, so the first render can discard
+        values that no longer belong to it. Values saved without call sites are kept unchecked; if they break the
+        first render, the caller renders again without them.
 
         Args:
             state: The state to import.
@@ -865,19 +866,19 @@ class RenderContext:
         self.mark_dirty()
 
         values = state.get("state")
-        if values and "hooks" in state:
+        if values:
+            is_checked = "hooks" in state
             # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
             sites = {int(key): site for key, site in state.get("sites", {}).items()}
             for key, value in values.items():
                 index = int(key)
+                if is_checked and index not in sites:
+                    continue
+                self._state[index] = ValueWithLiveness(value=value, liveness_scope=None)
                 if index in sites:
-                    self._state[index] = ValueWithLiveness(
-                        value=value, liveness_scope=None
-                    )
                     self._restored_sites[index] = sites[index]
-            self._restored_hook_count = state["hooks"]
-        elif values:
-            logger.info("Discarding saved state that has no hook call sites")
+            if is_checked:
+                self._restored_hook_count = state["hooks"]
 
         if "children" in state:
             for key, child_state in state["children"].items():

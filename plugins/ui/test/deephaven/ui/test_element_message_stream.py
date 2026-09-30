@@ -68,6 +68,39 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
             json.loads(messages[0]["params"][1])["state"], {"0": "Americas"}
         )
 
+    def test_old_format_state_in_the_wrong_hook_renders_without_saved_state(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        regions = ["Americas", "Europe", "Asia"]
+
+        @ui.component
+        def region_text():
+            for region in regions:
+                ui.use_memo(lambda r=region: r.upper(), [region])
+            region, _ = ui.use_state("Americas")
+            return ui.text(region)
+
+        # Saved before call sites were recorded, when there were two regions
+        saved = {"state": {"4": "Europe"}}
+
+        restored, connection = self._make_stream(region_text())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ) as logs:
+            restored._render()
+        self.assertIn("'str' object has no attribute 'current'", logs.output[0])
+
+        messages = _sent_messages(connection)
+        self.assertEqual([m["method"] for m in messages], ["documentPatched"])
+        self.assertEqual(
+            json.loads(messages[0]["params"][1])["state"], {"6": "Americas"}
+        )
+
     def test_restore_with_different_hook_count_renders_without_saved_state(self):
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import (

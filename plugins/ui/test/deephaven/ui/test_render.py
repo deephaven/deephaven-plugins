@@ -441,7 +441,7 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(restored, parent)
         self.assertEqual(child_values[-1], "Americas")
 
-    def test_restore_discards_old_format_state(self):
+    def test_restore_keeps_old_format_state(self):
         from deephaven.ui.hooks import use_state
 
         values: List[Any] = []
@@ -454,8 +454,8 @@ class RenderRestoreTestCase(BaseTestCase):
         rc.import_state({"state": {"0": "Europe"}})
         render_component(rc, component)
 
-        self.assertEqual(values[-1], "Americas")
-        # Saving again uses the current format
+        self.assertEqual(values[-1], "Europe")
+        # Saving again uses the current format, so the next restore is checked
         self.assertIn("sites", rc.export_state())
 
     def test_restore_after_the_module_moves(self):
