@@ -704,3 +704,70 @@ class UITableTestCase(BaseTestCase):
             data["selected_rows"]
 
         self.assertIn("rollup", str(cm.exception))
+
+    def test_context_menu_data_not_resolved_at_construction(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock()
+        _ContextMenuData({"value": 1}, resolver)
+
+        resolver.assert_not_called()
+
+    def test_context_menu_data_resolves_once_and_caches(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        self.assertEqual(data["selected_rows"], "resolved")
+        self.assertEqual(data["selected_rows"], "resolved")
+        self.assertEqual(data.get("selected_rows"), "resolved")
+
+        resolver.assert_called_once()
+
+    def test_context_menu_data_contains_does_not_resolve(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        self.assertIn("selected_rows", data)
+        resolver.assert_not_called()
+
+        self.assertEqual(data.get("selected_rows"), "resolved")
+        resolver.assert_called_once()
+
+    def test_context_menu_data_keys_omit_selection_until_accessed(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        # Documents the caveat: listing keys would force the resolution the
+        # class exists to avoid.
+        self.assertNotIn("selected_rows", data.keys())
+
+        _ = data["selected_rows"]
+        self.assertIn("selected_rows", data.keys())
+
+    def test_oversized_selection_ignored_by_callback(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import (
+            _MAX_SELECTED_ROWS,
+            _add_selected_rows,
+        )
+
+        over = _MAX_SELECTED_ROWS + 1
+        big = empty_table(over).update("X = i")
+
+        data = _add_selected_rows(
+            {
+                "_table": big,
+                "value": 7,
+                "selected_ranges": [{"start_row": 0, "end_row": over - 1}],
+            },
+            self.source,
+        )
+
+        # A callback that never touches selected_rows must not trip the size guard.
+        self.assertEqual(data["value"], 7)
