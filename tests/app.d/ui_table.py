@@ -203,6 +203,34 @@ def t_selection_component():
 
 t_selection = t_selection_component()
 
+
+# Narrow columns only: a truncated cell renders an overflow button that swallows
+# the mouse-down, so clicks in a wide column never reach selection handling.
+_context_menu_source = empty_table(100).update(["Idx = i", "Sym = `S` + (i % 10)"])
+
+
+@ui.component
+def t_context_menu_selection_component():
+    selection_table, set_selection_table = ui.use_state(
+        lambda: _context_menu_source.head(0)
+    )
+
+    return ui.flex(
+        ui.list_view(selection_table.view(["Sym"])),
+        ui.table(
+            _context_menu_source,
+            context_menu={
+                "title": "Set selection",
+                "action": lambda d: set_selection_table(d["selected_rows"]),
+            },
+        ),
+        direction="column",
+    )
+
+
+t_context_menu_selection = t_context_menu_selection_component()
+
+
 t_databar_basic = ui.table(
     _stocks,
     format_=[

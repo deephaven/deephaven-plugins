@@ -127,3 +127,30 @@ test('UI table with tree table', async ({ page }) => {
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   await expect(locator.locator('.iris-grid')).toBeVisible();
 });
+
+test('UI table context menu selection', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_context_menu_selection',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const panelEl = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = page.locator(
+    `${SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE} .iris-grid`
+  );
+
+  await clickGridRow(grid, 3);
+  await clickGridRow(grid, 0, { modifiers: ['ControlOrMeta'] });
+  await clickGridRow(grid, 3, { button: 'right' });
+
+  // The server-supplied items arrive after the menu opens, and inserting them
+  // shifts every item below down a row. Clicking before that lands on whatever
+  // was previously at those coordinates.
+  await expect(page.locator('.loading-spinner-vertical-align')).toHaveCount(0);
+  await page.locator('.btn-context-menu', { hasText: 'Set selection' }).click();
+
+  // Rows come back in table order, not the order they were clicked.
+  await expect(panelEl.getByRole('row')).toHaveText(['S0', 'S3']);
+});
