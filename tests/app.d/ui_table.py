@@ -1,6 +1,7 @@
 from deephaven import ui
 from deephaven import empty_table, new_table
 from deephaven.column import int_col, string_col
+from deephaven.table import Table
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
@@ -210,15 +211,13 @@ _context_menu_source = empty_table(100).update(["Idx = i", "Sym = `S` + (i % 10)
 
 
 @ui.component
-def t_context_menu_selection_component():
-    selection_table, set_selection_table = ui.use_state(
-        lambda: _context_menu_source.head(0)
-    )
+def t_context_menu_selection_component(table: Table):
+    selection_table, set_selection_table = ui.use_state(lambda: table.head(0))
 
     return ui.flex(
         ui.list_view(selection_table.view(["Sym"])),
         ui.table(
-            _context_menu_source,
+            table,
             context_menu={
                 "title": "Set selection",
                 "action": lambda d: set_selection_table(d["selected_rows"]),
@@ -228,7 +227,13 @@ def t_context_menu_selection_component():
     )
 
 
-t_context_menu_selection = t_context_menu_selection_component()
+t_context_menu_selection = t_context_menu_selection_component(_context_menu_source)
+
+# with_keys makes IrisGrid send a KeyedSelection, which resolves by key value
+# rather than by row position.
+t_context_menu_keyed_selection = t_context_menu_selection_component(
+    _context_menu_source.with_keys("Idx")
+)
 
 
 t_databar_basic = ui.table(
