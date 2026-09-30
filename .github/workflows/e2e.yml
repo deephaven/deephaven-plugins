@@ -14,6 +14,7 @@ on:
 
 jobs:
   e2e-tests:
+    if: github.repository_owner == 'deephaven' || github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}-e2e-tests-${{ matrix.config }}
