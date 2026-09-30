@@ -771,3 +771,79 @@ class UITableTestCase(BaseTestCase):
 
         # A callback that never touches selected_rows must not trip the size guard.
         self.assertEqual(data["value"], 7)
+
+    def test_wrap_action_item_receives_selected_rows(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+        wrapped = _wrap_context_menu_item(
+            {"title": "Act", "action": captured.append}, self.source
+        )
+
+        wrapped["action"]({"selected_ranges": [{"start_row": 1, "end_row": 2}]})
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [1, 2])
+
+    def test_wrap_submenu_actions_recursively(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+        wrapped = _wrap_context_menu_item(
+            {
+                "title": "Menu",
+                "actions": [{"title": "Nested", "action": captured.append}],
+            },
+            self.source,
+        )
+
+        wrapped["actions"][0]["action"](
+            {"selected_ranges": [{"start_row": 0, "end_row": 0}]}
+        )
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [0])
+
+    def test_wrap_dynamic_generator_and_its_items(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+
+        def generator(data):
+            captured.append(data)
+            return [{"title": "Dyn", "action": captured.append}]
+
+        wrapped = _wrap_context_menu_item(generator, self.source)
+
+        items = wrapped({"selected_ranges": [{"start_row": 3, "end_row": 3}]})
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [3])
+
+        items[0]["action"]({"selected_ranges": [{"start_row": 4, "end_row": 4}]})
+        self.assertEqual(self._column_values(captured[1]["selected_rows"]), [4])
+
+    def test_visible_columns_applied_as_view(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        data = _add_selected_rows(
+            {
+                "_visible_columns": ["Y"],
+                "selected_ranges": [{"start_row": 0, "end_row": 1}],
+            },
+            self.source,
+        )
+
+        result = data["selected_rows"]
+
+        self.assertEqual([c.name for c in result.columns], ["Y"])
+        self.assertEqual(self._column_values(result, "Y"), [0, 2])
+
+    def test_rollup_table_context_menu_not_wrapped(self):
+        import deephaven.ui as ui
+        from deephaven import agg
+
+        def callback(data):
+            pass
+
+        rollup = self.source.rollup(aggs=[agg.sum_("Y")], by=["X"])
+        t = ui.table(rollup, context_menu={"title": "Act", "action": callback})
+
+        # Rollup/tree tables cannot resolve a selection, so items stay untouched.
+        self.assertIs(t.render()["contextMenu"]["action"], callback)
