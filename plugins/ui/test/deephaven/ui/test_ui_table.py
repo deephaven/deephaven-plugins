@@ -647,3 +647,60 @@ class UITableTestCase(BaseTestCase):
 
         # Only row 1 is null, so a single match means where_in is null-safe.
         self.assertEqual(result.size, 1)
+
+    def test_selection_over_max_rows_raises(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection
+
+        over = _MAX_SELECTED_ROWS + 1
+        big = empty_table(over).update("X = i")
+
+        with self.assertRaises(ValueError) as cm:
+            _resolve_selection([{"start_row": 0, "end_row": over - 1}], big)
+
+        message = str(cm.exception)
+        self.assertIn(str(over), message)
+        self.assertIn(str(_MAX_SELECTED_ROWS), message)
+
+    def test_selection_at_max_rows_succeeds(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection
+
+        big = empty_table(_MAX_SELECTED_ROWS).update("X = i")
+
+        result = _resolve_selection(
+            [{"start_row": 0, "end_row": _MAX_SELECTED_ROWS - 1}], big
+        )
+
+        self.assertEqual(result.size, _MAX_SELECTED_ROWS)
+
+    def test_too_large_keys_marker_raises(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        data = _add_selected_rows(
+            {"selected_keys": {"too_large": True, "count": 50000}}, self.source
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+
+        self.assertIn("50000", str(cm.exception))
+
+    def test_rollup_table_raises_value_error(self):
+        from deephaven import agg
+        from deephaven.ui.components.table import _add_selected_rows
+
+        rollup = self.source.rollup(aggs=[agg.sum_("Y")], by=["X"])
+        data = _add_selected_rows(
+            {
+                "_table": rollup,
+                "selected_ranges": [{"start_row": 0, "end_row": 0}],
+            },
+            self.source,
+        )
+
+        # A rollup applied in the UI must not surface as an AttributeError on slice.
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+
+        self.assertIn("rollup", str(cm.exception))
