@@ -1,13 +1,31 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import {
-  openPanel,
-  gotoPage,
-  waitForLoad,
-  SELECTORS,
-  persistLayoutAndReload,
-  addCustomColumnToActiveTable,
-  expectActiveTableColumns,
-} from './utils';
+import { openPanel, gotoPage, waitForLoad, SELECTORS } from './utils';
+
+/**
+ * Disables "Close Panels on Disconnect" so the layout (and the widget session)
+ * is persisted across a page refresh, waits for the setting/layout to be saved,
+ * then reloads the page.
+ * @param page The page
+ */
+async function persistLayoutAndReload(page: Page): Promise<void> {
+  await test.step('Persist layout and reload', async () => {
+    // Reset mouse position to not cause unintended hover effects
+    await page.mouse.move(0, 0);
+
+    await page
+      .getByRole('button', { name: 'More Actions...', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Close Panels on Disconnect', exact: true })
+      .click();
+
+    // Wait for the debounced layout/settings to be saved before refreshing
+    await page.waitForTimeout(2000);
+
+    await page.reload();
+    await waitForLoad(page);
+  });
+}
 
 /**
  * Performs a golden-layout tab drag by manually driving the mouse. A simple
@@ -58,6 +76,85 @@ async function selectPickerOption(
   const listbox = page.getByRole('listbox');
   await expect(listbox).toBeVisible();
   await listbox.getByRole('option', { name: option, exact: true }).click();
+}
+
+/**
+ * Closes the currently open iris-grid Table Options sidebar. Any of the sidebar
+ * pages' close buttons dismiss the whole menu, and the sidebar is unmounted once
+ * closed.
+ * @param page The page
+ */
+async function closeTableSidebar(page: Page): Promise<void> {
+  await page
+    .locator('.table-sidebar')
+    .getByRole('button', { name: 'Close', exact: true })
+    .last()
+    .click();
+  await expect(page.locator('.table-sidebar')).toHaveCount(0);
+}
+
+/**
+ * Adds a custom column to the currently active ui.table via the Table Options
+ * sidebar, confirms it was applied, and leaves the sidebar closed.
+ * @param page The page
+ * @param formula The column formula to enter
+ * @param name The name to give the custom column
+ */
+async function addCustomColumnToActiveTable(
+  page: Page,
+  formula: string,
+  name: string
+): Promise<void> {
+  await page.getByRole('button', { name: 'Table Options' }).click();
+  await page.getByTestId('menu-item-Custom Columns').click();
+
+  // Enter the formula first, then the name: the builder resets the name field
+  // shortly after it mounts, so setting the name last ensures it sticks
+  const formulaEditor = page
+    .locator('.custom-column-input-container .monaco-editor')
+    .first();
+  await formulaEditor.click();
+  await page.keyboard.type(formula);
+  await expect(formulaEditor.locator('textarea')).toHaveValue(formula);
+
+  const columnNameInput = page.getByRole('textbox', { name: 'Column Name' });
+  await columnNameInput.fill(name);
+  await expect(columnNameInput).toHaveValue(name);
+
+  await page.getByRole('button', { name: 'Save Column', exact: true }).click();
+  // Give the custom column time to be applied to the table
+  await page.waitForTimeout(1500);
+
+  // Navigate back to the Table Options menu and confirm the column was applied
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await page.getByTestId('menu-item-Organize Columns').click();
+  await expect(page.locator('.visibility-ordering-builder')).toContainText(
+    name
+  );
+  await closeTableSidebar(page);
+}
+
+/**
+ * Opens Organize Columns for the currently active ui.table and asserts the
+ * `present` column is listed and (optionally) the `absent` column is not, then
+ * closes the sidebar. Assumes the sidebar starts closed.
+ * @param page The page
+ * @param present A column name expected to be present
+ * @param absent A column name expected to be absent
+ */
+async function expectActiveTableColumns(
+  page: Page,
+  present: string,
+  absent?: string
+): Promise<void> {
+  await page.getByRole('button', { name: 'Table Options' }).click();
+  await page.getByTestId('menu-item-Organize Columns').click();
+  const builder = page.locator('.visibility-ordering-builder');
+  await expect(builder).toContainText(present);
+  if (absent != null) {
+    await expect(builder).not.toContainText(absent);
+  }
+  await closeTableSidebar(page);
 }
 
 test.describe('Dashboard persistence', () => {
@@ -295,5 +392,72 @@ test.describe('Dashboard persistence', () => {
     await restoredPanel.locator('.lm_tab', { hasText: 'Table Two' }).click();
     await waitForLoad(page);
     await expectActiveTableColumns(page, 'Tripled', 'Doubled');
+  });
+
+  // Panel count: the widget's saved state decides how many panels it renders
+  // after a refresh, so the refreshed document can have more or fewer panels
+  // than the saved layout.
+  test.describe('panel count changes across a refresh', () => {
+    function panelTab(scope: Locator, title: string): Locator {
+      return scope.locator('.lm_tab', {
+        hasText: new RegExp(`^\\s*${title}\\s*$`),
+      });
+    }
+
+    /**
+     * Opens the panel count widget, saves a new panel count, and refreshes.
+     * @param page The page
+     * @param count The panel count to save
+     * @returns The restored widget panel
+     */
+    async function refreshWithPanelCount(
+      page: Page,
+      count: number
+    ): Promise<Locator> {
+      await gotoPage(page, '');
+      await openPanel(
+        page,
+        'ui_persist_panel_count',
+        SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
+        true
+      );
+      const outerPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expect(panelTab(outerPanel, 'Panel 3')).toHaveCount(1);
+
+      await panelTab(outerPanel, 'Panel Count').click();
+      const countField = outerPanel.getByLabel('Panel Count', { exact: true });
+      await countField.fill(String(count));
+      await countField.press('Enter');
+      await expect(countField).toHaveValue(String(count));
+
+      await persistLayoutAndReload(page);
+
+      const restoredPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expect(restoredPanel).toBeVisible();
+      return restoredPanel;
+    }
+
+    test('fewer panels removes the extra saved panel', async ({ page }) => {
+      const restoredPanel = await refreshWithPanelCount(page, 2);
+
+      await expect(panelTab(restoredPanel, 'Panel 1')).toHaveCount(1);
+      await expect(panelTab(restoredPanel, 'Panel 2')).toHaveCount(1);
+      await expect(panelTab(restoredPanel, 'Panel 3')).toHaveCount(0);
+      await expect(restoredPanel.locator('.ui-portal-panel:empty')).toHaveCount(
+        0
+      );
+    });
+
+    test('more panels opens the new panel', async ({ page }) => {
+      const restoredPanel = await refreshWithPanelCount(page, 4);
+
+      await expect(panelTab(restoredPanel, 'Panel 4')).toHaveCount(1);
+      await panelTab(restoredPanel, 'Panel 4').click();
+      await expect(restoredPanel.getByText('Panel 4 content')).toBeVisible();
+    });
   });
 });

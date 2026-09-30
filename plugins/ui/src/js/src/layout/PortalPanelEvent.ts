@@ -106,24 +106,6 @@ export interface PortalClosedPayload {
   container: DashboardPanelProps['glContainer'];
 }
 
-/**
- * Emitted after a widget document has finished rendering its panels, so any
- * `PortalPanel` restored from a saved layout that the current document no longer
- * fills can evict itself.
- */
-export const DOCUMENT_RENDERED = 'PortalPanelEvent.DOCUMENT_RENDERED';
-
-export interface DocumentRenderedPayload {
-  /**
-   * Identifies the widget document that finished rendering. Panels belonging to a
-   * different document sharing the same event hub ignore the event.
-   */
-  widgetId: string;
-
-  /** Ids of the panels the document has open. */
-  panelIds: readonly string[];
-}
-
 export const {
   listen: listenForPortalOpened,
   emit: emitPortalOpened,
@@ -135,9 +117,3 @@ export const {
   emit: emitPortalClosed,
   useListener: usePortalClosedListener,
 } = makeEventFunctions<PortalClosedPayload>(PORTAL_CLOSED);
-
-export const {
-  listen: listenForDocumentRendered,
-  emit: emitDocumentRendered,
-  useListener: useDocumentRenderedListener,
-} = makeEventFunctions<DocumentRenderedPayload>(DOCUMENT_RENDERED);

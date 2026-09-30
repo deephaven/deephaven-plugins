@@ -1,5 +1,10 @@
+import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { type WidgetDescriptor } from '@deephaven/dashboard';
+import {
+  LayoutManagerContext,
+  LayoutUtils,
+  type WidgetDescriptor,
+} from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { usePanelManager } from './usePanelManager';
 import { type ReadonlyWidgetData } from '../widget/WidgetTypes';
@@ -299,82 +304,80 @@ describe('usePanelManager', () => {
     });
   });
 
-  describe('onDocumentRendered', () => {
-    it('drops persisted state for panels the document did not reopen', () => {
-      const widget = makeWidget();
-      const onDataChange = jest.fn();
-      const initialData: ReadonlyWidgetData = {
-        state: { version: 'initial' },
-        panelIds: ['alive', 'orphan'],
-        panelStates: {
-          alive: [{ a: 1 }],
-          orphan: [{ b: 2 }],
-        },
-      };
-      const { result } = renderHook(() =>
-        usePanelManager({ widget, initialData, onDataChange })
+  describe('orphaned panels', () => {
+    const initialData: ReadonlyWidgetData = {
+      panelIds: ['alive', 'orphan'],
+      panelStates: { alive: [{ a: 1 }], orphan: [{ b: 2 }] },
+    };
+    const layoutManager = { root: {} };
+    const stack = {};
+    const orphanItem = { remove: jest.fn() };
+
+    function renderInLayout(onDataChange = jest.fn()) {
+      (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(stack);
+      (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
+        orphanItem
       );
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(
+          LayoutManagerContext.Provider,
+          { value: layoutManager as never },
+          children
+        );
+      return renderHook(
+        () =>
+          usePanelManager({ widget: makeWidget(), initialData, onDataChange }),
+        { wrapper }
+      );
+    }
+
+    it('removes saved panels the document did not reopen, and their state', () => {
+      const onDataChange = jest.fn();
+      const { result } = renderInLayout(onDataChange);
+
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+      });
+
+      expect(LayoutUtils.getStackForConfig).toHaveBeenCalledTimes(1);
+      expect(LayoutUtils.getStackForConfig).toHaveBeenCalledWith(
+        layoutManager.root,
+        { id: 'orphan' }
+      );
+      expect(LayoutUtils.getContentItemInStack).toHaveBeenCalledWith(stack, {
+        id: 'orphan',
+      });
+      expect(orphanItem.remove).toHaveBeenCalledTimes(1);
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelIds: ['alive'],
+          panelStates: { alive: [{ a: 1 }] },
+        })
+      );
+    });
+
+    it('only removes orphans on the first sync', () => {
+      const { result } = renderInLayout();
 
       act(() => {
         result.current.onOpen('alive');
       });
-      onDataChange.mockClear();
-
       act(() => {
-        result.current.onDocumentRendered();
+        result.current.onOpen('new-panel');
       });
 
-      expect(onDataChange).toHaveBeenCalledTimes(1);
-      expect(onDataChange).toHaveBeenCalledWith({
-        panelStates: { alive: [{ a: 1 }] },
-        panelIds: ['alive'],
-      });
-      expect(result.current.getOpenPanelIds()).toEqual(['alive']);
+      expect(orphanItem.remove).toHaveBeenCalledTimes(1);
     });
 
     it('does not hand out orphaned saved ids to panels added afterwards', () => {
-      const widget = makeWidget();
-      const initialData: ReadonlyWidgetData = {
-        panelIds: ['alive', 'orphan'],
-      };
-      const { result } = renderHook(() =>
-        usePanelManager({ widget, initialData })
-      );
+      const { result } = renderInLayout();
 
       expect(result.current.getPanelId()).toBe('alive');
       act(() => {
         result.current.onOpen('alive');
-        result.current.onDocumentRendered();
       });
 
       expect(result.current.getPanelId()).not.toBe('orphan');
-    });
-
-    it('retains persisted state until the document has rendered', () => {
-      const widget = makeWidget();
-      const onDataChange = jest.fn();
-      const initialData: ReadonlyWidgetData = {
-        panelStates: {
-          alive: [{ a: 1 }],
-          orphan: [{ b: 2 }],
-        },
-      };
-      const { result } = renderHook(() =>
-        usePanelManager({ widget, initialData, onDataChange })
-      );
-
-      act(() => {
-        result.current.onOpen('alive');
-      });
-
-      expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          panelStates: {
-            alive: [{ a: 1 }],
-            orphan: [{ b: 2 }],
-          },
-        })
-      );
     });
   });
 

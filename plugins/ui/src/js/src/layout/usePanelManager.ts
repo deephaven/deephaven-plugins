@@ -1,6 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { nanoid } from 'nanoid';
-import { type WidgetDescriptor } from '@deephaven/dashboard';
+import {
+  LayoutManagerContext,
+  LayoutUtils,
+  type WidgetDescriptor,
+} from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
@@ -14,18 +25,6 @@ import {
 const log = Log.module('@deephaven/js-plugin-ui/usePanelManager');
 
 const EMPTY_OBJECT = Object.freeze({});
-
-/**
- * Derive a stable id for a widget document, used to scope panel/document events to
- * the document they belong to.
- */
-export function getWidgetId(
-  widget: WidgetDescriptor | UriVariableDescriptor | string
-): string {
-  return typeof widget === 'string'
-    ? widget
-    : `${widget.id}-${widget.name}-${widget.type}`;
-}
 
 export interface UsePanelManagerProps {
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
@@ -82,7 +81,17 @@ export function usePanelManager({
   // We may need to check if we need to close this widget if all panels are closed
   const [isPanelsDirty, setPanelsDirty] = useState(false);
 
-  const id = useMemo(() => getWidgetId(widget), [widget]);
+  // Not every document renders inside a layout (e.g. an inline UIComponent)
+  const layoutManager = useContext(LayoutManagerContext);
+  const hasRemovedOrphans = useRef(false);
+
+  const id = useMemo(
+    () =>
+      typeof widget === 'string'
+        ? widget
+        : `${widget.id}-${widget.name}-${widget.type}`,
+    [widget]
+  );
 
   const handleOpen = useCallback(
     (panelId: string) => {
@@ -127,6 +136,34 @@ export function usePanelManager({
   );
 
   /**
+   * On the first sync every panel the document renders has opened, so any other saved
+   * panel is from a layout that had more panels than the document now has. Remove it
+   * and its state, and stop handing out its id so a later panel can't inherit it.
+   */
+  const removeOrphanedPanels = useCallback(() => {
+    const savedIds = widgetData.panelIds ?? [];
+    panelIdIndex.current = Math.max(panelIdIndex.current, savedIds.length);
+    const openIds = new Set(panelIds.current);
+    panelStatesRef.current = Object.fromEntries(
+      Object.entries(panelStatesRef.current).filter(([panelId]) =>
+        openIds.has(panelId)
+      )
+    );
+    if (layoutManager == null) {
+      return;
+    }
+    savedIds
+      .filter(savedId => !openIds.has(savedId))
+      .forEach(orphanId => {
+        const config = { id: orphanId };
+        const stack = LayoutUtils.getStackForConfig(layoutManager.root, config);
+        log.debug('Removing orphaned panel', orphanId);
+        // `remove` rather than `close`, since panels in a nested dashboard aren't closable
+        LayoutUtils.getContentItemInStack(stack, config)?.remove();
+      });
+  }, [layoutManager, widgetData]);
+
+  /**
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
    * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
    */
@@ -145,6 +182,10 @@ export function usePanelManager({
         log.debug('Widget', id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
+        if (!hasRemovedOrphans.current) {
+          hasRemovedOrphans.current = true;
+          removeOrphanedPanels();
+        }
         onDataChange({
           ...widgetData,
           panelStates: { ...panelStatesRef.current },
@@ -152,35 +193,8 @@ export function usePanelManager({
         });
       }
     },
-    [isPanelsDirty, id, onClose, onDataChange, widgetData]
+    [isPanelsDirty, id, onClose, onDataChange, removeOrphanedPanels, widgetData]
   );
-
-  /**
-   * Every panel the document renders has opened by now, so leftover persisted state
-   * belongs to panels from a saved layout the document no longer has. Drop it so it
-   * isn't re-persisted. `getInitialData` reads the immutable `widgetData` snapshot,
-   * so this doesn't affect rehydration.
-   */
-  const handleDocumentRendered = useCallback(() => {
-    // Saved ids not claimed by now belong to orphans; panels added later must not inherit them
-    panelIdIndex.current = Math.max(
-      panelIdIndex.current,
-      widgetData.panelIds?.length ?? 0
-    );
-    const openIds = new Set(panelIds.current);
-    const entries = Object.entries(panelStatesRef.current);
-    const keptEntries = entries.filter(([panelId]) => openIds.has(panelId));
-    if (keptEntries.length === entries.length) {
-      return;
-    }
-    panelStatesRef.current = Object.fromEntries(keptEntries);
-    onDataChange({
-      panelStates: { ...panelStatesRef.current },
-      panelIds: [...panelIds.current],
-    });
-  }, [onDataChange, widgetData]);
-
-  const getOpenPanelIds = useCallback(() => [...panelIds.current], []);
 
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
@@ -207,8 +221,6 @@ export function usePanelManager({
       onDataChange: handleDataChange,
       getPanelId,
       getInitialData,
-      onDocumentRendered: handleDocumentRendered,
-      getOpenPanelIds,
     }),
     [
       widget,
@@ -217,8 +229,6 @@ export function usePanelManager({
       handleOpen,
       handleDataChange,
       getInitialData,
-      handleDocumentRendered,
-      getOpenPanelIds,
     ]
   );
 

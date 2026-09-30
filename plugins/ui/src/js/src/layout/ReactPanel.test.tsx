@@ -50,8 +50,6 @@ function makeReactPanelManager({
         onOpen,
         onDataChange,
         getInitialData,
-        onDocumentRendered: jest.fn(),
-        getOpenPanelIds: jest.fn(() => []),
       }}
     >
       <ReactPanel title={title}>{children}</ReactPanel>
