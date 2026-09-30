@@ -2,6 +2,7 @@ import React from 'react';
 import { render, within } from '@testing-library/react';
 import {
   LayoutUtils,
+  PanelIdContext,
   type WidgetDescriptor,
   useLayoutManager,
   useListener,
@@ -109,6 +110,35 @@ it('opens panel on mount, and closes panel on unmount', () => {
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
   expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
   expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it('removes a non-closable panel from the layout on unmount', () => {
+  const onClose = jest.fn();
+  const contentItem = TestUtils.createMockProxy<ContentItem>();
+  (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce(
+    contentItem
+  );
+  // Panels opened inside another panel (e.g. a nested dashboard) aren't closable
+  const { unmount } = render(
+    <PanelIdContext.Provider value="host-panel-id">
+      {makeTestComponent({ onClose })}
+    </PanelIdContext.Provider>
+  );
+  const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+  expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
+    expect.objectContaining({
+      config: expect.objectContaining({ isClosable: false }),
+    })
+  );
+
+  unmount();
+
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(LayoutUtils.getStackForConfig).toHaveBeenLastCalledWith(root, {
+    id: mockPanelId,
+  });
+  expect(contentItem.remove).toHaveBeenCalledTimes(1);
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
