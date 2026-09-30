@@ -236,8 +236,8 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             )
             # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
             # A successful render replaces it on the client.
-            self._context.import_state({})
             try:
+                self._context.import_state({})
                 node, state = self._render_node()
             except Exception as retry_error:
                 self._handle_render_error(retry_error)

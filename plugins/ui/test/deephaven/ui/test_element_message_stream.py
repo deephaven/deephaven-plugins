@@ -185,6 +185,55 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
         # The sibling's effect already ran in the failed pass; the retry unmounts it before mounting it again
         self.assertEqual(events, ["mount", "cleanup", "mount"])
 
+    def test_cleanup_failure_during_restore_retry_is_sent_as_error(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        is_cleanup_failing = False
+
+        def failing_cleanup():
+            if is_cleanup_failing:
+                raise RuntimeError("cleanup failed")
+
+        @ui.component
+        def tracker():
+            ui.use_effect(lambda: failing_cleanup, [])
+            return ui.text("tracker")
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            if region not in ("Americas", "Asia"):
+                raise KeyError(region)
+            return ui.text(region)
+
+        @ui.component
+        def app():
+            return ui.flex(tracker(), region_text())
+
+        stream, _ = self._make_stream(app())
+        stream._render()
+        saved = json.loads(
+            json.dumps(stream._context.export_state()).replace('"Americas"', '"Europe"')
+        )
+
+        restored, connection = self._make_stream(app())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        is_cleanup_failing = True
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ):
+            restored._render()
+        # Streams are never closed here, so cleanups also run when they're garbage collected
+        is_cleanup_failing = False
+
+        self.assertEqual(
+            [m["method"] for m in _sent_messages(connection)], ["documentError"]
+        )
+
     def test_send_failure_after_restore_keeps_saved_state(self):
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import (

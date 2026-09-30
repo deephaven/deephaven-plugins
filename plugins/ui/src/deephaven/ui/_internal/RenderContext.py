@@ -902,14 +902,13 @@ class RenderContext:
         """
         Clear the state of this context and unmount its children, so it renders as if for the first time.
         """
-        for context in self._children_context.values():
-            context.unmount()
-        for listener in self._collected_unmount_listeners:
-            listener()
+        # Detach everything before running cleanups, so a cleanup that raises can't leave a half-reset tree
+        children = self._children_context
+        unmount_listeners = self._collected_unmount_listeners
 
         self._hook_count = -1
         self._state.clear()
-        self._children_context.clear()
+        self._children_context = {}
         self._collected_contexts = []
         self._collected_unmount_listeners = []
         self._hook_setters.clear()
@@ -917,6 +916,11 @@ class RenderContext:
         self._restored_sites = {}
         self._restored_hook_count = None
         self._cache = None
+
+        for context in children.values():
+            context.unmount()
+        for listener in unmount_listeners:
+            listener()
 
     def unmount(self) -> None:
         """
