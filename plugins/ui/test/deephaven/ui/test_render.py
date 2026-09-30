@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import sys
 from deephaven.ui._internal.RenderContext import (
     RenderContext,
     OnChangeCallable,
@@ -384,7 +385,9 @@ class RenderRestoreTestCase(BaseTestCase):
         self,
     ):
         # Python before 3.11 has no columns and uses the bytecode offset within the line
-        with patch("deephaven.ui._internal.RenderContext._HAS_CO_POSITIONS", False):
+        # The package re-exports the RenderContext class under the module's name, so patch the module object
+        render_context_module = sys.modules[RenderContext.__module__]
+        with patch.object(render_context_module, "_HAS_CO_POSITIONS", False):
             self._assert_same_line_swap_discards_values()
 
     def test_restore_with_different_hook_count(self):
