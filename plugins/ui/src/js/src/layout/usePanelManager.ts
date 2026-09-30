@@ -16,6 +16,7 @@ import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { type ReactPanelManager } from './ReactPanelManager';
+import { useWidgetStatus } from './useWidgetStatus';
 import {
   type ReadonlyWidgetData,
   type WidgetData,
@@ -83,6 +84,8 @@ export function usePanelManager({
 
   // Not every document renders inside a layout (e.g. an inline UIComponent)
   const layoutManager = useContext(LayoutManagerContext);
+  // Before the document is ready, open panels may be rehydration placeholders for every saved id
+  const isDocumentReady = useWidgetStatus().status === 'ready';
   const hasRemovedOrphans = useRef(false);
 
   const id = useMemo(
@@ -136,9 +139,9 @@ export function usePanelManager({
   );
 
   /**
-   * On the first sync every panel the document renders has opened, so any other saved
-   * panel is from a layout that had more panels than the document now has. Remove it
-   * and its state, and stop handing out its id so a later panel can't inherit it.
+   * On the first sync once the document is ready, every panel it renders has opened, so
+   * any other saved panel is from a layout that had more panels than the document now has.
+   * Remove it and its state, and stop handing out its id so a later panel can't inherit it.
    */
   const removeOrphanedPanels = useCallback(() => {
     const savedIds = widgetData.panelIds ?? [];
@@ -182,7 +185,7 @@ export function usePanelManager({
         log.debug('Widget', id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
-        if (!hasRemovedOrphans.current) {
+        if (!hasRemovedOrphans.current && isDocumentReady) {
           hasRemovedOrphans.current = true;
           removeOrphanedPanels();
         }
@@ -193,7 +196,15 @@ export function usePanelManager({
         });
       }
     },
-    [isPanelsDirty, id, onClose, onDataChange, removeOrphanedPanels, widgetData]
+    [
+      isPanelsDirty,
+      id,
+      isDocumentReady,
+      onClose,
+      onDataChange,
+      removeOrphanedPanels,
+      widgetData,
+    ]
   );
 
   const getPanelId = useCallback(() => {

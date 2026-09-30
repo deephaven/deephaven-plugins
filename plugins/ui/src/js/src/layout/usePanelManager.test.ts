@@ -7,7 +7,13 @@ import {
 } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { usePanelManager } from './usePanelManager';
+import { type WidgetStatus } from './WidgetStatusContext';
 import { type ReadonlyWidgetData } from '../widget/WidgetTypes';
+
+let mockWidgetStatus: WidgetStatus['status'] = 'ready';
+jest.mock('./useWidgetStatus', () => ({
+  useWidgetStatus: () => ({ status: mockWidgetStatus }),
+}));
 
 // Mock nanoid to return predictable values
 jest.mock('nanoid', () => ({
@@ -27,6 +33,7 @@ function makeWidget(
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockWidgetStatus = 'ready';
 });
 
 describe('usePanelManager', () => {
@@ -367,6 +374,33 @@ describe('usePanelManager', () => {
       });
 
       expect(orphanItem.remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores rehydration placeholders opened before the document is ready', () => {
+      mockWidgetStatus = 'loading';
+      const onDataChange = jest.fn();
+      const { result, rerender } = renderInLayout(onDataChange);
+
+      // A placeholder panel opens for every saved id while loading
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen(result.current.getPanelId());
+      });
+      expect(orphanItem.remove).not.toHaveBeenCalled();
+
+      mockWidgetStatus = 'ready';
+      rerender();
+      // The ready document renders one panel, so the extra placeholder closes
+      act(() => {
+        result.current.onClose('orphan');
+      });
+
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelIds: ['alive'],
+          panelStates: { alive: [{ a: 1 }] },
+        })
+      );
     });
 
     it('does not hand out orphaned saved ids to panels added afterwards', () => {
