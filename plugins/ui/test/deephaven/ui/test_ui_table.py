@@ -533,3 +533,47 @@ class UITableTestCase(BaseTestCase):
                 ],
             },
         )
+
+    def _x_values(self, tbl) -> list:
+        import deephaven.pandas as dhpd
+
+        return dhpd.to_pandas(tbl)["X"].tolist()
+
+    def _resolve_ranged(self, ranges: list[dict]):
+        from deephaven.ui.components.table import _resolve_selection
+
+        return _resolve_selection(ranges, self.source)
+
+    def test_resolve_selection_single_range(self):
+        result = self._resolve_ranged([{"start_row": 2, "end_row": 4}])
+
+        self.assertEqual(self._x_values(result), [2, 3, 4])
+
+    def test_resolve_selection_multiple_ranges(self):
+        # Ranges arrive already sorted ascending from the JS side.
+        result = self._resolve_ranged(
+            [
+                {"start_row": 0, "end_row": 1},
+                {"start_row": 5, "end_row": 6},
+            ]
+        )
+
+        self.assertEqual(self._x_values(result), [0, 1, 5, 6])
+
+    def test_resolve_selection_empty_preserves_schema(self):
+        result = self._resolve_ranged([])
+
+        self.assertEqual(result.size, 0)
+        self.assertEqual(
+            [c.name for c in result.columns], [c.name for c in self.source.columns]
+        )
+
+    def test_resolve_selection_skips_none_bounds(self):
+        result = self._resolve_ranged(
+            [
+                {"start_row": 1, "end_row": 2},
+                {"start_row": None, "end_row": None},
+            ]
+        )
+
+        self.assertEqual(self._x_values(result), [1, 2])
