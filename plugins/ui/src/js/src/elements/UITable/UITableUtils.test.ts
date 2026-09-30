@@ -1,6 +1,9 @@
 import { GridRange, type GridModel, RangedSelection } from '@deephaven/grid';
-import { type IrisGridModel, KeyedSelection } from '@deephaven/iris-grid';
-import { type KeyedGridModel } from '@deephaven/iris-grid';
+import {
+  type IrisGridModel,
+  type KeyedGridModel,
+  KeyedSelection,
+} from '@deephaven/iris-grid';
 import { TestUtils } from '@deephaven/test-utils';
 import { asRangedSelection, getAggregationOperation } from './UITableUtils';
 

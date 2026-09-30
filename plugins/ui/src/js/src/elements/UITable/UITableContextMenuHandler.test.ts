@@ -439,30 +439,37 @@ describe('getSelectedKeys', () => {
 });
 
 describe('getVisibleColumnNames', () => {
-  test('uses visual order and excludes hidden columns', () => {
-    const model = TestUtils.createMockProxy<IrisGridModel>({
-      columns: [
-        { name: 'A', type: 'string' },
-        { name: 'B', type: 'string' },
-        { name: 'C', type: 'string' },
-      ] as unknown as IrisGridModel['columns'],
-    });
-    const irisGrid = TestUtils.createMockProxy<IrisGridType>({
-      // Visible order is B, A, C; C is hidden (zero width).
-      getModelColumn: ((visIdx: number) =>
-        [1, 0, 2][visIdx]) as IrisGridType['getModelColumn'],
+  const model = TestUtils.createMockProxy<IrisGridModel>({
+    columnCount: 3,
+    columns: [
+      { name: 'A', type: 'string' },
+      { name: 'B', type: 'string' },
+      { name: 'C', type: 'string' },
+    ] as unknown as IrisGridModel['columns'],
+  });
+
+  function makeGrid(
+    userColumnWidths: Map<number, number>,
+    movedColumns: GridMetrics['movedColumns'] = []
+  ) {
+    return TestUtils.createMockProxy<IrisGridType>({
       state: {
-        metrics: {
-          columnCount: 3,
-          allColumnWidths: new Map([
-            [0, 100],
-            [1, 100],
-            [2, 0],
-          ]),
-        },
+        metrics: { userColumnWidths, movedColumns },
       } as IrisGridType['state'],
     });
+  }
+
+  test('uses visual order and excludes hidden columns', () => {
+    // B moved ahead of A, C hidden.
+    const irisGrid = makeGrid(new Map([[2, 0]]), [{ from: 1, to: 0 }]);
 
     expect(getVisibleColumnNames(irisGrid, model)).toEqual(['B', 'A']);
+  });
+
+  test('includes columns scrolled out of the viewport', () => {
+    // Metrics only measure rendered columns, so nothing is recorded here.
+    const irisGrid = makeGrid(new Map());
+
+    expect(getVisibleColumnNames(irisGrid, model)).toEqual(['A', 'B', 'C']);
   });
 });

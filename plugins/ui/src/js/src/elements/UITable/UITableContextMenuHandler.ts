@@ -1,4 +1,9 @@
-import { GridRange, type GridPoint, type ModelIndex } from '@deephaven/grid';
+import {
+  GridRange,
+  GridUtils,
+  type GridPoint,
+  type ModelIndex,
+} from '@deephaven/grid';
 import type {
   ContextAction,
   ResolvableContextAction,
@@ -281,18 +286,25 @@ export function getVisibleColumnNames(
   const { metrics } = irisGrid.state;
   if (metrics == null) return [];
 
-  const names: string[] = [];
-  for (let visIdx = 0; visIdx < metrics.columnCount; visIdx += 1) {
-    const modelIdx = irisGrid.getModelColumn(visIdx);
-    if (
-      modelIdx != null &&
-      model.columns[modelIdx] != null &&
-      (metrics.allColumnWidths.get(visIdx) ?? 0) > 0
-    ) {
-      names.push(model.columns[modelIdx].name);
+  // Walk every model column rather than the metrics' column count, which only
+  // covers what is rendered — columns scrolled out of view horizontally would
+  // otherwise be dropped from the selection.
+  const { userColumnWidths, movedColumns } = metrics;
+  const columns: { name: string; visibleIndex: number }[] = [];
+  for (let modelIndex = 0; modelIndex < model.columnCount; modelIndex += 1) {
+    const column = model.columns[modelIndex];
+    // Hiding a column records a user width of 0.
+    if (column != null && userColumnWidths.get(modelIndex) !== 0) {
+      columns.push({
+        name: column.name,
+        visibleIndex: GridUtils.getVisibleIndex(modelIndex, movedColumns),
+      });
     }
   }
-  return names;
+
+  return columns
+    .sort((a, b) => a.visibleIndex - b.visibleIndex)
+    .map(({ name }) => name);
 }
 
 /**

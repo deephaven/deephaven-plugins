@@ -40,13 +40,13 @@ jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useWidget: jest.fn(() => mockWidgetWrapper),
 }));
 
-function mockRenderDocumentHandler(props: DocumentHandlerProps) {
+function MockDocumentHandler(props: DocumentHandlerProps) {
   // Rendered inside WidgetCallableContext.Provider, so this is the only place a
   // test can reach the ref setter.
   capturedSetNextCallableRefs = React.useContext(WidgetCallableContext);
   return <div>DocumentHandler</div>;
 }
-const mockDocumentHandler = jest.fn(mockRenderDocumentHandler);
+const mockDocumentHandler = jest.fn(MockDocumentHandler);
 jest.mock(
   './DocumentHandler',
   () => (props: DocumentHandlerProps) => mockDocumentHandler(props)
@@ -80,7 +80,7 @@ beforeEach(() => {
   mockWidgetWrapper = defaultWidgetWrapper;
   mockDocumentHandler.mockClear();
   // Undo any per-describe override so it does not leak into later tests.
-  mockDocumentHandler.mockImplementation(mockRenderDocumentHandler);
+  mockDocumentHandler.mockImplementation(MockDocumentHandler);
 });
 
 it('mounts and unmounts', async () => {
