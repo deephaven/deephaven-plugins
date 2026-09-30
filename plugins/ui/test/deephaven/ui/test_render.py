@@ -1,14 +1,12 @@
 from __future__ import annotations
 import json
-import sys
-import unittest
 from deephaven.ui._internal.RenderContext import (
     RenderContext,
     OnChangeCallable,
     RestoredStateMismatchError,
 )
 from typing import Any, Callable, Dict, List
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from .BaseTest import BaseTestCase
 from .test_utils_root import TestRoot
 
@@ -360,8 +358,7 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(save_and_restore(rc), component)
         self.assertEqual(values[-1], ("a", "b"))
 
-    @unittest.skipIf(sys.version_info < (3, 11), "needs co_positions")
-    def test_restore_discards_value_saved_by_another_hook_on_the_same_line(self):
+    def _assert_same_line_swap_discards_values(self):
         from deephaven.ui.hooks import use_state
 
         swapped = False
@@ -379,6 +376,16 @@ class RenderRestoreTestCase(BaseTestCase):
         swapped = True
         render_component(save_and_restore(rc), component)
         self.assertEqual(values[-1], ("b", "a"))
+
+    def test_restore_discards_value_saved_by_another_hook_on_the_same_line(self):
+        self._assert_same_line_swap_discards_values()
+
+    def test_restore_discards_value_saved_by_another_hook_on_the_same_line_without_columns(
+        self,
+    ):
+        # Python before 3.11 has no columns and uses the bytecode offset within the line
+        with patch("deephaven.ui._internal.RenderContext._HAS_CO_POSITIONS", False):
+            self._assert_same_line_swap_discards_values()
 
     def test_restore_with_different_hook_count(self):
         from deephaven.ui.hooks import use_effect, use_memo, use_state

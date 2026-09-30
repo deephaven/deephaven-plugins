@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dis
 import hashlib
 import itertools
 import os
@@ -92,6 +93,7 @@ _UI_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 _MAX_HOOK_SITE_DEPTH = 64
 _is_library_file_cache: Dict[str, bool] = {}
 _function_element_render_code: Optional[CodeType] = None
+_HAS_CO_POSITIONS = hasattr(CodeType, "co_positions")
 
 
 def _is_library_file(filename: str) -> bool:
@@ -115,22 +117,34 @@ def _is_library_file(filename: str) -> bool:
     return result
 
 
-def _get_call_column(frame: FrameType) -> int | None:
+def _get_call_position(frame: FrameType) -> str:
     """
-    Get the source column of the instruction a frame is executing, so hook calls on the same line can be told apart.
+    Get the position within its line of the instruction a frame is executing, so hook calls on the same line can be
+    told apart.
 
     Args:
         frame: The frame to inspect.
 
     Returns:
-        The start column, or None if it isn't available (before Python 3.11).
+        The source column when available (Python 3.11+), otherwise the bytecode offset from the start of the line
+        prefixed with "+". An empty string if the frame hasn't started executing.
     """
-    positions = getattr(frame.f_code, "co_positions", None)
-    if positions is None or frame.f_lasti < 0:
-        return None
-    # co_positions yields one entry per 2-byte code unit, and f_lasti is a byte offset
-    position = next(itertools.islice(positions(), frame.f_lasti // 2, None), None)
-    return position[2] if position is not None else None
+    lasti = frame.f_lasti
+    if lasti < 0:
+        return ""
+    code = frame.f_code
+    if _HAS_CO_POSITIONS:
+        # Columns come from the source, so they don't change between Python versions like bytecode offsets do.
+        # co_positions yields one entry per 2-byte code unit, and f_lasti is a byte offset.
+        position = next(itertools.islice(code.co_positions(), lasti // 2, None), None)
+        # Columns are None when Python runs with -X no_debug_ranges
+        if position is not None and position[2] is not None:
+            return str(position[2])
+    line_start = max(
+        (offset for offset, _ in dis.findlinestarts(code) if offset <= lasti),
+        default=0,
+    )
+    return f"+{lasti - line_start}"
 
 
 def _get_hook_site(frame: FrameType | None) -> str:
@@ -164,10 +178,10 @@ def _get_hook_site(frame: FrameType | None) -> str:
         else:
             # f_lineno can be None for instructions without line information
             line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
-            column = _get_call_column(frame)
+            position = _get_call_position(frame)
             # Module name rather than file path, so moving the install directory doesn't change the site
             module = frame.f_globals.get("__name__") or code.co_filename
-            parts.append(f"{module}:{name}:{line}:{column}")
+            parts.append(f"{module}:{name}:{line}:{position}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
