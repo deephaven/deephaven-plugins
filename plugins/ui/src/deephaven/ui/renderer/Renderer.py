@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 _PANEL_ELEMENT_NAME = "deephaven.ui.components.Panel"
 
+# Layout elements identify the panels inside them separately, so they aren't panels themselves
+_LAYOUT_ELEMENT_NAMES = {
+    "deephaven.ui.components.Column",
+    "deephaven.ui.components.Dashboard",
+    "deephaven.ui.components.Row",
+    "deephaven.ui.components.Stack",
+}
+
 # Props of a node that only passes its child through, like a component
 _PASS_THROUGH_PROPS = {"children", COMPONENT_KEY_PROP}
 
@@ -36,6 +44,8 @@ def _get_panel(node: Any) -> tuple[RenderedNode, bool] | None:
         props = node.props or {}
         if node.name == _PANEL_ELEMENT_NAME:
             return node, is_keyed or props.get("key") is not None
+        if node.name in _LAYOUT_ELEMENT_NAMES:
+            return None
         if not set(props.keys()) <= _PASS_THROUGH_PROPS:
             return None
         is_keyed = is_keyed or props.get(COMPONENT_KEY_PROP) is not None

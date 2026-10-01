@@ -190,7 +190,14 @@ from deephaven.plot.figure import Figure
 
 ADD_PANEL = False  # set to True before restarting the PQ
 
-src = empty_table(100).update(["USym = `SYM` + (i % 7)", "Account = `ACC` + (i % 5)", "X = i", "Y = Math.sin(i / 10.0)"])
+src = empty_table(100).update(
+    [
+        "USym = `SYM` + (i % 7)",
+        "Account = `ACC` + (i % 5)",
+        "X = i",
+        "Y = Math.sin(i / 10.0)",
+    ]
+)
 by_usym = src.rollup(aggs=[agg.sum_("Y")], by=["USym"])
 by_account = src.rollup(aggs=[agg.sum_("Y")], by=["Account"])
 plot = Figure().plot_xy(series_name="Y", t=src, x="X", y="Y").show()
