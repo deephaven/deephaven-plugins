@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dis
 import hashlib
 import itertools
 import os
@@ -89,7 +88,6 @@ _code_fingerprint_cache: weakref.WeakKeyDictionary[
     CodeType, str
 ] = weakref.WeakKeyDictionary()
 _function_element_render_code: Optional[CodeType] = None
-_HAS_CO_POSITIONS = hasattr(CodeType, "co_positions")
 
 
 def _const_fingerprint(const: Any) -> str:
@@ -154,36 +152,6 @@ def _is_library_file(filename: str) -> bool:
     return result
 
 
-def _get_call_position(frame: FrameType) -> str:
-    """
-    Get the position within its line of the instruction a frame is executing, so hook calls on the same line can be
-    told apart.
-
-    Args:
-        frame: The frame to inspect.
-
-    Returns:
-        The source column when available (Python 3.11+), otherwise the bytecode offset from the start of the line
-        prefixed with "+". An empty string if the frame hasn't started executing.
-    """
-    lasti = frame.f_lasti
-    if lasti < 0:
-        return ""
-    code = frame.f_code
-    if _HAS_CO_POSITIONS:
-        # Columns come from the source, so they don't change between Python versions like bytecode offsets do.
-        # co_positions yields one entry per 2-byte code unit, and f_lasti is a byte offset.
-        position = next(itertools.islice(code.co_positions(), lasti // 2, None), None)
-        # Columns are None when Python runs with -X no_debug_ranges
-        if position is not None and position[2] is not None:
-            return str(position[2])
-    line_start = max(
-        (offset for offset, _ in dis.findlinestarts(code) if offset <= lasti),
-        default=0,
-    )
-    return f"+{lasti - line_start}"
-
-
 def _get_hook_site(frame: FrameType | None) -> str:
     """
     Get a stable identifier for where a hook was called from, by walking the stack up to the component's render call.
@@ -213,14 +181,12 @@ def _get_hook_site(frame: FrameType | None) -> str:
             # Library line numbers change between plugin versions, and the function name already identifies the hook
             parts.append(name)
         else:
-            # f_lineno can be None for instructions without line information
-            line = (frame.f_lineno or code.co_firstlineno) - code.co_firstlineno
-            position = _get_call_position(frame)
             # Module name rather than file path, so moving the install directory doesn't change the site
             module = frame.f_globals.get("__name__") or code.co_filename
             # Values saved by an older version of the code may not fit the new code, e.g. a changed type
             fingerprint = _get_code_fingerprint(code)
-            parts.append(f"{module}:{name}:{line}:{position}:{fingerprint}")
+            # The fingerprint pins the bytecode, so the instruction offset identifies the call within it
+            parts.append(f"{module}:{name}:{frame.f_lasti}:{fingerprint}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()

@@ -1,12 +1,11 @@
 from __future__ import annotations
 import json
-import sys
 from deephaven.ui._internal.RenderContext import (
     RenderContext,
     OnChangeCallable,
 )
 from typing import Any, Callable, Dict, List
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 from .test_utils_root import TestRoot
 
@@ -389,7 +388,7 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(save_and_restore(rc), component)
         self.assertEqual(values[-1], ("a", "b"))
 
-    def _assert_same_line_swap_discards_values(self):
+    def test_restore_discards_value_saved_by_another_hook_on_the_same_line(self):
         from deephaven.ui.hooks import use_state
 
         swapped = False
@@ -407,18 +406,6 @@ class RenderRestoreTestCase(BaseTestCase):
         swapped = True
         render_component(save_and_restore(rc), component)
         self.assertEqual(values[-1], ("b", "a"))
-
-    def test_restore_discards_value_saved_by_another_hook_on_the_same_line(self):
-        self._assert_same_line_swap_discards_values()
-
-    def test_restore_discards_value_saved_by_another_hook_on_the_same_line_without_columns(
-        self,
-    ):
-        # Python before 3.11 has no columns and uses the bytecode offset within the line
-        # The package re-exports the RenderContext class under the module's name, so patch the module object
-        render_context_module = sys.modules[RenderContext.__module__]
-        with patch.object(render_context_module, "_HAS_CO_POSITIONS", False):
-            self._assert_same_line_swap_discards_values()
 
     def test_restore_with_different_hook_count(self):
         from deephaven.ui.hooks import use_effect, use_memo, use_state
@@ -520,6 +507,28 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(
             save_and_restore(rc), load_component("/new/site-packages/user_module.py")
         )
+        self.assertEqual(values[-1], "Europe")
+
+    def test_restore_after_the_component_moves_within_its_file(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+        source = "def component():\n    value, _ = use_state('Americas')\n    values.append(value)\n"
+
+        def load_component(code: str) -> Callable[[], None]:
+            namespace = {
+                "__name__": "user_module",
+                "use_state": use_state,
+                "values": values,
+            }
+            exec(compile(code, "<string>", "exec"), namespace)
+            return namespace["component"]
+
+        rc = make_render_context()
+        render_component(rc, load_component(source))
+        rc.set_state(0, "Europe")
+
+        render_component(save_and_restore(rc), load_component("\n\n\n" + source))
         self.assertEqual(values[-1], "Europe")
 
     def test_restore_discards_values_when_the_component_code_changes(self):
