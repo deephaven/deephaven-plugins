@@ -28,6 +28,7 @@ import {
   colorValueStyle,
   LoadingOverlay,
   resolveCssVariablesInRecord,
+  type ResolvableContextAction,
   useStyleProps,
   useTheme,
   viewStyleProps,
@@ -505,6 +506,21 @@ export function UITable({
     ]
   );
 
+  const setNextCallableRefs = useContext(WidgetCallableContext);
+
+  // Inject model.table as a callable reference so Python slices the
+  // sorted/filtered server-side table instead of the original exported one.
+  // Only server actions get this: a client-side action sends no request, so the
+  // reference would sit in pendingRefs and be consumed by whatever request
+  // happened to come next.
+  const wrapServerActions = useCallback(
+    (actions: ResolvableContextAction[]): ResolvableContextAction[] =>
+      setNextCallableRefs != null && model != null
+        ? wrapActionsWithTableRef(actions, model.table, setNextCallableRefs)
+        : actions,
+    [model, setNextCallableRefs]
+  );
+
   const mouseHandlers = useMemo(
     () =>
       model && dh && irisGrid
@@ -525,7 +541,8 @@ export function UITable({
               model,
               contextMenu,
               contextHeaderMenu,
-              alwaysFetchColumns
+              alwaysFetchColumns,
+              wrapServerActions
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -542,10 +559,9 @@ export function UITable({
       contextMenu,
       contextHeaderMenu,
       alwaysFetchColumns,
+      wrapServerActions,
     ]
   );
-
-  const setNextCallableRefs = useContext(WidgetCallableContext);
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) => {
@@ -559,21 +575,11 @@ export function UITable({
           : [],
         irisGrid != null ? getSelectedKeys(irisGrid, data) : null
       );
-      // Inject model.table as a callable reference so Python slices the
-      // sorted/filtered server-side table instead of the original exported one.
-      // Only server actions get this: a client-side plugin action sends no
-      // request, so the reference would sit in pendingRefs and be consumed by
-      // whatever request happened to come next.
-      const serverActionsWithTableRef =
-        setNextCallableRefs != null && model != null
-          ? wrapActionsWithTableRef(
-              serverActions,
-              model.table,
-              setNextCallableRefs
-            )
-          : serverActions;
 
-      return [...serverActionsWithTableRef, ...pluginOnContextMenu(data)];
+      return [
+        ...wrapServerActions(serverActions),
+        ...pluginOnContextMenu(data),
+      ];
     },
     [
       contextMenu,
@@ -581,7 +587,7 @@ export function UITable({
       pluginOnContextMenu,
       irisGrid,
       model,
-      setNextCallableRefs,
+      wrapServerActions,
     ]
   );
 

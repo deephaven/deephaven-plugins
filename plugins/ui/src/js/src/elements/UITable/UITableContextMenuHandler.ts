@@ -319,13 +319,20 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
 
   private alwaysFetchColumns: ColumnName[];
 
+  private wrapServerActions: (
+    actions: ResolvableContextAction[]
+  ) => ResolvableContextAction[];
+
   constructor(
     dh: typeof DhType,
     irisGrid: IrisGridType,
     model: IrisGridModel,
     contextMenuItems: UITableProps['contextMenu'],
     contextColumnHeaderItems: UITableProps['contextHeaderMenu'],
-    alwaysFetchColumns: ColumnName[]
+    alwaysFetchColumns: ColumnName[],
+    wrapServerActions: (
+      actions: ResolvableContextAction[]
+    ) => ResolvableContextAction[]
   ) {
     super(irisGrid, dh);
     this.order -= 1; // Make it just above the default handler priority
@@ -334,6 +341,7 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
     this.contextMenuItems = contextMenuItems;
     this.contextColumnHeaderItems = contextColumnHeaderItems;
     this.alwaysFetchColumns = alwaysFetchColumns;
+    this.wrapServerActions = wrapServerActions;
   }
 
   getHeaderActions(
@@ -368,13 +376,18 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
 
     return [
       ...super.getHeaderActions(modelIndex, gridPoint),
-      ...wrapContextActions(
-        contextColumnHeaderItems,
-        headerContextMenuData,
-        this.alwaysFetchColumns,
-        getModelSelectedRanges(irisGrid, headerContextMenuData),
-        getVisibleColumnNames(irisGrid, model),
-        getSelectedKeys(irisGrid, headerContextMenuData)
+      // Header actions bypass UITable's onContextMenu, so they need the table
+      // reference attached here or the selection resolves against the original
+      // table rather than the sorted/filtered one the user sees.
+      ...this.wrapServerActions(
+        wrapContextActions(
+          contextColumnHeaderItems,
+          headerContextMenuData,
+          this.alwaysFetchColumns,
+          getModelSelectedRanges(irisGrid, headerContextMenuData),
+          getVisibleColumnNames(irisGrid, model),
+          getSelectedKeys(irisGrid, headerContextMenuData)
+        )
       ),
     ];
   }

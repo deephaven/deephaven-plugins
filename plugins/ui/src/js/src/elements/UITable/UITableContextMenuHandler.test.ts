@@ -3,6 +3,7 @@ import { dhTruck } from '@deephaven/icons';
 import { TestUtils } from '@deephaven/test-utils';
 import {
   type IrisGridContextMenuData,
+  IrisGridContextMenuHandler,
   type IrisGridModel,
   type IrisGridType,
   type KeyedGridModel,
@@ -12,6 +13,7 @@ import {
   GridRange,
   type GridMetrics,
   type GridModel,
+  type GridPoint,
   RangedSelection,
 } from '@deephaven/grid';
 import type { dh } from '@deephaven/jsapi-types';
@@ -19,7 +21,7 @@ import type {
   ContextAction,
   ResolvableContextAction,
 } from '@deephaven/components';
-import {
+import UITableContextMenuHandler, {
   getModelSelectedRanges,
   getSelectedKeys,
   getVisibleColumnNames,
@@ -471,5 +473,46 @@ describe('getVisibleColumnNames', () => {
     const irisGrid = makeGrid(new Map());
 
     expect(getVisibleColumnNames(irisGrid, model)).toEqual(['A', 'B', 'C']);
+  });
+});
+
+describe('getHeaderActions', () => {
+  it('attaches the table ref to server items only', () => {
+    const builtInAction = { title: 'Built in', action: jest.fn() };
+    jest
+      .spyOn(IrisGridContextMenuHandler.prototype, 'getHeaderActions')
+      .mockReturnValue([builtInAction]);
+
+    const wrapServerActions = jest.fn(
+      (actions: ResolvableContextAction[]) => actions
+    );
+    const model = TestUtils.createMockProxy<IrisGridModel>({
+      columnCount: 1,
+      columns: [
+        { name: 'A', type: 'string' },
+      ] as unknown as IrisGridModel['columns'],
+      sourceForCell: (() => ({
+        column: 0,
+        row: 0,
+      })) as IrisGridModel['sourceForCell'],
+    });
+    const handler = new UITableContextMenuHandler(
+      {} as typeof dh,
+      makeIrisGrid({
+        metrics: { userColumnWidths: new Map(), movedColumns: [] },
+      }),
+      model,
+      undefined,
+      { title: 'Header item', action: jest.fn() },
+      [],
+      wrapServerActions
+    );
+
+    const actions = handler.getHeaderActions(0, { column: 0 } as GridPoint);
+
+    expect(actions[0]).toBe(builtInAction);
+    // The built-in header actions are client-side and must stay unwrapped.
+    expect(wrapServerActions).toHaveBeenCalledTimes(1);
+    expect(wrapServerActions.mock.calls[0][0]).not.toContain(builtInAction);
   });
 });
