@@ -282,20 +282,39 @@ class RenderImportTestCase(BaseTestCase):
 
     def test_import_resets_state_when_a_cleanup_fails(self):
         rc = make_render_context()
+        sibling_listener = Mock()
+        parent_listener = Mock()
         with rc.open():
             rc.init_state(rc.next_hook_index(), "saved")
+            rc.add_unmount_listener(parent_listener)
             child_context0 = rc.get_child_context("0")
             with child_context0.open():
                 child_context0.add_unmount_listener(
                     Mock(side_effect=RuntimeError("cleanup failed"))
                 )
+            child_context1 = rc.get_child_context("1")
+            with child_context1.open():
+                child_context1.add_unmount_listener(sibling_listener)
 
         with self.assertRaises(RuntimeError):
             rc.import_state({})
 
+        sibling_listener.assert_called_once()
+        parent_listener.assert_called_once()
         self.assertEqual(rc.export_state(), {})
-        # The child already unmounted, so unmounting the parent must not reach it again
+        # The children already unmounted, so unmounting the parent must not reach them again
         rc.unmount()
+
+    def test_unmount_finishes_when_a_cleanup_fails(self):
+        rc = make_render_context()
+        with rc.open():
+            rc.add_unmount_listener(Mock(side_effect=RuntimeError("cleanup failed")))
+        self.assertNotEqual(rc._collected_scopes, set())
+
+        with self.assertRaises(RuntimeError):
+            rc.unmount()
+
+        self.assertEqual(rc._collected_scopes, set())
 
 
 class RenderUnmountChildrenTestCase(BaseTestCase):

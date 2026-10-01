@@ -917,10 +917,23 @@ class RenderContext:
         self._restored_hook_count = None
         self._cache = None
 
-        for context in children.values():
-            context.unmount()
-        for listener in unmount_listeners:
-            listener()
+        # Run every cleanup even if one raises, so no removed context keeps its subscriptions alive
+        first_error: Optional[Exception] = None
+        cleanups = itertools.chain(
+            (context.unmount for context in children.values()), unmount_listeners
+        )
+        for cleanup in cleanups:
+            try:
+                cleanup()
+            except Exception as e:
+                if first_error is None:
+                    first_error = e
+                else:
+                    logger.exception(
+                        "Error running a cleanup while resetting a context"
+                    )
+        if first_error is not None:
+            raise first_error
 
     def unmount(self) -> None:
         """
@@ -931,10 +944,12 @@ class RenderContext:
         logger.debug("Unmounting context %s", self)
         self._is_mounted = False
         # Clear all our children states so we don't hold a reference to anything.
-        self._reset()
-        self._hook_index = _READY_TO_OPEN
-        self._collected_scopes.clear()
-        self._collected_effects.clear()
+        try:
+            self._reset()
+        finally:
+            self._hook_index = _READY_TO_OPEN
+            self._collected_scopes.clear()
+            self._collected_effects.clear()
 
     @property
     def cache(self) -> Any:
