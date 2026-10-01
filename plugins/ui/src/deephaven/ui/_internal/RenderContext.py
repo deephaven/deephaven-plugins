@@ -124,7 +124,9 @@ def _get_code_fingerprint(code: CodeType) -> str:
     fingerprint = _code_fingerprint_cache.get(code)
     if fingerprint is None:
         digest = hashlib.blake2b(code.co_code, digest_size=6)
-        digest.update(repr(code.co_names).encode())
+        digest.update(
+            repr((code.co_names, code.co_freevars, code.co_cellvars)).encode()
+        )
         digest.update(_const_fingerprint(code.co_consts).encode())
         fingerprint = digest.hexdigest()
         _code_fingerprint_cache[code] = fingerprint
