@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+import sys
 from typing import Any, Callable, TypeVar, overload
 from .._internal import InitializerFunction, UpdaterFunction, get_context
 
@@ -44,6 +45,7 @@ def use_state(
     """
     context = get_context()
     hook_index = context.next_hook_index()
+    context.record_hook_site(hook_index, sys._getframe(1))
 
     if not context.has_state(hook_index):
         # This is the first render, initialize the value
