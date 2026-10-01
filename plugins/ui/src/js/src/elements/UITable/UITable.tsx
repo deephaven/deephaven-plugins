@@ -28,7 +28,6 @@ import {
   colorValueStyle,
   LoadingOverlay,
   resolveCssVariablesInRecord,
-  type ResolvableContextAction,
   useStyleProps,
   useTheme,
   viewStyleProps,
@@ -550,29 +549,31 @@ export function UITable({
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) => {
-      const actions: ResolvableContextAction[] = [
-        ...wrapContextActions(
-          contextMenu,
-          data,
-          alwaysFetchColumns,
-          irisGrid != null ? getModelSelectedRanges(irisGrid, data) : [],
-          irisGrid != null && model != null
-            ? getVisibleColumnNames(irisGrid, model)
-            : [],
-          irisGrid != null ? getSelectedKeys(irisGrid, data) : null
-        ),
-        ...pluginOnContextMenu(data),
-      ];
+      const serverActions = wrapContextActions(
+        contextMenu,
+        data,
+        alwaysFetchColumns,
+        irisGrid != null ? getModelSelectedRanges(irisGrid, data) : [],
+        irisGrid != null && model != null
+          ? getVisibleColumnNames(irisGrid, model)
+          : [],
+        irisGrid != null ? getSelectedKeys(irisGrid, data) : null
+      );
       // Inject model.table as a callable reference so Python slices the
       // sorted/filtered server-side table instead of the original exported one.
-      if (setNextCallableRefs != null && model != null) {
-        return wrapActionsWithTableRef(
-          actions,
-          model.table,
-          setNextCallableRefs
-        );
-      }
-      return actions;
+      // Only server actions get this: a client-side plugin action sends no
+      // request, so the reference would sit in pendingRefs and be consumed by
+      // whatever request happened to come next.
+      const serverActionsWithTableRef =
+        setNextCallableRefs != null && model != null
+          ? wrapActionsWithTableRef(
+              serverActions,
+              model.table,
+              setNextCallableRefs
+            )
+          : serverActions;
+
+      return [...serverActionsWithTableRef, ...pluginOnContextMenu(data)];
     },
     [
       contextMenu,
