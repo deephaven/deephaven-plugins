@@ -10,6 +10,7 @@ import {
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
+import { PanelKeyScope } from './PanelKeyScope';
 
 function LayoutColumn({
   children,
@@ -47,7 +48,11 @@ function LayoutColumn({
   );
 }
 
-function Column({ children, width }: ColumnElementProps): JSX.Element {
+function Column({
+  children,
+  width,
+  __dhKeyPath,
+}: ColumnElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
 
@@ -67,11 +72,18 @@ function Column({ children, width }: ColumnElementProps): JSX.Element {
     // Don't add a column here, or normalize the children which might add a stack unnecessarily.
     // The persisted layout already has the rows/columns/stacks mapped out, but bare
     // content children still need a panel wrapper so they portal into their persisted panel.
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{wrapBareChildrenInPanel(children)}</>;
+    return (
+      <PanelKeyScope keyPath={__dhKeyPath}>
+        {wrapBareChildrenInPanel(children)}
+      </PanelKeyScope>
+    );
   }
 
-  return <LayoutColumn width={width}>{children}</LayoutColumn>;
+  return (
+    <PanelKeyScope keyPath={__dhKeyPath}>
+      <LayoutColumn width={width}>{children}</LayoutColumn>
+    </PanelKeyScope>
+  );
 }
 
 export default Column;

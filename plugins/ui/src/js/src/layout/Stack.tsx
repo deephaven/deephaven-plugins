@@ -8,6 +8,7 @@ import {
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
+import { PanelKeyScope } from './PanelKeyScope';
 
 function LayoutStack({
   children,
@@ -52,19 +53,26 @@ function LayoutStack({
 
 function Stack(props: StackElementProps): JSX.Element | null {
   const initialLayoutConfig = useInitialLayoutConfig();
+  const { children, __dhKeyPath } = props;
 
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
     // Don't add a stack here, or normalize the children which might add a stack unnecessarily.
     // The persisted layout already has the stacks mapped out, but bare content children
     // still need a panel wrapper so they portal into their persisted panel.
-    const { children } = props;
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{wrapBareChildrenInPanel(children)}</>;
+    return (
+      <PanelKeyScope keyPath={__dhKeyPath}>
+        {wrapBareChildrenInPanel(children)}
+      </PanelKeyScope>
+    );
   }
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <LayoutStack {...props} />;
+  return (
+    <PanelKeyScope keyPath={__dhKeyPath}>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <LayoutStack {...props} />
+    </PanelKeyScope>
+  );
 }
 
 export default Stack;

@@ -1,9 +1,12 @@
 from __future__ import annotations
 import logging
-from typing import Callable
+from typing import Any, Callable
 from .Element import Element, PropsType
 
 logger = logging.getLogger(__name__)
+
+# Not `key`, which would change the element id and reset the state saved under it
+COMPONENT_KEY_PROP = "__dhKey"
 
 
 class FunctionElement(Element):
@@ -39,4 +42,7 @@ class FunctionElement(Element):
         """
         children = self._render()
 
-        return {"children": children}
+        props: dict[str, Any] = {"children": children}
+        if self._key is not None:
+            props[COMPONENT_KEY_PROP] = self._key
+        return props

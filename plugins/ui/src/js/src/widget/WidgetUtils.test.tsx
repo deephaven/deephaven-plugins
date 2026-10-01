@@ -13,7 +13,9 @@ import {
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
+import { KEY_PATH_PROP } from '../layout/LayoutUtils';
 import {
+  COMPONENT_KEY_PROP,
   transformNode,
   elementComponentMap,
   getComponentForElement,
@@ -109,6 +111,116 @@ describe('getComponentForElement', () => {
       <Expected {...(element.props as Parameters<typeof Expected>[0])} />
     );
   });
+
+  describe('key paths', () => {
+    function makeKeyedElement(name: string, key?: string): ElementNode {
+      return { [ELEMENT_KEY]: name, props: key == null ? {} : { key } };
+    }
+
+    function makeComponent(children: unknown, key?: string): ElementNode {
+      return {
+        [ELEMENT_KEY]: 'test.component',
+        props:
+          key == null ? { children } : { children, [COMPONENT_KEY_PROP]: key },
+      };
+    }
+
+    it.each([
+      ELEMENT_NAME.panel,
+      ELEMENT_NAME.row,
+      ELEMENT_NAME.column,
+      ELEMENT_NAME.stack,
+    ])('passes the key of %s on as its key path', elementName => {
+      const actual = getComponentForElement(
+        makeKeyedElement(elementName, 'my-key')
+      );
+      expect(actual?.key).toBe('my-key');
+      expect(actual?.props[KEY_PATH_PROP]).toEqual(['my-key']);
+    });
+
+    it('does not add a key path to other elements', () => {
+      const actual = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.flex, 'my-key')
+      );
+      expect(actual?.props[KEY_PATH_PROP]).toBeUndefined();
+    });
+
+    it('does not add a key path to unkeyed panels', () => {
+      const actual = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.panel)
+      );
+      expect(actual?.props[KEY_PATH_PROP]).toBeUndefined();
+    });
+
+    it('prepends a component key to its only panel, and uses it as the React key', () => {
+      const panel = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.panel, 'panel-key')
+      );
+      const actual = getComponentForElement(
+        makeComponent(panel, 'component-key')
+      );
+      expect(actual?.key).toBe('component-key');
+      expect(actual?.props[KEY_PATH_PROP]).toEqual([
+        'component-key',
+        'panel-key',
+      ]);
+    });
+
+    it('prepends a component key to an unkeyed panel', () => {
+      const panel = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.panel)
+      );
+      const actual = getComponentForElement(
+        makeComponent(panel, 'component-key')
+      );
+      expect(actual?.props[KEY_PATH_PROP]).toEqual(['component-key']);
+    });
+
+    it('prepends a component key to each panel in a list, keeping their React keys', () => {
+      const panels = ['a', 'b'].map(key =>
+        getComponentForElement(makeKeyedElement(ELEMENT_NAME.panel, key))
+      );
+      const actual = getComponentForElement(
+        makeComponent(panels, 'component-key')
+      ) as unknown as JSX.Element[];
+      expect(actual.map(child => child.key)).toEqual(['a', 'b']);
+      expect(actual.map(child => child.props[KEY_PATH_PROP])).toEqual([
+        ['component-key', 'a'],
+        ['component-key', 'b'],
+      ]);
+    });
+
+    it('leaves non-layout children of a keyed component unchanged', () => {
+      const child = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.flex, 'flex-key')
+      );
+      const actual = getComponentForElement(
+        makeComponent(child, 'component-key')
+      );
+      expect(actual).toBe(child);
+    });
+
+    it('returns the children of an unkeyed component unchanged', () => {
+      const panel = getComponentForElement(
+        makeKeyedElement(ELEMENT_NAME.panel, 'panel-key')
+      );
+      expect(getComponentForElement(makeComponent(panel))).toBe(panel);
+    });
+
+    it('does not include a component key in the element id', () => {
+      const result = transformNode(
+        makeComponent(makeKeyedElement(ELEMENT_NAME.panel), 'component-key'),
+        (key, value) => value,
+        'root'
+      ) as ElementNode;
+      const panel = result.props?.children as ElementNode;
+      expect(panel.props).toEqual(
+        expect.objectContaining({
+          __dhId: `root/test.component/${ELEMENT_NAME.panel}`,
+        })
+      );
+    });
+  });
 });
 
 describe('getPreservedData', () => {
@@ -128,6 +240,19 @@ describe('getPreservedData', () => {
 
     const actual = getPreservedData(widgetData);
     expect(actual).toEqual({ panelIds: widgetData.panelIds });
+  });
+  it('should preserve the panel key map', () => {
+    const widgetData = {
+      panelIds: ['1'],
+      panelKeyMap: { '["a"]': '1' },
+      panelStates: { '1': [] },
+    };
+
+    const actual = getPreservedData(widgetData);
+    expect(actual).toEqual({
+      panelIds: widgetData.panelIds,
+      panelKeyMap: widgetData.panelKeyMap,
+    });
   });
 });
 

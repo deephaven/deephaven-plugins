@@ -3,12 +3,74 @@ from contextlib import nullcontext
 from dataclasses import fields, is_dataclass
 import logging
 from typing import Any, Union
+import weakref
 
 from .._internal import RenderContext, remove_empty_keys
 from ..elements import Element, MemoizedElement, PropsType
+from ..elements.FunctionElement import COMPONENT_KEY_PROP
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
+
+_PANEL_ELEMENT_NAME = "deephaven.ui.components.Panel"
+
+# Props of a node that only passes its child through, like a component
+_PASS_THROUGH_PROPS = {"children", COMPONENT_KEY_PROP}
+
+# List contexts already warned about panels without keys, so each list only warns once
+_missing_panel_key_contexts: weakref.WeakSet[RenderContext] = weakref.WeakSet()
+
+
+def _get_panel(node: Any) -> tuple[RenderedNode, bool] | None:
+    """
+    Get the panel a list item renders, looking through components that render a single child.
+
+    Args:
+        node: The rendered list item.
+
+    Returns:
+        The panel and whether it or a component rendering it has a key, or None if the item isn't a panel.
+    """
+    is_keyed = False
+    while isinstance(node, RenderedNode):
+        props = node.props or {}
+        if node.name == _PANEL_ELEMENT_NAME:
+            return node, is_keyed or props.get("key") is not None
+        if not set(props.keys()) <= _PASS_THROUGH_PROPS:
+            return None
+        is_keyed = is_keyed or props.get(COMPONENT_KEY_PROP) is not None
+        node = props.get("children")
+    return None
+
+
+def _warn_missing_panel_keys(items: list[Any], context: RenderContext) -> None:
+    """
+    Warn once per list when it has more than one panel and any of them has no key.
+    Like React list items, the client identifies panels by key, so unkeyed panels shift when the list changes.
+
+    Args:
+        items: The rendered list items.
+        context: The context of the list.
+    """
+    if context in _missing_panel_key_contexts:
+        return
+    panels = [panel for panel in map(_get_panel, items) if panel is not None]
+    if len(panels) < 2:
+        return
+    unkeyed_titles = [
+        str((panel.props or {}).get("title", "Untitled"))
+        for panel, is_keyed in panels
+        if not is_keyed
+    ]
+    if len(unkeyed_titles) == 0:
+        return
+    _missing_panel_key_contexts.add(context)
+    logger.warning(
+        "Each panel in a list should have a unique key, so it keeps its place and "
+        "state when panels are added, removed or reordered. Add `key=` to the panel, "
+        "or to the component that returns it. Panels without a key: %s",
+        ", ".join(unkeyed_titles),
+    )
 
 
 def _render_child_item(
@@ -112,10 +174,12 @@ def _render_list_contents(
     Returns:
         The rendered list.
     """
-    return [
+    rendered = [
         _render_child_item(value, context, str(key), is_dirty_render)
         for key, value in enumerate(item)
     ]
+    _warn_missing_panel_keys(rendered, context)
+    return rendered
 
 
 def _render_dict(

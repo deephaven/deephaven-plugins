@@ -16,6 +16,9 @@ export type WidgetData = {
   /** Panel IDs that are opened by this widget */
   panelIds?: readonly string[];
 
+  /** Panel ID of each open keyed panel, by the panel's serialized key path */
+  panelKeyMap?: Readonly<Record<string, string>>;
+
   /** State of the widget on the Python side */
   state?: Record<string, unknown>;
 

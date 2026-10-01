@@ -14,8 +14,12 @@ export interface ReactPanelManager {
    */
   metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
-  /** Triggered when a panel is opened */
-  onOpen: (panelId: string) => void;
+  /**
+   * Triggered when a panel is opened
+   * @param panelId The panelId of the opened panel
+   * @param panelKey The serialized key path of the panel, if it has one
+   */
+  onOpen: (panelId: string, panelKey?: string) => void;
 
   /** Triggered when a panel is closed */
   onClose: (panelId: string) => void;
@@ -36,8 +40,9 @@ export interface ReactPanelManager {
 
   /**
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
+   * @param panelKey The serialized key path of the panel. A keyed panel gets the same id on every load.
    */
-  getPanelId: () => string;
+  getPanelId: (panelKey?: string) => string;
 }
 
 /** Interface for using a react panel */
@@ -86,8 +91,9 @@ export function useReactPanelManager(): ReactPanelManager {
  * DO NOT call this hook anywhere except once in ReactPanel.
  * Use the controls for a single react panel.
  * Otherwise panelIds will be generated/rehydrated incorrectly.
+ * @param panelKey The serialized key path of the panel, if it has one
  */
-export function useReactPanel(): ReactPanelControl {
+export function useReactPanel(panelKey?: string): ReactPanelControl {
   const {
     metadata,
     onClose,
@@ -96,12 +102,15 @@ export function useReactPanel(): ReactPanelControl {
     getPanelId,
     getInitialData,
   } = useReactPanelManager();
-  const panelId = useMemo(() => getPanelId(), [getPanelId]);
+  const panelId = useMemo(() => getPanelId(panelKey), [getPanelId, panelKey]);
 
   return {
     metadata,
     onClose: useCallback(() => onClose(panelId), [onClose, panelId]),
-    onOpen: useCallback(() => onOpen(panelId), [onOpen, panelId]),
+    onOpen: useCallback(
+      () => onOpen(panelId, panelKey),
+      [onOpen, panelId, panelKey]
+    ),
     onDataChange: useCallback(
       (data: unknown[]) => onDataChange(panelId, data),
       [onDataChange, panelId]
