@@ -6,6 +6,7 @@ import itertools
 import os
 import threading
 import logging
+import weakref
 from types import CodeType, FrameType
 from typing import (
     Any,
@@ -81,19 +82,55 @@ The serializable state of a RenderContext. Used to serialize the state for the c
 """
 
 
-class RestoredStateMismatchError(Exception):
-    """
-    Raised by the first render after a state import, before the effects of the mismatched context run, when the
-    component used a different number of hooks than when the state was saved, so the restored values can't be trusted.
-    Contexts that finished rendering earlier in the same pass may already have run their effects.
-    """
-
-
 _UI_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 _MAX_HOOK_SITE_DEPTH = 64
 _is_library_file_cache: Dict[str, bool] = {}
+_code_fingerprint_cache: weakref.WeakKeyDictionary[
+    CodeType, str
+] = weakref.WeakKeyDictionary()
 _function_element_render_code: Optional[CodeType] = None
 _HAS_CO_POSITIONS = hasattr(CodeType, "co_positions")
+
+
+def _const_fingerprint(const: Any) -> str:
+    """
+    Get a representation of a code object constant that is the same in every process.
+
+    Args:
+        const: A value from `co_consts`.
+
+    Returns:
+        A string identifying the constant.
+    """
+    if isinstance(const, CodeType):
+        return _get_code_fingerprint(const)
+    if isinstance(const, tuple):
+        return "(" + ",".join(_const_fingerprint(item) for item in const) + ")"
+    if isinstance(const, frozenset):
+        # Set iteration order depends on the per-process string hash seed
+        return "{" + ",".join(sorted(_const_fingerprint(item) for item in const)) + "}"
+    return repr(const)
+
+
+def _get_code_fingerprint(code: CodeType) -> str:
+    """
+    Get a hash of the code of a function, so saved state can be discarded when the code that saved it changes.
+    Line numbers aren't part of it, so moving the function within its file doesn't change it.
+
+    Args:
+        code: The code object to fingerprint.
+
+    Returns:
+        A short hash of the bytecode, names and constants of the code.
+    """
+    fingerprint = _code_fingerprint_cache.get(code)
+    if fingerprint is None:
+        digest = hashlib.blake2b(code.co_code, digest_size=6)
+        digest.update(repr(code.co_names).encode())
+        digest.update(_const_fingerprint(code.co_consts).encode())
+        fingerprint = digest.hexdigest()
+        _code_fingerprint_cache[code] = fingerprint
+    return fingerprint
 
 
 def _is_library_file(filename: str) -> bool:
@@ -181,7 +218,9 @@ def _get_hook_site(frame: FrameType | None) -> str:
             position = _get_call_position(frame)
             # Module name rather than file path, so moving the install directory doesn't change the site
             module = frame.f_globals.get("__name__") or code.co_filename
-            parts.append(f"{module}:{name}:{line}:{position}")
+            # Values saved by an older version of the code may not fit the new code, e.g. a changed type
+            fingerprint = _get_code_fingerprint(code)
+            parts.append(f"{module}:{name}:{line}:{position}:{fingerprint}")
         frame = frame.f_back
         depth += 1
     return hashlib.blake2b(">".join(parts).encode(), digest_size=6).hexdigest()
@@ -361,11 +400,6 @@ class RenderContext:
     Saved call sites of imported values that haven't been checked against the current hooks yet.
     """
 
-    _restored_hook_count: Optional[int]
-    """
-    Hook count saved with the imported state, checked at the end of the first render after the import.
-    """
-
     def __init__(self, root: RootRenderContextProtocol):
         """
         Create a new render context.
@@ -391,7 +425,6 @@ class RenderContext:
         self._hook_setters = {}
         self._hook_sites = {}
         self._restored_sites = {}
-        self._restored_hook_count = None
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -453,20 +486,7 @@ class RenderContext:
                     cleanup()
                 self._open_context_cleanups = []
 
-                # Checked before this context's effects run, so they aren't committed for a rejected restore
-                restored_hook_count = self._restored_hook_count
-                self._restored_hook_count = None
                 self._restored_sites = {}
-                used_hook_count = self._hook_index + 1
-                if (
-                    restored_hook_count is not None
-                    and restored_hook_count != used_hook_count
-                ):
-                    raise RestoredStateMismatchError(
-                        "Saved state was for {} hooks, but the component used {}".format(
-                            restored_hook_count, used_hook_count
-                        )
-                    )
 
                 # Reset the dirty state before processing effects, so that any state changes in effects will mark the context as dirty for the next render.
                 self.mark_clean()
@@ -850,8 +870,6 @@ class RenderContext:
             }
             if len(sites) > 0:
                 exported_state["sites"] = sites
-            if self._hook_count >= 0:
-                exported_state["hooks"] = self._hook_count
 
         # Now iterate through all the children contexts, and only include them in the export if they're not empty
         def retained_children(children: ChildrenContextDict):
@@ -880,18 +898,16 @@ class RenderContext:
 
         values = state.get("state")
         if values:
-            is_checked = "hooks" in state
             # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
             sites = {int(key): site for key, site in state.get("sites", {}).items()}
             for key, value in values.items():
                 index = int(key)
-                if is_checked and index not in sites:
+                # State saved before call sites were recorded has none, so its values can't be checked
+                if sites and index not in sites:
                     continue
                 self._state[index] = ValueWithLiveness(value=value, liveness_scope=None)
                 if index in sites:
                     self._restored_sites[index] = sites[index]
-            if is_checked:
-                self._restored_hook_count = state["hooks"]
 
         if "children" in state:
             for key, child_state in state["children"].items():
@@ -914,7 +930,6 @@ class RenderContext:
         self._hook_setters.clear()
         self._hook_sites = {}
         self._restored_sites = {}
-        self._restored_hook_count = None
         self._cache = None
 
         # Run every cleanup even if one raises, so no removed context keeps its subscriptions alive

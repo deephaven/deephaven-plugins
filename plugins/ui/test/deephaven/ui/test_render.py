@@ -4,7 +4,6 @@ import sys
 from deephaven.ui._internal.RenderContext import (
     RenderContext,
     OnChangeCallable,
-    RestoredStateMismatchError,
 )
 from typing import Any, Callable, Dict, List
 from unittest.mock import Mock, patch
@@ -148,7 +147,7 @@ class RenderExportTestCase(BaseTestCase):
                 rc.init_state(rc.next_hook_index(), i + 1)
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}, "hooks": 3})
+        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}})
 
     def test_export_nested_state(self):
         rc = make_render_context()
@@ -169,12 +168,10 @@ class RenderExportTestCase(BaseTestCase):
             state,
             {
                 "state": {0: 1},
-                "hooks": 1,
                 "children": {
                     "0": {
                         "state": {0: 2, 1: 3},
-                        "hooks": 2,
-                        "children": {"0": {"state": {0: 4, 1: 5}, "hooks": 2}},
+                        "children": {"0": {"state": {0: 4, 1: 5}}},
                     }
                 },
             },
@@ -219,7 +216,7 @@ class RenderImportTestCase(BaseTestCase):
 
     def test_import_basic_state(self):
         rc = make_render_context()
-        state = {"state": {0: 3}, "sites": {0: "site"}, "hooks": 1}
+        state = {"state": {0: 3}, "sites": {0: "site"}}
         rc.import_state(state)
         with rc.open():
             rc.next_hook_index()
@@ -231,17 +228,14 @@ class RenderImportTestCase(BaseTestCase):
         state = {
             "state": {0: 1},
             "sites": {0: "a"},
-            "hooks": 1,
             "children": {
                 "0": {
                     "state": {0: 2, 1: 3},
                     "sites": {0: "b", 1: "c"},
-                    "hooks": 2,
                     "children": {
                         "0": {
                             "state": {0: 4, 1: 5},
                             "sites": {0: "d", 1: "e"},
-                            "hooks": 2,
                         }
                     },
                 }
@@ -337,7 +331,7 @@ class RenderUnmountChildrenTestCase(BaseTestCase):
             rc.next_hook_index()
 
         state = rc.export_state()
-        self.assertEqual(state, {"state": {0: 1}, "hooks": 1})
+        self.assertEqual(state, {"state": {0: 1}})
 
 
 def render_component(rc: RenderContext, fn: Callable[[], Any]) -> None:
@@ -431,12 +425,13 @@ class RenderRestoreTestCase(BaseTestCase):
 
         regions = ["Americas", "Europe", "Asia"]
         effect_calls: List[Any] = []
+        rendered: List[Any] = []
 
         def component():
-            for region in regions:
-                use_memo(lambda r=region: r.upper(), [region])
-            use_state(regions[0])
+            labels = [use_memo(lambda r=region: r.upper(), [region]) for region in regions]  # fmt: skip
+            selected, _ = use_state(regions[0])
             use_effect(lambda: effect_calls.append(len(regions)), [])
+            rendered.append((labels, selected))
 
         rc = make_render_context()
         render_component(rc, component)
@@ -444,14 +439,11 @@ class RenderRestoreTestCase(BaseTestCase):
         effect_calls.clear()
 
         regions.append("Africa")
-        restored = save_and_restore(rc)
-        # The saved string must not reach the new memo in its slot
-        with self.assertRaises(RestoredStateMismatchError):
-            render_component(restored, component)
-        self.assertEqual(effect_calls, [])
-
-        restored.import_state({})
-        render_component(restored, component)
+        # The saved string's slot now belongs to a memo, so it is discarded instead of reaching it
+        render_component(save_and_restore(rc), component)
+        self.assertEqual(
+            rendered[-1], (["AMERICAS", "EUROPE", "ASIA", "AFRICA"], "Americas")
+        )
         self.assertEqual(effect_calls, [4])
 
     def test_restore_with_different_hook_count_in_child(self):
@@ -459,7 +451,9 @@ class RenderRestoreTestCase(BaseTestCase):
         from deephaven.ui.hooks import use_memo, use_state
 
         regions = ["Americas", "Europe"]
+        parent_values: List[Any] = []
         child_values: List[Any] = []
+        parent_setters: List[Callable[[Any], None]] = []
         child_setters: List[Callable[[Any], None]] = []
 
         @ui.component
@@ -471,20 +465,20 @@ class RenderRestoreTestCase(BaseTestCase):
             child_values.append(value)
 
         def parent():
-            use_state("parent")
+            value, set_value = use_state("parent")
+            parent_setters.append(set_value)
+            parent_values.append(value)
             return child()
 
         rc = make_render_context()
         render_component(rc, parent)
+        parent_setters[-1]("saved parent")
         child_setters[-1]("Europe")
 
         regions.append("Africa")
-        restored = save_and_restore(rc)
-        with self.assertRaises(RestoredStateMismatchError):
-            render_component(restored, parent)
-
-        restored.import_state({})
-        render_component(restored, parent)
+        render_component(save_and_restore(rc), parent)
+        # Only the child's value is discarded, the parent's hooks didn't change
+        self.assertEqual(parent_values[-1], "saved parent")
         self.assertEqual(child_values[-1], "Americas")
 
     def test_restore_keeps_old_format_state(self):
@@ -527,6 +521,30 @@ class RenderRestoreTestCase(BaseTestCase):
             save_and_restore(rc), load_component("/new/site-packages/user_module.py")
         )
         self.assertEqual(values[-1], "Europe")
+
+    def test_restore_discards_values_when_the_component_code_changes(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+        old_source = "def component():\n    x, _ = use_state('Hello')\n    y, _ = use_state(42)\n    values.append((x, y + 1))\n"
+        new_source = "def component():\n    x, _ = use_state('Goodbye')\n    y, _ = use_state('Foo')\n    values.append((x, y.upper()))\n"
+
+        def load_component(source: str) -> Callable[[], None]:
+            namespace = {
+                "__name__": "user_module",
+                "use_state": use_state,
+                "values": values,
+            }
+            exec(compile(source, "<string>", "exec"), namespace)
+            return namespace["component"]
+
+        rc = make_render_context()
+        render_component(rc, load_component(old_source))
+        rc.set_state(0, "Hi")
+
+        restored = save_and_restore(rc)
+        render_component(restored, load_component(new_source))
+        self.assertEqual(values[-1], ("Goodbye", "FOO"))
 
     def test_is_library_file(self):
         import inspect

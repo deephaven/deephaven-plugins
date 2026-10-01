@@ -101,7 +101,9 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
             json.loads(messages[0]["params"][1])["state"], {"6": "Americas"}
         )
 
-    def test_restore_with_different_hook_count_renders_without_saved_state(self):
+    def test_restore_with_different_hook_count_discards_only_the_mismatched_value(
+        self,
+    ):
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import (
             ElementMessageStream,
@@ -116,28 +118,36 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
             region, _ = ui.use_state("Americas")
             return ui.text(region)
 
-        stream, _ = self._make_stream(region_text())
+        @ui.component
+        def app():
+            name, _ = ui.use_state("default name")
+            return ui.flex(ui.text(name), region_text())
+
+        stream, _ = self._make_stream(app())
         stream._render()
-        saved = stream._context.export_state()
-        saved["state"][2 * len(regions)] = "Europe"
-        saved = json.loads(json.dumps(saved))
+        saved = json.loads(
+            json.dumps(stream._context.export_state())
+            .replace('"default name"', '"saved name"')
+            .replace('"Americas"', '"Europe"')
+        )
 
         regions.append("Asia")
-        restored, connection = self._make_stream(region_text())
+        restored, connection = self._make_stream(app())
         with patch.object(ElementMessageStream, "_queue_render"):
             restored._set_state(saved)
-        with self.assertLogs(
-            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
-        ) as logs:
+        # Rendering again without any saved state would also lose the parent's value
+        with patch.object(
+            restored._context, "import_state", wraps=restored._context.import_state
+        ) as import_state:
             restored._render()
-        self.assertIn("RestoredStateMismatchError", logs.output[0])
+        import_state.assert_not_called()
 
         messages = _sent_messages(connection)
         self.assertEqual([m["method"] for m in messages], ["documentPatched"])
-        self.assertEqual(
-            json.loads(messages[0]["params"][1])["state"],
-            {str(2 * len(regions)): "Americas"},
-        )
+        state = messages[0]["params"][1]
+        self.assertIn('"saved name"', state)
+        self.assertIn('"Americas"', state)
+        self.assertNotIn('"Europe"', state)
 
     def test_failed_restore_render_cleans_up_sibling_effects_before_retry(self):
         import deephaven.ui as ui
