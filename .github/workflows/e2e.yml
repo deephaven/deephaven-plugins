@@ -107,8 +107,8 @@ jobs:
           retention-days: 30
 
   e2e-test:
-    if: ${{ always() }}
-    runs-on: ubuntu-24.04
+    if: ${{ always() && (github.repository_owner == 'deephaven' || github.event_name != 'schedule') }}
+    runs-on: ubuntu-22.04
     needs: [e2e-tests, merge-reports]
     steps:
       - name: Fail if any tests failed or cancelled
