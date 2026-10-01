@@ -835,15 +835,39 @@ class UITableTestCase(BaseTestCase):
         self.assertEqual([c.name for c in result.columns], ["Y"])
         self.assertEqual(self._column_values(result, "Y"), [0, 2])
 
-    def test_rollup_table_context_menu_not_wrapped(self):
+    def test_rollup_table_context_menu_wrapped(self):
         import deephaven.ui as ui
         from deephaven import agg
 
-        def callback(data):
-            pass
+        captured: list = []
 
         rollup = self.source.rollup(aggs=[agg.sum_("Y")], by=["X"])
-        t = ui.table(rollup, context_menu={"title": "Act", "action": callback})
+        t = ui.table(rollup, context_menu={"title": "Act", "action": captured.append})
 
-        # Rollup/tree tables cannot resolve a selection, so items stay untouched.
-        self.assertIs(t.render()["contextMenu"]["action"], callback)
+        # Wrapped even though the source is hierarchical, so the callback sees a
+        # clean payload and a clear error rather than the raw internal fields.
+        t.render()["contextMenu"][0]["action"]({"selected_ranges": []})
+        data = captured[0]
+
+        self.assertNotIn("selected_ranges", data)
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+        self.assertIn("rollup", str(cm.exception))
+
+    def test_uri_table_context_menu_wrapped(self):
+        import deephaven.ui as ui
+
+        captured: list = []
+
+        # A URI source resolves to a UriElement, not a Table; the model table the
+        # client injects is what the selection actually resolves against.
+        t = ui.table(
+            "dh+plain://host/scope/t",
+            context_menu={"title": "Act", "action": captured.append},
+        )
+
+        t.render()["contextMenu"][0]["action"](
+            {"_table": self.source, "selected_ranges": [{"start_row": 1, "end_row": 2}]}
+        )
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [1, 2])

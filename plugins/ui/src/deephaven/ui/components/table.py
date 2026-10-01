@@ -376,7 +376,7 @@ class _ContextMenuData(dict):
         return key == "selected_rows" or super().__contains__(key)
 
 
-def _add_selected_rows(data: dict, tbl: Table) -> dict:
+def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> dict:
     """Enrich a context menu callback data dict with a ``selected_rows`` Table.
 
     Pops the internal ``_table``, ``_visible_columns``, ``selected_ranges`` and
@@ -388,8 +388,9 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
 
     Args:
         data: Raw callback params dict received from the JS callable invocation.
-        tbl: The Python-side source Table (used as fallback when no ``_table``
-            reference was injected by JS).
+        tbl: The Python-side source passed to ``ui.table``, used as a fallback when
+            no ``_table`` reference was injected by JS. May not be a ``Table`` (for
+            example a URI element or a hierarchical table).
 
     Returns:
         A copy of *data* with ``selected_rows`` available and internal keys removed.
@@ -402,12 +403,16 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
     selected_ranges = data.pop("selected_ranges", [])
 
     def resolve() -> Table:
-        # A rollup or tree applied in the UI replaces the model table with a
-        # hierarchical one, whose rows are aggregates rather than source rows.
-        if not isinstance(model_tbl, Table):
+        # Rows of a rollup or tree are aggregates rather than source rows. The UI
+        # can also apply one on top of a plain Table, swapping the model table out.
+        if isinstance(model_tbl, (RollupTable, TreeTable)):
             raise ValueError(
                 "ui.table context menu selection is not supported for rollup or "
                 "tree tables."
+            )
+        if not isinstance(model_tbl, Table):
+            raise ValueError(
+                "ui.table context menu selection is unavailable for this table."
             )
         # The client sends a marker instead of the keys when there are too many to
         # serialize. Raise only here, so actions that ignore the selection still run.
@@ -430,7 +435,7 @@ def _add_selected_rows(data: dict, tbl: Table) -> dict:
 
 def _wrap_context_menu_item(
     item: ResolvableContextMenuItem,
-    tbl: Table,
+    tbl: TableLike | UriElement,
 ) -> Any:
     """Wrap a context menu item so its callbacks receive ``selected_rows`` instead of raw ``selected_ranges``.
 
@@ -695,24 +700,22 @@ class table(Element):
         props["table"] = resolve(table) if isinstance(table, str) else table
 
         tbl = props["table"]
-        if isinstance(tbl, Table):
-            # Wrap context menu items so user callbacks receive `selected_rows` (a
-            # snapshot Table) instead of the raw `selected_ranges` indices from JS.
-            # Only possible for plain Table - RollupTable/TreeTable lack slice support.
-            if context_menu is not None:
-                items = (
-                    context_menu if isinstance(context_menu, list) else [context_menu]
-                )
-                props["context_menu"] = [_wrap_context_menu_item(i, tbl) for i in items]
-            if context_header_menu is not None:
-                items = (
-                    context_header_menu
-                    if isinstance(context_header_menu, list)
-                    else [context_header_menu]
-                )
-                props["context_header_menu"] = [
-                    _wrap_context_menu_item(i, tbl) for i in items
-                ]
+        # Wrap regardless of the source type so callbacks always receive
+        # `selected_rows` rather than the raw internal fields. The resolver works
+        # off the model table the client sends, which is a real Table even when
+        # `tbl` is not (a URI element), and rejects hierarchical ones.
+        if context_menu is not None:
+            items = context_menu if isinstance(context_menu, list) else [context_menu]
+            props["context_menu"] = [_wrap_context_menu_item(i, tbl) for i in items]
+        if context_header_menu is not None:
+            items = (
+                context_header_menu
+                if isinstance(context_header_menu, list)
+                else [context_header_menu]
+            )
+            props["context_header_menu"] = [
+                _wrap_context_menu_item(i, tbl) for i in items
+            ]
 
         del props["self"]
         self._props = props
