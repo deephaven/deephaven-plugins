@@ -58,6 +58,7 @@ import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
+import { KEY_PATH_PROP, type KeyPathProps } from '../layout/LayoutUtils';
 import {
   Accordion,
   ActionButton,
@@ -123,6 +124,44 @@ const shouldWrapTextChildren = new Set<string>([
 ]);
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
+
+/** Prop the server uses to send a component's key, which isn't part of `__dhId` */
+export const COMPONENT_KEY_PROP = '__dhKey';
+
+/** Elements whose keys identify panels, so they get their key path in `__dhKeyPath` */
+const keyPathElementNames = new Set<string>([
+  ELEMENT_NAME.column,
+  ELEMENT_NAME.panel,
+  ELEMENT_NAME.row,
+  ELEMENT_NAME.stack,
+]);
+
+const keyPathComponents = new Set<unknown>([Column, ReactPanel, Row, Stack]);
+
+/**
+ * Prepend a component's key to the key path of a panel or layout element it renders.
+ * @param child Child rendered by the component
+ * @param componentKey Key of the component
+ * @param isOnlyChild Whether the child is the component's only child, in which case it also takes the key for React
+ * @returns The child with the component key in its key path
+ */
+function prependComponentKey(
+  child: React.ReactNode,
+  componentKey: string,
+  isOnlyChild: boolean
+): React.ReactNode {
+  if (!React.isValidElement<KeyPathProps>(child)) {
+    return child;
+  }
+  if (!keyPathComponents.has(child.type)) {
+    return child;
+  }
+  const keyPath = child.props[KEY_PATH_PROP] ?? [];
+  return React.cloneElement(child, {
+    [KEY_PATH_PROP]: [componentKey, ...keyPath],
+    ...(isOnlyChild ? { key: componentKey } : {}),
+  });
+}
 
 /*
  * Map element node names to their corresponding React components
@@ -260,11 +299,31 @@ export function getComponentForElement(
           />
         );
       }
+      if (
+        keyPathElementNames.has(newElement[ELEMENT_KEY]) &&
+        props?.key != null
+      ) {
+        props[KEY_PATH_PROP] = [`${props.key}`];
+      }
       return <Component {...props} />;
     }
   }
 
-  return newElement.props?.children as JSX.Element | null;
+  const children = newElement.props?.children as React.ReactNode;
+  const componentKey = newElement.props?.[COMPONENT_KEY_PROP];
+  if (componentKey == null) {
+    return children as JSX.Element | null;
+  }
+  if (Array.isArray(children)) {
+    return children.map(child =>
+      prependComponentKey(child, `${componentKey}`, false)
+    ) as unknown as JSX.Element;
+  }
+  return prependComponentKey(
+    children,
+    `${componentKey}`,
+    true
+  ) as JSX.Element | null;
 }
 
 /**
@@ -347,7 +406,10 @@ export function transformNode(
 }
 
 /** Data keys of a widget to preserve across re-opening. */
-const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = ['panelIds'];
+const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = [
+  'panelIds',
+  'panelKeyMap',
+];
 const PRESERVED_DATA_KEYS_SET = new Set<string>(PRESERVED_DATA_KEYS);
 
 /**
