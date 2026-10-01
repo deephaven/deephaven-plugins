@@ -34,6 +34,36 @@ type DashboardData = {
   widgetData?: WidgetData;
 };
 
+type NestedDashboardContentProps = React.PropsWithChildren<{
+  initialWidgetData?: WidgetData;
+  onDataChange: (data: WidgetData) => void;
+}>;
+
+/**
+ * Rendered inside the nested dashboard so the panel manager uses the nested layout.
+ */
+function NestedDashboardContent({
+  children,
+  initialWidgetData,
+  onDataChange,
+}: NestedDashboardContentProps): JSX.Element {
+  const { descriptor: widget } = useWidgetStatus();
+  const panelManager = usePanelManager({
+    widget,
+    onDataChange,
+    initialData: initialWidgetData,
+  });
+
+  return (
+    <ReactPanelManagerContext.Provider value={panelManager}>
+      {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
+      <ReactPanelContext.Provider value={null}>
+        <DashboardContent>{children}</DashboardContent>
+      </ReactPanelContext.Provider>
+    </ReactPanelManagerContext.Provider>
+  );
+}
+
 /**
  * A dashboard that can be nested inside a panel.
  * Creates its own GoldenLayout instance and manages panels independently.
@@ -43,7 +73,6 @@ function NestedDashboard({
   children,
   showHeaders = true,
 }: NestedDashboardProps): JSX.Element {
-  const { descriptor: widget } = useWidgetStatus();
   const plugins = useDashboardPlugins();
   const [dashboardData, setDashboardData] = usePersistentState<
     DashboardData | undefined
@@ -106,12 +135,6 @@ function NestedDashboard({
     [flushDataChange]
   );
 
-  const panelManager = usePanelManager({
-    widget,
-    onDataChange: handleDataChange,
-    initialData: initialWidgetData,
-  });
-
   return (
     <div className="dh-nested-dashboard">
       {/* DHCDashboard creates GoldenLayout and provides LayoutManagerContext */}
@@ -129,12 +152,12 @@ function NestedDashboard({
         <PortalPanelManager>
           {layoutInitialized && (
             <InitialLayoutConfigContext.Provider value={initialLayoutConfig}>
-              <ReactPanelManagerContext.Provider value={panelManager}>
-                {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
-                <ReactPanelContext.Provider value={null}>
-                  <DashboardContent>{children}</DashboardContent>
-                </ReactPanelContext.Provider>
-              </ReactPanelManagerContext.Provider>
+              <NestedDashboardContent
+                initialWidgetData={initialWidgetData}
+                onDataChange={handleDataChange}
+              >
+                {children}
+              </NestedDashboardContent>
             </InitialLayoutConfigContext.Provider>
           )}
         </PortalPanelManager>

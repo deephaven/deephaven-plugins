@@ -480,4 +480,71 @@ def ${changed}():
     await expect(restoredPanel.getByLabel('Greeting')).toHaveValue('Goodbye');
     await expect(restoredPanel.getByLabel('Unchanged')).toHaveValue('Kept');
   });
+
+  // Panel count: the widget's saved state decides how many panels it renders
+  // after a refresh, so the refreshed document can have more or fewer panels
+  // than the saved layout.
+  test.describe('panel count changes across a refresh', () => {
+    function panelTab(scope: Locator, title: string): Locator {
+      return scope.locator('.lm_tab', {
+        hasText: new RegExp(`^\\s*${title}\\s*$`),
+      });
+    }
+
+    /**
+     * Opens the panel count widget, saves a new panel count, and refreshes.
+     * @param page The page
+     * @param count The panel count to save
+     * @returns The restored widget panel
+     */
+    async function refreshWithPanelCount(
+      page: Page,
+      count: number
+    ): Promise<Locator> {
+      await gotoPage(page, '');
+      await openPanel(
+        page,
+        'ui_persist_panel_count',
+        SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE,
+        true
+      );
+      const outerPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expect(panelTab(outerPanel, 'Panel 3')).toHaveCount(1);
+
+      await panelTab(outerPanel, 'Panel Count').click();
+      const countField = outerPanel.getByLabel('Panel Count', { exact: true });
+      await countField.fill(String(count));
+      await countField.press('Enter');
+      await expect(countField).toHaveValue(String(count));
+
+      await persistLayoutAndReload(page);
+
+      const restoredPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expect(restoredPanel).toBeVisible();
+      return restoredPanel;
+    }
+
+    test('fewer panels removes the extra saved panel', async ({ page }) => {
+      const restoredPanel = await refreshWithPanelCount(page, 2);
+
+      await expect(panelTab(restoredPanel, 'Panel 1')).toHaveCount(1);
+      await expect(panelTab(restoredPanel, 'Panel 2')).toHaveCount(1);
+      await expect(panelTab(restoredPanel, 'Panel 3')).toHaveCount(0);
+      await expect(restoredPanel.locator('.ui-portal-panel:empty')).toHaveCount(
+        0
+      );
+    });
+
+    test('more panels opens the new panel', async ({ page }) => {
+      const restoredPanel = await refreshWithPanelCount(page, 4);
+
+      await expect(panelTab(restoredPanel, 'Panel 4')).toHaveCount(1);
+      await panelTab(restoredPanel, 'Panel 4').click();
+      await expect(restoredPanel.getByText('Panel 4 content')).toBeVisible();
+    });
+  });
 });

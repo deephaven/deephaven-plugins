@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+
+## ag-grid-v0.5.5 - 2026-09-25
+
+#### Bug Fixes
+
+- **(ag-grid)** drop plotly.js from the dependency tree ([#1420](https://github.com/deephaven/deephaven-plugins/pull/1420)) - (3dffc87) - mofojed
+- DH-21776: Respect caseSensitive filterParams in AG Grid filters ([#1397](https://github.com/deephaven/deephaven-plugins/pull/1397)) - (015ca07) - mofojed
+
+- - -
+
 ## ag-grid-v0.5.4 - 2026-04-09
 #### Bug Fixes
 - (**ag-grid**) DH-21775: restore rows after clearing a filter that returned zero rows (#1328) - (68bdb98) - *mofojed*

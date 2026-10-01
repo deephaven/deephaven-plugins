@@ -14,7 +14,7 @@ import {
   ModalHeader,
 } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
-import type { TablePluginProps } from '@deephaven/plugin';
+import type { TablePluginProps } from '@deephaven/plugin/table';
 
 type IrisGridContextMenuData = {
   value: string;
