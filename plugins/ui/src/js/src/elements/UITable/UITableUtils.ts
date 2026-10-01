@@ -12,8 +12,13 @@ import {
   GridRange,
   isExpandableGridModel,
   type ModelIndex,
+  type RangedSelection,
 } from '@deephaven/grid';
-import { assertNotNull } from '@deephaven/utils';
+import { assertNotNull, ensureArray } from '@deephaven/utils';
+import {
+  type ContextAction,
+  type ResolvableContextAction,
+} from '@deephaven/components';
 import {
   ELEMENT_KEY,
   type ElementNode,
@@ -128,6 +133,21 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
+}
+
+/**
+ * Structural stand-in for `isRangedSelection`, which cannot be used here because
+ * it is an `instanceof` check. The host does not share `@deephaven/grid` with
+ * plugins, so this bundle has its own `RangedSelection` class while the selection
+ * is constructed from the host's copy, making `instanceof` always false.
+ * @param selection The selection to narrow
+ * @returns The selection as a RangedSelection, or null if it is not one
+ */
+export function asRangedSelection(selection: unknown): RangedSelection | null {
+  const candidate = selection as Partial<RangedSelection> | null;
+  return typeof candidate?.toRanges === 'function'
+    ? (candidate as RangedSelection)
+    : null;
 }
 
 /**
@@ -252,4 +272,62 @@ export function getSelectionDataMap(
     }
   }
   return dataMaps;
+}
+
+/**
+ * Recursively wraps ResolvableContextActions so that model.table is set as a
+ * callable reference immediately before each action fires. This ensures Python
+ * receives the sorted/filtered table rather than the original exported table.
+ */
+function wrapContextActionWithTableRef(
+  action: ContextAction,
+  tableRef: dh.Table | dh.TreeTable,
+  setRef: (refs: Array<dh.Table | dh.TreeTable>) => void
+): ContextAction {
+  return {
+    ...action,
+    ...(action.action != null
+      ? {
+          action: (event: Event) => {
+            setRef([tableRef]);
+            action.action?.(event);
+          },
+        }
+      : {}),
+    ...(action.actions != null
+      ? {
+          actions: wrapActionsWithTableRef(action.actions, tableRef, setRef),
+        }
+      : {}),
+  };
+}
+
+/**
+ * Recursively wraps ResolvableContextActions so that model.table is set as a
+ * callable reference immediately before each action fires. This ensures Python
+ * receives the sorted/filtered table rather than the original exported table.
+ */
+export function wrapActionsWithTableRef(
+  actions: readonly ResolvableContextAction[],
+  tableRef: dh.Table | dh.TreeTable,
+  setRef: (refs: Array<dh.Table | dh.TreeTable>) => void
+): ResolvableContextAction[] {
+  return actions.map(action => {
+    if (typeof action === 'function') {
+      return async (): Promise<ContextAction[]> => {
+        setRef([tableRef]);
+        const result = await action();
+        return ensureArray(result ?? []).map(item =>
+          wrapContextActionWithTableRef(item, tableRef, setRef)
+        );
+      };
+    }
+    if (action instanceof Promise) {
+      // Pre-resolved promise — no callable invocation, just wrap the resolved items.
+      return action.then(items =>
+        items.map(item => wrapContextActionWithTableRef(item, tableRef, setRef))
+      );
+    }
+    return wrapContextActionWithTableRef(action, tableRef, setRef);
+  });
 }

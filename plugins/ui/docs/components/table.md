@@ -635,6 +635,58 @@ t = ui.table(
 )
 ```
 
+### Action data
+
+The `action` callback receives a dictionary describing the cell that was clicked, along with the user's current selection.
+
+| Key                    | Type    | Description                                                                                      |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `value`                | `Any`   | The value of the cell.                                                                           |
+| `text`                 | `str`   | The rendered text of the cell.                                                                   |
+| `column_name`          | `str`   | The name of the column.                                                                          |
+| `is_column_header`     | `bool`  | Whether the menu was opened on a column header.                                                  |
+| `is_row_header`        | `bool`  | Whether the menu was opened on a row header.                                                     |
+| `always_fetch_columns` | `dict`  | Values for the columns named in [`always_fetch_columns`](#always-fetching-some-columns).         |
+| `selected_rows`        | `Table` | The selected rows as a Deephaven table. See [Acting on the selection](#acting-on-the-selection). |
+
+### Acting on the selection
+
+`data["selected_rows"]` is a static snapshot of the user's selection as a Deephaven table, so you can pass it to any table operation, plot it, or display it in another component.
+
+The snapshot reflects what the user actually sees, including sorts, quick filters, column moves, and hidden columns applied in the UI. Selecting individual cells yields the full row, matching the rest of the Deephaven UI. If nothing is selected, the result is an empty table with the same schema.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+@ui.component
+def selection_chart():
+    chart, set_chart = ui.use_state(None)
+
+    def plot_selection(data):
+        set_chart(dx.bar(data["selected_rows"], x="Sym", y="Price"))
+
+    return [
+        ui.table(
+            dx.data.stocks(ticking=False),
+            context_menu={"title": "Plot selection", "action": plot_selection},
+        ),
+        chart,
+    ]
+
+
+t = selection_chart()
+```
+
+The selection is resolved the first time you access `selected_rows`, so actions that never read it cost nothing.
+
+A few limits apply:
+
+- Selections larger than 10,000 rows raise a `ValueError`. Narrow the selection before acting on it.
+- Rollup and tree tables are not supported, because their rows are aggregates rather than source rows.
+- Rows are matched by position, which is only reliable while rows are not shifting. For a ticking table, create it with `with_keys` so the selection is matched by key value instead and stays correct as rows move.
+
 ### Sub-menus
 
 The `actions` prop is an array of menu items that will be displayed in a sub-menu. If you specify `actions`, you cannot specify an `action` for the menu item. The action will be to show the sub-menu. Sub-menus can contain other sub-menus for deeply nested menus.

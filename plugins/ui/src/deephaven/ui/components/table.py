@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal, Any, Union
 import logging
-from deephaven.table import RollupTable, TreeTable
+from deephaven.table import Table, RollupTable, TreeTable
 from ..elements import Element, resolve
 from ..elements.UriElement import UriElement
 from .types import AlignSelf, DimensionValue, JustifySelf, LayoutFlex, Position
@@ -229,6 +229,256 @@ def _validate_table_format(
                 raise ValueError("TableHeatmap gradient must have at least 2 colors.")
 
 
+_MAX_SELECTED_ROWS = 10_000
+"""Maximum rows a context menu selection may snapshot before it is rejected."""
+
+
+def _snapshot_selection(filtered: Table) -> Table:
+    """Snapshot a resolved selection, rejecting selections that are too large.
+
+    Args:
+        filtered: The resolved (still live) selection to snapshot.
+
+    Returns:
+        A static snapshot of *filtered*.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
+    """
+    size = filtered.size
+    if size > _MAX_SELECTED_ROWS:
+        raise ValueError(
+            f"ui.table selection of {size} rows exceeds the maximum of "
+            f"{_MAX_SELECTED_ROWS}. Narrow the selection before running this action."
+        )
+    return filtered.snapshot()
+
+
+def _resolve_selection(
+    selected_ranges: list[dict],
+    tbl: Table,
+) -> Table:
+    """Resolve a list of selected row ranges into a static snapshot Table.
+
+    Args:
+        selected_ranges: List of range dicts with ``start_row`` and ``end_row`` keys
+            (model-index positions in the sorted/filtered view).
+        tbl: The source Table to slice from.
+
+    Returns:
+        A static snapshot Table containing the selected rows.  An empty table
+        with the same schema is returned when ``selected_ranges`` is empty.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
+    """
+    from deephaven import merge
+
+    # Column bounds are ignored; a cell selection spans the full row per IrisGrid convention.
+    slices = [
+        tbl.slice(r["start_row"], r["end_row"] + 1)
+        for r in selected_ranges
+        if r.get("start_row") is not None and r.get("end_row") is not None
+    ]
+    combined = (
+        merge(slices) if len(slices) > 1 else slices[0] if slices else tbl.slice(0, 0)
+    )
+    return _snapshot_selection(combined)
+
+
+def _resolve_keyed_selection(
+    selected_keys: dict,
+    tbl: Table,
+) -> Table:
+    """Resolve a key-based selection into a static snapshot Table.
+
+    Mirrors IrisGrid's ``createFilteredByKeysTable``: an empty non-inverted
+    selection matches no rows, while an empty inverted selection matches all rows.
+
+    Args:
+        selected_keys: Dict with ``key_columns``, ``key_values`` and ``inverted``.
+            ``key_values`` holds one list of values per selected row, ordered to
+            match ``key_columns``.
+        tbl: The source Table to filter, in the sort/filter state the user sees.
+
+    Returns:
+        A static snapshot Table containing the selected rows.
+
+    Raises:
+        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
+    """
+    from deephaven import new_table
+    from deephaven.column import InputColumn
+
+    key_columns = selected_keys.get("key_columns") or []
+    key_values = selected_keys.get("key_values") or []
+    inverted = bool(selected_keys.get("inverted"))
+
+    if not key_columns or not key_values:
+        return _snapshot_selection(tbl if inverted else tbl.slice(0, 0))
+
+    # Build the filter columns with the source table's own dtypes. Letting
+    # new_table infer from the JSON values produces a mismatched (often PyObject)
+    # column type, which where_in rejects.
+    source_types = {c.name: c.data_type for c in tbl.columns}
+    key_table = new_table(
+        [
+            InputColumn(
+                name=name,
+                data_type=source_types[name],
+                input_data=[row[i] for row in key_values],
+            )
+            for i, name in enumerate(key_columns)
+            if name in source_types
+        ]
+    )
+    filtered = (
+        tbl.where_not_in(key_table, key_columns)
+        if inverted
+        else tbl.where_in(key_table, key_columns)
+    )
+    return _snapshot_selection(filtered)
+
+
+class _ContextMenuData(dict):
+    """Callback data whose ``selected_rows`` Table is resolved on first access.
+
+    Resolving a selection slices/filters and snapshots the table, and is subject to
+    ``_MAX_SELECTED_ROWS``. Most callbacks never look at the selection, so doing that
+    work eagerly would both waste time and reject large selections for actions that
+    do not care about them.
+
+    Note ``keys()``, ``items()`` and iteration only include ``selected_rows`` once it
+    has been accessed, since listing it would force the resolution this class exists
+    to avoid.
+    """
+
+    def __init__(self, data: dict, resolver: Any) -> None:
+        super().__init__(data)
+        self._resolver = resolver
+
+    def _resolve_selected_rows(self) -> Table:
+        if not super().__contains__("selected_rows"):
+            super().__setitem__("selected_rows", self._resolver())
+        return super().__getitem__("selected_rows")
+
+    def __getitem__(self, key: str) -> Any:
+        if key == "selected_rows":
+            return self._resolve_selected_rows()
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        if key == "selected_rows":
+            return self._resolve_selected_rows()
+        return super().get(key, default)
+
+    def __contains__(self, key: object) -> bool:
+        return key == "selected_rows" or super().__contains__(key)
+
+
+def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> dict:
+    """Enrich a context menu callback data dict with a ``selected_rows`` Table.
+
+    Pops the internal ``_table``, ``_visible_columns``, ``selected_ranges`` and
+    ``selected_keys`` entries from *data* and exposes the selection as
+    ``data["selected_rows"]``, resolved lazily on first access.
+
+    Keyed tables (created with ``with_keys``) send ``selected_keys`` and are matched
+    by value; all other tables send ``selected_ranges`` and are matched by position.
+
+    Args:
+        data: Raw callback params dict received from the JS callable invocation.
+        tbl: The Python-side source passed to ``ui.table``, used as a fallback when
+            no ``_table`` reference was injected by JS. May not be a ``Table`` (for
+            example a URI element or a hierarchical table).
+
+    Returns:
+        A copy of *data* with ``selected_rows`` available and internal keys removed.
+    """
+    data = dict(data)
+    # Use the model table injected by JS (sorted/filtered) when available.
+    model_tbl = data.pop("_table", tbl)
+    visible_columns = data.pop("_visible_columns", None)
+    selected_keys = data.pop("selected_keys", None)
+    selected_ranges = data.pop("selected_ranges", [])
+
+    def resolve() -> Table:
+        # Rows of a rollup or tree are aggregates rather than source rows. The UI
+        # can also apply one on top of a plain Table, swapping the model table out.
+        if isinstance(model_tbl, (RollupTable, TreeTable)):
+            raise ValueError(
+                "ui.table context menu selection is not supported for rollup or "
+                "tree tables."
+            )
+        if not isinstance(model_tbl, Table):
+            raise ValueError(
+                "ui.table context menu selection is unavailable for this table."
+            )
+        # The client sends a marker instead of the keys when there are too many to
+        # serialize. Raise only here, so actions that ignore the selection still run.
+        if selected_keys and selected_keys.get("too_large"):
+            raise ValueError(
+                f"ui.table selection of {selected_keys.get('count')} rows is too "
+                "large to send to the server. Narrow the selection before running "
+                "this action."
+            )
+        selected_rows = (
+            _resolve_keyed_selection(selected_keys, model_tbl)
+            if selected_keys
+            else _resolve_selection(selected_ranges, model_tbl)
+        )
+        # Apply column order/visibility to match what the user sees.
+        return selected_rows.view(visible_columns) if visible_columns else selected_rows
+
+    return _ContextMenuData(data, resolve)
+
+
+def _wrap_context_menu_item(
+    item: ResolvableContextMenuItem,
+    tbl: TableLike | UriElement,
+) -> Any:
+    """Wrap a context menu item so its callbacks receive ``selected_rows`` instead of raw ``selected_ranges``.
+
+    Handles all three item shapes:
+
+    * **Dynamic generator** (callable) - wrapped so the generator receives an
+      enriched data dict and its returned items are recursively wrapped.
+    * **Action item** (dict with ``"action"`` key) - the action callable is
+      wrapped to receive the enriched data dict.
+    * **Submenu item** (dict with ``"actions"`` key) - each nested item is
+      recursively wrapped.
+
+    Args:
+        item: A ``ResolvableContextMenuItem`` - either a callable generator or
+            an action/submenu dict.
+        tbl: The source Table passed to :func:`_add_selected_rows`.
+
+    Returns:
+        A wrapped version of *item* with the same shape.
+    """
+    if callable(item) and not isinstance(item, dict):
+
+        def wrapped_generator(data: Any, _item: Any = item) -> Any:
+            result = _item(_add_selected_rows(data, tbl))
+            if isinstance(result, list):
+                return [_wrap_context_menu_item(r, tbl) for r in result]
+            return _wrap_context_menu_item(result, tbl) if result is not None else None
+
+        return wrapped_generator
+    elif isinstance(item, dict):
+        wrapped = dict(item)
+        if "action" in wrapped and callable(wrapped["action"]):
+            wrapped["action"] = lambda data, _a=wrapped["action"]: _a(
+                _add_selected_rows(data, tbl)
+            )
+        if "actions" in wrapped and isinstance(wrapped["actions"], list):
+            wrapped["actions"] = [
+                _wrap_context_menu_item(a, tbl) for a in wrapped["actions"]
+            ]
+        return wrapped
+    return item
+
+
 def _normalize_table_sorts(
     sorts: TableSortLike | list[TableSortLike],
 ) -> list[dict[str, Any]]:
@@ -448,6 +698,25 @@ class table(Element):
             props["sorts"] = _normalize_table_sorts(sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
+
+        tbl = props["table"]
+        # Wrap regardless of the source type so callbacks always receive
+        # `selected_rows` rather than the raw internal fields. The resolver works
+        # off the model table the client sends, which is a real Table even when
+        # `tbl` is not (a URI element), and rejects hierarchical ones.
+        if context_menu is not None:
+            items = context_menu if isinstance(context_menu, list) else [context_menu]
+            props["context_menu"] = [_wrap_context_menu_item(i, tbl) for i in items]
+        if context_header_menu is not None:
+            items = (
+                context_header_menu
+                if isinstance(context_header_menu, list)
+                else [context_header_menu]
+            )
+            props["context_header_menu"] = [
+                _wrap_context_menu_item(i, tbl) for i in items
+            ]
+
         del props["self"]
         self._props = props
         self._key = props.get("key")

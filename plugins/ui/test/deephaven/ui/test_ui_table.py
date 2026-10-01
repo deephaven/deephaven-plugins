@@ -533,3 +533,341 @@ class UITableTestCase(BaseTestCase):
                 ],
             },
         )
+
+    def _column_values(self, tbl, name: str = "X") -> list:
+        import deephaven.pandas as dhpd
+
+        return dhpd.to_pandas(tbl)[name].tolist()
+
+    def _resolve_ranged(self, ranges: list[dict]):
+        from deephaven.ui.components.table import _resolve_selection
+
+        return _resolve_selection(ranges, self.source)
+
+    def test_resolve_selection_single_range(self):
+        result = self._resolve_ranged([{"start_row": 2, "end_row": 4}])
+
+        self.assertEqual(self._column_values(result), [2, 3, 4])
+
+    def test_resolve_selection_multiple_ranges(self):
+        # Ranges arrive already sorted ascending from the JS side.
+        result = self._resolve_ranged(
+            [
+                {"start_row": 0, "end_row": 1},
+                {"start_row": 5, "end_row": 6},
+            ]
+        )
+
+        self.assertEqual(self._column_values(result), [0, 1, 5, 6])
+
+    def test_resolve_selection_empty_preserves_schema(self):
+        result = self._resolve_ranged([])
+
+        self.assertEqual(result.size, 0)
+        self.assertEqual(
+            [c.name for c in result.columns], [c.name for c in self.source.columns]
+        )
+
+    def test_resolve_selection_skips_none_bounds(self):
+        result = self._resolve_ranged(
+            [
+                {"start_row": 1, "end_row": 2},
+                {"start_row": None, "end_row": None},
+            ]
+        )
+
+        self.assertEqual(self._column_values(result), [1, 2])
+
+    def _resolve_keyed(self, selected_keys: dict, tbl=None):
+        from deephaven.ui.components.table import _resolve_keyed_selection
+
+        return _resolve_keyed_selection(
+            selected_keys, self.source if tbl is None else tbl
+        )
+
+    def test_resolve_keyed_selection(self):
+        # X is an int column; inferring the key dtype from the JSON values yields
+        # long, which where_in rejects as a key type mismatch.
+        result = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [[3], [7]], "inverted": False}
+        )
+
+        self.assertEqual(self._column_values(result), [3, 7])
+
+    def test_resolve_keyed_selection_inverted(self):
+        result = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [[3], [7]], "inverted": True}
+        )
+
+        values = self._column_values(result)
+        self.assertEqual(len(values), 98)
+        self.assertNotIn(3, values)
+        self.assertNotIn(7, values)
+
+    def test_resolve_keyed_selection_empty_keys(self):
+        # Mirrors createFilteredByKeysTable: empty means "none" unless inverted.
+        none_selected = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [], "inverted": False}
+        )
+        self.assertEqual(none_selected.size, 0)
+
+        all_selected = self._resolve_keyed(
+            {"key_columns": ["X"], "key_values": [], "inverted": True}
+        )
+        self.assertEqual(all_selected.size, self.source.size)
+
+    def test_resolve_keyed_selection_multiple_key_columns(self):
+        from deephaven import empty_table
+
+        source = empty_table(5).update(["Name = `row` + i", "Amount = (long) i * 10"])
+
+        result = self._resolve_keyed(
+            {
+                "key_columns": ["Name", "Amount"],
+                "key_values": [["row1", 10], ["row3", 30]],
+                "inverted": False,
+            },
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Name"), ["row1", "row3"])
+        self.assertEqual(self._column_values(result, "Amount"), [10, 30])
+
+    def test_resolve_keyed_selection_null_key(self):
+        from deephaven import empty_table
+
+        # A null among the values makes dtype inference produce PyObject, which
+        # where_in rejects against the source String column.
+        source = empty_table(3).update(["Key = i == 1 ? (String) null : `k` + i"])
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [[None]], "inverted": False},
+            source,
+        )
+
+        # Only row 1 is null, so a single match means where_in is null-safe.
+        self.assertEqual(result.size, 1)
+
+    def test_selection_over_max_rows_raises(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection
+
+        over = _MAX_SELECTED_ROWS + 1
+        big = empty_table(over).update("X = i")
+
+        with self.assertRaises(ValueError) as cm:
+            _resolve_selection([{"start_row": 0, "end_row": over - 1}], big)
+
+        message = str(cm.exception)
+        self.assertIn(str(over), message)
+        self.assertIn(str(_MAX_SELECTED_ROWS), message)
+
+    def test_selection_at_max_rows_succeeds(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection
+
+        big = empty_table(_MAX_SELECTED_ROWS).update("X = i")
+
+        result = _resolve_selection(
+            [{"start_row": 0, "end_row": _MAX_SELECTED_ROWS - 1}], big
+        )
+
+        self.assertEqual(result.size, _MAX_SELECTED_ROWS)
+
+    def test_too_large_keys_marker_raises(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        data = _add_selected_rows(
+            {"selected_keys": {"too_large": True, "count": 50000}}, self.source
+        )
+
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+
+        self.assertIn("50000", str(cm.exception))
+
+    def test_rollup_table_raises_value_error(self):
+        from deephaven import agg
+        from deephaven.ui.components.table import _add_selected_rows
+
+        rollup = self.source.rollup(aggs=[agg.sum_("Y")], by=["X"])
+        data = _add_selected_rows(
+            {
+                "_table": rollup,
+                "selected_ranges": [{"start_row": 0, "end_row": 0}],
+            },
+            self.source,
+        )
+
+        # A rollup applied in the UI must not surface as an AttributeError on slice.
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+
+        self.assertIn("rollup", str(cm.exception))
+
+    def test_context_menu_data_not_resolved_at_construction(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock()
+        _ContextMenuData({"value": 1}, resolver)
+
+        resolver.assert_not_called()
+
+    def test_context_menu_data_resolves_once_and_caches(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        self.assertEqual(data["selected_rows"], "resolved")
+        self.assertEqual(data["selected_rows"], "resolved")
+        self.assertEqual(data.get("selected_rows"), "resolved")
+
+        resolver.assert_called_once()
+
+    def test_context_menu_data_contains_does_not_resolve(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        self.assertIn("selected_rows", data)
+        resolver.assert_not_called()
+
+        self.assertEqual(data.get("selected_rows"), "resolved")
+        resolver.assert_called_once()
+
+    def test_context_menu_data_keys_omit_selection_until_accessed(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        resolver = Mock(return_value="resolved")
+        data = _ContextMenuData({"value": 1}, resolver)
+
+        # Documents the caveat: listing keys would force the resolution the
+        # class exists to avoid.
+        self.assertNotIn("selected_rows", data.keys())
+
+        _ = data["selected_rows"]
+        self.assertIn("selected_rows", data.keys())
+
+    def test_oversized_selection_ignored_by_callback(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import (
+            _MAX_SELECTED_ROWS,
+            _add_selected_rows,
+        )
+
+        over = _MAX_SELECTED_ROWS + 1
+        big = empty_table(over).update("X = i")
+
+        data = _add_selected_rows(
+            {
+                "_table": big,
+                "value": 7,
+                "selected_ranges": [{"start_row": 0, "end_row": over - 1}],
+            },
+            self.source,
+        )
+
+        # A callback that never touches selected_rows must not trip the size guard.
+        self.assertEqual(data["value"], 7)
+
+    def test_wrap_action_item_receives_selected_rows(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+        wrapped = _wrap_context_menu_item(
+            {"title": "Act", "action": captured.append}, self.source
+        )
+
+        wrapped["action"]({"selected_ranges": [{"start_row": 1, "end_row": 2}]})
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [1, 2])
+
+    def test_wrap_submenu_actions_recursively(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+        wrapped = _wrap_context_menu_item(
+            {
+                "title": "Menu",
+                "actions": [{"title": "Nested", "action": captured.append}],
+            },
+            self.source,
+        )
+
+        wrapped["actions"][0]["action"](
+            {"selected_ranges": [{"start_row": 0, "end_row": 0}]}
+        )
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [0])
+
+    def test_wrap_dynamic_generator_and_its_items(self):
+        from deephaven.ui.components.table import _wrap_context_menu_item
+
+        captured: list = []
+
+        def generator(data):
+            captured.append(data)
+            return [{"title": "Dyn", "action": captured.append}]
+
+        wrapped = _wrap_context_menu_item(generator, self.source)
+
+        items = wrapped({"selected_ranges": [{"start_row": 3, "end_row": 3}]})
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [3])
+
+        items[0]["action"]({"selected_ranges": [{"start_row": 4, "end_row": 4}]})
+        self.assertEqual(self._column_values(captured[1]["selected_rows"]), [4])
+
+    def test_visible_columns_applied_as_view(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        data = _add_selected_rows(
+            {
+                "_visible_columns": ["Y"],
+                "selected_ranges": [{"start_row": 0, "end_row": 1}],
+            },
+            self.source,
+        )
+
+        result = data["selected_rows"]
+
+        self.assertEqual([c.name for c in result.columns], ["Y"])
+        self.assertEqual(self._column_values(result, "Y"), [0, 2])
+
+    def test_rollup_table_context_menu_wrapped(self):
+        import deephaven.ui as ui
+        from deephaven import agg
+
+        captured: list = []
+
+        rollup = self.source.rollup(aggs=[agg.sum_("Y")], by=["X"])
+        t = ui.table(rollup, context_menu={"title": "Act", "action": captured.append})
+
+        # Wrapped even though the source is hierarchical, so the callback sees a
+        # clean payload and a clear error rather than the raw internal fields.
+        t.render()["contextMenu"][0]["action"]({"selected_ranges": []})
+        data = captured[0]
+
+        self.assertNotIn("selected_ranges", data)
+        with self.assertRaises(ValueError) as cm:
+            data["selected_rows"]
+        self.assertIn("rollup", str(cm.exception))
+
+    def test_uri_table_context_menu_wrapped(self):
+        import deephaven.ui as ui
+
+        captured: list = []
+
+        # A URI source resolves to a UriElement, not a Table; the model table the
+        # client injects is what the selection actually resolves against.
+        t = ui.table(
+            "dh+plain://host/scope/t",
+            context_menu={"title": "Act", "action": captured.append},
+        )
+
+        t.render()["contextMenu"][0]["action"](
+            {"_table": self.source, "selected_ranges": [{"start_row": 1, "end_row": 2}]}
+        )
+
+        self.assertEqual(self._column_values(captured[0]["selected_rows"]), [1, 2])

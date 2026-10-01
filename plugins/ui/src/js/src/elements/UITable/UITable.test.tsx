@@ -7,7 +7,13 @@ import type {
   IrisGridTableModel,
 } from '@deephaven/iris-grid';
 import { type dh } from '@deephaven/jsapi-types';
+import {
+  type ContextAction,
+  type ResolvableContextAction,
+} from '@deephaven/components';
 import { UITable } from './UITable';
+import { wrapActionsWithTableRef } from './UITableUtils';
+import WidgetCallableContext from '../../widget/WidgetCallableContext';
 
 const mockEmit = jest.fn();
 const mockTable = {} as dh.Table;
@@ -50,6 +56,8 @@ jest.mock('../hooks', () => ({
   }),
 }));
 
+const mockPluginAction = { title: 'Plugin action', action: jest.fn() };
+
 jest.mock('@deephaven/dashboard-core-plugins', () => ({
   InputFilterEvent: { CLEAR_ALL_FILTERS: 'CLEAR_ALL_FILTERS' },
   IrisGridEvent: { CREATE_CHART: 'IrisGridevent.CREATE_CHART' },
@@ -65,7 +73,7 @@ jest.mock('@deephaven/dashboard-core-plugins', () => ({
     Plugin: null,
     customFilters: [],
     alwaysFetchColumns: [],
-    onContextMenu: () => [],
+    onContextMenu: () => [mockPluginAction],
   }),
 }));
 
@@ -88,6 +96,9 @@ jest.mock('@deephaven/components', () => ({
 let capturedOnCreateChart:
   | ((settings: ChartBuilderSettings, model: IrisGridModel) => void)
   | undefined;
+let capturedOnContextMenu:
+  | ((data: unknown) => ResolvableContextAction[])
+  | undefined;
 
 jest.mock('@deephaven/iris-grid', () => {
   const actual = jest.requireActual('@deephaven/iris-grid');
@@ -95,6 +106,7 @@ jest.mock('@deephaven/iris-grid', () => {
     ...actual,
     IrisGrid: jest.fn(props => {
       capturedOnCreateChart = props.onCreateChart;
+      capturedOnContextMenu = props.onContextMenu;
       return <div data-testid="iris-grid" />;
     }),
     IrisGridUtils: jest.fn(() => ({
@@ -233,5 +245,117 @@ describe('UITable chart builder', () => {
         table: undefined,
       })
     );
+  });
+});
+
+describe('wrapActionsWithTableRef', () => {
+  const tableRef = {} as dh.Table;
+
+  it('sets the table ref before invoking the action', () => {
+    const calls: string[] = [];
+    const setRef = jest.fn(() => calls.push('setRef'));
+    const action = jest.fn(() => calls.push('action'));
+
+    const [wrapped] = wrapActionsWithTableRef(
+      [{ title: 'Act', action }],
+      tableRef,
+      setRef
+    ) as ContextAction[];
+    wrapped.action?.(new Event('click'));
+
+    expect(calls).toEqual(['setRef', 'action']);
+    expect(setRef).toHaveBeenCalledWith([tableRef]);
+  });
+
+  it('wraps nested sub-menu actions', () => {
+    const setRef = jest.fn();
+    const nestedAction = jest.fn();
+
+    const [wrapped] = wrapActionsWithTableRef(
+      [{ title: 'Menu', actions: [{ title: 'Nested', action: nestedAction }] }],
+      tableRef,
+      setRef
+    ) as ContextAction[];
+    const [nested] = wrapped.actions as ContextAction[];
+    nested.action?.(new Event('click'));
+
+    expect(setRef).toHaveBeenCalledWith([tableRef]);
+    expect(nestedAction).toHaveBeenCalled();
+  });
+
+  it('wraps actions returned by a dynamic action resolver', async () => {
+    const setRef = jest.fn();
+    const dynamicAction = jest.fn();
+
+    const [resolver] = wrapActionsWithTableRef(
+      [async () => [{ title: 'Dynamic', action: dynamicAction }]],
+      tableRef,
+      setRef
+    ) as Array<() => Promise<ContextAction[]>>;
+
+    // The resolver itself is a callable, so the ref must be set before it runs.
+    const resolved = await resolver();
+    expect(setRef).toHaveBeenCalledTimes(1);
+
+    resolved[0].action?.(new Event('click'));
+    expect(setRef).toHaveBeenCalledTimes(2);
+    expect(dynamicAction).toHaveBeenCalled();
+  });
+});
+
+describe('context menu table ref', () => {
+  async function renderAndGetActions() {
+    const setNextCallableRefs = jest.fn();
+    await act(async () => {
+      render(
+        <WidgetCallableContext.Provider value={setNextCallableRefs}>
+          <UITable
+            table={mockExportedTable}
+            contextMenu={{ title: 'Server action', action: jest.fn() }}
+            showSearch={false}
+            showQuickFilters={false}
+            showGroupingColumn={false}
+            reverse={false}
+          />
+        </WidgetCallableContext.Provider>
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedOnContextMenu).toBeDefined();
+    });
+
+    const actions = capturedOnContextMenu?.({
+      value: 1,
+      valueText: '1',
+      column: { name: 'A' },
+      rowIndex: 0,
+      columnIndex: 0,
+      modelRow: null,
+      modelColumn: 0,
+      model: mockModel,
+    }) as ContextAction[];
+
+    return { actions, setNextCallableRefs };
+  }
+
+  it('sets the ref for server actions', async () => {
+    const { actions, setNextCallableRefs } = await renderAndGetActions();
+
+    actions[0].action?.(new Event('click'));
+
+    expect(setNextCallableRefs).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves client-side plugin actions alone', async () => {
+    const { actions, setNextCallableRefs } = await renderAndGetActions();
+
+    // A plugin action sends no request, so a ref set here would be drained by
+    // whatever request came next.
+    expect(actions[actions.length - 1]).toBe(mockPluginAction);
+
+    actions[actions.length - 1].action?.(new Event('click'));
+
+    expect(setNextCallableRefs).not.toHaveBeenCalled();
   });
 });

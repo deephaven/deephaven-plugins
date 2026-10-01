@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -27,6 +28,7 @@ import {
   colorValueStyle,
   LoadingOverlay,
   resolveCssVariablesInRecord,
+  type ResolvableContextAction,
   useStyleProps,
   useTheme,
   viewStyleProps,
@@ -59,17 +61,22 @@ import {
   getAggregationOperation,
   getSelectionDataMap,
   type UITableProps,
+  wrapActionsWithTableRef,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
   type ResolvableUIContextItem,
   wrapContextActions,
+  getModelSelectedRanges,
+  getVisibleColumnNames,
+  getSelectedKeys,
 } from './UITableContextMenuHandler';
 import type UITableModel from './UITableModel';
 import { makeUiTableModel } from './UITableModel';
 import { type UITableLayoutHints } from './JsTableProxy';
 import { useExportedObject } from '../hooks';
 import WidgetErrorView from '../../widget/WidgetErrorView';
+import WidgetCallableContext from '../../widget/WidgetCallableContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -499,6 +506,21 @@ export function UITable({
     ]
   );
 
+  const setNextCallableRefs = useContext(WidgetCallableContext);
+
+  // Inject model.table as a callable reference so Python slices the
+  // sorted/filtered server-side table instead of the original exported one.
+  // Only server actions get this: a client-side action sends no request, so the
+  // reference would sit in pendingRefs and be consumed by whatever request
+  // happened to come next.
+  const wrapServerActions = useCallback(
+    (actions: ResolvableContextAction[]): ResolvableContextAction[] =>
+      setNextCallableRefs != null && model != null
+        ? wrapActionsWithTableRef(actions, model.table, setNextCallableRefs)
+        : actions,
+    [model, setNextCallableRefs]
+  );
+
   const mouseHandlers = useMemo(
     () =>
       model && dh && irisGrid
@@ -519,7 +541,8 @@ export function UITable({
               model,
               contextMenu,
               contextHeaderMenu,
-              alwaysFetchColumns
+              alwaysFetchColumns,
+              wrapServerActions
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -536,15 +559,36 @@ export function UITable({
       contextMenu,
       contextHeaderMenu,
       alwaysFetchColumns,
+      wrapServerActions,
     ]
   );
 
   const onContextMenu = useCallback(
-    (data: IrisGridContextMenuData) => [
-      ...wrapContextActions(contextMenu, data, alwaysFetchColumns),
-      ...pluginOnContextMenu(data),
-    ],
-    [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
+    (data: IrisGridContextMenuData) => {
+      const serverActions = wrapContextActions(
+        contextMenu,
+        data,
+        alwaysFetchColumns,
+        irisGrid != null ? getModelSelectedRanges(irisGrid, data) : [],
+        irisGrid != null && model != null
+          ? getVisibleColumnNames(irisGrid, model)
+          : [],
+        irisGrid != null ? getSelectedKeys(irisGrid, data) : null
+      );
+
+      return [
+        ...wrapServerActions(serverActions),
+        ...pluginOnContextMenu(data),
+      ];
+    },
+    [
+      contextMenu,
+      alwaysFetchColumns,
+      pluginOnContextMenu,
+      irisGrid,
+      model,
+      wrapServerActions,
+    ]
   );
 
   // Some of the server props rely on the model existing,
