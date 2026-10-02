@@ -15,6 +15,22 @@ jest.mock('./useWidgetStatus', () => ({
   useWidgetStatus: () => ({ status: mockWidgetStatus }),
 }));
 
+const mockLogWarn = jest.fn();
+jest.mock('@deephaven/log', () => {
+  const actual = jest.requireActual('@deephaven/log');
+  return {
+    __esModule: true,
+    ...actual,
+    default: {
+      module: (name: string) => ({
+        ...actual.default.module(name),
+        // The logger is created on import, before `mockLogWarn` is initialized
+        warn: (...args: unknown[]) => mockLogWarn(...args),
+      }),
+    },
+  };
+});
+
 // Mock nanoid to return predictable values
 jest.mock('nanoid', () => ({
   nanoid: jest.fn(() => `generated-id-${Math.random().toString(36).slice(2)}`),
@@ -495,9 +511,36 @@ describe('usePanelManager', () => {
         result.current.onOpen(duplicateId, keyA);
       });
 
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(onDataChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ panelKeyMap: { [keyA]: 'a-id' } })
       );
+    });
+
+    it('lets a keyed panel moved to another parent keep its key, without a duplicate warning', () => {
+      const onDataChange = jest.fn();
+      const { result } = renderManager(keyedData, onDataChange);
+
+      act(() => {
+        result.current.onOpen(result.current.getPanelId(keyA), keyA);
+      });
+      // The moved panel renders before the old one's cleanup runs
+      const movedId = result.current.getPanelId(keyA);
+      expect(movedId).toEqual(generatedId);
+      act(() => {
+        result.current.onClose('a-id');
+        result.current.onOpen(movedId, keyA);
+      });
+
+      expect(mockLogWarn).not.toHaveBeenCalled();
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelIds: [movedId],
+          panelKeyMap: { [keyA]: movedId },
+        })
+      );
+      // Once the moved panel holds the key, another panel with it is a duplicate
+      expect(result.current.getPanelId(keyA)).not.toBe(movedId);
     });
 
     it('gives a keyed panel its id back when it reopens', () => {
@@ -543,7 +586,19 @@ describe('usePanelManager', () => {
     it('lets the document panel take over the id of a remounted placeholder', () => {
       mockWidgetStatus = 'loading';
       const onDataChange = jest.fn();
-      const { result, rerender } = renderManager(keyedData, onDataChange);
+      let documentPanelId: string | undefined;
+      const { result, rerender } = renderHook(() => {
+        const manager = usePanelManager({
+          widget: makeWidget(),
+          initialData: keyedData,
+          onDataChange,
+        });
+        // The document's panel claims its id in the render where the document becomes ready
+        if (mockWidgetStatus === 'ready' && documentPanelId == null) {
+          documentPanelId = manager.getPanelId(keyA);
+        }
+        return manager;
+      });
 
       act(() => {
         result.current.onOpen(result.current.getPanelId(keyA), keyA);
@@ -551,8 +606,7 @@ describe('usePanelManager', () => {
 
       mockWidgetStatus = 'ready';
       rerender();
-      // The document's panel renders before the placeholder's cleanup runs
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
+      expect(documentPanelId).toBe('a-id');
       act(() => {
         result.current.onClose('a-id');
         result.current.onOpen('a-id', keyA);
@@ -579,6 +633,20 @@ describe('usePanelManager', () => {
       act(() => {
         result.current.onOpen(result.current.getPanelId(keyB), keyB);
       });
+
+      expect(result.current.getPanelId(keyA)).toEqual(generatedId);
+    });
+
+    it('treats reused placeholder keys as taken once the document is ready, even if no panel opens or closes', () => {
+      mockWidgetStatus = 'loading';
+      const { result, rerender } = renderManager(keyedData);
+
+      act(() => {
+        result.current.onOpen(result.current.getPanelId(keyA), keyA);
+      });
+
+      mockWidgetStatus = 'ready';
+      rerender();
 
       expect(result.current.getPanelId(keyA)).toEqual(generatedId);
     });

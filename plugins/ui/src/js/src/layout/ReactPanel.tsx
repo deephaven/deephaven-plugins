@@ -143,6 +143,9 @@ function ReactPanel({
     );
   }
   const { eventHub, root } = layoutManager;
+  const widgetStatus = useWidgetStatus();
+  // Placeholders shown before the document is ready don't have the panel's title
+  const isDocumentReady = widgetStatus.status === 'ready';
 
   useEffect(
     () => () => {
@@ -250,14 +253,22 @@ function ReactPanel({
         onOpen();
       }
 
-      if (prevPanelTitleRef.current !== panelTitle) {
+      if (isDocumentReady && prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
         LayoutUtils.renameComponent(root, itemConfig, panelTitle);
       }
     },
-    [isClosable, parent, metadata, onOpen, panelId, panelTitle, root]
+    [
+      isClosable,
+      isDocumentReady,
+      parent,
+      metadata,
+      onOpen,
+      panelId,
+      panelTitle,
+      root,
+    ]
   );
-  const widgetStatus = useWidgetStatus();
 
   let renderedChildren: React.ReactNode;
   if (widgetStatus.status === 'loading') {

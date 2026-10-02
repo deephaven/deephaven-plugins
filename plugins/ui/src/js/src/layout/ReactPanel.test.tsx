@@ -540,4 +540,27 @@ describe('title', () => {
       'second'
     );
   });
+
+  it('keeps the saved title while the document loads, then renames once it is ready', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue({});
+    const loading: WidgetStatus = {
+      status: 'loading',
+      descriptor: defaultDescriptor,
+    };
+    // A rehydration placeholder is titled with the widget name, not the saved tab title
+    const { rerender } = render(
+      makeTestComponent({ title: 'widget name', status: loading })
+    );
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+
+    rerender(makeTestComponent({ title: 'document title' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'document title'
+    );
+  });
 });
