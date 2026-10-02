@@ -10,8 +10,8 @@
   crosshair_mode -> styling.md
   time_visible -> time-scale.md
   watermark_text -> watermark.md
-  visible -> titles-legends.md
-  last_value_visible -> titles-legends.md
+  visible -> titles.md
+  last_value_visible -> titles.md
   price_scale_id -> price-scale.md
   price_format -> price-formats.md
   last_price_line -> price-lines.md
@@ -85,9 +85,9 @@ bar = tvl.bar(
 
 Both `up_color` and `down_color` accept a Deephaven theme color (e.g. `"seafoam-800"`, `"accent-300"`), a hex code (`"#26a69a"`), a named CSS color (`"crimson"`), or an `rgb()`/`rgba()` string for transparency. Theme colors adapt automatically when the user switches themes; hardcoded values do not. Leave them unset to inherit the active theme's palette.
 
-### Set a chart title
+### Name the series
 
-`title` is the series legend label. Visible on hover and in the legend area. Use it whenever the chart will be embedded next to other content where the column names are not self-explanatory.
+`title` names the series. It labels the price-scale badge tracking the latest bar, and is what the [tooltip](tooltip.md) and [legend](legend.md) call this series. Use it whenever the chart will be embedded next to other content where the column names are not self-explanatory.
 
 ```python order=bar,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -96,7 +96,7 @@ data = tvl.data.ohlc()
 bar = tvl.bar(data, title="ES futures, 1m bars")
 ```
 
-The legend now reads "ES futures, 1m bars".
+The price-scale badge now reads "ES futures, 1m bars", and so does any tooltip or legend row for this series.
 
 ### Server-side autobinning
 
