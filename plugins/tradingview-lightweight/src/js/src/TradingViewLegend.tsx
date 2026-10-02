@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
   ISeriesApi,
   MouseEventParams,
@@ -82,6 +89,13 @@ export function TradingViewLegend({
   onToggle,
 }: TradingViewLegendProps): JSX.Element | null {
   const [expanded, setExpanded] = useState(false);
+  /**
+   * Set when the capped rows don't fit the chart's height. The legend then
+   * lists every series in a scrolling list instead of clipping, and drops the
+   * "+N more" toggle, since collapsing would only clip again.
+   */
+  const [autoExpanded, setAutoExpanded] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [snapshot, setSnapshot] = useState<CrosshairSnapshot | undefined>();
   /**
    * Bumped on a toggle and on every renderer update, so entries are re-read.
@@ -133,6 +147,38 @@ export function TradingViewLegend({
   );
 
   const crosshair = followsCursor ? snapshot : undefined;
+  const hasEntries = entries.length > 0;
+
+  // A resize or a series arriving or leaving can make the capped rows fit
+  // again, so drop back to the capped layout and let the check below re-run.
+  useEffect(() => {
+    const parent = rootRef.current?.parentElement;
+    if (parent == null || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    // The observer also fires once on observe; only a real change counts.
+    let size = `${parent.clientWidth}x${parent.clientHeight}`;
+    const observer = new ResizeObserver(() => {
+      const next = `${parent.clientWidth}x${parent.clientHeight}`;
+      if (next === size) return;
+      size = next;
+      setAutoExpanded(false);
+    });
+    observer.observe(parent);
+    return () => observer.disconnect();
+  }, [hasEntries]);
+  useEffect(() => setAutoExpanded(false), [entries.length]);
+
+  // Re-checked whenever the rows or their values change, since new values
+  // can rewrap horizontal chips. Before paint, so a clipped frame is never
+  // shown.
+  useLayoutEffect(() => {
+    if (variant !== 'rows' || expanded || autoExpanded) return;
+    const body = rootRef.current?.querySelector('.tvl-legend-body');
+    if (body != null && body.scrollHeight > body.clientHeight + 1) {
+      setAutoExpanded(true);
+    }
+  }, [variant, expanded, autoExpanded, entries, crosshair, maxRows]);
 
   const pointFor = useCallback(
     (entry: TvlLegendEntry): TvlSeriesPointData | undefined => {
@@ -162,8 +208,9 @@ export function TradingViewLegend({
   if (entries.length === 0) return null;
 
   const focusedId = crosshair?.focusedId;
-  const shown = selectVisibleEntries(entries, maxRows, focusedId, expanded);
-  const hiddenCount = Math.max(0, entries.length - maxRows);
+  const listAll = expanded || autoExpanded;
+  const shown = selectVisibleEntries(entries, maxRows, focusedId, listAll);
+  const hiddenCount = autoExpanded ? 0 : Math.max(0, entries.length - maxRows);
 
   // The detailed variant reads out one series: the focused one, else the first.
   const detailEntry =
@@ -190,7 +237,7 @@ export function TradingViewLegend({
     variant === 'detailed' ? 'tvl-legend-detailed' : 'tvl-legend-rows',
     horizontal ? 'tvl-legend-horizontal' : '',
     interactive ? 'tvl-legend-interactive' : '',
-    expanded ? 'tvl-legend-expanded' : '',
+    listAll ? 'tvl-legend-expanded' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -221,7 +268,11 @@ export function TradingViewLegend({
 
   if (variant === 'detailed') {
     return (
-      <div className={className} data-tvl-legend={seamParts.join(' | ')}>
+      <div
+        ref={rootRef}
+        className={className}
+        data-tvl-legend={seamParts.join(' | ')}
+      >
         <div className="tvl-legend-body">
           <div
             className="tvl-legend-detail-title"
@@ -239,7 +290,11 @@ export function TradingViewLegend({
   }
 
   return (
-    <div className={className} data-tvl-legend={seamParts.join(' | ')}>
+    <div
+      ref={rootRef}
+      className={className}
+      data-tvl-legend={seamParts.join(' | ')}
+    >
       <div className="tvl-legend-body">
         {shown.map(entry => {
           const rowClass = [

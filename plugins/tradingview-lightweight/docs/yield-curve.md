@@ -7,7 +7,7 @@
 
 # Yield Curve Chart
 
-A yield-curve chart plots yield against maturity (in months) rather than against time. It uses TVL's `createYieldCurveChart` renderer, which puts a numeric maturity axis on the horizontal, so the x-coordinates are *durations*, not timestamps. Use it when the x-axis is "how far out" rather than "when".
+A yield-curve chart plots yield against maturity (in months) rather than against time. It uses TVL's `createYieldCurveChart` renderer, which puts a numeric maturity axis on the horizontal, so the x-coordinates are _durations_, not timestamps. Use it when the x-axis is "how far out" rather than "when".
 
 The chart supports two series shapes: `"line"` (default) and `"area"`. Other series types are rejected at construction time, so passing `"histogram"` or anything else raises a `ValueError`.
 
@@ -62,7 +62,7 @@ The gradient fades down to transparent so the area looks like a "rising tide" sh
 
 ### Customize color and width (line mode)
 
-In line mode, `color` is the line CSS color and `line_width` is the integer pixel width (1-4, default 3). `title` names the series wherever it is labeled — see [series titles](titles.md).
+In line mode, `color` is the line CSS color and `line_width` is the integer pixel width (1-4, default 3). `title` names the series (see [series titles](titles.md)).
 
 ```python order=yield_curve,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -79,11 +79,11 @@ yield_curve = tvl.yield_curve(
 )
 ```
 
-The line is now red, one pixel wide, and identifies itself by its title.
+The line is now red, one pixel wide, and labeled with its title.
 
 ### Tune the maturity axis
 
-Three integer parameters control the maturity axis. They are all expressed in *months*, regardless of how your `maturity` column is labeled.
+Three integer parameters control the maturity axis. They are all expressed in _months_, regardless of how your `maturity` column is labeled.
 
 - `base_resolution`: the number of months represented by one base unit on the axis. Increase it to widen tick spacing on long-dated curves.
 - `minimum_time_range`: the smallest axis span the chart will ever zoom to (in months). Stops zoom from going below this.

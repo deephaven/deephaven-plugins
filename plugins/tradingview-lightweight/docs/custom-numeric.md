@@ -94,7 +94,7 @@ custom_numeric = tvl.custom_numeric(
 )
 ```
 
-The line is blue, three pixels wide, and identifies itself as "Custom profile".
+The line is blue, three pixels wide, and titled "Custom profile".
 
 ## API Reference
 

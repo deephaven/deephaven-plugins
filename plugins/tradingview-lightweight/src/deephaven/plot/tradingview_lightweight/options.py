@@ -1610,7 +1610,7 @@ class Legend:
 
     The legend is a fixed overlay in the chart's top-left listing each series
     with its color, title, and value at the crosshair. With the cursor off the
-    chart it shows each series' last value, so it is populated on first paint.
+    chart it shows each series' last value.
 
     Building one enables it; pass ``legend=False`` (or leave it out) on
     ``tvl.chart`` for no legend.
@@ -1619,34 +1619,30 @@ class Legend:
         variant: ``"rows"`` lists every series; ``"detailed"`` is a large
             single-series readout. ``"auto"`` (the default) picks
             ``"detailed"`` for a one-series chart and ``"rows"`` otherwise.
-            A ``by=`` chart is always ``"rows"``, since its series count is
-            not known until partition keys arrive.
+            A ``by=`` chart is always ``"rows"``.
         orientation: ``"vertical"`` stacks one row per series;
             ``"horizontal"`` flows them as wrapping chips. Only affects
             ``variant="rows"``.
         max_rows: Rows shown before the rest collapse into a ``+N more``
-            line (default 6). The series under the cursor is always shown,
-            taking the last row's place rather than adding one, so the
-            legend's height stays fixed.
+            button, which expands the full list (default 6). The series
+            under the cursor is always shown, in place of the last row. On
+            a chart too short to fit the rows, the legend lists every
+            series in a scrolling list instead.
         show_ohlc: Expand candlestick / bar rows to O/H/L/C instead of just
             the close. Default ``True``.
         show_time: Show the time line under the rows. Default ``True``.
-            Under the crosshair it is the hovered time. At rest it is the
-            latest time among the displayed rows' last points, so a series
-            that ticks less often shows its last value as of that moment.
+            Under the crosshair it is the hovered time. Otherwise it is the
+            latest time among the displayed rows.
         interactive: Clicking a row hides or shows that series. Default
-            ``True``. Hidden series keep a dimmed row so they can be brought
-            back. Wire ``tvl.chart(on_series_toggle=...)`` to observe the
-            change server-side.
+            ``True``. A hidden series keeps a dimmed row that can be clicked
+            to show it again. Pass ``tvl.chart(on_series_toggle=...)`` to
+            receive toggle events in Python.
         follow_cursor: Track the crosshair, showing each series' value at the
             hovered time. Default ``True``. Set ``False`` for a legend that
-            always shows the latest value and never reacts to the cursor —
-            useful on a dashboard read from a distance, or alongside a
-            tracking tooltip that already does the hover readout.
+            always shows the latest value and ignores the cursor.
 
-    Values are formatted by each series' own price format, so the legend
-    agrees with the price axis; set ``price_format=`` on a series to change
-    them.
+    Values are formatted by each series' own price format; set
+    ``price_format=`` on a series to change them.
     """
 
     variant: str = "auto"
@@ -1729,10 +1725,9 @@ def legend(
     Args:
         variant: ``"auto"`` (default), ``"rows"``, or ``"detailed"``.
         orientation: ``"vertical"`` (default) or ``"horizontal"``.
-        max_rows: Rows shown before a ``+N more`` line (default 6).
+        max_rows: Rows shown before a ``+N more`` button (default 6).
         show_ohlc: Expand candlestick / bar rows to O/H/L/C. Default ``True``.
-        show_time: Show the time line under the rows. Default ``True``. At
-            rest it is the latest of the displayed rows' last-point times.
+        show_time: Show the time line under the rows. Default ``True``.
         interactive: Clicking a row toggles the series. Default ``True``.
         follow_cursor: Track the crosshair. Default ``True``; ``False`` pins
             the legend to each series' latest value.

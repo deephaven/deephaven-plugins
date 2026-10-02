@@ -55,21 +55,21 @@ TradingViewPlugin (plugin registration)
 
 ### Key Files
 
-| File                                          | Role                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------- |
-| `src/js/src/TradingViewChartPanel.tsx`        | WidgetPanel wrapper — session disconnect, loading overlay         |
-| `src/js/src/TradingViewChart.tsx`             | Main component — init, data updates, zoom/pan, downsample UX      |
-| `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, autobin/EVENT       |
-| `src/js/src/TradingViewChartRenderer.ts`      | LWC wrapper — chart creation, series CRUD, markers, price lines   |
-| `src/js/src/TradingViewEventPayload.ts`       | Builds the press-event payload sent to Python (hit test, series)  |
-| `src/js/src/TradingViewLegend.tsx`            | In-chart legend overlay — rows/detailed layouts, toggling         |
-| `src/js/src/TradingViewLegendModel.ts`        | Legend's pure logic — value formatting, row capping/promotion     |
-| `src/js/src/TradingViewTooltip.tsx`           | Tracking tooltip overlay — focused series, cursor-clamped box     |
-| `src/js/src/TradingViewOverlayTypes.ts`       | Shared overlay types + series value formatting                    |
-| `src/js/src/TradingViewChart.css`             | Overlay styles — legend, tooltip, scrim (inlined via `?inline`)   |
-| `src/deephaven/.../auto_bin.py`               | Server-side time-bin aggregation for Histogram/Candlestick/Bar    |
-| `src/deephaven/.../events.py`                 | Press-event payloads + handler plumbing (`wrap_callable`)         |
-| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT       |
+| File                                          | Role                                                             |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| `src/js/src/TradingViewChartPanel.tsx`        | WidgetPanel wrapper — session disconnect, loading overlay        |
+| `src/js/src/TradingViewChart.tsx`             | Main component — init, data updates, zoom/pan, downsample UX     |
+| `src/js/src/TradingViewChartModel.ts`         | Model — widget messages, table subscriptions, autobin/EVENT      |
+| `src/js/src/TradingViewChartRenderer.ts`      | LWC wrapper — chart creation, series CRUD, markers, price lines  |
+| `src/js/src/TradingViewEventPayload.ts`       | Builds the press-event payload sent to Python (hit test, series) |
+| `src/js/src/TradingViewLegend.tsx`            | In-chart legend overlay — rows/detailed layouts, toggling        |
+| `src/js/src/TradingViewLegendModel.ts`        | Legend's pure logic — value formatting, row capping/promotion    |
+| `src/js/src/TradingViewTooltip.tsx`           | Tracking tooltip overlay — focused series, cursor-clamped box    |
+| `src/js/src/TradingViewOverlayTypes.ts`       | Shared overlay types + series value formatting                   |
+| `src/js/src/TradingViewChart.css`             | Overlay styles — legend, tooltip, scrim (inlined via `?inline`)  |
+| `src/deephaven/.../auto_bin.py`               | Server-side time-bin aggregation for Histogram/Candlestick/Bar   |
+| `src/deephaven/.../events.py`                 | Press-event payloads + handler plumbing (`wrap_callable`)        |
+| `src/deephaven/.../communication/listener.py` | Message handler — RETRIEVE/AUTOBIN_ZOOM/AUTOBIN_RESET/EVENT      |
 
 ### CSS Injection
 
@@ -155,9 +155,12 @@ its color, title, and value. Built on the same pattern as the tracking tooltip.
   and kept an old value when a tick rewrote the hovered bar. Values are
   re-read by id and time through `renderer.getSeriesPointAt()` instead.
 - **Capping**: `max_rows` (default 6) bounds the height, with a `+N more`
-  line. The crosshair-focused series is always shown — it *replaces* the last
+  line. The crosshair-focused series is always shown — it _replaces_ the last
   visible row rather than being appended, so the legend's height never changes
-  as the cursor moves.
+  as the cursor moves. When the capped rows don't fit the chart's height
+  (`.tvl-legend-body` scrollHeight > clientHeight, checked in a layout effect),
+  `autoExpanded` lists every series in the scrolling expanded layout and drops
+  the `+N more` toggle. A chart resize or a series count change resets it.
 - **Toggling**: rows are `<button>`s that call `renderer.setSeriesVisible()`.
   Visibility is read from `series.options().visible`, so a series hidden from
   Python (`visible=False`) is dimmed on first paint. Legend toggles are also
@@ -174,7 +177,9 @@ its color, title, and value. Built on the same pattern as the tracking tooltip.
   only put on the wire when a handler is wired. Unlike press, it carries no
   timestamp, so the listener skips time-column resolution for it.
 - Pointer events: `.tvl-legend` is `pointer-events: none` with rows re-enabling
-  them, so only the rows themselves are a crosshair dead zone.
+  them, so only the rows themselves are a crosshair dead zone. The expanded
+  row area (clicked open or auto-expanded) also takes pointer events so it can
+  scroll, which blocks the crosshair and wheel zoom underneath it.
 - DOM seams: `data-tvl-legend` (rendered text) and `data-tvl-last-toggle` (last
   toggle payload, kept separate from `data-tvl-last-event`).
 - User-facing docs: `docs/legend.md`, `docs/titles.md`
@@ -192,7 +197,7 @@ inferred). Display in the user's zone is handled by a custom horizontal scale
 behavior (`TimeZoneHorzScaleBehavior.ts`, installed via `createChartEx`) which
 shifts only for tick weighting and label formatting.
 
-Shifting the *data* instead would make the coordinate local wall-clock time,
+Shifting the _data_ instead would make the coordinate local wall-clock time,
 which is ambiguous across a DST "fall back" — both instants of the repeated
 hour collapse onto one slot and a row is silently dropped.
 

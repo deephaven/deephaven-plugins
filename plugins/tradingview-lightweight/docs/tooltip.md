@@ -25,7 +25,7 @@ The tooltip box appears near the cursor as you move across the chart, showing th
 
 The tooltip always shows exactly one series: the one in focus. In a single-series chart that is the series you plotted. In a multi-series chart the focused series is whichever line is vertically nearest the cursor within the time slice under it: the chart reads each series' value at that time and picks the one closest to the cursor's height. As you move the cursor up and down between overlaid lines, the tooltip switches to track whichever line is nearest.
 
-This keeps the tooltip readable no matter how many series you overlay: it is a single, compact box that does not grow with the series count. When you do want every series at once, add a [legend](legend.md) — the two work together. The title line is tinted with the focused series' own color, so you can tell which series the value belongs to.
+The tooltip stays the same size no matter how many series the chart has. To see every series at once, add a [legend](legend.md). The title line is drawn in the focused series' color.
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl

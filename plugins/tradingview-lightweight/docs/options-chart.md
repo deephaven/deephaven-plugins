@@ -7,7 +7,7 @@
 
 # Options Chart
 
-An options chart plots a quantity against *strike price* on a numeric horizontal axis, not against time. The renderer is TVL's `createOptionsChart`, which is designed for cross-sectional snapshots indexed by strike: option bid/ask curves, implied-vol smiles, open-interest profiles, and gamma exposure.
+An options chart plots a quantity against _strike price_ on a numeric horizontal axis, not against time. The renderer is TVL's `createOptionsChart`, which is designed for cross-sectional snapshots indexed by strike: option bid/ask curves, implied-vol smiles, open-interest profiles, and gamma exposure.
 
 `tvl.options_chart` supports three series types: `"line"` (default), `"area"`, and `"histogram"`. They share the same axis behavior; only the rendering changes.
 
@@ -75,7 +75,7 @@ One purple bar rises at each of the 21 strikes.
 
 ### Customize color and width (line mode)
 
-`color` is the line CSS color; `line_width` is the integer pixel width (1-4); `title` names the series — see [series titles](titles.md).
+`color` is the line CSS color; `line_width` is the integer pixel width (1-4); `title` names the series (see [series titles](titles.md)).
 
 ```python order=options_chart,data
 import deephaven.plot.tradingview_lightweight as tvl
@@ -91,7 +91,7 @@ options_chart = tvl.options_chart(
 )
 ```
 
-The line is green, two pixels wide, and identifies itself by its title.
+The line is green, two pixels wide, and labeled with its title.
 
 ### Plot a different value column
 

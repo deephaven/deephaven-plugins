@@ -55,30 +55,35 @@
      gaps stay transparent to the crosshair. */
   pointer-events: none;
   z-index: 39;
-  /* No panel or border, so the legend reads as part of the chart. The
-     repeated halo does the legibility work a panel would — one shadow is too
-     faint over a dense plot. */
+  /* No panel or border, so the legend reads as part of the chart. */
   color: var(--dh-color-fg, #f0f0ee);
-  text-shadow:
-    0 0 4px var(--dh-color-content-bg, #2d2a2e),
-    0 0 4px var(--dh-color-content-bg, #2d2a2e),
-    0 0 3px var(--dh-color-content-bg, #2d2a2e),
-    0 0 2px var(--dh-color-content-bg, #2d2a2e);
   /* Bounds the overlay to the plot, and gives horizontal chips something to
      wrap against (absolutely positioned, so it shrink-wraps). */
   max-width: calc(100% - 24px);
   max-height: calc(100% - 12px);
-}
-
-/* Expanded, the rows can be far taller than the plot: only they scroll, so
-   "Show less" and the time line stay reachable. */
-.tvl-legend-expanded {
+  /* Only the rows give up space on a short chart, so the time line stays
+     visible. The legend measures the clipped rows and switches to the
+     scrolling list (.tvl-legend-expanded) before paint. */
   display: flex;
   flex-direction: column;
 }
 
-.tvl-legend-expanded .tvl-legend-body {
+.tvl-legend-body {
   min-height: 0;
+  overflow: hidden;
+}
+
+.tvl-legend-overflow,
+.tvl-legend-time {
+  flex: none;
+}
+
+.tvl-legend-overflow {
+  align-self: flex-start;
+}
+
+/* Expanded, by click or because the rows did not fit: the rows scroll. */
+.tvl-legend-expanded .tvl-legend-body {
   overflow-y: auto;
   /* The chart owns the wheel everywhere else. */
   pointer-events: auto;

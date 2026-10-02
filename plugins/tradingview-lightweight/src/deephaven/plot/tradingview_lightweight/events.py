@@ -221,10 +221,8 @@ def build_press_event(
 class TvlSeriesToggleEvent(TypedDict, total=False):
     """A series hidden or shown by a click on an interactive legend row.
 
-    The chart applies the toggle itself, client-side — this event is purely
-    informational, for code that wants to mirror the visibility elsewhere
-    (persist a view, drive a linked chart, update a side panel). Ignoring it
-    does not change what the chart does.
+    The chart hides or shows the series itself. Use this event to act on the
+    change in Python, for example to save which series are hidden.
     """
 
     type: Literal["seriesToggle"]
@@ -238,8 +236,7 @@ class TvlSeriesToggleEvent(TypedDict, total=False):
     seriesId: str
     """The generated id: ``series_<n>`` for a series passed directly to the
     chart, or ``series_<n>_<key>`` for each partition of a ``by=`` series.
-    Independent of ``title=``, so it survives a retitle; a partition's id
-    embeds its key. Use it for unambiguous server-side lookup."""
+    Unlike ``series``, it doesn't change when the title does."""
 
     visible: bool
     """``True`` when the series was just shown, ``False`` when hidden."""

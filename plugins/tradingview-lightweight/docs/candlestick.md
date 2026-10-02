@@ -133,7 +133,7 @@ data = tvl.data.ohlc()
 candlestick = tvl.candlestick(data, title="AAPL daily OHLC")
 ```
 
-The series now identifies itself as "AAPL daily OHLC" instead of by its generated id.
+The series is now labeled "AAPL daily OHLC" instead of its generated id.
 
 ### Server-side autobinning
 

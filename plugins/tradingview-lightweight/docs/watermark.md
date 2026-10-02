@@ -1,6 +1,6 @@
 # Watermark
 
-A watermark is a faint mark drawn behind the data of a chart — a brand, a disclaimer, an environment name like "staging", an "as of" stamp. It is styled to recede behind the series, so it marks the chart without being read as part of it.
+A watermark is faint text or an image drawn behind a chart's data, such as a brand, a disclaimer, or an environment name like "staging". It is drawn faintly so it doesn't compete with the series.
 
 There are two ways to add a watermark. The single-line shortcut uses `tvl.chart(watermark=tvl.watermark(text=..., color=..., ...))`. The multi-line form takes a list of [`tvl.watermark_line(...)`](#api-reference) entries via `tvl.watermark(lines=[...])`, one per row of text, each with its own color, font size, line height, and font style.
 

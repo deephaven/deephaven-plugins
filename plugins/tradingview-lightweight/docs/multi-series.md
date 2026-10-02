@@ -96,7 +96,7 @@ The candlestick TvlChart provides the price axis; the SMA line draws on the same
 
 ### Compare two line series on one axis
 
-For pure comparison, build one `line` per group and pass both to `tvl.chart()`. Each series is given an explicit `title` so they can be told apart — on the price scale, and in the [tooltip](tooltip.md) or [legend](legend.md).
+For pure comparison, build one `line` per group and pass both to `tvl.chart()`. Each series gets its own `title` so you can tell them apart on the price scale and in the [tooltip](tooltip.md) or [legend](legend.md).
 
 ```python order=compare_chart,aaa,bbb,stocks
 import deephaven.plot.tradingview_lightweight as tvl

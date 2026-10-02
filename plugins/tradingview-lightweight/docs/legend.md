@@ -1,6 +1,6 @@
 # Legend
 
-A legend is a fixed panel in the chart's top-left corner listing each series with its color, title, and value at the cursor. Turn it on with `legend=tvl.legend()`:
+A legend is a fixed overlay in the chart's top-left corner listing each series with its color, title, and value at the cursor. Turn it on with `legend=tvl.legend()`:
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -21,15 +21,15 @@ chart = tvl.chart(
 chart = tvl.chart(tvl.line(values, timestamp="Timestamp", value="Value"), legend=True)
 ```
 
-Unlike the [tracking tooltip](tooltip.md), the legend does not wait for a cursor. It shows each series' latest value as soon as the chart paints, switches to the values under the crosshair as you move across the plot, and returns to the latest values when you move off. A series with no point at the hovered time shows a blank value, not its latest one. The time line at the bottom names the time the values belong to: the hovered time under the crosshair, and at rest the latest time among the displayed rows. A series that ticks less often shows its last value as of that moment.
+The legend shows each series' latest value when the chart loads. As you move the cursor across the plot it shows the values at the hovered time, and it goes back to the latest values when the cursor leaves. A series with no point at the hovered time shows a blank value. The time line at the bottom shows which time the values are from.
 
 Each row's label comes from that series' `title=`. A series without one falls back to its generated id (`series_0`), and a `by=` series uses its partition key. See [series titles](titles.md).
 
 ## Legend or tooltip?
 
-A legend shows every series at once in a fixed spot; a tooltip shows one series next to the cursor. Enabling both is reasonable on a dense chart, and the tooltip draws above the legend where they overlap.
+A legend shows every series at once in a fixed spot. A [tooltip](tooltip.md) shows one series next to the cursor. You can turn on both.
 
-## Two layouts
+## Layout variants
 
 `variant` selects the layout. It defaults to `"auto"`: a chart with a single static series gets the large `detailed` readout, anything else gets `rows`.
 
@@ -48,8 +48,6 @@ chart = tvl.chart(
 )
 ```
 
-Values sit on a grid in one column and use tabular figures, so a value ticking from `9.99` to `10.00` shifts nothing around it.
-
 ### Detailed
 
 `detailed` is a large single-series readout, with title, value, and time in oversized type, for a single-symbol chart or a dashboard tile read from a distance.
@@ -65,11 +63,11 @@ chart = tvl.chart(
 )
 ```
 
-On a multi-series chart `detailed` shows whichever series is nearest the cursor, which mostly duplicates the tooltip. That is why `auto` only picks it for a one-series chart.
+On a multi-series chart, `detailed` shows the series nearest the cursor, or the first series when the cursor is off the chart.
 
-A `by=` chart always resolves `auto` to `rows`. Its series appear as partition keys arrive, so it starts as one series and grows; auto-detection would flip the layout mid-stream.
+A `by=` chart always resolves `auto` to `rows`, even while it has only one partition.
 
-## Vertical or horizontal
+## Orientation
 
 `orientation` controls how rows flow. The default `"vertical"` stacks them. `"horizontal"` lays them out as wrapping chips, which suits a wide chart with short labels.
 
@@ -84,11 +82,9 @@ chart = tvl.chart(
 )
 ```
 
-Chips sit in uniform grid cells, so a wrap happens at a cell boundary and the row never reshuffles as values tick.
+## Series types
 
-## Any series type
-
-Every series type gets a row, and each swatch takes its series' resolved color, whether that comes from a line color or an area fill.
+Every series type gets a row. The swatch color depends on the series type: the line color for line and area series, the bar color for histograms, the top line color for baseline series, and the up color for candlestick and bar series.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -103,9 +99,9 @@ chart = tvl.chart(
 )
 ```
 
-## Many series
+## Limit the number of rows
 
-A partitioned chart can produce more series than fit in a corner. `max_rows` caps how many rows are drawn, six by default, and the rest collapse into a `+N more` line.
+A partitioned chart can have more series than fit in the corner. `max_rows` sets how many rows are shown (six by default). The rest collapse into a `+N more` button, which expands the full list when clicked.
 
 ```python order=chart,stocks
 import deephaven.plot.tradingview_lightweight as tvl
@@ -120,9 +116,11 @@ chart = tvl.chart(
 
 `tvl.data.stocks()` has three symbols, so this draws two rows and a `+1 more`.
 
-The cap hides nothing. Hover any line and its value appears even if it sits past the cap, taking the last row's place rather than adding one, so the legend's height never changes as you move the cursor.
+When you hover a series that is past the cap, it takes the place of the last row, so the legend stays the same height.
 
-## Candlestick and bar rows
+If the chart is too short to fit the rows, the legend lists every series in a scrolling list instead. Scroll it with the mouse wheel over the legend. While the list is showing, the crosshair and wheel zoom don't respond under the legend.
+
+## Candlestick and bar series
 
 An OHLC series has four numbers at each point, so its row expands to all four.
 
@@ -139,7 +137,7 @@ chart = tvl.chart(
 )
 ```
 
-The candlestick row reads `O 89.97  H 91.97  L 86.29  C 88.29` while the VWAP line keeps a single value. That is a wide row, so on a narrow chart collapse it to the close with `show_ohlc=False`:
+The candlestick row reads `O 89.97  H 91.97  L 86.29  C 88.29` and the VWAP row shows one value. On a narrow chart, use `show_ohlc=False` to show only the close:
 
 ```python order=chart,ohlc
 import deephaven.plot.tradingview_lightweight as tvl
@@ -156,13 +154,13 @@ chart = tvl.chart(
 
 `show_ohlc` affects only candlestick and bar rows.
 
-Both examples pair the candlestick with a second series on purpose: a lone candlestick resolves `auto` to `detailed`, which shows the same four values in the large readout instead.
+A chart with a single candlestick series resolves `auto` to `detailed`, which shows the four values in the large layout.
 
 ## Toggling series on and off
 
-Legend rows are clickable by default. Clicking one hides that series; clicking again brings it back. The hidden row stays, dimmed and struck through, so nothing becomes unreachable. Hiding a series also drops it from the price scale's autoscale, so hiding an outlier rescales the chart around what is left.
+Legend rows are clickable by default. Click a row to hide its series, and click it again to show it. A hidden series keeps its row, dimmed with its value struck through. Hidden series are left out of the price scale's auto-fit, so hiding an outlier rescales the chart to the remaining series.
 
-Rows are real buttons, so they work from the keyboard and carry their pressed state for screen readers.
+Rows are buttons, so you can also toggle them from the keyboard, and screen readers announce whether each one is pressed.
 
 Pass `interactive=False` for a read-only legend:
 
@@ -177,9 +175,9 @@ chart = tvl.chart(
 )
 ```
 
-One trade-off: an interactive row receives mouse events, so the crosshair and tooltip freeze while the cursor sits directly over a row. Gaps between rows stay transparent, so the effect is confined to the rows themselves.
+An interactive row captures the mouse, so the crosshair and tooltip stop updating while the cursor is over a row. The gaps between rows pass the mouse through to the chart.
 
-To start a series hidden, set `visible=False` on the series. With an interactive legend that is a starting state rather than a permanent one, since the row can switch it back on:
+To start a series hidden, set `visible=False` on the series. With an interactive legend, the viewer can click the row to show it:
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -202,7 +200,7 @@ chart = tvl.chart(
 
 ### Reacting to a toggle on the server
 
-The chart hides and shows series itself; nothing round-trips to Python for the click to work. To let the server know anyway, say to mirror the state into another chart or persist a view, wire `on_series_toggle`:
+Toggling works without any Python code. If the server needs to know, for example to save which series are hidden, pass an `on_series_toggle` handler:
 
 ```python skip-test
 import deephaven.plot.tradingview_lightweight as tvl
@@ -235,13 +233,11 @@ The handler receives a `TvlSeriesToggleEvent` dict, or no argument at all, like 
 | `visible`         | `True` when the series was just shown, `False` when hidden.                                                |
 | `hiddenSeriesIds` | Generated ids of every currently hidden series, after this toggle.                                         |
 
-Store state against `seriesId`; `series` is for display and changes if the title does. A partition's `seriesId` includes its key, so `series_0_AAPL` is `series_0_AAPL` every time the chart loads. `hiddenSeriesIds` saves reconstructing the full picture from individual events.
+Key saved state by `seriesId`, not `series`, because `series` changes when the title does. A partition's `seriesId` includes its key, so `series_0_AAPL` is the same every time the chart loads. Use `hiddenSeriesIds` to get the full set of hidden series without tracking each event.
 
-A legend with no `on_series_toggle` sends nothing over the wire.
+## Show only the latest values
 
-## A fixed latest-value readout
-
-By default the legend tracks the crosshair, swapping to each series' value at the hovered time. `follow_cursor=False` turns that off: the legend then always shows the latest value and ignores the cursor.
+By default the legend follows the crosshair. With `follow_cursor=False` it always shows each series' latest value and ignores the cursor.
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -255,11 +251,11 @@ chart = tvl.chart(
 )
 ```
 
-Pair it with a [tooltip](tooltip.md), as above, so the tooltip owns the hover readout and the legend stays a stable latest-value display. It also suits a wallboard nobody is hovering.
+The example above adds a [tooltip](tooltip.md) for hover values, while the legend keeps showing the latest ones.
 
 ## Formatting values
 
-The legend has no formatting options. Each value uses its series' price format, so to change the decimals set [`price_format`](price-formats.md) on the series:
+Legend values use each series' price format. To change the number of decimals, set [`price_format`](price-formats.md) on the series:
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -278,7 +274,7 @@ chart = tvl.chart(
 )
 ```
 
-Set `show_time=False` to drop the shared time line at the bottom, for instance when the time axis is already unambiguous:
+Set `show_time=False` to hide the time line at the bottom:
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl
@@ -291,13 +287,13 @@ chart = tvl.chart(
 )
 ```
 
-## Multiple panes
+## Multi-pane charts
 
-One legend lists every series, including those drawn in other panes, so on a [multi-pane](multi-pane.md) chart it sits over the first pane while naming series below it. Per-pane legends are not available yet.
+On a [multi-pane](multi-pane.md) chart, the legend sits over the first pane and lists the series from every pane.
 
 ## Colors
 
-Legend colors are not configurable. The text follows the active Deephaven theme and each swatch takes its series' resolved color. There is no panel or border behind it, so it reads as part of the plot rather than a box covering it.
+Each swatch uses its series color. In the `detailed` layout, the title is also drawn in the series color. All other legend text uses Deephaven theme colors. The legend has no background or border, except for a translucent backdrop while the full `+N more` list is expanded.
 
 ## API Reference
 

@@ -123,7 +123,7 @@ data = tvl.data.volume()
 histogram = tvl.histogram(data, timestamp="Timestamp", value="Volume", title="Daily traded volume")
 ```
 
-The series now identifies itself as "Daily traded volume" wherever it is named.
+The series is now labeled "Daily traded volume" on the price scale, tooltip, and legend.
 
 ### Continuous bars
 

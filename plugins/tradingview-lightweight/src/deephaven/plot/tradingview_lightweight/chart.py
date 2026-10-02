@@ -570,24 +570,18 @@ def chart(
             chart creation (default ``True``).  Set ``False`` for
             advanced multi-pane setups that fully specify their own
             panes.
-        tooltip (Optional[Union[bool, Tooltip]]): Tracking tooltip — a small
+        tooltip (Optional[Union[bool, Tooltip]]): Tracking tooltip, a small
             overlay that follows the cursor and shows the focused series'
             title, value, and time. Pass ``True`` for the default tooltip,
-            ``False`` for none, or a ``tvl.tooltip(...)`` to configure it;
-            ``tooltip=True`` and ``tooltip=tvl.tooltip()`` are equivalent.
-            Its colors come from the active Deephaven theme (no color
-            options). In a multi-series chart it shows the single series
-            under the cursor (falling back to the one whose value is
-            nearest).
-        legend (Optional[Union[bool, Legend]]): In-chart legend — a fixed
+            ``False`` for none, or a ``tvl.tooltip(...)`` to configure it.
+            In a multi-series chart it shows the series nearest the
+            cursor.
+        legend (Optional[Union[bool, Legend]]): In-chart legend, a fixed
             overlay in the top-left listing each series with its color,
             title, and value at the crosshair. Pass ``True`` for the default
             legend, ``False`` for none, or a ``tvl.legend(...)`` to configure
-            it; ``legend=True`` and ``legend=tvl.legend()`` are
-            equivalent. With the cursor off the chart it shows each
-            series' last value, so it is populated on first paint. Rows
-            are clickable by default and hide or show their series; pair
-            with ``on_series_toggle`` to observe that server-side.
+            it. With the cursor off the chart it shows each series' last
+            value. Clicking a row hides or shows its series.
         on_press (Optional[PressEventCallable]): Server-side callback
             invoked when the user presses (clicks) on the chart. Receives
             a ``TvlPressEvent`` dict (or no argument). See
@@ -597,7 +591,7 @@ def chart(
         on_series_toggle (Optional[SeriesToggleEventCallable]): Server-side
             callback invoked when a legend row hides or shows a series.
             Receives a ``TvlSeriesToggleEvent`` dict (or no argument). The
-            chart applies the toggle itself; this is purely informational.
+            chart hides or shows the series whether or not a handler is set.
 
     Returns:
         TvlChart: A chart object that can be displayed in Deephaven.
