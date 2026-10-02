@@ -52,11 +52,32 @@ function DashboardWidgetHandler({
       // Rehydration. Mount ReactPanels for each panelId in the initial data
       // so loading spinners or widget errors are shown
       if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
-        // Do not add a key here
-        // When the real document mounts, it doesn't use keys and will cause a remount
-        // which triggers the DocumentHandler to think the panels were closed and messes up the layout
-        // eslint-disable-next-line react/jsx-key
-        return initialData.panelIds.map(() => <ReactPanel />);
+        const panelKeys = new Map(
+          Object.entries(initialData.panelKeyMap ?? {}).map(
+            ([panelKey, panelId]) => [panelId, JSON.parse(panelKey) as string[]]
+          )
+        );
+        const reactKeyCounts = new Map<string, number>();
+        panelKeys.forEach(([reactKey]) =>
+          reactKeyCounts.set(reactKey, (reactKeyCounts.get(reactKey) ?? 0) + 1)
+        );
+        return initialData.panelIds.map(panelId => {
+          const keyPath = panelKeys.get(panelId);
+          if (keyPath == null) {
+            // Do not add a key here
+            // When the real document mounts, it doesn't use keys and will cause a remount
+            // which triggers the DocumentHandler to think the panels were closed and messes up the layout
+            // eslint-disable-next-line react/jsx-key
+            return <ReactPanel />;
+          }
+          // A root-level panel's first key is the React key the document gives it. If that's ambiguous, the
+          // placeholder remounts instead, and the document's panel takes over its id.
+          const reactKey =
+            reactKeyCounts.get(keyPath[0]) === 1
+              ? keyPath[0]
+              : JSON.stringify(keyPath);
+          return <ReactPanel key={reactKey} __dhKeyPath={keyPath} />;
+        });
       }
       // Default to a single panel so we can immediately show a loading spinner
       return <ReactPanel />;

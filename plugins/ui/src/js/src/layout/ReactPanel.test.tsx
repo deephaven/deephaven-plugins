@@ -20,6 +20,7 @@ import PortalPanelManagerContext, {
   type PortalPanelMap,
 } from './PortalPanelManagerContext';
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
+import { PanelKeyScopeContext } from './PanelKeyScopeContext';
 
 const mockPanelId = 'test-panel-id';
 const defaultDescriptor = { name: 'test-name', type: 'test-type' };
@@ -41,7 +42,9 @@ function makeReactPanelManager({
   onDataChange = jest.fn(),
   getInitialData = jest.fn(() => []),
   title = 'test title',
-}: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
+  keyPath,
+}: Partial<ReactPanelProps> &
+  Partial<ReactPanelManager> & { keyPath?: string[] } = {}) {
   return (
     <ReactPanelManagerContext.Provider
       value={{
@@ -53,7 +56,9 @@ function makeReactPanelManager({
         getInitialData,
       }}
     >
-      <ReactPanel title={title}>{children}</ReactPanel>
+      <ReactPanel title={title} __dhKeyPath={keyPath}>
+        {children}
+      </ReactPanel>
     </ReactPanelManagerContext.Provider>
   );
 }
@@ -67,11 +72,13 @@ function makeTestComponent({
   portals = new Map(),
   status = defaultStatus,
   title = 'test title',
+  keyPath,
 }: Partial<ReactPanelProps> &
   Partial<ReactPanelManager> & {
     metadata?: WidgetDescriptor;
     portals?: PortalPanelMap;
     status?: WidgetStatus;
+    keyPath?: string[];
   } = {}) {
   return (
     <WidgetStatusContext.Provider value={status}>
@@ -83,6 +90,7 @@ function makeTestComponent({
           onOpen,
           getPanelId,
           title,
+          keyPath,
         })}
       </PortalPanelManagerContext.Provider>
     </WidgetStatusContext.Provider>
@@ -467,4 +475,92 @@ it('displays an error if the widget is in an error state', () => {
 
   const { getByText } = within(portal);
   expect(getByText('test error')).toBeDefined();
+});
+
+describe('key path', () => {
+  it('gets its id by its key path within the enclosing key scope', () => {
+    const getPanelId = jest.fn(() => mockPanelId);
+    const onOpen = jest.fn();
+    render(
+      <PanelKeyScopeContext.Provider value={['stack-key']}>
+        {makeTestComponent({ getPanelId, onOpen, keyPath: ['panel-key'] })}
+      </PanelKeyScopeContext.Provider>
+    );
+
+    const panelKey = JSON.stringify(['stack-key', 'panel-key']);
+    expect(getPanelId).toHaveBeenCalledWith(panelKey);
+    expect(onOpen).toHaveBeenCalledWith(mockPanelId, panelKey);
+  });
+
+  it('gets a positional id without a key path, even inside a key scope', () => {
+    const getPanelId = jest.fn(() => mockPanelId);
+    render(
+      <PanelKeyScopeContext.Provider value={['stack-key']}>
+        {makeTestComponent({ getPanelId })}
+      </PanelKeyScopeContext.Provider>
+    );
+
+    expect(getPanelId).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe('title', () => {
+  it('renames a rehydrated panel whose layout title is stale', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    render(makeTestComponent({ title: 'new title' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'new title'
+    );
+  });
+
+  it('does not rename a panel it just opened', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce(null);
+    render(makeTestComponent({ title: 'new title' }));
+
+    expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+  });
+
+  it('renames the panel when its title changes', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce(null);
+    const { rerender } = render(makeTestComponent({ title: 'first' }));
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    rerender(makeTestComponent({ title: 'second' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'second'
+    );
+  });
+
+  it('keeps the saved title while the document loads, then renames once it is ready', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue({});
+    const loading: WidgetStatus = {
+      status: 'loading',
+      descriptor: defaultDescriptor,
+    };
+    // A rehydration placeholder is titled with the widget name, not the saved tab title
+    const { rerender } = render(
+      makeTestComponent({ title: 'widget name', status: loading })
+    );
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+
+    rerender(makeTestComponent({ title: 'document title' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'document title'
+    );
+  });
 });

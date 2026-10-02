@@ -31,6 +31,7 @@ import { type ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
+import { getPanelKey, usePanelKeyScope } from './PanelKeyScopeContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
 import WidgetErrorView from '../widget/WidgetErrorView';
@@ -78,6 +79,7 @@ function ReactPanel({
   // is being implicitly created
   children,
   title,
+  __dhKeyPath,
   backgroundColor,
   direction = 'column',
   wrap,
@@ -99,8 +101,9 @@ function ReactPanel({
   UNSAFE_className,
 }: Props): JSX.Element | null {
   const layoutManager = useLayoutManager();
+  const panelKey = getPanelKey(usePanelKeyScope(), __dhKeyPath);
   const { metadata, onClose, onOpen, panelId, onDataChange, getInitialData } =
-    useReactPanel();
+    useReactPanel(panelKey);
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle =
@@ -121,8 +124,8 @@ function ReactPanel({
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal == null ? undefined : metadata
   );
-  // Used to check if panelTitle was updated
-  const prevPanelTitleRef = useRef<string>(panelTitle);
+  // Title last set on the layout item. Starts empty so a rehydrated item with a stale title is renamed.
+  const prevPanelTitleRef = useRef<string>('');
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,6 +143,9 @@ function ReactPanel({
     );
   }
   const { eventHub, root } = layoutManager;
+  const widgetStatus = useWidgetStatus();
+  // Placeholders shown before the document is ready don't have the panel's title
+  const isDocumentReady = widgetStatus.status === 'ready';
 
   useEffect(
     () => () => {
@@ -220,6 +226,7 @@ function ReactPanel({
           }
         }
         LayoutUtils.openComponent({ root: parent, config });
+        prevPanelTitleRef.current = panelTitle;
         log.debug('Opened panel', panelId, config);
       } else if (
         openedMetadataRef.current != null &&
@@ -246,14 +253,22 @@ function ReactPanel({
         onOpen();
       }
 
-      if (prevPanelTitleRef.current !== panelTitle) {
+      if (isDocumentReady && prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
         LayoutUtils.renameComponent(root, itemConfig, panelTitle);
       }
     },
-    [isClosable, parent, metadata, onOpen, panelId, panelTitle, root]
+    [
+      isClosable,
+      isDocumentReady,
+      parent,
+      metadata,
+      onOpen,
+      panelId,
+      panelTitle,
+      root,
+    ]
   );
-  const widgetStatus = useWidgetStatus();
 
   let renderedChildren: React.ReactNode;
   if (widgetStatus.status === 'loading') {
