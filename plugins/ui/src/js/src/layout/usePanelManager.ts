@@ -88,6 +88,9 @@ export function usePanelManager({
   // Key path of each open keyed panel, by panel id
   const openPanelKeys = useRef(new Map<string, string>());
 
+  // Key paths of panels that got a new id because their key was taken, by that new id
+  const duplicateKeys = useRef(new Map<string, string>());
+
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
   // cannot merge into it - doing so would make each panel's update drop the
@@ -129,7 +132,27 @@ export function usePanelManager({
       }
 
       panelIds.current.push(panelId);
-      // A panel with a duplicate key got a new id instead, and isn't recorded under the key
+      const duplicateKey = duplicateKeys.current.get(panelId);
+      if (duplicateKey != null) {
+        duplicateKeys.current.delete(panelId);
+        const keyedId = keyIds.get(duplicateKey);
+        if (keyedId != null && panelIds.current.includes(keyedId)) {
+          log.warn(
+            'Widget',
+            id,
+            'has more than one panel with key',
+            duplicateKey,
+            '- opening it as a new panel'
+          );
+        } else {
+          // The key's previous panel closed in this commit, e.g. it moved to another parent
+          keyIds.set(duplicateKey, panelId);
+          keyCounts.current.set(
+            duplicateKey,
+            (keyCounts.current.get(duplicateKey) ?? 0) + 1
+          );
+        }
+      }
       if (panelKey != null && keyIds.get(panelKey) === panelId) {
         openPanelKeys.current.set(panelId, panelKey);
       }
@@ -137,7 +160,7 @@ export function usePanelManager({
 
       setPanelsDirty(true);
     },
-    [keyIds, panelIds]
+    [id, keyIds, panelIds]
   );
 
   const handleClose = useCallback(
@@ -227,8 +250,6 @@ export function usePanelManager({
       } else {
         if (!hasRemovedOrphans.current && isDocumentReady) {
           hasRemovedOrphans.current = true;
-          // Every document panel has opened, so placeholders kept for keyed panels are now theirs
-          placeholderKeys.current.clear();
           removeOrphanedPanels();
         }
         const panelKeyMap = Object.fromEntries(
@@ -257,6 +278,16 @@ export function usePanelManager({
     ]
   );
 
+  useEffect(
+    function settlePlaceholderKeys() {
+      // Document panels took over their placeholders' keys in the ready render, so the rest were reused
+      if (isDocumentReady) {
+        placeholderKeys.current.clear();
+      }
+    },
+    [isDocumentReady]
+  );
+
   const getPositionalId = useCallback(() => {
     // Note that if the order of unkeyed panels changes, they appear in each other's place in the layout.
     const panelId = positionalIds[panelIdIndex.current];
@@ -272,14 +303,10 @@ export function usePanelManager({
 
       const count = keyCounts.current.get(panelKey) ?? 0;
       if (count > 0 && !placeholderKeys.current.has(panelKey)) {
-        log.warn(
-          'Widget',
-          id,
-          'has more than one panel with key',
-          panelKey,
-          '- opening it as a new panel'
-        );
-        return nanoid();
+        // Whether it's a real duplicate is only known once it opens
+        const duplicateId = nanoid();
+        duplicateKeys.current.set(duplicateId, panelKey);
+        return duplicateId;
       }
       keyCounts.current.set(panelKey, count + 1);
       if (isDocumentReadyRef.current) {
@@ -295,7 +322,7 @@ export function usePanelManager({
       }
       return panelId;
     },
-    [getPositionalId, hasSavedKeys, id, keyIds]
+    [getPositionalId, hasSavedKeys, keyIds]
   );
 
   const getInitialData = useCallback(
