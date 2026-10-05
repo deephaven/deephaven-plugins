@@ -276,6 +276,28 @@ describe('totals rebuild on source filter / custom column change', () => {
 
     expect(original.totalsWrites).toEqual([]);
   });
+
+  it('re-sanitizes totals against the live schema when a custom column changes an aggregated column type', async () => {
+    const { proxy, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['price'])),
+    });
+    const operationMapAt = (i: number): unknown =>
+      (original.totalsWrites[i] as { operationMap: unknown }).operationMap;
+    expect(operationMapAt(0)).toEqual({ price: ['Sum'] });
+
+    original.table.columns = [col('price', STRING)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+    expect(operationMapAt(1)).toEqual({});
+
+    // Derived from the raw intent, so the operation returns once valid again.
+    original.table.columns = [col('price', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+    expect(operationMapAt(2)).toEqual({ price: ['Sum'] });
+  });
 });
 
 describe('applyPivotBuilderConfig — rollup sanitization', () => {
@@ -1197,7 +1219,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       (() => Promise.reject(new Error('no psp'))) as never,
       () => persisted
     );
@@ -1242,7 +1264,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       // `persisted.pivot != null`, so the transform probes the PSP widget
       // up-front; it must resolve. The build itself never reaches
       // `createPivotTable` — the fully-stale pivot short-circuits to the flat
@@ -1317,7 +1339,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1359,7 +1381,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1400,7 +1422,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1435,7 +1457,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       (() => Promise.reject(new Error('no psp'))) as never,
       () => persisted
     );
