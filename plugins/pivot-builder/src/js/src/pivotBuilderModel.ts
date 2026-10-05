@@ -1091,6 +1091,15 @@ export function augmentPivotBuilderModel(
     writeTotalsToInner(v);
   };
 
+  // TODO: DH-23906: remove once JSAPI totals tables follow parent filters.
+  const rebuildTotals = (): void => {
+    if (appliedInnerTotals == null || pendingTotals !== undefined) return;
+    writeTotalsToInner({ ...appliedInnerTotals });
+  };
+  table.addEventListener(dh.Table.EVENT_FILTERCHANGED, rebuildTotals);
+  // Custom columns can redefine an aggregated column and go through the same lagging state change.
+  table.addEventListener(dh.Table.EVENT_CUSTOMCOLUMNSCHANGED, rebuildTotals);
+
   // Same-columns swaps (e.g. rollup-A → rollup-B) only fire TABLE_CHANGED;
   // pivot transitions only fire COLUMNS_CHANGED. Listen to both.
   proxy.addEventListener(
