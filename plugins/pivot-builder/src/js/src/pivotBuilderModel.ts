@@ -1113,12 +1113,21 @@ export function augmentPivotBuilderModel(
   };
 
   // TODO: DH-23906: remove once JSAPI totals tables follow parent filters.
-  // Re-derived from the raw intent: a custom column change can alter an aggregated column's type.
+  // Re-derived from the raw intent: a custom column change can add, remove, or retype an aggregated column.
   const rebuildTotals = (): void => {
-    if (appliedInnerTotals == null || pendingTotals !== undefined) return;
-    const { totals } = deriveEffectiveConfig(lastIntent);
-    if (totals == null) return;
-    writeTotalsToInner(sanitizeTotalsConfig(totals, table.columns));
+    if (
+      pendingTotals !== undefined ||
+      current != null ||
+      appliedRollup != null
+    ) {
+      return;
+    }
+    const { pivot, rollup, totals } = deriveEffectiveConfig(lastIntent);
+    if (pivot != null || rollup != null) return;
+    const next =
+      totals != null ? sanitizeTotalsConfig(totals, table.columns) : null;
+    if (next == null && appliedInnerTotals == null) return;
+    writeTotalsToInner(next);
   };
   table.addEventListener(dh.Table.EVENT_FILTERCHANGED, rebuildTotals);
   // Custom columns can redefine an aggregated column and go through the same lagging state change.

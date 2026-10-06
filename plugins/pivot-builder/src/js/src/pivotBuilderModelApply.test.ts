@@ -298,6 +298,68 @@ describe('totals rebuild on source filter / custom column change', () => {
     original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
     expect(operationMapAt(2)).toEqual({ price: ['Sum'] });
   });
+
+  it('applies totals when a custom column adds the aggregated column', async () => {
+    const { proxy, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['G2'])),
+    });
+    expect(original.totalsWrites).toEqual([]);
+
+    original.table.columns = [col('price', DOUBLE), col('G2', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsWrites[0] as { operationMap: unknown }).operationMap
+    ).toEqual({ G2: ['Sum'] });
+  });
+
+  it('clears totals when a custom column removes the last aggregated column', async () => {
+    const { proxy, original } = makeProxy([
+      col('price', DOUBLE),
+      col('G2', DOUBLE),
+    ]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['G2'])),
+    });
+    expect(original.totalsWrites).toHaveLength(1);
+
+    original.table.columns = [col('price', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toHaveLength(2);
+    expect(original.totalsWrites[1]).toBeNull();
+  });
+
+  it('does not write totals while a rollup is applied', async () => {
+    const { proxy, host, original } = makeProxy([
+      col('A', STRING),
+      col('price', DOUBLE),
+    ]);
+    const p = proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['price']), {
+        rollupRows: ['A'],
+      }),
+    });
+    host.settleSwap();
+    await p;
+    expect(host.hostRollupWrites).toHaveLength(1);
+
+    original.fireTableEvent(EVENT_FILTERCHANGED);
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toEqual([]);
+  });
 });
 
 describe('applyPivotBuilderConfig — rollup sanitization', () => {
