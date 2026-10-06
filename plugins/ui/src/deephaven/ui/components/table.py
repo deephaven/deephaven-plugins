@@ -19,7 +19,7 @@ from ..types import (
     SelectionChangeCallback,
     TableLike,
 )
-from .._internal import dict_to_react_props
+from .._internal import dict_to_react_props, validate_key
 
 logger = logging.getLogger(__name__)
 
@@ -753,6 +753,7 @@ class table(Element):
         del props["self"]
         self._props = props
         self._key = props.get("key")
+        validate_key(self._key)
 
     @property
     def name(self):

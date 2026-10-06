@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 from .Element import Element, PropsType
+from .._internal import validate_key
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class FunctionElement(Element):
             render: The render function to call when the component needs to be rendered.
             key: The key of this element.
         """
+        validate_key(key)
         self._name = name
         self._render = render
         self._key = key
