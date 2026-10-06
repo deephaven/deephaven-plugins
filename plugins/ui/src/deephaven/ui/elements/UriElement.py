@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .Element import Element, PropsType
+from .._internal import validate_key
 
 
 class UriElement(Element):
@@ -17,6 +18,7 @@ class UriElement(Element):
     _key: str | None = None
 
     def __init__(self, uri: str, key: str | None = None):
+        validate_key(key)
         self._uri = uri
         self._key = key
 

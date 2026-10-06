@@ -107,6 +107,26 @@ def is_nullish(value: Any) -> bool:
     return value is None or value is Undefined
 
 
+def validate_key(key: Any) -> None:
+    """
+    Check that an element key can identify the element, so a mistake like `key={value}` fails clearly.
+
+    Args:
+        key: The key to check. None means the element has no key.
+
+    Raises:
+        TypeError: If the key isn't a str, int, float or bool.
+    """
+    if key is None or isinstance(key, (str, int, float, bool)):
+        return
+    message = (
+        f"key must be a str, int, float or bool, not {type(key).__name__}: {key!r}"
+    )
+    if isinstance(key, set):
+        message += ". `key={value}` creates a set, use `key=value` instead"
+    raise TypeError(message)
+
+
 def get_component_name(component: Any) -> str:
     """
     Get the name of the component
