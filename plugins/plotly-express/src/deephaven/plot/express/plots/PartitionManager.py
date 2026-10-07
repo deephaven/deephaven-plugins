@@ -653,7 +653,7 @@ class PartitionManager:
 
         for table in self.constituents:
 
-            key_column_table = dhpd.to_pandas(table.select(key_columns))
+            key_column_table = dhpd.to_pandas(table, cols=key_columns)
             key_column_tuples = get_partition_key_column_tuples(
                 key_column_table, key_columns
             )
@@ -769,6 +769,7 @@ class PartitionManager:
 
         trace_generator = None
         figs = []
+        px_cache = {}
         for i, args in enumerate(self.partition_generator()):
             title_update = update_title(
                 args, len(self.constituents), self.title, self.groups
@@ -776,7 +777,9 @@ class PartitionManager:
 
             args = {**args, **title_update}
 
-            fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
+            fig = self.draw_figure(
+                call_args=args, trace_generator=trace_generator, px_cache=px_cache
+            )
             if not trace_generator:
                 trace_generator = fig.get_trace_generator()
 

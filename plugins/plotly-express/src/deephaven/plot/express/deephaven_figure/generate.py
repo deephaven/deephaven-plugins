@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from itertools import cycle, count
 from collections.abc import Generator
+from functools import lru_cache
 from math import floor, ceil
 from typing import Any, Callable, Mapping, cast, Tuple
 
@@ -190,8 +191,12 @@ def construct_min_dataframe(table: Table, data_cols: list[str]) -> DataFrame:
         f"{col} = {null}" for col, null in col_null_mapping(table, set(data_cols))
     ]
 
-    update_result = empty_table(1).update(update)
+    return _min_dataframe(tuple(update)).copy()
 
+
+@lru_cache(maxsize=128)
+def _min_dataframe(update: tuple[str, ...]) -> DataFrame:
+    update_result = empty_table(1).update(list(update))
     return dhpd.to_pandas(update_result, dtype_backend=None, conv_null=False)
 
 
@@ -1044,6 +1049,7 @@ def generate_figure(
     call_args: dict[str, Any],
     start_index: int = 0,
     trace_generator: Generator[dict, None, None] | None = None,
+    px_cache: dict[str, dict[str, Any]] | None = None,
 ) -> DeephavenFigure:
     """Generate a figure using a plotly express function as well as any args that
     should be used
@@ -1057,6 +1063,8 @@ def generate_figure(
         mapping needs to start at the end of the existing traces.
       trace_generator: If provided then only use this trace generator and return
         (as layout should already be created)
+      px_cache: If provided, px figures are reused for identical px args,
+        such as across partitions of one build
 
     Returns:
       a Deephaven figure
@@ -1071,7 +1079,18 @@ def generate_figure(
     data_frame = construct_min_dataframe(
         table, data_cols=merge_cols(list(data_cols.values()))
     )
-    px_fig = draw(data_frame=data_frame, **filtered_call_args)
+    px_fig: Any
+    if px_cache is None:
+        px_fig = draw(data_frame=data_frame, **filtered_call_args)
+    else:
+        px_key = repr((draw, data_frame.dtypes.to_dict(), filtered_call_args))
+        if px_key in px_cache:
+            # the cached dict came from a validated figure, so skip validating it again
+            px_fig = Figure(px_cache[px_key], _validate=False)
+        else:
+            px_fig = draw(data_frame=data_frame, **filtered_call_args)
+            # snapshot since the returned figure is modified below
+            px_cache[px_key] = px_fig.to_dict()
 
     data_mapping, hover_mapping = create_data_mapping(
         data_cols, custom_call_args, table, start_index
