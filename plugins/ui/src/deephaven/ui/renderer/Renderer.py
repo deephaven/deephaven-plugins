@@ -7,23 +7,19 @@ import weakref
 
 from .._internal import RenderContext, remove_empty_keys
 from ..elements import Element, MemoizedElement, PropsType
-from ..elements.FunctionElement import COMPONENT_KEY_PROP
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
 
 _PANEL_ELEMENT_NAME = "deephaven.ui.components.Panel"
 
-# Layout elements identify the panels inside them separately, so they aren't panels themselves
-_LAYOUT_ELEMENT_NAMES = {
-    "deephaven.ui.components.Column",
-    "deephaven.ui.components.Dashboard",
-    "deephaven.ui.components.Row",
-    "deephaven.ui.components.Stack",
-}
-
-# Props of a node that only passes its child through, like a component
-_PASS_THROUGH_PROPS = {"children", COMPONENT_KEY_PROP}
+# Nodes that aren't built in and have only children and a key, e.g. components, pass their child through
+_BUILT_IN_ELEMENT_PREFIXES = (
+    "deephaven.ui.components.",
+    "deephaven.ui.html.",
+    "deephaven.ui.icons.",
+)
+_PASS_THROUGH_PROPS = {"children", "key"}
 
 # List contexts already warned about panels without keys, so each list only warns once
 _missing_panel_key_contexts: weakref.WeakSet[RenderContext] = weakref.WeakSet()
@@ -44,11 +40,11 @@ def _get_panel(node: Any) -> tuple[RenderedNode, bool] | None:
         props = node.props or {}
         if node.name == _PANEL_ELEMENT_NAME:
             return node, is_keyed or props.get("key") is not None
-        if node.name in _LAYOUT_ELEMENT_NAMES:
+        if node.name.startswith(_BUILT_IN_ELEMENT_PREFIXES) or not (
+            set(props.keys()) <= _PASS_THROUGH_PROPS
+        ):
             return None
-        if not set(props.keys()) <= _PASS_THROUGH_PROPS:
-            return None
-        is_keyed = is_keyed or props.get(COMPONENT_KEY_PROP) is not None
+        is_keyed = is_keyed or props.get("key") is not None
         node = props.get("children")
     return None
 

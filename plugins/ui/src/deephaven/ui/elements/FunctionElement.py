@@ -6,9 +6,6 @@ from .._internal import validate_key
 
 logger = logging.getLogger(__name__)
 
-# Not `key`, which would change the element id and reset the state saved under it
-COMPONENT_KEY_PROP = "__dhKey"
-
 
 class FunctionElement(Element):
     def __init__(
@@ -46,5 +43,5 @@ class FunctionElement(Element):
 
         props: dict[str, Any] = {"children": children}
         if self._key is not None:
-            props[COMPONENT_KEY_PROP] = self._key
+            props["key"] = self._key
         return props

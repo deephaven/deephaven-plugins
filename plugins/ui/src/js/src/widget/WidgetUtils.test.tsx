@@ -15,7 +15,6 @@ import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
 import { KEY_PATH_PROP } from '../layout/LayoutUtils';
 import {
-  COMPONENT_KEY_PROP,
   transformNode,
   elementComponentMap,
   getComponentForElement,
@@ -120,8 +119,7 @@ describe('getComponentForElement', () => {
     function makeComponent(children: unknown, key?: string): ElementNode {
       return {
         [ELEMENT_KEY]: 'test.component',
-        props:
-          key == null ? { children } : { children, [COMPONENT_KEY_PROP]: key },
+        props: key == null ? { children } : { children, key },
       };
     }
 
@@ -207,7 +205,7 @@ describe('getComponentForElement', () => {
       expect(getComponentForElement(makeComponent(panel))).toBe(panel);
     });
 
-    it('does not include a component key in the element id', () => {
+    it('includes a component key in the element ids of its children, so their saved state follows the key', () => {
       const result = transformNode(
         makeComponent(makeKeyedElement(ELEMENT_NAME.panel), 'component-key'),
         (key, value) => value,
@@ -216,7 +214,7 @@ describe('getComponentForElement', () => {
       const panel = result.props?.children as ElementNode;
       expect(panel.props).toEqual(
         expect.objectContaining({
-          __dhId: `root/test.component/${ELEMENT_NAME.panel}`,
+          __dhId: `root/test.component:component-key/${ELEMENT_NAME.panel}`,
         })
       );
     });
