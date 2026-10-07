@@ -200,9 +200,7 @@ def _render_list_contents(
 
 
 def _render_dict(
-    item: PropsType,
-    context: RenderContext,
-    is_dirty_render: bool,
+    item: PropsType, context: RenderContext, is_dirty_render: bool
 ) -> PropsType:
     """
     Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
@@ -222,9 +220,7 @@ def _render_dict(
 
 
 def _render_dict_contents(
-    item: PropsType,
-    context: RenderContext,
-    is_dirty_render: bool,
+    item: PropsType, context: RenderContext, is_dirty_render: bool
 ) -> PropsType:
     """
     Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
@@ -245,9 +241,7 @@ def _render_dict_contents(
 
 
 def _render_element(
-    element: Element,
-    context: RenderContext,
-    is_dirty_render: bool,
+    element: Element, context: RenderContext, is_dirty_render: bool
 ) -> RenderedNode:
     """
     Render an Element.
@@ -273,9 +267,7 @@ def _render_element(
 
 
 def _render_element_contents(
-    element: Element,
-    context: RenderContext,
-    is_dirty_render: bool,
+    element: Element, context: RenderContext, is_dirty_render: bool
 ) -> RenderedNode:
     """
     Render an Element, using its cached result if it doesn't need a fresh render.

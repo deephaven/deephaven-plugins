@@ -255,7 +255,14 @@ function ReactPanel({
 
       if (isDocumentReady && prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
-        LayoutUtils.renameComponent(root, itemConfig, panelTitle);
+        // Renaming always emits a layout change, so skip it when the saved title is already current
+        const contentItem = LayoutUtils.getContentItemInStack(
+          existingStack,
+          itemConfig
+        );
+        if (contentItem?.config.title !== panelTitle) {
+          LayoutUtils.renameComponent(root, itemConfig, panelTitle);
+        }
       }
     },
     [
