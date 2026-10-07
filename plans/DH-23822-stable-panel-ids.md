@@ -67,10 +67,11 @@ panel that unmounts and returns in the same session gets its id back.
    - Add `panelKeyMap` to `PRESERVED_DATA_KEYS`.
    - `getComponentForElement`: React consumes `key`, so for panel, row, column and stack elements with a key, also
      pass `__dhKeyPath: [String(key)]`.
-   - Component nodes (no mapped component; their children are returned directly): when the node has `__dhKey`
-     (Python change 9), clone each panel/row/column/stack child with `__dhKey` prepended to its `__dhKeyPath`. For a
-     single child, also set `__dhKey` as its React key, so React matches list items by the component key.
-   - Leave `transformNode` alone. `__dhId` must not change, or persisted in-panel state would reset.
+   - Component nodes (no mapped component; their children are returned directly): when the node has a `key`
+     (Python change 9), clone each panel/row/column/stack child with the key prepended to its `__dhKeyPath`. For a
+     single child, also set it as the child's React key, so React matches list items by the component key.
+   - `transformNode` is unchanged: a component's key becomes part of its children's `__dhId`, as it already does for
+     built-in elements, so state saved inside a keyed component follows the key.
 3. **New `layout/PanelKeyScopeContext.ts`**: a `string[]` context, default `[]`.
    - `Row`, `Column` and `Stack` provide `[...scope, ...__dhKeyPath]` when they have a key path, in both the layout
      branch and the rehydration branch (`initialLayoutConfig != null`). The in-panel `Flex` branch needs nothing.
@@ -99,8 +100,8 @@ panel that unmounts and returns in the same session gets its id back.
 8. **`components/dashboard.py`** and **`elements/DashboardElement.py`**: add `key: str | None = None` and pass it to
    `BaseElement`. A new key resets a nested dashboard's saved layout, because `NestedDashboardData` is keyed by
    `__dhId`. It has no effect on a top-level dashboard's saved panels.
-9. **`elements/FunctionElement.py`**: `render()` emits `__dhKey` when the component has a key. Not `key`: that would
-   change the `__dhId` of every keyed component and reset its persisted state on upgrade.
+9. **`elements/FunctionElement.py`**: `render()` sends `key` when the component has one. State saved inside a
+   component that was already keyed resets once on upgrade, because its children's `__dhId` now includes the key.
 10. **`renderer/Renderer.py`**: missing-key warning in `_render_list_contents`. After rendering a list, if it holds
     two or more panels (a `Panel` node, or a component node whose single-child chain ends in a `Panel`) and any of
     them has no key on the panel or on a component above it, `logger.warning` once per list context, naming the
@@ -166,8 +167,8 @@ set of panels.
   - orphaned panels drop out of `panelKeyMap`.
 - **`WidgetUtils.test.tsx`**:
   - `__dhKeyPath` on keyed panel, row, column and stack elements;
-  - a component's `__dhKey` is prepended to its children's paths and becomes a single child's React key;
-  - `__dhId` is unchanged.
+  - a component's `key` is prepended to its children's paths and becomes a single child's React key;
+  - a component's `key` is part of its children's `__dhId`.
 - **`ReactPanel.test.tsx`**:
   - the identity is built from the scope and the panel's own path;
   - a rehydrated panel with a stale layout title is renamed.
@@ -175,7 +176,7 @@ set of panels.
 - **`DashboardWidgetHandler.test.tsx`**: keyed placeholders are reused by keyed real panels, with no close and
   re-open.
 - **Python**:
-  - `FunctionElement` emits `__dhKey` only when it has a key;
+  - `FunctionElement` sends `key` only when it has one;
   - the renderer warns once for a list of two unkeyed panels, and not for keyed panels, component-keyed panels or a
     single panel;
   - `ui.dashboard(key=...)`.

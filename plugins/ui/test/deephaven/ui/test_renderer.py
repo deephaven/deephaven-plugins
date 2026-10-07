@@ -320,7 +320,7 @@ class RendererTestCase(BaseTestCase):
         keyed = _render_child_item(my_comp(key="my-key"), rc, "keyed", True)
         unkeyed = _render_child_item(my_comp(), rc, "unkeyed", True)
 
-        self.assertEqual(keyed.props, {"children": "Hello", "__dhKey": "my-key"})
+        self.assertEqual(keyed.props, {"children": "Hello", "key": "my-key"})
         self.assertEqual(unkeyed.props, {"children": "Hello"})
 
 

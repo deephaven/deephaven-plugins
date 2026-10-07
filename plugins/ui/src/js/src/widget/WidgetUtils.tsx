@@ -125,9 +125,6 @@ const shouldWrapTextChildren = new Set<string>([
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 
-/** Prop the server uses to send a component's key, which isn't part of `__dhId` */
-export const COMPONENT_KEY_PROP = '__dhKey';
-
 /** Elements whose keys identify panels, so they get their key path in `__dhKeyPath` */
 const keyPathElementNames = new Set<string>([
   ELEMENT_NAME.column,
@@ -310,7 +307,7 @@ export function getComponentForElement(
   }
 
   const children = newElement.props?.children as React.ReactNode;
-  const componentKey = newElement.props?.[COMPONENT_KEY_PROP];
+  const componentKey = newElement.props?.key;
   if (componentKey == null) {
     return children as JSX.Element | null;
   }
