@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import dataclass
 from deephaven.ui import Element
+from deephaven.ui.elements import FunctionElement
 from deephaven.ui.renderer.Renderer import Renderer, _render_child_item
 from deephaven.ui.renderer.RenderedNode import RenderedNode
 from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
@@ -340,7 +341,28 @@ class MissingPanelKeyTestCase(BaseTestCase):
         warning = self.render_with_warning_mock(my_dashboard(), times=2)
 
         warning.assert_called_once()
-        self.assertEqual(warning.call_args[0][1], "A, B")
+        self.assertEqual(warning.call_args[0][2], "A, B")
+
+    def test_names_the_component_rendering_the_list(self):
+        @ui.component
+        def my_dashboard():
+            return ui.stack(ui.panel("a", title="A"), ui.panel("b", title="B"))
+
+        warning = self.render_with_warning_mock(my_dashboard())
+
+        self.assertIn(".my_dashboard`", warning.call_args[0][1])
+
+    def test_leaves_main_out_of_the_component_name(self):
+        element = FunctionElement(
+            "__main__.ListPeople",
+            lambda: ui.stack(ui.panel("a", title="A"), ui.panel("b", title="B")),
+        )
+
+        warning = self.render_with_warning_mock(element)
+
+        self.assertEqual(
+            warning.call_args[0][1], " Check the render method of `ListPeople`."
+        )
 
     def test_names_only_the_unkeyed_panels(self):
         @ui.component
@@ -350,7 +372,7 @@ class MissingPanelKeyTestCase(BaseTestCase):
         warning = self.render_with_warning_mock(my_dashboard())
 
         warning.assert_called_once()
-        self.assertEqual(warning.call_args[0][1], "B")
+        self.assertEqual(warning.call_args[0][2], "B")
 
     def test_does_not_warn_for_keyed_panels(self):
         @ui.component

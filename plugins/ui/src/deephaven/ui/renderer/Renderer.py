@@ -1,12 +1,13 @@
 from __future__ import annotations
 from contextlib import nullcontext
+from contextvars import ContextVar
 from dataclasses import fields, is_dataclass
 import logging
 from typing import Any, Union
 import weakref
 
 from .._internal import RenderContext, remove_empty_keys
-from ..elements import Element, MemoizedElement, PropsType
+from ..elements import Element, FunctionElement, MemoizedElement, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,9 @@ _PASS_THROUGH_PROPS = {"children", "key"}
 
 # List contexts already warned about panels without keys, so each list only warns once
 _missing_panel_key_contexts: weakref.WeakSet[RenderContext] = weakref.WeakSet()
+
+# Name of the component being rendered, so warnings can say where to look
+_current_owner: ContextVar[str | None] = ContextVar("_current_owner", default=None)
 
 
 def _get_panel(node: Any) -> tuple[RenderedNode, bool] | None:
@@ -71,10 +75,17 @@ def _warn_missing_panel_keys(items: list[Any], context: RenderContext) -> None:
     if len(unkeyed_titles) == 0:
         return
     _missing_panel_key_contexts.add(context)
+    owner = _current_owner.get()
+    # Scripts run in the console or a PQ define their components in `__main__`, which doesn't help locate them
+    location = (
+        f" Check the render method of `{owner.removeprefix('__main__.')}`."
+        if owner is not None
+        else ""
+    )
     logger.warning(
-        "Each panel in a list should have a unique key, so it keeps its place and "
-        "state when panels are added, removed or reordered. Add `key=` to the panel, "
-        "or to the component that returns it. Panels without a key: %s",
+        "Each panel in a list should have a unique `key`, so it keeps its saved layout "
+        "and state when panels are added, removed or reordered.%s Panels without a key: %s",
+        location,
         ", ".join(unkeyed_titles),
     )
 
@@ -189,7 +200,9 @@ def _render_list_contents(
 
 
 def _render_dict(
-    item: PropsType, context: RenderContext, is_dirty_render: bool
+    item: PropsType,
+    context: RenderContext,
+    is_dirty_render: bool,
 ) -> PropsType:
     """
     Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
@@ -209,7 +222,9 @@ def _render_dict(
 
 
 def _render_dict_contents(
-    item: PropsType, context: RenderContext, is_dirty_render: bool
+    item: PropsType,
+    context: RenderContext,
+    is_dirty_render: bool,
 ) -> PropsType:
     """
     Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
@@ -230,10 +245,40 @@ def _render_dict_contents(
 
 
 def _render_element(
-    element: Element, context: RenderContext, is_dirty_render: bool
+    element: Element,
+    context: RenderContext,
+    is_dirty_render: bool,
 ) -> RenderedNode:
     """
     Render an Element.
+
+    Args:
+        element: The element to render.
+        context: The context to render the component in.
+        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree.
+
+    Returns:
+        The RenderedNode representing the element.
+    """
+    owner_token = (
+        _current_owner.set(element.name)
+        if isinstance(element, (FunctionElement, MemoizedElement))
+        else None
+    )
+    try:
+        return _render_element_contents(element, context, is_dirty_render)
+    finally:
+        if owner_token is not None:
+            _current_owner.reset(owner_token)
+
+
+def _render_element_contents(
+    element: Element,
+    context: RenderContext,
+    is_dirty_render: bool,
+) -> RenderedNode:
+    """
+    Render an Element, using its cached result if it doesn't need a fresh render.
 
     Args:
         element: The element to render.
