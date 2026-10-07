@@ -341,7 +341,7 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
   const mockStack = {
     setActiveContentItem: jest.fn(),
   };
-  const mockContentItem = {};
+  const mockContentItem = { config: {} };
   (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(mockStack);
   (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
     mockContentItem
@@ -410,7 +410,7 @@ it('calls setActiveContentItem if metadata changed while the panel already exist
   const mockStack = {
     setActiveContentItem: jest.fn(),
   };
-  const mockContentItem = {};
+  const mockContentItem = { config: {} };
   (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(mockStack);
   (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
     mockContentItem
@@ -516,6 +516,17 @@ describe('title', () => {
       { id: mockPanelId },
       'new title'
     );
+  });
+
+  it('does not rename a rehydrated panel whose layout title is current', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce({
+      config: { title: 'same title' },
+    });
+    render(makeTestComponent({ title: 'same title' }));
+
+    expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
   });
 
   it('does not rename a panel it just opened', () => {
