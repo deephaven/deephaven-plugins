@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from deephaven.plugin.object_type import MessageStream
 
@@ -14,8 +14,11 @@ from ..chart import TvlChart
 from ..events import (
     PRESS,
     DOUBLE_PRESS,
+    SERIES_TOGGLE,
     TvlPressEvent,
+    TvlSeriesToggleEvent,
     build_press_event,
+    build_series_toggle_event,
     time_converter_for,
     wrap_callable,
 )
@@ -142,20 +145,26 @@ class TvlChartListener:
         # Auto-bin state, keyed by ref index of the source table.
         self._autobin_states: dict[int, _AutoBinTableState] = {}
         # Handler id -> arity-wrapped callable, built from the chart's
-        # on_press / on_double_press. Mirrors the figure's enabledHandlers
-        # so JS only fires events we can dispatch.
+        # on_press / on_double_press / on_series_toggle. Mirrors the figure's
+        # enabledHandlers so JS only fires events we can dispatch.
         self._handlers: dict[str, Any] = {}
         on_press = getattr(chart, "on_press", None)
         on_double_press = getattr(chart, "on_double_press", None)
+        on_series_toggle = getattr(chart, "on_series_toggle", None)
         if on_press is not None:
             self._handlers[PRESS] = wrap_callable(on_press)
         if on_double_press is not None:
             self._handlers[DOUBLE_PRESS] = wrap_callable(on_double_press)
+        if on_series_toggle is not None:
+            self._handlers[SERIES_TOGGLE] = wrap_callable(on_series_toggle)
         # Per-series time-column dtype names (DType.j_name) so a press event's
         # ``timestamp`` can mirror the source column type. Only resolved when a
-        # handler is wired, since that's the only consumer.
+        # press handler is wired, since that's the only consumer — a legend
+        # toggle carries no timestamp.
         self._series_time_types: list[Optional[str]] = (
-            self._resolve_series_time_types() if self._handlers else []
+            self._resolve_series_time_types()
+            if (PRESS in self._handlers or DOUBLE_PRESS in self._handlers)
+            else []
         )
         # Type to use when the press names no series (e.g. a press between
         # lines): the shared type when every series agrees, else None
@@ -210,10 +219,10 @@ class TvlChartListener:
 
         return b"", []
 
-    # ---- EVENT (press / double-press) ----
+    # ---- EVENT (press / double-press / series toggle) ----
 
     def _handle_event(self, message: dict[str, Any]) -> tuple[bytes, list[Any]]:
-        """Dispatch a press / double-press event to its Python handler.
+        """Dispatch a press / double-press / series-toggle event to its handler.
 
         Fire-and-forget: handlers run under the captured execution context
         and a fresh liveness scope so they may do real Deephaven work, and
@@ -239,12 +248,17 @@ class TvlChartListener:
 
         return b"", []
 
-    def _build_event(self, handler_id: str, payload: dict[str, Any]) -> TvlPressEvent:
+    def _build_event(
+        self, handler_id: str, payload: dict[str, Any]
+    ) -> Union[TvlPressEvent, TvlSeriesToggleEvent]:
         """Build the event dict for ``handler_id`` from the wire payload.
 
         Press / double-press mirror ``MouseEventParams`` (time mirrored from the
-        hovered series' column type).
+        hovered series' column type). A series toggle carries no time, so it
+        skips the column-type resolution entirely.
         """
+        if handler_id == SERIES_TOGGLE:
+            return build_series_toggle_event(payload)
         time_type = self._time_type_for_payload(payload)
         converter = time_converter_for(time_type, payload.get("timeZone"))
         return build_press_event(handler_id, payload, converter)

@@ -229,7 +229,7 @@ The two `ColorSpace` enum values are `"srgb"` and `"display-p3"`.
 
 ### Control scroll and zoom interactions
 
-Pass `tvl.scroll(...)` / `tvl.scale(...)` to `handle_scroll` / `handle_scale` to enable or disable specific input gestures, such as mouse wheel zoom, touch drag, and double-click reset. `handle_scroll` and `handle_scale` also accept a plain bool to short-circuit all sub-options at once.
+Pass `tvl.scroll(...)` / `tvl.scale(...)` to `handle_scroll` / `handle_scale` to enable or disable specific input gestures, such as mouse wheel zoom, touch drag, and double-click reset. `handle_scroll` and `handle_scale` also accept a plain bool to short-circuit all sub-options at once. For what each gesture does by default, see [Pan and zoom](navigation.md).
 
 ```python order=chart,tap_exit,values
 import deephaven.plot.tradingview_lightweight as tvl

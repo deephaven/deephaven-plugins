@@ -37,6 +37,8 @@ import type {
   TvlChartType,
   TvlSeriesConfig,
   TvlMarkerData,
+  TvlLegendOptions,
+  TvlSeriesKind,
   TvlTooltipOptions,
 } from './TradingViewTypes';
 import { resolveColor, resolveColorsDeep } from './TradingViewColors';
@@ -44,7 +46,7 @@ import createTimeZoneHorzScaleBehavior, {
   type ZonedHorzScaleBehavior,
 } from './TimeZoneHorzScaleBehavior';
 import { getTimezoneOffsetSeconds } from './TradingViewUtils';
-import { TradingViewTooltip } from './TradingViewTooltip';
+import type { TvlLegendEntry } from './TradingViewOverlayTypes';
 import ContinuousBarsSeries, {
   isContinuousBarType,
   stampContinuousBarTimes,
@@ -378,8 +380,21 @@ class TradingViewChartRenderer {
   private seriesDataItems: Map<string, Array<Record<string, unknown>>> =
     new Map();
 
-  /** Active tracking tooltip, when enabled via chartOptions.tooltip.visible. */
-  private tooltip: TradingViewTooltip | null = null;
+  /** Series type per id, so the legend knows which rows are OHLC-shaped. */
+  private seriesKinds: Map<string, TvlSeriesKind> = new Map();
+
+  /**
+   * Visibility chosen from the legend, per series id. Only holds series the
+   * user actually toggled: the figure's own `visible` option supplies the
+   * initial state, and this map replays a toggle over it after the series
+   * rebuilds that a chart-type change or a late `by=` partition triggers.
+   * Current visibility is always read back off the series itself, never
+   * inferred from this map.
+   */
+  private visibilityOverrides: Map<string, boolean> = new Map();
+
+  /** Overlay subscribers notified when series or their data change. */
+  private overlayUpdateHandlers: Set<() => void> = new Set();
 
   private markersMap: Map<string, ISeriesMarkersPluginApi<Time>> = new Map();
 
@@ -741,6 +756,7 @@ class TradingViewChartRenderer {
     });
     this.seriesMap.clear();
     this.seriesColors.clear();
+    this.seriesKinds.clear();
     this.continuousOhlcColors.clear();
     this.continuousSeriesIds.clear();
     this.seriesDataItems.clear();
@@ -838,6 +854,13 @@ class TradingViewChartRenderer {
       });
       if (series) {
         this.seriesMap.set(config.id, series);
+        this.seriesKinds.set(config.id, config.type);
+        // A rebuild recreates every series from the figure, which would undo
+        // any legend toggles; reapply them before the series is painted.
+        const override = this.visibilityOverrides.get(config.id);
+        if (override !== undefined) {
+          series.applyOptions({ visible: override });
+        }
 
         // Record the resolved primary color for the tracking tooltip's title
         // tint. OHLC types have no single line color, so use the up color.
@@ -1331,7 +1354,7 @@ class TradingViewChartRenderer {
     }
 
     // Merge into the cached options so consumers that read resolvedChartOpts
-    // later (hasTooltip(), and setChartType's rebuild) see the figure's
+    // later (the overlay getters, and setChartType's rebuild) see the figure's
     // chartOptions — which arrive here via applyOptions, not the constructor.
     this.resolvedChartOpts = { ...this.resolvedChartOpts, ...chartOpts };
 
@@ -1535,8 +1558,39 @@ class TradingViewChartRenderer {
     return this.seriesColors.get(id);
   }
 
+  /**
+   * Subscribe to "series or their data changed". The React overlays use this
+   * to re-read entries when a tick lands or a late `by=` key arrives.
+   *
+   * Deliberately a renderer-owned notifier rather than React state on the
+   * chart: bumping chart state from the data path re-runs the effect that
+   * feeds the data path, which is an infinite render loop.
+   */
+  subscribeOverlayUpdate(handler: () => void): () => void {
+    this.overlayUpdateHandlers.add(handler);
+    return () => {
+      this.overlayUpdateHandlers.delete(handler);
+    };
+  }
+
+  /** Tell the overlays that series or data changed. */
+  notifyOverlayUpdate(): void {
+    this.overlayUpdateHandlers.forEach(h => h());
+  }
+
+  /**
+   * Subscribe to crosshair movement. Returns an unsubscribe fn. Used by the
+   * React overlays (legend, tooltip), which own their own DOM.
+   */
+  subscribeCrosshairMove(
+    handler: (params: MouseEventParams) => void
+  ): () => void {
+    this.chart.subscribeCrosshairMove(handler);
+    return () => this.chart.unsubscribeCrosshairMove(handler);
+  }
+
   /** Format a crosshair time the same way this chart's time axis does. */
-  private formatCrosshairTime(time: unknown): string {
+  formatTime(time: unknown): string {
     switch (this.chartType) {
       case 'yieldCurve':
         return yieldCurveCrosshairFormatter(time);
@@ -1547,41 +1601,103 @@ class TradingViewChartRenderer {
     }
   }
 
-  /** True when the figure requested a tracking tooltip. */
-  hasTooltip(): boolean {
-    const tooltip = this.resolvedChartOpts.tooltip as
-      | TvlTooltipOptions
-      | undefined;
-    return tooltip?.visible === true;
+  /** Legend options from the figure, or undefined when none was requested. */
+  getLegendOptions(): TvlLegendOptions | undefined {
+    // Presence is the switch: Python emits the block only when a legend was
+    // asked for, so there is no separate on/off field to consult.
+    return this.resolvedChartOpts.legend as TvlLegendOptions | undefined;
+  }
+
+  /** Tooltip options from the figure, or undefined when none was requested. */
+  getTooltipOptions(): TvlTooltipOptions | undefined {
+    // Presence is the switch, as for the legend above.
+    return this.resolvedChartOpts.tooltip as TvlTooltipOptions | undefined;
   }
 
   /**
-   * Create the tracking tooltip and subscribe it to crosshair moves. Returns
-   * a cleanup that unsubscribes and removes the tooltip element. No-op (returns
-   * a no-op cleanup) when the figure did not request a tooltip. Must be called
-   * after :meth:`configureSeries` so series colors are known.
+   * Legend-eligible series in figure order. Every series gets an entry,
+   * including ones hidden by a toggle (their row renders dimmed) — dropping
+   * them would make a hidden series impossible to bring back.
    */
-  setupTooltip(): () => void {
-    if (!this.hasTooltip()) {
-      return () => undefined;
-    }
-    const options = this.resolvedChartOpts.tooltip as TvlTooltipOptions;
-    this.tooltip = new TradingViewTooltip({
-      container: this.container,
-      getSeriesId: s => this.getSeriesIdForApi(s),
-      getSeriesColor: id => this.getSeriesColor(id),
-      formatTime: time => this.formatCrosshairTime(time),
-      options,
+  getLegendEntries(): TvlLegendEntry[] {
+    const entries: TvlLegendEntry[] = [];
+    this.seriesMap.forEach((series, id) => {
+      entries.push({
+        id,
+        series,
+        title: TradingViewChartRenderer.readSeriesTitle(series) ?? id,
+        color: this.seriesColors.get(id),
+        kind: this.seriesKinds.get(id) ?? 'Line',
+        visible: TradingViewChartRenderer.isSeriesVisible(series),
+      });
     });
-    const handler = (params: MouseEventParams): void => {
-      this.tooltip?.handleCrosshairMove(params);
-    };
-    this.chart.subscribeCrosshairMove(handler);
-    return () => {
-      this.chart.unsubscribeCrosshairMove(handler);
-      this.tooltip?.destroy();
-      this.tooltip = null;
-    };
+    return entries;
+  }
+
+  /**
+   * A series' current visibility, read from the series itself so a
+   * `visible=False` set in Python counts the same as a legend toggle.
+   */
+  private static isSeriesVisible(series: ISeriesApi<SeriesType>): boolean {
+    try {
+      return (series.options() as { visible?: boolean }).visible !== false;
+    } catch {
+      return true;
+    }
+  }
+
+  /** Show or hide a series, remembering the choice across rebuilds. */
+  setSeriesVisible(seriesId: string, visible: boolean): void {
+    const series = this.seriesMap.get(seriesId);
+    if (!series) return;
+    this.visibilityOverrides.set(seriesId, visible);
+    series.applyOptions({ visible });
+  }
+
+  /** Ids of every series currently hidden, whatever hid it. */
+  getHiddenSeriesIds(): string[] {
+    const hidden: string[] = [];
+    this.seriesMap.forEach((series, id) => {
+      if (!TradingViewChartRenderer.isSeriesVisible(series)) hidden.push(id);
+    });
+    return hidden;
+  }
+
+  /** Most recent rendered point for a series, for the legend's idle state. */
+  getLastSeriesPoint(seriesId: string): unknown {
+    const items = this.seriesDataItems.get(seriesId);
+    if (items != null && items.length > 0) return items[items.length - 1];
+    const series = this.seriesMap.get(seriesId);
+    if (!series) return undefined;
+    try {
+      const data = series.data();
+      return data.length > 0 ? data[data.length - 1] : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * The point a series rendered at `time`, or undefined when it has none
+   * there. The legend reads hovered values through this, by id, rather than
+   * off the crosshair event, which is keyed by series API and goes stale when
+   * `configureSeries` rebuilds the series or a tick rewrites the hovered bar.
+   */
+  getSeriesPointAt(seriesId: string, time: unknown): unknown {
+    const items = this.seriesDataItems.get(seriesId);
+    if (typeof time !== 'number' || items == null) return undefined;
+    // Items are kept ascending by time (sortByTime; updateSeriesPoint only
+    // rewrites the last bar or appends).
+    let lo = 0;
+    let hi = items.length - 1;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      const t = items[mid].time as number;
+      if (t === time) return items[mid];
+      if (t < time) lo = mid + 1;
+      else hi = mid - 1;
+    }
+    return undefined;
   }
 
   /** Reverse lookup: find our series id for a given ISeriesApi. */
@@ -1595,9 +1711,21 @@ class TradingViewChartRenderer {
     return found;
   }
 
-  /** User-facing title for a series API, when set. */
+  /** User-facing title for a series API, when set and the series is ours. */
   getSeriesTitleForApi(series: ISeriesApi<SeriesType>): string | undefined {
     if (this.getSeriesIdForApi(series) == null) return undefined;
+    return TradingViewChartRenderer.readSeriesTitle(series);
+  }
+
+  /**
+   * The `title` a series was created with, or undefined when untitled. No
+   * membership check: callers iterating `seriesMap` already hold the series,
+   * and repeating the reverse lookup per entry made every legend rebuild
+   * quadratic in the series count.
+   */
+  private static readSeriesTitle(
+    series: ISeriesApi<SeriesType>
+  ): string | undefined {
     try {
       const opts = series.options() as { title?: string };
       const title = opts?.title;
@@ -1663,10 +1791,7 @@ class TradingViewChartRenderer {
     this.dynamicPriceLines.clear();
     this.scaffoldSeries = null;
     this.seriesColors.clear();
-    if (this.tooltip) {
-      this.tooltip.destroy();
-      this.tooltip = null;
-    }
+    this.seriesKinds.clear();
     if (this.watermarkPlugin) {
       this.watermarkPlugin.detach();
       this.watermarkPlugin = null;
