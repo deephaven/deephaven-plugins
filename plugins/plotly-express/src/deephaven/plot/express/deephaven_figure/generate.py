@@ -1044,6 +1044,38 @@ def create_hover_and_axis_titles(
     return hover_text, legend_title
 
 
+def draw_px_figure(
+    draw: Callable,
+    data_frame: DataFrame,
+    px_args: dict[str, Any],
+    px_cache: dict[str, dict[str, Any]] | None = None,
+) -> Any:
+    """Draw a plotly express figure, reusing a cached one for identical args
+
+    Args:
+      draw: The plotly express function to use to generate the figure
+      data_frame: The placeholder dataframe to pass to plotly express
+      px_args: The args to pass to plotly express
+      px_cache: If provided, px figures are reused for identical px args,
+        such as across partitions of one build
+
+    Returns:
+      A new plotly figure
+    """
+    if px_cache is None:
+        return draw(data_frame=data_frame, **px_args)
+
+    px_key = repr((draw, data_frame.dtypes.to_dict(), px_args))
+    if px_key in px_cache:
+        # the cached dict came from a validated figure, so skip validating it again
+        return Figure(px_cache[px_key], _validate=False)
+
+    px_fig = draw(data_frame=data_frame, **px_args)
+    # snapshot since the returned figure is modified by the caller
+    px_cache[px_key] = px_fig.to_dict()
+    return px_fig
+
+
 def generate_figure(
     draw: Callable,
     call_args: dict[str, Any],
@@ -1079,18 +1111,7 @@ def generate_figure(
     data_frame = construct_min_dataframe(
         table, data_cols=merge_cols(list(data_cols.values()))
     )
-    px_fig: Any
-    if px_cache is None:
-        px_fig = draw(data_frame=data_frame, **filtered_call_args)
-    else:
-        px_key = repr((draw, data_frame.dtypes.to_dict(), filtered_call_args))
-        if px_key in px_cache:
-            # the cached dict came from a validated figure, so skip validating it again
-            px_fig = Figure(px_cache[px_key], _validate=False)
-        else:
-            px_fig = draw(data_frame=data_frame, **filtered_call_args)
-            # snapshot since the returned figure is modified below
-            px_cache[px_key] = px_fig.to_dict()
+    px_fig = draw_px_figure(draw, data_frame, filtered_call_args, px_cache)
 
     data_mapping, hover_mapping = create_data_mapping(
         data_cols, custom_call_args, table, start_index
