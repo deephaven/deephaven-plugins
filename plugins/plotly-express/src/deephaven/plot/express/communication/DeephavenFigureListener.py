@@ -142,6 +142,10 @@ class DeephavenFigureListener:
                 self._dirty_nodes.clear()
 
             for node in nodes:
+                with self._update_lock:
+                    if self._closed:
+                        self._update_task_active = False
+                        return
                 try:
                     revision = self._revision_manager.get_revision()
                     node.recreate_figure()

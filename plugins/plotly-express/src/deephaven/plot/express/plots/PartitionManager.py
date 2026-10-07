@@ -638,13 +638,16 @@ class PartitionManager:
 
         return transposed.drop_columns(cols)
 
-    def current_partition_generator(self) -> Generator[dict[str, str], None, None]:
+    def current_partition_generator(
+        self,
+    ) -> Generator[dict[str, str] | None, None, None]:
         """
         Generate a partition dictionary for the current partition that maps
         column to value
 
         Yields:
-            The partition dictionary mapping column to value
+            The partition dictionary mapping column to value, or None if the
+            partition has no data
         """
         # the table is guaranteed to be a partitioned table here
         key_columns: list[str] = sorted(
@@ -659,7 +662,8 @@ class PartitionManager:
             )
 
             if len(key_column_tuples) < 1:
-                # this partition might have no data, so skip it
+                # can empty out between reads off the lock; None keeps later keys paired
+                yield None
                 continue
 
             current_partition = dict(
@@ -691,6 +695,8 @@ class PartitionManager:
             self.constituents, column
         )
         for table, current_partition in zip(tables, self.current_partition_generator()):
+            if current_partition is None:
+                continue
             # since this is preprocessed it will always be a tuple
             yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 

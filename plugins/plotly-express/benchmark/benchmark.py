@@ -134,9 +134,9 @@ class Clock:
         )
 
     def max_pause(self, start: float, end: float) -> float:
-        ticks = [start] + [t for t in self.ticks if start < t <= end]
+        ticks = [start] + [t for t in self.ticks if start < t <= end] + [end]
         gaps = [b - a for a, b in zip(ticks, ticks[1:])]
-        return max(max(gaps, default=end - start) - CYCLE_MS / 1000, 0.0)
+        return max(max(gaps) - CYCLE_MS / 1000, 0.0)
 
 
 def wait_until(condition: Callable[[], bool]) -> None:
