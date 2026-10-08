@@ -204,7 +204,6 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._callable_dict = {}
         self._temp_callable_dict = {}
         self._next_temp_callable_id = 0
-        self._pending_references: list[Any] = []
         self._render_lock = threading.Lock()
         self._is_dirty = False
         self._render_state = _RenderState.IDLE
@@ -395,18 +394,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         logger.debug("Payload received: %s", decoded_payload)
 
         def handle_message():
-            # Store references for the duration of this dispatch so _call_callable
-            # can inject a table reference (e.g. the sorted/filtered model table).
-            self._pending_references = references
-            try:
-                # json-rpc writes the request into the context, so each request needs its own
-                response = self._manager.handle(
-                    decoded_payload,
-                    self._dispatcher,
-                    context={"references": references},
-                )
-            finally:
-                self._pending_references = []
+            # json-rpc writes the request into the context, so each request needs its own
+            response = self._manager.handle(
+                decoded_payload,
+                self._dispatcher,
+                context={"references": references},
+            )
 
             if response is None:
                 return
@@ -577,11 +570,6 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
 
         references = (context or {}).get("references", [])
         args = self._deserialize_references(args, references)
-
-        # If a table reference was piggybacked (e.g. the sorted/filtered model
-        # table from UITable), inject it as _table so wrappers can use it.
-        if self._pending_references and args and isinstance(args[0], dict):
-            args = [{**args[0], "_table": self._pending_references[0]}, *args[1:]]
 
         result = fn(*args)
 
