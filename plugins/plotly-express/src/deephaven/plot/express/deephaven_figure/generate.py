@@ -1045,11 +1045,11 @@ def create_hover_and_axis_titles(
 
 
 def draw_px_figure(
-    draw: Callable,
+    draw: Callable[..., Figure],
     data_frame: DataFrame,
     px_args: dict[str, Any],
     px_cache: dict[str, dict[str, Any]] | None = None,
-) -> Any:
+) -> Figure:
     """Draw a plotly express figure, reusing a cached one for identical args
 
     Args:
@@ -1077,7 +1077,7 @@ def draw_px_figure(
 
 
 def generate_figure(
-    draw: Callable,
+    draw: Callable[..., Figure],
     call_args: dict[str, Any],
     start_index: int = 0,
     trace_generator: Generator[dict, None, None] | None = None,
@@ -1131,7 +1131,7 @@ def generate_figure(
         extra_generators=[hover_text],
     )
 
-    is_indicator = px_fig.data[0].type == "indicator"
+    is_indicator = px_fig.data[0]["type"] == "indicator"
 
     # px adds a margin of 60 if a title is not specified
     # since most charts still use px at their core and
