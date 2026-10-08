@@ -206,6 +206,28 @@ class DeephavenFigureListenerUpdateTestCase(BaseTestCase):
         self.assertEqual(builds, [])
         client.on_data.assert_not_called()
 
+    def test_each_connection_gets_filter_columns(self):
+        """Every connection to an already built static chart receives its filter columns"""
+        from deephaven import new_table
+        from deephaven.column import int_col, string_col
+        import src.deephaven.plot.express as dx
+
+        static = new_table(
+            [
+                string_col("Group", ["A", "B"]),
+                int_col("X", [1, 2]),
+                int_col("Y", [3, 4]),
+            ]
+        )
+        chart = dx.line(static, x="X", y="Y", filter_by="Group")
+        chart.get_plotly_fig()
+
+        for _ in range(2):
+            listener = self.create_listener(chart)
+            payload, _ = listener._handle_retrieve_figure()
+            deephaven = json.loads(payload)["figure"]["deephaven"]
+            self.assertIn("filterColumns", deephaven)
+
 
 if __name__ == "__main__":
     unittest.main()

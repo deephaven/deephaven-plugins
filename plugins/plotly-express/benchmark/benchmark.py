@@ -253,8 +253,11 @@ def main() -> None:
         run_once(SCENARIOS[name], *make_data(2))
     for name in names:
         for groups in args.groups:
-            data, extra = make_data(groups)
-            runs = [run_once(SCENARIOS[name], data, extra) for _ in range(args.repeat)]
+            # fresh data per run, since each run adds a group
+            runs = [
+                run_once(SCENARIOS[name], *make_data(groups))
+                for _ in range(args.repeat)
+            ]
             cells = []
             for metric in METRICS:
                 median = statistics.median(run[metric] for run in runs)

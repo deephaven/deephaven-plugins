@@ -74,9 +74,14 @@ class DeephavenFigureListener:
         self._setup_listeners()
 
         # after registration and off the UG lock; anything newer reaches _on_update
+        rebuilt = False
         for table, node in self._partitioned_tables.values():
             if table.is_refreshing:
                 node.recreate_figure()
+                rebuilt = True
+        if not rebuilt:
+            # serialization marks what it sent on the figure, so don't share the script's
+            self._figure.recreate_figure()
 
     def _setup_listeners(self) -> None:
         """
