@@ -20,8 +20,7 @@ Only closing and re-opening the widget does.
 ## Approach
 
 Identify panels by `key`, the way React identifies list items. A keyed panel keeps its id, layout slot and state
-wherever the script inserts, removes or reorders panels. A panel without a key keeps today's positional behaviour, and
-the server logs a warning, like React's missing-key warning.
+wherever the script inserts, removes or reorders panels. A panel without a key keeps today's positional behavior.
 
 `__dhId` is not used for identity: it contains sibling indices and the outer panel's id, so it shifts too.
 
@@ -102,10 +101,8 @@ panel that unmounts and returns in the same session gets its id back.
    `__dhId`. It has no effect on a top-level dashboard's saved panels.
 9. **`elements/FunctionElement.py`**: `render()` sends `key` when the component has one. State saved inside a
    component that was already keyed resets once on upgrade, because its children's `__dhId` now includes the key.
-10. **`renderer/Renderer.py`**: missing-key warning in `_render_list_contents`. After rendering a list, if it holds
-    two or more panels (a `Panel` node, or a component node whose single-child chain ends in a `Panel`) and any of
-    them has no key on the panel or on a component above it, `logger.warning` once per list context, naming the
-    panel titles.
+10. **Missing-key warning:** out of scope for this ticket and tracked separately. Python can't tell hand-written
+    children from a spread list (`ui.flex(a, b)` vs `ui.flex(*items)`), so it needs more design.
 
 ### Docs
 
@@ -115,8 +112,7 @@ panel that unmounts and returns in the same session gets its id back.
     - changing a key, or moving a keyed panel into a differently keyed layout element, makes it a new panel, which
       loses its slot and state;
     - add keys to all panels at once (see Compatibility);
-    - `ui.dashboard(key=...)` resets a nested dashboard's layout;
-    - the missing-key warning.
+    - `ui.dashboard(key=...)` resets a nested dashboard's layout.
 12. **TODO:** add keys to every multi-panel example in `plugins/ui/docs` and regenerate the affected snapshots.
 
 ## Compatibility
@@ -222,4 +218,4 @@ panel_shift_repro = panel_shift()
 Today the "Plot" tab shows the Account rollup, and the plot opens in a second "Plot" panel. With the fix, every tab
 keeps its content and "Raw" opens as a new tab.
 
-Without the `key`s the behaviour is unchanged from today, and the server logs the missing-key warning.
+Without the `key`s the behavior is unchanged from today.
