@@ -399,7 +399,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             # can inject a table reference (e.g. the sorted/filtered model table).
             self._pending_references = references
             try:
-                response = self._manager.handle(decoded_payload, self._dispatcher)
+                # json-rpc writes the request into the context, so each request needs its own
+                response = self._manager.handle(
+                    decoded_payload,
+                    self._dispatcher,
+                    context={"references": references},
+                )
             finally:
                 self._pending_references = []
 
@@ -456,7 +461,10 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
         dispatcher["setUrlState"] = self._set_url_state
-        dispatcher["callCallable"] = self._call_callable
+        # The context carries the references that were sent with the request
+        dispatcher.add_method(
+            self._call_callable, name="callCallable", context_arg="context"
+        )
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
 
@@ -547,7 +555,9 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
 
         return transform_node(node, resolve)
 
-    def _call_callable(self, callable_id: str, args: Any) -> Any:
+    def _call_callable(
+        self, callable_id: str, args: Any, context: dict[str, Any] | None = None
+    ) -> Any:
         """
         Call a callable by its ID.
         If the result is a callable, it is registered as a temporary callable.
@@ -555,6 +565,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         Args:
             callable_id: The ID of the callable to call
             args: The array of arguments to pass to the callable. These will be spread as positional args to the callable.
+            context: The JSON-RPC request context. Holds the `references` sent with the request, which replace the reference markers in `args`.
         """
         logger.debug("Calling callable %s with %s", callable_id, args)
         fn = self._callable_dict.get(callable_id) or self._temp_callable_dict.get(
@@ -563,6 +574,9 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         if fn is None:
             logger.error("Callable not found: %s", callable_id)
             return
+
+        references = (context or {}).get("references", [])
+        args = self._deserialize_references(args, references)
 
         # If a table reference was piggybacked (e.g. the sorted/filtered model
         # table from UITable), inject it as _table so wrappers can use it.

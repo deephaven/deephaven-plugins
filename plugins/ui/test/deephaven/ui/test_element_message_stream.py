@@ -44,7 +44,7 @@ class ElementMessageStreamTestCase(BaseTestCase):
         stream = self._make_stream()
         seen: list = []
         stream._manager = Mock()
-        stream._manager.handle.side_effect = lambda *_: seen.append(
+        stream._manager.handle.side_effect = lambda *_, **__: seen.append(
             list(stream._pending_references)
         )
 
@@ -386,3 +386,58 @@ class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
             with self.subTest(index=index):
                 with self.assertRaises(ValueError):
                     self._deserialize([self._marker(index)])
+
+
+class ElementMessageStreamReferencesOnDataTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.connection = Mock()
+        self.stream = ElementMessageStream(Mock(), self.connection)
+        # Run queued work inline instead of on the render thread.
+        self.stream.on_queue_render = lambda fn: fn()
+        self.received: list = []
+        self.stream._callable_dict["cb"] = lambda *args: self.received.append(args)
+
+    def _call(self, args: list, references: list) -> dict:
+        """Send a callCallable request the way the client does and return the response."""
+        request = {
+            "jsonrpc": "2.0",
+            "method": "callCallable",
+            "params": ["cb", args],
+            "id": 1,
+        }
+        self.connection.on_data.reset_mock()
+        self.stream.on_data(json.dumps(request).encode(), references)
+        return _sent_messages(self.connection)[0]
+
+    def test_callable_receives_the_referenced_objects(self):
+        first, second = object(), object()
+
+        response = self._call(
+            ["label", {"items": [{"__dhRefid": 1}]}, {"__dhRefid": 0}],
+            [first, second],
+        )
+
+        self.assertNotIn("error", response)
+        (label, options, third) = self.received[0]
+        self.assertEqual(label, "label")
+        self.assertIs(options["items"][0], second)
+        self.assertIs(third, first)
+
+    def test_unresolved_reference_is_an_error_and_the_callable_is_not_called(self):
+        with self.assertLogs("jsonrpc.manager", level="ERROR"):
+            response = self._call(["label", {"__dhRefid": 0}], [])
+
+        self.assertIn("Invalid reference 0", response["error"]["data"]["message"])
+        self.assertEqual(self.received, [])
+
+    def test_references_are_not_kept_for_the_next_request(self):
+        self._call(["label", {"__dhRefid": 0}], [object()])
+        self.assertEqual(len(self.received), 1)
+
+        with self.assertLogs("jsonrpc.manager", level="ERROR"):
+            response = self._call(["label", {"__dhRefid": 0}], [])
+
+        self.assertIn("error", response)
+        self.assertEqual(len(self.received), 1)
