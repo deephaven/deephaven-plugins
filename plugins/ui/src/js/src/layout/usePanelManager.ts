@@ -1,10 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { nanoid } from 'nanoid';
-import { type WidgetDescriptor } from '@deephaven/dashboard';
+import {
+  LayoutManagerContext,
+  LayoutUtils,
+  type WidgetDescriptor,
+} from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { type ReactPanelManager } from './ReactPanelManager';
+import { useWidgetStatus } from './useWidgetStatus';
 import {
   type ReadonlyWidgetData,
   type WidgetData,
@@ -70,6 +82,12 @@ export function usePanelManager({
   // We may need to check if we need to close this widget if all panels are closed
   const [isPanelsDirty, setPanelsDirty] = useState(false);
 
+  // Not every document renders inside a layout (e.g. an inline UIComponent)
+  const layoutManager = useContext(LayoutManagerContext);
+  // Before the document is ready, open panels may be rehydration placeholders for every saved id
+  const isDocumentReady = useWidgetStatus().status === 'ready';
+  const hasRemovedOrphans = useRef(false);
+
   const id = useMemo(
     () =>
       typeof widget === 'string'
@@ -121,6 +139,34 @@ export function usePanelManager({
   );
 
   /**
+   * On the first sync once the document is ready, every panel it renders has opened, so
+   * any other saved panel is from a layout that had more panels than the document now has.
+   * Remove it and its state, and stop handing out its id so a later panel can't inherit it.
+   */
+  const removeOrphanedPanels = useCallback(() => {
+    const savedIds = widgetData.panelIds ?? [];
+    panelIdIndex.current = Math.max(panelIdIndex.current, savedIds.length);
+    const openIds = new Set(panelIds.current);
+    panelStatesRef.current = Object.fromEntries(
+      Object.entries(panelStatesRef.current).filter(([panelId]) =>
+        openIds.has(panelId)
+      )
+    );
+    if (layoutManager == null) {
+      return;
+    }
+    savedIds
+      .filter(savedId => !openIds.has(savedId))
+      .forEach(orphanId => {
+        const config = { id: orphanId };
+        const stack = LayoutUtils.getStackForConfig(layoutManager.root, config);
+        log.debug('Removing orphaned panel', orphanId);
+        // `remove` rather than `close`, since panels in a nested dashboard aren't closable
+        LayoutUtils.getContentItemInStack(stack, config)?.remove();
+      });
+  }, [layoutManager, widgetData]);
+
+  /**
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
    * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
    */
@@ -139,6 +185,10 @@ export function usePanelManager({
         log.debug('Widget', id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
+        if (!hasRemovedOrphans.current && isDocumentReady) {
+          hasRemovedOrphans.current = true;
+          removeOrphanedPanels();
+        }
         onDataChange({
           ...widgetData,
           panelStates: { ...panelStatesRef.current },
@@ -146,7 +196,15 @@ export function usePanelManager({
         });
       }
     },
-    [isPanelsDirty, id, onClose, onDataChange, widgetData]
+    [
+      isPanelsDirty,
+      id,
+      isDocumentReady,
+      onClose,
+      onDataChange,
+      removeOrphanedPanels,
+      widgetData,
+    ]
   );
 
   const getPanelId = useCallback(() => {

@@ -1,8 +1,19 @@
+import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { type WidgetDescriptor } from '@deephaven/dashboard';
+import {
+  LayoutManagerContext,
+  LayoutUtils,
+  type WidgetDescriptor,
+} from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import { usePanelManager } from './usePanelManager';
+import { type WidgetStatus } from './WidgetStatusContext';
 import { type ReadonlyWidgetData } from '../widget/WidgetTypes';
+
+let mockWidgetStatus: WidgetStatus['status'] = 'ready';
+jest.mock('./useWidgetStatus', () => ({
+  useWidgetStatus: () => ({ status: mockWidgetStatus }),
+}));
 
 // Mock nanoid to return predictable values
 jest.mock('nanoid', () => ({
@@ -22,6 +33,7 @@ function makeWidget(
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockWidgetStatus = 'ready';
 });
 
 describe('usePanelManager', () => {
@@ -296,6 +308,110 @@ describe('usePanelManager', () => {
       const { result } = renderHook(() => usePanelManager({ widget }));
 
       expect(result.current.metadata).toBe(widget);
+    });
+  });
+
+  describe('orphaned panels', () => {
+    const initialData: ReadonlyWidgetData = {
+      panelIds: ['alive', 'orphan'],
+      panelStates: { alive: [{ a: 1 }], orphan: [{ b: 2 }] },
+    };
+    const layoutManager = { root: {} };
+    const stack = {};
+    const orphanItem = { remove: jest.fn() };
+
+    function renderInLayout(onDataChange = jest.fn()) {
+      (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(stack);
+      (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
+        orphanItem
+      );
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(
+          LayoutManagerContext.Provider,
+          { value: layoutManager as never },
+          children
+        );
+      return renderHook(
+        () =>
+          usePanelManager({ widget: makeWidget(), initialData, onDataChange }),
+        { wrapper }
+      );
+    }
+
+    it('removes saved panels the document did not reopen, and their state', () => {
+      const onDataChange = jest.fn();
+      const { result } = renderInLayout(onDataChange);
+
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+      });
+
+      expect(LayoutUtils.getStackForConfig).toHaveBeenCalledTimes(1);
+      expect(LayoutUtils.getStackForConfig).toHaveBeenCalledWith(
+        layoutManager.root,
+        { id: 'orphan' }
+      );
+      expect(LayoutUtils.getContentItemInStack).toHaveBeenCalledWith(stack, {
+        id: 'orphan',
+      });
+      expect(orphanItem.remove).toHaveBeenCalledTimes(1);
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelIds: ['alive'],
+          panelStates: { alive: [{ a: 1 }] },
+        })
+      );
+    });
+
+    it('only removes orphans on the first sync', () => {
+      const { result } = renderInLayout();
+
+      act(() => {
+        result.current.onOpen('alive');
+      });
+      act(() => {
+        result.current.onOpen('new-panel');
+      });
+
+      expect(orphanItem.remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores rehydration placeholders opened before the document is ready', () => {
+      mockWidgetStatus = 'loading';
+      const onDataChange = jest.fn();
+      const { result, rerender } = renderInLayout(onDataChange);
+
+      // A placeholder panel opens for every saved id while loading
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen(result.current.getPanelId());
+      });
+      expect(orphanItem.remove).not.toHaveBeenCalled();
+
+      mockWidgetStatus = 'ready';
+      rerender();
+      // The ready document renders one panel, so the extra placeholder closes
+      act(() => {
+        result.current.onClose('orphan');
+      });
+
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          panelIds: ['alive'],
+          panelStates: { alive: [{ a: 1 }] },
+        })
+      );
+    });
+
+    it('does not hand out orphaned saved ids to panels added afterwards', () => {
+      const { result } = renderInLayout();
+
+      expect(result.current.getPanelId()).toBe('alive');
+      act(() => {
+        result.current.onOpen('alive');
+      });
+
+      expect(result.current.getPanelId()).not.toBe('orphan');
     });
   });
 

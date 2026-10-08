@@ -145,12 +145,19 @@ function ReactPanel({
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
-        LayoutUtils.closeComponent(root, { id: panelId });
+        const config = { id: panelId };
+        if (isClosable) {
+          LayoutUtils.closeComponent(root, config);
+        } else {
+          // `close` is a no-op for panels that aren't closable, e.g. panels in a nested dashboard
+          const stack = LayoutUtils.getStackForConfig(root, config);
+          LayoutUtils.getContentItemInStack(stack, config)?.remove();
+        }
         isPanelOpenRef.current = false;
         onClose();
       }
     },
-    [onClose, panelId, root]
+    [isClosable, onClose, panelId, root]
   );
 
   const handlePanelClosed = useCallback(

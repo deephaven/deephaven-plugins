@@ -84,8 +84,12 @@
             "label": "Annotate",
             "items": [
               {
-                "label": "Titles and legends",
-                "path": "titles-legends.md"
+                "label": "Series titles",
+                "path": "titles.md"
+              },
+              {
+                "label": "Legend",
+                "path": "legend.md"
               },
               {
                 "label": "Markers",
@@ -125,6 +129,10 @@
           {
             "label": "Interact",
             "items": [
+              {
+                "label": "Pan and zoom",
+                "path": "navigation.md"
+              },
               {
                 "label": "Press events",
                 "path": "events.md"

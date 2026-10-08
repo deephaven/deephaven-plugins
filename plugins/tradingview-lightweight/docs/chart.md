@@ -47,10 +47,11 @@ Three series, two panes, one shared time axis. `pane=0` / `pane=1` route series 
 
 **Annotate**
 
-- [Titles and legends](titles-legends.md). Chart title (via watermark) and the in-chart legend driven by per-series `title=`.
+- [Series titles](titles.md). Naming a series with `title=`, and where that name is shown.
+- [Legend](legend.md). A fixed panel listing every series with its value, optionally clickable to show and hide series.
 - [Markers](markers.md). Circles, squares, or arrows attached to a series at specific points in time to flag events.
 - [Price lines](price-lines.md). Horizontal lines drawn across a series at a fixed or table-driven price level.
-- [Watermark](watermark.md). Faint label drawn behind the data, for the ticker symbol, dataset name, or chart title.
+- [Watermark](watermark.md). Faint mark drawn behind the data, for a brand, a disclaimer, or an environment name.
 
 **Style**
 
@@ -58,6 +59,12 @@ Three series, two panes, one shared time axis. `pane=0` / `pane=1` route series 
 - [Time scale](time-scale.md). The horizontal axis.
 - [Price scale](price-scale.md). The vertical axes.
 - [Price formats](price-formats.md). Number formatting on price labels.
+
+**Interact**
+
+- [Pan and zoom](navigation.md). What dragging, scrolling, and double-clicking do, and how a live chart follows new bars.
+- [Press events](events.md). Calling back into Python on a press or double press.
+- [Tracking tooltip](tooltip.md). A cursor-following readout of the hovered series.
 
 ## API Reference
 

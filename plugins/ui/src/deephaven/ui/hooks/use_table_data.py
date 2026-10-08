@@ -84,8 +84,8 @@ def _get_data_values(
 def _set_new_data(
     table: Table | None,
     sentinel: Sentinel,
-    set_data: Callable[[pd.DataFrame | Sentinel], None],
-    set_is_sentinel: Callable[[bool], None],
+    set_data: Callable[[tuple[pd.DataFrame | Sentinel | None]], None],
+    set_is_sentinel: Callable[[tuple[bool]], None],
 ) -> None:
     """
     Called to set the new data and is_sentinel values when the table updates.
@@ -93,12 +93,12 @@ def _set_new_data(
     Args:
         table: The table that updated.
         sentinel: The sentinel value to return if the table is empty.
-        set_data: The function to call to set the new data.
-        set_is_sentinel: The function to call to set the is_sentinel value.
+        set_data: The function to call to set the new data, wrapped in a tuple.
+        set_is_sentinel: The function to call to set the is_sentinel value, wrapped in a tuple.
     """
     new_data, new_is_sentinel = _get_data_values(table, sentinel)
-    set_data(new_data)
-    set_is_sentinel(new_is_sentinel)
+    set_data((new_data,))
+    set_is_sentinel((new_is_sentinel,))
 
 
 def _table_data(
@@ -182,8 +182,10 @@ def _use_table_data_without_ticket_transform(
         The table data or the sentinel value.
     """
     initial_data, initial_is_sentinel = _get_data_values(table, sentinel)
-    data, set_data = use_state(initial_data)
-    is_sentinel, set_is_sentinel = use_state(initial_is_sentinel)
+    # Wrapped in tuples so they're never saved with the dashboard: both come from the table, and restoring one without
+    # the other leaves them inconsistent.
+    (data,), set_data = use_state((initial_data,))
+    (is_sentinel,), set_is_sentinel = use_state((initial_is_sentinel,))
 
     if not transform:
         transform = _table_data
