@@ -27,6 +27,8 @@ import UITableContextMenuHandler, {
   getVisibleColumnNames,
   wrapContextActions,
 } from './UITableContextMenuHandler';
+import { stringifyWithReferences } from '../../widget/ReferenceUtils';
+import { REFERENCE_KEY } from '../utils/ElementUtils';
 
 const MOCK_MODEL = TestUtils.createMockProxy<IrisGridModel>({
   columns: [
@@ -97,6 +99,12 @@ async function resolveContextAction(
     return ensureArray(await action());
   }
   return ensureArray(await action);
+}
+
+/** What the transport would send for the params an action was called with. */
+function serialize(params: unknown) {
+  const { payload, references } = stringifyWithReferences(params);
+  return { sent: JSON.parse(payload), references };
 }
 
 describe('wrapContextActions', () => {
@@ -284,6 +292,113 @@ describe('wrapContextActions', () => {
         _visible_columns: ['column1'],
       })
     );
+  });
+
+  describe('table sent by reference', () => {
+    const table = TestUtils.createMockProxy<dh.Table>();
+
+    function expectSentTable(params: unknown) {
+      const { sent, references } = serialize(params);
+      const { _table: sentTable } = sent;
+      expect(sentTable).toEqual({ [REFERENCE_KEY]: 0 });
+      expect(references).toHaveLength(1);
+      expect(references[0]).toBe(table);
+    }
+
+    test('is sent with a cell item', async () => {
+      const action = { action: jest.fn() };
+
+      const wrapped = wrapContextActions(
+        action,
+        CLIENT_CELL_DATA,
+        [],
+        [],
+        [],
+        null,
+        table
+      );
+      const resolved = await resolveContextAction(wrapped[0]);
+      resolved[0].action?.(null as unknown as Event);
+
+      expectSentTable(action.action.mock.calls[0][0]);
+    });
+
+    test('is sent with a header item', async () => {
+      const action = { action: jest.fn() };
+
+      const wrapped = wrapContextActions(
+        action,
+        CLIENT_HEADER_DATA,
+        [],
+        [],
+        [],
+        null,
+        table
+      );
+      const resolved = await resolveContextAction(wrapped[0]);
+      resolved[0].action?.(null as unknown as Event);
+
+      expectSentTable(action.action.mock.calls[0][0]);
+    });
+
+    test('is sent with a nested item', async () => {
+      const child = { title: 'child', action: jest.fn() };
+
+      const wrapped = wrapContextActions(
+        { title: 'parent', actions: [child] },
+        CLIENT_CELL_DATA,
+        [],
+        [],
+        [],
+        null,
+        table
+      );
+      const parent = await resolveContextAction(wrapped[0]);
+      const resolvedChild = await resolveContextAction(parent[0].actions?.[0]);
+      resolvedChild[0].action?.(null as unknown as Event);
+
+      expectSentTable(child.action.mock.calls[0][0]);
+    });
+
+    test('is sent to a dynamic item and to the items it returns', async () => {
+      const returned = { action: jest.fn() };
+      const generator = jest.fn((_params: unknown) =>
+        Promise.resolve(returned)
+      );
+
+      const wrapped = wrapContextActions(
+        generator,
+        CLIENT_CELL_DATA,
+        [],
+        [],
+        [],
+        null,
+        table
+      );
+      const resolved = await resolveContextAction(wrapped[0]);
+      resolved[0].action?.(null as unknown as Event);
+
+      expectSentTable(generator.mock.calls[0][0]);
+      expectSentTable(returned.action.mock.calls[0][0]);
+    });
+
+    test('is left out when there is no table', async () => {
+      const action = { action: jest.fn() };
+
+      const wrapped = wrapContextActions(
+        action,
+        CLIENT_CELL_DATA,
+        [],
+        [],
+        [],
+        null,
+        null
+      );
+      const resolved = await resolveContextAction(wrapped[0]);
+      resolved[0].action?.(null as unknown as Event);
+
+      expect(action.action.mock.calls[0][0]).not.toHaveProperty('_table');
+    });
   });
 });
 
@@ -477,15 +592,14 @@ describe('getVisibleColumnNames', () => {
 });
 
 describe('getHeaderActions', () => {
-  it('attaches the table ref to server items only', () => {
-    const builtInAction = { title: 'Built in', action: jest.fn() };
+  const builtInAction = { title: 'Built in', action: jest.fn() };
+
+  function getActions(table: unknown, headerAction: jest.Mock) {
     jest
       .spyOn(IrisGridContextMenuHandler.prototype, 'getHeaderActions')
       .mockReturnValue([builtInAction]);
 
-    const wrapServerActions = jest.fn(
-      (actions: ResolvableContextAction[]) => actions
-    );
+    // Only the table-backed model has `table`, so it is not on `IrisGridModel`.
     const model = TestUtils.createMockProxy<IrisGridModel>({
       columnCount: 1,
       columns: [
@@ -495,7 +609,8 @@ describe('getHeaderActions', () => {
         column: 0,
         row: 0,
       })) as IrisGridModel['sourceForCell'],
-    });
+      table,
+    } as Partial<IrisGridModel>);
     const handler = new UITableContextMenuHandler(
       {} as typeof dh,
       makeIrisGrid({
@@ -503,16 +618,27 @@ describe('getHeaderActions', () => {
       }),
       model,
       undefined,
-      { title: 'Header item', action: jest.fn() },
-      [],
-      wrapServerActions
+      { title: 'Header item', action: headerAction },
+      []
     );
 
-    const actions = handler.getHeaderActions(0, { column: 0 } as GridPoint);
+    return handler.getHeaderActions(0, { column: 0 } as GridPoint);
+  }
 
+  it('sends the model table by reference with header items', async () => {
+    const table = TestUtils.createMockProxy<dh.Table>();
+    const headerAction = jest.fn();
+
+    const actions = getActions(table, headerAction);
+
+    // The built-in header actions are client-side and are returned as they were.
     expect(actions[0]).toBe(builtInAction);
-    // The built-in header actions are client-side and must stay unwrapped.
-    expect(wrapServerActions).toHaveBeenCalledTimes(1);
-    expect(wrapServerActions.mock.calls[0][0]).not.toContain(builtInAction);
+    const [item] = await resolveContextAction(actions[1]);
+    item.action?.(null as unknown as Event);
+
+    const { sent, references } = serialize(headerAction.mock.calls[0][0]);
+    const { _table: sentTable } = sent;
+    expect(sentTable).toEqual({ [REFERENCE_KEY]: 0 });
+    expect(references[0]).toBe(table);
   });
 });

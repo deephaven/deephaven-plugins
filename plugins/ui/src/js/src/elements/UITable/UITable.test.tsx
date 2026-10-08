@@ -13,7 +13,7 @@ import {
 } from '@deephaven/components';
 import { UITable } from './UITable';
 import { wrapActionsWithTableRef } from './UITableUtils';
-import WidgetCallableContext from '../../widget/WidgetCallableContext';
+import { stringifyWithReferences } from '../../widget/ReferenceUtils';
 
 const mockEmit = jest.fn();
 const mockTable = {} as dh.Table;
@@ -303,21 +303,20 @@ describe('wrapActionsWithTableRef', () => {
   });
 });
 
-describe('context menu table ref', () => {
+describe('context menu table', () => {
+  const serverAction = jest.fn();
+
   async function renderAndGetActions() {
-    const setNextCallableRefs = jest.fn();
     await act(async () => {
       render(
-        <WidgetCallableContext.Provider value={setNextCallableRefs}>
-          <UITable
-            table={mockExportedTable}
-            contextMenu={{ title: 'Server action', action: jest.fn() }}
-            showSearch={false}
-            showQuickFilters={false}
-            showGroupingColumn={false}
-            reverse={false}
-          />
-        </WidgetCallableContext.Provider>
+        <UITable
+          table={mockExportedTable}
+          contextMenu={{ title: 'Server action', action: serverAction }}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
       );
     });
 
@@ -325,7 +324,7 @@ describe('context menu table ref', () => {
       expect(capturedOnContextMenu).toBeDefined();
     });
 
-    const actions = capturedOnContextMenu?.({
+    return capturedOnContextMenu?.({
       value: 1,
       valueText: '1',
       column: { name: 'A' },
@@ -335,27 +334,23 @@ describe('context menu table ref', () => {
       modelColumn: 0,
       model: mockModel,
     }) as ContextAction[];
-
-    return { actions, setNextCallableRefs };
   }
 
-  it('sets the ref for server actions', async () => {
-    const { actions, setNextCallableRefs } = await renderAndGetActions();
+  it('sends the model table to server actions by reference', async () => {
+    const actions = await renderAndGetActions();
 
     actions[0].action?.(new Event('click'));
 
-    expect(setNextCallableRefs).toHaveBeenCalledTimes(1);
+    const { references } = stringifyWithReferences(
+      serverAction.mock.calls[0][0]
+    );
+    expect(references).toHaveLength(1);
+    expect(references[0]).toBe(mockTable);
   });
 
-  it('leaves client-side plugin actions alone', async () => {
-    const { actions, setNextCallableRefs } = await renderAndGetActions();
+  it('returns plugin actions unchanged', async () => {
+    const actions = await renderAndGetActions();
 
-    // A plugin action sends no request, so a ref set here would be drained by
-    // whatever request came next.
     expect(actions[actions.length - 1]).toBe(mockPluginAction);
-
-    actions[actions.length - 1].action?.(new Event('click'));
-
-    expect(setNextCallableRefs).not.toHaveBeenCalled();
   });
 });

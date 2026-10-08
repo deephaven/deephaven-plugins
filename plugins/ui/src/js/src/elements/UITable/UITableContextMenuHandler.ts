@@ -14,6 +14,7 @@ import {
   type IrisGridType,
   IrisGridContextMenuHandler,
   KeyedSelection,
+  isIrisGridTableModelTemplate,
   isKeyedGridModel,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
@@ -27,6 +28,9 @@ import {
 } from './UITableUtils';
 import { getIcon } from '../utils/IconElementUtils';
 import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
+import { byReference, type ByReference } from '../../widget/ReferenceUtils';
+
+type ModelTable = DhType.Table | DhType.TreeTable;
 
 interface UIContextItemParams {
   value: unknown;
@@ -56,6 +60,11 @@ interface UIContextItemParams {
     | { too_large: true; count: number }
     | null;
   _visible_columns: string[];
+  /**
+   * The table the user sees, with its sorts and filters, sent by reference so
+   * the server can read the selected rows from it.
+   */
+  _table?: ByReference<ModelTable>;
 }
 
 type UIContextItem = Omit<ContextAction, 'action' | 'actions' | 'icon'> & {
@@ -70,13 +79,20 @@ export type ResolvableUIContextItem =
       params: UIContextItemParams
     ) => Promise<UIContextItem | UIContextItem[] | null>);
 
+function getTableParam(
+  table: ModelTable | null
+): Pick<UIContextItemParams, '_table'> {
+  return table != null ? { _table: byReference(table) } : {};
+}
+
 function wrapUIContextItem(
   item: UIContextItem,
   data: IrisGridContextMenuData,
   alwaysFetchColumns: RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
   visibleColumns: string[],
-  selectedKeys: UIContextItemParams['selected_keys']
+  selectedKeys: UIContextItemParams['selected_keys'],
+  table: ModelTable | null
 ): ContextAction {
   return {
     group: 999999, // Default to the end of the menu
@@ -97,6 +113,7 @@ function wrapUIContextItem(
             selected_ranges: selectedRanges,
             selected_keys: selectedKeys,
             _visible_columns: visibleColumns,
+            ...getTableParam(table),
           });
         }
       : undefined,
@@ -107,7 +124,8 @@ function wrapUIContextItem(
           alwaysFetchColumns,
           selectedRanges,
           visibleColumns,
-          selectedKeys
+          selectedKeys,
+          table
         )
       : undefined,
   } satisfies ContextAction;
@@ -119,7 +137,8 @@ function wrapUIContextItems(
   alwaysFetchColumns: RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
   visibleColumns: string[],
-  selectedKeys: UIContextItemParams['selected_keys']
+  selectedKeys: UIContextItemParams['selected_keys'],
+  table: ModelTable | null
 ): ContextAction[] {
   return ensureArray(items).map(item =>
     wrapUIContextItem(
@@ -128,7 +147,8 @@ function wrapUIContextItems(
       alwaysFetchColumns,
       selectedRanges,
       visibleColumns,
-      selectedKeys
+      selectedKeys,
+      table
     )
   );
 }
@@ -138,6 +158,7 @@ function wrapUIContextItems(
  * @param items The context items from the server
  * @param data The context menu data to use for the context items
  * @param alwaysFetchColumns The names of column data to always send or the data if it is a nested
+ * @param table The table the user sees, sent to the callbacks by reference as `_table`
  * @returns Context items with the UI actions wrapped so they receive the cell info
  */
 export function wrapContextActions(
@@ -146,7 +167,8 @@ export function wrapContextActions(
   alwaysFetchColumns: ColumnName[] | RowDataMap,
   selectedRanges: UIContextItemParams['selected_ranges'],
   visibleColumns: string[],
-  selectedKeys: UIContextItemParams['selected_keys'] = null
+  selectedKeys: UIContextItemParams['selected_keys'] = null,
+  table: ModelTable | null = null
 ): ResolvableContextAction[] {
   let alwaysFetchColumnsMap: RowDataMap = {};
   if (Array.isArray(alwaysFetchColumns)) {
@@ -176,12 +198,14 @@ export function wrapContextActions(
             selected_ranges: selectedRanges,
             selected_keys: selectedKeys,
             _visible_columns: visibleColumns,
+            ...getTableParam(table),
           })) ?? [],
           data,
           alwaysFetchColumnsMap,
           selectedRanges,
           visibleColumns,
-          selectedKeys
+          selectedKeys,
+          table
         );
     }
 
@@ -191,7 +215,8 @@ export function wrapContextActions(
       alwaysFetchColumnsMap,
       selectedRanges,
       visibleColumns,
-      selectedKeys
+      selectedKeys,
+      table
     );
   });
 }
@@ -319,20 +344,13 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
 
   private alwaysFetchColumns: ColumnName[];
 
-  private wrapServerActions: (
-    actions: ResolvableContextAction[]
-  ) => ResolvableContextAction[];
-
   constructor(
     dh: typeof DhType,
     irisGrid: IrisGridType,
     model: IrisGridModel,
     contextMenuItems: UITableProps['contextMenu'],
     contextColumnHeaderItems: UITableProps['contextHeaderMenu'],
-    alwaysFetchColumns: ColumnName[],
-    wrapServerActions: (
-      actions: ResolvableContextAction[]
-    ) => ResolvableContextAction[]
+    alwaysFetchColumns: ColumnName[]
   ) {
     super(irisGrid, dh);
     this.order -= 1; // Make it just above the default handler priority
@@ -341,7 +359,6 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
     this.contextMenuItems = contextMenuItems;
     this.contextColumnHeaderItems = contextColumnHeaderItems;
     this.alwaysFetchColumns = alwaysFetchColumns;
-    this.wrapServerActions = wrapServerActions;
   }
 
   getHeaderActions(
@@ -376,18 +393,14 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
 
     return [
       ...super.getHeaderActions(modelIndex, gridPoint),
-      // Header actions bypass UITable's onContextMenu, so they need the table
-      // reference attached here or the selection resolves against the original
-      // table rather than the sorted/filtered one the user sees.
-      ...this.wrapServerActions(
-        wrapContextActions(
-          contextColumnHeaderItems,
-          headerContextMenuData,
-          this.alwaysFetchColumns,
-          getModelSelectedRanges(irisGrid, headerContextMenuData),
-          getVisibleColumnNames(irisGrid, model),
-          getSelectedKeys(irisGrid, headerContextMenuData)
-        )
+      ...wrapContextActions(
+        contextColumnHeaderItems,
+        headerContextMenuData,
+        this.alwaysFetchColumns,
+        getModelSelectedRanges(irisGrid, headerContextMenuData),
+        getVisibleColumnNames(irisGrid, model),
+        getSelectedKeys(irisGrid, headerContextMenuData),
+        isIrisGridTableModelTemplate(model) ? model.table : null
       ),
     ];
   }

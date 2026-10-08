@@ -6,12 +6,11 @@ import { TestUtils } from '@deephaven/test-utils';
 import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { type Operation } from 'fast-json-patch';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
-import WidgetCallableContext, {
-  type SetNextCallableRefs,
-} from './WidgetCallableContext';
 import { type DocumentHandlerProps } from './DocumentHandler';
+import { byReference } from './ReferenceUtils';
 import { type WidgetMessageEvent } from './WidgetTypes';
 import { LEGACY_NAVIGATE_EVENT, NAVIGATE_EVENT } from '../events/Navigate';
+import { CALLABLE_KEY, REFERENCE_KEY } from '../elements/utils/ElementUtils';
 import {
   makeWidget,
   makeWidgetDescriptor,
@@ -34,16 +33,12 @@ const defaultWidgetWrapper: ReturnType<typeof useWidget> = {
   api: jest.fn() as unknown as typeof dh,
 };
 let mockWidgetWrapper: ReturnType<typeof useWidget> = defaultWidgetWrapper;
-let capturedSetNextCallableRefs: SetNextCallableRefs | null = null;
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useApi: jest.fn(() => mockApi),
   useWidget: jest.fn(() => mockWidgetWrapper),
 }));
 
 function MockDocumentHandler(props: DocumentHandlerProps) {
-  // Rendered inside WidgetCallableContext.Provider, so this is the only place a
-  // test can reach the ref setter.
-  capturedSetNextCallableRefs = React.useContext(WidgetCallableContext);
   return <div>DocumentHandler</div>;
 }
 const mockDocumentHandler = jest.fn(MockDocumentHandler);
@@ -1029,71 +1024,67 @@ describe('event plugin handling', () => {
   });
 });
 
-describe('callable object references', () => {
-  beforeEach(() => {
-    capturedSetNextCallableRefs = null;
-  });
+describe('references sent with requests', () => {
+  // A stand-in for a server object. Only its identity matters.
+  const source = TestUtils.createMockProxy<dh.Widget>();
 
-  /**
-   * DocumentHandler only mounts once a document exists, and it is where the test
-   * reads the ref setter from context — so a document must be sent first.
-   */
-  async function setupWithDocument() {
+  /** Sends a document with one callable and returns the function the widget builds for it. */
+  async function setupWithCallable() {
     const setup = await setupWidgetWithListener();
     act(() => {
       setup.listener(
         makeWidgetEventDocumentPatched([
-          { op: 'add', path: '/foo', value: 'bar' },
+          { op: 'add', path: '/onAction', value: { [CALLABLE_KEY]: 'cb0' } },
         ])
       );
     });
-    setup.mockSendMessage.mockClear();
-    expect(capturedSetNextCallableRefs).not.toBeNull();
-    return setup;
+    const { calls } = mockDocumentHandler.mock;
+    const document = calls[calls.length - 1][0].children as unknown as {
+      onAction: (...args: unknown[]) => Promise<unknown>;
+    };
+
+    // The request is never answered; it is rejected when the widget unmounts.
+    const call = (...args: unknown[]) =>
+      act(async () => {
+        document.onAction(...args).catch(() => undefined);
+      });
+
+    return { ...setup, call };
   }
 
-  /** Any jsonClient request works as a trigger; navigation sends `setUrlState`. */
-  function navigate(listener: (event: WidgetMessageEvent) => void) {
-    return act(async () => {
-      listener(
-        makeWidgetEventMethodEvent(NAVIGATE_EVENT, { queryParams: 'page=1' })
-      );
-    });
-  }
+  it('sends the references in the arguments of a callable', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
 
-  it('sends refs set on the context with the next message', async () => {
-    const { listener, mockSendMessage, unmount } = await setupWithDocument();
-    const table = TestUtils.createMockProxy<dh.Table>();
+    await call('label', { items: [byReference(source)] });
 
-    capturedSetNextCallableRefs?.([table]);
-    await navigate(listener);
-
-    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), [table]);
+    const [payload, references] = mockSendMessage.mock.calls[0];
+    expect(JSON.parse(payload).params).toEqual([
+      'cb0',
+      ['label', { items: [{ [REFERENCE_KEY]: 0 }] }],
+    ]);
+    expect(references).toEqual([source]);
 
     unmount();
   });
 
-  it('drains the refs so they apply to exactly one message', async () => {
-    const { listener, mockSendMessage, unmount } = await setupWithDocument();
-    const table = TestUtils.createMockProxy<dh.Table>();
+  it('sends no references when the arguments have none', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
 
-    capturedSetNextCallableRefs?.([table]);
-    await navigate(listener);
-    mockSendMessage.mockClear();
+    await call('label', 1);
 
-    await navigate(listener);
-
-    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), []);
+    expect(mockSendMessage.mock.calls[0][1]).toEqual([]);
 
     unmount();
   });
 
-  it('sends an empty ref list when none are set', async () => {
-    const { listener, mockSendMessage, unmount } = await setupWithDocument();
+  it('does not carry references over to the next request', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
 
-    await navigate(listener);
+    await call(byReference(source));
+    await call('label');
 
-    expect(mockSendMessage).toHaveBeenCalledWith(expect.any(String), []);
+    expect(mockSendMessage.mock.calls[0][1]).toEqual([source]);
+    expect(mockSendMessage.mock.calls[1][1]).toEqual([]);
 
     unmount();
   });
