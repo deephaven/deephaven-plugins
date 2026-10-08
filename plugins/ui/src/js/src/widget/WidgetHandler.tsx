@@ -63,7 +63,6 @@ import NavigateContext from '../events/NavigateContext';
 import { usePluginsEventMap } from '../events/usePluginsEventMap';
 import UriExportedObject from './UriExportedObject';
 import applyJsonPatch from './WidgetJsonPatch';
-import WidgetCallableContext from './WidgetCallableContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -149,9 +148,6 @@ function WidgetHandler({
   const renderedCallableMap = useRef(
     new Map<string, (...args: unknown[]) => void>()
   );
-
-  // References to drain into the next sendMessage call (used by UITable context menu).
-  const pendingRefs = useRef<Array<dh.Table | dh.TreeTable>>([]);
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -601,28 +597,19 @@ function WidgetHandler({
     return { status: 'ready', descriptor: widgetDescriptor };
   }, [error, widgetDescriptor, isLoading]);
 
-  const setNextCallableRefs = useCallback(
-    (refs: Array<dh.Table | dh.TreeTable>) => {
-      pendingRefs.current = refs;
-    },
-    []
-  );
-
   return renderedDocument != null ? (
-    <WidgetCallableContext.Provider value={setNextCallableRefs}>
-      <NavigateContext.Provider value={handleNavigate}>
-        <WidgetStatusContext.Provider value={widgetStatus}>
-          <DocumentHandler
-            widget={widgetDescriptor}
-            initialData={initialData}
-            onDataChange={onDataChange}
-            onClose={onClose}
-          >
-            {renderedDocument}
-          </DocumentHandler>
-        </WidgetStatusContext.Provider>
-      </NavigateContext.Provider>
-    </WidgetCallableContext.Provider>
+    <NavigateContext.Provider value={handleNavigate}>
+      <WidgetStatusContext.Provider value={widgetStatus}>
+        <DocumentHandler
+          widget={widgetDescriptor}
+          initialData={initialData}
+          onDataChange={onDataChange}
+          onClose={onClose}
+        >
+          {renderedDocument}
+        </DocumentHandler>
+      </WidgetStatusContext.Provider>
+    </NavigateContext.Provider>
   ) : null;
 }
 

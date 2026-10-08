@@ -12,7 +12,6 @@ import {
   type ResolvableContextAction,
 } from '@deephaven/components';
 import { UITable } from './UITable';
-import { wrapActionsWithTableRef } from './UITableUtils';
 import { stringifyWithReferences } from '../../widget/ReferenceUtils';
 
 const mockEmit = jest.fn();
@@ -245,61 +244,6 @@ describe('UITable chart builder', () => {
         table: undefined,
       })
     );
-  });
-});
-
-describe('wrapActionsWithTableRef', () => {
-  const tableRef = {} as dh.Table;
-
-  it('sets the table ref before invoking the action', () => {
-    const calls: string[] = [];
-    const setRef = jest.fn(() => calls.push('setRef'));
-    const action = jest.fn(() => calls.push('action'));
-
-    const [wrapped] = wrapActionsWithTableRef(
-      [{ title: 'Act', action }],
-      tableRef,
-      setRef
-    ) as ContextAction[];
-    wrapped.action?.(new Event('click'));
-
-    expect(calls).toEqual(['setRef', 'action']);
-    expect(setRef).toHaveBeenCalledWith([tableRef]);
-  });
-
-  it('wraps nested sub-menu actions', () => {
-    const setRef = jest.fn();
-    const nestedAction = jest.fn();
-
-    const [wrapped] = wrapActionsWithTableRef(
-      [{ title: 'Menu', actions: [{ title: 'Nested', action: nestedAction }] }],
-      tableRef,
-      setRef
-    ) as ContextAction[];
-    const [nested] = wrapped.actions as ContextAction[];
-    nested.action?.(new Event('click'));
-
-    expect(setRef).toHaveBeenCalledWith([tableRef]);
-    expect(nestedAction).toHaveBeenCalled();
-  });
-
-  it('wraps actions returned by a dynamic action resolver', async () => {
-    const setRef = jest.fn();
-    const dynamicAction = jest.fn();
-
-    const [resolver] = wrapActionsWithTableRef(
-      [async () => [{ title: 'Dynamic', action: dynamicAction }]],
-      tableRef,
-      setRef
-    ) as Array<() => Promise<ContextAction[]>>;
-
-    // The resolver itself is a callable, so the ref must be set before it runs.
-    const resolved = await resolver();
-    expect(setRef).toHaveBeenCalledTimes(1);
-
-    resolved[0].action?.(new Event('click'));
-    expect(setRef).toHaveBeenCalledTimes(2);
-    expect(dynamicAction).toHaveBeenCalled();
   });
 });
 
