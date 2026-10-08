@@ -1,18 +1,13 @@
 from __future__ import annotations
-import importlib
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from typing import Any, Callable, Dict, List, Union
 from dataclasses import dataclass
 from deephaven.ui import Element
-from deephaven.ui.elements import FunctionElement
 from deephaven.ui.renderer.Renderer import Renderer, _render_child_item
 from deephaven.ui.renderer.RenderedNode import RenderedNode
 from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
 from deephaven import ui
 from .BaseTest import BaseTestCase
-
-# The package exports the Renderer class under the same name as its module
-renderer_module = importlib.import_module("deephaven.ui.renderer.Renderer")
 
 run_on_change: OnChangeCallable = lambda x: x()
 
@@ -323,91 +318,3 @@ class RendererTestCase(BaseTestCase):
 
         self.assertEqual(keyed.props, {"children": "Hello", "key": "my-key"})
         self.assertEqual(unkeyed.props, {"children": "Hello"})
-
-
-class MissingPanelKeyTestCase(BaseTestCase):
-    def render_with_warning_mock(self, element: Element, times: int = 1) -> Mock:
-        with patch.object(renderer_module.logger, "warning") as warning:
-            renderer = Renderer(RenderContext(_TestRoot(Mock(), Mock())))
-            for _ in range(times):
-                renderer.render(element)
-        return warning
-
-    def test_warns_once_for_unkeyed_panels_in_a_list(self):
-        @ui.component
-        def my_dashboard():
-            return ui.stack(ui.panel("a", title="A"), ui.panel("b", title="B"))
-
-        warning = self.render_with_warning_mock(my_dashboard(), times=2)
-
-        warning.assert_called_once()
-        self.assertEqual(warning.call_args[0][2], "A, B")
-
-    def test_names_the_component_rendering_the_list(self):
-        @ui.component
-        def my_dashboard():
-            return ui.stack(ui.panel("a", title="A"), ui.panel("b", title="B"))
-
-        warning = self.render_with_warning_mock(my_dashboard())
-
-        self.assertIn(".my_dashboard`", warning.call_args[0][1])
-
-    def test_leaves_main_out_of_the_component_name(self):
-        element = FunctionElement(
-            "__main__.ListPeople",
-            lambda: ui.stack(ui.panel("a", title="A"), ui.panel("b", title="B")),
-        )
-
-        warning = self.render_with_warning_mock(element)
-
-        self.assertEqual(
-            warning.call_args[0][1], " Check the render method of `ListPeople`."
-        )
-
-    def test_names_only_the_unkeyed_panels(self):
-        @ui.component
-        def my_dashboard():
-            return [ui.panel("a", title="A", key="a"), ui.panel("b", title="B")]
-
-        warning = self.render_with_warning_mock(my_dashboard())
-
-        warning.assert_called_once()
-        self.assertEqual(warning.call_args[0][2], "B")
-
-    def test_does_not_warn_for_keyed_panels(self):
-        @ui.component
-        def my_dashboard():
-            return ui.stack(
-                ui.panel("a", title="A", key="a"), ui.panel("b", title="B", key="b")
-            )
-
-        self.render_with_warning_mock(my_dashboard()).assert_not_called()
-
-    def test_does_not_warn_for_panels_from_keyed_components(self):
-        @ui.component
-        def my_panel(title: str):
-            return ui.panel(title, title=title)
-
-        @ui.component
-        def my_dashboard():
-            return ui.stack(*[my_panel(title, key=title) for title in ["A", "B"]])
-
-        self.render_with_warning_mock(my_dashboard()).assert_not_called()
-
-    def test_warns_for_panels_from_unkeyed_components(self):
-        @ui.component
-        def my_panel(title: str):
-            return ui.panel(title, title=title)
-
-        @ui.component
-        def my_dashboard():
-            return ui.stack(*[my_panel(title) for title in ["A", "B"]])
-
-        self.render_with_warning_mock(my_dashboard()).assert_called_once()
-
-    def test_does_not_warn_for_a_single_panel(self):
-        @ui.component
-        def my_dashboard():
-            return ui.row(ui.panel("a", title="A"), ui.column(ui.panel("b")))
-
-        self.render_with_warning_mock(my_dashboard()).assert_not_called()

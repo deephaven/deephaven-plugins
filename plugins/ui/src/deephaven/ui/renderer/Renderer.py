@@ -1,93 +1,14 @@
 from __future__ import annotations
 from contextlib import nullcontext
-from contextvars import ContextVar
 from dataclasses import fields, is_dataclass
 import logging
 from typing import Any, Union
-import weakref
 
 from .._internal import RenderContext, remove_empty_keys
-from ..elements import Element, FunctionElement, MemoizedElement, PropsType
+from ..elements import Element, MemoizedElement, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
-
-_PANEL_ELEMENT_NAME = "deephaven.ui.components.Panel"
-
-# Nodes that aren't built in and have only children and a key, e.g. components, pass their child through
-_BUILT_IN_ELEMENT_PREFIXES = (
-    "deephaven.ui.components.",
-    "deephaven.ui.html.",
-    "deephaven.ui.icons.",
-)
-_PASS_THROUGH_PROPS = {"children", "key"}
-
-# List contexts already warned about panels without keys, so each list only warns once
-_missing_panel_key_contexts: weakref.WeakSet[RenderContext] = weakref.WeakSet()
-
-# Name of the component being rendered, so warnings can say where to look
-_current_owner: ContextVar[str | None] = ContextVar("_current_owner", default=None)
-
-
-def _get_panel(node: Any) -> tuple[RenderedNode, bool] | None:
-    """
-    Get the panel a list item renders, looking through components that render a single child.
-
-    Args:
-        node: The rendered list item.
-
-    Returns:
-        The panel and whether it or a component rendering it has a key, or None if the item isn't a panel.
-    """
-    is_keyed = False
-    while isinstance(node, RenderedNode):
-        props = node.props or {}
-        if node.name == _PANEL_ELEMENT_NAME:
-            return node, is_keyed or props.get("key") is not None
-        if node.name.startswith(_BUILT_IN_ELEMENT_PREFIXES) or not (
-            set(props.keys()) <= _PASS_THROUGH_PROPS
-        ):
-            return None
-        is_keyed = is_keyed or props.get("key") is not None
-        node = props.get("children")
-    return None
-
-
-def _warn_missing_panel_keys(items: list[Any], context: RenderContext) -> None:
-    """
-    Warn once per list when it has more than one panel and any of them has no key.
-    Like React list items, the client identifies panels by key, so unkeyed panels shift when the list changes.
-
-    Args:
-        items: The rendered list items.
-        context: The context of the list.
-    """
-    if context in _missing_panel_key_contexts:
-        return
-    panels = [panel for panel in map(_get_panel, items) if panel is not None]
-    if len(panels) < 2:
-        return
-    unkeyed_titles = [
-        str((panel.props or {}).get("title", "Untitled"))
-        for panel, is_keyed in panels
-        if not is_keyed
-    ]
-    if len(unkeyed_titles) == 0:
-        return
-    _missing_panel_key_contexts.add(context)
-    owner = _current_owner.get()
-    # Scripts run in the console or a PQ define their components in `__main__`, which doesn't help locate them
-    location = (
-        f" Check the render method of `{owner.removeprefix('__main__.')}`."
-        if owner is not None
-        else ""
-    )
-    logger.warning(
-        "Each panel in a list should have a unique `key`, so it keeps its saved layout "
-        "and state when panels are added, removed or reordered.%s Panels without a key: %s",
-        location,
-        ", ".join(unkeyed_titles),
-    )
 
 
 def _render_child_item(
@@ -191,12 +112,10 @@ def _render_list_contents(
     Returns:
         The rendered list.
     """
-    rendered = [
+    return [
         _render_child_item(value, context, str(key), is_dirty_render)
         for key, value in enumerate(item)
     ]
-    _warn_missing_panel_keys(rendered, context)
-    return rendered
 
 
 def _render_dict(
@@ -245,32 +164,6 @@ def _render_element(
 ) -> RenderedNode:
     """
     Render an Element.
-
-    Args:
-        element: The element to render.
-        context: The context to render the component in.
-        is_dirty_render: Whether this render is a dirty render (a result of a state change), or we are just traversing the tree.
-
-    Returns:
-        The RenderedNode representing the element.
-    """
-    owner_token = (
-        _current_owner.set(element.name)
-        if isinstance(element, (FunctionElement, MemoizedElement))
-        else None
-    )
-    try:
-        return _render_element_contents(element, context, is_dirty_render)
-    finally:
-        if owner_token is not None:
-            _current_owner.reset(owner_token)
-
-
-def _render_element_contents(
-    element: Element, context: RenderContext, is_dirty_render: bool
-) -> RenderedNode:
-    """
-    Render an Element, using its cached result if it doesn't need a fresh render.
 
     Args:
         element: The element to render.
