@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
 ELEMENT_KEY = "__dhElemName"
+REFERENCE_KEY = "__dhRefid"
 
 DEFAULT_CALLABLE_ID_PREFIX = "cb"
 

@@ -18,9 +18,10 @@ from deephaven.liveness_scope import liveness_scope
 from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
+from .._internal.utils import transform_node
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
-from ..renderer.NodeEncoder import CALLABLE_KEY
+from ..renderer.NodeEncoder import CALLABLE_KEY, REFERENCE_KEY
 from .._internal import (
     RenderContext,
     ExportedRenderState,
@@ -511,6 +512,40 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         raise TypeError(
             f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
         )
+
+    def _deserialize_references(self, node: Any, references: list[Any]) -> Any:
+        """
+        Replace every reference marker in a client payload with the object it refers to.
+        The counterpart of `_serialize_callables`, for objects sent from the client.
+
+        Args:
+            node: The payload to resolve, e.g. the args of a callable
+            references: The references that were sent with the payload
+
+        Returns:
+            The payload with each marker replaced by `references[index]`
+
+        Raises:
+            ValueError: If a marker's index is not a valid position in `references`
+        """
+
+        def resolve(_key: str, value: Any) -> Any:
+            if not isinstance(value, dict) or REFERENCE_KEY not in value:
+                return value
+            index = value[REFERENCE_KEY]
+            # index should be a non-negative integer within the bounds of the references list
+            # bool is a subclass of int and needs its own check
+            if (
+                isinstance(index, bool)
+                or not isinstance(index, int)
+                or not 0 <= index < len(references)
+            ):
+                raise ValueError(
+                    f"Invalid reference {index!r}: the client sent {len(references)} reference(s)"
+                )
+            return references[index]
+
+        return transform_node(node, resolve)
 
     def _call_callable(self, callable_id: str, args: Any) -> Any:
         """

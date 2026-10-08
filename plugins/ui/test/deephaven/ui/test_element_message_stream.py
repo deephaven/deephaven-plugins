@@ -321,3 +321,68 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
         restored._render()
 
         self.assertEqual(restored._context.export_state()["state"], {0: "Asia"})
+
+
+class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.stream = ElementMessageStream(Mock(), Mock())
+        self.first = object()
+        self.second = object()
+        self.references = [self.first, self.second]
+
+    def _marker(self, index: Any) -> dict:
+        from deephaven.ui.renderer.NodeEncoder import REFERENCE_KEY
+
+        return {REFERENCE_KEY: index}
+
+    def _deserialize(self, node: Any, references: Any = None) -> Any:
+        return self.stream._deserialize_references(
+            node, self.references if references is None else references
+        )
+
+    def test_resolves_a_marker_in_any_argument_position(self):
+        result = self._deserialize([1, self._marker(1), "text", self._marker(0)])
+
+        self.assertEqual(result[0], 1)
+        self.assertIs(result[1], self.second)
+        self.assertEqual(result[2], "text")
+        self.assertIs(result[3], self.first)
+
+    def test_resolves_markers_at_any_depth(self):
+        result = self._deserialize(
+            [{"a": [{"b": {"c": self._marker(1)}}], "d": self._marker(0)}]
+        )
+
+        self.assertIs(result[0]["a"][0]["b"]["c"], self.second)
+        self.assertIs(result[0]["d"], self.first)
+
+    def test_the_same_index_resolves_to_the_same_object(self):
+        result = self._deserialize([self._marker(0), {"x": self._marker(0)}])
+
+        self.assertIs(result[0], self.first)
+        self.assertIs(result[1]["x"], self.first)
+
+    def test_does_not_modify_the_input(self):
+        args = [{"x": self._marker(0)}]
+
+        self._deserialize(args)
+
+        self.assertEqual(args, [{"x": self._marker(0)}])
+
+    def test_returns_args_without_markers_untouched(self):
+        args = [1, "two", {"three": [3.0, None, True]}]
+
+        self.assertIs(self._deserialize(args), args)
+
+    def test_marker_without_any_references_raises(self):
+        with self.assertRaises(ValueError):
+            self._deserialize([self._marker(0)], references=[])
+
+    def test_invalid_index_raises(self):
+        # bool is an int and a negative index would pick from the end of the list
+        for index in (2, -1, True, False, "0", 0.0, None):
+            with self.subTest(index=index):
+                with self.assertRaises(ValueError):
+                    self._deserialize([self._marker(index)])
