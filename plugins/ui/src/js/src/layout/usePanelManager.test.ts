@@ -691,6 +691,21 @@ describe('usePanelManager', () => {
       expect(mockLogWarn).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps the saved key map while only placeholders are open', () => {
+      mockWidgetStatus = 'loading';
+      const onDataChange = jest.fn();
+      const { result } = renderManager(keyedData, onDataChange);
+
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen(result.current.getPanelId());
+      });
+
+      expect(onDataChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ panelKeyMap: keyedData.panelKeyMap })
+      );
+    });
+
     it('gives the placeholders every saved id in order until the document is ready', () => {
       mockWidgetStatus = 'loading';
       const { result, rerender } = renderManager(keyedData);
