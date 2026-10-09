@@ -553,7 +553,6 @@ class DeephavenHeadNode:
         partitioned_tables:
             A dictionary mapping node ids to partitioned table and nodes that
             need to be updated
-        cached_figure: The cached figure
     """
 
     def __init__(self):
@@ -563,7 +562,6 @@ class DeephavenHeadNode:
         # there is only one child node of the head, either a layer or a figure
         self.node: DeephavenNode | None = None
         self.partitioned_tables = {}
-        self.cached_figure = None
 
     def copy_graph(self) -> DeephavenHeadNode:
         """
@@ -581,12 +579,10 @@ class DeephavenHeadNode:
 
     def recreate_figure(self) -> None:
         """
-        Recreate the figure. This is called when the underlying partition
-        or a child node changes
+        Called after the child node is recreated. The child's cached figure is
+        read directly in get_figure, so there is nothing to rebuild here.
         """
-        if self.node:
-            self.node.recreate_figure(update_parent=False)
-            self.cached_figure = self.node.cached_figure
+        pass
 
     def get_figure(self) -> DeephavenFigure | None:
         """
@@ -595,9 +591,7 @@ class DeephavenHeadNode:
         Returns:
             The figure
         """
-        if not self.cached_figure and self.node:
-            self.cached_figure = self.node.get_figure()
-        return self.cached_figure
+        return self.node.get_figure() if self.node else None
 
     def update_filters(self, filters: dict[str, Any]) -> None:
         """
@@ -1097,7 +1091,8 @@ class DeephavenFigure:
         """
         Recreate the figure. This is called to ensure the figure is up-to-date
         """
-        self._head_node.recreate_figure()
+        if self._head_node.node:
+            self._head_node.node.recreate_figure()
 
     @property
     def calendar(self) -> Calendar:
