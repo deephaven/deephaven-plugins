@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import UserDict
 from dataclasses import dataclass, field
 from typing import Literal, Any, NoReturn, Union
 import logging
@@ -360,7 +361,7 @@ def _resolve_keyed_selection(
     return _snapshot_selection(filtered)
 
 
-class _ContextMenuData(dict):
+class _ContextMenuData(UserDict[str, Any]):
     """Callback data whose ``selected_rows`` Table is resolved on first access.
 
     Resolving a selection slices/filters and snapshots the table, and is subject to
@@ -368,35 +369,37 @@ class _ContextMenuData(dict):
     work eagerly would both waste time and reject large selections for actions that
     do not care about them.
 
+    Based on ``UserDict`` rather than ``dict`` so every lookup (``get``, ``pop``,
+    ``values``, ``copy``...) goes through ``__getitem__`` and resolves lazily.
+
     Note ``keys()``, ``items()`` and iteration only include ``selected_rows`` once it
     has been accessed, since listing it would force the resolution this class exists
     to avoid.
     """
 
-    def __init__(self, data: dict, resolver: Any) -> None:
-        super().__init__(data)
+    def __init__(
+        self, data: dict[str, Any] | None = None, resolver: Any = None
+    ) -> None:
+        # Optional because UserDict operators such as `|` rebuild with one argument.
         self._resolver = resolver
-
-    def _resolve_selected_rows(self) -> Table:
-        if not super().__contains__("selected_rows"):
-            super().__setitem__("selected_rows", self._resolver())
-        return super().__getitem__("selected_rows")
+        super().__init__(data)
 
     def __getitem__(self, key: str) -> Any:
-        if key == "selected_rows":
-            return self._resolve_selected_rows()
+        if (
+            key == "selected_rows"
+            and key not in self.data
+            and self._resolver is not None
+        ):
+            self.data[key] = self._resolver()
         return super().__getitem__(key)
 
-    def get(self, key: str, default: Any = None) -> Any:
-        if key == "selected_rows":
-            return self._resolve_selected_rows()
-        return super().get(key, default)
-
     def __contains__(self, key: object) -> bool:
-        return key == "selected_rows" or super().__contains__(key)
+        return key in self.data or (
+            key == "selected_rows" and self._resolver is not None
+        )
 
 
-def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> dict:
+def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> _ContextMenuData:
     """Enrich a context menu callback data dict with a ``selected_rows`` Table.
 
     Pops the internal ``_table``, ``_visible_columns``, ``selected_ranges`` and

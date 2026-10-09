@@ -794,10 +794,30 @@ class UITableTestCase(BaseTestCase):
 
         # Documents the caveat: listing keys would force the resolution the
         # class exists to avoid.
-        self.assertNotIn("selected_rows", data.keys())
+        self.assertNotIn("selected_rows", list(data.keys()))
 
         _ = data["selected_rows"]
-        self.assertIn("selected_rows", data.keys())
+        self.assertIn("selected_rows", list(data.keys()))
+
+    def test_context_menu_data_pop_and_copy_resolve(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        # A dict subclass bypasses __getitem__ for these, raising KeyError.
+        data = _ContextMenuData({"value": 1}, Mock(return_value="resolved"))
+        self.assertEqual(data.copy()["selected_rows"], "resolved")
+
+        data = _ContextMenuData({"value": 1}, Mock(return_value="resolved"))
+        self.assertEqual(data.pop("selected_rows"), "resolved")
+
+    def test_context_menu_data_merge_operator(self):
+        from deephaven.ui.components.table import _ContextMenuData
+
+        data = _ContextMenuData({"value": 1}, Mock(return_value="resolved"))
+
+        merged = data | {"extra": 2}
+
+        self.assertEqual(merged["value"], 1)
+        self.assertEqual(merged["extra"], 2)
 
     def test_oversized_selection_ignored_by_callback(self):
         from deephaven import empty_table
