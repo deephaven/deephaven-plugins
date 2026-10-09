@@ -7,7 +7,12 @@ import type {
   IrisGridTableModel,
 } from '@deephaven/iris-grid';
 import { type dh } from '@deephaven/jsapi-types';
+import {
+  type ContextAction,
+  type ResolvableContextAction,
+} from '@deephaven/components';
 import { UITable } from './UITable';
+import { stringifyWithReferences } from '../../widget/ReferenceUtils';
 
 const mockEmit = jest.fn();
 const mockTable = {} as dh.Table;
@@ -50,6 +55,8 @@ jest.mock('../hooks', () => ({
   }),
 }));
 
+const mockPluginAction = { title: 'Plugin action', action: jest.fn() };
+
 jest.mock('@deephaven/dashboard-core-plugins', () => ({
   InputFilterEvent: { CLEAR_ALL_FILTERS: 'CLEAR_ALL_FILTERS' },
   IrisGridEvent: { CREATE_CHART: 'IrisGridevent.CREATE_CHART' },
@@ -65,7 +72,7 @@ jest.mock('@deephaven/dashboard-core-plugins', () => ({
     Plugin: null,
     customFilters: [],
     alwaysFetchColumns: [],
-    onContextMenu: () => [],
+    onContextMenu: () => [mockPluginAction],
   }),
 }));
 
@@ -88,6 +95,9 @@ jest.mock('@deephaven/components', () => ({
 let capturedOnCreateChart:
   | ((settings: ChartBuilderSettings, model: IrisGridModel) => void)
   | undefined;
+let capturedOnContextMenu:
+  | ((data: unknown) => ResolvableContextAction[])
+  | undefined;
 
 jest.mock('@deephaven/iris-grid', () => {
   const actual = jest.requireActual('@deephaven/iris-grid');
@@ -95,6 +105,7 @@ jest.mock('@deephaven/iris-grid', () => {
     ...actual,
     IrisGrid: jest.fn(props => {
       capturedOnCreateChart = props.onCreateChart;
+      capturedOnContextMenu = props.onContextMenu;
       return <div data-testid="iris-grid" />;
     }),
     IrisGridUtils: jest.fn(() => ({
@@ -233,5 +244,57 @@ describe('UITable chart builder', () => {
         table: undefined,
       })
     );
+  });
+});
+
+describe('context menu table', () => {
+  const serverAction = jest.fn();
+
+  async function renderAndGetActions() {
+    await act(async () => {
+      render(
+        <UITable
+          table={mockExportedTable}
+          contextMenu={{ title: 'Server action', action: serverAction }}
+          showSearch={false}
+          showQuickFilters={false}
+          showGroupingColumn={false}
+          reverse={false}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedOnContextMenu).toBeDefined();
+    });
+
+    return capturedOnContextMenu?.({
+      value: 1,
+      valueText: '1',
+      column: { name: 'A' },
+      rowIndex: 0,
+      columnIndex: 0,
+      modelRow: null,
+      modelColumn: 0,
+      model: mockModel,
+    }) as ContextAction[];
+  }
+
+  it('sends the model table to server actions by reference', async () => {
+    const actions = await renderAndGetActions();
+
+    actions[0].action?.(new Event('click'));
+
+    const { references } = stringifyWithReferences(
+      serverAction.mock.calls[0][0]
+    );
+    expect(references).toHaveLength(1);
+    expect(references[0]).toBe(mockTable);
+  });
+
+  it('returns plugin actions unchanged', async () => {
+    const actions = await renderAndGetActions();
+
+    expect(actions[actions.length - 1]).toBe(mockPluginAction);
   });
 });

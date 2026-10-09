@@ -7,8 +7,10 @@ import { type PluginModuleMap, PluginsContext } from '@deephaven/plugin';
 import { type Operation } from 'fast-json-patch';
 import WidgetHandler, { type WidgetHandlerProps } from './WidgetHandler';
 import { type DocumentHandlerProps } from './DocumentHandler';
+import { byReference } from './ReferenceUtils';
 import { type WidgetMessageEvent } from './WidgetTypes';
 import { LEGACY_NAVIGATE_EVENT, NAVIGATE_EVENT } from '../events/Navigate';
+import { CALLABLE_KEY, REFERENCE_KEY } from '../elements/utils/ElementUtils';
 import {
   makeWidget,
   makeWidgetDescriptor,
@@ -36,9 +38,10 @@ jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useWidget: jest.fn(() => mockWidgetWrapper),
 }));
 
-const mockDocumentHandler = jest.fn((props: DocumentHandlerProps) => (
-  <div>DocumentHandler</div>
-));
+function MockDocumentHandler(props: DocumentHandlerProps) {
+  return <div>DocumentHandler</div>;
+}
+const mockDocumentHandler = jest.fn(MockDocumentHandler);
 jest.mock(
   './DocumentHandler',
   () => (props: DocumentHandlerProps) => mockDocumentHandler(props)
@@ -71,6 +74,8 @@ function makeWidgetHandler({
 beforeEach(() => {
   mockWidgetWrapper = defaultWidgetWrapper;
   mockDocumentHandler.mockClear();
+  // Undo any per-describe override so it does not leak into later tests.
+  mockDocumentHandler.mockImplementation(MockDocumentHandler);
 });
 
 it('mounts and unmounts', async () => {
@@ -1014,6 +1019,72 @@ describe('event plugin handling', () => {
     });
 
     expect(handler).toHaveBeenCalledWith({ foo: 'bar' });
+
+    unmount();
+  });
+});
+
+describe('references sent with requests', () => {
+  // A stand-in for a server object. Only its identity matters.
+  const source = TestUtils.createMockProxy<dh.Widget>();
+
+  /** Sends a document with one callable and returns the function the widget builds for it. */
+  async function setupWithCallable() {
+    const setup = await setupWidgetWithListener();
+    act(() => {
+      setup.listener(
+        makeWidgetEventDocumentPatched([
+          { op: 'add', path: '/onAction', value: { [CALLABLE_KEY]: 'cb0' } },
+        ])
+      );
+    });
+    const { calls } = mockDocumentHandler.mock;
+    const document = calls[calls.length - 1][0].children as unknown as {
+      onAction: (...args: unknown[]) => Promise<unknown>;
+    };
+
+    // The request is never answered; it is rejected when the widget unmounts.
+    const call = (...args: unknown[]) =>
+      act(async () => {
+        document.onAction(...args).catch(() => undefined);
+      });
+
+    return { ...setup, call };
+  }
+
+  it('sends the references in the arguments of a callable', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
+
+    await call('label', { items: [byReference(source)] });
+
+    const [payload, references] = mockSendMessage.mock.calls[0];
+    expect(JSON.parse(payload).params).toEqual([
+      'cb0',
+      ['label', { items: [{ [REFERENCE_KEY]: 0 }] }],
+    ]);
+    expect(references).toEqual([source]);
+
+    unmount();
+  });
+
+  it('sends no references when the arguments have none', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
+
+    await call('label', 1);
+
+    expect(mockSendMessage.mock.calls[0][1]).toEqual([]);
+
+    unmount();
+  });
+
+  it('does not carry references over to the next request', async () => {
+    const { mockSendMessage, call, unmount } = await setupWithCallable();
+
+    await call(byReference(source));
+    await call('label');
+
+    expect(mockSendMessage.mock.calls[0][1]).toEqual([source]);
+    expect(mockSendMessage.mock.calls[1][1]).toEqual([]);
 
     unmount();
   });

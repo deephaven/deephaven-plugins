@@ -1,4 +1,9 @@
-import { type GridPoint, type ModelIndex } from '@deephaven/grid';
+import {
+  GridRange,
+  GridUtils,
+  type GridPoint,
+  type ModelIndex,
+} from '@deephaven/grid';
 import type {
   ContextAction,
   ResolvableContextAction,
@@ -8,17 +13,24 @@ import {
   type IrisGridModel,
   type IrisGridType,
   IrisGridContextMenuHandler,
+  KeyedSelection,
+  isIrisGridTableModelTemplate,
+  isKeyedGridModel,
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
 import { ensureArray } from '@deephaven/utils';
 import {
+  asRangedSelection,
   getRowDataMap,
   type RowDataMap,
   type UITableProps,
 } from './UITableUtils';
 import { getIcon } from '../utils/IconElementUtils';
 import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
+import { byReference, type ByReference } from '../../widget/ReferenceUtils';
+
+type ModelTable = DhType.Table | DhType.TreeTable;
 
 interface UIContextItemParams {
   value: unknown;
@@ -27,6 +39,32 @@ interface UIContextItemParams {
   is_column_header: boolean;
   is_row_header: boolean;
   always_fetch_columns: RowDataMap;
+  selected_ranges: {
+    start_row: number | null;
+    end_row: number | null;
+    start_column: number | null;
+    end_column: number | null;
+  }[];
+  /**
+   * Populated instead of `selected_ranges` when the table declares key columns
+   * (`with_keys`). Identifies rows by value so the selection survives ticks.
+   * Sends `too_large` instead of the values when the key count exceeds
+   * `MAX_SELECTED_KEYS`, so the server can reject without a huge payload.
+   */
+  selected_keys:
+    | {
+        key_columns: string[];
+        key_values: unknown[][];
+        inverted: boolean;
+      }
+    | { too_large: true; count: number }
+    | null;
+  _visible_columns: string[];
+  /**
+   * The table the user sees, with its sorts and filters, sent by reference so
+   * the server can read the selected rows from it.
+   */
+  _table?: ByReference<ModelTable>;
 }
 
 type UIContextItem = Omit<ContextAction, 'action' | 'actions' | 'icon'> & {
@@ -41,10 +79,20 @@ export type ResolvableUIContextItem =
       params: UIContextItemParams
     ) => Promise<UIContextItem | UIContextItem[] | null>);
 
+function getTableParam(
+  table: ModelTable | null
+): Pick<UIContextItemParams, '_table'> {
+  return table != null ? { _table: byReference(table) } : {};
+}
+
 function wrapUIContextItem(
   item: UIContextItem,
   data: IrisGridContextMenuData,
-  alwaysFetchColumns: RowDataMap
+  alwaysFetchColumns: RowDataMap,
+  selectedRanges: UIContextItemParams['selected_ranges'],
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys'],
+  table: ModelTable | null
 ): ContextAction {
   return {
     group: 999999, // Default to the end of the menu
@@ -62,11 +110,23 @@ function wrapUIContextItem(
             is_column_header: data.rowIndex == null,
             is_row_header: data.columnIndex == null,
             always_fetch_columns: alwaysFetchColumns,
+            selected_ranges: selectedRanges,
+            selected_keys: selectedKeys,
+            _visible_columns: visibleColumns,
+            ...getTableParam(table),
           });
         }
       : undefined,
     actions: item.actions
-      ? wrapContextActions(item.actions, data, alwaysFetchColumns)
+      ? wrapContextActions(
+          item.actions,
+          data,
+          alwaysFetchColumns,
+          selectedRanges,
+          visibleColumns,
+          selectedKeys,
+          table
+        )
       : undefined,
   } satisfies ContextAction;
 }
@@ -74,10 +134,22 @@ function wrapUIContextItem(
 function wrapUIContextItems(
   items: UIContextItem | UIContextItem[],
   data: IrisGridContextMenuData,
-  alwaysFetchColumns: RowDataMap
+  alwaysFetchColumns: RowDataMap,
+  selectedRanges: UIContextItemParams['selected_ranges'],
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys'],
+  table: ModelTable | null
 ): ContextAction[] {
   return ensureArray(items).map(item =>
-    wrapUIContextItem(item, data, alwaysFetchColumns)
+    wrapUIContextItem(
+      item,
+      data,
+      alwaysFetchColumns,
+      selectedRanges,
+      visibleColumns,
+      selectedKeys,
+      table
+    )
   );
 }
 
@@ -86,12 +158,17 @@ function wrapUIContextItems(
  * @param items The context items from the server
  * @param data The context menu data to use for the context items
  * @param alwaysFetchColumns The names of column data to always send or the data if it is a nested
+ * @param table The table the user sees, sent to the callbacks by reference as `_table`
  * @returns Context items with the UI actions wrapped so they receive the cell info
  */
 export function wrapContextActions(
   items: ResolvableUIContextItem | ResolvableUIContextItem[],
   data: IrisGridContextMenuData,
-  alwaysFetchColumns: ColumnName[] | RowDataMap
+  alwaysFetchColumns: ColumnName[] | RowDataMap,
+  selectedRanges: UIContextItemParams['selected_ranges'],
+  visibleColumns: string[],
+  selectedKeys: UIContextItemParams['selected_keys'] = null,
+  table: ModelTable | null = null
 ): ResolvableContextAction[] {
   let alwaysFetchColumnsMap: RowDataMap = {};
   if (Array.isArray(alwaysFetchColumns)) {
@@ -118,14 +195,141 @@ export function wrapContextActions(
             is_column_header: data.rowIndex == null,
             is_row_header: data.columnIndex == null,
             always_fetch_columns: alwaysFetchColumnsMap,
+            selected_ranges: selectedRanges,
+            selected_keys: selectedKeys,
+            _visible_columns: visibleColumns,
+            ...getTableParam(table),
           })) ?? [],
           data,
-          alwaysFetchColumnsMap
+          alwaysFetchColumnsMap,
+          selectedRanges,
+          visibleColumns,
+          selectedKeys,
+          table
         );
     }
 
-    return wrapUIContextItem(item, data, alwaysFetchColumnsMap);
+    return wrapUIContextItem(
+      item,
+      data,
+      alwaysFetchColumnsMap,
+      selectedRanges,
+      visibleColumns,
+      selectedKeys,
+      table
+    );
   });
+}
+
+/**
+ * Converts the viewport-space selected ranges from IrisGrid to model-index ranges.
+ * Returns empty for keyed selections, which are sent via `getSelectedKeys` instead.
+ */
+export function getModelSelectedRanges(
+  irisGrid: IrisGridType,
+  contextMenuData: IrisGridContextMenuData
+): UIContextItemParams['selected_ranges'] {
+  // `selection` is already the effective selection: IrisGrid substitutes the
+  // clicked row when the right-click lands outside the current selection.
+  const selection = asRangedSelection(
+    contextMenuData.selection ?? irisGrid.state.gridSelection
+  );
+  if (selection == null) {
+    return [];
+  }
+
+  return GridRange.consolidate(selection.toRanges())
+    .sort((a, b) => (a.startRow ?? 0) - (b.startRow ?? 0))
+    .map(range => ({
+      // `getModelRow` only resolves rendered rows, so a selection extending past
+      // the viewport would otherwise lose its bounds. Selections are only resolved
+      // for flat tables, where the model row equals the view row, so fall back to
+      // the view index rather than dropping the range.
+      start_row:
+        range.startRow != null
+          ? irisGrid.getModelRow(range.startRow) ?? range.startRow
+          : null,
+      end_row:
+        range.endRow != null
+          ? irisGrid.getModelRow(range.endRow) ?? range.endRow
+          : null,
+      start_column:
+        range.startColumn != null
+          ? irisGrid.getModelColumn(range.startColumn) ?? null
+          : null,
+      end_column:
+        range.endColumn != null
+          ? irisGrid.getModelColumn(range.endColumn) ?? null
+          : null,
+    }));
+}
+
+/**
+ * Upper bound on keys serialized into a single callable payload. Sized to avoid
+ * a multi-megabyte message; the server applies its own, lower row limit.
+ */
+const MAX_SELECTED_KEYS = 100_000;
+
+/**
+ * Extracts the key-based selection for tables that declare key columns, or null
+ * when the selection is positional. Key values are sent instead of row positions
+ * so the server resolves the same rows even if they move.
+ */
+export function getSelectedKeys(
+  irisGrid: IrisGridType,
+  contextMenuData: IrisGridContextMenuData
+): UIContextItemParams['selected_keys'] {
+  const selection = contextMenuData.selection ?? irisGrid.state.gridSelection;
+  if (!(selection instanceof KeyedSelection)) {
+    return null;
+  }
+
+  const { selectedKeyValues } = selection;
+  if (selectedKeyValues.size > MAX_SELECTED_KEYS) {
+    return { too_large: true, count: selectedKeyValues.size };
+  }
+
+  const { model } = contextMenuData;
+  return {
+    key_columns: isKeyedGridModel(model)
+      ? model.selectionKeyColumnIndices.map(i => model.columns[i].name)
+      : [],
+    key_values: Array.from(selectedKeyValues.values()).map(values => [
+      ...values,
+    ]),
+    inverted: selection.invertedSelection,
+  };
+}
+
+/**
+ * Returns visible column names in their current visual order (moves applied, hidden columns excluded).
+ */
+export function getVisibleColumnNames(
+  irisGrid: IrisGridType,
+  model: IrisGridModel
+): string[] {
+  const { metrics } = irisGrid.state;
+  if (metrics == null) return [];
+
+  // Walk every model column rather than the metrics' column count, which only
+  // covers what is rendered — columns scrolled out of view horizontally would
+  // otherwise be dropped from the selection.
+  const { userColumnWidths, movedColumns } = metrics;
+  const columns: { name: string; visibleIndex: number }[] = [];
+  for (let modelIndex = 0; modelIndex < model.columnCount; modelIndex += 1) {
+    const column = model.columns[modelIndex];
+    // Hiding a column records a user width of 0.
+    if (column != null && userColumnWidths.get(modelIndex) !== 0) {
+      columns.push({
+        name: column.name,
+        visibleIndex: GridUtils.getVisibleIndex(modelIndex, movedColumns),
+      });
+    }
+  }
+
+  return columns
+    .sort((a, b) => a.visibleIndex - b.visibleIndex)
+    .map(({ name }) => name);
 }
 
 /**
@@ -176,21 +380,27 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
     const { column: sourceColumn } = sourceCell;
     const column = columns[sourceColumn];
 
+    const headerContextMenuData: IrisGridContextMenuData = {
+      value: null,
+      valueText: null,
+      rowIndex: null,
+      columnIndex: sourceColumn,
+      column,
+      model,
+      modelColumn,
+      modelRow: null,
+    };
+
     return [
       ...super.getHeaderActions(modelIndex, gridPoint),
       ...wrapContextActions(
         contextColumnHeaderItems,
-        {
-          value: null,
-          valueText: null,
-          rowIndex: null,
-          columnIndex: sourceColumn,
-          column,
-          model,
-          modelColumn,
-          modelRow: null,
-        },
-        this.alwaysFetchColumns
+        headerContextMenuData,
+        this.alwaysFetchColumns,
+        getModelSelectedRanges(irisGrid, headerContextMenuData),
+        getVisibleColumnNames(irisGrid, model),
+        getSelectedKeys(irisGrid, headerContextMenuData),
+        isIrisGridTableModelTemplate(model) ? model.table : null
       ),
     ];
   }
