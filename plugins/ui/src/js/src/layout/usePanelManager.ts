@@ -65,6 +65,23 @@ export function usePanelManager({
   // initialization function into `useRef` like you can with `useState`
   const [widgetData] = useState<WidgetData>(() => structuredClone(initialData));
 
+  // Panel id for each key path. Starts from the saved map and remembers ids given to new keys this session.
+  const [keyIds] = useState(
+    () => new Map(Object.entries(widgetData.panelKeyMap ?? {}))
+  );
+
+  // Without any saved keys, keyed panels take positional ids so adding keys to a script doesn't move anything
+  const [hasSavedKeys] = useState(() => keyIds.size > 0);
+
+  // Saved ids handed out by position. Excludes keyed ids so an unkeyed panel can't take a keyed panel's slot.
+  const [positionalIds] = useState(() => {
+    const keyedIds = new Set(keyIds.values());
+    return (widgetData.panelIds ?? []).filter(id => !keyedIds.has(id));
+  });
+
+  // Key path of each open keyed panel, by panel id
+  const openPanelKeys = useRef(new Map<string, string>());
+
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
   // cannot merge into it - doing so would make each panel's update drop the
@@ -86,6 +103,13 @@ export function usePanelManager({
   const layoutManager = useContext(LayoutManagerContext);
   // Before the document is ready, open panels may be rehydration placeholders for every saved id
   const isDocumentReady = useWidgetStatus().status === 'ready';
+  // Changes `getPanelId` once, so every placeholder still mounted gets its id from the document
+  const hasBeenReadyRef = useRef(false);
+  if (isDocumentReady) {
+    hasBeenReadyRef.current = true;
+  }
+  const hasBeenReady = hasBeenReadyRef.current;
+  const placeholderIdIndex = useRef(0);
   const hasRemovedOrphans = useRef(false);
 
   const id = useMemo(
@@ -97,17 +121,31 @@ export function usePanelManager({
   );
 
   const handleOpen = useCallback(
-    (panelId: string) => {
+    (panelId: string, panelKey?: string) => {
       if (panelIds.current.includes(panelId)) {
-        throw new Error('Duplicate panel opens received');
+        if (panelKey == null) {
+          throw new Error('Duplicate panel opens received');
+        }
+        log.warn(
+          'Widget',
+          id,
+          'has more than one panel with key',
+          panelKey,
+          '- opening it as a new panel'
+        );
+        return false;
       }
 
       panelIds.current.push(panelId);
+      if (panelKey != null && keyIds.get(panelKey) === panelId) {
+        openPanelKeys.current.set(panelId, panelKey);
+      }
       log.debug('Panel opened, open count', panelIds.current.length);
 
       setPanelsDirty(true);
+      return true;
     },
-    [panelIds]
+    [id, keyIds, panelIds]
   );
 
   const handleClose = useCallback(
@@ -118,6 +156,7 @@ export function usePanelManager({
       }
 
       panelIds.current.splice(panelIndex, 1);
+      openPanelKeys.current.delete(panelId);
       log.debug('Panel closed, open count', panelIds.current.length);
 
       setPanelsDirty(true);
@@ -145,7 +184,7 @@ export function usePanelManager({
    */
   const removeOrphanedPanels = useCallback(() => {
     const savedIds = widgetData.panelIds ?? [];
-    panelIdIndex.current = Math.max(panelIdIndex.current, savedIds.length);
+    panelIdIndex.current = Math.max(panelIdIndex.current, positionalIds.length);
     const openIds = new Set(panelIds.current);
     panelStatesRef.current = Object.fromEntries(
       Object.entries(panelStatesRef.current).filter(([panelId]) =>
@@ -164,7 +203,7 @@ export function usePanelManager({
         // `remove` rather than `close`, since panels in a nested dashboard aren't closable
         LayoutUtils.getContentItemInStack(stack, config)?.remove();
       });
-  }, [layoutManager, widgetData]);
+  }, [layoutManager, positionalIds, widgetData]);
 
   /**
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
@@ -189,10 +228,23 @@ export function usePanelManager({
           hasRemovedOrphans.current = true;
           removeOrphanedPanels();
         }
+        // Placeholders are unkeyed, so keep the saved map until the document's panels have opened
+        let { panelKeyMap } = widgetData;
+        if (hasBeenReadyRef.current) {
+          const openKeyMap = Object.fromEntries(
+            [...openPanelKeys.current].map(([panelId, panelKey]) => [
+              panelKey,
+              panelId,
+            ])
+          );
+          panelKeyMap =
+            Object.keys(openKeyMap).length > 0 ? openKeyMap : undefined;
+        }
         onDataChange({
           ...widgetData,
           panelStates: { ...panelStatesRef.current },
           panelIds: [...panelIds.current],
+          panelKeyMap,
         });
       }
     },
@@ -207,21 +259,60 @@ export function usePanelManager({
     ]
   );
 
-  const getPanelId = useCallback(() => {
-    // On rehydration, yield known IDs first
-    // If there are no more known IDs, generate a new one.
-    // This can happen if the document hasn't been opened before, or if it's rehydrated and a new panel is added.
-    // Note that if the order of panels changes, the worst case scenario is that panels appear in the wrong location in the layout.
-    const panelId = widgetData.panelIds?.[panelIdIndex.current] ?? nanoid();
+  const getPositionalId = useCallback(() => {
+    // Note that if the order of unkeyed panels changes, they appear in each other's place in the layout.
+    const panelId = positionalIds[panelIdIndex.current];
     panelIdIndex.current += 1;
     return panelId;
-  }, [widgetData]);
+  }, [positionalIds]);
 
+  const getPanelId = useCallback(
+    (panelKey?: string) => {
+      if (panelKey == null) {
+        if (!hasBeenReady) {
+          // Placeholders are unkeyed and hold every saved id in order, keyed ones included
+          const placeholderId =
+            widgetData.panelIds?.[placeholderIdIndex.current] ?? nanoid();
+          if (
+            placeholderIdIndex.current >= (widgetData.panelIds ?? []).length
+          ) {
+            // Lets the document's first unkeyed panel keep a new widget's loading placeholder
+            positionalIds.push(placeholderId);
+          }
+          placeholderIdIndex.current += 1;
+          return placeholderId;
+        }
+        return getPositionalId() ?? nanoid();
+      }
+
+      // Same id every time, so a repeated or discarded render can't change it. Duplicates are found on open.
+      let panelId = keyIds.get(panelKey);
+      if (panelId == null) {
+        panelId = (hasSavedKeys ? undefined : getPositionalId()) ?? nanoid();
+        keyIds.set(panelKey, panelId);
+      }
+      return panelId;
+    },
+    [
+      getPositionalId,
+      hasBeenReady,
+      hasSavedKeys,
+      keyIds,
+      positionalIds,
+      widgetData,
+    ]
+  );
+
+  // The latest state, so a panel that remounts, e.g. when it moves, keeps it
   const getInitialData = useCallback(
     (panelId: string) =>
-      widgetData.panelStates?.[panelId] ??
-      (EMPTY_ARRAY as unknown as unknown[]),
-    [widgetData]
+      panelStatesRef.current[panelId] ?? (EMPTY_ARRAY as unknown as unknown[]),
+    []
+  );
+
+  const isPanelOpen = useCallback(
+    (panelId: string) => panelIds.current.includes(panelId),
+    []
   );
 
   const panelManager = useMemo(
@@ -232,6 +323,7 @@ export function usePanelManager({
       onDataChange: handleDataChange,
       getPanelId,
       getInitialData,
+      isPanelOpen,
     }),
     [
       widget,
@@ -240,6 +332,7 @@ export function usePanelManager({
       handleOpen,
       handleDataChange,
       getInitialData,
+      isPanelOpen,
     ]
   );
 

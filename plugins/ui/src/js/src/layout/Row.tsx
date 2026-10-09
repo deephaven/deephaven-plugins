@@ -10,6 +10,7 @@ import {
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
+import { PanelKeyScope } from './PanelKeyScope';
 
 function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
@@ -43,7 +44,7 @@ function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   );
 }
 
-function Row({ children, height }: RowElementProps): JSX.Element {
+function Row({ children, height, __dhKey }: RowElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
 
@@ -63,11 +64,18 @@ function Row({ children, height }: RowElementProps): JSX.Element {
     // Don't add a row here, or normalize the children which might add a stack unnecessarily.
     // The persisted layout already has the rows/columns/stacks mapped out, but bare
     // content children still need a panel wrapper so they portal into their persisted panel.
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{wrapBareChildrenInPanel(children)}</>;
+    return (
+      <PanelKeyScope elementKey={__dhKey}>
+        {wrapBareChildrenInPanel(children)}
+      </PanelKeyScope>
+    );
   }
 
-  return <LayoutRow height={height}>{children}</LayoutRow>;
+  return (
+    <PanelKeyScope elementKey={__dhKey}>
+      <LayoutRow height={height}>{children}</LayoutRow>
+    </PanelKeyScope>
+  );
 }
 
 export default Row;

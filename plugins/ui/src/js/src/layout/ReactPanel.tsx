@@ -31,6 +31,7 @@ import { type ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
+import { getPanelKey, usePanelKeyScope } from './PanelKeyScopeContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
 import WidgetErrorView from '../widget/WidgetErrorView';
@@ -78,6 +79,7 @@ function ReactPanel({
   // is being implicitly created
   children,
   title,
+  __dhKey,
   backgroundColor,
   direction = 'column',
   wrap,
@@ -99,20 +101,34 @@ function ReactPanel({
   UNSAFE_className,
 }: Props): JSX.Element | null {
   const layoutManager = useLayoutManager();
-  const { metadata, onClose, onOpen, panelId, onDataChange, getInitialData } =
-    useReactPanel();
+  const panelKey = getPanelKey(usePanelKeyScope(), __dhKey);
+  const {
+    metadata,
+    onClose,
+    onOpen,
+    isOpen,
+    panelId,
+    onDataChange,
+    getInitialData,
+  } = useReactPanel(panelKey);
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle =
     title ?? (typeof metadata === 'string' ? metadata : metadata?.name ?? '');
-  const [initialData, setInitialData] = useState<PersistentState[]>(
-    getInitialData() as PersistentState[]
-  );
+  const [resetData, setResetData] = useState<{
+    panelId: string;
+    data: PersistentState[];
+  }>();
+  // A placeholder reused for the document's panel can change id, so read the data for the current id
+  const initialData =
+    resetData?.panelId === panelId
+      ? resetData.data
+      : (getInitialData() as PersistentState[]);
   const onErrorReset = useCallback(() => {
     // Not EMPTY_ARRAY, because we always want to trigger a re-render
     // in case a panel is reloaded and errors again
-    setInitialData([]);
-  }, []);
+    setResetData({ panelId, data: [] });
+  }, [panelId]);
 
   // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
@@ -121,8 +137,8 @@ function ReactPanel({
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal == null ? undefined : metadata
   );
-  // Used to check if panelTitle was updated
-  const prevPanelTitleRef = useRef<string>(panelTitle);
+  // Title last set on the layout item. Starts empty so a rehydrated item with a stale title is renamed.
+  const prevPanelTitleRef = useRef<string>('');
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,24 +156,34 @@ function ReactPanel({
     );
   }
   const { eventHub, root } = layoutManager;
+  const widgetStatus = useWidgetStatus();
+  // Placeholders shown before the document is ready don't have the panel's title
+  const isDocumentReady = widgetStatus.status === 'ready';
 
   useEffect(
     () => () => {
       if (isPanelOpenRef.current) {
-        log.debug('Closing panel', panelId);
-        const config = { id: panelId };
-        if (isClosable) {
-          LayoutUtils.closeComponent(root, config);
-        } else {
-          // `close` is a no-op for panels that aren't closable, e.g. panels in a nested dashboard
-          const stack = LayoutUtils.getStackForConfig(root, config);
-          LayoutUtils.getContentItemInStack(stack, config)?.remove();
-        }
         isPanelOpenRef.current = false;
         onClose();
+        // React runs every cleanup in a commit before any new effect, so wait for a panel replacing this one
+        queueMicrotask(() => {
+          if (isOpen()) {
+            // The replacing panel took over the layout item, keeping its place
+            return;
+          }
+          log.debug('Closing panel', panelId);
+          const config = { id: panelId };
+          if (isClosable) {
+            LayoutUtils.closeComponent(root, config);
+          } else {
+            // `close` is a no-op for panels that aren't closable, e.g. panels in a nested dashboard
+            const stack = LayoutUtils.getStackForConfig(root, config);
+            LayoutUtils.getContentItemInStack(stack, config)?.remove();
+          }
+        });
       }
     },
-    [isClosable, onClose, panelId, root]
+    [isClosable, isOpen, onClose, panelId, root]
   );
 
   const handlePanelClosed = useCallback(
@@ -184,6 +210,14 @@ function ReactPanel({
      *    opening this widget in particular.
      */
     function openIfNecessary() {
+      if (!isPanelOpenRef.current) {
+        if (!onOpen()) {
+          // Another panel has this key, so this one re-renders with a new id
+          return;
+        }
+        isPanelOpenRef.current = true;
+      }
+
       const itemConfig = { id: panelId };
       // We check if we have an existing stack with this panel ID. Check from the root though,
       // as the user may have moved the panel to a different stack, and we want to find it regardless
@@ -220,6 +254,7 @@ function ReactPanel({
           }
         }
         LayoutUtils.openComponent({ root: parent, config });
+        prevPanelTitleRef.current = panelTitle;
         log.debug('Opened panel', panelId, config);
       } else if (
         openedMetadataRef.current != null &&
@@ -240,20 +275,30 @@ function ReactPanel({
       }
 
       openedMetadataRef.current = metadata;
-      if (!isPanelOpenRef.current) {
-        // We don't need to send an opened signal again
-        isPanelOpenRef.current = true;
-        onOpen();
-      }
 
-      if (prevPanelTitleRef.current !== panelTitle) {
+      if (isDocumentReady && prevPanelTitleRef.current !== panelTitle) {
         prevPanelTitleRef.current = panelTitle;
-        LayoutUtils.renameComponent(root, itemConfig, panelTitle);
+        // Renaming always emits a layout change, so skip it when the saved title is already current
+        const contentItem = LayoutUtils.getContentItemInStack(
+          existingStack,
+          itemConfig
+        );
+        if (contentItem?.config.title !== panelTitle) {
+          LayoutUtils.renameComponent(root, itemConfig, panelTitle);
+        }
       }
     },
-    [isClosable, parent, metadata, onOpen, panelId, panelTitle, root]
+    [
+      isClosable,
+      isDocumentReady,
+      parent,
+      metadata,
+      onOpen,
+      panelId,
+      panelTitle,
+      root,
+    ]
   );
-  const widgetStatus = useWidgetStatus();
 
   let renderedChildren: React.ReactNode;
   if (widgetStatus.status === 'loading') {

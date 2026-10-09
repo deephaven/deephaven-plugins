@@ -20,10 +20,19 @@ import {
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
-export type ReactPanelProps = React.PropsWithChildren<{
-  /** Title of the panel */
-  title?: string;
-}>;
+export const KEY_PROP = '__dhKey';
+
+/** React doesn't pass `key` on to the component, so it's copied to this prop */
+export type KeyProps = {
+  __dhKey?: string;
+};
+
+export type ReactPanelProps = React.PropsWithChildren<
+  KeyProps & {
+    /** Title of the panel */
+    title?: string;
+  }
+>;
 
 /**
  * Describes a panel element that can be rendered in the UI.
@@ -46,9 +55,11 @@ export function isPanelElementNode(obj: unknown): obj is PanelElementNode {
   );
 }
 
-export type RowElementProps = React.PropsWithChildren<{
-  height?: number;
-}>;
+export type RowElementProps = React.PropsWithChildren<
+  KeyProps & {
+    height?: number;
+  }
+>;
 
 /**
  * Describes a row element that can be rendered in the UI.
@@ -66,9 +77,11 @@ export function isRowElementNode(obj: unknown): obj is RowElementNode {
   );
 }
 
-export type ColumnElementProps = React.PropsWithChildren<{
-  width?: number;
-}>;
+export type ColumnElementProps = React.PropsWithChildren<
+  KeyProps & {
+    width?: number;
+  }
+>;
 
 /**
  * Describes a column element that can be rendered in the UI.
@@ -90,11 +103,13 @@ export function isColumnElementNode(obj: unknown): obj is ColumnElementNode {
   );
 }
 
-export type StackElementProps = React.PropsWithChildren<{
-  height?: number;
-  width?: number;
-  activeItemIndex?: number;
-}>;
+export type StackElementProps = React.PropsWithChildren<
+  KeyProps & {
+    height?: number;
+    width?: number;
+    activeItemIndex?: number;
+  }
+>;
 
 /**
  * Describes a stack element that can be rendered in the UI.
