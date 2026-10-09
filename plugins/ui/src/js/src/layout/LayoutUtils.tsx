@@ -20,18 +20,15 @@ import {
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
-export const KEY_PATH_PROP = '__dhKeyPath';
+export const KEY_PROP = '__dhKey';
 
-/**
- * Keys identifying a panel or layout element, outermost first: the keys of the components
- * rendering it, then its own key. React consumes `key`, so it's passed on in this prop.
- */
-export type KeyPathProps = {
-  __dhKeyPath?: readonly string[];
+/** React doesn't pass `key` on to the component, so it's copied to this prop */
+export type KeyProps = {
+  __dhKey?: string;
 };
 
 export type ReactPanelProps = React.PropsWithChildren<
-  KeyPathProps & {
+  KeyProps & {
     /** Title of the panel */
     title?: string;
   }
@@ -59,7 +56,7 @@ export function isPanelElementNode(obj: unknown): obj is PanelElementNode {
 }
 
 export type RowElementProps = React.PropsWithChildren<
-  KeyPathProps & {
+  KeyProps & {
     height?: number;
   }
 >;
@@ -81,7 +78,7 @@ export function isRowElementNode(obj: unknown): obj is RowElementNode {
 }
 
 export type ColumnElementProps = React.PropsWithChildren<
-  KeyPathProps & {
+  KeyProps & {
     width?: number;
   }
 >;
@@ -107,7 +104,7 @@ export function isColumnElementNode(obj: unknown): obj is ColumnElementNode {
 }
 
 export type StackElementProps = React.PropsWithChildren<
-  KeyPathProps & {
+  KeyProps & {
     height?: number;
     width?: number;
     activeItemIndex?: number;

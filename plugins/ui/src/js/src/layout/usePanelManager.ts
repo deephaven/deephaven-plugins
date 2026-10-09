@@ -79,17 +79,8 @@ export function usePanelManager({
     return (widgetData.panelIds ?? []).filter(id => !keyedIds.has(id));
   });
 
-  // Number of mounted panels holding each key path, to detect duplicate keys
-  const keyCounts = useRef(new Map<string, number>());
-
-  // Key paths held by rehydration placeholders, which the document's panel with that key may take over
-  const placeholderKeys = useRef(new Set<string>());
-
   // Key path of each open keyed panel, by panel id
   const openPanelKeys = useRef(new Map<string, string>());
-
-  // Key paths of panels that got a new id because their key was taken, by that new id
-  const duplicateKeys = useRef(new Map<string, string>());
 
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
@@ -112,9 +103,13 @@ export function usePanelManager({
   const layoutManager = useContext(LayoutManagerContext);
   // Before the document is ready, open panels may be rehydration placeholders for every saved id
   const isDocumentReady = useWidgetStatus().status === 'ready';
-  // Read through a ref so a status change doesn't change `getPanelId` and re-id every panel
-  const isDocumentReadyRef = useRef(isDocumentReady);
-  isDocumentReadyRef.current = isDocumentReady;
+  // Changes `getPanelId` once, so every placeholder still mounted gets its id from the document
+  const hasBeenReadyRef = useRef(false);
+  if (isDocumentReady) {
+    hasBeenReadyRef.current = true;
+  }
+  const hasBeenReady = hasBeenReadyRef.current;
+  const placeholderIdIndex = useRef(0);
   const hasRemovedOrphans = useRef(false);
 
   const id = useMemo(
@@ -128,37 +123,27 @@ export function usePanelManager({
   const handleOpen = useCallback(
     (panelId: string, panelKey?: string) => {
       if (panelIds.current.includes(panelId)) {
-        throw new Error('Duplicate panel opens received');
+        if (panelKey == null) {
+          throw new Error('Duplicate panel opens received');
+        }
+        log.warn(
+          'Widget',
+          id,
+          'has more than one panel with key',
+          panelKey,
+          '- opening it as a new panel'
+        );
+        return false;
       }
 
       panelIds.current.push(panelId);
-      const duplicateKey = duplicateKeys.current.get(panelId);
-      if (duplicateKey != null) {
-        duplicateKeys.current.delete(panelId);
-        const keyedId = keyIds.get(duplicateKey);
-        if (keyedId != null && panelIds.current.includes(keyedId)) {
-          log.warn(
-            'Widget',
-            id,
-            'has more than one panel with key',
-            duplicateKey,
-            '- opening it as a new panel'
-          );
-        } else {
-          // The key's previous panel closed in this commit, e.g. it moved to another parent
-          keyIds.set(duplicateKey, panelId);
-          keyCounts.current.set(
-            duplicateKey,
-            (keyCounts.current.get(duplicateKey) ?? 0) + 1
-          );
-        }
-      }
       if (panelKey != null && keyIds.get(panelKey) === panelId) {
         openPanelKeys.current.set(panelId, panelKey);
       }
       log.debug('Panel opened, open count', panelIds.current.length);
 
       setPanelsDirty(true);
+      return true;
     },
     [id, keyIds, panelIds]
   );
@@ -171,16 +156,7 @@ export function usePanelManager({
       }
 
       panelIds.current.splice(panelIndex, 1);
-      const panelKey = openPanelKeys.current.get(panelId);
-      if (panelKey != null) {
-        openPanelKeys.current.delete(panelId);
-        const count = (keyCounts.current.get(panelKey) ?? 1) - 1;
-        if (count > 0) {
-          keyCounts.current.set(panelKey, count);
-        } else {
-          keyCounts.current.delete(panelKey);
-        }
-      }
+      openPanelKeys.current.delete(panelId);
       log.debug('Panel closed, open count', panelIds.current.length);
 
       setPanelsDirty(true);
@@ -278,16 +254,6 @@ export function usePanelManager({
     ]
   );
 
-  useEffect(
-    function settlePlaceholderKeys() {
-      // Document panels took over their placeholders' keys in the ready render, so the rest were reused
-      if (isDocumentReady) {
-        placeholderKeys.current.clear();
-      }
-    },
-    [isDocumentReady]
-  );
-
   const getPositionalId = useCallback(() => {
     // Note that if the order of unkeyed panels changes, they appear in each other's place in the layout.
     const panelId = positionalIds[panelIdIndex.current];
@@ -298,23 +264,23 @@ export function usePanelManager({
   const getPanelId = useCallback(
     (panelKey?: string) => {
       if (panelKey == null) {
+        if (!hasBeenReady) {
+          // Placeholders are unkeyed and hold every saved id in order, keyed ones included
+          const placeholderId =
+            widgetData.panelIds?.[placeholderIdIndex.current] ?? nanoid();
+          if (
+            placeholderIdIndex.current >= (widgetData.panelIds ?? []).length
+          ) {
+            // Lets the document's first unkeyed panel keep a new widget's loading placeholder
+            positionalIds.push(placeholderId);
+          }
+          placeholderIdIndex.current += 1;
+          return placeholderId;
+        }
         return getPositionalId() ?? nanoid();
       }
 
-      const count = keyCounts.current.get(panelKey) ?? 0;
-      if (count > 0 && !placeholderKeys.current.has(panelKey)) {
-        // Whether it's a real duplicate is only known once it opens
-        const duplicateId = nanoid();
-        duplicateKeys.current.set(duplicateId, panelKey);
-        return duplicateId;
-      }
-      keyCounts.current.set(panelKey, count + 1);
-      if (isDocumentReadyRef.current) {
-        placeholderKeys.current.delete(panelKey);
-      } else {
-        placeholderKeys.current.add(panelKey);
-      }
-
+      // Same id every time, so a repeated or discarded render can't change it. Duplicates are found on open.
       let panelId = keyIds.get(panelKey);
       if (panelId == null) {
         panelId = (hasSavedKeys ? undefined : getPositionalId()) ?? nanoid();
@@ -322,14 +288,26 @@ export function usePanelManager({
       }
       return panelId;
     },
-    [getPositionalId, hasSavedKeys, keyIds]
+    [
+      getPositionalId,
+      hasBeenReady,
+      hasSavedKeys,
+      keyIds,
+      positionalIds,
+      widgetData,
+    ]
   );
 
+  // The latest state, so a panel that remounts, e.g. when it moves, keeps it
   const getInitialData = useCallback(
     (panelId: string) =>
-      widgetData.panelStates?.[panelId] ??
-      (EMPTY_ARRAY as unknown as unknown[]),
-    [widgetData]
+      panelStatesRef.current[panelId] ?? (EMPTY_ARRAY as unknown as unknown[]),
+    []
+  );
+
+  const isPanelOpen = useCallback(
+    (panelId: string) => panelIds.current.includes(panelId),
+    []
   );
 
   const panelManager = useMemo(
@@ -340,6 +318,7 @@ export function usePanelManager({
       onDataChange: handleDataChange,
       getPanelId,
       getInitialData,
+      isPanelOpen,
     }),
     [
       widget,
@@ -348,6 +327,7 @@ export function usePanelManager({
       handleOpen,
       handleDataChange,
       getInitialData,
+      isPanelOpen,
     ]
   );
 

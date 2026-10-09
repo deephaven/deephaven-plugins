@@ -53,7 +53,7 @@ function LayoutStack({
 
 function Stack(props: StackElementProps): JSX.Element | null {
   const initialLayoutConfig = useInitialLayoutConfig();
-  const { children, __dhKeyPath } = props;
+  const { children, __dhKey } = props;
 
   if (initialLayoutConfig != null) {
     // If there's already an initial layout defined, user has likely already customized their layout.
@@ -61,14 +61,14 @@ function Stack(props: StackElementProps): JSX.Element | null {
     // The persisted layout already has the stacks mapped out, but bare content children
     // still need a panel wrapper so they portal into their persisted panel.
     return (
-      <PanelKeyScope keyPath={__dhKeyPath}>
+      <PanelKeyScope elementKey={__dhKey}>
         {wrapBareChildrenInPanel(children)}
       </PanelKeyScope>
     );
   }
 
   return (
-    <PanelKeyScope keyPath={__dhKeyPath}>
+    <PanelKeyScope elementKey={__dhKey}>
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <LayoutStack {...props} />
     </PanelKeyScope>

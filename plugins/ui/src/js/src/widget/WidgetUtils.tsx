@@ -58,7 +58,7 @@ import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
-import { KEY_PATH_PROP, type KeyPathProps } from '../layout/LayoutUtils';
+import { KEY_PROP } from '../layout/LayoutUtils';
 import {
   Accordion,
   ActionButton,
@@ -124,41 +124,6 @@ const shouldWrapTextChildren = new Set<string>([
 ]);
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
-
-/** Elements whose keys identify panels, so they get their key path in `__dhKeyPath` */
-const keyPathElementNames = new Set<string>([
-  ELEMENT_NAME.column,
-  ELEMENT_NAME.panel,
-  ELEMENT_NAME.row,
-  ELEMENT_NAME.stack,
-]);
-
-const keyPathComponents = new Set<unknown>([Column, ReactPanel, Row, Stack]);
-
-/**
- * Prepend a component's key to the key path of a panel or layout element it renders.
- * @param child Child rendered by the component
- * @param componentKey Key of the component
- * @param isOnlyChild Whether the child is the component's only child, in which case it also takes the key for React
- * @returns The child with the component key in its key path
- */
-function prependComponentKey(
-  child: React.ReactNode,
-  componentKey: string,
-  isOnlyChild: boolean
-): React.ReactNode {
-  if (!React.isValidElement<KeyPathProps>(child)) {
-    return child;
-  }
-  if (!keyPathComponents.has(child.type)) {
-    return child;
-  }
-  const keyPath = child.props[KEY_PATH_PROP] ?? [];
-  return React.cloneElement(child, {
-    [KEY_PATH_PROP]: [componentKey, ...keyPath],
-    ...(isOnlyChild ? { key: componentKey } : {}),
-  });
-}
 
 /*
  * Map element node names to their corresponding React components
@@ -296,31 +261,15 @@ export function getComponentForElement(
           />
         );
       }
-      if (
-        keyPathElementNames.has(newElement[ELEMENT_KEY]) &&
-        props?.key != null
-      ) {
-        props[KEY_PATH_PROP] = [`${props.key}`];
+      // Fragments only accept `key` and `children`
+      if (props?.key != null && Component !== React.Fragment) {
+        props[KEY_PROP] = `${props.key}`;
       }
       return <Component {...props} />;
     }
   }
 
-  const children = newElement.props?.children as React.ReactNode;
-  const componentKey = newElement.props?.key;
-  if (componentKey == null) {
-    return children as JSX.Element | null;
-  }
-  if (Array.isArray(children)) {
-    return children.map(child =>
-      prependComponentKey(child, `${componentKey}`, false)
-    ) as unknown as JSX.Element;
-  }
-  return prependComponentKey(
-    children,
-    `${componentKey}`,
-    true
-  ) as JSX.Element | null;
+  return newElement.props?.children as JSX.Element | null;
 }
 
 /**
