@@ -674,6 +674,55 @@ class UITableTestCase(BaseTestCase):
 
         self.assertEqual(result.size, _MAX_SELECTED_ROWS)
 
+    def test_selection_over_max_rows_raises_before_slicing(self):
+        from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection
+
+        tbl = Mock()
+
+        with self.assertRaises(ValueError) as cm:
+            _resolve_selection([{"start_row": 0, "end_row": _MAX_SELECTED_ROWS}], tbl)
+
+        self.assertIn(str(_MAX_SELECTED_ROWS + 1), str(cm.exception))
+        tbl.slice.assert_not_called()
+
+    def test_selection_over_max_ranges_raises_before_slicing(self):
+        from deephaven.ui.components.table import (
+            _MAX_SELECTED_RANGES,
+            _resolve_selection,
+        )
+
+        over = _MAX_SELECTED_RANGES + 1
+        tbl = Mock()
+
+        with self.assertRaises(ValueError) as cm:
+            _resolve_selection(
+                [{"start_row": 2 * i, "end_row": 2 * i} for i in range(over)], tbl
+            )
+
+        message = str(cm.exception)
+        self.assertIn(str(over), message)
+        self.assertIn(str(_MAX_SELECTED_RANGES), message)
+        tbl.slice.assert_not_called()
+
+    def test_selection_at_max_ranges_succeeds(self):
+        from deephaven import empty_table
+        from deephaven.ui.components.table import (
+            _MAX_SELECTED_RANGES,
+            _resolve_selection,
+        )
+
+        big = empty_table(2 * _MAX_SELECTED_RANGES).update("X = i")
+
+        result = _resolve_selection(
+            [
+                {"start_row": 2 * i, "end_row": 2 * i}
+                for i in range(_MAX_SELECTED_RANGES)
+            ],
+            big,
+        )
+
+        self.assertEqual(result.size, _MAX_SELECTED_RANGES)
+
     def test_too_large_keys_marker_raises(self):
         from deephaven.ui.components.table import _add_selected_rows
 

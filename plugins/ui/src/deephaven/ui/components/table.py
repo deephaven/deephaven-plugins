@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Literal, Any, Union
+from typing import Literal, Any, NoReturn, Union
 import logging
 from deephaven.table import Table, RollupTable, TreeTable
 from ..elements import Element, resolve
@@ -232,6 +232,16 @@ def _validate_table_format(
 _MAX_SELECTED_ROWS = 10_000
 """Maximum rows a context menu selection may snapshot before it is rejected."""
 
+_MAX_SELECTED_RANGES = 1_000
+"""Maximum separate row ranges a context menu selection may contain before it is rejected."""
+
+
+def _raise_too_many_rows(size: int) -> NoReturn:
+    raise ValueError(
+        f"ui.table selection of {size} rows exceeds the maximum of "
+        f"{_MAX_SELECTED_ROWS}. Narrow the selection before running this action."
+    )
+
 
 def _snapshot_selection(filtered: Table) -> Table:
     """Snapshot a resolved selection, rejecting selections that are too large.
@@ -247,10 +257,7 @@ def _snapshot_selection(filtered: Table) -> Table:
     """
     size = filtered.size
     if size > _MAX_SELECTED_ROWS:
-        raise ValueError(
-            f"ui.table selection of {size} rows exceeds the maximum of "
-            f"{_MAX_SELECTED_ROWS}. Narrow the selection before running this action."
-        )
+        _raise_too_many_rows(size)
     return filtered.snapshot()
 
 
@@ -270,16 +277,29 @@ def _resolve_selection(
         with the same schema is returned when ``selected_ranges`` is empty.
 
     Raises:
-        ValueError: If the selection exceeds ``_MAX_SELECTED_ROWS`` rows.
+        ValueError: If the selection exceeds ``_MAX_SELECTED_RANGES`` ranges or
+            ``_MAX_SELECTED_ROWS`` rows.
     """
     from deephaven import merge
 
-    # Column bounds are ignored; a cell selection spans the full row per IrisGrid convention.
-    slices = [
-        tbl.slice(r["start_row"], r["end_row"] + 1)
+    ranges = [
+        r
         for r in selected_ranges
         if r.get("start_row") is not None and r.get("end_row") is not None
     ]
+    # Slicing costs per range, so reject oversized selections before slicing.
+    if len(ranges) > _MAX_SELECTED_RANGES:
+        raise ValueError(
+            f"ui.table selection of {len(ranges)} separate ranges exceeds the "
+            f"maximum of {_MAX_SELECTED_RANGES}. Narrow the selection before "
+            "running this action."
+        )
+    row_count = sum(r["end_row"] - r["start_row"] + 1 for r in ranges)
+    if row_count > _MAX_SELECTED_ROWS:
+        _raise_too_many_rows(row_count)
+
+    # Column bounds are ignored; a cell selection spans the full row per IrisGrid convention.
+    slices = [tbl.slice(r["start_row"], r["end_row"] + 1) for r in ranges]
     combined = (
         merge(slices) if len(slices) > 1 else slices[0] if slices else tbl.slice(0, 0)
     )
