@@ -499,6 +499,30 @@ def _wrap_context_menu_item(
     return item
 
 
+def _wrap_context_menu(
+    menu: ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None,
+    tbl: TableLike | UriElement,
+) -> list[Any] | None:
+    """Wrap every item of a context menu prop with :func:`_wrap_context_menu_item`.
+
+    Items are wrapped regardless of the source type so callbacks always receive
+    ``selected_rows`` rather than the raw internal fields. The resolver works off the
+    model table the client sends, which is a real Table even when *tbl* is not (a URI
+    element), and rejects hierarchical ones.
+
+    Args:
+        menu: A single context menu item, a list of items, or None.
+        tbl: The source Table passed to :func:`_add_selected_rows`.
+
+    Returns:
+        The wrapped items as a list, or None if *menu* is None.
+    """
+    if menu is None:
+        return None
+    items = menu if isinstance(menu, list) else [menu]
+    return [_wrap_context_menu_item(i, tbl) for i in items]
+
+
 def _normalize_table_sorts(
     sorts: TableSortLike | list[TableSortLike],
 ) -> list[dict[str, Any]]:
@@ -718,24 +742,10 @@ class table(Element):
             props["sorts"] = _normalize_table_sorts(sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
-
-        tbl = props["table"]
-        # Wrap regardless of the source type so callbacks always receive
-        # `selected_rows` rather than the raw internal fields. The resolver works
-        # off the model table the client sends, which is a real Table even when
-        # `tbl` is not (a URI element), and rejects hierarchical ones.
-        if context_menu is not None:
-            items = context_menu if isinstance(context_menu, list) else [context_menu]
-            props["context_menu"] = [_wrap_context_menu_item(i, tbl) for i in items]
-        if context_header_menu is not None:
-            items = (
-                context_header_menu
-                if isinstance(context_header_menu, list)
-                else [context_header_menu]
-            )
-            props["context_header_menu"] = [
-                _wrap_context_menu_item(i, tbl) for i in items
-            ]
+        props["context_menu"] = _wrap_context_menu(context_menu, props["table"])
+        props["context_header_menu"] = _wrap_context_menu(
+            context_header_menu, props["table"]
+        )
 
         del props["self"]
         self._props = props
