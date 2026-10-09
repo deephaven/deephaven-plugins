@@ -679,6 +679,37 @@ def selection_chart():
 t = selection_chart()
 ```
 
+Because `selected_rows` is a regular table, you can also read its values directly, for example with `iter_dict` or `deephaven.pandas.to_pandas`. The following example prints each selected row and lists the selected keys of a keyed table.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+latest = dx.data.stocks().last_by("Sym").with_keys("Sym")
+
+
+@ui.component
+def selected_keys_example():
+    keys, set_keys = ui.use_state([])
+
+    def print_selection(data):
+        selected = data["selected_rows"]
+        for row in selected.iter_dict():
+            print(row["Sym"], row["Exchange"], row["Price"])
+        set_keys([row["Sym"] for row in selected.iter_dict(cols=["Sym"])])
+
+    return [
+        ui.table(
+            latest,
+            context_menu={"title": "Print selection", "action": print_selection},
+        ),
+        ui.text(f"Selected keys: {', '.join(keys) or 'none'}"),
+    ]
+
+
+t = selected_keys_example()
+```
+
 The selection is resolved the first time you access `selected_rows`, so actions that never read it cost nothing.
 
 A few limits apply:
