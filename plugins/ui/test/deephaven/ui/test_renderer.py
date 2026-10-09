@@ -318,3 +318,30 @@ class RendererTestCase(BaseTestCase):
 
         self.assertEqual(keyed.props, {"children": "Hello", "key": "my-key"})
         self.assertEqual(unkeyed.props, {"children": "Hello"})
+
+    def test_scalar_keys_name_the_child_context(self):
+        @ui.component
+        def my_comp():
+            return "Hello"
+
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
+        for key in [0, False, 1.5]:
+            with self.subTest(key=key):
+                _render_child_item(my_comp(key=key), rc, "index", True)
+                self.assertIn(str(key), rc._children_context)
+        self.assertNotIn(f"index-{my_comp().name}", rc._children_context)
+
+    def test_int_keyed_state_is_found_after_import(self):
+        @ui.component
+        def counter():
+            value, _ = ui.use_state(0)
+            return value
+
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
+        # Saved state comes back from JSON, so the child context key is a string
+        rc.import_state({"children": {"1": {"state": {"0": 7}}}})
+
+        self.assertEqual(
+            _render_child_item(counter(key=1), rc, "index", True).props,
+            {"children": 7, "key": 1},
+        )
