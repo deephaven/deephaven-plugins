@@ -681,11 +681,11 @@ t = selection_chart()
 
 Because `selected_rows` is a regular table, you can also read its values directly, for example with `iter_dict` or `deephaven.pandas.to_pandas`. The following example prints each selected row and lists the selected keys of a keyed table.
 
-```python
+```python order=t,_latest
 from deephaven import ui
 import deephaven.plot.express as dx
 
-latest = dx.data.stocks().last_by("Sym").with_keys("Sym")
+_latest = dx.data.stocks().last_by("Sym").with_keys("Sym")
 
 
 @ui.component
@@ -700,7 +700,7 @@ def selected_keys_example():
 
     return [
         ui.table(
-            latest,
+            _latest,
             context_menu={"title": "Print selection", "action": print_selection},
         ),
         ui.text(f"Selected keys: {', '.join(keys) or 'none'}"),
