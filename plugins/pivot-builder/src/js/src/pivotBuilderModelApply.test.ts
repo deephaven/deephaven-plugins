@@ -91,16 +91,39 @@ function makeAggregationSettings(
 
 type Listener = (e: Event) => void;
 
+const EVENT_FILTERCHANGED = 'filterchanged';
+const EVENT_CUSTOMCOLUMNSCHANGED = 'customcolumnschanged';
+
+const fakeDh = {
+  Table: { EVENT_FILTERCHANGED, EVENT_CUSTOMCOLUMNSCHANGED },
+} as never;
+
 /** Fake for the host proxy's stable, pre-pivot `originalModel`. */
 class FakeOriginalModel {
-  table: { columns: DhType.Column[] };
+  table: {
+    columns: DhType.Column[];
+    addEventListener: (type: string, fn: () => void) => void;
+  };
 
   totalsWrites: unknown[] = [];
 
   private totalsValue: unknown = null;
 
+  private tableListeners = new Map<string, Set<() => void>>();
+
   constructor(columns: DhType.Column[]) {
-    this.table = { columns };
+    this.table = {
+      columns,
+      addEventListener: (type, fn) => {
+        const set = this.tableListeners.get(type) ?? new Set();
+        set.add(fn);
+        this.tableListeners.set(type, set);
+      },
+    };
+  }
+
+  fireTableEvent(type: string): void {
+    this.tableListeners.get(type)?.forEach(fn => fn());
   }
 
   get totalsConfig(): unknown {
@@ -211,7 +234,7 @@ function makeProxy(columns: DhType.Column[]): {
   // real pivot build never reaches this getter — routing is asserted via
   // `proxy.pivotConfig` instead (set synchronously before that gate runs).
   const proxy = augmentPivotBuilderModel(
-    {} as never,
+    fakeDh,
     host as unknown as IrisGridModel,
     () => Promise.reject(new Error('no psp'))
   );
@@ -222,6 +245,122 @@ const flushMicrotasks = async (): Promise<void> => {
   await Promise.resolve();
   await Promise.resolve();
 };
+
+describe('totals rebuild on source filter / custom column change', () => {
+  it.each([EVENT_FILTERCHANGED, EVENT_CUSTOMCOLUMNSCHANGED])(
+    'rewrites an equal but new totals config on %s',
+    async eventType => {
+      const { proxy, original } = makeProxy([col('price', DOUBLE)]);
+      await proxy.applyPivotBuilderConfig({
+        pivot: null,
+        rollup: null,
+        totals: null,
+        ui: makeUi(makeAggregationSettings('Sum', ['price'])),
+      });
+      expect(original.totalsWrites).toHaveLength(1);
+
+      original.fireTableEvent(eventType);
+
+      expect(original.totalsWrites).toHaveLength(2);
+      // A new reference is required to get past the model's identity check.
+      expect(original.totalsWrites[1]).not.toBe(original.totalsWrites[0]);
+      expect(original.totalsWrites[1]).toEqual(original.totalsWrites[0]);
+    }
+  );
+
+  it('does nothing when no totals are applied', () => {
+    const { original } = makeProxy([col('price', DOUBLE)]);
+
+    original.fireTableEvent(EVENT_FILTERCHANGED);
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toEqual([]);
+  });
+
+  it('re-sanitizes totals against the live schema when a custom column changes an aggregated column type', async () => {
+    const { proxy, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['price'])),
+    });
+    const operationMapAt = (i: number): unknown =>
+      (original.totalsWrites[i] as { operationMap: unknown }).operationMap;
+    expect(operationMapAt(0)).toEqual({ price: ['Sum'] });
+
+    original.table.columns = [col('price', STRING)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+    expect(operationMapAt(1)).toEqual({});
+
+    // Derived from the raw intent, so the operation returns once valid again.
+    original.table.columns = [col('price', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+    expect(operationMapAt(2)).toEqual({ price: ['Sum'] });
+  });
+
+  it('applies totals when a custom column adds the aggregated column', async () => {
+    const { proxy, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['G2'])),
+    });
+    expect(original.totalsWrites).toEqual([]);
+
+    original.table.columns = [col('price', DOUBLE), col('G2', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsWrites[0] as { operationMap: unknown }).operationMap
+    ).toEqual({ G2: ['Sum'] });
+  });
+
+  it('clears totals when a custom column removes the last aggregated column', async () => {
+    const { proxy, original } = makeProxy([
+      col('price', DOUBLE),
+      col('G2', DOUBLE),
+    ]);
+    await proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['G2'])),
+    });
+    expect(original.totalsWrites).toHaveLength(1);
+
+    original.table.columns = [col('price', DOUBLE)];
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toHaveLength(2);
+    expect(original.totalsWrites[1]).toBeNull();
+  });
+
+  it('does not write totals while a rollup is applied', async () => {
+    const { proxy, host, original } = makeProxy([
+      col('A', STRING),
+      col('price', DOUBLE),
+    ]);
+    const p = proxy.applyPivotBuilderConfig({
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['price']), {
+        rollupRows: ['A'],
+      }),
+    });
+    host.settleSwap();
+    await p;
+    expect(host.hostRollupWrites).toHaveLength(1);
+
+    original.fireTableEvent(EVENT_FILTERCHANGED);
+    original.fireTableEvent(EVENT_CUSTOMCOLUMNSCHANGED);
+
+    expect(original.totalsWrites).toEqual([]);
+  });
+});
 
 describe('applyPivotBuilderConfig — rollup sanitization', () => {
   it('sanitizes to flat (no host write) when every grouping column is stale, keeps raw stored', async () => {
@@ -1142,7 +1281,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       (() => Promise.reject(new Error('no psp'))) as never,
       () => persisted
     );
@@ -1187,7 +1326,7 @@ describe('hydration-visibility: staleColumnReport with NO listeners attached', (
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       // `persisted.pivot != null`, so the transform probes the PSP widget
       // up-front; it must resolve. The build itself never reaches
       // `createPivotTable` — the fully-stale pivot short-circuits to the flat
@@ -1262,7 +1401,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1304,7 +1443,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1345,7 +1484,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       getPsp as never,
       () => persisted
     );
@@ -1380,7 +1519,7 @@ describe('makePivotModelTransform — ui-driven probe trigger', () => {
     };
 
     const transform = makePivotModelTransform(
-      {} as never,
+      fakeDh,
       (() => Promise.reject(new Error('no psp'))) as never,
       () => persisted
     );

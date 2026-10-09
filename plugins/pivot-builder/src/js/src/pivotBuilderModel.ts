@@ -1091,6 +1091,48 @@ export function augmentPivotBuilderModel(
     writeTotalsToInner(v);
   };
 
+  // Derives pivot/rollup/totals from a config against the current schema.
+  // Rollup isn't available while Select Distinct is applied.
+  const deriveEffectiveConfig = (
+    config: PivotBuilderConfig
+  ): EffectiveBuilderConfig => {
+    if (config.ui == null) {
+      return {
+        pivot: config.pivot,
+        rollup: config.rollup,
+        totals: config.totals,
+      };
+    }
+    const hostRollupAvailable =
+      (proxy as unknown as { isRollupAvailable?: boolean })
+        .isRollupAvailable === true;
+    return resolveEffectiveBuilderConfig(config.ui, table.columns, {
+      pivotAvailable: lastKnownPivotAvailable,
+      rollupAvailable: hostRollupAvailable,
+    });
+  };
+
+  // TODO: DH-23906: remove once JSAPI totals tables follow parent filters.
+  // Re-derived from the raw intent: a custom column change can add, remove, or retype an aggregated column.
+  const rebuildTotals = (): void => {
+    if (
+      pendingTotals !== undefined ||
+      current != null ||
+      appliedRollup != null
+    ) {
+      return;
+    }
+    const { pivot, rollup, totals } = deriveEffectiveConfig(lastIntent);
+    if (pivot != null || rollup != null) return;
+    const next =
+      totals != null ? sanitizeTotalsConfig(totals, table.columns) : null;
+    if (next == null && appliedInnerTotals == null) return;
+    writeTotalsToInner(next);
+  };
+  table.addEventListener(dh.Table.EVENT_FILTERCHANGED, rebuildTotals);
+  // Custom columns can redefine an aggregated column and go through the same lagging state change.
+  table.addEventListener(dh.Table.EVENT_CUSTOMCOLUMNSCHANGED, rebuildTotals);
+
   // Same-columns swaps (e.g. rollup-A → rollup-B) only fire TABLE_CHANGED;
   // pivot transitions only fire COLUMNS_CHANGED. Listen to both.
   proxy.addEventListener(
@@ -1262,24 +1304,8 @@ export function augmentPivotBuilderModel(
     // stale-column salvage guards). The RAW `config` is still what gets stored,
     // diffed, and dispatched — only the values handed to the host writers come
     // from `effective`.
-    //
-    // `rollupAvailable` is the host proxy's own live flag (rollup and Select
-    // Distinct are mutually exclusive); `pivotAvailable` is the remembered
-    // caller-supplied probe result.
     const useUiDerivation = config.ui != null;
-    const hostRollupAvailable =
-      (proxy as unknown as { isRollupAvailable?: boolean })
-        .isRollupAvailable === true;
-    const effective: EffectiveBuilderConfig = useUiDerivation
-      ? resolveEffectiveBuilderConfig(
-          config.ui as PivotBuilderUiState,
-          table.columns,
-          {
-            pivotAvailable: lastKnownPivotAvailable,
-            rollupAvailable: hostRollupAvailable,
-          }
-        )
-      : { pivot: config.pivot, rollup: config.rollup, totals: config.totals };
+    const effective = deriveEffectiveConfig(config);
 
     // Raise the IrisGrid loading scrim *only* when this apply queued an
     // async model swap (pivot/rollup change → `setNextModel`). Those swaps
