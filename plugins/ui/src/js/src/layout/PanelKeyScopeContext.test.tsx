@@ -10,7 +10,7 @@ import {
   PanelKeyScopeContext,
   usePanelKeyScope,
 } from './PanelKeyScopeContext';
-import { type KeyPathProps } from './LayoutUtils';
+import { type KeyProps } from './LayoutUtils';
 
 // Render children as-is, so the probe isn't wrapped in stacks and panels
 jest.mock('./LayoutUtils', () => ({
@@ -30,19 +30,16 @@ function ScopeProbe(): JSX.Element {
 }
 
 describe('getPanelKey', () => {
-  it('returns undefined without a key path', () => {
+  it('returns undefined without a key', () => {
     expect(getPanelKey(['scope'])).toBeUndefined();
-    expect(getPanelKey(['scope'], [])).toBeUndefined();
   });
 
-  it('serializes the scope followed by the key path', () => {
-    expect(getPanelKey(['a', 'b'], ['c'])).toBe(
-      JSON.stringify(['a', 'b', 'c'])
-    );
+  it('serializes the scope followed by the key', () => {
+    expect(getPanelKey(['a', 'b'], 'c')).toBe(JSON.stringify(['a', 'b', 'c']));
   });
 
   it('does not collide on keys containing separators', () => {
-    expect(getPanelKey([], ['a/b'])).not.toBe(getPanelKey(['a'], ['b']));
+    expect(getPanelKey([], 'a/b')).not.toBe(getPanelKey(['a'], 'b'));
   });
 });
 
@@ -50,17 +47,17 @@ describe.each([
   ['Row', Row],
   ['Column', Column],
   ['Stack', Stack],
-] as [string, React.ComponentType<React.PropsWithChildren<KeyPathProps>>][])(
+] as [string, React.ComponentType<React.PropsWithChildren<KeyProps>>][])(
   '%s',
   (_name, Component) => {
     it.each([
       ['creating the layout', undefined],
       ['rehydrating the layout', mockLayoutConfig],
-    ])('adds its key path to the scope when %s', (_, layoutConfig) => {
+    ])('adds its key to the scope when %s', (_, layoutConfig) => {
       render(
         <InitialLayoutConfigContext.Provider value={layoutConfig}>
           <PanelKeyScopeContext.Provider value={['outer']}>
-            <Component __dhKeyPath={['inner']}>
+            <Component __dhKey="inner">
               <ScopeProbe />
             </Component>
           </PanelKeyScopeContext.Provider>

@@ -48,11 +48,7 @@ function LayoutColumn({
   );
 }
 
-function Column({
-  children,
-  width,
-  __dhKeyPath,
-}: ColumnElementProps): JSX.Element {
+function Column({ children, width, __dhKey }: ColumnElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
 
@@ -73,14 +69,14 @@ function Column({
     // The persisted layout already has the rows/columns/stacks mapped out, but bare
     // content children still need a panel wrapper so they portal into their persisted panel.
     return (
-      <PanelKeyScope keyPath={__dhKeyPath}>
+      <PanelKeyScope elementKey={__dhKey}>
         {wrapBareChildrenInPanel(children)}
       </PanelKeyScope>
     );
   }
 
   return (
-    <PanelKeyScope keyPath={__dhKeyPath}>
+    <PanelKeyScope elementKey={__dhKey}>
       <LayoutColumn width={width}>{children}</LayoutColumn>
     </PanelKeyScope>
   );

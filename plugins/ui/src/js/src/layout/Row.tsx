@@ -44,7 +44,7 @@ function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   );
 }
 
-function Row({ children, height, __dhKeyPath }: RowElementProps): JSX.Element {
+function Row({ children, height, __dhKey }: RowElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
 
@@ -65,14 +65,14 @@ function Row({ children, height, __dhKeyPath }: RowElementProps): JSX.Element {
     // The persisted layout already has the rows/columns/stacks mapped out, but bare
     // content children still need a panel wrapper so they portal into their persisted panel.
     return (
-      <PanelKeyScope keyPath={__dhKeyPath}>
+      <PanelKeyScope elementKey={__dhKey}>
         {wrapBareChildrenInPanel(children)}
       </PanelKeyScope>
     );
   }
 
   return (
-    <PanelKeyScope keyPath={__dhKeyPath}>
+    <PanelKeyScope elementKey={__dhKey}>
       <LayoutRow height={height}>{children}</LayoutRow>
     </PanelKeyScope>
   );

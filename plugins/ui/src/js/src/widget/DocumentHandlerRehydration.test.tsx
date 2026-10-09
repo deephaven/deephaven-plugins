@@ -24,18 +24,21 @@ jest.mock('../layout/ReactPanel', () => {
     __esModule: true,
     default: function MockReactPanel({
       title,
-      __dhKeyPath,
+      __dhKey,
     }: {
       title?: string;
-      __dhKeyPath?: string[];
+      __dhKey?: string;
     }) {
       const { panelId, onOpen, onClose } = useReactPanel(
-        getPanelKey(usePanelKeyScope(), __dhKeyPath)
+        getPanelKey(usePanelKeyScope(), __dhKey)
       );
       const mountTitle = useRef(title ?? 'placeholder').current;
       useEffect(() => {
+        const isOpened: boolean = onOpen();
+        if (!isOpened) {
+          return undefined;
+        }
         mockPanelEvents.push(`open ${mountTitle} ${panelId}`);
-        onOpen();
         return () => {
           mockPanelEvents.push(`close ${mountTitle} ${panelId}`);
           onClose();
@@ -153,7 +156,7 @@ describe('unkeyed panels', () => {
     expect(mockPanelEvents).toEqual([]);
   });
 
-  it('remounts the placeholders with new ids when the document root is a dashboard', () => {
+  it('gives the saved ids to the panels replacing the placeholders when the document root is a dashboard', () => {
     renderRehydration(
       unkeyedData,
       makeDashboard([makePanel('A'), makePanel('B')])
@@ -161,19 +164,43 @@ describe('unkeyed panels', () => {
     expect(mockPanelEvents).toEqual([
       'close placeholder saved-a',
       'close placeholder saved-b',
-      expect.stringMatching(/^open A (?!saved-)/),
-      expect.stringMatching(/^open B (?!saved-)/),
+      'open A saved-a',
+      'open B saved-b',
     ]);
   });
 });
 
 describe('keyed panels', () => {
-  it('reuses the placeholders by key when the document root is a list of panels', () => {
+  it('gives the saved ids to the panels replacing the placeholders when the document root is a list of panels', () => {
     renderRehydration(
       keyedData,
       makeDocument([makePanel('B', 'b'), makePanel('A', 'a')])
     );
-    expect(mockPanelEvents).toEqual([]);
+    expect(mockPanelEvents).toEqual([
+      'close placeholder saved-a',
+      'close placeholder saved-b',
+      'open B saved-b',
+      'open A saved-a',
+    ]);
+  });
+
+  it('gives a reused placeholder the id of the panel that took it over', () => {
+    renderRehydration(
+      {
+        panelIds: ['saved-a', 'saved-b'],
+        panelKeyMap: { [JSON.stringify(['a'])]: 'saved-a' },
+      },
+      // The unkeyed panel reuses the placeholder holding the keyed panel's id
+      makeDocument([makePanel('B'), makePanel('A', 'a')])
+    );
+    expect([...mockPanelEvents].sort()).toEqual(
+      [
+        'close placeholder saved-a',
+        'close placeholder saved-b',
+        'open placeholder saved-b',
+        'open A saved-a',
+      ].sort()
+    );
   });
 
   it('gives the saved ids to the panels replacing the placeholders when the document root is a dashboard', () => {

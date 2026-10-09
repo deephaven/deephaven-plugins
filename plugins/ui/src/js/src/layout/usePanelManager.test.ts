@@ -125,6 +125,20 @@ describe('usePanelManager', () => {
 
       expect(result.current.getInitialData('my-panel')).toEqual(panelData);
     });
+
+    it('returns the latest data, so a remounted panel keeps it', () => {
+      const { result } = renderHook(() =>
+        usePanelManager({ widget: makeWidget() })
+      );
+
+      act(() => {
+        result.current.onDataChange('my-panel', [{ latest: true }]);
+      });
+
+      expect(result.current.getInitialData('my-panel')).toEqual([
+        { latest: true },
+      ]);
+    });
   });
 
   describe('onOpen', () => {
@@ -497,36 +511,47 @@ describe('usePanelManager', () => {
       );
     });
 
-    it('gives a duplicate key a new id and keeps the first under the key', () => {
+    it('refuses to open a second panel with the same key, and keeps the first under the key', () => {
       const onDataChange = jest.fn();
       const { result } = renderManager(keyedData, onDataChange);
 
-      const firstId = result.current.getPanelId(keyA);
-      const duplicateId = result.current.getPanelId(keyA);
-      expect(firstId).toBe('a-id');
-      expect(duplicateId).toEqual(generatedId);
+      expect(result.current.getPanelId(keyA)).toBe('a-id');
+      expect(result.current.getPanelId(keyA)).toBe('a-id');
 
+      let isFirstOpened: boolean | undefined;
+      let isDuplicateOpened: boolean | undefined;
       act(() => {
-        result.current.onOpen(firstId, keyA);
-        result.current.onOpen(duplicateId, keyA);
+        isFirstOpened = result.current.onOpen('a-id', keyA);
+        isDuplicateOpened = result.current.onOpen('a-id', keyA);
+      });
+      expect(isFirstOpened).toBe(true);
+      expect(isDuplicateOpened).toBe(false);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
+
+      // The duplicate opens again with a new id of its own
+      act(() => {
+        result.current.onOpen('duplicate-id', keyA);
       });
 
-      expect(mockLogWarn).toHaveBeenCalledTimes(1);
       expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ panelKeyMap: { [keyA]: 'a-id' } })
+        expect.objectContaining({
+          panelIds: ['a-id', 'duplicate-id'],
+          panelKeyMap: { [keyA]: 'a-id' },
+        })
       );
     });
 
-    it('lets a keyed panel moved to another parent keep its key, without a duplicate warning', () => {
+    it('lets a keyed panel moved to another parent keep its id, without a duplicate warning', () => {
       const onDataChange = jest.fn();
       const { result } = renderManager(keyedData, onDataChange);
 
       act(() => {
         result.current.onOpen(result.current.getPanelId(keyA), keyA);
       });
-      // The moved panel renders before the old one's cleanup runs
+      // The moved panel renders while the old one is still open
       const movedId = result.current.getPanelId(keyA);
-      expect(movedId).toEqual(generatedId);
+      expect(movedId).toBe('a-id');
+      // React runs the old panel's cleanup before the moved panel's effects
       act(() => {
         result.current.onClose('a-id');
         result.current.onOpen(movedId, keyA);
@@ -535,12 +560,28 @@ describe('usePanelManager', () => {
       expect(mockLogWarn).not.toHaveBeenCalled();
       expect(onDataChange).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          panelIds: [movedId],
-          panelKeyMap: { [keyA]: movedId },
+          panelIds: ['a-id'],
+          panelKeyMap: { [keyA]: 'a-id' },
         })
       );
-      // Once the moved panel holds the key, another panel with it is a duplicate
-      expect(result.current.getPanelId(keyA)).not.toBe(movedId);
+    });
+
+    it('gives the same ids when a render is repeated or thrown away', () => {
+      const { result } = renderManager(keyedData);
+      const newKey = JSON.stringify(['new']);
+
+      // A thrown away render
+      result.current.getPanelId(keyA);
+      const newId = result.current.getPanelId(newKey);
+
+      expect(result.current.getPanelId(keyA)).toBe('a-id');
+      expect(result.current.getPanelId(newKey)).toBe(newId);
+      let isOpened: boolean | undefined;
+      act(() => {
+        isOpened = result.current.onOpen('a-id', keyA);
+      });
+      expect(isOpened).toBe(true);
+      expect(mockLogWarn).not.toHaveBeenCalled();
     });
 
     it('gives a keyed panel its id back when it reopens', () => {
@@ -620,46 +661,59 @@ describe('usePanelManager', () => {
       );
     });
 
-    it('treats a reused placeholder key as taken once the document is ready', () => {
+    it('refuses a duplicate key after the placeholders are replaced', () => {
       mockWidgetStatus = 'loading';
       const { result, rerender } = renderManager(keyedData);
-
       act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
+        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen(result.current.getPanelId());
       });
 
       mockWidgetStatus = 'ready';
       rerender();
+      let isFirstOpened: boolean | undefined;
+      let isDuplicateOpened: boolean | undefined;
       act(() => {
-        result.current.onOpen(result.current.getPanelId(keyB), keyB);
+        result.current.onClose('a-id');
+        result.current.onClose('b-id');
+        isFirstOpened = result.current.onOpen(
+          result.current.getPanelId(keyA),
+          keyA
+        );
+        isDuplicateOpened = result.current.onOpen(
+          result.current.getPanelId(keyA),
+          keyA
+        );
       });
 
-      expect(result.current.getPanelId(keyA)).toEqual(generatedId);
+      expect(isFirstOpened).toBe(true);
+      expect(isDuplicateOpened).toBe(false);
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
     });
 
-    it('treats reused placeholder keys as taken once the document is ready, even if no panel opens or closes', () => {
+    it('gives the placeholders every saved id in order until the document is ready', () => {
       mockWidgetStatus = 'loading';
       const { result, rerender } = renderManager(keyedData);
 
-      act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
-      });
+      expect(result.current.getPanelId()).toBe('a-id');
+      expect(result.current.getPanelId()).toBe('b-id');
 
       mockWidgetStatus = 'ready';
       rerender();
 
-      expect(result.current.getPanelId(keyA)).toEqual(generatedId);
+      expect(result.current.getPanelId(keyB)).toBe('b-id');
+      expect(result.current.getPanelId()).toEqual(generatedId);
     });
 
-    it('keeps the same getPanelId when the document becomes ready', () => {
+    it("gives a new widget's loading placeholder id to its first unkeyed panel", () => {
       mockWidgetStatus = 'loading';
-      const { result, rerender } = renderManager(keyedData);
-      const { getPanelId } = result.current;
+      const { result, rerender } = renderManager();
+      const placeholderId = result.current.getPanelId();
 
       mockWidgetStatus = 'ready';
       rerender();
 
-      expect(result.current.getPanelId).toBe(getPanelId);
+      expect(result.current.getPanelId()).toBe(placeholderId);
     });
   });
 
