@@ -228,18 +228,23 @@ export function usePanelManager({
           hasRemovedOrphans.current = true;
           removeOrphanedPanels();
         }
-        const panelKeyMap = Object.fromEntries(
-          [...openPanelKeys.current].map(([panelId, panelKey]) => [
-            panelKey,
-            panelId,
-          ])
-        );
+        // Placeholders are unkeyed, so keep the saved map until the document's panels have opened
+        let { panelKeyMap } = widgetData;
+        if (hasBeenReadyRef.current) {
+          const openKeyMap = Object.fromEntries(
+            [...openPanelKeys.current].map(([panelId, panelKey]) => [
+              panelKey,
+              panelId,
+            ])
+          );
+          panelKeyMap =
+            Object.keys(openKeyMap).length > 0 ? openKeyMap : undefined;
+        }
         onDataChange({
           ...widgetData,
           panelStates: { ...panelStatesRef.current },
           panelIds: [...panelIds.current],
-          panelKeyMap:
-            Object.keys(panelKeyMap).length > 0 ? panelKeyMap : undefined,
+          panelKeyMap,
         });
       }
     },
