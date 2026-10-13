@@ -932,7 +932,8 @@ describe('TradingViewChartModel partition close', () => {
 
   it('releases a partitioned table that arrives after close', async () => {
     const dh = makeMockDh();
-    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const widget = makeMockWidget();
+    const model = new TradingViewChartModel(dh, widget as never);
     const partitionedTable = makeMockPartitionedTable(
       new Map([['aaa', new MockTable(10)]])
     );
@@ -958,6 +959,8 @@ describe('TradingViewChartModel partition close', () => {
     expect(partitionedTable.close).toHaveBeenCalledTimes(1);
     expect(partitionedTable.addEventListener).not.toHaveBeenCalled();
     expect(partitionedTable.getTable).not.toHaveBeenCalled();
+    // init() must not attach widget listeners once close() has cleaned up.
+    expect(widget.addEventListener).not.toHaveBeenCalled();
   });
 });
 

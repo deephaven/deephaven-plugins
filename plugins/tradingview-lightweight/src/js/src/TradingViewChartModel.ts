@@ -459,6 +459,10 @@ class TradingViewChartModel {
     });
     await Promise.all(partitionPromises);
 
+    // close() ran during one of the awaits above and has already done its
+    // listener cleanup, so a listener attached now would never be removed.
+    if (this.closed) return;
+
     // Listen for widget config updates
     this.widgetListenerCleanup = this.listenToWidget();
 
