@@ -849,11 +849,55 @@ describe('TradingViewChartModel partition close', () => {
     );
 
     model.close();
-    // Nothing subscribes to the key table itself, so it goes right away.
-    expect(keyTable.close).toHaveBeenCalledTimes(1);
+    // The downsample's snapshot is still in flight, so nothing it was
+    // derived from is released yet.
+    expect(keyTable.close).not.toHaveBeenCalled();
 
     deliverUpdate(downsampledTable.subscribe.mock.results[0].value);
     expect(downsampledTable.close).toHaveBeenCalledTimes(1);
+    expect(keyTable.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for a superseded direct key-table subscription to drain', async () => {
+    // A failed re-downsample falls back to subscribing the key table
+    // directly; the next successful downsample retires that subscription
+    // before its snapshot lands. close() must not release the key table
+    // until that retirement drains, or it cancels the in-flight snapshot.
+    const dh = makeMockDh();
+    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const keyTable = new MockTable(5_000);
+    const firstDs = new MockTable(250);
+    const secondDs = new MockTable(250);
+    runDownsampleMock(dh)
+      .mockResolvedValueOnce(firstDs)
+      .mockRejectedValueOnce(new Error('downsample failed'))
+      .mockResolvedValueOnce(secondDs);
+
+    await model.init(
+      ...partitionInitArgs({
+        fetch: jest
+          .fn()
+          .mockResolvedValue(
+            makeMockPartitionedTable(new Map([['aaa', keyTable]]))
+          ),
+      })
+    );
+    deliverUpdate(firstDs.subscribe.mock.results[0].value);
+
+    await model.performDownsample([0, 100], 800);
+    expect(keyTable.subscribe).toHaveBeenCalledTimes(1);
+    const directSub = keyTable.subscribe.mock.results[0].value;
+
+    await model.performDownsample([0, 50], 800);
+    deliverUpdate(secondDs.subscribe.mock.results[0].value);
+
+    model.close();
+    expect(directSub.close).not.toHaveBeenCalled();
+    expect(keyTable.close).not.toHaveBeenCalled();
+
+    deliverUpdate(directSub);
+    expect(directSub.close).toHaveBeenCalledTimes(1);
+    expect(keyTable.close).toHaveBeenCalledTimes(1);
   });
 
   it('releases a key table that arrives after close', async () => {

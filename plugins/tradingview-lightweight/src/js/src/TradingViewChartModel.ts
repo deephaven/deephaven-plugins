@@ -986,6 +986,8 @@ class TradingViewChartModel {
       try {
         await this.downsampleTable(newTableId);
       } catch (err) {
+        // close() released the key table mid-request; nothing to fall back to.
+        if (this.closed) return;
         log.warn(
           'Initial partition downsample failed for table',
           newTableId,
@@ -1270,15 +1272,26 @@ class TradingViewChartModel {
   }
 
   /**
-   * Release the widget if close() has run and no retirement is still
-   * draining. Closing the widget releases every export it owns in one
-   * server-side sweep, so it must wait for in-flight snapshots too.
+   * Release the widget and the per-key partition tables if close() has run
+   * and no retirement is still draining. Closing the widget releases every
+   * export it owns in one server-side sweep, so it must wait for in-flight
+   * snapshots too. Key tables wait as well: any retired subscription, not
+   * just the current one, may still be draining a snapshot of one (e.g. a
+   * direct fallback subscription superseded by a later downsample).
    */
   private maybeCloseWidget(): void {
     if (!this.widgetCloseWhenDrained || this.drainingRetirements.size > 0) {
       return;
     }
     this.widgetCloseWhenDrained = false;
+    this.partitionKeyTables.forEach(table => {
+      try {
+        table.close();
+      } catch {
+        // ignore
+      }
+    });
+    this.partitionKeyTables.clear();
     try {
       this.widget.close();
     } catch {
@@ -1561,36 +1574,15 @@ class TradingViewChartModel {
   close(): void {
     this.closed = true;
 
-    // Retire every active subscription. Client-created tables (downsample
-    // results and per-key partition tables) are released with their
-    // subscription; every other table is released by the widget close below.
-    // Retirement defers any release whose initial snapshot is still in flight
-    // (see retireSubscription), and the widget close waits for those
-    // retirements to drain.
-    const releasedKeyTables = new Set<DhType.Table>();
+    // Retire every active subscription. Client-created downsample tables are
+    // released with their subscription; per-key partition tables and every
+    // widget-owned table are released by maybeCloseWidget below. Retirement
+    // defers any release whose initial snapshot is still in flight (see
+    // retireSubscription), and maybeCloseWidget waits for those retirements
+    // to drain.
     Array.from(this.tableSubscriptionMap.keys()).forEach(tableId => {
-      const downsampled = this.downsampledTableMap.get(tableId);
-      const keyTable = this.partitionKeyTables.get(tableId);
-      const subscribedKeyTable =
-        downsampled == null &&
-        keyTable != null &&
-        this.tables.get(tableId) === keyTable
-          ? keyTable
-          : undefined;
-      if (subscribedKeyTable != null) releasedKeyTables.add(subscribedKeyTable);
-      this.retireSubscription(tableId, downsampled ?? subscribedKeyTable);
+      this.retireSubscription(tableId, this.downsampledTableMap.get(tableId));
     });
-    // The rest have no subscription of their own (a downsampled key table's
-    // subscription is on its downsample result), so release them now.
-    this.partitionKeyTables.forEach(table => {
-      if (releasedKeyTables.has(table)) return;
-      try {
-        table.close();
-      } catch {
-        // ignore
-      }
-    });
-    this.partitionKeyTables.clear();
     this.subscriptionCleanupMap.clear();
     this.tableSubscriptionMap.clear();
     this.deliveredTableIds.clear();
