@@ -75,6 +75,13 @@ class TradingViewChartModel {
   /** Next table ID for dynamically added partition tables. */
   private nextTableId = 0;
 
+  /**
+   * Per-key constituent tables from PartitionedTable.getTable, keyed by
+   * table ID. The client owns these exports: neither the widget close nor
+   * PartitionedTable.close() releases them, so close() must.
+   */
+  private partitionKeyTables: Map<number, DhType.Table> = new Map();
+
   /** Per-template partition watcher state, keyed by template series id. */
   private partitionWatchers: Map<
     string,
@@ -920,10 +927,20 @@ class TradingViewChartModel {
       watcher.seenKeys.delete(keyStr);
       return;
     }
+    if (this.closed) {
+      // close() already ran, so nothing else will release this export.
+      try {
+        table.close();
+      } catch {
+        // ignore
+      }
+      return;
+    }
 
     const newTableId = this.nextTableId;
     this.nextTableId += 1;
     this.tables.set(newTableId, table as DhType.Table);
+    this.partitionKeyTables.set(newTableId, table as DhType.Table);
 
     // Clone the template into a runtime series. Preserve options,
     // type, paneIndex, priceScaleOptions, columns; give it a unique id
@@ -1045,6 +1062,15 @@ class TradingViewChartModel {
   ): Promise<void> {
     try {
       const pt = (await exported.fetch()) as DhType.PartitionedTable;
+      if (this.closed) {
+        // close() already cleared partitionWatchers, so it can't release this.
+        try {
+          pt.close();
+        } catch {
+          // ignore
+        }
+        return;
+      }
 
       // Resolve the keyadded event name from the DH namespace; fall back to
       // the literal string if the constant isn't surfaced.
@@ -1266,7 +1292,9 @@ class TradingViewChartModel {
    * this path — downsampled tables are small enough for full subscribe.
    */
   private subscribeTable(tableId: number, table: DhType.Table): void {
-    if (!this.figureData) return;
+    // A subscription opened after close() would never be retired. Async
+    // fallbacks (e.g. a failed downsample) can still reach here.
+    if (this.closed || !this.figureData) return;
 
     const columnNames = getAllColumnsForTable(this.figureData.series, tableId);
     const columns = table.columns.filter((col: DhType.Column) =>
@@ -1533,14 +1561,36 @@ class TradingViewChartModel {
   close(): void {
     this.closed = true;
 
-    // Retire every active subscription. Client-created downsample tables are
-    // released with their subscription; every other table is released by the
-    // widget close below. Retirement defers any release whose initial
-    // snapshot is still in flight (see retireSubscription), and the widget
-    // close waits for those retirements to drain.
+    // Retire every active subscription. Client-created tables (downsample
+    // results and per-key partition tables) are released with their
+    // subscription; every other table is released by the widget close below.
+    // Retirement defers any release whose initial snapshot is still in flight
+    // (see retireSubscription), and the widget close waits for those
+    // retirements to drain.
+    const releasedKeyTables = new Set<DhType.Table>();
     Array.from(this.tableSubscriptionMap.keys()).forEach(tableId => {
-      this.retireSubscription(tableId, this.downsampledTableMap.get(tableId));
+      const downsampled = this.downsampledTableMap.get(tableId);
+      const keyTable = this.partitionKeyTables.get(tableId);
+      const subscribedKeyTable =
+        downsampled == null &&
+        keyTable != null &&
+        this.tables.get(tableId) === keyTable
+          ? keyTable
+          : undefined;
+      if (subscribedKeyTable != null) releasedKeyTables.add(subscribedKeyTable);
+      this.retireSubscription(tableId, downsampled ?? subscribedKeyTable);
     });
+    // The rest have no subscription of their own (a downsampled key table's
+    // subscription is on its downsample result), so release them now.
+    this.partitionKeyTables.forEach(table => {
+      if (releasedKeyTables.has(table)) return;
+      try {
+        table.close();
+      } catch {
+        // ignore
+      }
+    });
+    this.partitionKeyTables.clear();
     this.subscriptionCleanupMap.clear();
     this.tableSubscriptionMap.clear();
     this.deliveredTableIds.clear();

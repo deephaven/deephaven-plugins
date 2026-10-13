@@ -788,6 +788,135 @@ describe('TradingViewChartModel timezone changes', () => {
   });
 });
 
+describe('TradingViewChartModel partition close', () => {
+  function partitionInitArgs(partitionExport: unknown): [never, string] {
+    return [
+      [
+        { fetch: jest.fn().mockResolvedValue(new MockTable(10_000_000)) },
+        partitionExport,
+      ] as never,
+      JSON.stringify({
+        type: 'NEW_FIGURE',
+        figure: makePartitionFigure(),
+        revision: 1,
+        new_references: [0, 1],
+        removed_references: [],
+      }),
+    ];
+  }
+
+  it('releases a directly subscribed key table with its subscription', async () => {
+    const dh = makeMockDh();
+    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const keyTable = new MockTable(10);
+    const partitionedTable = makeMockPartitionedTable(
+      new Map([['aaa', keyTable]])
+    );
+    runDownsampleMock(dh);
+
+    await model.init(
+      ...partitionInitArgs({
+        fetch: jest.fn().mockResolvedValue(partitionedTable),
+      })
+    );
+    const sub = keyTable.subscribe.mock.results[0].value;
+
+    model.close();
+    // Snapshot still in flight: releasing the table now would cancel it.
+    expect(keyTable.close).not.toHaveBeenCalled();
+
+    deliverUpdate(sub);
+    expect(sub.close).toHaveBeenCalledTimes(1);
+    expect(keyTable.close).toHaveBeenCalledTimes(1);
+    expect(partitionedTable.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases a downsampled key table and its downsample result', async () => {
+    const dh = makeMockDh();
+    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const keyTable = new MockTable(5_000);
+    const downsampledTable = new MockTable(250);
+    runDownsampleMock(dh).mockResolvedValue(downsampledTable);
+
+    await model.init(
+      ...partitionInitArgs({
+        fetch: jest
+          .fn()
+          .mockResolvedValue(
+            makeMockPartitionedTable(new Map([['aaa', keyTable]]))
+          ),
+      })
+    );
+
+    model.close();
+    // Nothing subscribes to the key table itself, so it goes right away.
+    expect(keyTable.close).toHaveBeenCalledTimes(1);
+
+    deliverUpdate(downsampledTable.subscribe.mock.results[0].value);
+    expect(downsampledTable.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases a key table that arrives after close', async () => {
+    const dh = makeMockDh();
+    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const keyTable = new MockTable(10);
+    let resolveKeyTable: (t: MockTable) => void = () => undefined;
+    const partitionedTable = makeMockPartitionedTable(new Map());
+    partitionedTable.getKeys.mockReturnValue(new Set(['aaa']));
+    partitionedTable.getTable.mockReturnValue(
+      new Promise<MockTable>(resolve => {
+        resolveKeyTable = resolve;
+      }) as never
+    );
+    runDownsampleMock(dh);
+
+    const initDone = model.init(
+      ...partitionInitArgs({
+        fetch: jest.fn().mockResolvedValue(partitionedTable),
+      })
+    );
+    await new Promise(process.nextTick);
+    expect(partitionedTable.getTable).toHaveBeenCalledWith('aaa');
+
+    model.close();
+    resolveKeyTable(keyTable);
+    await initDone;
+
+    expect(keyTable.close).toHaveBeenCalledTimes(1);
+    expect(keyTable.subscribe).not.toHaveBeenCalled();
+  });
+
+  it('releases a partitioned table that arrives after close', async () => {
+    const dh = makeMockDh();
+    const model = new TradingViewChartModel(dh, makeMockWidget() as never);
+    const partitionedTable = makeMockPartitionedTable(
+      new Map([['aaa', new MockTable(10)]])
+    );
+    let resolvePt: (pt: unknown) => void = () => undefined;
+    runDownsampleMock(dh);
+
+    const initDone = model.init(
+      ...partitionInitArgs({
+        fetch: jest.fn(
+          () =>
+            new Promise(resolve => {
+              resolvePt = resolve;
+            })
+        ),
+      })
+    );
+    await new Promise(process.nextTick);
+
+    model.close();
+    resolvePt(partitionedTable);
+    await initDone;
+
+    expect(partitionedTable.close).toHaveBeenCalledTimes(1);
+    expect(partitionedTable.addEventListener).not.toHaveBeenCalled();
+    expect(partitionedTable.getTable).not.toHaveBeenCalled();
+  });
+});
+
 describe('TradingViewChartModel deferred retirement', () => {
   it('defers releasing a subscription until its first update arrives', async () => {
     const { model, table } = await initModelWithAutoBin(false);
