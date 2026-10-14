@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import click
+import glob
 import os
+import shutil
 import sys
 from typing import Generator, Callable
 import time
@@ -151,10 +153,8 @@ def clean_build_dist(plugin: str) -> None:
         None
     """
     # these folders may not exist, so ignore the errors
-    if os.path.exists(f"{plugins_dir}/{plugin}/build"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/build")
-    if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/dist")
+    shutil.rmtree(f"{plugins_dir}/{plugin}/build", ignore_errors=True)
+    shutil.rmtree(f"{plugins_dir}/{plugin}/dist", ignore_errors=True)
 
 
 def plugin_names(
@@ -177,34 +177,52 @@ def plugin_names(
             yield plugin
 
 
-def run_command(command: str) -> None:
+def execute(command: list[str]) -> int:
+    """
+    Run a command without a shell so arguments containing spaces are preserved.
+
+    Args:
+        command: The command and its arguments.
+
+    Returns:
+        The exit code of the command.
+    """
+    # on Windows npm is npm.cmd, which subprocess can't find by bare name
+    executable = shutil.which(command[0])
+    if executable is None:
+        click.echo(f"Error: unable to find {command[0]} on PATH")
+        return 1
+    return subprocess.call([executable, *command[1:]])
+
+
+def run_command(command: list[str]) -> None:
     """
     Run a command and exit if it fails.
     This should only be used in a non-main thread.
 
     Args:
-        command: The command to run.
+        command: The command and its arguments.
 
     Returns:
         None
     """
-    code = os.system(command)
+    code = execute(command)
     if code != 0:
         os._exit(1)
 
 
-def run_main_command(command: str) -> None:
+def run_main_command(command: list[str]) -> None:
     """
     Run a command and exit if it fails.
     This should only be used in the main thread.
 
     Args:
-        command: The command to run.
+        command: The command and its arguments.
 
     Returns:
         None
     """
-    code = os.system(command)
+    code = execute(command)
     if code != 0:
         sys.exit(1)
 
@@ -229,14 +247,16 @@ def run_build(
             clean_build_dist(plugin)
 
             click.echo(f"Building {plugin}")
-            run_command(f"python -m build --wheel {plugins_dir}/{plugin}")
+            run_command(
+                [sys.executable, "-m", "build", "--wheel", f"{plugins_dir}/{plugin}"]
+            )
         elif error_on_missing:
             click.echo(f"Error: setup.cfg not found in {plugin}")
             os._exit(1)
 
 
 def install_with_all_extras(
-    install: str,
+    install: list[str],
     wheels: str,
 ) -> None:
     """
@@ -244,9 +264,10 @@ def install_with_all_extras(
 
     Args:
         install: The command to use to install the plugins
-        wheels: The wheels to install
+        wheels: A glob pattern matching the wheels to install
     """
-    run_command(f'find {wheels} | xargs -I {{}} {install} "{{}}[all]"')
+    for wheel in glob.glob(wheels):
+        run_command([*install, f"{wheel}[all]"])
 
 
 def run_install(
@@ -264,9 +285,9 @@ def run_install(
     Returns:
         None
     """
-    install = "pip install"
+    install = [sys.executable, "-m", "pip", "install"]
     if reinstall:
-        install += " --force-reinstall --no-deps"
+        install += ["--force-reinstall", "--no-deps"]
 
     if plugins:
         for plugin in plugins:
@@ -295,7 +316,7 @@ def run_docs(
     for plugin in plugin_names(plugins):
         if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
             click.echo(f"Generating docs for {plugin}")
-            run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
+            run_command([sys.executable, f"{plugins_dir}/{plugin}/make_docs.py"])
         elif error_on_missing:
             click.echo(f"Error: make_docs.py not found in {plugin}")
             os._exit(1)
@@ -315,12 +336,20 @@ def run_build_js(plugins: tuple[str]) -> None:
         for plugin in plugins:
             if os.path.exists(f"{plugins_dir}/{plugin}/src/js"):
                 click.echo(f"Building JS for {plugin}")
-                run_command(f"npm run build --prefix {plugins_dir}/{plugin}/src/js")
+                run_command(
+                    [
+                        "npm",
+                        "run",
+                        "build",
+                        "--prefix",
+                        f"{plugins_dir}/{plugin}/src/js",
+                    ]
+                )
             else:
                 click.echo(f"Error: src/js not found in {plugin}")
     else:
         click.echo(f"Building all JS plugins")
-        run_command(f"npm run build")
+        run_command(["npm", "run", "build"])
 
 
 def run_configure(
@@ -337,12 +366,23 @@ def run_configure(
         None
     """
     if configure in ["min", "full"]:
-        run_main_command("pip install -r requirements.txt")
-        run_main_command("pre-commit install")
-        run_main_command("npm install")
+        run_main_command(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]
+        )
+        run_main_command(["pre-commit", "install"])
+        run_main_command(["npm", "install"])
     if configure == "full":
         # Install additional dependencies for building documentation
-        run_main_command("pip install -r sphinx_ext/sphinx-requirements.txt")
+        run_main_command(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                "sphinx_ext/sphinx-requirements.txt",
+            ]
+        )
 
 
 def build_server_args(server_arg: tuple[str]) -> list[str]:
@@ -424,7 +464,7 @@ def handle_args(
         return
 
     if snapshots:
-        run_command("npm run update-doc-snapshots")
+        run_command(["npm", "run", "update-doc-snapshots"])
 
     if docs:
         run_docs(plugins, len(plugins) > 0)
