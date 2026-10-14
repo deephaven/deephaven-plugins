@@ -724,11 +724,84 @@ describe('usePanelManager', () => {
       mockWidgetStatus = 'loading';
       const { result, rerender } = renderManager();
       const placeholderId = result.current.getPanelId();
+      act(() => {
+        result.current.onOpen(placeholderId);
+      });
 
       mockWidgetStatus = 'ready';
       rerender();
 
       expect(result.current.getPanelId()).toBe(placeholderId);
+    });
+
+    it('hands out the same saved ids again after a render is thrown away', () => {
+      const { result, rerender } = renderManager({
+        panelIds: ['first-id', 'second-id'],
+      });
+
+      // A thrown away render hands out ids, but its panels never open
+      result.current.getPanelId(keyA);
+      result.current.getPanelId();
+      rerender();
+
+      expect(result.current.getPanelId(keyB)).toBe('first-id');
+      expect(result.current.getPanelId()).toBe('second-id');
+    });
+
+    it('does not hand the same saved id to a later panel after a panel keeps it through a render', () => {
+      mockWidgetStatus = 'loading';
+      let isPlaceholderRendered = false;
+      const { result, rerender } = renderHook(() => {
+        const manager = usePanelManager({
+          widget: makeWidget(),
+          initialData: { panelIds: ['saved-id'] },
+        });
+        // The placeholder is reused for the document's panel, and gets its id again in the ready render
+        if (mockWidgetStatus === 'ready' && !isPlaceholderRendered) {
+          isPlaceholderRendered = true;
+          manager.getPanelId();
+        }
+        return manager;
+      });
+      act(() => {
+        result.current.onOpen(result.current.getPanelId());
+      });
+
+      mockWidgetStatus = 'ready';
+      rerender();
+      rerender();
+
+      expect(result.current.getPanelId()).toEqual(generatedId);
+    });
+
+    it('does not count a ready render that was thrown away', () => {
+      mockWidgetStatus = 'loading';
+      let suspense: Promise<void> | undefined;
+      const wrapper = ({ children }: { children: React.ReactNode }) =>
+        React.createElement(React.Suspense, { fallback: null }, children);
+      const { result, rerender } = renderHook(
+        () => {
+          const manager = usePanelManager({
+            widget: makeWidget(),
+            initialData: keyedData,
+          });
+          if (suspense != null) {
+            throw suspense;
+          }
+          return manager;
+        },
+        { wrapper }
+      );
+
+      mockWidgetStatus = 'ready';
+      // Never settles, so the render stays suspended
+      suspense = new Promise<void>(jest.fn());
+      rerender();
+      mockWidgetStatus = 'loading';
+      suspense = undefined;
+      rerender();
+
+      expect(result.current.getPanelId()).toBe('a-id');
     });
   });
 
