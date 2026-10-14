@@ -774,6 +774,34 @@ describe('usePanelManager', () => {
       expect(result.current.getPanelId()).toEqual(generatedId);
     });
 
+    it('gives a panel the same id when it asks again in the same render', () => {
+      const { result } = renderManager({ panelIds: ['first-id', 'second-id'] });
+
+      // Strict Mode renders a panel twice
+      expect(result.current.getPanelId(undefined, 'panel-1')).toBe('first-id');
+      expect(result.current.getPanelId(undefined, 'panel-1')).toBe('first-id');
+      expect(result.current.getPanelId(undefined, 'panel-2')).toBe('second-id');
+    });
+
+    it('keeps the id of a keyed panel from a committed render', () => {
+      let isKeyedPanelRendered = false;
+      const { result, rerender } = renderHook(() => {
+        const manager = usePanelManager({
+          widget: makeWidget(),
+          initialData: { panelIds: ['first-id'] },
+        });
+        // The panel renders, but doesn't open in this test
+        if (!isKeyedPanelRendered) {
+          isKeyedPanelRendered = true;
+          manager.getPanelId(keyA);
+        }
+        return manager;
+      });
+      rerender();
+
+      expect(result.current.getPanelId(keyA)).toBe('first-id');
+    });
+
     it('does not count a ready render that was thrown away', () => {
       mockWidgetStatus = 'loading';
       let suspense: Promise<void> | undefined;

@@ -1,7 +1,7 @@
 import { type PanelProps } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import { useContextOrThrow } from '@deephaven/react-hooks';
-import { createContext, useCallback, useMemo, useState } from 'react';
+import { createContext, useCallback, useId, useMemo, useState } from 'react';
 import { nanoid } from 'nanoid';
 
 /**
@@ -43,8 +43,9 @@ export interface ReactPanelManager {
   /**
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
    * @param panelKey The serialized key path of the panel. A keyed panel gets the same id on every load.
+   * @param panelToken Identifies the calling panel, so asking again in the same render returns the same id
    */
-  getPanelId: (panelKey?: string) => string;
+  getPanelId: (panelKey?: string, panelToken?: string) => string;
 
   /**
    * Whether a panel with this id is open
@@ -117,9 +118,11 @@ export function useReactPanel(panelKey?: string): ReactPanelControl {
     getInitialData,
     isPanelOpen,
   } = useReactPanelManager();
+  // The same in both renders when Strict Mode renders twice, so the panel doesn't take two ids
+  const panelToken = useId();
   const assignedId = useMemo(
-    () => getPanelId(panelKey),
-    [getPanelId, panelKey]
+    () => getPanelId(panelKey, panelToken),
+    [getPanelId, panelKey, panelToken]
   );
   // Replaces `assignedId` when another open panel already has the same key
   const [duplicateId, setDuplicateId] = useState<{
