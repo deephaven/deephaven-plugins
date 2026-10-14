@@ -89,8 +89,10 @@ export function usePanelManager({
   // Reset on every render, so ids handed out by a render that's thrown away are handed out again.
   const pendingIds = useRef(new Set<string>());
   const pendingKeyIds = useRef(new Map<string, string>());
+  const pendingTokenIds = useRef(new Map<string, string>());
   pendingIds.current = new Set();
   pendingKeyIds.current = new Map();
+  pendingTokenIds.current = new Map();
 
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
@@ -126,6 +128,17 @@ export function usePanelManager({
       ? claimedPositionalIds
       : claimedPlaceholderIds;
     pendingIds.current.forEach(pendingId => claimedIds.add(pendingId));
+    pendingKeyIds.current.forEach((pendingId, panelKey) => {
+      if (!keyIds.has(panelKey)) {
+        keyIds.set(panelKey, pendingId);
+      }
+      if (
+        keyIds.get(panelKey) === pendingId &&
+        panelIds.current.includes(pendingId)
+      ) {
+        openPanelKeys.current.set(pendingId, panelKey);
+      }
+    });
   });
   const hasRemovedOrphans = useRef(false);
 
@@ -315,7 +328,7 @@ export function usePanelManager({
     []
   );
 
-  const getPanelId = useCallback(
+  const allocatePanelId = useCallback(
     (panelKey?: string) => {
       if (panelKey == null) {
         if (!hasBeenReady) {
@@ -349,6 +362,24 @@ export function usePanelManager({
       takeId,
       widgetData,
     ]
+  );
+
+  const getPanelId = useCallback(
+    (panelKey?: string, panelToken?: string) => {
+      const tokenId =
+        panelToken == null
+          ? undefined
+          : pendingTokenIds.current.get(panelToken);
+      if (tokenId != null) {
+        return tokenId;
+      }
+      const panelId = allocatePanelId(panelKey);
+      if (panelToken != null) {
+        pendingTokenIds.current.set(panelToken, panelId);
+      }
+      return panelId;
+    },
+    [allocatePanelId]
   );
 
   // The latest state, so a panel that remounts, e.g. when it moves, keeps it

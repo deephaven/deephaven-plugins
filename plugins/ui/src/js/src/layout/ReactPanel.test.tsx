@@ -511,7 +511,7 @@ describe('key', () => {
     );
 
     const panelKey = JSON.stringify(['stack-key', 'panel-key']);
-    expect(getPanelId).toHaveBeenCalledWith(panelKey);
+    expect(getPanelId).toHaveBeenCalledWith(panelKey, expect.any(String));
     expect(onOpen).toHaveBeenCalledWith(mockPanelId, panelKey);
   });
 
@@ -523,7 +523,7 @@ describe('key', () => {
       </PanelKeyScopeContext.Provider>
     );
 
-    expect(getPanelId).toHaveBeenCalledWith(undefined);
+    expect(getPanelId).toHaveBeenCalledWith(undefined, expect.any(String));
   });
 
   it('opens with a new id when another open panel has the same key', () => {
