@@ -2,6 +2,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -57,15 +58,13 @@ export function usePanelManager({
   onDataChange = EMPTY_FUNCTION,
   onClose,
 }: UsePanelManagerProps): ReactPanelManager {
-  const panelIdIndex = useRef(0);
-
   // Using `useState` here to initialize the data only once.
   // We don't want to use `useMemo`, because we only want it to be initialized once with the `initialData` (uncontrolled)
   // We don't want to use `useRef`, because we only want to run `structuredClone` once, and you can't pass an
   // initialization function into `useRef` like you can with `useState`
   const [widgetData] = useState<WidgetData>(() => structuredClone(initialData));
 
-  // Panel id for each key path. Starts from the saved map and remembers ids given to new keys this session.
+  // Panel id for each key path. Starts from the saved map and remembers the ids of keyed panels opened this session.
   const [keyIds] = useState(
     () => new Map(Object.entries(widgetData.panelKeyMap ?? {}))
   );
@@ -81,6 +80,17 @@ export function usePanelManager({
 
   // Key path of each open keyed panel, by panel id
   const openPanelKeys = useRef(new Map<string, string>());
+
+  // Ids given to a panel by a committed render, from the saved ids for placeholders and from `positionalIds` for the document
+  const [claimedPlaceholderIds] = useState(() => new Set<string>());
+  const [claimedPositionalIds] = useState(() => new Set<string>());
+
+  // Ids handed out in the current render, so sibling panels don't get the same one. Claimed when the render commits.
+  // Reset on every render, so ids handed out by a render that's thrown away are handed out again.
+  const pendingIds = useRef(new Set<string>());
+  const pendingKeyIds = useRef(new Map<string, string>());
+  pendingIds.current = new Set();
+  pendingKeyIds.current = new Map();
 
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
@@ -105,11 +115,18 @@ export function usePanelManager({
   const isDocumentReady = useWidgetStatus().status === 'ready';
   // Changes `getPanelId` once, so every placeholder still mounted gets its id from the document
   const hasBeenReadyRef = useRef(false);
-  if (isDocumentReady) {
-    hasBeenReadyRef.current = true;
-  }
-  const hasBeenReady = hasBeenReadyRef.current;
-  const placeholderIdIndex = useRef(0);
+  const hasBeenReady = hasBeenReadyRef.current || isDocumentReady;
+  // A layout effect, so it runs before the panels' open effects in the same commit
+  useLayoutEffect(function commitRender() {
+    if (hasBeenReady) {
+      hasBeenReadyRef.current = true;
+    }
+    // A panel that keeps its id through this render doesn't open again, so claim every id the render handed out
+    const claimedIds = hasBeenReady
+      ? claimedPositionalIds
+      : claimedPlaceholderIds;
+    pendingIds.current.forEach(pendingId => claimedIds.add(pendingId));
+  });
   const hasRemovedOrphans = useRef(false);
 
   const id = useMemo(
@@ -137,6 +154,21 @@ export function usePanelManager({
       }
 
       panelIds.current.push(panelId);
+      if (hasBeenReadyRef.current) {
+        claimedPositionalIds.add(panelId);
+      } else {
+        claimedPlaceholderIds.add(panelId);
+        if (
+          panelKey == null &&
+          !(widgetData.panelIds ?? []).includes(panelId)
+        ) {
+          // Lets the document's first unkeyed panel keep a new widget's loading placeholder
+          positionalIds.push(panelId);
+        }
+      }
+      if (panelKey != null && !keyIds.has(panelKey)) {
+        keyIds.set(panelKey, panelId);
+      }
       if (panelKey != null && keyIds.get(panelKey) === panelId) {
         openPanelKeys.current.set(panelId, panelKey);
       }
@@ -145,7 +177,15 @@ export function usePanelManager({
       setPanelsDirty(true);
       return true;
     },
-    [id, keyIds, panelIds]
+    [
+      claimedPlaceholderIds,
+      claimedPositionalIds,
+      id,
+      keyIds,
+      panelIds,
+      positionalIds,
+      widgetData,
+    ]
   );
 
   const handleClose = useCallback(
@@ -184,7 +224,9 @@ export function usePanelManager({
    */
   const removeOrphanedPanels = useCallback(() => {
     const savedIds = widgetData.panelIds ?? [];
-    panelIdIndex.current = Math.max(panelIdIndex.current, positionalIds.length);
+    positionalIds.forEach(positionalId =>
+      claimedPositionalIds.add(positionalId)
+    );
     const openIds = new Set(panelIds.current);
     panelStatesRef.current = Object.fromEntries(
       Object.entries(panelStatesRef.current).filter(([panelId]) =>
@@ -203,7 +245,7 @@ export function usePanelManager({
         // `remove` rather than `close`, since panels in a nested dashboard aren't closable
         LayoutUtils.getContentItemInStack(stack, config)?.remove();
       });
-  }, [layoutManager, positionalIds, widgetData]);
+  }, [claimedPositionalIds, layoutManager, positionalIds, widgetData]);
 
   /**
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
@@ -259,46 +301,52 @@ export function usePanelManager({
     ]
   );
 
-  const getPositionalId = useCallback(() => {
-    // Note that if the order of unkeyed panels changes, they appear in each other's place in the layout.
-    const panelId = positionalIds[panelIdIndex.current];
-    panelIdIndex.current += 1;
-    return panelId;
-  }, [positionalIds]);
+  /** The first id in `ids` that isn't claimed or handed out in this render */
+  const takeId = useCallback(
+    (ids: readonly string[], claimedIds: ReadonlySet<string>) => {
+      const panelId = ids.find(
+        savedId => !claimedIds.has(savedId) && !pendingIds.current.has(savedId)
+      );
+      if (panelId != null) {
+        pendingIds.current.add(panelId);
+      }
+      return panelId;
+    },
+    []
+  );
 
   const getPanelId = useCallback(
     (panelKey?: string) => {
       if (panelKey == null) {
         if (!hasBeenReady) {
           // Placeholders are unkeyed and hold every saved id in order, keyed ones included
-          const placeholderId =
-            widgetData.panelIds?.[placeholderIdIndex.current] ?? nanoid();
-          if (
-            placeholderIdIndex.current >= (widgetData.panelIds ?? []).length
-          ) {
-            // Lets the document's first unkeyed panel keep a new widget's loading placeholder
-            positionalIds.push(placeholderId);
-          }
-          placeholderIdIndex.current += 1;
-          return placeholderId;
+          return (
+            takeId(widgetData.panelIds ?? [], claimedPlaceholderIds) ?? nanoid()
+          );
         }
-        return getPositionalId() ?? nanoid();
+        // Note that if the order of unkeyed panels changes, they appear in each other's place in the layout.
+        return takeId(positionalIds, claimedPositionalIds) ?? nanoid();
       }
 
-      // Same id every time, so a repeated or discarded render can't change it. Duplicates are found on open.
-      let panelId = keyIds.get(panelKey);
+      // Same id for every panel with this key in a render. Duplicates are found on open.
+      let panelId = keyIds.get(panelKey) ?? pendingKeyIds.current.get(panelKey);
       if (panelId == null) {
-        panelId = (hasSavedKeys ? undefined : getPositionalId()) ?? nanoid();
-        keyIds.set(panelKey, panelId);
+        panelId =
+          (hasSavedKeys
+            ? undefined
+            : takeId(positionalIds, claimedPositionalIds)) ?? nanoid();
+        pendingKeyIds.current.set(panelKey, panelId);
       }
       return panelId;
     },
     [
-      getPositionalId,
+      claimedPlaceholderIds,
+      claimedPositionalIds,
       hasBeenReady,
       hasSavedKeys,
       keyIds,
       positionalIds,
+      takeId,
       widgetData,
     ]
   );
