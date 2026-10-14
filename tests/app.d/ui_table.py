@@ -1,6 +1,7 @@
 from deephaven import ui
 from deephaven import empty_table, new_table
 from deephaven.column import int_col, string_col
+from deephaven.table import Table
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
@@ -202,6 +203,38 @@ def t_selection_component():
 
 
 t_selection = t_selection_component()
+
+
+# Narrow columns only: a truncated cell renders an overflow button that swallows
+# the mouse-down, so clicks in a wide column never reach selection handling.
+_context_menu_source = empty_table(100).update(["Idx = i", "Sym = `S` + (i % 10)"])
+
+
+@ui.component
+def t_context_menu_selection_component(table: Table):
+    selection_table, set_selection_table = ui.use_state(lambda: table.head(0))
+
+    return ui.flex(
+        ui.list_view(selection_table.view(["Sym"])),
+        ui.table(
+            table,
+            context_menu={
+                "title": "Set selection",
+                "action": lambda d: set_selection_table(d["selected_rows"]),
+            },
+        ),
+        direction="column",
+    )
+
+
+t_context_menu_selection = t_context_menu_selection_component(_context_menu_source)
+
+# with_keys makes IrisGrid send a KeyedSelection, which resolves by key value
+# rather than by row position.
+t_context_menu_keyed_selection = t_context_menu_selection_component(
+    _context_menu_source.with_keys("Idx")
+)
+
 
 t_databar_basic = ui.table(
     _stocks,

@@ -1,4 +1,11 @@
-import { getAggregationOperation } from './UITableUtils';
+import { GridRange, type GridModel, RangedSelection } from '@deephaven/grid';
+import {
+  type IrisGridModel,
+  type KeyedGridModel,
+  KeyedSelection,
+} from '@deephaven/iris-grid';
+import { TestUtils } from '@deephaven/test-utils';
+import { asRangedSelection, getAggregationOperation } from './UITableUtils';
 
 describe('getAggregationOperation', () => {
   it('should return the correct operation regardless of case', () => {
@@ -17,5 +24,22 @@ describe('getAggregationOperation', () => {
     expect(() => getAggregationOperation('foo')).toThrow(
       /Invalid aggregation operation/
     );
+  });
+});
+
+describe('asRangedSelection', () => {
+  it('returns the selection for a RangedSelection', () => {
+    const getModel = () => TestUtils.createMockProxy<GridModel>();
+    const selection = new RangedSelection(
+      [new GridRange(null, 0, null, 5)],
+      getModel
+    );
+    expect(asRangedSelection(selection)).toBe(selection);
+  });
+
+  it('returns null for a KeyedSelection', () => {
+    const getModel = () =>
+      TestUtils.createMockProxy<IrisGridModel & KeyedGridModel>();
+    expect(asRangedSelection(KeyedSelection.empty(getModel))).toBeNull();
   });
 });

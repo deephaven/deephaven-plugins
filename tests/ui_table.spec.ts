@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
   SELECTORS,
   openPanel,
@@ -126,4 +126,39 @@ test('UI table with tree table', async ({ page }) => {
 
   const locator = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
   await expect(locator.locator('.iris-grid')).toBeVisible();
+});
+
+/**
+ * Selects two non-contiguous rows, runs the server-side context menu action and
+ * asserts the rows the callback received.
+ */
+async function expectContextMenuSelection(page: Page, panel: string) {
+  await gotoPage(page, '');
+  await openPanel(page, panel, SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+
+  const panelEl = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = page.locator(
+    `${SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE} .iris-grid`
+  );
+
+  await clickGridRow(grid, 3);
+  await clickGridRow(grid, 0, { modifiers: ['ControlOrMeta'] });
+  await clickGridRow(grid, 3, { button: 'right' });
+
+  // The server-supplied items arrive after the menu opens, and inserting them
+  // shifts every item below down a row. Clicking before that lands on whatever
+  // was previously at those coordinates.
+  await expect(page.locator('.loading-spinner-vertical-align')).toHaveCount(0);
+  await page.locator('.btn-context-menu', { hasText: 'Set selection' }).click();
+
+  // Rows come back in table order, not the order they were clicked.
+  await expect(panelEl.getByRole('row')).toHaveText(['S0', 'S3']);
+}
+
+test('UI table context menu selection', async ({ page }) => {
+  await expectContextMenuSelection(page, 't_context_menu_selection');
+});
+
+test('UI table context menu selection with keys', async ({ page }) => {
+  await expectContextMenuSelection(page, 't_context_menu_keyed_selection');
 });

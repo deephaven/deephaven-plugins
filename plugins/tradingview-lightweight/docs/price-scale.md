@@ -70,7 +70,7 @@ The same `margin_top` / `margin_bottom` apply when you pass a `price_scale()` to
 
 ### Turn off auto-scale to lock the visible range
 
-By default the scale auto-fits to the visible data. Set `auto_scale=False` to freeze it; the user can still pan, but the axis numbers don't shift on zoom.
+By default the scale auto-fits to the visible data. Set `auto_scale=False` to freeze it; the user can still pan, but the axis numbers don't shift on zoom. Dragging a price axis freezes it the same way, and double-clicking the chart returns every axis to auto-fit. See [Pan and zoom](navigation.md#scale-the-price-axis).
 
 ```python order=chart,values
 import deephaven.plot.tradingview_lightweight as tvl

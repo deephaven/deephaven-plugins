@@ -1,10 +1,8 @@
 """Deterministic example-data tables for TradingView Lightweight charts.
 
 Mirrors :mod:`deephaven.plot.express.data`: every function returns a fresh,
-deterministic :class:`deephaven.table.Table` for docs examples and snapshot
-tests. Generators produce realistic-looking market data via deterministic
-random walks (geometric-Brownian-motion style) rather than closed-form
-sine waves, so charts have visible structure without being noisy.
+deterministic :class:`deephaven.table.Table`. Generators produce
+realistic-looking market data from seeded random walks and lognormal draws.
 
 Each function takes a ``ticking`` argument. When ``ticking=True`` (default)
 the table starts with a static seed block and appends a new row every second;
@@ -89,8 +87,8 @@ def _seeded(base_rows: int, ticking: bool) -> "Table":
 def ohlc(ticking: bool = True) -> "Table":
     """Build a daily OHLCV candle series from a deterministic price walk.
 
-    Each row represents one trading day starting 2024-01-01. The price path
-    is a smoothed random walk (windowed cumulative sum of Gaussian log-returns
+    Each row represents one calendar day starting 2024-01-01. The price path
+    is a smoothed random walk (windowed cumulative sum of Gaussian steps
     plus an EMA), giving visible trends and reversals instead of a pure sine.
     High/Low straddle Open/Close by an absolute-Gaussian intra-bar range, and
     volume swells with absolute return so big moves print big bars.
@@ -108,7 +106,7 @@ def ohlc(ticking: bool = True) -> "Table":
         - ``Low`` (double): low price, ≤ min(Open, Close).
         - ``Close`` (double): closing price.
         - ``Volume`` (long): bar volume; correlates with |return|.
-        - ``Ema`` (double): 20-tick EMA of ``Close``, for overlay examples.
+        - ``Ema`` (double): 20-tick EMA of ``Close``.
         - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
@@ -156,12 +154,12 @@ def stocks(ticking: bool = True) -> "Table":
 
     Three symbols (``AAA``, ``BBB``, ``CCC``) tick in round-robin. Each
     symbol has an independent random walk anchored at a distinct base
-    price (90, 140, 60) with its own volatility, so by-grouped chart
-    examples (line/area/baseline) show three visually distinct series.
+    price (90, 140, 60) with its own volatility, so a ``by="Sym"`` chart
+    shows three visually distinct series.
 
     Args:
         ticking: If true (default), trades tick in once per second after
-            an initial 120-row seed. If false, only the static seed is
+            an initial 360-row seed. If false, only the static seed is
             returned.
 
     Returns:
@@ -170,7 +168,7 @@ def stocks(ticking: bool = True) -> "Table":
         - ``Timestamp`` (Instant): daily timestamps from 2024-01-01.
         - ``Sym`` (string): one of ``"AAA"``, ``"BBB"``, ``"CCC"``.
         - ``Price`` (double): symbol-dependent price walk.
-        - ``Size`` (long): trade size; lognormal-ish, ~100 +/- 50.
+        - ``Size`` (long): trade size; lognormal, median ~55.
         - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
@@ -220,11 +218,11 @@ def stocks(ticking: bool = True) -> "Table":
 
 
 def volume(ticking: bool = True) -> "Table":
-    """Build a standalone daily volume series with weekly seasonality.
+    """Build a standalone daily volume series with a repeating volume cycle.
 
-    Designed for the histogram example. The volume curve is a lognormal
-    base scaled by a weekday-of-week factor (Mondays/Fridays heavier),
-    so the histogram has visible structure beyond pure noise.
+    The volume curve is a lognormal
+    base scaled by a five-row cycle of weekday multipliers (heaviest on the
+    first and fifth), so the histogram has visible structure beyond pure noise.
 
     Args:
         ticking: If true (default), one new bar ticks in per second after
@@ -234,13 +232,14 @@ def volume(ticking: bool = True) -> "Table":
         A :class:`deephaven.table.Table` with columns:
 
         - ``Timestamp`` (Instant): daily timestamps from 2024-01-01.
-        - ``Volume`` (long): daily volume, lognormal w/ weekly seasonality.
+        - ``Volume`` (long): daily volume, lognormal with a five-row cycle.
         - ``Index`` (long): incrementing row counter, for row-position formulas.
     """
     base_time = to_j_instant(STARTING_TIME)
     base_rows = 60
 
-    # Mon..Sun multipliers; weekends omitted from the synthetic feed.
+    # Weekday multipliers applied on a five-row cycle. Rows step one calendar
+    # day (weekends included), so the cycle drifts against real weekdays.
     weekday_mult = [1.4, 0.9, 0.85, 0.95, 1.3]
 
     def weekday_factor(idx: int) -> float:
@@ -268,17 +267,18 @@ def yields(ticking: bool = True) -> "Table":
 
     Tenors follow the canonical Treasury set (3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y,
     10Y, 20Y, 30Y, 40Y) and are emitted **in months** (3, 6, 12, 24, 36,
-    60, 84, 120, 240, 360, 480) — the unit LWC's ``createYieldCurveChart``
+    60, 84, 120, 240, 360, 480), the unit LWC's ``createYieldCurveChart``
     expects on its maturity axis. The yields use a Nelson-Siegel-style mix
     of level, slope, and curvature factors, producing a normal
-    upward-sloping curve with a belly peak.
+    upward-sloping curve that climbs steeply at the short end and flattens
+    toward the level factor.
 
-    In ticking mode a single replacement curve emits each second with the
-    factors perturbed by small Gaussians, so the chart redraws a slowly
-    drifting curve over time. ``last_by("Tenor")`` keeps the row count flat.
+    In ticking mode one tenor is replaced each second, so the curve turns over
+    every 11 seconds; each sweep re-draws the factors with a small Gaussian
+    jitter. ``last_by("Tenor")`` keeps the row count flat.
 
     Args:
-        ticking: If true (default), the curve updates once per second.
+        ticking: If true (default), one tenor of the curve updates per second.
             If false, a single static snapshot is returned.
 
     Returns:
@@ -292,7 +292,7 @@ def yields(ticking: bool = True) -> "Table":
     def tenor_at(i: int) -> float:
         return tenors[i % len(tenors)]
 
-    # Nelson-Siegel level/slope/curvature with a small per-tick drift.
+    # Nelson-Siegel level/slope/curvature, re-drawn once per 11-row sweep.
     # `decay` is in years; convert tenor (months) to years inside yield_at.
     def curve_factor(seed: int, idx: int) -> tuple[float, float, float, float]:
         r = Random(seed)
@@ -347,12 +347,12 @@ def options_chain(ticking: bool = True) -> "Table":
     the spot; bid/ask spreads widen at the wings to mimic real chains.
     A small volatility smile pushes wing IVs above the ATM IV.
 
-    In ticking mode the chain refreshes every second with the spot drifting
-    via a smoothed random walk, so the smile and intrinsic legs slide
-    together.
+    In ticking mode one strike is replaced each second, so the chain turns
+    over every 21 seconds; the spot takes one smoothed-random-walk step per
+    sweep, sliding the smile and intrinsic legs together.
 
     Args:
-        ticking: If true (default), the chain refreshes once per second.
+        ticking: If true (default), one strike of the chain updates per second.
             If false, a single static snapshot at spot=100 is returned.
 
     Returns:
@@ -440,10 +440,8 @@ def options_chain(ticking: bool = True) -> "Table":
 def values(ticking: bool = True) -> "Table":
     """Build a single-value time series with visible structure.
 
-    Designed for the simplest line/area/baseline/histogram example pages.
     The series is a smoothed random walk (Gaussian steps + EMA), so it
-    has runs, reversals, and consolidations — readable shape but not
-    pure noise.
+    has runs, reversals, and consolidations.
 
     Args:
         ticking: If true (default), one new sample ticks in per second
@@ -481,7 +479,7 @@ def values(ticking: bool = True) -> "Table":
 
 
 def large_prices(ticking: bool = True) -> "Table":
-    """Build a 1,000,000-row intraday price series for the downsampling demos.
+    """Build a 1,000,000-row intraday price series.
 
     Timestamps step uniformly so 1M rows cover ~10 years (~315 seconds per
     row). The price curve combines a low-frequency drift (cumulative sum of
@@ -491,8 +489,7 @@ def large_prices(ticking: bool = True) -> "Table":
     Args:
         ticking: If true (default), additional rows tick in once per second
             after the 1M-row seed. If false, only the static seed is
-            returned. Note that 1M static + ticking is a large table —
-            prefer ``ticking=False`` for the downsample comparison demo.
+            returned.
 
     Returns:
         A :class:`deephaven.table.Table` with columns:

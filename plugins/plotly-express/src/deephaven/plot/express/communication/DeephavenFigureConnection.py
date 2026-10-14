@@ -41,4 +41,4 @@ class DeephavenFigureConnection(MessageStream):
         """
         Close the connection
         """
-        pass
+        self._listener.close()

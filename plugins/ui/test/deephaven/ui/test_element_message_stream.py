@@ -1,0 +1,390 @@
+from __future__ import annotations
+
+import json
+from typing import Any, List
+from unittest.mock import Mock, patch
+
+from .BaseTest import BaseTestCase
+
+
+def _sent_messages(connection: Mock) -> List[Any]:
+    return [json.loads(call.args[0]) for call in connection.on_data.call_args_list]
+
+
+class ElementMessageStreamRestoreTestCase(BaseTestCase):
+    def _make_stream(self, element: Any):
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        connection = Mock()
+        return ElementMessageStream(element, connection), connection
+
+    def test_render_error_without_restore_is_sent(self):
+        import deephaven.ui as ui
+
+        @ui.component
+        def broken():
+            raise ValueError("broken")
+
+        stream, connection = self._make_stream(broken())
+        stream._render()
+
+        self.assertEqual(
+            [m["method"] for m in _sent_messages(connection)], ["documentError"]
+        )
+
+    def test_failed_restore_render_retries_without_saved_state(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            if region not in ("Americas", "Asia"):
+                raise KeyError(region)
+            return ui.text(region)
+
+        stream, _ = self._make_stream(region_text())
+        stream._render()
+        saved = stream._context.export_state()
+        saved["state"][0] = "Europe"
+        saved = json.loads(json.dumps(saved))
+
+        restored, connection = self._make_stream(region_text())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ) as logs:
+            restored._render()
+        self.assertIn("KeyError('Europe')", logs.output[0])
+
+        messages = _sent_messages(connection)
+        self.assertEqual([m["method"] for m in messages], ["documentPatched"])
+        self.assertEqual(
+            json.loads(messages[0]["params"][1])["state"], {"0": "Americas"}
+        )
+
+    def test_old_format_state_in_the_wrong_hook_renders_without_saved_state(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        regions = ["Americas", "Europe", "Asia"]
+
+        @ui.component
+        def region_text():
+            for region in regions:
+                ui.use_memo(lambda r=region: r.upper(), [region])
+            region, _ = ui.use_state("Americas")
+            return ui.text(region)
+
+        # Saved before call sites were recorded, when there were two regions
+        saved = {"state": {"4": "Europe"}}
+
+        restored, connection = self._make_stream(region_text())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ) as logs:
+            restored._render()
+        self.assertIn("'str' object has no attribute 'current'", logs.output[0])
+
+        messages = _sent_messages(connection)
+        self.assertEqual([m["method"] for m in messages], ["documentPatched"])
+        self.assertEqual(
+            json.loads(messages[0]["params"][1])["state"], {"6": "Americas"}
+        )
+
+    def test_restore_with_different_hook_count_discards_only_the_mismatched_value(
+        self,
+    ):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        regions = ["Americas", "Europe"]
+
+        @ui.component
+        def region_text():
+            for region in regions:
+                ui.use_memo(lambda r=region: r.upper(), [region])
+            region, _ = ui.use_state("Americas")
+            return ui.text(region)
+
+        @ui.component
+        def app():
+            name, _ = ui.use_state("default name")
+            return ui.flex(ui.text(name), region_text())
+
+        stream, _ = self._make_stream(app())
+        stream._render()
+        saved = json.loads(
+            json.dumps(stream._context.export_state())
+            .replace('"default name"', '"saved name"')
+            .replace('"Americas"', '"Europe"')
+        )
+
+        regions.append("Asia")
+        restored, connection = self._make_stream(app())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        # Rendering again without any saved state would also lose the parent's value
+        with patch.object(
+            restored._context, "import_state", wraps=restored._context.import_state
+        ) as import_state:
+            restored._render()
+        import_state.assert_not_called()
+
+        messages = _sent_messages(connection)
+        self.assertEqual([m["method"] for m in messages], ["documentPatched"])
+        state = messages[0]["params"][1]
+        self.assertIn('"saved name"', state)
+        self.assertIn('"Americas"', state)
+        self.assertNotIn('"Europe"', state)
+
+    def test_failed_restore_render_cleans_up_sibling_effects_before_retry(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        events: List[str] = []
+
+        @ui.component
+        def tracker():
+            def effect():
+                events.append("mount")
+                return lambda: events.append("cleanup")
+
+            ui.use_effect(effect, [])
+            return ui.text("tracker")
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            if region not in ("Americas", "Asia"):
+                raise KeyError(region)
+            return ui.text(region)
+
+        @ui.component
+        def app():
+            return ui.flex(tracker(), region_text())
+
+        stream, _ = self._make_stream(app())
+        stream._render()
+        saved = json.loads(
+            json.dumps(stream._context.export_state()).replace('"Americas"', '"Europe"')
+        )
+
+        events.clear()
+        restored, _ = self._make_stream(app())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ):
+            restored._render()
+
+        # The sibling's effect already ran in the failed pass; the retry unmounts it before mounting it again
+        self.assertEqual(events, ["mount", "cleanup", "mount"])
+
+    def test_cleanup_failure_during_restore_retry_is_sent_as_error(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        is_cleanup_failing = False
+
+        def failing_cleanup():
+            if is_cleanup_failing:
+                raise RuntimeError("cleanup failed")
+
+        @ui.component
+        def tracker():
+            ui.use_effect(lambda: failing_cleanup, [])
+            return ui.text("tracker")
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            if region not in ("Americas", "Asia"):
+                raise KeyError(region)
+            return ui.text(region)
+
+        @ui.component
+        def app():
+            return ui.flex(tracker(), region_text())
+
+        stream, _ = self._make_stream(app())
+        stream._render()
+        saved = json.loads(
+            json.dumps(stream._context.export_state()).replace('"Americas"', '"Europe"')
+        )
+
+        restored, connection = self._make_stream(app())
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        is_cleanup_failing = True
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="WARNING"
+        ):
+            restored._render()
+        # Streams are never closed here, so cleanups also run when they're garbage collected
+        is_cleanup_failing = False
+
+        self.assertEqual(
+            [m["method"] for m in _sent_messages(connection)], ["documentError"]
+        )
+
+    def test_send_failure_after_restore_keeps_saved_state(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import (
+            ElementMessageStream,
+        )
+
+        @ui.component
+        def region_text():
+            region, _ = ui.use_state("Americas")
+            return ui.text(region)
+
+        stream, _ = self._make_stream(region_text())
+        stream._render()
+        saved = stream._context.export_state()
+        saved["state"][0] = "Asia"
+        saved = json.loads(json.dumps(saved))
+
+        restored, connection = self._make_stream(region_text())
+        connection.on_data.side_effect = [ConnectionError("send failed"), None]
+        with patch.object(ElementMessageStream, "_queue_render"):
+            restored._set_state(saved)
+        restored._render()
+
+        self.assertEqual(restored._context.export_state()["state"], {0: "Asia"})
+
+
+class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.stream = ElementMessageStream(Mock(), Mock())
+        self.first = object()
+        self.second = object()
+        self.references = [self.first, self.second]
+
+    def _marker(self, index: Any) -> dict:
+        from deephaven.ui.renderer.NodeEncoder import REFERENCE_KEY
+
+        return {REFERENCE_KEY: index}
+
+    def _deserialize(self, node: Any, references: Any = None) -> Any:
+        return self.stream._deserialize_references(
+            node, self.references if references is None else references
+        )
+
+    def test_resolves_a_marker_in_any_argument_position(self):
+        result = self._deserialize([1, self._marker(1), "text", self._marker(0)])
+
+        self.assertEqual(result[0], 1)
+        self.assertIs(result[1], self.second)
+        self.assertEqual(result[2], "text")
+        self.assertIs(result[3], self.first)
+
+    def test_resolves_markers_at_any_depth(self):
+        result = self._deserialize(
+            [{"a": [{"b": {"c": self._marker(1)}}], "d": self._marker(0)}]
+        )
+
+        self.assertIs(result[0]["a"][0]["b"]["c"], self.second)
+        self.assertIs(result[0]["d"], self.first)
+
+    def test_the_same_index_resolves_to_the_same_object(self):
+        result = self._deserialize([self._marker(0), {"x": self._marker(0)}])
+
+        self.assertIs(result[0], self.first)
+        self.assertIs(result[1]["x"], self.first)
+
+    def test_does_not_modify_the_input(self):
+        args = [{"x": self._marker(0)}]
+
+        self._deserialize(args)
+
+        self.assertEqual(args, [{"x": self._marker(0)}])
+
+    def test_returns_args_without_markers_untouched(self):
+        args = [1, "two", {"three": [3.0, None, True]}]
+
+        self.assertIs(self._deserialize(args), args)
+
+    def test_marker_without_any_references_raises(self):
+        with self.assertRaises(ValueError):
+            self._deserialize([self._marker(0)], references=[])
+
+    def test_invalid_index_raises(self):
+        # bool is an int and a negative index would pick from the end of the list
+        for index in (2, -1, True, False, "0", 0.0, None):
+            with self.subTest(index=index):
+                with self.assertRaises(ValueError):
+                    self._deserialize([self._marker(index)])
+
+
+class ElementMessageStreamReferencesOnDataTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.connection = Mock()
+        self.stream = ElementMessageStream(Mock(), self.connection)
+        # Run queued work inline instead of on the render thread.
+        self.stream.on_queue_render = lambda fn: fn()
+        self.received: list = []
+        self.stream._callable_dict["cb"] = lambda *args: self.received.append(args)
+
+    def _call(self, args: list, references: list) -> dict:
+        """Send a callCallable request the way the client does and return the response."""
+        request = {
+            "jsonrpc": "2.0",
+            "method": "callCallable",
+            "params": ["cb", args],
+            "id": 1,
+        }
+        self.connection.on_data.reset_mock()
+        self.stream.on_data(json.dumps(request).encode(), references)
+        return _sent_messages(self.connection)[0]
+
+    def test_callable_receives_the_referenced_objects(self):
+        first, second = object(), object()
+
+        response = self._call(
+            ["label", {"items": [{"__dhRefid": 1}]}, {"__dhRefid": 0}],
+            [first, second],
+        )
+
+        self.assertNotIn("error", response)
+        (label, options, third) = self.received[0]
+        self.assertEqual(label, "label")
+        self.assertIs(options["items"][0], second)
+        self.assertIs(third, first)
+
+    def test_unresolved_reference_is_an_error_and_the_callable_is_not_called(self):
+        with self.assertLogs("jsonrpc.manager", level="ERROR"):
+            response = self._call(["label", {"__dhRefid": 0}], [])
+
+        self.assertIn("Invalid reference 0", response["error"]["data"]["message"])
+        self.assertEqual(self.received, [])
+
+    def test_references_are_not_kept_for_the_next_request(self):
+        self._call(["label", {"__dhRefid": 0}], [object()])
+        self.assertEqual(len(self.received), 1)
+
+        with self.assertLogs("jsonrpc.manager", level="ERROR"):
+            response = self._call(["label", {"__dhRefid": 0}], [])
+
+        self.assertIn("error", response)
+        self.assertEqual(len(self.received), 1)

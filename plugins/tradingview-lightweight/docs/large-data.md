@@ -51,7 +51,7 @@ large = tvl.data.large_prices()
 chart = tvl.line(large, timestamp="Timestamp", value="Price")
 ```
 
-Drag-zoom into a small window: the chart refetches a finer aggregation. Click "reset zoom" (double-click an axis if `tvl.scale(axis_double_click_reset=True)` was passed to `handle_scale`): the coarse view returns.
+Zoom into a small window with the mouse wheel, or by dragging the time axis: the chart refetches a finer aggregation. Double-click to reset and the coarse full-range view returns. See [Pan and zoom](navigation.md).
 
 ### Autobin a histogram over a large table
 

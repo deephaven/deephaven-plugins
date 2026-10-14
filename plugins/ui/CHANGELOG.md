@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.42.2 - 2026-10-01
+
+#### Bug Fixes
+
+- **(ag-grid)** drop plotly.js from the dependency tree ([#1420](https://github.com/deephaven/deephaven-plugins/pull/1420)) - (3dffc87) - mofojed
+- DH-23490: Recover from invalid saved deephaven.ui state ([#1419](https://github.com/deephaven/deephaven-plugins/pull/1419)) - (3ce5cd8) - vbabich
+- DH-23775: Handle changes in non-closable panels while dashboard is open ([#1425](https://github.com/deephaven/deephaven-plugins/pull/1425)) - (28d7c7c) - vbabich
+- DH-23775: Remove orphan panels after loading document ([#1417](https://github.com/deephaven/deephaven-plugins/pull/1417)) - (d55dbed) - vbabich
+
+- - -
+
+
 ## ui-v0.42.1 - 2026-09-25
 
 #### Bug Fixes

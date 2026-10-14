@@ -44,6 +44,7 @@ import {
   METHOD_EVENT,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
+import { stringifyWithReferences } from './ReferenceUtils';
 import {
   transformNode,
   getComponentForElement,
@@ -156,7 +157,8 @@ function WidgetHandler({
             new JSONRPCServer(),
             new JSONRPCClient(request => {
               log.debug('Sending request', request);
-              widget.sendMessage(JSON.stringify(request), []);
+              const { payload, references } = stringifyWithReferences(request);
+              widget.sendMessage(payload, references);
             })
           )
         : null,

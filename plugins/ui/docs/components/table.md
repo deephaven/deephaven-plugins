@@ -635,6 +635,89 @@ t = ui.table(
 )
 ```
 
+### Action data
+
+The `action` callback receives a dictionary describing the cell that was clicked, along with the user's current selection.
+
+| Key                    | Type    | Description                                                                                      |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `value`                | `Any`   | The value of the cell.                                                                           |
+| `text`                 | `str`   | The rendered text of the cell.                                                                   |
+| `column_name`          | `str`   | The name of the column.                                                                          |
+| `is_column_header`     | `bool`  | Whether the menu was opened on a column header.                                                  |
+| `is_row_header`        | `bool`  | Whether the menu was opened on a row header.                                                     |
+| `always_fetch_columns` | `dict`  | Values for the columns named in [`always_fetch_columns`](#always-fetching-some-columns).         |
+| `selected_rows`        | `Table` | The selected rows as a Deephaven table. See [Acting on the selection](#acting-on-the-selection). |
+
+### Acting on the selection
+
+`data["selected_rows"]` is a static snapshot of the user's selection as a Deephaven table, so you can pass it to any table operation, plot it, or display it in another component.
+
+The snapshot reflects what the user actually sees, including sorts, quick filters, column moves, and hidden columns applied in the UI. Selecting individual cells yields the full row, matching the rest of the Deephaven UI. If nothing is selected, the result is an empty table with the same schema.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+@ui.component
+def selection_chart():
+    chart, set_chart = ui.use_state(None)
+
+    def plot_selection(data):
+        set_chart(dx.bar(data["selected_rows"], x="Sym", y="Price"))
+
+    return [
+        ui.table(
+            dx.data.stocks(ticking=False),
+            context_menu={"title": "Plot selection", "action": plot_selection},
+        ),
+        chart,
+    ]
+
+
+t = selection_chart()
+```
+
+Because `selected_rows` is a regular table, you can also read its values directly, for example with `iter_dict` or `deephaven.pandas.to_pandas`. The following example prints each selected row and lists the selected keys of a keyed table.
+
+```python order=t,_latest
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_latest = dx.data.stocks().last_by("Sym").with_keys("Sym")
+
+
+@ui.component
+def selected_keys_example():
+    keys, set_keys = ui.use_state([])
+
+    def print_selection(data):
+        selected = data["selected_rows"]
+        for row in selected.iter_dict():
+            print(row["Sym"], row["Exchange"], row["Price"])
+        set_keys([row["Sym"] for row in selected.iter_dict(cols=["Sym"])])
+
+    return [
+        ui.table(
+            _latest,
+            context_menu={"title": "Print selection", "action": print_selection},
+        ),
+        ui.text(f"Selected keys: {', '.join(keys) or 'none'}"),
+    ]
+
+
+t = selected_keys_example()
+```
+
+The selection is resolved the first time you access `selected_rows`, so actions that never read it cost nothing.
+
+A few limits apply:
+
+- Selections larger than 10,000 rows raise a `ValueError`. Narrow the selection before acting on it.
+- Rollup and tree tables are not supported, because their rows are aggregates rather than source rows.
+- Rows are matched by position, which is only reliable while rows are not shifting. For a ticking table, create it with `with_keys` so the selection is matched by key value instead and stays correct as rows move.
+
 ### Sub-menus
 
 The `actions` prop is an array of menu items that will be displayed in a sub-menu. If you specify `actions`, you cannot specify an `action` for the menu item. The action will be to show the sub-menu. Sub-menus can contain other sub-menus for deeply nested menus.

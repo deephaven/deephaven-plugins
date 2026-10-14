@@ -80,6 +80,24 @@ class UseContextTestCase(BaseTestCase):
         self.assertEqual(inside_text.props["children"], ["provided"])
         self.assertEqual(outside_text.props["children"], ["default"])
 
+    def test_provider_value_is_popped_when_a_child_fails(self):
+        """A failed render doesn't leave the provided value on the stack for later renders."""
+        ctx = ui.create_context("default")
+
+        @ui.component
+        def broken():
+            raise ValueError("broken")
+
+        @ui.component
+        def app():
+            return ctx(broken(), value="provided")
+
+        rc = RenderContext(TestRoot)
+        with self.assertRaises(ValueError):
+            Renderer(rc).render(app())
+
+        self.assertEqual(ctx._current_value(), "default")
+
     def test_nested_providers_inner_wins(self):
         """The innermost provider's value is what use_context sees."""
         ctx = ui.create_context("default")

@@ -12,6 +12,7 @@ import {
   GridRange,
   isExpandableGridModel,
   type ModelIndex,
+  type RangedSelection,
 } from '@deephaven/grid';
 import { assertNotNull } from '@deephaven/utils';
 import {
@@ -128,6 +129,21 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
+}
+
+/**
+ * Structural stand-in for `isRangedSelection`, which cannot be used here because
+ * it is an `instanceof` check. The host does not share `@deephaven/grid` with
+ * plugins, so this bundle has its own `RangedSelection` class while the selection
+ * is constructed from the host's copy, making `instanceof` always false.
+ * @param selection The selection to narrow
+ * @returns The selection as a RangedSelection, or null if it is not one
+ */
+export function asRangedSelection(selection: unknown): RangedSelection | null {
+  const candidate = selection as Partial<RangedSelection> | null;
+  return typeof candidate?.toRanges === 'function'
+    ? (candidate as RangedSelection)
+    : null;
 }
 
 /**

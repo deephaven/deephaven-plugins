@@ -1,17 +1,22 @@
 from __future__ import annotations
 
 import json
+import logging
+import threading
 from functools import partial
 from typing import Any
 import io
 
 from deephaven.plugin.object_type import MessageStream
+from deephaven.server.executors import submit_task
 from deephaven.table import PartitionedTable
 from deephaven.table_listener import listen, TableUpdate
 from deephaven.liveness_scope import LivenessScope
 
 from ..exporter import Exporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode, RevisionManager
+
+logger = logging.getLogger(__name__)
 
 
 class DeephavenFigureListener:
@@ -28,6 +33,11 @@ class DeephavenFigureListener:
             The partitioned tables to listen to
         _revision_manager: RevisionManager: The revision manager to use for the figure
         _handles: list[Any]: The handles for the listeners
+        _dirty_nodes: set[DeephavenFigureNode]: Nodes whose tables changed since
+            their last rebuild started
+        _update_task_active: bool: Whether an update task is queued or running
+        _update_lock: threading.Lock: Guards _dirty_nodes, _update_task_active and _closed
+        _closed: bool: Whether the connection is closed
     """
 
     def __init__(
@@ -53,16 +63,25 @@ class DeephavenFigureListener:
         self._handles = []
         self._listeners = []
         self._revision_manager = RevisionManager()
+        self._dirty_nodes = set()
+        self._update_task_active = False
+        self._update_lock = threading.Lock()
+        self._closed = False
 
         head_node = self._figure.get_head_node()
         self._partitioned_tables = head_node.partitioned_tables
 
         self._setup_listeners()
 
-        # force figure to be recreated after listeners are setup
-        # this ensures the figures are created correctly
-        # such as when partitions have been added but no listeners have been running
-        self._figure.recreate_figure()
+        # after registration and off the UG lock; anything newer reaches _on_update
+        rebuilt = False
+        for table, node in self._partitioned_tables.values():
+            if table.is_refreshing:
+                node.recreate_figure()
+                rebuilt = True
+        if not rebuilt:
+            # serialization marks what it sent on the figure, so don't share the script's
+            self._figure.recreate_figure()
 
     def _setup_listeners(self) -> None:
         """
@@ -80,12 +99,7 @@ class DeephavenFigureListener:
                     if isinstance(node.table, PartitionedTable)
                     else None
                 )
-                # do_replay=True atomically replays existing state and registers
-                # for future updates under the UG lock, preventing a race where
-                # partitions that appear before registration are missed entirely.
-                handle = listen(
-                    table, listen_func, do_replay=True, dependencies=dependencies
-                )
+                handle = listen(table, listen_func, dependencies=dependencies)
                 self._handles.append(handle)
                 self._liveness_scope.manage(handle)
 
@@ -102,29 +116,64 @@ class DeephavenFigureListener:
         self, node: DeephavenFigureNode, update: TableUpdate, is_replay: bool
     ) -> None:
         """
-        Update the figure. Because this is called when the PartitionedTable
-        meta table is updated, it will always trigger a rerender.
+        Mark the node as changed and make sure an update task will rebuild it.
+        This runs on the update graph thread, so it must not build anything.
 
         Args:
             node: The node to update. Changes will propagate up from this node.
             update: Not used. Required for the listener.
-            is_replay: Whether this update is a replay of the table's initial
-                snapshot. Replays only update the cached figure to make sure nothing is
-                missed. It's assumed the retrieve message sends the figure later.
+            is_replay: Not used. Required for the listener.
         """
-        if self._connection:
-            revision = self._revision_manager.get_revision()
-            node.recreate_figure()
-            # Replays only update the cached figure to make sure nothing is
-            # missed. It's assumed the retrieve message sends the figure later.
-            if is_replay:
+        with self._update_lock:
+            self._dirty_nodes.add(node)
+            if self._update_task_active or self._closed:
+                # the active task picks this node up before it finishes
                 return
-            figure = self._get_figure()
-            try:
-                self._connection.on_data(*self._build_figure_message(figure, revision))
-            except RuntimeError:
-                # trying to send data when the connection is closed, ignore
-                pass
+            self._update_task_active = True
+        submit_task("concurrent", self._process_updates)
+
+    def _process_updates(self) -> None:
+        """
+        Rebuild dirty nodes and send the new figure until none are left.
+        Updates that arrive during a rebuild are merged into one more rebuild.
+        """
+        while True:
+            with self._update_lock:
+                if not self._dirty_nodes or self._closed:
+                    self._update_task_active = False
+                    return
+                # take the nodes before reading any tables so no update is lost
+                nodes = list(self._dirty_nodes)
+                self._dirty_nodes.clear()
+
+            for node in nodes:
+                with self._update_lock:
+                    if self._closed:
+                        self._update_task_active = False
+                        return
+                try:
+                    revision = self._revision_manager.get_revision()
+                    node.recreate_figure()
+                    figure = self._get_figure()
+                    message = self._build_figure_message(figure, revision)
+                except Exception:
+                    logger.exception("Error updating figure")
+                    continue
+                try:
+                    self._connection.on_data(*message)
+                except RuntimeError:
+                    # trying to send data when the connection is closed, ignore
+                    pass
+
+    def close(self) -> None:
+        """
+        Stop listening for updates. Called when the connection closes.
+        """
+        with self._update_lock:
+            self._closed = True
+            self._dirty_nodes.clear()
+        for handle in self._handles:
+            handle.stop()
 
     def _handle_retrieve_figure(self) -> tuple[bytes, list[Any]]:
         """

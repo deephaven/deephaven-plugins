@@ -2833,14 +2833,13 @@ class TestGroupedConfigObjects(unittest.TestCase):
         self.assertEqual(watermark_image().to_dict(), {})
 
     def test_tooltip_to_dict(self):
-        self.assertEqual(tooltip().to_dict(), {"visible": True})
+        # An all-defaults tooltip carries no options: the block's presence in
+        # chartOptions is what enables it.
+        self.assertEqual(tooltip().to_dict(), {})
         self.assertEqual(
-            tooltip(show_value=True, value_precision=0).to_dict(),
-            {"visible": True, "showValue": True, "valuePrecision": 0},
+            tooltip(show_value=True, show_date=False).to_dict(),
+            {"showValue": True, "showDate": False},
         )
-        self.assertEqual(tooltip(visible=False).to_dict(), {})
-        with self.assertRaises(ValueError):
-            tooltip(visible=False, show_title=True)
 
     def test_scroll_scale_to_dict(self):
         self.assertEqual(
@@ -3164,13 +3163,9 @@ class TestTrackingTooltip(unittest.TestCase):
         c = chart(line_series(self.table))
         self.assertNotIn("tooltip", c.chart_options)
 
-    def test_visible_emits_block(self):
+    def test_tooltip_object_emits_block(self):
         c = chart(line_series(self.table), tooltip=tooltip())
-        self.assertEqual(c.chart_options["tooltip"], {"visible": True})
-
-    def test_visible_false_omits_block(self):
-        c = chart(line_series(self.table), tooltip=tooltip(visible=False))
-        self.assertNotIn("tooltip", c.chart_options)
+        self.assertEqual(c.chart_options["tooltip"], {})
 
     def test_all_options(self):
         c = chart(
@@ -3179,33 +3174,28 @@ class TestTrackingTooltip(unittest.TestCase):
                 show_title=False,
                 show_value=True,
                 show_date=False,
-                value_precision=3,
             ),
         )
         self.assertEqual(
             c.chart_options["tooltip"],
             {
-                "visible": True,
                 "showTitle": False,
                 "showValue": True,
                 "showDate": False,
-                "valuePrecision": 3,
             },
         )
 
-    def test_precision_zero_is_kept(self):
-        # 0 is falsy but a valid precision — must not be dropped.
-        c = chart(line_series(self.table), tooltip=tooltip(value_precision=0))
-        self.assertEqual(c.chart_options["tooltip"]["valuePrecision"], 0)
+    def test_true_is_shorthand_for_default_tooltip(self):
+        # tooltip=True and tooltip=tvl.tooltip() are the same chart option,
+        # matching legend=True.
+        self.assertEqual(
+            chart(line_series(self.table), tooltip=True).chart_options["tooltip"],
+            chart(line_series(self.table), tooltip=tooltip()).chart_options["tooltip"],
+        )
 
-    def test_details_with_visible_false_raise(self):
-        with self.assertRaises(ValueError) as ctx:
-            tooltip(visible=False, show_title=True)
-        self.assertIn("visible=True", str(ctx.exception))
-
-    def test_details_with_visible_false_lists_offenders(self):
-        with self.assertRaises(ValueError):
-            tooltip(visible=False, show_date=True, value_precision=2)
+    def test_false_omits_block(self):
+        c = chart(line_series(self.table), tooltip=False)
+        self.assertNotIn("tooltip", c.chart_options)
 
 
 if __name__ == "__main__":

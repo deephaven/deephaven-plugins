@@ -1,5 +1,24 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { openPanel, gotoPage, waitForLoad, SELECTORS } from './utils';
+import {
+  openPanel,
+  gotoPage,
+  waitForLoad,
+  SELECTORS,
+  generateVarName,
+  pasteInMonaco,
+} from './utils';
+
+/**
+ * Runs a command in the console.
+ * @param page The page
+ * @param command The command to run
+ */
+async function runInConsole(page: Page, command: string): Promise<void> {
+  await test.step('Run command in console', async () => {
+    await pasteInMonaco(page.locator('.console-input'), command);
+    await page.keyboard.press('Enter');
+  });
+}
 
 /**
  * Disables "Close Panels on Disconnect" so the layout (and the widget session)
@@ -392,6 +411,74 @@ test.describe('Dashboard persistence', () => {
     await restoredPanel.locator('.lm_tab', { hasText: 'Table Two' }).click();
     await waitForLoad(page);
     await expectActiveTableColumns(page, 'Tripled', 'Doubled');
+  });
+
+  // Saved state must not be restored into a component whose code changed, e.g. a
+  // value that is now used as a different type. A sibling whose code didn't change
+  // keeps its state, which it wouldn't if the bad state broke the whole render.
+  test('state of a component whose code changed is discarded on refresh', async ({
+    page,
+  }) => {
+    await gotoPage(page, '');
+
+    // Unique names, since browsers run in parallel against the same server
+    const varName = generateVarName();
+    const unchanged = `${varName}_unchanged`;
+    const changed = `${varName}_changed`;
+
+    await runInConsole(
+      page,
+      `from deephaven import ui
+
+@ui.component
+def ${unchanged}():
+    text, set_text = ui.use_state("Unchanged default")
+    return ui.text_field(label="Unchanged", value=text, on_change=set_text)
+
+@ui.component
+def ${changed}():
+    greeting, set_greeting = ui.use_state("Hello")
+    count, set_count = ui.use_state(42)
+    return ui.flex(
+        ui.text_field(label="Greeting", value=greeting, on_change=set_greeting),
+        ui.number_field(label="Count", value=count, on_change=set_count),
+    )
+
+@ui.component
+def ${varName}_parent():
+    return ui.flex(${unchanged}(), ${changed}(), direction="column")
+
+${varName} = ${varName}_parent()`
+    );
+
+    const panel = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE).first();
+    await expect(panel.getByLabel('Count', { exact: true })).toBeVisible();
+    await panel.getByLabel('Unchanged').fill('Kept');
+    await panel.getByLabel('Greeting').fill('Hi');
+    await expect(panel.getByLabel('Unchanged')).toHaveValue('Kept');
+    await expect(panel.getByLabel('Greeting')).toHaveValue('Hi');
+
+    // Redefine only the changed component, so its saved `count` (an int) would break `.upper()`
+    await runInConsole(
+      page,
+      `@ui.component
+def ${changed}():
+    greeting, set_greeting = ui.use_state("Goodbye")
+    shout, set_shout = ui.use_state("Foo")
+    return ui.flex(
+        ui.text_field(label="Greeting", value=greeting, on_change=set_greeting),
+        ui.text_field(label="Shout", value=shout.upper(), on_change=set_shout),
+    )`
+    );
+
+    await persistLayoutAndReload(page);
+
+    const restoredPanel = page
+      .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+      .first();
+    await expect(restoredPanel.getByLabel('Shout')).toHaveValue('FOO');
+    await expect(restoredPanel.getByLabel('Greeting')).toHaveValue('Goodbye');
+    await expect(restoredPanel.getByLabel('Unchanged')).toHaveValue('Kept');
   });
 
   // Panel count: the widget's saved state decides how many panels it renders

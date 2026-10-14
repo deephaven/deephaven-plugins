@@ -18,9 +18,10 @@ from deephaven.liveness_scope import liveness_scope
 from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
+from .._internal.utils import transform_node
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
-from ..renderer.NodeEncoder import CALLABLE_KEY
+from ..renderer.NodeEncoder import CALLABLE_KEY, REFERENCE_KEY
 from .._internal import (
     RenderContext,
     ExportedRenderState,
@@ -173,6 +174,11 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
     _url: str
     """The full URL."""
 
+    _is_restore_render: bool
+    """
+    Whether the next render is the first one after the client sent saved state.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -204,6 +210,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._exec_context = get_exec_ctx()
         self._is_closed = False
         self._last_document = {}
+        self._is_restore_render = False
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -214,19 +221,58 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             state_update()
 
         self._is_dirty = False
+        is_restore_render = self._is_restore_render
+        self._is_restore_render = False
 
         try:
-            node = self._renderer.render(self._element)
-            state = self._context.export_state()
+            node, state = self._render_node()
+        except Exception as e:
+            if not is_restore_render:
+                self._handle_render_error(e)
+                return
+            logger.warning(
+                "Rendering with the saved state failed, rendering again without it: %r",
+                e,
+                exc_info=True,
+            )
+            # Saved state that can't be rendered would otherwise stay in the dashboard and fail on every reload.
+            # A successful render replaces it on the client.
+            try:
+                self._context.import_state({})
+                node, state = self._render_node()
+            except Exception as retry_error:
+                self._handle_render_error(retry_error)
+                return
+
+        try:
             self._send_document_patch(node, state)
         except Exception as e:
-            # Send the error to the client for displaying to the user
-            # If there's an error sending it to the client, then it will be caught by the render exception handler
-            # and logged as an error message.
-            # Just log it as debug here so we don't show it in the console and in the error panel.
-            stack_trace = traceback.format_exc()
-            logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
-            self._send_document_error(e, stack_trace)
+            self._handle_render_error(e)
+
+    def _render_node(self) -> tuple[RenderedNode, ExportedRenderState]:
+        """
+        Render the element and export its state.
+
+        Returns:
+            The rendered node and the state to send with it.
+        """
+        node = self._renderer.render(self._element)
+        return node, self._context.export_state()
+
+    def _handle_render_error(self, e: Exception) -> None:
+        """
+        Send a render error to the client.
+
+        Args:
+            e: The error raised while rendering.
+        """
+        # Send the error to the client for displaying to the user
+        # If there's an error sending it to the client, then it will be caught by the render exception handler
+        # and logged as an error message.
+        # Just log it as debug here so we don't show it in the console and in the error panel.
+        stack_trace = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+        logger.debug("Error rendering document: %s %s", repr(e), stack_trace)
+        self._send_document_error(e, stack_trace)
 
     def _process_callable_queue(self) -> None:
         """
@@ -348,7 +394,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         logger.debug("Payload received: %s", decoded_payload)
 
         def handle_message():
-            response = self._manager.handle(decoded_payload, self._dispatcher)
+            # json-rpc writes the request into the context, so each request needs its own
+            response = self._manager.handle(
+                decoded_payload,
+                self._dispatcher,
+                context={"references": references},
+            )
 
             if response is None:
                 return
@@ -403,7 +454,10 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
         dispatcher["setUrlState"] = self._set_url_state
-        dispatcher["callCallable"] = self._call_callable
+        # The context carries the references that were sent with the request
+        dispatcher.add_method(
+            self._call_callable, name="callCallable", context_arg="context"
+        )
         dispatcher["closeCallable"] = self._close_callable
         return dispatcher
 
@@ -424,6 +478,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             if url is not None:
                 self.set_url(url)
         self._context.import_state(state)
+        self._is_restore_render = bool(state)
         self._mark_dirty()
 
     def _set_url_state(self, url: str) -> None:
@@ -459,7 +514,43 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
         )
 
-    def _call_callable(self, callable_id: str, args: Any) -> Any:
+    def _deserialize_references(self, node: Any, references: list[Any]) -> Any:
+        """
+        Replace every reference marker in a client payload with the object it refers to.
+        The counterpart of `_serialize_callables`, for objects sent from the client.
+
+        Args:
+            node: The payload to resolve, e.g. the args of a callable
+            references: The references that were sent with the payload
+
+        Returns:
+            The payload with each marker replaced by `references[index]`
+
+        Raises:
+            ValueError: If a marker's index is not a valid position in `references`
+        """
+
+        def resolve(_key: str, value: Any) -> Any:
+            if not isinstance(value, dict) or REFERENCE_KEY not in value:
+                return value
+            index = value[REFERENCE_KEY]
+            # index should be a non-negative integer within the bounds of the references list
+            # bool is a subclass of int and needs its own check
+            if (
+                isinstance(index, bool)
+                or not isinstance(index, int)
+                or not 0 <= index < len(references)
+            ):
+                raise ValueError(
+                    f"Invalid reference {index!r}: the client sent {len(references)} reference(s)"
+                )
+            return references[index]
+
+        return transform_node(node, resolve)
+
+    def _call_callable(
+        self, callable_id: str, args: Any, context: dict[str, Any] | None = None
+    ) -> Any:
         """
         Call a callable by its ID.
         If the result is a callable, it is registered as a temporary callable.
@@ -467,6 +558,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         Args:
             callable_id: The ID of the callable to call
             args: The array of arguments to pass to the callable. These will be spread as positional args to the callable.
+            context: The JSON-RPC request context. Holds the `references` sent with the request, which replace the reference markers in `args`.
         """
         logger.debug("Calling callable %s with %s", callable_id, args)
         fn = self._callable_dict.get(callable_id) or self._temp_callable_dict.get(
@@ -475,6 +567,10 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         if fn is None:
             logger.error("Callable not found: %s", callable_id)
             return
+
+        references = (context or {}).get("references", [])
+        args = self._deserialize_references(args, references)
+
         result = fn(*args)
 
         try:
