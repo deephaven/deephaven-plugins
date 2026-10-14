@@ -3,6 +3,19 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## tradingview-lightweight-v0.1.0 - 2026-10-14
+
+#### Features
+
+- **(tradingview-lightweight)** in-chart legend ([#1413](https://github.com/deephaven/deephaven-plugins/pull/1413)) - (5838d4a) - dsmmcken
+
+#### Bug Fixes
+
+- **(ag-grid)** drop plotly.js from the dependency tree ([#1420](https://github.com/deephaven/deephaven-plugins/pull/1420)) - (3dffc87) - mofojed
+
+- - -
+
+
 ## tradingview-lightweight-v0.0.1 - 2026-09-17
 
 #### Features
