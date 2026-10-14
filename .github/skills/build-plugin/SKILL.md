@@ -7,6 +7,10 @@ description: Build and install Python plugins using plugin_builder.py. Use when 
 
 Use `plugin_builder.py` from repo root. Requires venv activation first.
 
+By default, plugins are installed in **editable mode** (`pip install -e`), so
+Python source edits take effect without rebuilding. Pass `--wheel` to use the
+legacy build-wheel-then-install flow.
+
 ## First-time setup
 
 ```bash
@@ -22,13 +26,13 @@ npm install
 ## Commands
 
 ```bash
-# First install of a plugin (REQUIRED before using --reinstall)
+# First install of a plugin (editable)
 python tools/plugin_builder.py --install ui
 
 # First install with JS assets (for plugins with JS components)
 python tools/plugin_builder.py --js --install python-remote-file-source
 
-# Reinstall a plugin (use when code changed but version not bumped)
+# Reinstall a plugin (use when JS bundles or entry points need re-linking)
 python tools/plugin_builder.py --reinstall ui
 
 # Build multiple plugins
@@ -39,21 +43,33 @@ python tools/plugin_builder.py --js --reinstall ui
 
 # Build, install, and start server
 python tools/plugin_builder.py --install --server ui
+
+# Legacy wheel-based flow (build wheels and install them)
+python tools/plugin_builder.py --wheel --reinstall ui
 ```
 
 ## Common flags
 
-- `--install` / `-i`: Install plugin (REQUIRED on first run)
-- `--reinstall` / `-r`: Force reinstall (no version bump needed, only after --install)
-- `--js` / `-j`: Also build JS assets (additive - Python build still happens)
+- `--install` / `-i`: Install plugin (editable by default)
+- `--reinstall` / `-r`: Force reinstall (`--force-reinstall --no-deps`); useful
+  to refresh JS bundles or re-link entry points
+- `--js` / `-j`: Also build JS assets (additive - Python install still happens)
 - `--server` / `-s`: Start deephaven-server after build
 - `--docs` / `-d`: Build documentation
 - `--server-arg` / `-sa`: Pass argument to deephaven server (e.g., `-sa --port=9999`)
+- `--wheel`: Opt out of editable mode and use the legacy build-wheel + install path
+- `--build` / `-b`: Build wheels (only meaningful with `--wheel`; ignored otherwise)
 
 ## Notes
 
-- **Must use `--install` on first run** - `--reinstall` will fail if plugin not already installed
-- Assumes Python `.venv` is already sourced (`source .venv/bin/activate`)
-- Use `--reinstall` during development when version hasn't changed
-- Running with no flags defaults to `--js --install` for all plugins
-- First run may take longer to install dependencies
+- Editable installs mean Python source changes take effect on the next server
+  restart without rerunning the builder.
+- Use `--reinstall` when you've changed JS bundles, entry points, or package
+  metadata that needs re-linking.
+- JS assets are still bundled into `src/deephaven/<pkg>/_js/` during install
+  (driven by each plugin's `setup.py`); rerun the install when JS changes.
+- Assumes Python `.venv` is already sourced (`source .venv/bin/activate`).
+- Running with no flags defaults to `--js --install` for all plugins.
+- First run may take longer to install dependencies.
+- `--wheel` is required if you specifically need a wheel artifact (e.g. to
+  inspect or distribute it); CI builds wheels independently of this script.
