@@ -1,7 +1,7 @@
 import { type PanelProps } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import { useContextOrThrow } from '@deephaven/react-hooks';
-import { createContext, useCallback, useId, useMemo, useState } from 'react';
+import { createContext, useCallback, useState } from 'react';
 import { nanoid } from 'nanoid';
 
 /**
@@ -15,13 +15,8 @@ export interface ReactPanelManager {
    */
   metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
-  /**
-   * Triggered when a panel is opened
-   * @param panelId The panelId of the opened panel
-   * @param panelKey The serialized key path of the panel, if it has one
-   * @returns False if another open panel has the same key, so this panel needs a new id
-   */
-  onOpen: (panelId: string, panelKey?: string) => boolean;
+  /** Triggered when a panel is opened */
+  onOpen: (panelId: string) => void;
 
   /** Triggered when a panel is closed */
   onClose: (panelId: string) => void;
@@ -41,13 +36,6 @@ export interface ReactPanelManager {
   getInitialData: (panelId: string) => unknown[];
 
   /**
-   * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
-   * @param panelKey The serialized key path of the panel. A keyed panel gets the same id on every load.
-   * @param panelToken Identifies the calling panel, so asking again in the same render returns the same id
-   */
-  getPanelId: (panelKey?: string, panelToken?: string) => string;
-
-  /**
    * Whether a panel with this id is open
    * @param panelId The panelId to check
    */
@@ -63,11 +51,8 @@ export interface ReactPanelControl {
    */
   metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
-  /**
-   * Must be called when the panel is opened, before it's added to the layout
-   * @returns False if another open panel has the same key. The panel re-renders with a new id and should open then.
-   */
-  onOpen: () => boolean;
+  /** Must be called when the panel is opened, before it's added to the layout */
+  onOpen: () => void;
 
   /** Must be called when the panel is closed */
   onClose: () => void;
@@ -105,44 +90,25 @@ export function useReactPanelManager(): ReactPanelManager {
 /**
  * DO NOT call this hook anywhere except once in ReactPanel.
  * Use the controls for a single react panel.
- * Otherwise panelIds will be generated/rehydrated incorrectly.
- * @param panelKey The serialized key path of the panel, if it has one
+ * @param assignedId The id the panel manager gave the panel. A panel outside a managed layout gets a new id.
  */
-export function useReactPanel(panelKey?: string): ReactPanelControl {
+export function useReactPanel(assignedId?: string): ReactPanelControl {
   const {
     metadata,
     onClose,
     onOpen,
     onDataChange,
-    getPanelId,
     getInitialData,
     isPanelOpen,
   } = useReactPanelManager();
-  // The same in both renders when Strict Mode renders twice, so the panel doesn't take two ids
-  const panelToken = useId();
-  const assignedId = useMemo(
-    () => getPanelId(panelKey, panelToken),
-    [getPanelId, panelKey, panelToken]
-  );
-  // Replaces `assignedId` when another open panel already has the same key
-  const [duplicateId, setDuplicateId] = useState<{
-    assignedId: string;
-    panelId: string;
-  }>();
-  const panelId =
-    duplicateId?.assignedId === assignedId ? duplicateId.panelId : assignedId;
+  const [newId] = useState(() => nanoid());
+  const panelId = assignedId ?? newId;
 
   return {
     metadata,
     onClose: useCallback(() => onClose(panelId), [onClose, panelId]),
     isOpen: useCallback(() => isPanelOpen(panelId), [isPanelOpen, panelId]),
-    onOpen: useCallback(() => {
-      const isOpened = onOpen(panelId, panelKey);
-      if (!isOpened) {
-        setDuplicateId({ assignedId, panelId: nanoid() });
-      }
-      return isOpened;
-    }, [assignedId, onOpen, panelId, panelKey]),
+    onOpen: useCallback(() => onOpen(panelId), [onOpen, panelId]),
     onDataChange: useCallback(
       (data: unknown[]) => onDataChange(panelId, data),
       [onDataChange, panelId]

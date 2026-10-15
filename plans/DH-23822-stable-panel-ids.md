@@ -35,22 +35,32 @@ isn't used for identity: it contains sibling indices, so it shifts too.
 
 ### Choosing a panel id
 
-A `panelKeyMap` (identity → panel id) is saved alongside `panelIds`. `usePanelManager.getPanelId(panelKey?)` returns:
+A `panelKeyMap` (identity → panel id) is saved alongside `panelIds`. The panel manager reads every panel in the
+layout before it renders, and gives them all ids in one pure function (`layout/PanelIdUtils.ts`):
 
-1. **Keyed, in the map:** the saved id.
-2. **Keyed, not in the map:** a new id. If no keys were saved (old data, or a script that just added keys), it takes
-   the next positional id instead, so nothing moves when keys are first added.
-3. **Unkeyed:** the next saved id that isn't in the map, else a new id. An unkeyed panel can't take a keyed panel's
-   slot.
+1. **Known id:** a keyed panel gets the id of its key. Within a session, an unkeyed panel keeps the id of its
+   position.
+2. **Saved ids in order:** unkeyed panels without an id take the saved ids that aren't in the map, in order. If no
+   keys were saved (old data, or a script that just added keys), keyed panels take them too, so nothing moves when
+   keys are first added. An unkeyed panel can't take a keyed panel's slot.
+3. **New id:** derived from the panel's identity and a prefix unique to the panel manager.
 
-A key always maps to the same id, so a repeated or discarded render can't change it. Duplicate keys are found on open:
-`onOpen` returns false and logs a warning, and the panel opens with a new id. An unkeyed duplicate open still throws.
+The same layout and committed ids always give the same ids, so a repeated or discarded render can't change them. The
+ids are committed after the render, and the ordered saved ids are used up by the first ready render. A second panel
+with the same key gets a new id and a warning.
+
+Each panel gets its id in the `__dhPanelId` prop. `Dashboard`, `Row`, `Column` and `Stack` each have a static
+`getLayoutChildren` that returns the children they render, including the panels they wrap around bare content. They
+use it when they render, and the manager uses it to find the panels, so the rules live in one place. A panel rendered
+without an assigned id gets a new one and logs a warning, which makes a layout element missing `getLayoutChildren`
+visible.
 
 ### Loading
 
 - Until the document is ready, the unkeyed placeholders from `DashboardWidgetHandler` take every saved id in order,
   keyed ones included. Once it has been ready, every panel gets its id from the document.
-- The saved `panelKeyMap` is kept until then, so a document that errors or never loads doesn't erase it.
+- The saved `panelKeyMap` is kept until then, so a document that errors or never loads doesn't erase it. The ids are
+  also kept while the document reloads.
 - `ReactPanel` defers closing to a microtask and skips it if the id is open again, so a document panel that replaces a
   placeholder with the same id keeps its layout item.
 - A panel's initial state is the latest `panelStates` entry for its id, and a stale tab title is renamed on open.
@@ -63,11 +73,13 @@ A key always maps to the same id, so a repeated or discarded render can't change
   `panelIds`.
 - **`widget/WidgetUtils.tsx`**: every mapped element with a `key` also gets `__dhKey`, a copy of its React key, since
   React doesn't pass `key` through as a prop. Fragments are skipped. Component nodes still return their children.
-- **`layout/PanelKeyScopeContext.ts`**, **`layout/PanelKeyScope.tsx`**: the identity scope. `Row`, `Column` and
-  `Stack` add their `__dhKey`; `NestedDashboard` resets it.
-- **`layout/ReactPanel.tsx`**, **`layout/ReactPanelManager.ts`**: build the identity, `onOpen` returns whether the
-  panel opened, `isOpen` for the deferred close.
-- **`layout/usePanelManager.ts`**: ids as above; `syncOpenPanels` saves `panelKeyMap` from the open keyed panels.
+- **`layout/PanelIdUtils.ts`**: reads each panel's identity from the layout, resolves the ids, and passes each panel
+  its id.
+- **`layout/ReactPanel.tsx`**, **`layout/ReactPanelManager.ts`**: the panel opens with the id in `__dhPanelId`;
+  `isOpen` for the deferred close.
+- **`layout/usePanelManager.ts`**: takes the layout and returns it with each panel given its id; `syncOpenPanels`
+  saves `panelKeyMap` from the open keyed panels.
+- **`widget/DocumentHandler.tsx`**, **`layout/NestedDashboard.tsx`**: render the layout the panel manager returns.
 
 ### Python (`plugins/ui/src/deephaven/ui`)
 
@@ -83,7 +95,8 @@ A key always maps to the same id, so a repeated or discarded render can't change
 - **Adding keys to a script** works the same way, as long as all panels get keys in one change.
 - **Dashboards that are already shifted** stay that way until the widget is re-opened or a key changes.
 - **Removed panels** (DH-23775): a panel the document no longer renders is removed and its key drops out of the map.
-  If it comes back, it's a new panel and loses its placement and state.
+  If it comes back, it's a new panel and loses its placement and state, as in React. This also applies within a
+  session.
 
 ## Follow-ups
 
@@ -92,7 +105,8 @@ A key always maps to the same id, so a repeated or discarded render can't change
 - Missing-key warning for lists: DH-23985.
 - `useReactComponentKey()` in `@deephaven/dashboard`, reading the key from the React fiber, to replace `__dhKey`.
 - Optionally, component keys in panel identity.
-- Upgrade path: assign positional ids to keyed panels on open rather than during render.
+- Keep golden-layout in sync with the panels from one effect in the panel manager, instead of each `ReactPanel`
+  opening and closing its own item.
 
 ## Reproducer
 

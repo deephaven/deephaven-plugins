@@ -17,27 +17,19 @@ const mockPanelEvents: string[] = [];
 jest.mock('../layout/ReactPanel', () => {
   const { useEffect, useRef } = jest.requireActual('react');
   const { useReactPanel } = jest.requireActual('../layout/ReactPanelManager');
-  const { getPanelKey, usePanelKeyScope } = jest.requireActual(
-    '../layout/PanelKeyScopeContext'
-  );
   return {
     __esModule: true,
     default: function MockReactPanel({
       title,
-      __dhKey,
+      __dhPanelId,
     }: {
       title?: string;
-      __dhKey?: string;
+      __dhPanelId?: string;
     }) {
-      const { panelId, onOpen, onClose } = useReactPanel(
-        getPanelKey(usePanelKeyScope(), __dhKey)
-      );
+      const { panelId, onOpen, onClose } = useReactPanel(__dhPanelId);
       const mountTitle = useRef(title ?? 'placeholder').current;
       useEffect(() => {
-        const isOpened: boolean = onOpen();
-        if (!isOpened) {
-          return undefined;
-        }
+        onOpen();
         mockPanelEvents.push(`open ${mountTitle} ${panelId}`);
         return () => {
           mockPanelEvents.push(`close ${mountTitle} ${panelId}`);
@@ -49,14 +41,18 @@ jest.mock('../layout/ReactPanel', () => {
   };
 });
 
-jest.mock('../layout/Dashboard', () => ({
-  __esModule: true,
-  default: function MockDashboard({
-    children,
-  }: React.PropsWithChildren<object>) {
+function mockLayoutElement() {
+  function MockLayoutElement({ children }: React.PropsWithChildren<object>) {
     return children;
-  },
-}));
+  }
+  MockLayoutElement.getLayoutChildren = (children: React.ReactNode) => children;
+  return { __esModule: true, default: MockLayoutElement };
+}
+
+jest.mock('../layout/Dashboard', () => mockLayoutElement());
+jest.mock('../layout/Row', () => mockLayoutElement());
+jest.mock('../layout/Column', () => mockLayoutElement());
+jest.mock('../layout/Stack', () => mockLayoutElement());
 
 const mockWidgetHandler = jest.fn((props: WidgetHandlerProps) => null);
 jest.mock(

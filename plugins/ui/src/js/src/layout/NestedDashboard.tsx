@@ -13,15 +13,17 @@ import {
 import Log from '@deephaven/log';
 import { useDashboardPlugins } from '@deephaven/plugin';
 import { useThrottledCallback } from '@deephaven/react-hooks';
-import { EMPTY_ARRAY } from '@deephaven/utils';
-import type { DashboardElementProps, ElementIdProps } from './LayoutUtils';
+import {
+  type DashboardElementProps,
+  type ElementIdProps,
+  normalizeDashboardChildren,
+} from './LayoutUtils';
 import { InitialLayoutConfigContext } from './InitialLayoutConfigContext';
 import PortalPanelManager from './PortalPanelManager';
 import { usePanelManager } from './usePanelManager';
 import type { WidgetData } from '../widget/WidgetTypes';
 import { useWidgetStatus } from './useWidgetStatus';
 import DashboardContent from './DashboardContent';
-import { PanelKeyScopeContext } from './PanelKeyScopeContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { ReactPanelManagerContext } from './ReactPanelManager';
 
@@ -50,20 +52,23 @@ function NestedDashboardContent({
   onDataChange,
 }: NestedDashboardContentProps): JSX.Element {
   const { descriptor: widget } = useWidgetStatus();
-  const panelManager = usePanelManager({
+  const layoutChildren = useMemo(
+    () => normalizeDashboardChildren(children),
+    [children]
+  );
+  const { panelManager, children: panelChildren } = usePanelManager({
     widget,
     onDataChange,
     initialData: initialWidgetData,
+    children: layoutChildren,
+    isNested: true,
   });
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
       {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
       <ReactPanelContext.Provider value={null}>
-        {/* Keys are scoped to this dashboard's panel manager */}
-        <PanelKeyScopeContext.Provider value={EMPTY_ARRAY}>
-          <DashboardContent>{children}</DashboardContent>
-        </PanelKeyScopeContext.Provider>
+        <DashboardContent>{panelChildren}</DashboardContent>
       </ReactPanelContext.Provider>
     </ReactPanelManagerContext.Provider>
   );

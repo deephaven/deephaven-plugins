@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { type WidgetDescriptor, usePanelId } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
@@ -45,16 +45,22 @@ function DocumentHandler({
   const contextPanelId = usePanelId();
   const isNested = contextPanelId != null;
 
-  const panelManager = usePanelManager({
+  const rootChildren = useMemo(
+    () => getRootChildren(children, widget, isNested),
+    [children, widget, isNested]
+  );
+  const { panelManager, children: panelChildren } = usePanelManager({
     widget,
     initialData,
     onDataChange,
     onClose,
+    children: rootChildren,
+    isNested,
   });
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
-      {getRootChildren(children, widget, isNested)}
+      {panelChildren}
     </ReactPanelManagerContext.Provider>
   );
 }

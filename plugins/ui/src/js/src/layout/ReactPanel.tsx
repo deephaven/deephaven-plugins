@@ -31,7 +31,6 @@ import { type ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
-import { getPanelKey, usePanelKeyScope } from './PanelKeyScopeContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
 import WidgetErrorView from '../widget/WidgetErrorView';
@@ -79,7 +78,7 @@ function ReactPanel({
   // is being implicitly created
   children,
   title,
-  __dhKey,
+  __dhPanelId,
   backgroundColor,
   direction = 'column',
   wrap,
@@ -101,7 +100,6 @@ function ReactPanel({
   UNSAFE_className,
 }: Props): JSX.Element | null {
   const layoutManager = useLayoutManager();
-  const panelKey = getPanelKey(usePanelKeyScope(), __dhKey);
   const {
     metadata,
     onClose,
@@ -110,7 +108,14 @@ function ReactPanel({
     panelId,
     onDataChange,
     getInitialData,
-  } = useReactPanel(panelKey);
+  } = useReactPanel(__dhPanelId);
+  useEffect(() => {
+    if (__dhPanelId == null) {
+      log.warn(
+        `Panel ${panelId} wasn't given an id by its panel manager, so it won't keep its place in the layout when reloaded`
+      );
+    }
+  }, [__dhPanelId, panelId]);
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle =
@@ -211,10 +216,7 @@ function ReactPanel({
      */
     function openIfNecessary() {
       if (!isPanelOpenRef.current) {
-        if (!onOpen()) {
-          // Another panel has this key, so this one re-renders with a new id
-          return;
-        }
+        onOpen();
         isPanelOpenRef.current = true;
       }
 

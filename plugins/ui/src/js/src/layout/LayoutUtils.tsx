@@ -22,17 +22,34 @@ export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
 export const KEY_PROP = '__dhKey';
 
+export type LayoutOptions = {
+  /** Whether the document is nested in a panel, so a dashboard in it has its own panel manager */
+  isNested: boolean;
+  /** Whether the layout is restored from a saved config, so layout elements only wrap bare content in panels */
+  hasInitialLayout: boolean;
+};
+
+/** Layout element component that can tell which children it renders */
+export type LayoutElementType = {
+  /** The children the element renders, or undefined if its panels belong to another panel manager */
+  getLayoutChildren?: (
+    children: React.ReactNode,
+    options: LayoutOptions
+  ) => React.ReactNode;
+};
+
 /** React doesn't pass `key` on to the component, so it's copied to this prop */
 export type KeyProps = {
   __dhKey?: string;
 };
 
-export type ReactPanelProps = React.PropsWithChildren<
-  KeyProps & {
-    /** Title of the panel */
-    title?: string;
-  }
->;
+export type ReactPanelProps = React.PropsWithChildren<{
+  /** Title of the panel */
+  title?: string;
+
+  /** Id the panel manager gave the panel */
+  __dhPanelId?: string;
+}>;
 
 /**
  * Describes a panel element that can be rendered in the UI.
@@ -55,11 +72,9 @@ export function isPanelElementNode(obj: unknown): obj is PanelElementNode {
   );
 }
 
-export type RowElementProps = React.PropsWithChildren<
-  KeyProps & {
-    height?: number;
-  }
->;
+export type RowElementProps = React.PropsWithChildren<{
+  height?: number;
+}>;
 
 /**
  * Describes a row element that can be rendered in the UI.
@@ -77,11 +92,9 @@ export function isRowElementNode(obj: unknown): obj is RowElementNode {
   );
 }
 
-export type ColumnElementProps = React.PropsWithChildren<
-  KeyProps & {
-    width?: number;
-  }
->;
+export type ColumnElementProps = React.PropsWithChildren<{
+  width?: number;
+}>;
 
 /**
  * Describes a column element that can be rendered in the UI.
@@ -103,13 +116,11 @@ export function isColumnElementNode(obj: unknown): obj is ColumnElementNode {
   );
 }
 
-export type StackElementProps = React.PropsWithChildren<
-  KeyProps & {
-    height?: number;
-    width?: number;
-    activeItemIndex?: number;
-  }
->;
+export type StackElementProps = React.PropsWithChildren<{
+  height?: number;
+  width?: number;
+  activeItemIndex?: number;
+}>;
 
 /**
  * Describes a stack element that can be rendered in the UI.

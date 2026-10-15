@@ -3,6 +3,7 @@ import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
 import { Flex } from '@deephaven/components';
 import {
+  type LayoutOptions,
   normalizeColumnChildren,
   wrapBareChildrenInPanel,
   type ColumnElementProps,
@@ -10,7 +11,6 @@ import {
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
 import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
-import { PanelKeyScope } from './PanelKeyScope';
 
 function LayoutColumn({
   children,
@@ -39,16 +39,23 @@ function LayoutColumn({
     column.setSize();
   }, [column]);
 
-  const normalizedChildren = normalizeColumnChildren(children);
-
   return (
     <ParentItemContext.Provider value={column}>
-      {normalizedChildren}
+      {children}
     </ParentItemContext.Provider>
   );
 }
 
-function Column({ children, width, __dhKey }: ColumnElementProps): JSX.Element {
+function getColumnChildren(
+  children: React.ReactNode,
+  { hasInitialLayout }: Pick<LayoutOptions, 'hasInitialLayout'>
+): React.ReactNode {
+  return hasInitialLayout
+    ? wrapBareChildrenInPanel(children)
+    : normalizeColumnChildren(children);
+}
+
+function Column({ children, width }: ColumnElementProps): JSX.Element {
   const panelId = usePanelId();
   const initialLayoutConfig = useInitialLayoutConfig();
 
@@ -63,23 +70,18 @@ function Column({ children, width, __dhKey }: ColumnElementProps): JSX.Element {
     );
   }
 
-  if (initialLayoutConfig != null) {
-    // If there's already an initial layout defined, user has likely already customized their layout.
-    // Don't add a column here, or normalize the children which might add a stack unnecessarily.
-    // The persisted layout already has the rows/columns/stacks mapped out, but bare
-    // content children still need a panel wrapper so they portal into their persisted panel.
-    return (
-      <PanelKeyScope elementKey={__dhKey}>
-        {wrapBareChildrenInPanel(children)}
-      </PanelKeyScope>
-    );
+  // A persisted layout already has the rows/columns/stacks mapped out, so don't add a column.
+  // Bare content children still need a panel wrapper so they portal into their persisted panel.
+  const hasInitialLayout = initialLayoutConfig != null;
+  const layoutChildren = getColumnChildren(children, { hasInitialLayout });
+  if (hasInitialLayout) {
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{layoutChildren}</>;
   }
 
-  return (
-    <PanelKeyScope elementKey={__dhKey}>
-      <LayoutColumn width={width}>{children}</LayoutColumn>
-    </PanelKeyScope>
-  );
+  return <LayoutColumn width={width}>{layoutChildren}</LayoutColumn>;
 }
+
+Column.getLayoutChildren = getColumnChildren;
 
 export default Column;

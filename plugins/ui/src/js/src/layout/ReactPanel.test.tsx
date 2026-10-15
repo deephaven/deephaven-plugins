@@ -20,7 +20,6 @@ import PortalPanelManagerContext, {
   type PortalPanelMap,
 } from './PortalPanelManagerContext';
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
-import { PanelKeyScopeContext } from './PanelKeyScopeContext';
 
 const mockPanelId = 'test-panel-id';
 // Stable like the real manager's, so re-renders don't re-run the panel's effects
@@ -39,19 +38,16 @@ function makeReactPanelManager({
   children,
   metadata = defaultDescriptor,
   onClose = jest.fn(),
-  onOpen = jest.fn(() => true),
-  getPanelId = jest.fn(() => mockPanelId),
+  onOpen = jest.fn(),
   onDataChange = jest.fn(),
   getInitialData = jest.fn(() => []),
   isPanelOpen = mockIsPanelOpen,
   title = 'test title',
-  panelKey,
-}: Partial<ReactPanelProps> &
-  Partial<ReactPanelManager> & { panelKey?: string } = {}) {
+  __dhPanelId = mockPanelId,
+}: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
   return (
     <ReactPanelManagerContext.Provider
       value={{
-        getPanelId,
         metadata,
         onClose,
         onOpen,
@@ -60,7 +56,7 @@ function makeReactPanelManager({
         isPanelOpen,
       }}
     >
-      <ReactPanel title={title} __dhKey={panelKey}>
+      <ReactPanel title={title} __dhPanelId={__dhPanelId}>
         {children}
       </ReactPanel>
     </ReactPanelManagerContext.Provider>
@@ -71,19 +67,17 @@ function makeTestComponent({
   children,
   metadata = defaultDescriptor,
   onClose = jest.fn(),
-  onOpen = jest.fn(() => true),
-  getPanelId = jest.fn(() => mockPanelId),
+  onOpen = jest.fn(),
   isPanelOpen,
   portals = new Map(),
   status = defaultStatus,
   title = 'test title',
-  panelKey,
+  __dhPanelId = mockPanelId,
 }: Partial<ReactPanelProps> &
   Partial<ReactPanelManager> & {
     metadata?: WidgetDescriptor;
     portals?: PortalPanelMap;
     status?: WidgetStatus;
-    panelKey?: string;
   } = {}) {
   return (
     <WidgetStatusContext.Provider value={status}>
@@ -93,10 +87,9 @@ function makeTestComponent({
           metadata,
           onClose,
           onOpen,
-          getPanelId,
           isPanelOpen,
           title,
-          panelKey,
+          __dhPanelId,
         })}
       </PortalPanelManagerContext.Provider>
     </WidgetStatusContext.Provider>
@@ -117,7 +110,7 @@ async function unmountAndSettle(unmount: () => void) {
 }
 
 it('opens panel on mount, and closes panel on unmount', async () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const { unmount } = render(makeTestComponent({ onOpen, onClose }));
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
@@ -174,7 +167,7 @@ it('removes a non-closable panel from the layout on unmount', async () => {
 });
 
 it('finds and closes existing panels from the layout root, but opens in the parent stack', async () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   // Use a parent that is distinct from the layout root, e.g. the user moved the panel
   // into a different stack within the layout.
@@ -208,7 +201,7 @@ it('finds and closes existing panels from the layout root, but opens in the pare
 });
 
 it('re-attaches a detached parent to the root before opening the panel', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   // A parent that is detached from the root (parent.parent === null)
   const parent = TestUtils.createMockProxy<ContentItem>({ parent: null });
@@ -231,7 +224,7 @@ it('re-attaches a detached parent to the root before opening the panel', () => {
 });
 
 it('re-attaches the topmost detached ancestor to the root before opening the panel', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   // parent is a stack inside a detached row (grandparent.parent === null)
   const grandparent = TestUtils.createMockProxy<ContentItem>({ parent: null });
@@ -258,7 +251,7 @@ it('re-attaches the topmost detached ancestor to the root before opening the pan
 });
 
 it('does not re-attach when the parent is the layout root', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const { root } = (useLayoutManager as jest.Mock)();
   // A real golden-layout root has a null parent. Without the guard, root would be
@@ -280,7 +273,7 @@ it('does not re-attach when the parent is the layout root', () => {
 });
 
 it('only calls open once if the panel has not closed and only children change', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const metadata = { type: 'bar' };
   const children = 'hello';
@@ -301,7 +294,7 @@ it('only calls open once if the panel has not closed and only children change', 
 });
 
 it('calls openComponent again after panel is closed only if the metadata changes', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const metadata = { type: 'bar' };
   const children = 'hello';
@@ -359,7 +352,7 @@ it('calls openComponent again after panel is closed only if the metadata changes
 
 // Case when rehydrating a widget
 it('does not call openComponent or setActiveContentItem if panel already exists when created', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const mockStack = {
     setActiveContentItem: jest.fn(),
@@ -412,7 +405,7 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
 });
 
 it('calls setActiveContentItem if metadata changed while the panel already exists', () => {
-  const onOpen = jest.fn(() => true);
+  const onOpen = jest.fn();
   const onClose = jest.fn();
   const metadata = { type: 'bar' };
   const children = 'hello';
@@ -498,55 +491,6 @@ it('displays an error if the widget is in an error state', () => {
 
   const { getByText } = within(portal);
   expect(getByText('test error')).toBeDefined();
-});
-
-describe('key', () => {
-  it('gets its id by its key within the enclosing key scope', () => {
-    const getPanelId = jest.fn(() => mockPanelId);
-    const onOpen = jest.fn(() => true);
-    render(
-      <PanelKeyScopeContext.Provider value={['stack-key']}>
-        {makeTestComponent({ getPanelId, onOpen, panelKey: 'panel-key' })}
-      </PanelKeyScopeContext.Provider>
-    );
-
-    const panelKey = JSON.stringify(['stack-key', 'panel-key']);
-    expect(getPanelId).toHaveBeenCalledWith(panelKey, expect.any(String));
-    expect(onOpen).toHaveBeenCalledWith(mockPanelId, panelKey);
-  });
-
-  it('gets a positional id without a key, even inside a key scope', () => {
-    const getPanelId = jest.fn(() => mockPanelId);
-    render(
-      <PanelKeyScopeContext.Provider value={['stack-key']}>
-        {makeTestComponent({ getPanelId })}
-      </PanelKeyScopeContext.Provider>
-    );
-
-    expect(getPanelId).toHaveBeenCalledWith(undefined, expect.any(String));
-  });
-
-  it('opens with a new id when another open panel has the same key', () => {
-    const onOpen = jest
-      .fn<boolean, [string, string?]>()
-      .mockReturnValueOnce(false)
-      .mockReturnValue(true);
-    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(undefined);
-    render(makeTestComponent({ onOpen, panelKey: 'panel-key' }));
-
-    const panelKey = JSON.stringify(['panel-key']);
-    expect(onOpen).toHaveBeenCalledTimes(2);
-    expect(onOpen).toHaveBeenNthCalledWith(1, mockPanelId, panelKey);
-    const [newId] = onOpen.mock.calls[1];
-    expect(newId).not.toBe(mockPanelId);
-    expect(onOpen).toHaveBeenNthCalledWith(2, newId, panelKey);
-    expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
-    expect(LayoutUtils.openComponent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        config: expect.objectContaining({ id: newId }),
-      })
-    );
-  });
 });
 
 describe('title', () => {

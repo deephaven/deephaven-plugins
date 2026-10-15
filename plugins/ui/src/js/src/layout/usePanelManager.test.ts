@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { renderHook, act } from '@testing-library/react';
 import {
   LayoutManagerContext,
@@ -6,9 +6,14 @@ import {
   type WidgetDescriptor,
 } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
-import { usePanelManager } from './usePanelManager';
+import {
+  usePanelManager as usePanelManagerWithLayout,
+  type UsePanelManagerProps,
+} from './usePanelManager';
 import { type WidgetStatus } from './WidgetStatusContext';
 import { type ReadonlyWidgetData } from '../widget/WidgetTypes';
+import ReactPanel from './ReactPanel';
+import { mapLayoutPanels, PANEL_ID_PROP } from './PanelIdUtils';
 
 let mockWidgetStatus: WidgetStatus['status'] = 'ready';
 jest.mock('./useWidgetStatus', () => ({
@@ -47,6 +52,44 @@ function makeWidget(
   });
 }
 
+/** Most tests only need the panel manager */
+function usePanelManager(props: UsePanelManagerProps) {
+  return usePanelManagerWithLayout(props).panelManager;
+}
+
+function panel(title?: string, key?: string): React.ReactElement {
+  return React.createElement(ReactPanel as React.ElementType, {
+    key,
+    __dhKey: key,
+    title,
+  });
+}
+
+/** The id each panel in the layout was given, in render order */
+function getIds(children: ReactNode): string[] {
+  const ids: string[] = [];
+  mapLayoutPanels(
+    children,
+    { isNested: false, hasInitialLayout: false },
+    element => {
+      ids.push((element.props as Record<string, string>)[PANEL_ID_PROP]);
+      return element;
+    }
+  );
+  return ids;
+}
+
+function renderLayout(
+  layout: ReactNode,
+  props: Partial<UsePanelManagerProps> = {}
+) {
+  return renderHook(
+    ({ children }: { children: ReactNode }) =>
+      usePanelManagerWithLayout({ widget: makeWidget(), ...props, children }),
+    { initialProps: { children: layout } }
+  );
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockWidgetStatus = 'ready';
@@ -63,19 +106,16 @@ describe('usePanelManager', () => {
         onOpen: expect.any(Function),
         onClose: expect.any(Function),
         onDataChange: expect.any(Function),
-        getPanelId: expect.any(Function),
         getInitialData: expect.any(Function),
       })
     );
   });
 
-  describe('getPanelId', () => {
+  describe('panel ids', () => {
     it('generates unique panel IDs when no initialData', () => {
-      const widget = makeWidget();
-      const { result } = renderHook(() => usePanelManager({ widget }));
+      const { result } = renderLayout([panel(), panel()]);
 
-      const id1 = result.current.getPanelId();
-      const id2 = result.current.getPanelId();
+      const [id1, id2] = getIds(result.current.children);
 
       expect(id1).toBeDefined();
       expect(id2).toBeDefined();
@@ -83,21 +123,29 @@ describe('usePanelManager', () => {
     });
 
     it('returns stored panel IDs from initialData first', () => {
-      const widget = makeWidget();
       const initialData: ReadonlyWidgetData = {
         panelIds: ['stored-id-1', 'stored-id-2'],
       };
 
-      const { result } = renderHook(() =>
-        usePanelManager({ widget, initialData })
-      );
+      const { result } = renderLayout([panel(), panel(), panel()], {
+        initialData,
+      });
 
-      expect(result.current.getPanelId()).toBe('stored-id-1');
-      expect(result.current.getPanelId()).toBe('stored-id-2');
-      // Third call should generate a new ID
-      const thirdId = result.current.getPanelId();
+      const [id1, id2, thirdId] = getIds(result.current.children);
+      expect(id1).toBe('stored-id-1');
+      expect(id2).toBe('stored-id-2');
+      // Third panel should get a new ID
       expect(thirdId).not.toBe('stored-id-1');
       expect(thirdId).not.toBe('stored-id-2');
+    });
+
+    it('keeps the ids of the panels in the same positions when the document changes', () => {
+      const { result, rerender } = renderLayout([panel('A'), panel('B')]);
+      const ids = getIds(result.current.children);
+
+      rerender({ children: [panel('A'), panel('B'), panel('C')] });
+
+      expect(getIds(result.current.children).slice(0, 2)).toEqual(ids);
     });
   });
 
@@ -334,7 +382,7 @@ describe('usePanelManager', () => {
 
   describe('metadata', () => {
     it('exposes the widget as metadata', () => {
-      const widget = makeWidget({ id: 'custom-id', name: 'Custom Widget' });
+      const widget = makeWidget();
       const { result } = renderHook(() => usePanelManager({ widget }));
 
       expect(result.current.metadata).toBe(widget);
@@ -373,7 +421,7 @@ describe('usePanelManager', () => {
       const { result } = renderInLayout(onDataChange);
 
       act(() => {
-        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen('alive');
       });
 
       expect(LayoutUtils.getStackForConfig).toHaveBeenCalledTimes(1);
@@ -413,8 +461,8 @@ describe('usePanelManager', () => {
 
       // A placeholder panel opens for every saved id while loading
       act(() => {
-        result.current.onOpen(result.current.getPanelId());
-        result.current.onOpen(result.current.getPanelId());
+        result.current.onOpen('alive');
+        result.current.onOpen('orphan');
       });
       expect(orphanItem.remove).not.toHaveBeenCalled();
 
@@ -434,73 +482,38 @@ describe('usePanelManager', () => {
     });
 
     it('does not hand out orphaned saved ids to panels added afterwards', () => {
-      const { result } = renderInLayout();
-
-      expect(result.current.getPanelId()).toBe('alive');
-      act(() => {
-        result.current.onOpen('alive');
+      const { result, rerender } = renderLayout([panel('Alive')], {
+        initialData,
       });
 
-      expect(result.current.getPanelId()).not.toBe('orphan');
+      expect(getIds(result.current.children)).toEqual(['alive']);
+      act(() => {
+        result.current.panelManager.onOpen('alive');
+      });
+      rerender({ children: [panel('Alive'), panel('New')] });
+
+      expect(getIds(result.current.children)[1]).not.toBe('orphan');
     });
   });
 
   describe('keyed panels', () => {
     const keyA = JSON.stringify(['a']);
     const keyB = JSON.stringify(['b']);
-    const generatedId = expect.stringMatching(/^generated-id-/);
     const keyedData: ReadonlyWidgetData = {
       panelIds: ['a-id', 'b-id'],
       panelKeyMap: { [keyA]: 'a-id', [keyB]: 'b-id' },
     };
 
-    function renderManager(
-      initialData?: ReadonlyWidgetData,
-      onDataChange = jest.fn()
-    ) {
-      return renderHook(() =>
-        usePanelManager({ widget: makeWidget(), initialData, onDataChange })
-      );
-    }
-
-    it('gives a keyed panel its saved id regardless of order', () => {
-      const { result } = renderManager(keyedData);
-
-      expect(result.current.getPanelId(keyB)).toBe('b-id');
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-    });
-
-    it('gives a new keyed panel inserted before others a new id', () => {
-      const { result } = renderManager(keyedData);
-
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-      expect(result.current.getPanelId(JSON.stringify(['new']))).toEqual(
-        generatedId
-      );
-      expect(result.current.getPanelId(keyB)).toBe('b-id');
-    });
-
-    it('never gives an unkeyed panel a keyed panel id', () => {
-      const { result } = renderManager({
-        panelIds: ['a-id', 'unkeyed-id'],
-        panelKeyMap: { [keyA]: 'a-id' },
-      });
-
-      expect(result.current.getPanelId()).toBe('unkeyed-id');
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-      expect(result.current.getPanelId()).toEqual(generatedId);
-    });
-
     it('gives keyed panels positional ids when no keys were saved, then saves the keys', () => {
       const onDataChange = jest.fn();
-      const { result } = renderManager(
-        { panelIds: ['first-id', 'second-id'] },
-        onDataChange
-      );
+      const { result } = renderLayout([panel('A', 'a'), panel('B', 'b')], {
+        initialData: { panelIds: ['first-id', 'second-id'] },
+        onDataChange,
+      });
 
       act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
-        result.current.onOpen(result.current.getPanelId(keyB), keyB);
+        result.current.panelManager.onOpen('first-id');
+        result.current.panelManager.onOpen('second-id');
       });
 
       expect(onDataChange).toHaveBeenLastCalledWith(
@@ -511,194 +524,89 @@ describe('usePanelManager', () => {
       );
     });
 
-    it('refuses to open a second panel with the same key, and keeps the first under the key', () => {
-      const onDataChange = jest.fn();
-      const { result } = renderManager(keyedData, onDataChange);
-
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-
-      let isFirstOpened: boolean | undefined;
-      let isDuplicateOpened: boolean | undefined;
-      act(() => {
-        isFirstOpened = result.current.onOpen('a-id', keyA);
-        isDuplicateOpened = result.current.onOpen('a-id', keyA);
-      });
-      expect(isFirstOpened).toBe(true);
-      expect(isDuplicateOpened).toBe(false);
-      expect(mockLogWarn).toHaveBeenCalledTimes(1);
-
-      // The duplicate opens again with a new id of its own
-      act(() => {
-        result.current.onOpen('duplicate-id', keyA);
-      });
-
-      expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          panelIds: ['a-id', 'duplicate-id'],
-          panelKeyMap: { [keyA]: 'a-id' },
-        })
-      );
-    });
-
-    it('lets a keyed panel moved to another parent keep its id, without a duplicate warning', () => {
-      const onDataChange = jest.fn();
-      const { result } = renderManager(keyedData, onDataChange);
-
-      act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
-      });
-      // The moved panel renders while the old one is still open
-      const movedId = result.current.getPanelId(keyA);
-      expect(movedId).toBe('a-id');
-      // React runs the old panel's cleanup before the moved panel's effects
-      act(() => {
-        result.current.onClose('a-id');
-        result.current.onOpen(movedId, keyA);
-      });
-
-      expect(mockLogWarn).not.toHaveBeenCalled();
-      expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          panelIds: ['a-id'],
-          panelKeyMap: { [keyA]: 'a-id' },
-        })
-      );
-    });
-
-    it('gives the same ids when a render is repeated or thrown away', () => {
-      const { result } = renderManager(keyedData);
-      const newKey = JSON.stringify(['new']);
-
-      // A thrown away render
-      result.current.getPanelId(keyA);
-      const newId = result.current.getPanelId(newKey);
-
-      expect(result.current.getPanelId(keyA)).toBe('a-id');
-      expect(result.current.getPanelId(newKey)).toBe(newId);
-      let isOpened: boolean | undefined;
-      act(() => {
-        isOpened = result.current.onOpen('a-id', keyA);
-      });
-      expect(isOpened).toBe(true);
-      expect(mockLogWarn).not.toHaveBeenCalled();
-    });
-
-    it('gives a keyed panel its id back when it reopens', () => {
-      const { result } = renderManager(keyedData);
-
-      act(() => {
-        result.current.onOpen(result.current.getPanelId(keyB), keyB);
-      });
-      act(() => {
-        result.current.onClose('b-id');
-      });
-
-      expect(result.current.getPanelId(keyB)).toBe('b-id');
-    });
-
-    it('drops keys of panels that did not open', () => {
-      const onDataChange = jest.fn();
-      const { result } = renderManager(keyedData, onDataChange);
-
-      act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
-      });
-
-      expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          panelIds: ['a-id'],
-          panelKeyMap: { [keyA]: 'a-id' },
-        })
-      );
-    });
-
     it('omits the key map when no keyed panels are open', () => {
       const onDataChange = jest.fn();
-      const { result } = renderManager(keyedData, onDataChange);
+      const { result } = renderLayout([panel('Unkeyed')], {
+        initialData: keyedData,
+        onDataChange,
+      });
 
       act(() => {
-        result.current.onOpen(result.current.getPanelId());
+        getIds(result.current.children).forEach(
+          result.current.panelManager.onOpen
+        );
       });
 
       expect(onDataChange.mock.lastCall[0].panelKeyMap).toBeUndefined();
     });
 
-    it('lets the document panel take over the id of a remounted placeholder', () => {
-      mockWidgetStatus = 'loading';
-      const onDataChange = jest.fn();
-      let documentPanelId: string | undefined;
-      const { result, rerender } = renderHook(() => {
-        const manager = usePanelManager({
-          widget: makeWidget(),
-          initialData: keyedData,
-          onDataChange,
-        });
-        // The document's panel claims its id in the render where the document becomes ready
-        if (mockWidgetStatus === 'ready' && documentPanelId == null) {
-          documentPanelId = manager.getPanelId(keyA);
-        }
-        return manager;
+    it('gives a second panel with the same key a new id, and warns once', () => {
+      const document = [panel('A', 'a'), panel('Duplicate', 'a')];
+      const { result, rerender } = renderLayout(document, {
+        initialData: keyedData,
       });
+      rerender({ children: document });
 
-      act(() => {
-        result.current.onOpen(result.current.getPanelId(keyA), keyA);
-      });
-
-      mockWidgetStatus = 'ready';
-      rerender();
-      expect(documentPanelId).toBe('a-id');
-      act(() => {
-        result.current.onClose('a-id');
-        result.current.onOpen('a-id', keyA);
-      });
-
-      expect(onDataChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          panelIds: ['a-id'],
-          panelKeyMap: { [keyA]: 'a-id' },
-        })
-      );
+      const [id, duplicateId] = getIds(result.current.children);
+      expect(id).toBe('a-id');
+      expect(duplicateId).not.toBe('a-id');
+      expect(mockLogWarn).toHaveBeenCalledTimes(1);
     });
 
-    it('refuses a duplicate key after the placeholders are replaced', () => {
-      mockWidgetStatus = 'loading';
-      const { result, rerender } = renderManager(keyedData);
-      act(() => {
-        result.current.onOpen(result.current.getPanelId());
-        result.current.onOpen(result.current.getPanelId());
+    it('gives a removed keyed panel a new id when it comes back', () => {
+      const { result, rerender } = renderLayout(
+        [panel('A', 'a'), panel('B', 'b')],
+        { initialData: keyedData }
+      );
+
+      rerender({ children: [panel('B', 'b')] });
+      rerender({ children: [panel('A', 'a'), panel('B', 'b')] });
+
+      const [aId, bId] = getIds(result.current.children);
+      expect(aId).not.toBe('a-id');
+      expect(bId).toBe('b-id');
+    });
+
+    it('keeps the ids of keyed panels while the document reloads', () => {
+      const document = [panel('B', 'b'), panel('A', 'a')];
+      const { result, rerender } = renderLayout(document, {
+        initialData: keyedData,
       });
+
+      mockWidgetStatus = 'loading';
+      rerender({ children: [panel(), panel()] });
+      mockWidgetStatus = 'ready';
+      rerender({ children: document });
+
+      expect(getIds(result.current.children)).toEqual(['b-id', 'a-id']);
+    });
+
+    it('gives the placeholders every saved id in order until the document is ready', () => {
+      mockWidgetStatus = 'loading';
+      const { result, rerender } = renderLayout([panel(), panel()], {
+        initialData: keyedData,
+      });
+      expect(getIds(result.current.children)).toEqual(['a-id', 'b-id']);
 
       mockWidgetStatus = 'ready';
-      rerender();
-      let isFirstOpened: boolean | undefined;
-      let isDuplicateOpened: boolean | undefined;
-      act(() => {
-        result.current.onClose('a-id');
-        result.current.onClose('b-id');
-        isFirstOpened = result.current.onOpen(
-          result.current.getPanelId(keyA),
-          keyA
-        );
-        isDuplicateOpened = result.current.onOpen(
-          result.current.getPanelId(keyA),
-          keyA
-        );
-      });
+      rerender({ children: [panel('B', 'b'), panel('Unkeyed')] });
 
-      expect(isFirstOpened).toBe(true);
-      expect(isDuplicateOpened).toBe(false);
-      expect(mockLogWarn).toHaveBeenCalledTimes(1);
+      const [bId, unkeyedId] = getIds(result.current.children);
+      expect(bId).toBe('b-id');
+      expect(unkeyedId).not.toBe('a-id');
     });
 
     it('keeps the saved key map while only placeholders are open', () => {
       mockWidgetStatus = 'loading';
       const onDataChange = jest.fn();
-      const { result } = renderManager(keyedData, onDataChange);
+      const { result } = renderLayout([panel(), panel()], {
+        initialData: keyedData,
+        onDataChange,
+      });
 
       act(() => {
-        result.current.onOpen(result.current.getPanelId());
-        result.current.onOpen(result.current.getPanelId());
+        result.current.panelManager.onOpen('a-id');
+        result.current.panelManager.onOpen('b-id');
       });
 
       expect(onDataChange).toHaveBeenLastCalledWith(
@@ -706,130 +614,15 @@ describe('usePanelManager', () => {
       );
     });
 
-    it('gives the placeholders every saved id in order until the document is ready', () => {
-      mockWidgetStatus = 'loading';
-      const { result, rerender } = renderManager(keyedData);
-
-      expect(result.current.getPanelId()).toBe('a-id');
-      expect(result.current.getPanelId()).toBe('b-id');
-
-      mockWidgetStatus = 'ready';
-      rerender();
-
-      expect(result.current.getPanelId(keyB)).toBe('b-id');
-      expect(result.current.getPanelId()).toEqual(generatedId);
-    });
-
     it("gives a new widget's loading placeholder id to its first unkeyed panel", () => {
       mockWidgetStatus = 'loading';
-      const { result, rerender } = renderManager();
-      const placeholderId = result.current.getPanelId();
-      act(() => {
-        result.current.onOpen(placeholderId);
-      });
+      const { result, rerender } = renderLayout([panel()]);
+      const [placeholderId] = getIds(result.current.children);
 
       mockWidgetStatus = 'ready';
-      rerender();
+      rerender({ children: [panel('A')] });
 
-      expect(result.current.getPanelId()).toBe(placeholderId);
-    });
-
-    it('hands out the same saved ids again after a render is thrown away', () => {
-      const { result, rerender } = renderManager({
-        panelIds: ['first-id', 'second-id'],
-      });
-
-      // A thrown away render hands out ids, but its panels never open
-      result.current.getPanelId(keyA);
-      result.current.getPanelId();
-      rerender();
-
-      expect(result.current.getPanelId(keyB)).toBe('first-id');
-      expect(result.current.getPanelId()).toBe('second-id');
-    });
-
-    it('does not hand the same saved id to a later panel after a panel keeps it through a render', () => {
-      mockWidgetStatus = 'loading';
-      let isPlaceholderRendered = false;
-      const { result, rerender } = renderHook(() => {
-        const manager = usePanelManager({
-          widget: makeWidget(),
-          initialData: { panelIds: ['saved-id'] },
-        });
-        // The placeholder is reused for the document's panel, and gets its id again in the ready render
-        if (mockWidgetStatus === 'ready' && !isPlaceholderRendered) {
-          isPlaceholderRendered = true;
-          manager.getPanelId();
-        }
-        return manager;
-      });
-      act(() => {
-        result.current.onOpen(result.current.getPanelId());
-      });
-
-      mockWidgetStatus = 'ready';
-      rerender();
-      rerender();
-
-      expect(result.current.getPanelId()).toEqual(generatedId);
-    });
-
-    it('gives a panel the same id when it asks again in the same render', () => {
-      const { result } = renderManager({ panelIds: ['first-id', 'second-id'] });
-
-      // Strict Mode renders a panel twice
-      expect(result.current.getPanelId(undefined, 'panel-1')).toBe('first-id');
-      expect(result.current.getPanelId(undefined, 'panel-1')).toBe('first-id');
-      expect(result.current.getPanelId(undefined, 'panel-2')).toBe('second-id');
-    });
-
-    it('keeps the id of a keyed panel from a committed render', () => {
-      let isKeyedPanelRendered = false;
-      const { result, rerender } = renderHook(() => {
-        const manager = usePanelManager({
-          widget: makeWidget(),
-          initialData: { panelIds: ['first-id'] },
-        });
-        // The panel renders, but doesn't open in this test
-        if (!isKeyedPanelRendered) {
-          isKeyedPanelRendered = true;
-          manager.getPanelId(keyA);
-        }
-        return manager;
-      });
-      rerender();
-
-      expect(result.current.getPanelId(keyA)).toBe('first-id');
-    });
-
-    it('does not count a ready render that was thrown away', () => {
-      mockWidgetStatus = 'loading';
-      let suspense: Promise<void> | undefined;
-      const wrapper = ({ children }: { children: React.ReactNode }) =>
-        React.createElement(React.Suspense, { fallback: null }, children);
-      const { result, rerender } = renderHook(
-        () => {
-          const manager = usePanelManager({
-            widget: makeWidget(),
-            initialData: keyedData,
-          });
-          if (suspense != null) {
-            throw suspense;
-          }
-          return manager;
-        },
-        { wrapper }
-      );
-
-      mockWidgetStatus = 'ready';
-      // Never settles, so the render stays suspended
-      suspense = new Promise<void>(jest.fn());
-      rerender();
-      mockWidgetStatus = 'loading';
-      suspense = undefined;
-      rerender();
-
-      expect(result.current.getPanelId()).toBe('a-id');
+      expect(getIds(result.current.children)).toEqual([placeholderId]);
     });
   });
 
