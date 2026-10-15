@@ -385,10 +385,11 @@ describe('NestedDashboard', () => {
 
   describe('orphaned panel state pruning', () => {
     function PanelOpener(): null {
-      const { onOpen, getPanelId } = useReactPanelManager();
+      const { onOpen } = useReactPanelManager();
       useEffect(() => {
-        onOpen(getPanelId());
-      }, [onOpen, getPanelId]);
+        // The document's one panel keeps the first saved id
+        onOpen('alive');
+      }, [onOpen]);
       return null;
     }
 

@@ -20,9 +20,12 @@ from deephaven.ui._internal.utils import (
     to_react_prop_case,
     wrap_callable,
     unpack_item_table_source,
+    validate_key,
 )
 from deephaven.ui.types import Undefined
 from deephaven.ui import item_table_source, resolve
+from deephaven.ui.elements.UriElement import UriElement
+from deephaven import ui
 
 
 def my_test_func():
@@ -30,6 +33,33 @@ def my_test_func():
 
 
 class UtilsTest(BaseTestCase):
+    def test_validate_key(self):
+        for key in [None, "a", 1, 1.5, True]:
+            validate_key(key)
+
+        for key in [{"a"}, ["a"], ("a",), {"a": 1}, object()]:
+            with self.assertRaises(TypeError):
+                validate_key(key)
+
+    def test_validate_key_set_hint(self):
+        with self.assertRaisesRegex(TypeError, r"use `key=value` instead"):
+            validate_key({"a"})
+
+    def test_elements_validate_key(self):
+        @ui.component
+        def my_comp():
+            return "Hello"
+
+        with self.assertRaises(TypeError):
+            ui.panel("a", key={"a"})  # type: ignore
+        with self.assertRaises(TypeError):
+            my_comp(key={"a"})  # type: ignore
+        with self.assertRaises(TypeError):
+            UriElement("dh+plain://host/scope/t", key=["a"])  # type: ignore
+
+        ui.panel("a", key="a")
+        my_comp(key=1)
+
     def test_get_component_name(self):
         self.assertEqual(
             get_component_name(my_test_func),

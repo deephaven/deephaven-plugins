@@ -3,7 +3,12 @@ import {
   LayoutManagerContext,
   usePanelId as useLayoutPanelId,
 } from '@deephaven/dashboard';
-import { type ElementIdProps, type DashboardElementProps } from './LayoutUtils';
+import {
+  type ElementIdProps,
+  type DashboardElementProps,
+  type LayoutOptions,
+  normalizeDashboardChildren,
+} from './LayoutUtils';
 import { usePanelId as useReactPanelId } from './ReactPanelContext';
 import NestedDashboard from './NestedDashboard';
 import DashboardContent from './DashboardContent';
@@ -43,7 +48,18 @@ function Dashboard({
     return <NestedDashboard {...otherProps}>{children}</NestedDashboard>;
   }
 
-  return <DashboardContent>{children}</DashboardContent>;
+  return (
+    <DashboardContent>
+      {Dashboard.getLayoutChildren(children, { isNested })}
+    </DashboardContent>
+  );
 }
+
+// A nested dashboard's panels belong to the panel manager in NestedDashboard
+Dashboard.getLayoutChildren = (
+  children: React.ReactNode,
+  { isNested }: Pick<LayoutOptions, 'isNested'>
+): React.ReactNode =>
+  isNested ? undefined : normalizeDashboardChildren(children);
 
 export default Dashboard;

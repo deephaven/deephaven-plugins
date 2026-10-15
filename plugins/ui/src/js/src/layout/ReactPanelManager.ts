@@ -1,7 +1,8 @@
 import { type PanelProps } from '@deephaven/dashboard';
 import { type UriVariableDescriptor } from '@deephaven/jsapi-bootstrap';
 import { useContextOrThrow } from '@deephaven/react-hooks';
-import { createContext, useCallback, useMemo } from 'react';
+import { createContext, useCallback, useState } from 'react';
+import { nanoid } from 'nanoid';
 
 /**
  * Manager for panels within a widget. This is used to manage the lifecycle of panels within a widget.
@@ -35,9 +36,10 @@ export interface ReactPanelManager {
   getInitialData: (panelId: string) => unknown[];
 
   /**
-   * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
+   * Whether a panel with this id is open
+   * @param panelId The panelId to check
    */
-  getPanelId: () => string;
+  isPanelOpen: (panelId: string) => boolean;
 }
 
 /** Interface for using a react panel */
@@ -49,11 +51,14 @@ export interface ReactPanelControl {
    */
   metadata: PanelProps['metadata'] | UriVariableDescriptor;
 
-  /** Must be called when the panel is opened */
+  /** Must be called when the panel is opened, before it's added to the layout */
   onOpen: () => void;
 
   /** Must be called when the panel is closed */
   onClose: () => void;
+
+  /** Whether a panel with this panel's id is open, e.g. one that replaced it in the same commit */
+  isOpen: () => boolean;
 
   /**
    * Must be called when client data that should be persisted is changed.
@@ -85,22 +90,24 @@ export function useReactPanelManager(): ReactPanelManager {
 /**
  * DO NOT call this hook anywhere except once in ReactPanel.
  * Use the controls for a single react panel.
- * Otherwise panelIds will be generated/rehydrated incorrectly.
+ * @param assignedId The id the panel manager gave the panel. A panel outside a managed layout gets a new id.
  */
-export function useReactPanel(): ReactPanelControl {
+export function useReactPanel(assignedId?: string): ReactPanelControl {
   const {
     metadata,
     onClose,
     onOpen,
     onDataChange,
-    getPanelId,
     getInitialData,
+    isPanelOpen,
   } = useReactPanelManager();
-  const panelId = useMemo(() => getPanelId(), [getPanelId]);
+  const [newId] = useState(() => nanoid());
+  const panelId = assignedId ?? newId;
 
   return {
     metadata,
     onClose: useCallback(() => onClose(panelId), [onClose, panelId]),
+    isOpen: useCallback(() => isPanelOpen(panelId), [isPanelOpen, panelId]),
     onOpen: useCallback(() => onOpen(panelId), [onOpen, panelId]),
     onDataChange: useCallback(
       (data: unknown[]) => onDataChange(panelId, data),

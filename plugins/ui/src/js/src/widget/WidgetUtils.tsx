@@ -58,6 +58,7 @@ import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
+import { KEY_PROP } from '../layout/LayoutUtils';
 import {
   Accordion,
   ActionButton,
@@ -260,6 +261,10 @@ export function getComponentForElement(
           />
         );
       }
+      // Fragments only accept `key` and `children`
+      if (props?.key != null && Component !== React.Fragment) {
+        props[KEY_PROP] = `${props.key}`;
+      }
       return <Component {...props} />;
     }
   }
@@ -347,7 +352,10 @@ export function transformNode(
 }
 
 /** Data keys of a widget to preserve across re-opening. */
-const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = ['panelIds'];
+const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = [
+  'panelIds',
+  'panelKeyMap',
+];
 const PRESERVED_DATA_KEYS_SET = new Set<string>(PRESERVED_DATA_KEYS);
 
 /**

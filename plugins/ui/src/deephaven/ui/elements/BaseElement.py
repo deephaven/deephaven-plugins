@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from .Element import Element, NodeType
-from .._internal import dict_to_react_props
+from .._internal import dict_to_react_props, validate_key
 from ..types import Key
 
 
@@ -28,6 +28,7 @@ class BaseElement(Element):
         _nullable_props: list[str] = [],
         **props: Any,
     ):
+        validate_key(key)
         self._name = name
         self._key = key
         props["key"] = key

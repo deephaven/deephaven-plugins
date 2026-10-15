@@ -20,9 +20,35 @@ import {
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
+export const KEY_PROP = '__dhKey';
+
+export type LayoutOptions = {
+  /** Whether the document is nested in a panel, so a dashboard in it has its own panel manager */
+  isNested: boolean;
+  /** Whether the layout is restored from a saved config, so layout elements only wrap bare content in panels */
+  hasInitialLayout: boolean;
+};
+
+/** Layout element component that can tell which children it renders */
+export type LayoutElementType = {
+  /** The children the element renders, or undefined if its panels belong to another panel manager */
+  getLayoutChildren?: (
+    children: React.ReactNode,
+    options: LayoutOptions
+  ) => React.ReactNode;
+};
+
+/** React doesn't pass `key` on to the component, so it's copied to this prop */
+export type KeyProps = {
+  __dhKey?: string;
+};
+
 export type ReactPanelProps = React.PropsWithChildren<{
   /** Title of the panel */
   title?: string;
+
+  /** Id the panel manager gave the panel */
+  __dhPanelId?: string;
 }>;
 
 /**

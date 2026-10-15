@@ -1,4 +1,5 @@
 import {
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -17,6 +18,14 @@ import Log from '@deephaven/log';
 import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { type ReactPanelManager } from './ReactPanelManager';
 import { useWidgetStatus } from './useWidgetStatus';
+import { useInitialLayoutConfig } from './InitialLayoutConfigContext';
+import {
+  commitPanelIds,
+  getInitialCommittedPanelIds,
+  getPanelIdentities,
+  resolvePanelIds,
+  setPanelIds,
+} from './PanelIdUtils';
 import {
   type ReadonlyWidgetData,
   type WidgetData,
@@ -42,28 +51,53 @@ export interface UsePanelManagerProps {
 
   /** Triggered when all panels opened from this document have closed */
   onClose?: () => void;
+
+  /** The layout whose panels this manager opens */
+  children?: ReactNode;
+
+  /** Whether a dashboard in `children` is nested in a panel, so its panels belong to its own manager */
+  isNested?: boolean;
 }
+
+export type PanelManagerResult = {
+  panelManager: ReactPanelManager;
+
+  /** `children` normalized, with each panel given its id */
+  children: ReactNode;
+};
 
 /**
  * Hook to create a ReactPanelManager for managing panels within a document.
- * Handles panel lifecycle (open/close), data persistence, and panel ID generation.
+ * Handles panel lifecycle (open/close), data persistence, and gives each panel in the layout its id.
  *
  * @param props - Configuration for the panel manager
- * @returns A ReactPanelManager instance for use with ReactPanelManagerContext
+ * @returns A ReactPanelManager instance for use with ReactPanelManagerContext, and the layout to render
  */
 export function usePanelManager({
   widget,
   initialData = EMPTY_OBJECT,
   onDataChange = EMPTY_FUNCTION,
   onClose,
-}: UsePanelManagerProps): ReactPanelManager {
-  const panelIdIndex = useRef(0);
-
+  children,
+  isNested = false,
+}: UsePanelManagerProps): PanelManagerResult {
   // Using `useState` here to initialize the data only once.
   // We don't want to use `useMemo`, because we only want it to be initialized once with the `initialData` (uncontrolled)
   // We don't want to use `useRef`, because we only want to run `structuredClone` once, and you can't pass an
   // initialization function into `useRef` like you can with `useState`
   const [widgetData] = useState<WidgetData>(() => structuredClone(initialData));
+
+  // New ids start with it, so they can't clash with another panel manager's in the same layout
+  const [idPrefix] = useState(() => nanoid());
+
+  // Without any saved keys, keyed panels take saved ids in order so adding keys to a script doesn't move anything
+  const [hasSavedKeys] = useState(
+    () => Object.keys(widgetData.panelKeyMap ?? {}).length > 0
+  );
+
+  const [committedIds, setCommittedIds] = useState(() =>
+    getInitialCommittedPanelIds(widgetData.panelIds, widgetData.panelKeyMap)
+  );
 
   // Accumulates the latest state for every panel. `widgetData` only holds the
   // initial data (used for rehydration lookups) and is never updated, so we
@@ -86,7 +120,39 @@ export function usePanelManager({
   const layoutManager = useContext(LayoutManagerContext);
   // Before the document is ready, open panels may be rehydration placeholders for every saved id
   const isDocumentReady = useWidgetStatus().status === 'ready';
+  const hasBeenReady = committedIds.hasBeenReady || isDocumentReady;
   const hasRemovedOrphans = useRef(false);
+
+  const hasInitialLayout = useInitialLayoutConfig() != null;
+  const layoutOptions = useMemo(
+    () => ({ isNested, hasInitialLayout }),
+    [isNested, hasInitialLayout]
+  );
+  const panels = useMemo(
+    () => getPanelIdentities(children, layoutOptions),
+    [children, layoutOptions]
+  );
+  const resolution = useMemo(
+    () =>
+      resolvePanelIds({
+        panels,
+        keyIds: committedIds.keyIds,
+        pathIds: committedIds.pathIds,
+        // Placeholders are unkeyed and hold every saved id in order, keyed ones included
+        orderedIds: hasBeenReady
+          ? committedIds.orderedIds
+          : widgetData.panelIds ?? EMPTY_ARRAY,
+        isKeyedOrdered: !hasSavedKeys,
+        idPrefix,
+      }),
+    [committedIds, hasBeenReady, hasSavedKeys, idPrefix, panels, widgetData]
+  );
+  // Keyed by value, so committing the same ids doesn't re-render the panels
+  const idsKey = resolution.ids.join('\n');
+  const panelChildren = useMemo(
+    () => setPanelIds(children, layoutOptions, idsKey.split('\n')),
+    [children, layoutOptions, idsKey]
+  );
 
   const id = useMemo(
     () =>
@@ -96,19 +162,48 @@ export function usePanelManager({
     [widget]
   );
 
-  const handleOpen = useCallback(
-    (panelId: string) => {
-      if (panelIds.current.includes(panelId)) {
-        throw new Error('Duplicate panel opens received');
+  // Keys already warned about, so a duplicate is reported once rather than on every render
+  const warnedKeys = useRef(new Set<string>());
+
+  useEffect(
+    function commitIds() {
+      if (isDocumentReady) {
+        resolution.duplicateKeys
+          .filter(panelKey => !warnedKeys.current.has(panelKey))
+          .forEach(panelKey => {
+            warnedKeys.current.add(panelKey);
+            log.warn(
+              'Widget',
+              id,
+              'has more than one panel with key',
+              panelKey,
+              '- opening it as a new panel'
+            );
+          });
       }
-
-      panelIds.current.push(panelId);
-      log.debug('Panel opened, open count', panelIds.current.length);
-
-      setPanelsDirty(true);
+      setCommittedIds(prev =>
+        commitPanelIds(
+          prev,
+          panels,
+          resolution,
+          isDocumentReady,
+          widgetData.panelIds ?? EMPTY_ARRAY
+        )
+      );
     },
-    [panelIds]
+    [id, isDocumentReady, panels, resolution, widgetData]
   );
+
+  const handleOpen = useCallback((panelId: string) => {
+    if (panelIds.current.includes(panelId)) {
+      throw new Error('Duplicate panel opens received');
+    }
+
+    panelIds.current.push(panelId);
+    log.debug('Panel opened, open count', panelIds.current.length);
+
+    setPanelsDirty(true);
+  }, []);
 
   const handleClose = useCallback(
     (panelId: string) => {
@@ -141,11 +236,10 @@ export function usePanelManager({
   /**
    * On the first sync once the document is ready, every panel it renders has opened, so
    * any other saved panel is from a layout that had more panels than the document now has.
-   * Remove it and its state, and stop handing out its id so a later panel can't inherit it.
+   * Remove it and its state.
    */
   const removeOrphanedPanels = useCallback(() => {
     const savedIds = widgetData.panelIds ?? [];
-    panelIdIndex.current = Math.max(panelIdIndex.current, savedIds.length);
     const openIds = new Set(panelIds.current);
     panelStatesRef.current = Object.fromEntries(
       Object.entries(panelStatesRef.current).filter(([panelId]) =>
@@ -189,39 +283,48 @@ export function usePanelManager({
           hasRemovedOrphans.current = true;
           removeOrphanedPanels();
         }
+        // Placeholders are unkeyed, so keep the saved map until the document's panels have opened
+        let { panelKeyMap } = widgetData;
+        if (hasBeenReady) {
+          const openKeyMap = Object.fromEntries(
+            [...resolution.keyIds].filter(([, panelId]) =>
+              panelIds.current.includes(panelId)
+            )
+          );
+          panelKeyMap =
+            Object.keys(openKeyMap).length > 0 ? openKeyMap : undefined;
+        }
         onDataChange({
           ...widgetData,
           panelStates: { ...panelStatesRef.current },
           panelIds: [...panelIds.current],
+          panelKeyMap,
         });
       }
     },
     [
       isPanelsDirty,
+      hasBeenReady,
       id,
       isDocumentReady,
       onClose,
       onDataChange,
       removeOrphanedPanels,
+      resolution,
       widgetData,
     ]
   );
 
-  const getPanelId = useCallback(() => {
-    // On rehydration, yield known IDs first
-    // If there are no more known IDs, generate a new one.
-    // This can happen if the document hasn't been opened before, or if it's rehydrated and a new panel is added.
-    // Note that if the order of panels changes, the worst case scenario is that panels appear in the wrong location in the layout.
-    const panelId = widgetData.panelIds?.[panelIdIndex.current] ?? nanoid();
-    panelIdIndex.current += 1;
-    return panelId;
-  }, [widgetData]);
-
+  // The latest state, so a panel that remounts, e.g. when it moves, keeps it
   const getInitialData = useCallback(
     (panelId: string) =>
-      widgetData.panelStates?.[panelId] ??
-      (EMPTY_ARRAY as unknown as unknown[]),
-    [widgetData]
+      panelStatesRef.current[panelId] ?? (EMPTY_ARRAY as unknown as unknown[]),
+    []
+  );
+
+  const isPanelOpen = useCallback(
+    (panelId: string) => panelIds.current.includes(panelId),
+    []
   );
 
   const panelManager = useMemo(
@@ -230,20 +333,20 @@ export function usePanelManager({
       onOpen: handleOpen,
       onClose: handleClose,
       onDataChange: handleDataChange,
-      getPanelId,
       getInitialData,
+      isPanelOpen,
     }),
     [
       widget,
-      getPanelId,
       handleClose,
       handleOpen,
       handleDataChange,
       getInitialData,
+      isPanelOpen,
     ]
   );
 
-  return panelManager;
+  return { panelManager, children: panelChildren };
 }
 
 export default usePanelManager;

@@ -62,7 +62,8 @@ def _render_child_item(
             type(item),
             item,
         )
-        key = item.key or f"{index_key}-{item.name}"
+        # Saved state is keyed by string after a JSON round trip, so non-string keys must match it
+        key = f"{index_key}-{item.name}" if item.key is None else str(item.key)
         return _render_element(
             item,
             parent_context.get_child_context(key, fetch_only),

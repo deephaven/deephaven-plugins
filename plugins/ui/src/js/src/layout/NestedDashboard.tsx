@@ -13,7 +13,11 @@ import {
 import Log from '@deephaven/log';
 import { useDashboardPlugins } from '@deephaven/plugin';
 import { useThrottledCallback } from '@deephaven/react-hooks';
-import type { DashboardElementProps, ElementIdProps } from './LayoutUtils';
+import {
+  type DashboardElementProps,
+  type ElementIdProps,
+  normalizeDashboardChildren,
+} from './LayoutUtils';
 import { InitialLayoutConfigContext } from './InitialLayoutConfigContext';
 import PortalPanelManager from './PortalPanelManager';
 import { usePanelManager } from './usePanelManager';
@@ -48,17 +52,23 @@ function NestedDashboardContent({
   onDataChange,
 }: NestedDashboardContentProps): JSX.Element {
   const { descriptor: widget } = useWidgetStatus();
-  const panelManager = usePanelManager({
+  const layoutChildren = useMemo(
+    () => normalizeDashboardChildren(children),
+    [children]
+  );
+  const { panelManager, children: panelChildren } = usePanelManager({
     widget,
     onDataChange,
     initialData: initialWidgetData,
+    children: layoutChildren,
+    isNested: true,
   });
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
       {/* Reset ReactPanelContext so nested panels don't throw NestedPanelError */}
       <ReactPanelContext.Provider value={null}>
-        <DashboardContent>{children}</DashboardContent>
+        <DashboardContent>{panelChildren}</DashboardContent>
       </ReactPanelContext.Provider>
     </ReactPanelManagerContext.Provider>
   );

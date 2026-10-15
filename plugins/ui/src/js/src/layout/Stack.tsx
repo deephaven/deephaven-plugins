@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
 import {
+  type LayoutOptions,
   normalizeStackChildren,
   wrapBareChildrenInPanel,
   type StackElementProps,
@@ -41,30 +42,40 @@ function LayoutStack({
       stack.setActiveContentItem(stack.contentItems[activeItemIndex]);
     }
   }, [activeItemIndex, parent, stack]);
-  const normalizedChildren = normalizeStackChildren(children);
 
   return (
     <ParentItemContext.Provider value={stack}>
-      {normalizedChildren}
+      {children}
     </ParentItemContext.Provider>
   );
 }
 
-function Stack(props: StackElementProps): JSX.Element | null {
-  const initialLayoutConfig = useInitialLayoutConfig();
+function getStackChildren(
+  children: React.ReactNode,
+  { hasInitialLayout }: Pick<LayoutOptions, 'hasInitialLayout'>
+): React.ReactNode {
+  return hasInitialLayout
+    ? wrapBareChildrenInPanel(children)
+    : normalizeStackChildren(children);
+}
 
-  if (initialLayoutConfig != null) {
-    // If there's already an initial layout defined, user has likely already customized their layout.
-    // Don't add a stack here, or normalize the children which might add a stack unnecessarily.
-    // The persisted layout already has the stacks mapped out, but bare content children
-    // still need a panel wrapper so they portal into their persisted panel.
-    const { children } = props;
+function Stack({
+  children,
+  ...otherProps
+}: StackElementProps): JSX.Element | null {
+  // A persisted layout already has the stacks mapped out, so don't add a stack.
+  // Bare content children still need a panel wrapper so they portal into their persisted panel.
+  const hasInitialLayout = useInitialLayoutConfig() != null;
+  const layoutChildren = getStackChildren(children, { hasInitialLayout });
+  if (hasInitialLayout) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{wrapBareChildrenInPanel(children)}</>;
+    return <>{layoutChildren}</>;
   }
 
   // eslint-disable-next-line react/jsx-props-no-spreading
-  return <LayoutStack {...props} />;
+  return <LayoutStack {...otherProps}>{layoutChildren}</LayoutStack>;
 }
+
+Stack.getLayoutChildren = getStackChildren;
 
 export default Stack;

@@ -22,6 +22,8 @@ import PortalPanelManagerContext, {
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 
 const mockPanelId = 'test-panel-id';
+// Stable like the real manager's, so re-renders don't re-run the panel's effects
+const mockIsPanelOpen = jest.fn(() => false);
 const defaultDescriptor = { name: 'test-name', type: 'test-type' };
 const defaultStatus: WidgetStatus = {
   status: 'ready',
@@ -37,23 +39,26 @@ function makeReactPanelManager({
   metadata = defaultDescriptor,
   onClose = jest.fn(),
   onOpen = jest.fn(),
-  getPanelId = jest.fn(() => mockPanelId),
   onDataChange = jest.fn(),
   getInitialData = jest.fn(() => []),
+  isPanelOpen = mockIsPanelOpen,
   title = 'test title',
+  __dhPanelId = mockPanelId,
 }: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
   return (
     <ReactPanelManagerContext.Provider
       value={{
-        getPanelId,
         metadata,
         onClose,
         onOpen,
         onDataChange,
         getInitialData,
+        isPanelOpen,
       }}
     >
-      <ReactPanel title={title}>{children}</ReactPanel>
+      <ReactPanel title={title} __dhPanelId={__dhPanelId}>
+        {children}
+      </ReactPanel>
     </ReactPanelManagerContext.Provider>
   );
 }
@@ -63,10 +68,11 @@ function makeTestComponent({
   metadata = defaultDescriptor,
   onClose = jest.fn(),
   onOpen = jest.fn(),
-  getPanelId = jest.fn(() => mockPanelId),
+  isPanelOpen,
   portals = new Map(),
   status = defaultStatus,
   title = 'test title',
+  __dhPanelId = mockPanelId,
 }: Partial<ReactPanelProps> &
   Partial<ReactPanelManager> & {
     metadata?: WidgetDescriptor;
@@ -81,8 +87,9 @@ function makeTestComponent({
           metadata,
           onClose,
           onOpen,
-          getPanelId,
+          isPanelOpen,
           title,
+          __dhPanelId,
         })}
       </PortalPanelManagerContext.Provider>
     </WidgetStatusContext.Provider>
@@ -96,7 +103,13 @@ function simulatePanelClosed() {
   (useListener as jest.Mock).mock.calls[0][2](mockPanelId);
 }
 
-it('opens panel on mount, and closes panel on unmount', () => {
+/** Unmount, then let the deferred layout close run */
+async function unmountAndSettle(unmount: () => void) {
+  unmount();
+  await Promise.resolve();
+}
+
+it('opens panel on mount, and closes panel on unmount', async () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
   const { unmount } = render(makeTestComponent({ onOpen, onClose }));
@@ -105,7 +118,7 @@ it('opens panel on mount, and closes panel on unmount', () => {
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
 
-  unmount();
+  await unmountAndSettle(unmount);
 
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
   expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
@@ -113,7 +126,18 @@ it('opens panel on mount, and closes panel on unmount', () => {
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-it('removes a non-closable panel from the layout on unmount', () => {
+it('keeps the layout item when a panel replacing it opens with the same id', async () => {
+  const isPanelOpen = jest.fn(() => false);
+  const { unmount } = render(makeTestComponent({ isPanelOpen }));
+  isPanelOpen.mockReturnValue(true);
+
+  await unmountAndSettle(unmount);
+
+  expect(isPanelOpen).toHaveBeenCalledWith(mockPanelId);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+});
+
+it('removes a non-closable panel from the layout on unmount', async () => {
   const onClose = jest.fn();
   const contentItem = TestUtils.createMockProxy<ContentItem>();
   (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce(
@@ -132,7 +156,7 @@ it('removes a non-closable panel from the layout on unmount', () => {
     })
   );
 
-  unmount();
+  await unmountAndSettle(unmount);
 
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(LayoutUtils.getStackForConfig).toHaveBeenLastCalledWith(root, {
@@ -142,7 +166,7 @@ it('removes a non-closable panel from the layout on unmount', () => {
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-it('finds and closes existing panels from the layout root, but opens in the parent stack', () => {
+it('finds and closes existing panels from the layout root, but opens in the parent stack', async () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
   // Use a parent that is distinct from the layout root, e.g. the user moved the panel
@@ -167,7 +191,7 @@ it('finds and closes existing panels from the layout root, but opens in the pare
     expect.objectContaining({ root: parent })
   );
 
-  unmount();
+  await unmountAndSettle(unmount);
 
   // Closes the panel from the root, since it may have been moved out of the parent
   expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
@@ -333,7 +357,7 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
   const mockStack = {
     setActiveContentItem: jest.fn(),
   };
-  const mockContentItem = {};
+  const mockContentItem = { config: {} };
   (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(mockStack);
   (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
     mockContentItem
@@ -402,7 +426,7 @@ it('calls setActiveContentItem if metadata changed while the panel already exist
   const mockStack = {
     setActiveContentItem: jest.fn(),
   };
-  const mockContentItem = {};
+  const mockContentItem = { config: {} };
   (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue(mockStack);
   (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValue(
     mockContentItem
@@ -467,4 +491,76 @@ it('displays an error if the widget is in an error state', () => {
 
   const { getByText } = within(portal);
   expect(getByText('test error')).toBeDefined();
+});
+
+describe('title', () => {
+  it('renames a rehydrated panel whose layout title is stale', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    render(makeTestComponent({ title: 'new title' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'new title'
+    );
+  });
+
+  it('does not rename a rehydrated panel whose layout title is current', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce({
+      config: { title: 'same title' },
+    });
+    render(makeTestComponent({ title: 'same title' }));
+
+    expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+  });
+
+  it('does not rename a panel it just opened', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce(null);
+    render(makeTestComponent({ title: 'new title' }));
+
+    expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+  });
+
+  it('renames the panel when its title changes', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce(null);
+    const { rerender } = render(makeTestComponent({ title: 'first' }));
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    rerender(makeTestComponent({ title: 'second' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'second'
+    );
+  });
+
+  it('keeps the saved title while the document loads, then renames once it is ready', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValue({});
+    const loading: WidgetStatus = {
+      status: 'loading',
+      descriptor: defaultDescriptor,
+    };
+    // A rehydration placeholder is titled with the widget name, not the saved tab title
+    const { rerender } = render(
+      makeTestComponent({ title: 'widget name', status: loading })
+    );
+    expect(LayoutUtils.renameComponent).not.toHaveBeenCalled();
+
+    rerender(makeTestComponent({ title: 'document title' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledTimes(1);
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      'document title'
+    );
+  });
 });
