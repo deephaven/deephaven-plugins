@@ -605,6 +605,21 @@ describe('title', () => {
     );
   });
 
+  it('renames a rehydrated panel to an empty title', () => {
+    (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
+    (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce({
+      config: { title: 'stale title' },
+    });
+    render(makeTestComponent({ title: '' }));
+    const { root } = (useLayoutManager as jest.Mock).mock.results[0].value;
+
+    expect(LayoutUtils.renameComponent).toHaveBeenCalledWith(
+      root,
+      { id: mockPanelId },
+      ''
+    );
+  });
+
   it('does not rename a rehydrated panel whose layout title is current', () => {
     (LayoutUtils.getStackForConfig as jest.Mock).mockReturnValueOnce({});
     (LayoutUtils.getContentItemInStack as jest.Mock).mockReturnValueOnce({

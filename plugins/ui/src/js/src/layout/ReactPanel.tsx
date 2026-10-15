@@ -137,8 +137,8 @@ function ReactPanel({
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal == null ? undefined : metadata
   );
-  // Title last set on the layout item. Starts empty so a rehydrated item with a stale title is renamed.
-  const prevPanelTitleRef = useRef<string>('');
+  // Title last set on the layout item. Starts unset so a rehydrated item with a stale title is renamed, even to ''.
+  const prevPanelTitleRef = useRef<string>();
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps

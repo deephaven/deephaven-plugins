@@ -325,10 +325,14 @@ class RendererTestCase(BaseTestCase):
             return "Hello"
 
         rc = RenderContext(_TestRoot(Mock(), Mock()))
-        for key in [0, False, 1.5]:
+        for key, context_key in [
+            (0, "int:0"),
+            (False, "bool:False"),
+            (1.5, "float:1.5"),
+        ]:
             with self.subTest(key=key):
                 _render_child_item(my_comp(key=key), rc, "index", True)
-                self.assertIn(str(key), rc._children_context)
+                self.assertIn(context_key, rc._children_context)
         self.assertNotIn(f"index-{my_comp().name}", rc._children_context)
 
     def test_int_keyed_state_is_found_after_import(self):
@@ -339,9 +343,23 @@ class RendererTestCase(BaseTestCase):
 
         rc = RenderContext(_TestRoot(Mock(), Mock()))
         # Saved state comes back from JSON, so the child context key is a string
-        rc.import_state({"children": {"1": {"state": {"0": 7}}}})
+        rc.import_state({"children": {"int:1": {"state": {"0": 7}}}})
 
         self.assertEqual(
             _render_child_item(counter(key=1), rc, "index", True).props,
             {"children": 7, "key": 1},
         )
+
+    def test_int_key_does_not_share_a_nested_list_context(self):
+        @ui.component
+        def counter():
+            value, _ = ui.use_state(0)
+            return value
+
+        rc = RenderContext(_TestRoot(Mock(), Mock()))
+        for _ in range(2):
+            rendered = _render_child_item(
+                [counter(key=1), ["other"]], rc, "index", True
+            )
+        self.assertEqual(rendered[0].props, {"children": 0, "key": 1})
+        self.assertEqual(rendered[1], ["other"])
