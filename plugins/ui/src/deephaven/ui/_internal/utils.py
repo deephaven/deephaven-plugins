@@ -19,6 +19,7 @@ from deephaven.dtypes import (
     LocalDate as DTypeLocalDate,
 )
 from inspect import signature
+import math
 import sys
 from dataclasses import dataclass
 from functools import partial
@@ -116,7 +117,11 @@ def validate_key(key: Any) -> None:
 
     Raises:
         TypeError: If the key isn't a str, int, float or bool.
+        ValueError: If the key is NaN or infinite.
     """
+    # The client parses documents with JSON.parse, which rejects NaN and Infinity
+    if isinstance(key, float) and not math.isfinite(key):
+        raise ValueError(f"key must be a finite number, not {key!r}")
     if key is None or isinstance(key, (str, int, float, bool)):
         return
     message = (

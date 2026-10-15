@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { render, within } from '@testing-library/react';
 import {
   LayoutUtils,
   PanelIdContext,
+  PersistentStateContext,
   type WidgetDescriptor,
   useLayoutManager,
   useListener,
@@ -73,6 +74,7 @@ function makeTestComponent({
   onClose = jest.fn(),
   onOpen = jest.fn(() => true),
   getPanelId = jest.fn(() => mockPanelId),
+  getInitialData,
   isPanelOpen,
   portals = new Map(),
   status = defaultStatus,
@@ -94,6 +96,7 @@ function makeTestComponent({
           onClose,
           onOpen,
           getPanelId,
+          getInitialData,
           isPanelOpen,
           title,
           panelKey,
@@ -498,6 +501,45 @@ it('displays an error if the widget is in an error state', () => {
 
   const { getByText } = within(portal);
   expect(getByText('test error')).toBeDefined();
+});
+
+it('reads the saved state of its new id when a reused panel changes id', () => {
+  function StateReader(): JSX.Element {
+    const panelId = useContext(PanelIdContext) ?? '';
+    const persistentState = useContext(PersistentStateContext);
+    const state = persistentState?.getState<string>(panelId, 'test');
+    return <div>{state?.state ?? 'none'}</div>;
+  }
+  const getInitialData = jest.fn((panelId: string) => [
+    [
+      `${panelId}::test`,
+      { state: `${panelId} state`, version: 1, type: 'test' },
+    ],
+  ]);
+  const portal = document.createElement('div');
+  const portals = new Map([
+    ['a', portal],
+    ['b', portal],
+  ]);
+  const { rerender } = render(
+    makeTestComponent({
+      children: <StateReader />,
+      getPanelId: jest.fn(() => 'a'),
+      getInitialData,
+      portals,
+    })
+  );
+  expect(within(portal).getByText('a state')).toBeDefined();
+
+  rerender(
+    makeTestComponent({
+      children: <StateReader />,
+      getPanelId: jest.fn(() => 'b'),
+      getInitialData,
+      portals,
+    })
+  );
+  expect(within(portal).getByText('b state')).toBeDefined();
 });
 
 describe('key', () => {

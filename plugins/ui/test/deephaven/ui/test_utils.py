@@ -41,6 +41,10 @@ class UtilsTest(BaseTestCase):
             with self.assertRaises(TypeError):
                 validate_key(key)
 
+        for key in [float("nan"), float("inf"), float("-inf")]:
+            with self.assertRaises(ValueError):
+                validate_key(key)
+
     def test_validate_key_set_hint(self):
         with self.assertRaisesRegex(TypeError, r"use `key=value` instead"):
             validate_key({"a"})
@@ -59,6 +63,11 @@ class UtilsTest(BaseTestCase):
 
         ui.panel("a", key="a")
         my_comp(key=1)
+
+    def test_uri_element_sends_key(self):
+        uri = "dh+plain://host/scope/t"
+        self.assertEqual(UriElement(uri).render(), {"uri": uri})
+        self.assertEqual(UriElement(uri, key="a").render(), {"uri": uri, "key": "a"})
 
     def test_get_component_name(self):
         self.assertEqual(

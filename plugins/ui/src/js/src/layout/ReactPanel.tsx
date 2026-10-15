@@ -348,7 +348,9 @@ function ReactPanel({
                    * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
                    * but we still want the panels to appear so things don't disappear/jump around.
                    */}
+                  {/* It only reads `initialState` on mount, so remount when a reused panel changes id */}
                   <PersistentStateProvider
+                    key={panelId}
                     initialState={initialData}
                     onChange={onDataChange}
                   >
