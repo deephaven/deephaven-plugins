@@ -79,7 +79,7 @@ function NestedDashboard({
   >(undefined, {
     type: 'NestedDashboardData',
     version: 1,
-    // The dashboard unmounts while its widget reloads (e.g. a query restart), and must restore the user's layout after
+    // Keep the user's layout when the dashboard unmounts while its widget reloads, e.g. on a query restart
     deleteOnUnmount: false,
   });
   const [layoutInitialized, setLayoutInitialized] = useState(false);
