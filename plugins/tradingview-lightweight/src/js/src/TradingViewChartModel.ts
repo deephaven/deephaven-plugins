@@ -75,6 +75,13 @@ class TradingViewChartModel {
   /** Next table ID for dynamically added partition tables. */
   private nextTableId = 0;
 
+  /**
+   * Per-key constituent tables from PartitionedTable.getTable, keyed by
+   * table ID. The client owns these exports: neither the widget close nor
+   * PartitionedTable.close() releases them, so close() must.
+   */
+  private partitionKeyTables: Map<number, DhType.Table> = new Map();
+
   /** Per-template partition watcher state, keyed by template series id. */
   private partitionWatchers: Map<
     string,
@@ -451,6 +458,10 @@ class TradingViewChartModel {
       }
     });
     await Promise.all(partitionPromises);
+
+    // close() ran during one of the awaits above and has already done its
+    // listener cleanup, so a listener attached now would never be removed.
+    if (this.closed) return;
 
     // Listen for widget config updates
     this.widgetListenerCleanup = this.listenToWidget();
@@ -920,10 +931,20 @@ class TradingViewChartModel {
       watcher.seenKeys.delete(keyStr);
       return;
     }
+    if (this.closed) {
+      // close() already ran, so nothing else will release this export.
+      try {
+        table.close();
+      } catch {
+        // ignore
+      }
+      return;
+    }
 
     const newTableId = this.nextTableId;
     this.nextTableId += 1;
     this.tables.set(newTableId, table as DhType.Table);
+    this.partitionKeyTables.set(newTableId, table as DhType.Table);
 
     // Clone the template into a runtime series. Preserve options,
     // type, paneIndex, priceScaleOptions, columns; give it a unique id
@@ -969,6 +990,8 @@ class TradingViewChartModel {
       try {
         await this.downsampleTable(newTableId);
       } catch (err) {
+        // close() released the key table mid-request; nothing to fall back to.
+        if (this.closed) return;
         log.warn(
           'Initial partition downsample failed for table',
           newTableId,
@@ -1045,6 +1068,15 @@ class TradingViewChartModel {
   ): Promise<void> {
     try {
       const pt = (await exported.fetch()) as DhType.PartitionedTable;
+      if (this.closed) {
+        // close() already cleared partitionWatchers, so it can't release this.
+        try {
+          pt.close();
+        } catch {
+          // ignore
+        }
+        return;
+      }
 
       // Resolve the keyadded event name from the DH namespace; fall back to
       // the literal string if the constant isn't surfaced.
@@ -1244,15 +1276,26 @@ class TradingViewChartModel {
   }
 
   /**
-   * Release the widget if close() has run and no retirement is still
-   * draining. Closing the widget releases every export it owns in one
-   * server-side sweep, so it must wait for in-flight snapshots too.
+   * Release the widget and the per-key partition tables if close() has run
+   * and no retirement is still draining. Closing the widget releases every
+   * export it owns in one server-side sweep, so it must wait for in-flight
+   * snapshots too. Key tables wait as well: any retired subscription, not
+   * just the current one, may still be draining a snapshot of one (e.g. a
+   * direct fallback subscription superseded by a later downsample).
    */
   private maybeCloseWidget(): void {
     if (!this.widgetCloseWhenDrained || this.drainingRetirements.size > 0) {
       return;
     }
     this.widgetCloseWhenDrained = false;
+    this.partitionKeyTables.forEach(table => {
+      try {
+        table.close();
+      } catch {
+        // ignore
+      }
+    });
+    this.partitionKeyTables.clear();
     try {
       this.widget.close();
     } catch {
@@ -1266,7 +1309,9 @@ class TradingViewChartModel {
    * this path — downsampled tables are small enough for full subscribe.
    */
   private subscribeTable(tableId: number, table: DhType.Table): void {
-    if (!this.figureData) return;
+    // A subscription opened after close() would never be retired. Async
+    // fallbacks (e.g. a failed downsample) can still reach here.
+    if (this.closed || !this.figureData) return;
 
     const columnNames = getAllColumnsForTable(this.figureData.series, tableId);
     const columns = table.columns.filter((col: DhType.Column) =>
@@ -1534,10 +1579,11 @@ class TradingViewChartModel {
     this.closed = true;
 
     // Retire every active subscription. Client-created downsample tables are
-    // released with their subscription; every other table is released by the
-    // widget close below. Retirement defers any release whose initial
-    // snapshot is still in flight (see retireSubscription), and the widget
-    // close waits for those retirements to drain.
+    // released with their subscription; per-key partition tables and every
+    // widget-owned table are released by maybeCloseWidget below. Retirement
+    // defers any release whose initial snapshot is still in flight (see
+    // retireSubscription), and maybeCloseWidget waits for those retirements
+    // to drain.
     Array.from(this.tableSubscriptionMap.keys()).forEach(tableId => {
       this.retireSubscription(tableId, this.downsampledTableMap.get(tableId));
     });
