@@ -22,6 +22,7 @@ import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 // Names are prefixed with `mock` so jest.mock can reference them.
 let mockPersistedInitialValue: unknown;
 const mockSetPersistedSpy = jest.fn();
+const mockUsePersistentStateConfig = jest.fn();
 
 // Mock the child layout components to avoid GoldenLayout complexity
 jest.mock('./LayoutUtils', () => ({
@@ -68,7 +69,8 @@ jest.mock('@deephaven/dashboard', () => {
       return react.createElement('div', null, children);
     },
     useLayoutManager: jest.fn(),
-    usePersistentState: () => {
+    usePersistentState: (_initialState: unknown, config: unknown) => {
+      mockUsePersistentStateConfig(config);
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [state, setState] = react.useState(mockPersistedInitialValue);
       const wrappedSet = react.useCallback((updater: unknown) => {
@@ -190,6 +192,25 @@ describe('NestedDashboard', () => {
     // Should have a panel manager available
     expect(screen.getByTestId('panel-manager')).toHaveTextContent(
       'has-manager'
+    );
+  });
+
+  it('keeps the persisted dashboard data when unmounted so the layout is restored on remount', () => {
+    render(
+      <WidgetStatusContext.Provider value={mockWidgetStatus}>
+        <LayoutManagerContext.Provider value={mockLayout as never}>
+          <NestedDashboard>
+            <div />
+          </NestedDashboard>
+        </LayoutManagerContext.Provider>
+      </WidgetStatusContext.Provider>
+    );
+
+    expect(mockUsePersistentStateConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NestedDashboardData',
+        deleteOnUnmount: false,
+      })
     );
   });
 

@@ -81,7 +81,12 @@ function NestedDashboard({
   const plugins = useDashboardPlugins();
   const [dashboardData, setDashboardData] = usePersistentState<
     DashboardData | undefined
-  >(undefined, { type: 'NestedDashboardData', version: 1 });
+  >(undefined, {
+    type: 'NestedDashboardData',
+    version: 1,
+    // Keep the user's layout when the dashboard unmounts while its widget reloads, e.g. on a query restart
+    deleteOnUnmount: false,
+  });
   const [layoutInitialized, setLayoutInitialized] = useState(false);
   const layoutSettings = useMemo(
     () => ({ hasHeaders: showHeaders }),
