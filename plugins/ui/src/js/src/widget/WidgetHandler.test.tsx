@@ -11,7 +11,6 @@ import { byReference } from './ReferenceUtils';
 import { type WidgetMessageEvent } from './WidgetTypes';
 import { LEGACY_NAVIGATE_EVENT, NAVIGATE_EVENT } from '../events/Navigate';
 import { CALLABLE_KEY, REFERENCE_KEY } from '../elements/utils/ElementUtils';
-import useWidgetStatus from '../layout/useWidgetStatus';
 import {
   makeWidget,
   makeWidgetDescriptor,
@@ -47,18 +46,6 @@ jest.mock(
   './DocumentHandler',
   () => (props: DocumentHandlerProps) => mockDocumentHandler(props)
 );
-
-/** Renders the widget status the document is shown with */
-function StatusDocumentHandler(props: DocumentHandlerProps) {
-  const widgetStatus = useWidgetStatus();
-  return (
-    <div>
-      {widgetStatus.status === 'error'
-        ? `error: ${(widgetStatus.error as Error).message}`
-        : widgetStatus.status}
-    </div>
-  );
-}
 
 function makeWidgetHandler({
   widgetDescriptor: widget = makeWidgetDescriptor(),
@@ -254,8 +241,7 @@ it('updates the initial data only when widget has changed', async () => {
   expect(sendMessage).not.toHaveBeenCalled();
 
   const widget2 = makeWidgetDescriptor();
-  // The new widget patches from an empty document, not the previous widget's document
-  const document2 = { FOO: 'BAR' };
+  const document2 = { foo: 'bar', FOO: 'BAR' };
   const patch2: Operation[] = [{ op: 'add', path: '/FOO', value: 'BAR' }];
   mockWidgetWrapper = {
     widget: makeWidget({
@@ -313,7 +299,7 @@ it('updates the initial data only when widget has changed', async () => {
   expect(cleanup).toHaveBeenCalledTimes(1);
 });
 
-it('keeps the last document mounted with an error status if widget is null (query disconnected)', async () => {
+it('handles rendering widget error if widget is null (query disconnected)', async () => {
   const widget1 = makeWidgetDescriptor();
   const cleanup = jest.fn();
   const mockAddEventListener = jest.fn(
@@ -376,7 +362,9 @@ it('keeps the last document mounted with an error status if widget is null (quer
     error: new Error('Test error'),
     api: null,
   };
-  mockDocumentHandler.mockImplementation(StatusDocumentHandler);
+  mockDocumentHandler.mockImplementation(props => (
+    <div className="test-document-handler">{props.children}</div>
+  ));
 
   rerender(
     makeWidgetHandler({
@@ -389,87 +377,7 @@ it('keeps the last document mounted with an error status if widget is null (quer
   const [props] = mockDocumentHandler.mock.calls[0];
   expect(props.widget).toBe(widget1);
   expect(props.initialData).toBe(data1);
-  expect(props.children).toStrictEqual(document1);
-  expect(screen.getByText('error: Test error')).toBeVisible();
-
-  unmount();
-});
-
-it('keeps the last document mounted while a new widget loads, then replaces it', async () => {
-  const addEventListener = jest.fn((() =>
-    jest.fn()) as dh.Widget['addEventListener']);
-  const widget1 = makeWidgetDescriptor();
-  const document1 = { foo: 'bar' };
-  const document2 = { fiz: 'baz' };
-  mockWidgetWrapper = {
-    widget: makeWidget({
-      addEventListener,
-      getDataAsString: jest.fn(() => ''),
-      sendMessage: jest.fn(),
-    }),
-    error: null,
-    api: jest.fn() as unknown as typeof dh,
-  };
-  mockDocumentHandler.mockImplementation(StatusDocumentHandler);
-
-  const { rerender, unmount } = render(
-    makeWidgetHandler({ widgetDescriptor: widget1 })
-  );
-
-  await act(async () => {
-    const listener = addEventListener.mock.calls[0][1];
-    listener(makeWidgetEventJsonRpcResponse(0));
-    listener(
-      makeWidgetEventDocumentPatched([
-        { op: 'add', path: '/foo', value: 'bar' },
-      ])
-    );
-  });
-  expect(screen.getByText('ready')).toBeVisible();
-
-  // Query restarts, the widget can't be fetched
-  mockWidgetWrapper = {
-    widget: null,
-    error: new Error('Query stopped'),
-    api: null,
-  };
-  rerender(makeWidgetHandler({ widgetDescriptor: widget1 }));
-  expect(screen.getByText('error: Query stopped')).toBeVisible();
-
-  // Query is running again, a new widget is fetched
-  addEventListener.mockClear();
-  mockDocumentHandler.mockClear();
-  mockWidgetWrapper = {
-    widget: makeWidget({
-      addEventListener,
-      getDataAsString: jest.fn(() => ''),
-      sendMessage: jest.fn(),
-    }),
-    error: null,
-    api: jest.fn() as unknown as typeof dh,
-  };
-  rerender(makeWidgetHandler({ widgetDescriptor: widget1 }));
-
-  expect(screen.getByText('loading')).toBeVisible();
-  expect(mockDocumentHandler).toHaveBeenCalled();
-  mockDocumentHandler.mock.calls.forEach(([props]) => {
-    expect(props.children).toStrictEqual(document1);
-  });
-
-  await act(async () => {
-    const listener = addEventListener.mock.calls[0][1];
-    listener(makeWidgetEventJsonRpcResponse(0));
-    listener(
-      makeWidgetEventDocumentPatched([
-        { op: 'add', path: '/fiz', value: 'baz' },
-      ])
-    );
-  });
-
-  expect(screen.getByText('ready')).toBeVisible();
-  expect(mockDocumentHandler).toHaveBeenLastCalledWith(
-    expect.objectContaining({ children: document2 })
-  );
+  expect(screen.getByText('Test error')).toBeVisible();
 
   unmount();
 });

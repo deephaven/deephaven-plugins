@@ -127,12 +127,8 @@ function WidgetHandler({
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
 
-  // The document, along with the client of the widget that sent it. The document matches what was sent over the wire,
-  // before being rendered/conversion to React elements/nodes.
-  const [documentState, setDocumentState] = useState<{
-    client: JSONRPCServerAndClient;
-    document: object;
-  }>();
+  // The document. Matches what was sent over the wire, before being rendered/conversion to React elements/nodes.
+  const [document, setDocument] = useState<object>();
 
   const error = useMemo(
     () => internalError ?? widgetError ?? undefined,
@@ -168,10 +164,6 @@ function WidgetHandler({
         : null,
     [widget]
   );
-  const jsonClientRef = useRef(jsonClient);
-  useEffect(() => {
-    jsonClientRef.current = jsonClient;
-  }, [jsonClient]);
 
   /**
    * Send state to the backend via the `setState` RPC. Used after any client-side state change.
@@ -189,11 +181,6 @@ function WidgetHandler({
           log.debug('Set state result', result);
         },
         e => {
-          // Requests pending on a replaced widget are rejected, which shouldn't error the new widget
-          if (jsonClientRef.current !== jsonClient) {
-            log.debug('Ignoring setState error from previous widget', e);
-            return;
-          }
           log.error('Error setting state: ', e);
           setInternalError(e);
         }
@@ -215,10 +202,6 @@ function WidgetHandler({
         log.debug('Set URL state result', result);
       },
       e => {
-        if (jsonClientRef.current !== jsonClient) {
-          log.debug('Ignoring setUrlState error from previous widget', e);
-          return;
-        }
         log.error('Error setting URL state: ', e);
         setInternalError(e);
       }
@@ -431,14 +414,9 @@ function WidgetHandler({
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            setDocumentState(oldState => ({
-              client: jsonClient,
-              // A newly fetched widget patches from an empty document, not the previous widget's document
-              document: applyJsonPatch(
-                oldState?.client === jsonClient ? oldState.document : {},
-                patch
-              ),
-            }));
+            setDocument(oldDocument =>
+              applyJsonPatch(oldDocument ?? {}, patch)
+            );
             setIsLoading(false);
           });
           if (stateParam != null) {
@@ -604,45 +582,20 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const currentDocument =
-    documentState != null && documentState.client === jsonClient
-      ? documentState.document
-      : undefined;
-  const isDocumentCurrent = currentDocument != null;
-
-  const currentRenderedDocument = useMemo(
-    () =>
-      currentDocument != null ? renderDocument(currentDocument) : undefined,
-    [currentDocument, renderDocument]
+  const renderedDocument = useMemo(
+    () => renderDocument(document),
+    [document, renderDocument]
   );
-
-  // While the widget is re-fetched (e.g. its query restarts), keep the last rendered document mounted so its panels
-  // and layout stay in place and show the widget status, instead of being torn down and rebuilt from defaults.
-  const lastRenderedDocument = useRef<React.ReactNode>();
-  useEffect(() => {
-    if (isDocumentCurrent) {
-      lastRenderedDocument.current = currentRenderedDocument;
-    }
-  }, [currentRenderedDocument, isDocumentCurrent]);
-
-  const emptyRenderedDocument = useMemo(
-    () => renderEmptyDocument(),
-    [renderEmptyDocument]
-  );
-
-  const renderedDocument = isDocumentCurrent
-    ? currentRenderedDocument
-    : lastRenderedDocument.current ?? emptyRenderedDocument;
 
   const widgetStatus: WidgetStatus = useMemo(() => {
-    if (isLoading || (error == null && !isDocumentCurrent)) {
+    if (isLoading) {
       return { status: 'loading', descriptor: widgetDescriptor };
     }
     if (error != null) {
       return { status: 'error', descriptor: widgetDescriptor, error };
     }
     return { status: 'ready', descriptor: widgetDescriptor };
-  }, [error, widgetDescriptor, isLoading, isDocumentCurrent]);
+  }, [error, widgetDescriptor, isLoading]);
 
   return renderedDocument != null ? (
     <NavigateContext.Provider value={handleNavigate}>
