@@ -118,7 +118,7 @@ export function useReactPanel(panelKey?: string): ReactPanelControl {
     getInitialData,
     isPanelOpen,
   } = useReactPanelManager();
-  // The same in both renders when Strict Mode renders twice, so the panel doesn't take two ids
+  // Stable across re-renders of a mounted panel, so a repeated render reuses the id it was given
   const panelToken = useId();
   const assignedId = useMemo(
     () => getPanelId(panelKey, panelToken),

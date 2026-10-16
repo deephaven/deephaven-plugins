@@ -212,7 +212,7 @@ function ReactPanel({
     function openIfNecessary() {
       if (!isPanelOpenRef.current) {
         if (!onOpen()) {
-          // Another panel has this key, so this one re-renders with a new id
+          // Another open panel has this key. `useReactPanel` gives this one a new id, which re-runs this effect.
           return;
         }
         isPanelOpenRef.current = true;
