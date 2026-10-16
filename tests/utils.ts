@@ -353,6 +353,8 @@ export async function pasteInMonaco(
     tempInput.style.width = '0';
     tempInput.style.height = '0';
     document.body.appendChild(tempInput);
+    // Without focus, Firefox copies nothing and a stale clipboard gets pasted
+    tempInput.focus();
     tempInput.select();
     return tempInput.id;
   }, text);
@@ -365,8 +367,11 @@ export async function pasteInMonaco(
     document.getElementById(id)?.remove();
   }, inputId);
 
-  // Focus monaco
-  await locator.click();
+  // Firefox sometimes doesn't focus monaco on the first click
+  await expect(async () => {
+    await locator.click();
+    await expect(locator.locator('textarea')).toBeFocused({ timeout: 1000 });
+  }).toPass();
 
   const browserName = locator.page().context().browser()?.browserType().name();
   if (browserName !== 'firefox') {

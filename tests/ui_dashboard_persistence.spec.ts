@@ -1,4 +1,10 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Browser,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import {
   openPanel,
   gotoPage,
@@ -22,12 +28,11 @@ async function runInConsole(page: Page, command: string): Promise<void> {
 
 /**
  * Disables "Close Panels on Disconnect" so the layout (and the widget session)
- * is persisted across a page refresh, waits for the setting/layout to be saved,
- * then reloads the page.
+ * is persisted across a page refresh, and waits for the setting/layout to be saved.
  * @param page The page
  */
-async function persistLayoutAndReload(page: Page): Promise<void> {
-  await test.step('Persist layout and reload', async () => {
+async function persistLayout(page: Page): Promise<void> {
+  await test.step('Persist layout', async () => {
     // Reset mouse position to not cause unintended hover effects
     await page.mouse.move(0, 0);
 
@@ -40,7 +45,16 @@ async function persistLayoutAndReload(page: Page): Promise<void> {
 
     // Wait for the debounced layout/settings to be saved before refreshing
     await page.waitForTimeout(2000);
+  });
+}
 
+/**
+ * Persists the layout, then reloads the page.
+ * @param page The page
+ */
+async function persistLayoutAndReload(page: Page): Promise<void> {
+  await persistLayout(page);
+  await test.step('Reload', async () => {
     await page.reload();
     await waitForLoad(page);
   });
@@ -545,6 +559,313 @@ def ${changed}():
       await expect(panelTab(restoredPanel, 'Panel 4')).toHaveCount(1);
       await panelTab(restoredPanel, 'Panel 4').click();
       await expect(restoredPanel.getByText('Panel 4 content')).toBeVisible();
+    });
+  });
+
+  // The code behind a persisted widget changes while the page is away (e.g. a
+  // query restart with new code). Another session re-assigns the variable, then
+  // the original page refreshes into its persisted layout. Each panel must be
+  // matched to its saved panel by `key`, not by render order.
+  test.describe('keyed panels across code changes', () => {
+    function escapeRegExp(value: string): string {
+      return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function panelTab(scope: Locator | Page, title: string): Locator {
+      return scope.locator('.lm_tab', {
+        hasText: new RegExp(`^\\s*${escapeRegExp(title)}\\s*$`),
+      });
+    }
+
+    /** The stack in `scope` containing the tab with `title`. */
+    function panelStack(scope: Locator, title: string): Locator {
+      return scope
+        .locator('.lm_stack')
+        .filter({ has: panelTab(scope.page(), title) });
+    }
+
+    /** Python for a panel whose heading matches its title. */
+    function keyedPanel(title: string, key = title): string {
+      return `ui.panel(ui.heading("${title}"), title="${title}", key="${key}")`;
+    }
+
+    /** Python for a stack of keyed panels. */
+    function stack(...titles: string[]): string {
+      return `ui.stack(${titles.map(title => keyedPanel(title)).join(', ')})`;
+    }
+
+    /** Python for a keyed stack of keyed panels. */
+    function keyedStack(key: string, ...titles: string[]): string {
+      return `ui.stack(${titles
+        .map(title => keyedPanel(title))
+        .join(', ')}, key="${key}")`;
+    }
+
+    function widgetCode(varName: string, layout: string): string {
+      return `from deephaven import ui
+
+${varName} = ui.panel(ui.dashboard(${layout}), title="${varName}")`;
+    }
+
+    /**
+     * Asserts the nested dashboard has exactly one tab for each title, and that
+     * each tab shows the content belonging to that title.
+     * @param scope The widget panel containing the nested dashboard
+     * @param titles The expected panel titles
+     */
+    async function expectPanels(
+      scope: Locator,
+      titles: string[]
+    ): Promise<void> {
+      await expect(scope.locator('.lm_tab')).toHaveCount(titles.length);
+      /* eslint-disable no-await-in-loop */
+      for (let i = 0; i < titles.length; i += 1) {
+        const title = titles[i];
+        const tab = panelTab(scope, title);
+        await expect(tab).toHaveCount(1);
+        await tab.click();
+        await expect(panelStack(scope, title).getByRole('heading')).toHaveText(
+          title
+        );
+      }
+      /* eslint-enable no-await-in-loop */
+      await expect(scope.locator('.ui-portal-panel:empty')).toHaveCount(0);
+    }
+
+    /**
+     * Opens a widget with the `before` layout, persists the layout, re-assigns
+     * the widget with the `after` layout from another session, then refreshes.
+     * @returns The restored widget panel
+     */
+    async function changeCodeAndRefresh({
+      page,
+      browser,
+      before,
+      beforeTitles,
+      after,
+      afterTitles,
+      rearrange,
+    }: {
+      page: Page;
+      browser: Browser;
+      before: string;
+      beforeTitles: string[];
+      after: string;
+      afterTitles: string[];
+      rearrange?: (outerPanel: Locator) => Promise<void>;
+    }): Promise<Locator> {
+      const varName = generateVarName();
+      await gotoPage(page, '');
+      await runInConsole(page, widgetCode(varName, before));
+
+      const outerPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expectPanels(outerPanel, beforeTitles);
+      await rearrange?.(outerPanel);
+      await persistLayout(page);
+
+      await test.step('Change the code from another session', async () => {
+        // Firefox occasionally pastes stale clipboard contents in a second context
+        await expect(async () => {
+          const otherContext = await browser.newContext();
+          try {
+            const otherPage = await otherContext.newPage();
+            await gotoPage(otherPage, page.url());
+            await runInConsole(otherPage, widgetCode(varName, after));
+            await expect(
+              otherPage
+                .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+                .first()
+                .locator('.lm_tab')
+            ).toHaveCount(afterTitles.length);
+          } finally {
+            await otherContext.close();
+          }
+        }).toPass();
+      });
+
+      await test.step('Reload', async () => {
+        await page.reload();
+        await waitForLoad(page);
+      });
+
+      const restoredPanel = page
+        .locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE)
+        .first();
+      await expect(restoredPanel).toBeVisible();
+      return restoredPanel;
+    }
+
+    const STACK_CASES: { name: string; before: string[]; after: string[] }[] = [
+      {
+        name: 'inserting a panel at the start',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P0', 'P1', 'P2', 'P3'],
+      },
+      {
+        name: 'inserting a panel in the middle',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P1', 'Q1.5', 'P2', 'P3'],
+      },
+      {
+        name: 'appending a panel',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P1', 'P2', 'P3', 'P4'],
+      },
+      {
+        name: 'removing the first panel',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P2', 'P3'],
+      },
+      {
+        name: 'removing a middle panel',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P1', 'P3'],
+      },
+      {
+        name: 'removing the last panel',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P1', 'P2'],
+      },
+      {
+        name: 'reordering panels',
+        before: ['P1', 'P2', 'P3'],
+        after: ['P3', 'P1', 'P2'],
+      },
+    ];
+
+    STACK_CASES.forEach(({ name, before, after }) => {
+      test(name, async ({ page, browser }) => {
+        const restoredPanel = await changeCodeAndRefresh({
+          page,
+          browser,
+          before: stack(...before),
+          beforeTitles: before,
+          after: stack(...after),
+          afterTitles: after,
+        });
+        await expectPanels(restoredPanel, after);
+      });
+    });
+
+    test('moving a panel to another stack in a row', async ({
+      page,
+      browser,
+    }) => {
+      const restoredPanel = await changeCodeAndRefresh({
+        page,
+        browser,
+        before: `ui.row(${stack('P1', 'P2')}, ${stack('P3')})`,
+        beforeTitles: ['P1', 'P2', 'P3'],
+        after: `ui.row(${stack('P1')}, ${stack('P2', 'P3')})`,
+        afterTitles: ['P1', 'P2', 'P3'],
+      });
+      await expectPanels(restoredPanel, ['P1', 'P2', 'P3']);
+
+      // Unkeyed stacks aren't part of the panel key, so P2 keeps its saved spot
+      await expect(panelTab(panelStack(restoredPanel, 'P1'), 'P2')).toHaveCount(
+        1
+      );
+    });
+
+    test('moving a panel to another keyed stack in a row', async ({
+      page,
+      browser,
+    }) => {
+      const restoredPanel = await changeCodeAndRefresh({
+        page,
+        browser,
+        before: `ui.row(${keyedStack('a', 'P1', 'P2')}, ${keyedStack(
+          'b',
+          'P3'
+        )})`,
+        beforeTitles: ['P1', 'P2', 'P3'],
+        after: `ui.row(${keyedStack('a', 'P1')}, ${keyedStack(
+          'b',
+          'P2',
+          'P3'
+        )})`,
+        afterTitles: ['P1', 'P2', 'P3'],
+      });
+      await expectPanels(restoredPanel, ['P1', 'P2', 'P3']);
+    });
+
+    test('changing a row to a column', async ({ page, browser }) => {
+      const restoredPanel = await changeCodeAndRefresh({
+        page,
+        browser,
+        before: `ui.row(${stack('P1')}, ${stack('P2')})`,
+        beforeTitles: ['P1', 'P2'],
+        after: `ui.column(${stack('P1')}, ${stack('P2')}, ${stack('P3')})`,
+        afterTitles: ['P1', 'P2', 'P3'],
+      });
+      await expectPanels(restoredPanel, ['P1', 'P2', 'P3']);
+    });
+
+    test('the same key in differently keyed stacks does not conflict', async ({
+      page,
+      browser,
+    }) => {
+      const left = keyedPanel('Left', 'K');
+      const right = keyedPanel('Right', 'K');
+      const rightStack = `ui.stack(${right}, key="right")`;
+      const restoredPanel = await changeCodeAndRefresh({
+        page,
+        browser,
+        before: `ui.row(ui.stack(${left}, key="left"), ${rightStack})`,
+        beforeTitles: ['Left', 'Right'],
+        after: `ui.row(ui.stack(${keyedPanel(
+          'Left New',
+          'K0'
+        )}, ${left}, key="left"), ${rightStack})`,
+        afterTitles: ['Left New', 'Left', 'Right'],
+      });
+      await expectPanels(restoredPanel, ['Left New', 'Left', 'Right']);
+    });
+
+    test('a moved panel stays in place when a panel is inserted before it', async ({
+      page,
+      browser,
+    }) => {
+      const moved: { box?: { x: number; y: number } | null } = {};
+      const restoredPanel = await changeCodeAndRefresh({
+        page,
+        browser,
+        before: stack('P1', 'P2', 'P3'),
+        beforeTitles: ['P1', 'P2', 'P3'],
+        after: stack('P1', 'Q1.5', 'P2', 'P3'),
+        afterTitles: ['P1', 'Q1.5', 'P2', 'P3'],
+        rearrange: async outerPanel => {
+          // Drag P2 to the right edge to split it into its own stack
+          const dashboardBox = await outerPanel.boundingBox();
+          if (dashboardBox == null) {
+            throw new Error('Could not get bounding box for the dashboard');
+          }
+          await dragTabToTarget(page, panelTab(outerPanel, 'P2'), {
+            x: dashboardBox.x + dashboardBox.width * 0.85,
+            y: dashboardBox.y + dashboardBox.height * 0.5,
+          });
+          await expect(outerPanel.locator('.lm_stack')).toHaveCount(2);
+          moved.box = await panelTab(outerPanel, 'P2').boundingBox();
+        },
+      });
+
+      await expectPanels(restoredPanel, ['P1', 'Q1.5', 'P2', 'P3']);
+
+      // P2 is still on its own where it was dropped, apart from P1 and P3
+      await expect(restoredPanel.locator('.lm_stack')).toHaveCount(2);
+      const p2Stack = panelStack(restoredPanel, 'P2');
+      await expect(p2Stack.locator('.lm_tab')).toHaveCount(1);
+      const p1Stack = panelStack(restoredPanel, 'P1');
+      await expect(panelTab(p1Stack, 'P3')).toHaveCount(1);
+
+      const afterBox = await panelTab(restoredPanel, 'P2').boundingBox();
+      if (moved.box == null || afterBox == null) {
+        throw new Error('Could not get bounding box for the P2 tab');
+      }
+      expect(Math.abs(afterBox.x - moved.box.x)).toBeLessThan(10);
+      expect(Math.abs(afterBox.y - moved.box.y)).toBeLessThan(10);
     });
   });
 });
