@@ -270,6 +270,86 @@ class ElementMessageStreamRestoreTestCase(BaseTestCase):
         self.assertEqual(restored._context.export_state()["state"], {0: "Asia"})
 
 
+class ElementMessageStreamCallableRegistryTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.pressed: List[int] = []
+        self.count = 10
+
+        @ui.component
+        def grid():
+            stable = ui.use_callback(lambda: self.pressed.append(-1), [])
+            return ui.flex(
+                ui.button("stable", on_press=stable),
+                *[
+                    ui.button(str(i), on_press=lambda i=i: self.pressed.append(i))
+                    for i in range(self.count)
+                ],
+            )
+
+        self.connection = Mock()
+        self.stream = ElementMessageStream(grid(), self.connection)
+
+    def _rerender(self) -> None:
+        self.stream._context.mark_dirty()
+        self.stream._render()
+
+    def _callable_ids(self) -> List[str]:
+        """The callable IDs in the last document sent, in render order."""
+        from deephaven.ui.renderer.NodeEncoder import CALLABLE_KEY
+
+        ids: List[str] = []
+
+        def walk(node: Any) -> None:
+            if isinstance(node, dict):
+                if CALLABLE_KEY in node:
+                    ids.append(node[CALLABLE_KEY])
+                for value in node.values():
+                    walk(value)
+            elif isinstance(node, list):
+                for value in node:
+                    walk(value)
+
+        walk(self.stream._last_document)
+        return ids
+
+    def _call(self, callable_id: str) -> None:
+        request = {
+            "jsonrpc": "2.0",
+            "method": "callCallable",
+            "params": [callable_id, []],
+            "id": 1,
+        }
+        self.stream._manager.handle(
+            json.dumps(request), self.stream._dispatcher, context={"references": []}
+        )
+
+    def test_callables_from_previous_renders_are_released(self):
+        import gc
+
+        for _ in range(5):
+            self._rerender()
+        gc.collect()
+
+        # One stable callback plus a new lambda for each button
+        self.assertEqual(len(self.stream._callable_dict), self.count + 1)
+        self.assertEqual(len(self.stream._encoder._callable_dict), self.count + 1)
+        self.assertEqual(set(self.stream._callable_dict), set(self._callable_ids()))
+
+    def test_callables_are_callable_after_rerendering(self):
+        self._rerender()
+        first_ids = self._callable_ids()
+        self._rerender()
+        ids = self._callable_ids()
+
+        self.assertEqual(ids[0], first_ids[0], "memoized callback keeps its ID")
+        for callable_id in ids:
+            self._call(callable_id)
+        self.assertEqual(self.pressed, [-1, *range(self.count)])
+
+
 class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
