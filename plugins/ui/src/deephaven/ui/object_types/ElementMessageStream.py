@@ -623,8 +623,6 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
-        # Release the previous render's callables first, or they stay alive in the weak callable_id_dict and are re-registered
-        self._callable_dict = {}
         callable_dict = {}
         for callable, callable_id in callable_id_dict.items():
             callable_dict[callable_id] = wrap_callable(callable)

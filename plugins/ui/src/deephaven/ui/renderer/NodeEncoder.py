@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Callable, TypedDict
-from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
 from .._internal.utils import transform_node, is_primitive, is_iterable
 
@@ -38,9 +37,9 @@ class NodeEncoderResult(TypedDict):
     The list of new objects.
     """
 
-    callable_id_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
+    callable_id_dict: dict[Callable[..., Any], CallableId]
     """
-    Dictionary from a callable to the ID assigned to the callable.
+    Dictionary from each callable in the encoded node to the ID assigned to the callable.
     """
 
 
@@ -62,10 +61,16 @@ class NodeEncoder:
     Incrementing ID that is used to assign IDs to callables. Needs to be prefixed with the `_callable_id_prefix` to get an ID.
     """
 
-    _callable_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
+    _callable_dict: dict[Callable[..., Any], CallableId]
     """
     Dictionary from a callable to the ID assigned to the callable so we know which
     callables we've seen before, to avoid unnecessarily creating new callableIds.
+    Callables are removed after the next render if they are no longer in the document.
+    """
+
+    _old_callables: set[Callable[..., Any]]
+    """
+    Callables from the last render. Used to remove callables that are no longer in the document.
     """
 
     _new_objects: list[Any]
@@ -87,7 +92,6 @@ class NodeEncoder:
     """
     Dictionary from a python ID to the ID assigned to it and the associated object.
     Objects are removed after the next render if they are no longer in the document.
-    Unlike `_callable_dict`, we cannot use a WeakKeyDictionary as we need to pass the exported object instance to the client, so we need to always keep a reference around that the client may still have a reference to.
     """
 
     def __init__(
@@ -102,7 +106,7 @@ class NodeEncoder:
         """
         self._callable_id_prefix = callable_id_prefix
         self._next_callable_id = 0
-        self._callable_dict = WeakKeyDictionary()
+        self._callable_dict = {}
         self._new_objects = []
         self._next_object_id = 0
         self._object_id_dict = {}
@@ -118,6 +122,7 @@ class NodeEncoder:
         # Reset the new objects list - they will get set when encoding
         self._new_objects = []
         self._old_objects = set(self._object_id_dict.keys())
+        self._old_callables = set(self._callable_dict.keys())
 
         logger.debug("Encoding node with object_id_dict: %s", self._object_id_dict)
 
@@ -126,6 +131,8 @@ class NodeEncoder:
         # Remove the old objects from last render from the object id dict
         for py_id in self._old_objects:
             self._object_id_dict.pop(py_id, None)
+        for cb in self._old_callables:
+            self._callable_dict.pop(cb, None)
 
         return {
             "encoded_node": encoded_node,
@@ -156,6 +163,8 @@ class NodeEncoder:
             callable_id = f"{self._callable_id_prefix}{self._next_callable_id}"
             self._next_callable_id += 1
             self._callable_dict[cb] = callable_id
+
+        self._old_callables.discard(cb)
 
         return {
             CALLABLE_KEY: callable_id,

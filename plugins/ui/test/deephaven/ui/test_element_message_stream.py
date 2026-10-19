@@ -349,6 +349,34 @@ class ElementMessageStreamCallableRegistryTestCase(BaseTestCase):
             self._call(callable_id)
         self.assertEqual(self.pressed, [-1, *range(self.count)])
 
+    def test_bound_method_handler_is_callable_after_rerendering(self):
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        class Controller:
+            def __init__(self, pressed: List[int]):
+                self.pressed = pressed
+
+            def handle_press(self):
+                self.pressed.append(1)
+
+        controller = Controller(self.pressed)
+
+        @ui.component
+        def panel():
+            # Each attribute access creates a new bound method object that is equal to the last one
+            return ui.button("press", on_press=controller.handle_press)
+
+        self.stream = ElementMessageStream(panel(), self.connection)
+        self._rerender()
+        first_ids = self._callable_ids()
+        self._rerender()
+        ids = self._callable_ids()
+
+        self.assertEqual(ids, first_ids)
+        self._call(ids[0])
+        self.assertEqual(self.pressed, [1])
+
 
 class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
     def setUp(self) -> None:
