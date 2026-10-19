@@ -133,6 +133,7 @@ class NodeEncoder:
             self._object_id_dict.pop(py_id, None)
         for cb in self._old_callables:
             self._callable_dict.pop(cb, None)
+        self._old_callables.clear()
 
         return {
             "encoded_node": encoded_node,

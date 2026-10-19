@@ -377,6 +377,35 @@ class ElementMessageStreamCallableRegistryTestCase(BaseTestCase):
         self._call(ids[0])
         self.assertEqual(self.pressed, [1])
 
+    def test_removed_handler_is_released_without_another_render(self):
+        import gc
+        import weakref
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        is_shown = True
+        handler_refs: List[weakref.ref] = []
+
+        @ui.component
+        def panel():
+            if not is_shown:
+                return ui.text("hidden")
+
+            def on_press():
+                pass
+
+            handler_refs.append(weakref.ref(on_press))
+            return ui.button("press", on_press=on_press)
+
+        self.stream = ElementMessageStream(panel(), self.connection)
+        self._rerender()
+        is_shown = False
+        self._rerender()
+        gc.collect()
+
+        self.assertEqual(len(handler_refs), 1)
+        self.assertIsNone(handler_refs[0]())
+
 
 class ElementMessageStreamDeserializeReferencesTestCase(BaseTestCase):
     def setUp(self) -> None:
@@ -475,7 +504,7 @@ class ElementMessageStreamReferencesOnDataTestCase(BaseTestCase):
         )
 
         self.assertNotIn("error", response)
-        (label, options, third) = self.received[0]
+        label, options, third = self.received[0]
         self.assertEqual(label, "label")
         self.assertIs(options["items"][0], second)
         self.assertIs(third, first)
