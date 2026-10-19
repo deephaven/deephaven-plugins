@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.43.0 - 2026-10-19
+
+#### Features
+
+- DH-23085: Add selection data to ui table context menu action ([#1424](https://github.com/deephaven/deephaven-plugins/pull/1424)) - (63356fd) - dgodinez-dh
+
+#### Bug Fixes
+
+- DH-24042: Keep ui.dashboard layout when its widget reloads ([#1435](https://github.com/deephaven/deephaven-plugins/pull/1435)) - (571f7b0) - vbabich
+- DH-23822: Stable panel ids for keyed deephaven.ui panels ([#1426](https://github.com/deephaven/deephaven-plugins/pull/1426)) - (2a73265) - vbabich
+
+- - -
+
+
 ## ui-v0.42.2 - 2026-10-01
 
 #### Bug Fixes
