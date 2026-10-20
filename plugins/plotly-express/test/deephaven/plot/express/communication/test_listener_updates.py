@@ -158,6 +158,26 @@ class DeephavenFigureListenerUpdateTestCase(BaseTestCase):
         self.assertEqual(message["type"], "NEW_FIGURE")
         self.assertEqual(len(message["figure"]["plotly"]["data"]), 3)
 
+    def test_update_sent_in_connection_exec_ctx(self):
+        """Updates are sent in the context that was current when the connection opened"""
+        from deephaven.execution_context import get_exec_ctx, make_user_exec_ctx
+
+        self.add_groups(["A"])
+        chart, _ = self.charts()["line"]
+        sent_ctx = []
+        connection = MagicMock()
+        connection.on_data.side_effect = lambda *_: sent_ctx.append(
+            get_exec_ctx().j_exec_ctx
+        )
+
+        connection_ctx = make_user_exec_ctx()
+        with connection_ctx:
+            self.create_listener(chart, connection)
+
+        self.add_groups(["B"])
+        wait_for(lambda: sent_ctx)
+        self.assertTrue(sent_ctx[0].equals(connection_ctx.j_exec_ctx))
+
     def test_updates_during_rebuild_are_merged(self):
         """Updates that arrive while a rebuild runs cause one more rebuild, not one each"""
         import threading

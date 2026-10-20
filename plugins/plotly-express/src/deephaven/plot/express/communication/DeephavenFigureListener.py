@@ -7,6 +7,7 @@ from functools import partial
 from typing import Any
 import io
 
+from deephaven.execution_context import get_exec_ctx
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.table import PartitionedTable
@@ -38,6 +39,7 @@ class DeephavenFigureListener:
         _update_task_active: bool: Whether an update task is queued or running
         _update_lock: threading.Lock: Guards _dirty_nodes, _update_task_active and _closed
         _closed: bool: Whether the connection is closed
+        _exec_ctx: ExecutionContext: The connecting session's context, used for updates
     """
 
     def __init__(
@@ -53,6 +55,8 @@ class DeephavenFigureListener:
             connection: The connection to send messages to
         """
         self._connection = connection
+        # carries the viewer's auth; update threads have no context of their own
+        self._exec_ctx = get_exec_ctx()
 
         # copy the figure so only this session's figure is updated
         # the liveness scope is needed to keep any tables alive
@@ -137,33 +141,34 @@ class DeephavenFigureListener:
         Rebuild dirty nodes and send the new figure until none are left.
         Updates that arrive during a rebuild are merged into one more rebuild.
         """
-        while True:
-            with self._update_lock:
-                if not self._dirty_nodes or self._closed:
-                    self._update_task_active = False
-                    return
-                # take the nodes before reading any tables so no update is lost
-                nodes = list(self._dirty_nodes)
-                self._dirty_nodes.clear()
-
-            for node in nodes:
+        with self._exec_ctx:
+            while True:
                 with self._update_lock:
-                    if self._closed:
+                    if not self._dirty_nodes or self._closed:
                         self._update_task_active = False
                         return
-                try:
-                    revision = self._revision_manager.get_revision()
-                    node.recreate_figure()
-                    figure = self._get_figure()
-                    message = self._build_figure_message(figure, revision)
-                except Exception:
-                    logger.exception("Error updating figure")
-                    continue
-                try:
-                    self._connection.on_data(*message)
-                except RuntimeError:
-                    # trying to send data when the connection is closed, ignore
-                    pass
+                    # take the nodes before reading any tables so no update is lost
+                    nodes = list(self._dirty_nodes)
+                    self._dirty_nodes.clear()
+
+                for node in nodes:
+                    with self._update_lock:
+                        if self._closed:
+                            self._update_task_active = False
+                            return
+                    try:
+                        revision = self._revision_manager.get_revision()
+                        node.recreate_figure()
+                        figure = self._get_figure()
+                        message = self._build_figure_message(figure, revision)
+                    except Exception:
+                        logger.exception("Error updating figure")
+                        continue
+                    try:
+                        self._connection.on_data(*message)
+                    except RuntimeError:
+                        # trying to send data when the connection is closed, ignore
+                        pass
 
     def close(self) -> None:
         """
