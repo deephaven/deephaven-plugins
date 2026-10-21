@@ -57,6 +57,7 @@
       "description": "Build financial charts from real-time Deephaven tables using TradingView Lightweight Charts.",
       "author": "Deephaven",
       "repo": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/tradingview-lightweight",
+      "href": "/core/tradingview-lightweight/docs",
       "image": "/marketplace/images/tradingview-lightweight.png",
       "registry": {
         "kind": "pypi",
