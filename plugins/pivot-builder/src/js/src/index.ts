@@ -1,5 +1,5 @@
 import { PivotBuilderPlugin } from './PivotBuilderPlugin';
-import styles from './PivotBuilder.scss?inline';
+import styles from './PivotBuilder.css?inline';
 
 // Inject the plugin styles into the document once when the bundle loads so the
 // plugin ships as a single JS asset (no separate CSS file).

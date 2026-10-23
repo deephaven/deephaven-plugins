@@ -55,7 +55,9 @@ function resolveChartTheme(): TvlChartTheme {
     theme[key] = get(cssVar);
   });
 
-  const fontFamily = get('--font-family-sans-serif');
+  // Hosts before @deephaven/components v2 only define Bootstrap's variable
+  const fontFamily =
+    get('--dh-font-family-sans') || get('--font-family-sans-serif');
 
   const colorwayRaw = get(COLORWAY_VAR);
   const colorway = colorwayRaw
