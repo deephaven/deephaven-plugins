@@ -90,6 +90,39 @@ def my_component():
 result = my_component()
 ```
 
+## Persisting state
+
+By default, simple state values (strings and numbers) are sent to the client and saved with the user's layout. When the component is reopened, for example after the page is reloaded, the saved values are used instead of the initial values.
+
+To keep a state variable from being sent to the client, pass `persist=False`. A state variable that isn't persisted starts from its initial value whenever the component is reopened. Use this for transient UI state, or for values that should not be stored on the client:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def search_panel():
+    # Saved, so the selected region is restored after a page reload
+    region, set_region = ui.use_state("Americas")
+    # Not saved, so the search text is cleared after a page reload
+    search, set_search = ui.use_state("", persist=False)
+
+    return [
+        ui.picker(
+            "Americas",
+            "Europe",
+            "Asia",
+            label="Region",
+            selected_key=region,
+            on_change=set_region,
+        ),
+        ui.text_field(label="Search", value=search, on_change=set_search),
+    ]
+
+
+result = search_panel()
+```
+
 ## Updating state based on the previous value
 
 You can update the state using the previous value. However, let's say you have a function to update the count by three:

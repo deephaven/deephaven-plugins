@@ -12,19 +12,25 @@ T = TypeVar("T")
 # TODO (#208): We can improve the typing in Python 3.12 when we have type parameter syntax for functions
 # For not just allow `None`
 @overload
-def use_state() -> tuple[Any, Callable[[Any | UpdaterFunction[Any]], None]]:
+def use_state(
+    *, persist: bool = True
+) -> tuple[Any, Callable[[Any | UpdaterFunction[Any]], None]]:
     ...
 
 
 @overload
 def use_state(
     initial_state: T | InitializerFunction[T],
+    *,
+    persist: bool = True,
 ) -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
     ...
 
 
 def use_state(
     initial_state: T | InitializerFunction[T] = None,
+    *,
+    persist: bool = True,
 ) -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
     """
     Hook to add a state variable to your component. The state will persist across renders.
@@ -36,6 +42,10 @@ def use_state(
             After the initial render the argument is ignored.
             If an initial value is provided, only types matching that initial value will be valid when calling the returned set state function.
             If no initial value is provided, any type can be passed to the set state function.
+        persist: Whether to send the state to the client to be saved, so it can be restored when the component is
+            reopened, such as after a page reload. Defaults to True.
+            Set to False for state that should not be saved, such as transient UI state or sensitive values.
+            Non-persisted state is reset to `initial_state` when the component is reopened.
 
     Returns:
         A tuple containing the current value of the state and a function to set the state.
@@ -45,7 +55,7 @@ def use_state(
     """
     context = get_context()
     hook_index = context.next_hook_index()
-    context.record_hook_site(hook_index, sys._getframe(1))
+    context.record_hook_site(hook_index, sys._getframe(1), persist)
 
     if not context.has_state(hook_index):
         # This is the first render, initialize the value
