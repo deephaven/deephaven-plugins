@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.43.1 - 2026-10-26
+
+#### Bug Fixes
+
+- DH-23952: Release callables from previous renders in deephaven.ui ([#1436](https://github.com/deephaven/deephaven-plugins/pull/1436)) - (cde1e75) - mofojed
+
+- - -
+
+
 ## ui-v0.43.0 - 2026-10-19
 
 #### Features
