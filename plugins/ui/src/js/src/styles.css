@@ -155,16 +155,7 @@
 }
 
 .ui-monospace-text {
-  font-family: var(
-    --dh-font-family-mono,
-    'Fira Mono',
-    menlo,
-    monaco,
-    consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace
-  );
+  font-family: var(--dh-font-family-mono, var(--font-family-monospace));
   white-space: pre;
 }
 
