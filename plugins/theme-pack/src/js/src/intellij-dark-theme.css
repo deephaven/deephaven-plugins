@@ -288,43 +288,31 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-blue-300);
 
   /* Code syntax highlighting per IntelliJ spec */
-  --dh-color-editor-comment: var(
-    --dh-color-gray-500
-  ); /* Comments - #7A7E85 grayish */
-  --dh-color-editor-keyword: var(
-    --dh-color-orange-700
-  ); /* Keywords - #CE8E6D orange */
-  --dh-color-editor-storage: var(
-    --dh-color-orange-700
-  ); /* Storage types - orange */
-  --dh-color-editor-number: var(
-    --dh-color-cyan-700
-  ); /* Numbers - #2CABB8 cyan */
-  --dh-color-editor-string: var(
-    --dh-color-green-700
-  ); /* Strings - #6AAB73 green */
-  --dh-color-editor-string-delim: var(
-    --dh-color-green-700
-  ); /* String delimiters - green */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-800
-  ); /* Default identifiers */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-blue-700
-  ); /* Functions - #57A8F5 blue */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-purple-700
-  ); /* Classes - #C77DBB purple */
-  --dh-color-editor-predefined: var(
-    --dh-color-cyan-700
-  ); /* Predefined/support - cyan */
-  --dh-color-editor-operator: var(
-    --dh-color-gray-800
-  ); /* Operators - default fg */
+  /* Comments - #7A7E85 grayish */
+  --dh-color-editor-comment: var(--dh-color-gray-500);
+  /* Keywords - #CE8E6D orange */
+  --dh-color-editor-keyword: var(--dh-color-orange-700);
+  /* Storage types - orange */
+  --dh-color-editor-storage: var(--dh-color-orange-700);
+  /* Numbers - #2CABB8 cyan */
+  --dh-color-editor-number: var(--dh-color-cyan-700);
+  /* Strings - #6AAB73 green */
+  --dh-color-editor-string: var(--dh-color-green-700);
+  /* String delimiters - green */
+  --dh-color-editor-string-delim: var(--dh-color-green-700);
+  /* Default identifiers */
+  --dh-color-editor-identifier: var(--dh-color-gray-800);
+  /* Functions - #57A8F5 blue */
+  --dh-color-editor-identifier-js: var(--dh-color-blue-700);
+  /* Classes - #C77DBB purple */
+  --dh-color-editor-identifier-namespace: var(--dh-color-purple-700);
+  /* Predefined/support - cyan */
+  --dh-color-editor-predefined: var(--dh-color-cyan-700);
+  /* Operators - default fg */
+  --dh-color-editor-operator: var(--dh-color-gray-800);
   --dh-color-editor-delimiter: var(--dh-color-gray-700); /* Delimiters */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-600
-  ); /* Errors - #F75464 red */
+  /* Errors - #F75464 red */
+  --dh-color-editor-error-fg: var(--dh-color-red-600);
 
   /* Bracket colors - IntelliJ style */
   --dh-color-editor-bracket-fg1: var(--dh-color-yellow-900); /* Gold */
@@ -337,7 +325,6 @@
 
   /* Line numbers */
   --dh-color-editor-line-number-fg: var(--dh-color-gray-400); /* #4b5059 dim */
-  --dh-color-editor-line-number-active-fg: var(
-    --dh-color-gray-700
-  ); /* #9ea0a8 active */
+  /* #9ea0a8 active */
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-700);
 }

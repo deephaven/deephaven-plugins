@@ -73,15 +73,6 @@
   overflow: hidden;
 }
 
-.tvl-legend-overflow,
-.tvl-legend-time {
-  flex: none;
-}
-
-.tvl-legend-overflow {
-  align-self: flex-start;
-}
-
 /* Expanded, by click or because the rows did not fit: the rows scroll. */
 .tvl-legend-expanded .tvl-legend-body {
   overflow-y: auto;
@@ -137,20 +128,6 @@
   }
 }
 
-.tvl-legend-interactive .tvl-legend-row {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.tvl-legend-interactive .tvl-legend-row:hover {
-  background: var(--dh-color-hover-bg, rgb(255 255 255 / 8%));
-}
-
-.tvl-legend-interactive .tvl-legend-row:focus-visible {
-  outline: 1px solid var(--dh-color-accent-bg, #4c90f0);
-  outline-offset: -1px;
-}
-
 .tvl-legend-swatch {
   width: 8px;
   height: 8px;
@@ -200,13 +177,29 @@
   min-width: 6ch;
 }
 
+.tvl-legend-interactive .tvl-legend-row {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.tvl-legend-interactive .tvl-legend-row:hover {
+  background: var(--dh-color-hover-bg, rgb(255 255 255 / 8%));
+}
+
+.tvl-legend-interactive .tvl-legend-row:focus-visible {
+  outline: 1px solid var(--dh-color-accent-bg, #4c90f0);
+  outline-offset: -1px;
+}
+
 .tvl-legend-overflow,
 .tvl-legend-time {
+  flex: none;
   padding-left: 2px;
   color: var(--dh-color-gray-700, #888);
 }
 
 .tvl-legend-overflow {
+  align-self: flex-start;
   appearance: none;
   margin: 0;
   padding: 0 2px;

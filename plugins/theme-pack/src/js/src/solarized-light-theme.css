@@ -296,41 +296,30 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
 
   /* Code syntax highlighting per Solarized */
-  --dh-color-editor-comment: var(
-    --dh-color-gray-700
-  ); /* Comments - one shade darker */
-  --dh-color-editor-keyword: var(
-    --dh-color-green-700
-  ); /* Keywords - green #859900 */
-  --dh-color-editor-storage: var(
-    --dh-color-gray-800
-  ); /* Storage - base01 #586E75 */
-  --dh-color-editor-number: var(
-    --dh-color-magenta-700
-  ); /* Numbers - magenta #d33682 */
-  --dh-color-editor-string: var(
-    --dh-color-cyan-800
-  ); /* Strings - one shade darker */
-  --dh-color-editor-string-delim: var(
-    --dh-color-cyan-800
-  ); /* String delimiters */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-900
-  ); /* Default identifiers */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-blue-700
-  ); /* Functions - blue #268bd2 */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-orange-800
-  ); /* Classes - orange #cb4b16 */
-  --dh-color-editor-predefined: var(
-    --dh-color-blue-700
-  ); /* Support functions - blue */
+  /* Comments - one shade darker */
+  --dh-color-editor-comment: var(--dh-color-gray-700);
+  /* Keywords - green #859900 */
+  --dh-color-editor-keyword: var(--dh-color-green-700);
+  /* Storage - base01 #586E75 */
+  --dh-color-editor-storage: var(--dh-color-gray-800);
+  /* Numbers - magenta #d33682 */
+  --dh-color-editor-number: var(--dh-color-magenta-700);
+  /* Strings - one shade darker */
+  --dh-color-editor-string: var(--dh-color-cyan-800);
+  /* String delimiters */
+  --dh-color-editor-string-delim: var(--dh-color-cyan-800);
+  /* Default identifiers */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  /* Functions - blue #268bd2 */
+  --dh-color-editor-identifier-js: var(--dh-color-blue-700);
+  /* Classes - orange #cb4b16 */
+  --dh-color-editor-identifier-namespace: var(--dh-color-orange-800);
+  /* Support functions - blue */
+  --dh-color-editor-predefined: var(--dh-color-blue-700);
   --dh-color-editor-operator: var(--dh-color-green-700); /* Operators - green */
   --dh-color-editor-delimiter: var(--dh-color-gray-900); /* Delimiters */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-800
-  ); /* Errors - red #dc322f */
+  /* Errors - red #dc322f */
+  --dh-color-editor-error-fg: var(--dh-color-red-800);
 
   /* Bracket colors - Solarized accent cycle */
   --dh-color-editor-bracket-fg1: var(--dh-color-blue-700);

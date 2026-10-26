@@ -4,7 +4,7 @@
   /* ============ GRAY PALETTE ============ */
   /* Light theme: gray-50 (#ffffff) is lightest, gray-900 (#000000) is darkest */
   /* Anchors: editor.background #ffffff, sideBar.background #f7f8fa, foreground #000000 */
-  --dh-color-gray-50: #ffffff;
+  --dh-color-gray-50: #fff;
   --dh-color-gray-75: #fcfcfd;
   --dh-color-gray-100: #f7f8fa; /* IntelliJ sidebar/panel background */
   --dh-color-gray-200: #ebecf0; /* IntelliJ borders */
@@ -14,7 +14,7 @@
   --dh-color-gray-600: #8e939f;
   --dh-color-gray-700: #767a8a; /* Line numbers active */
   --dh-color-gray-800: #4a4d57;
-  --dh-color-gray-900: #000000; /* IntelliJ foreground */
+  --dh-color-gray-900: #000; /* IntelliJ foreground */
 
   /* ============ RED PALETTE ============ */
   /* IntelliJ Red (#d70000) - errors, terminal red anchored at 800 */
@@ -22,8 +22,8 @@
   --dh-color-red-200: #ffe2e2;
   --dh-color-red-300: #ffcdcd;
   --dh-color-red-400: #ffb0b0;
-  --dh-color-red-500: #ff8888;
-  --dh-color-red-600: #ff5555;
+  --dh-color-red-500: #f88;
+  --dh-color-red-600: #f55;
   --dh-color-red-700: #f02828;
   --dh-color-red-800: #d70000; /* Terminal red */
   --dh-color-red-900: #b50000;
@@ -96,7 +96,7 @@
   --dh-color-celery-800: #4c8c00;
   --dh-color-celery-900: #3c7200;
   --dh-color-celery-1000: #2e5a00;
-  --dh-color-celery-1100: #224400;
+  --dh-color-celery-1100: #240;
   --dh-color-celery-1200: #183200;
   --dh-color-celery-1300: #102200;
   --dh-color-celery-1400: #081300;
@@ -109,7 +109,7 @@
   --dh-color-green-400: #88ef88;
   --dh-color-green-500: #58e058;
   --dh-color-green-600: #2cc82c;
-  --dh-color-green-700: #008800; /* String green */
+  --dh-color-green-700: #080; /* String green */
   --dh-color-green-800: #007000;
   --dh-color-green-900: #005a00;
   --dh-color-green-1000: #004800;
@@ -194,7 +194,7 @@
   --dh-color-purple-400: #ef88ef;
   --dh-color-purple-500: #e358e3;
   --dh-color-purple-600: #d22cd2;
-  --dh-color-purple-700: #880088; /* Variables */
+  --dh-color-purple-700: #808; /* Variables */
   --dh-color-purple-800: #700070;
   --dh-color-purple-900: #5a005a;
   --dh-color-purple-1000: #480048;
@@ -225,7 +225,7 @@
   --dh-color-magenta-100: #ffe8f2;
   --dh-color-magenta-200: #ffd0e5;
   --dh-color-magenta-300: #ffb0d2;
-  --dh-color-magenta-400: #ff88bb;
+  --dh-color-magenta-400: #f8b;
   --dh-color-magenta-500: #f55899;
   --dh-color-magenta-600: #e02878;
   --dh-color-magenta-700: #af005f; /* Terminal magenta */
@@ -297,45 +297,32 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-blue-100);
 
   /* Code syntax highlighting per IntelliJ Light spec */
-  --dh-color-editor-comment: var(
-    --dh-color-gray-500
-  ); /* Comments - #AAAAAA grayish */
-  --dh-color-editor-keyword: var(
-    --dh-color-indigo-1100
-  ); /* Keywords - #000088 dark blue (bold) */
-  --dh-color-editor-storage: var(
-    --dh-color-indigo-1000
-  ); /* Storage types - dark blue */
-  --dh-color-editor-number: var(
-    --dh-color-orange-700
-  ); /* Numbers - #AB6526 orange/brown */
-  --dh-color-editor-string: var(
-    --dh-color-green-800
-  ); /* Strings - #008800 green (bold) */
-  --dh-color-editor-string-delim: var(
-    --dh-color-green-700
-  ); /* String delimiters - green */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-900
-  ); /* Default identifiers - black */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-fuchsia-700
-  ); /* Functions - #862F95 purple */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-gray-900
-  ); /* Classes - black */
-  --dh-color-editor-predefined: var(
-    --dh-color-gray-900
-  ); /* Predefined/support - black */
-  --dh-color-editor-operator: var(
-    --dh-color-gray-700
-  ); /* Operators - #777777 gray */
-  --dh-color-editor-delimiter: var(
-    --dh-color-gray-700
-  ); /* Delimiters - #777777 gray */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-700
-  ); /* Errors - #FF0000 red */
+  /* Comments - #AAAAAA grayish */
+  --dh-color-editor-comment: var(--dh-color-gray-500);
+  /* Keywords - #000088 dark blue (bold) */
+  --dh-color-editor-keyword: var(--dh-color-indigo-1100);
+  /* Storage types - dark blue */
+  --dh-color-editor-storage: var(--dh-color-indigo-1000);
+  /* Numbers - #AB6526 orange/brown */
+  --dh-color-editor-number: var(--dh-color-orange-700);
+  /* Strings - #008800 green (bold) */
+  --dh-color-editor-string: var(--dh-color-green-800);
+  /* String delimiters - green */
+  --dh-color-editor-string-delim: var(--dh-color-green-700);
+  /* Default identifiers - black */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  /* Functions - #862F95 purple */
+  --dh-color-editor-identifier-js: var(--dh-color-fuchsia-700);
+  /* Classes - black */
+  --dh-color-editor-identifier-namespace: var(--dh-color-gray-900);
+  /* Predefined/support - black */
+  --dh-color-editor-predefined: var(--dh-color-gray-900);
+  /* Operators - #777777 gray */
+  --dh-color-editor-operator: var(--dh-color-gray-700);
+  /* Delimiters - #777777 gray */
+  --dh-color-editor-delimiter: var(--dh-color-gray-700);
+  /* Errors - #FF0000 red */
+  --dh-color-editor-error-fg: var(--dh-color-red-700);
 
   /* Bracket colors - IntelliJ Light style */
   --dh-color-editor-bracket-fg1: var(--dh-color-indigo-800); /* Dark blue */
@@ -348,7 +335,6 @@
 
   /* Line numbers */
   --dh-color-editor-line-number-fg: var(--dh-color-gray-400); /* #b9beca dim */
-  --dh-color-editor-line-number-active-fg: var(
-    --dh-color-gray-700
-  ); /* #767a8a active */
+  /* #767a8a active */
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-700);
 }

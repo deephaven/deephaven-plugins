@@ -288,43 +288,31 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
 
   /* Code syntax highlighting per Night Owl */
-  --dh-color-editor-comment: var(
-    --dh-color-gray-500
-  ); /* Comments - muted gray-blue */
-  --dh-color-editor-keyword: var(
-    --dh-color-purple-900
-  ); /* Keywords - Purple #C792EA */
-  --dh-color-editor-storage: var(
-    --dh-color-purple-900
-  ); /* Storage types - Purple */
-  --dh-color-editor-number: var(
-    --dh-color-orange-900
-  ); /* Numbers - Orange #F78C6C */
-  --dh-color-editor-string: var(
-    --dh-color-yellow-1000
-  ); /* Strings - Yellow #ECC48D */
-  --dh-color-editor-string-delim: var(
-    --dh-color-chartreuse-1000
-  ); /* String delimiters */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-900
-  ); /* Default identifiers */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-blue-900
-  ); /* Functions - Blue #82AAFF */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-yellow-1000
-  ); /* Classes - Yellow #FFCB8B */
-  --dh-color-editor-predefined: var(
-    --dh-color-cyan-900
-  ); /* Support functions - Cyan #7FDBCA */
+  /* Comments - muted gray-blue */
+  --dh-color-editor-comment: var(--dh-color-gray-500);
+  /* Keywords - Purple #C792EA */
+  --dh-color-editor-keyword: var(--dh-color-purple-900);
+  /* Storage types - Purple */
+  --dh-color-editor-storage: var(--dh-color-purple-900);
+  /* Numbers - Orange #F78C6C */
+  --dh-color-editor-number: var(--dh-color-orange-900);
+  /* Strings - Yellow #ECC48D */
+  --dh-color-editor-string: var(--dh-color-yellow-1000);
+  /* String delimiters */
+  --dh-color-editor-string-delim: var(--dh-color-chartreuse-1000);
+  /* Default identifiers */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  /* Functions - Blue #82AAFF */
+  --dh-color-editor-identifier-js: var(--dh-color-blue-900);
+  /* Classes - Yellow #FFCB8B */
+  --dh-color-editor-identifier-namespace: var(--dh-color-yellow-1000);
+  /* Support functions - Cyan #7FDBCA */
+  --dh-color-editor-predefined: var(--dh-color-cyan-900);
   --dh-color-editor-operator: var(--dh-color-cyan-900); /* Operators - Cyan */
-  --dh-color-editor-delimiter: var(
-    --dh-color-gray-900
-  ); /* Delimiters - Foreground */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-600
-  ); /* Errors - Red #ef5350 */
+  /* Delimiters - Foreground */
+  --dh-color-editor-delimiter: var(--dh-color-gray-900);
+  /* Errors - Red #ef5350 */
+  --dh-color-editor-error-fg: var(--dh-color-red-600);
 
   /* Bracket colors - Night Owl style */
   --dh-color-editor-bracket-fg1: var(--dh-color-yellow-1000);

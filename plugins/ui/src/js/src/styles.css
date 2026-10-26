@@ -22,6 +22,22 @@
   position: relative;
 }
 
+.dh-nested-dashboard {
+  width: 100%;
+  height: 100%;
+}
+
+.dh-react-panel,
+.dh-default-panel-content,
+.dh-panel {
+  .dh-nested-dashboard {
+    padding: var(--spectrum-global-dimension-size-100);
+    .dashboard-container {
+      border: 1px solid var(--dh-color-bg);
+    }
+  }
+}
+
 .dh-react-panel,
 .dh-default-panel-content {
   /*
@@ -76,35 +92,6 @@
     }
   }
 
-  &:has(> .dh-inner-react-panel > .iris-grid:only-child),
-  &:has(
-      > .dh-inner-react-panel
-        > .ui-table-container:only-child
-        > .iris-grid:only-child
-    ),
-  &:has(> .dh-inner-react-panel > .widget-container:only-child),
-  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child) {
-    /* remove the default panel padding when grid or chart is the only child */
-    padding: 0 !important; /* important required to override inline spectrum style */
-  }
-
-  /*
-   * Not nested in the rule above: these selectors differ in specificity, and
-   * nesting would raise all of them to the highest.
-   */
-  &:has(> .dh-inner-react-panel > .iris-grid:only-child) .iris-grid,
-  &:has(
-      > .dh-inner-react-panel
-        > .ui-table-container:only-child
-        > .iris-grid:only-child
-    )
-    .iris-grid,
-  &:has(> .dh-inner-react-panel > .widget-container:only-child) .iris-grid,
-  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child) .iris-grid {
-    border: none;
-    border-radius: 0;
-  }
-
   /* remove padding and border around single child dashboards in react panels */
   &:has(> .dh-inner-react-panel > .dashboard-container:only-child) {
     padding: 0 !important; /* important required to override inline spectrum style */
@@ -121,16 +108,34 @@
   &:has(> .dh-inner-react-panel > .dh-nested-dashboard:only-child) {
     padding: 0 !important; /* important required to override inline spectrum style */
   }
-}
 
-.dh-react-panel,
-.dh-default-panel-content,
-.dh-panel {
-  .dh-nested-dashboard {
-    padding: var(--spectrum-global-dimension-size-100);
-    .dashboard-container {
-      border: 1px solid var(--dh-color-bg);
-    }
+  &:has(> .dh-inner-react-panel > .iris-grid:only-child),
+  &:has(> .dh-inner-react-panel > .widget-container:only-child),
+  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child),
+  &:has(
+      > .dh-inner-react-panel
+        > .ui-table-container:only-child
+        > .iris-grid:only-child
+    ) {
+    /* remove the default panel padding when grid or chart is the only child */
+    padding: 0 !important; /* important required to override inline spectrum style */
+  }
+
+  /*
+   * Not nested in the rule above: these selectors differ in specificity, and
+   * nesting would raise all of them to the highest.
+   */
+  &:has(> .dh-inner-react-panel > .iris-grid:only-child) .iris-grid,
+  &:has(> .dh-inner-react-panel > .widget-container:only-child) .iris-grid,
+  &:has(> .dh-inner-react-panel > .chart-wrapper:only-child) .iris-grid,
+  &:has(
+      > .dh-inner-react-panel
+        > .ui-table-container:only-child
+        > .iris-grid:only-child
+    )
+    .iris-grid {
+    border: none;
+    border-radius: 0;
   }
 }
 
@@ -176,9 +181,4 @@
 
 .ui-markdown {
   padding: 0;
-}
-
-.dh-nested-dashboard {
-  width: 100%;
-  height: 100%;
 }

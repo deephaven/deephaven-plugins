@@ -290,42 +290,30 @@
 
   /* Code syntax highlighting per Dracula spec */
   --dh-color-editor-comment: var(--dh-color-blue-700); /* Comments - #6272A4 */
-  --dh-color-editor-keyword: var(
-    --dh-color-fuchsia-900
-  ); /* Keywords - Pink #FF79C6 */
-  --dh-color-editor-storage: var(
-    --dh-color-fuchsia-900
-  ); /* Storage types - Pink */
-  --dh-color-editor-number: var(
-    --dh-color-purple-1000
-  ); /* Numbers, constants - Orange #FFB86C */
-  --dh-color-editor-string: var(
-    --dh-color-yellow-1000
-  ); /* Strings - Yellow #F1FA8C */
-  --dh-color-editor-string-delim: var(
-    --dh-color-green-900
-  ); /* String delimiters - Green */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-900
-  ); /* Default identifiers - Foreground */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-yellow-1000
-  ); /* Functions, methods - Yellow #F1FA8C */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-purple-900
-  ); /* Classes, types - Purple #BD93F9 */
-  --dh-color-editor-predefined: var(
-    --dh-color-cyan-900
-  ); /* Support functions, regex - Cyan #8BE9FD */
-  --dh-color-editor-operator: var(
-    --dh-color-fuchsia-900
-  ); /* Operators - Pink */
-  --dh-color-editor-delimiter: var(
-    --dh-color-gray-900
-  ); /* Delimiters - Foreground */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-600
-  ); /* Errors - Red #FF5555 */
+  /* Keywords - Pink #FF79C6 */
+  --dh-color-editor-keyword: var(--dh-color-fuchsia-900);
+  /* Storage types - Pink */
+  --dh-color-editor-storage: var(--dh-color-fuchsia-900);
+  /* Numbers, constants - Orange #FFB86C */
+  --dh-color-editor-number: var(--dh-color-purple-1000);
+  /* Strings - Yellow #F1FA8C */
+  --dh-color-editor-string: var(--dh-color-yellow-1000);
+  /* String delimiters - Green */
+  --dh-color-editor-string-delim: var(--dh-color-green-900);
+  /* Default identifiers - Foreground */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  /* Functions, methods - Yellow #F1FA8C */
+  --dh-color-editor-identifier-js: var(--dh-color-yellow-1000);
+  /* Classes, types - Purple #BD93F9 */
+  --dh-color-editor-identifier-namespace: var(--dh-color-purple-900);
+  /* Support functions, regex - Cyan #8BE9FD */
+  --dh-color-editor-predefined: var(--dh-color-cyan-900);
+  /* Operators - Pink */
+  --dh-color-editor-operator: var(--dh-color-fuchsia-900);
+  /* Delimiters - Foreground */
+  --dh-color-editor-delimiter: var(--dh-color-gray-900);
+  /* Errors - Red #FF5555 */
+  --dh-color-editor-error-fg: var(--dh-color-red-600);
 
   /* Bracket colors - Dracula style cycling through accent colors */
   --dh-color-editor-bracket-fg1: var(--dh-color-fuchsia-900); /* Pink */
@@ -337,10 +325,8 @@
   --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-600); /* Red */
 
   /* Line numbers */
-  --dh-color-editor-line-number-fg: var(
-    --dh-color-blue-700
-  ); /* Comment color */
-  --dh-color-editor-line-number-active-fg: var(
-    --dh-color-gray-900
-  ); /* Foreground */
+  /* Comment color */
+  --dh-color-editor-line-number-fg: var(--dh-color-blue-700);
+  /* Foreground */
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-900);
 }

@@ -15,7 +15,7 @@
   --dh-color-gray-600: #6089b5;
   --dh-color-gray-700: #85a7cc;
   --dh-color-gray-800: #acc5e0;
-  --dh-color-gray-900: #ffffff; /* editor.foreground */
+  --dh-color-gray-900: #fff; /* editor.foreground */
 
   /* ============ RED PALETTE ============ */
   /* Tomorrow Night Blue Red/Pink - variables, tags (#FF9DA4) anchored at 900 */
@@ -147,9 +147,9 @@
   --dh-color-cyan-700: #00abab;
   --dh-color-cyan-800: #1ac7c7;
   --dh-color-cyan-900: #4de2e2;
-  --dh-color-cyan-1000: #99ffff; /* #99FFFF - operators */
+  --dh-color-cyan-1000: #9ff; /* #99FFFF - operators */
   --dh-color-cyan-1100: #b3ffff;
-  --dh-color-cyan-1200: #ccffff;
+  --dh-color-cyan-1200: #cff;
   --dh-color-cyan-1300: #e0ffff;
   --dh-color-cyan-1400: #f0ffff;
 
@@ -215,7 +215,7 @@
   --dh-color-fuchsia-700: #c654a6;
   --dh-color-fuchsia-800: #df6dc0;
   --dh-color-fuchsia-900: #f58ada;
-  --dh-color-fuchsia-1000: #ffbbee;
+  --dh-color-fuchsia-1000: #fbe;
   --dh-color-fuchsia-1100: #ffccf2;
   --dh-color-fuchsia-1200: #ffdcf6;
   --dh-color-fuchsia-1300: #ffeafa;
@@ -290,43 +290,31 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-blue-400);
 
   /* Code syntax highlighting per Tomorrow Night Blue */
-  --dh-color-editor-comment: var(
-    --dh-color-gray-600
-  ); /* Comments - #7285B7 mapped to blue palette */
-  --dh-color-editor-keyword: var(
-    --dh-color-purple-1000
-  ); /* Keywords - #EBBBFF */
-  --dh-color-editor-storage: var(
-    --dh-color-purple-1000
-  ); /* Storage types - #EBBBFF */
-  --dh-color-editor-number: var(
-    --dh-color-orange-900
-  ); /* Numbers, constants - #FFC58F */
+  /* Comments - #7285B7 mapped to blue palette */
+  --dh-color-editor-comment: var(--dh-color-gray-600);
+  /* Keywords - #EBBBFF */
+  --dh-color-editor-keyword: var(--dh-color-purple-1000);
+  /* Storage types - #EBBBFF */
+  --dh-color-editor-storage: var(--dh-color-purple-1000);
+  /* Numbers, constants - #FFC58F */
+  --dh-color-editor-number: var(--dh-color-orange-900);
   --dh-color-editor-string: var(--dh-color-green-1000); /* Strings - #D1F1A9 */
-  --dh-color-editor-string-delim: var(
-    --dh-color-green-900
-  ); /* String delimiters */
-  --dh-color-editor-identifier: var(
-    --dh-color-gray-900
-  ); /* Default identifiers - Foreground */
-  --dh-color-editor-identifier-js: var(
-    --dh-color-blue-1000
-  ); /* Functions, methods - #BBDAFF */
-  --dh-color-editor-identifier-namespace: var(
-    --dh-color-yellow-1000
-  ); /* Classes, types - #FFEEAD */
-  --dh-color-editor-predefined: var(
-    --dh-color-blue-1000
-  ); /* Support functions - #BBDAFF */
-  --dh-color-editor-operator: var(
-    --dh-color-cyan-1000
-  ); /* Operators - #99FFFF */
-  --dh-color-editor-delimiter: var(
-    --dh-color-gray-900
-  ); /* Delimiters - Foreground */
-  --dh-color-editor-error-fg: var(
-    --dh-color-red-700
-  ); /* Errors - #A92049 mapped */
+  /* String delimiters */
+  --dh-color-editor-string-delim: var(--dh-color-green-900);
+  /* Default identifiers - Foreground */
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  /* Functions, methods - #BBDAFF */
+  --dh-color-editor-identifier-js: var(--dh-color-blue-1000);
+  /* Classes, types - #FFEEAD */
+  --dh-color-editor-identifier-namespace: var(--dh-color-yellow-1000);
+  /* Support functions - #BBDAFF */
+  --dh-color-editor-predefined: var(--dh-color-blue-1000);
+  /* Operators - #99FFFF */
+  --dh-color-editor-operator: var(--dh-color-cyan-1000);
+  /* Delimiters - Foreground */
+  --dh-color-editor-delimiter: var(--dh-color-gray-900);
+  /* Errors - #A92049 mapped */
+  --dh-color-editor-error-fg: var(--dh-color-red-700);
 
   /* Bracket colors - Tomorrow Night Blue style */
   --dh-color-editor-bracket-fg1: var(--dh-color-blue-1000); /* Blue */
@@ -339,7 +327,6 @@
 
   /* Line numbers */
   --dh-color-editor-line-number-fg: var(--dh-color-gray-500); /* Dimmed */
-  --dh-color-editor-line-number-active-fg: var(
-    --dh-color-gray-700
-  ); /* Brighter */
+  /* Brighter */
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-700);
 }
