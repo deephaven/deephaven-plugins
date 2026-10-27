@@ -282,7 +282,7 @@
   border-top: 1px solid var(--dh-color-gray-500, #555);
   border-right: 1px solid var(--dh-color-gray-500, #555);
   overflow: hidden;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   z-index: 2;
   flex-grow: 1;
   font-size: 12px;

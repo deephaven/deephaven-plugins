@@ -68,7 +68,7 @@
     "prettier": "3.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "stylelint": "^14.16.1",
+    "stylelint": "^17.16.0",
     "typescript": "^5.9.3",
     "vite": "^5.4.6"
   },
@@ -137,9 +137,6 @@
     ],
     "extends": [
       "@deephaven/stylelint-config"
-    ],
-    "rules": {
-      "comment-empty-line-before": null
-    }
+    ]
   }
 }
