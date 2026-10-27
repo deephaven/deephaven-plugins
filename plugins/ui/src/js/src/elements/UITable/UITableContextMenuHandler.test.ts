@@ -30,6 +30,22 @@ import UITableContextMenuHandler, {
 import { stringifyWithReferences } from '../../widget/ReferenceUtils';
 import { REFERENCE_KEY } from '../utils/ElementUtils';
 
+const mockLogError = jest.fn();
+jest.mock('@deephaven/log', () => {
+  const actual = jest.requireActual('@deephaven/log');
+  return {
+    __esModule: true,
+    ...actual,
+    default: {
+      module: (name: string) => ({
+        ...actual.default.module(name),
+        // The logger is created on import, before `mockLogError` is initialized
+        error: (...args: unknown[]) => mockLogError(...args),
+      }),
+    },
+  };
+});
+
 const MOCK_MODEL = TestUtils.createMockProxy<IrisGridModel>({
   columns: [
     {
@@ -131,6 +147,26 @@ describe('wrapContextActions', () => {
     expect(resolvedAction.length).toBe(1);
     resolvedAction[0].action?.(null as unknown as Event);
     expect(action.action).toHaveBeenCalledWith(SERVER_CELL_DATA);
+  });
+
+  test('logs the server message when an action rejects', async () => {
+    mockLogError.mockClear();
+    const serverError = Object.assign(new Error('Server error'), {
+      data: { message: 'selection of 13656 rows exceeds the maximum' },
+    });
+    const action = { action: jest.fn().mockRejectedValue(serverError) };
+    const [wrapped] = await resolveContextAction(
+      wrapContextActions(action, CLIENT_CELL_DATA, [], [], [], null)[0]
+    );
+
+    await expect(
+      wrapped.action?.(null as unknown as Event)
+    ).resolves.toBeUndefined();
+
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.any(String),
+      'selection of 13656 rows exceeds the maximum'
+    );
   });
 
   test('handles cell item with icon', async () => {
