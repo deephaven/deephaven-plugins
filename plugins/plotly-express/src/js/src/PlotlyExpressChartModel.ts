@@ -352,19 +352,33 @@ export class PlotlyExpressChartModel extends ChartModel {
     super.setRenderOptions(renderOptions);
   }
 
-  getTableSubscriptionCount(): number {
-    return [...this.tableColumnReplacementMap.values()].filter(
-      columns => columns.size > 0
-    ).length;
+  /**
+   * Count tables with data mappings, stopping early once the count exceeds `limit`.
+   * @param limit Stop counting after exceeding this value
+   * @returns The number of mapped tables, capped at `limit + 1`
+   */
+  getTableSubscriptionCount(limit = Infinity): number {
+    let count = 0;
+    const values = this.tableColumnReplacementMap.values();
+    for (let next = values.next(); next.done !== true; next = values.next()) {
+      if (next.value.size > 0) {
+        count += 1;
+        if (count > limit) {
+          break;
+        }
+      }
+    }
+    return count;
   }
 
   shouldBlockTableSubscriptions(): boolean {
+    const threshold =
+      PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD;
     return (
       // Only enterprise needs to block table subscriptions due to the http2.maxConcurrentStreams limit
       (this.dh as { coreplus?: unknown }).coreplus != null &&
       !this.hasAcknowledgedSubscriptionWarning &&
-      this.getTableSubscriptionCount() >
-        PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD
+      this.getTableSubscriptionCount(threshold) > threshold
     );
   }
 
