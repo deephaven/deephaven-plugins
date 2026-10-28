@@ -29,3 +29,8 @@ When using the `by` parameter, the underlying table is partitioned by the specif
 When dealing with a small number of unique groups, this approach works well. However, as a general rule, if a column contains hundreds of unique values, the chart will generate that many series and subscriptions, which can degrade performance.
 
 If you run into this, try filtering the table to just the groups you care about before passing it to the plot. It’s also worth reconsidering whether `by` is the right tool, since a plot with hundreds of unique values will cycle through colors and symbols before repeating, making most groups hard to tell apart.
+
+In Deephaven Enterprise, the server limits how many streams a connection can have open at once, with a default limit of 128. If the number of series exceeds this limit in a single session, such as with hundreds of unique groups in a plot using the `by` parameter, subsequent tables and plots will wait indefinitely for data, and console commands may stop responding. To increase this limit, do one of the following:
+
+1. Set the `http2.maxConcurrentStreams` property on the server to change the default
+2. Set the JVM arg on the worker, e.g., `-Dhttp2.maxConcurrentStreams=256`
