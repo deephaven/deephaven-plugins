@@ -70,6 +70,9 @@ import UITableClearFilterKeyHandler from './UITableClearFilterKeyHandler';
 import UITableContextMenuHandler, {
   type ResolvableUIContextItem,
   wrapContextActions,
+  getModelSelectedRanges,
+  getVisibleColumnNames,
+  getSelectedKeys,
 } from './UITableContextMenuHandler';
 import type UITableModel from './UITableModel';
 import { makeUiTableModel } from './UITableModel';
@@ -629,10 +632,20 @@ export function UITable({
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) => [
-      ...wrapContextActions(contextMenu, data, alwaysFetchColumns),
+      ...wrapContextActions(
+        contextMenu,
+        data,
+        alwaysFetchColumns,
+        irisGrid != null ? getModelSelectedRanges(irisGrid, data) : [],
+        irisGrid != null && model != null
+          ? getVisibleColumnNames(irisGrid, model)
+          : [],
+        irisGrid != null ? getSelectedKeys(irisGrid, data) : null,
+        model?.table ?? null
+      ),
       ...pluginOnContextMenu(data),
     ],
-    [contextMenu, alwaysFetchColumns, pluginOnContextMenu]
+    [contextMenu, alwaysFetchColumns, pluginOnContextMenu, irisGrid, model]
   );
 
   const keyHandlers = useMemo(

@@ -48,6 +48,7 @@ module.exports = {
     getIdFromContainer: DashboardActual.LayoutUtils.getIdFromContainer,
     openComponent: jest.fn(),
     closeComponent: jest.fn(),
+    renameComponent: jest.fn(),
   },
   useLayoutManager: jest.fn(() => mockLayout),
   useListener: jest.fn(),

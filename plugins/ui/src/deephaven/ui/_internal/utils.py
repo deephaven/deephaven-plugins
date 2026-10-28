@@ -19,6 +19,7 @@ from deephaven.dtypes import (
     LocalDate as DTypeLocalDate,
 )
 from inspect import signature
+import math
 import sys
 from dataclasses import dataclass
 from functools import partial
@@ -105,6 +106,30 @@ def is_nullish(value: Any) -> bool:
         Checks if the value is nullish.
     """
     return value is None or value is Undefined
+
+
+def validate_key(key: Any) -> None:
+    """
+    Check that an element key can identify the element, so a mistake like `key={value}` fails clearly.
+
+    Args:
+        key: The key to check. None means the element has no key.
+
+    Raises:
+        TypeError: If the key isn't a str, int, float or bool.
+        ValueError: If the key is NaN or infinite.
+    """
+    # The client parses documents with JSON.parse, which rejects NaN and Infinity
+    if isinstance(key, float) and not math.isfinite(key):
+        raise ValueError(f"key must be a finite number, not {key!r}")
+    if key is None or isinstance(key, (str, int, float, bool)):
+        return
+    message = (
+        f"key must be a str, int, float or bool, not {type(key).__name__}: {key!r}"
+    )
+    if isinstance(key, set):
+        message += ". `key={value}` creates a set, use `key=value` instead"
+    raise TypeError(message)
 
 
 def get_component_name(component: Any) -> str:

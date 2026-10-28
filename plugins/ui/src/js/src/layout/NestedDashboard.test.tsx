@@ -14,6 +14,7 @@ import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import {
   ReactPanelManagerContext,
   type ReactPanelManager,
+  useReactPanelManager,
 } from './ReactPanelManager';
 import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 
@@ -21,6 +22,7 @@ import WidgetStatusContext, { type WidgetStatus } from './WidgetStatusContext';
 // Names are prefixed with `mock` so jest.mock can reference them.
 let mockPersistedInitialValue: unknown;
 const mockSetPersistedSpy = jest.fn();
+const mockUsePersistentStateConfig = jest.fn();
 
 // Mock the child layout components to avoid GoldenLayout complexity
 jest.mock('./LayoutUtils', () => ({
@@ -67,7 +69,8 @@ jest.mock('@deephaven/dashboard', () => {
       return react.createElement('div', null, children);
     },
     useLayoutManager: jest.fn(),
-    usePersistentState: () => {
+    usePersistentState: (_initialState: unknown, config: unknown) => {
+      mockUsePersistentStateConfig(config);
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [state, setState] = react.useState(mockPersistedInitialValue);
       const wrappedSet = react.useCallback((updater: unknown) => {
@@ -97,6 +100,7 @@ const mockLayout = {
   eventHub: {
     on: jest.fn(),
     off: jest.fn(),
+    emit: jest.fn(),
   },
   createContentItem: jest.fn(() => ({
     setSize: jest.fn(),
@@ -188,6 +192,25 @@ describe('NestedDashboard', () => {
     // Should have a panel manager available
     expect(screen.getByTestId('panel-manager')).toHaveTextContent(
       'has-manager'
+    );
+  });
+
+  it('keeps the persisted dashboard data when unmounted so the layout is restored on remount', () => {
+    render(
+      <WidgetStatusContext.Provider value={mockWidgetStatus}>
+        <LayoutManagerContext.Provider value={mockLayout as never}>
+          <NestedDashboard>
+            <div />
+          </NestedDashboard>
+        </LayoutManagerContext.Provider>
+      </WidgetStatusContext.Provider>
+    );
+
+    expect(mockUsePersistentStateConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NestedDashboardData',
+        deleteOnUnmount: false,
+      })
     );
   });
 
@@ -378,6 +401,61 @@ describe('NestedDashboard', () => {
 
       // Trailing edge fires once with the latest data — total of 2 writes.
       expect(mockSetPersistedSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('orphaned panel state pruning', () => {
+    function PanelOpener(): null {
+      const { onOpen, getPanelId } = useReactPanelManager();
+      useEffect(() => {
+        onOpen(getPanelId());
+      }, [onOpen, getPanelId]);
+      return null;
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      jest.useRealTimers();
+    });
+
+    it('keeps state for reopened panels when the widget is ready before the layout initializes', () => {
+      mockPersistedInitialValue = {
+        widgetData: {
+          panelIds: ['alive', 'orphan'],
+          panelStates: { alive: [{ a: 1 }], orphan: [{ b: 2 }] },
+        },
+      };
+
+      render(
+        <WidgetStatusContext.Provider value={mockWidgetStatus}>
+          <LayoutManagerContext.Provider value={mockLayout as never}>
+            <NestedDashboard>
+              <PanelOpener />
+            </NestedDashboard>
+          </LayoutManagerContext.Provider>
+        </WidgetStatusContext.Provider>
+      );
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      const persisted = mockSetPersistedSpy.mock.calls.reduce(
+        (state, [update]) =>
+          typeof update === 'function' ? update(state) : update,
+        mockPersistedInitialValue
+      );
+      expect(persisted.widgetData).toEqual(
+        expect.objectContaining({
+          panelIds: ['alive'],
+          panelStates: { alive: [{ a: 1 }] },
+        })
+      );
     });
   });
 });

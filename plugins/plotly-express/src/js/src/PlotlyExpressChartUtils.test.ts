@@ -2,7 +2,6 @@ import { ChartUtils } from '@deephaven/chart';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Formatter } from '@deephaven/jsapi-utils';
 import type Plotly from 'plotly.js';
-import { type Delta } from 'plotly.js';
 import { TestUtils } from '@deephaven/test-utils';
 import {
   getPathParts,
@@ -25,6 +24,7 @@ import {
   setDefaultValueFormat,
   convertToPlotlyNumberFormat,
   setRangebreaksFromCalendar,
+  type IndicatorDelta,
 } from './PlotlyExpressChartUtils';
 
 type DeepPartial<T> = T extends object
@@ -689,7 +689,7 @@ describe('transformValueFormat', () => {
       valueformat: `${FORMAT_PREFIX}$#,##0.00USD`,
       prefix: null,
       suffix: null,
-    };
+    } as unknown as IndicatorDelta;
 
     const numberFormatOptions = transformValueFormat(data);
 
@@ -702,7 +702,7 @@ describe('transformValueFormat', () => {
   });
 
   it('should return true for all format options if the format is not defined', () => {
-    const data = {} as Partial<Delta>;
+    const data = {} as IndicatorDelta;
 
     const numberFormatOptions = transformValueFormat(data);
 
@@ -718,7 +718,7 @@ describe('transformValueFormat', () => {
     const data = {
       prefix: 'prefix',
       suffix: 'suffix',
-    } as Partial<Delta>;
+    } as IndicatorDelta;
 
     const numberFormatOptions = transformValueFormat(data);
 

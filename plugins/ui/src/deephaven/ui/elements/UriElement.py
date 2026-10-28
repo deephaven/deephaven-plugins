@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from typing import Any
+
 from .Element import Element, PropsType
+from .._internal import validate_key
 
 
 class UriElement(Element):
@@ -17,6 +20,7 @@ class UriElement(Element):
     _key: str | None = None
 
     def __init__(self, uri: str, key: str | None = None):
+        validate_key(key)
         self._uri = uri
         self._key = key
 
@@ -29,7 +33,10 @@ class UriElement(Element):
         return self._key
 
     def render(self) -> PropsType:
-        return {"uri": self._uri}
+        props: dict[str, Any] = {"uri": self._uri}
+        if self._key is not None:
+            props["key"] = self._key
+        return props
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UriElement):

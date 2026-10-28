@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from itertools import cycle, count
 from collections.abc import Generator
+from functools import lru_cache
 from math import floor, ceil
 from typing import Any, Callable, Mapping, cast, Tuple
 
@@ -190,8 +191,12 @@ def construct_min_dataframe(table: Table, data_cols: list[str]) -> DataFrame:
         f"{col} = {null}" for col, null in col_null_mapping(table, set(data_cols))
     ]
 
-    update_result = empty_table(1).update(update)
+    return _min_dataframe(tuple(update)).copy()
 
+
+@lru_cache(maxsize=128)
+def _min_dataframe(update: tuple[str, ...]) -> DataFrame:
+    update_result = empty_table(1).update(list(update))
     return dhpd.to_pandas(update_result, dtype_backend=None, conv_null=False)
 
 
@@ -1039,11 +1044,44 @@ def create_hover_and_axis_titles(
     return hover_text, legend_title
 
 
+def draw_px_figure(
+    draw: Callable[..., Figure],
+    data_frame: DataFrame,
+    px_args: dict[str, Any],
+    px_cache: dict[str, dict[str, Any]] | None = None,
+) -> Figure:
+    """Draw a plotly express figure, reusing a cached one for identical args
+
+    Args:
+      draw: The plotly express function to use to generate the figure
+      data_frame: The placeholder dataframe to pass to plotly express
+      px_args: The args to pass to plotly express
+      px_cache: If provided, px figures are reused for identical px args,
+        such as across partitions of one build
+
+    Returns:
+      A new plotly figure
+    """
+    if px_cache is None:
+        return draw(data_frame=data_frame, **px_args)
+
+    px_key = repr((draw, data_frame.dtypes.to_dict(), px_args))
+    if px_key in px_cache:
+        # the cached dict came from a validated figure, so skip validating it again
+        return Figure(px_cache[px_key], _validate=False)
+
+    px_fig = draw(data_frame=data_frame, **px_args)
+    # snapshot since the returned figure is modified by the caller
+    px_cache[px_key] = px_fig.to_dict()
+    return px_fig
+
+
 def generate_figure(
-    draw: Callable,
+    draw: Callable[..., Figure],
     call_args: dict[str, Any],
     start_index: int = 0,
     trace_generator: Generator[dict, None, None] | None = None,
+    px_cache: dict[str, dict[str, Any]] | None = None,
 ) -> DeephavenFigure:
     """Generate a figure using a plotly express function as well as any args that
     should be used
@@ -1057,6 +1095,8 @@ def generate_figure(
         mapping needs to start at the end of the existing traces.
       trace_generator: If provided then only use this trace generator and return
         (as layout should already be created)
+      px_cache: If provided, px figures are reused for identical px args,
+        such as across partitions of one build
 
     Returns:
       a Deephaven figure
@@ -1071,7 +1111,7 @@ def generate_figure(
     data_frame = construct_min_dataframe(
         table, data_cols=merge_cols(list(data_cols.values()))
     )
-    px_fig = draw(data_frame=data_frame, **filtered_call_args)
+    px_fig = draw_px_figure(draw, data_frame, filtered_call_args, px_cache)
 
     data_mapping, hover_mapping = create_data_mapping(
         data_cols, custom_call_args, table, start_index
@@ -1091,7 +1131,7 @@ def generate_figure(
         extra_generators=[hover_text],
     )
 
-    is_indicator = px_fig.data[0].type == "indicator"
+    is_indicator = px_fig.data[0]["type"] == "indicator"
 
     # px adds a margin of 60 if a title is not specified
     # since most charts still use px at their core and

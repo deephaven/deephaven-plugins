@@ -638,13 +638,16 @@ class PartitionManager:
 
         return transposed.drop_columns(cols)
 
-    def current_partition_generator(self) -> Generator[dict[str, str], None, None]:
+    def current_partition_generator(
+        self,
+    ) -> Generator[dict[str, str] | None, None, None]:
         """
         Generate a partition dictionary for the current partition that maps
         column to value
 
         Yields:
-            The partition dictionary mapping column to value
+            The partition dictionary mapping column to value, or None if the
+            partition has no data
         """
         # the table is guaranteed to be a partitioned table here
         key_columns: list[str] = sorted(
@@ -653,13 +656,14 @@ class PartitionManager:
 
         for table in self.constituents:
 
-            key_column_table = dhpd.to_pandas(table.select(key_columns))
+            key_column_table = dhpd.to_pandas(table, cols=key_columns)
             key_column_tuples = get_partition_key_column_tuples(
                 key_column_table, key_columns
             )
 
             if len(key_column_tuples) < 1:
-                # this partition might have no data, so skip it
+                # can empty out between reads off the lock; None keeps later keys paired
+                yield None
                 continue
 
             current_partition = dict(
@@ -691,6 +695,8 @@ class PartitionManager:
             self.constituents, column
         )
         for table, current_partition in zip(tables, self.current_partition_generator()):
+            if current_partition is None:
+                continue
             # since this is preprocessed it will always be a tuple
             yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
@@ -769,6 +775,7 @@ class PartitionManager:
 
         trace_generator = None
         figs = []
+        px_cache = {}
         for i, args in enumerate(self.partition_generator()):
             title_update = update_title(
                 args, len(self.constituents), self.title, self.groups
@@ -776,7 +783,9 @@ class PartitionManager:
 
             args = {**args, **title_update}
 
-            fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
+            fig = self.draw_figure(
+                call_args=args, trace_generator=trace_generator, px_cache=px_cache
+            )
             if not trace_generator:
                 trace_generator = fig.get_trace_generator()
 

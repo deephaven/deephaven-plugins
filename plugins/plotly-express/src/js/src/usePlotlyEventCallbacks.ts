@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
+import type { PlotData } from '@deephaven/chart';
 import type {
-  PlotData,
   PlotMouseEvent,
   PlotSelectionEvent,
   ClickAnnotationEvent,

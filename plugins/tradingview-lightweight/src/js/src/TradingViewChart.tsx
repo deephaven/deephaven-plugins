@@ -8,6 +8,8 @@ import Log from '@deephaven/log';
 import type { MouseEventParams } from 'lightweight-charts';
 import TradingViewChartModel from './TradingViewChartModel';
 import TradingViewChartRenderer from './TradingViewChartRenderer';
+import { TradingViewLegend } from './TradingViewLegend';
+import { TradingViewTooltip } from './TradingViewTooltip';
 import {
   buildPressEventPayload,
   snapPressParamsToData,
@@ -104,6 +106,12 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
   // iris-grid's canvas are taken out of flow for the same reason).
   const chartHostRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<TradingViewChartRenderer | null>(null);
+  /**
+   * Mirror of rendererRef for the React overlays (legend, tooltip): a ref does
+   * not trigger a render, and the overlays must mount once the chart exists.
+   */
+  const [overlayRenderer, setOverlayRenderer] =
+    useState<TradingViewChartRenderer | null>(null);
   const modelRef = useRef<TradingViewChartModel | null>(null);
 
   // lightweight-charts draws axis labels to a <canvas>, which — unlike the
@@ -612,6 +620,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         renderer.updateDynamicPriceLines(series.id, colData);
       }
     });
+    renderer.notifyOverlayUpdate();
   }
 
   const replayAllData = useCallback(
@@ -811,6 +820,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
           }
           renderer.updateDynamicPriceLines(series.id, colData);
         });
+        renderer.notifyOverlayUpdate();
 
         // Table-driven markers
         figure.series.forEach(series => {
@@ -1128,13 +1138,6 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       if (!cancelled) {
         setupEventHandlers(renderer, model);
       }
-
-      // Tracking tooltip (cursor-following overlay). Set up after series exist
-      // so the tooltip can read per-series colors. Cleanup is torn down with
-      // the other event subscriptions.
-      if (!cancelled && renderer.hasTooltip()) {
-        eventUnsubsRef.current.push(renderer.setupTooltip());
-      }
     }
 
     /**
@@ -1270,6 +1273,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         timeZoneRef.current
       );
       rendererRef.current = renderer;
+      setOverlayRenderer(renderer);
 
       // Belt-and-braces to the fontsReady gate. Two failure modes remain even
       // with init gated on the font load:
@@ -1806,6 +1810,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
       modelRef.current = null;
       rendererRef.current?.dispose();
       rendererRef.current = null;
+      setOverlayRenderer(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dh, fetch, fontsReady]);
@@ -1893,6 +1898,40 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     return () => observer.disconnect();
   }, []);
 
+  const legendOptions = overlayRenderer?.getLegendOptions();
+  const tooltipOptions = overlayRenderer?.getTooltipOptions();
+
+  /**
+   * Report a legend row toggle. The chart has already applied it; this only
+   * publishes it — to Python when the figure advertised a handler, so a legend
+   * costs nothing server-side by default, and to the DOM seam either way.
+   */
+  const handleSeriesToggle = useCallback(
+    (seriesId: string, visible: boolean) => {
+      if (overlayRenderer == null) return;
+      const title = overlayRenderer
+        .getLegendEntries()
+        .find(e => e.id === seriesId)?.title;
+      const payload = {
+        type: 'seriesToggle',
+        series: title ?? seriesId,
+        seriesId,
+        visible,
+        hiddenSeriesIds: overlayRenderer.getHiddenSeriesIds(),
+      };
+      if (
+        modelRef.current?.getEnabledHandlers().includes('seriesToggle') === true
+      ) {
+        modelRef.current.sendEvent('seriesToggle', payload);
+      }
+      containerRef.current?.setAttribute(
+        'data-tvl-last-toggle',
+        JSON.stringify(payload)
+      );
+    },
+    [overlayRenderer]
+  );
+
   return (
     <div
       ref={containerRef}
@@ -1927,6 +1966,20 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
         className="dh-tvl-chart-host"
         style={{ position: 'absolute', inset: 0 }}
       />
+      {legendOptions != null && overlayRenderer != null && (
+        <TradingViewLegend
+          source={overlayRenderer}
+          options={legendOptions}
+          onToggle={handleSeriesToggle}
+        />
+      )}
+      {tooltipOptions != null && overlayRenderer != null && (
+        <TradingViewTooltip
+          source={overlayRenderer}
+          options={tooltipOptions}
+          hostRef={chartHostRef}
+        />
+      )}
       {pendingDs && (
         <>
           <div className={`tvl-pending-scrim${showScrim ? ' show' : ''}`} />

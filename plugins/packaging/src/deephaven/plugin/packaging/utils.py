@@ -1,6 +1,7 @@
 import shutil
 import os
 import subprocess
+import tarfile
 
 __all__ = ["package_js"]
 
@@ -29,15 +30,25 @@ def package_js(js_dir: str, dest_dir: str) -> None:
 
         os.makedirs(build_dir, exist_ok=True)
 
+        # on Windows npm is npm.cmd, which subprocess can't find by bare name
+        npm = shutil.which("npm")
+        if npm is None:
+            raise FileNotFoundError("Unable to find npm on PATH")
+
         # pack and unpack into the js directory
         subprocess.run(
-            ["npm", "pack", "--pack-destination", "build"], cwd=js_dir, check=True
+            [npm, "pack", "--pack-destination", "build"], cwd=js_dir, check=True
         )
         # it is assumed that there is only one tarball in the directory
         files = os.listdir(build_dir)
         for file in files:
-            subprocess.run(["tar", "-xzf", file], cwd=build_dir, check=True)
-            os.remove(os.path.join(build_dir, file))
+            file_path = os.path.join(build_dir, file)
+            with tarfile.open(file_path, "r:gz") as tar:
+                if hasattr(tarfile, "data_filter"):
+                    tar.extractall(build_dir, filter="data")
+                else:
+                    tar.extractall(build_dir)
+            os.remove(file_path)
 
         # move the package directory to the expected package location
         shutil.move(package_dir, dest_dir)

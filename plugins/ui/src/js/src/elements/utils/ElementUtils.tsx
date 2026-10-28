@@ -9,6 +9,7 @@ import UriObjectView from '../UriObjectView';
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
 export const ELEMENT_KEY = '__dhElemName';
+export const REFERENCE_KEY = '__dhRefid';
 
 export type CallableNode = {
   /** The name of the callable to call */
@@ -18,6 +19,11 @@ export type CallableNode = {
 export type ObjectNode = {
   /** The index of the object in the exported objects array */
   [OBJECT_KEY]: number;
+};
+
+export type ReferenceNode = {
+  /** The index of the object in the references sent with the message */
+  [REFERENCE_KEY]: number;
 };
 
 export type UriNode = ElementNode<typeof ELEMENT_NAME.uri, { uri: string }>;

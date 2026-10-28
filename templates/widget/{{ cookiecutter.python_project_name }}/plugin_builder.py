@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import click
+import glob
 import os
+import shutil
 import sys
 from typing import Generator, Callable
 import time
@@ -143,24 +145,27 @@ def clean_build_dist() -> None:
     Remove the build and dist directories.
     """
     # these folders may not exist, so ignore the errors
-    if os.path.exists(f"{PYTHON_DIR}/build"):
-        os.system(f"rm -rf {PYTHON_DIR}/build")
-    if os.path.exists(f"{PYTHON_DIR}/dist"):
-        os.system(f"rm -rf {PYTHON_DIR}/dist")
+    shutil.rmtree(f"{PYTHON_DIR}/build", ignore_errors=True)
+    shutil.rmtree(f"{PYTHON_DIR}/dist", ignore_errors=True)
 
 
-def run_command(command: str) -> None:
+def run_command(command: list[str]) -> None:
     """
-    Run a command and exit if it fails.
+    Run a command without a shell and exit if it fails.
     This should only be used in a non-main thread.
 
     Args:
-        command: The command to run.
+        command: The command and its arguments.
 
     Returns:
         None
     """
-    code = os.system(command)
+    # on Windows npm is npm.cmd, which subprocess can't find by bare name
+    executable = shutil.which(command[0])
+    if executable is None:
+        click.echo(f"Error: unable to find {command[0]} on PATH")
+        os._exit(1)
+    code = subprocess.call([executable, *command[1:]])
     if code != 0:
         os._exit(1)
 
@@ -173,7 +178,7 @@ def run_build() -> None:
     clean_build_dist()
 
     click.echo(f"Building plugin")
-    run_command(f"python -m build --wheel {PYTHON_DIR}")
+    run_command([sys.executable, "-m", "build", "--wheel", PYTHON_DIR])
 
 
 def run_install(
@@ -189,12 +194,12 @@ def run_install(
     Returns:
         None
     """
-    install = "pip install"
+    install = [sys.executable, "-m", "pip", "install"]
     if reinstall:
-        install += " --force-reinstall --no-deps"
+        install += ["--force-reinstall", "--no-deps"]
 
     click.echo("Installing plugin")
-    run_command(f"{install} {PYTHON_DIR}/dist/*.whl")
+    run_command([*install, *glob.glob(f"{PYTHON_DIR}/dist/*.whl")])
 
 
 def run_build_js() -> None:
@@ -202,7 +207,7 @@ def run_build_js() -> None:
     Build the JS files for the plugin
     """
     click.echo(f"Building the JS plugin")
-    run_command(f"npm run build --prefix {JS_DIR}")
+    run_command(["npm", "run", "build", "--prefix", JS_DIR])
 
 
 def build_server_args(server_arg: tuple[str]) -> list[str]:

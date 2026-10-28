@@ -10,6 +10,8 @@ when the layout is persisted (i.e. "Close Panels on Disconnect" disabled):
 - ``ui_persist_stack``: the active tab of a stack of panels is retained.
 - ``ui_persist_tabs``: the selected tab of a ``ui.tabs`` component is retained.
 - ``ui_persist_table_columns``: custom columns added to a ``ui.table`` persist.
+- ``ui_persist_panel_count``: a saved layout with more or fewer panels than the
+  refreshed document renders is reconciled with the document.
 """
 
 from deephaven import ui, empty_table
@@ -130,9 +132,42 @@ def persist_table_columns_component():
     )
 
 
+@ui.component
+def persist_panel_count_component():
+    """A nested dashboard whose number of panels comes from saved state.
+
+    Changing the count only takes effect after a refresh, so the refreshed
+    document renders a different number of panels than the saved layout has.
+    """
+    panel_count, set_panel_count = ui.use_state(3)
+    # Refs aren't persisted, so after a refresh this starts from the saved count
+    rendered_count = ui.use_ref(panel_count)
+
+    return ui.panel(
+        ui.dashboard(
+            ui.stack(
+                ui.panel(
+                    ui.number_field(
+                        value=panel_count,
+                        on_change=set_panel_count,
+                        label="Panel Count",
+                    ),
+                    title="Panel Count",
+                ),
+                *[
+                    ui.panel(ui.text(f"Panel {i} content"), title=f"Panel {i}")
+                    for i in range(1, int(rendered_count.current) + 1)
+                ],
+            )
+        ),
+        title="Persist Panel Count",
+    )
+
+
 # Export the test components
 ui_persist_inputs = persist_inputs_component()
 ui_persist_move_panel = persist_move_panel_component()
 ui_persist_stack = persist_stack_component()
 ui_persist_tabs = persist_tabs_component()
 ui_persist_table_columns = persist_table_columns_component()
+ui_persist_panel_count = persist_panel_count_component()

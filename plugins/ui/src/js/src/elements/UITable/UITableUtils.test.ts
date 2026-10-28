@@ -1,4 +1,12 @@
+import { GridRange, type GridModel, RangedSelection } from '@deephaven/grid';
 import {
+  type IrisGridModel,
+  type KeyedGridModel,
+  KeyedSelection,
+} from '@deephaven/iris-grid';
+import { TestUtils } from '@deephaven/test-utils';
+import {
+  asRangedSelection,
   getAggregationOperation,
   getUITableQuickFilters,
   getUITableSorts,
@@ -53,5 +61,22 @@ describe('UITable state callbacks', () => {
   it('converts cleared state to empty callback values', () => {
     expect(getUITableQuickFilters([], [])).toEqual({});
     expect(getUITableSorts([])).toEqual([]);
+  });
+});
+
+describe('asRangedSelection', () => {
+  it('returns the selection for a RangedSelection', () => {
+    const getModel = () => TestUtils.createMockProxy<GridModel>();
+    const selection = new RangedSelection(
+      [new GridRange(null, 0, null, 5)],
+      getModel
+    );
+    expect(asRangedSelection(selection)).toBe(selection);
+  });
+
+  it('returns null for a KeyedSelection', () => {
+    const getModel = () =>
+      TestUtils.createMockProxy<IrisGridModel & KeyedGridModel>();
+    expect(asRangedSelection(KeyedSelection.empty(getModel))).toBeNull();
   });
 });

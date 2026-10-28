@@ -1,15 +1,18 @@
 import {
   type Data,
-  type Delta,
+  type IndicatorData,
   type LayoutAxis,
   type PlotlyDataLayoutConfig,
-  type PlotNumber,
   type PlotType,
   type Layout,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
 import { type Formatter } from '@deephaven/jsapi-utils';
+
+export type IndicatorNumber = NonNullable<IndicatorData['number']>;
+
+export type IndicatorDelta = NonNullable<IndicatorData['delta']>;
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -439,11 +442,11 @@ export function setDefaultValueFormat(
 
     const trace = plotlyData[index];
 
-    // This object should be safe to cast to PlotNumber or Delta due
+    // This object should be safe to cast to IndicatorNumber or IndicatorDelta due
     // to the checks when originally added to the set
     const convertData = trace[path as keyof Data] as
-      | Partial<PlotNumber>
-      | Partial<Delta>;
+      | IndicatorNumber
+      | IndicatorDelta;
 
     convertToPlotlyNumberFormat(convertData, valueFormat, options);
   });
@@ -457,7 +460,7 @@ export function setDefaultValueFormat(
  */
 
 export function convertToPlotlyNumberFormat(
-  data: Partial<PlotNumber> | Partial<Delta>,
+  data: IndicatorNumber | IndicatorDelta,
   valueFormat: string,
   options: Record<string, boolean> = {}
 ): void {
@@ -504,7 +507,7 @@ export function convertToPlotlyNumberFormat(
  * @returns The d3 number format
  */
 export function transformValueFormat(
-  data: Partial<PlotNumber> | Partial<Delta>
+  data: IndicatorNumber | IndicatorDelta
 ): Record<string, boolean> {
   let valueFormat = data?.valueformat;
   if (valueFormat == null) {

@@ -62,7 +62,13 @@ def _render_child_item(
             type(item),
             item,
         )
-        key = item.key or f"{index_key}-{item.name}"
+        if item.key is None:
+            key = f"{index_key}-{item.name}"
+        elif isinstance(item.key, str):
+            key = item.key
+        else:
+            # Typed so it can't match a sibling list's positional context, e.g. "1"
+            key = f"{type(item.key).__name__}:{item.key}"
         return _render_element(
             item,
             parent_context.get_child_context(key, fetch_only),

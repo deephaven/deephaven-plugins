@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## plotly-express-v0.21.0 - 2026-10-26
+
+#### Features
+
+- **(plotly-express)** update plotly.js to v4 ([#1423](https://github.com/deephaven/deephaven-plugins/pull/1423)) - (b3d5eae) - mofojed
+
+#### Bug Fixes
+
+- DH-24034: Use correct exec/auth context in figure updates ([#1437](https://github.com/deephaven/deephaven-plugins/pull/1437)) - (4eda260) - jnumainville
+
+- - -
+
+
+## plotly-express-v0.20.2 - 2026-10-14
+
+#### Bug Fixes
+
+- **(ag-grid)** drop plotly.js from the dependency tree ([#1420](https://github.com/deephaven/deephaven-plugins/pull/1420)) - (3dffc87) - mofojed
+- DH-23957: dx by param optimizations ([#1428](https://github.com/deephaven/deephaven-plugins/pull/1428)) - (aaf73d0) - jnumainville
+
+- - -
+
+
 ## plotly-express-v0.20.1 - 2026-09-17
 
 #### Bug Fixes
