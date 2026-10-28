@@ -129,7 +129,11 @@ jest.mock('@deephaven/iris-grid', () => {
           quickFilters: mockPersistedQuickFilters,
         })),
       })),
-      { hydrateGridState: jest.fn(() => ({})) }
+      {
+        hydrateGridState: jest.fn(() => ({})),
+        dehydrateQuickFilters: jest.fn(() => []),
+        dehydrateSort: jest.fn(() => []),
+      }
     ),
     IrisGridCacheUtils: {
       makeMemoizedCombinedGridStateDehydrator: jest.fn(() => jest.fn()),
@@ -270,19 +274,24 @@ describe('UITable chart builder', () => {
 });
 
 describe('UITable controlled state', () => {
-  it('passes controlled quick-filter and sort proposal handlers to IrisGrid', async () => {
+  const baseProps = {
+    table: mockExportedTable,
+    showSearch: false,
+    showQuickFilters: false,
+    showGroupingColumn: false,
+    reverse: false,
+  };
+
+  it('controls IrisGrid and passes change handlers when values and callbacks are provided', async () => {
     await act(async () => {
       render(
         <UITable
-          table={mockExportedTable}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
           quickFilters={{}}
           sorts={[]}
           onQuickFiltersChange={jest.fn()}
           onSortsChange={jest.fn()}
-          showSearch={false}
-          showQuickFilters={false}
-          showGroupingColumn={false}
-          reverse={false}
         />
       );
     });
@@ -299,17 +308,14 @@ describe('UITable controlled state', () => {
     });
   });
 
-  it('controls IrisGrid when only change callbacks are provided', async () => {
+  it('controls IrisGrid when only values are provided', async () => {
     await act(async () => {
       render(
         <UITable
-          table={mockExportedTable}
-          onQuickFiltersChange={jest.fn()}
-          onSortsChange={jest.fn()}
-          showSearch={false}
-          showQuickFilters={false}
-          showGroupingColumn={false}
-          reverse={false}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
+          quickFilters={{}}
+          sorts={[]}
         />
       );
     });
@@ -319,6 +325,30 @@ describe('UITable controlled state', () => {
         expect.objectContaining({
           isQuickFiltersControlled: true,
           isSortsControlled: true,
+        })
+      );
+    });
+    expect(capturedIrisGridProps?.onQuickFiltersChange).toBeUndefined();
+    expect(capturedIrisGridProps?.onSortsChange).toBeUndefined();
+  });
+
+  it('does not control IrisGrid but passes change handlers when only callbacks are provided', async () => {
+    await act(async () => {
+      render(
+        <UITable
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
+          onQuickFiltersChange={jest.fn()}
+          onSortsChange={jest.fn()}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps).toEqual(
+        expect.objectContaining({
+          isQuickFiltersControlled: false,
+          isSortsControlled: false,
           onQuickFiltersChange: expect.any(Function),
           onSortsChange: expect.any(Function),
         })
@@ -326,17 +356,43 @@ describe('UITable controlled state', () => {
     });
   });
 
-  it('does not control IrisGrid when no change callbacks are provided', async () => {
+  it('forwards user changes to the callbacks', async () => {
+    const onQuickFiltersChange = jest.fn();
+    const onSortsChange = jest.fn();
     await act(async () => {
       render(
         <UITable
-          table={mockExportedTable}
-          quickFilters={{}}
-          sorts={[]}
-          showSearch={false}
-          showQuickFilters={false}
-          showGroupingColumn={false}
-          reverse={false}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
+          onQuickFiltersChange={onQuickFiltersChange}
+          onSortsChange={onSortsChange}
+        />
+      );
+    });
+
+    await waitFor(() => {
+      expect(capturedIrisGridProps?.onSortsChange).toBeDefined();
+    });
+    act(() => {
+      capturedIrisGridProps?.onQuickFiltersChange?.(new Map());
+      capturedIrisGridProps?.onSortsChange?.([]);
+    });
+    expect(onQuickFiltersChange).toHaveBeenCalledWith({});
+    expect(onSortsChange).toHaveBeenCalledWith([]);
+  });
+
+  it('applies default values as uncontrolled initial state', async () => {
+    // Sorts are only hydrated once the model has columns
+    (mockModel as { columns: dh.Column[] }).columns = [
+      { name: 'A' } as dh.Column,
+    ];
+    await act(async () => {
+      render(
+        <UITable
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
+          defaultQuickFilters={{ A: '>1' }}
+          defaultSorts={[]}
         />
       );
     });
@@ -349,6 +405,10 @@ describe('UITable controlled state', () => {
         })
       );
     });
+    expect(capturedIrisGridProps?.quickFilters).toBe(
+      mockControlledQuickFilters
+    );
+    expect(capturedIrisGridProps?.sorts).toBe(mockControlledSorts);
   });
 
   it('does not let persisted state override controlled values', async () => {
@@ -360,15 +420,10 @@ describe('UITable controlled state', () => {
     await act(async () => {
       render(
         <UITable
-          table={mockExportedTable}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
           quickFilters={{}}
           sorts={[]}
-          onQuickFiltersChange={jest.fn()}
-          onSortsChange={jest.fn()}
-          showSearch={false}
-          showQuickFilters={false}
-          showGroupingColumn={false}
-          reverse={false}
         />
       );
     });
@@ -382,16 +437,20 @@ describe('UITable controlled state', () => {
     expect(capturedIrisGridProps?.sorts).toBe(mockControlledSorts);
   });
 
-  it('uses persisted state for uncontrolled values', async () => {
+  it('uses persisted state over default values', async () => {
     mockPersistedState = {};
+    (mockModel as { columns: dh.Column[] }).columns = [
+      { name: 'A' } as dh.Column,
+    ];
     await act(async () => {
       render(
         <UITable
-          table={mockExportedTable}
-          showSearch={false}
-          showQuickFilters={false}
-          showGroupingColumn={false}
-          reverse={false}
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...baseProps}
+          defaultQuickFilters={{ A: '>1' }}
+          defaultSorts={[]}
+          onQuickFiltersChange={jest.fn()}
+          onSortsChange={jest.fn()}
         />
       );
     });

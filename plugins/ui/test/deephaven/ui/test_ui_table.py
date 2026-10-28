@@ -106,6 +106,36 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
+    def test_default_quick_filters(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, default_quick_filters={"X": "X > 1", "Y": "Y < 2"})
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1", "Y": "Y < 2"},
+            },
+        )
+
+    def test_default_quick_filters_with_callback(self):
+        import deephaven.ui as ui
+
+        callback = Mock()
+        t = ui.table(
+            self.source,
+            default_quick_filters={"X": "X > 1"},
+            on_quick_filters_change=callback,
+        )
+
+        self.expect_render(
+            t,
+            {
+                "defaultQuickFilters": {"X": "X > 1"},
+                "onQuickFiltersChange": callback,
+            },
+        )
+
     def test_quick_filters(self):
         import deephaven.ui as ui
 
@@ -397,6 +427,63 @@ class UITableTestCase(BaseTestCase):
         self.assertRaises(
             ValueError,
             lambda: ui.table(self.source, sorts=["X", 1]),
+        )
+
+    def test_default_sorts(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, default_sorts="X")
+
+        self.expect_render(
+            t,
+            {
+                "defaultSorts": [
+                    {
+                        "column": "X",
+                        "direction": "ASC",
+                        "isAbs": False,
+                    }
+                ]
+            },
+        )
+
+        callback = Mock()
+        t = ui.table(
+            self.source,
+            default_sorts=[
+                "X",
+                ui.TableSort(column="Y", direction="DESC", is_abs=True),
+                {"column": "Z", "direction": "DESC"},
+            ],
+            on_sorts_change=callback,
+        )
+
+        self.expect_render(
+            t,
+            {
+                "defaultSorts": [
+                    {"column": "X", "direction": "ASC", "isAbs": False},
+                    {"column": "Y", "direction": "DESC", "isAbs": True},
+                    {"column": "Z", "direction": "DESC", "isAbs": False},
+                ],
+                "onSortsChange": callback,
+            },
+        )
+
+    def test_default_sorts_invalid(self):
+        import deephaven.ui as ui
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(self.source, default_sorts=1),
+        )
+
+        self.assertRaises(
+            ValueError,
+            lambda: ui.table(
+                self.source,
+                default_sorts=ui.TableSort(column="X", direction="UP"),
+            ),
         )
 
     def test_show_search(self):

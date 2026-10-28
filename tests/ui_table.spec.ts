@@ -152,7 +152,7 @@ test('UI table sorts and filters update programmatically', async ({ page }) => {
   await expect(locator).toHaveScreenshot();
 });
 
-// DH-22976: Existing user-owned sorts and quick filters persist after refresh.
+// DH-22976: User changes to default sorts and quick filters persist after refresh.
 test('UI table user sorts and filters persist after refresh', async ({
   page,
 }) => {
@@ -218,7 +218,7 @@ test('UI table controlled sorts and filters round-trip user changes', async ({
   await expect(locator).toHaveScreenshot();
 });
 
-// DH-22976: `sorts` is controlled, `quick_filters` is not. A server update
+// DH-22976: `sorts` is controlled, `default_quick_filters` is not. A server update
 // re-applies the sort but must leave the user's quick filter alone.
 test('UI table controlled sorts with uncontrolled filters', async ({
   page,
@@ -246,7 +246,7 @@ test('UI table controlled sorts with uncontrolled filters', async ({
   await expect(locator).toHaveScreenshot();
 });
 
-// DH-22976: `quick_filters` is controlled, `sorts` is not. A server update
+// DH-22976: `quick_filters` is controlled, `default_sorts` is not. A server update
 // re-applies the quick filter but must leave the user's sort alone.
 test('UI table controlled filters with uncontrolled sorts', async ({
   page,

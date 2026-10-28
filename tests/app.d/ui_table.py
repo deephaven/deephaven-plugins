@@ -499,7 +499,7 @@ _persist_table = new_table(
 
 @ui.component
 def t_controlled_component():
-    # Change callbacks make sorts and quick_filters controlled;
+    # Passing `sorts` and `quick_filters` makes them controlled;
     # server changes re-apply to the grid.
     sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
     quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
@@ -524,12 +524,12 @@ def t_controlled_component():
 
 t_controlled = t_controlled_component()
 
-# Value props without change callbacks set the initial state. User changes are
-# persisted and restored on reload.
+# Default props set the initial state. User changes are persisted and restored
+# on reload.
 t_default = ui.table(
     _persist_table,
-    sorts=ui.TableSort(column="Size", direction="ASC"),
-    quick_filters={"Sym": "CAT"},
+    default_sorts=ui.TableSort(column="Size", direction="ASC"),
+    default_quick_filters={"Sym": "CAT"},
     show_quick_filters=True,
 )
 
@@ -583,8 +583,8 @@ t_controlled_roundtrip = t_controlled_roundtrip_component()
 
 @ui.component
 def t_sorts_controlled_component():
-    # `sorts` is controlled; `quick_filters` has no change callback, so its value
-    # is only the initial state and later changes to it are ignored.
+    # `sorts` is controlled; `default_quick_filters` is only the initial state, so
+    # later changes to it are ignored.
     sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
     quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
     return ui.flex(
@@ -599,7 +599,7 @@ def t_sorts_controlled_component():
             _persist_table,
             sorts=sorts,
             on_sorts_change=set_sorts,
-            quick_filters=quick_filters,
+            default_quick_filters=quick_filters,
             show_quick_filters=True,
         ),
         direction="column",
@@ -611,8 +611,8 @@ t_sorts_controlled = t_sorts_controlled_component()
 
 @ui.component
 def t_quick_filters_controlled_component():
-    # `quick_filters` is controlled; `sorts` has no change callback, so its value
-    # is only the initial state and later changes to it are ignored.
+    # `quick_filters` is controlled; `default_sorts` is only the initial state, so
+    # later changes to it are ignored.
     sorts, set_sorts = ui.use_state([ui.TableSort(column="Size", direction="ASC")])
     quick_filters, set_quick_filters = ui.use_state({"Sym": "CAT"})
     return ui.flex(
@@ -625,7 +625,7 @@ def t_quick_filters_controlled_component():
         ),
         ui.table(
             _persist_table,
-            sorts=sorts,
+            default_sorts=sorts,
             quick_filters=quick_filters,
             on_quick_filters_change=set_quick_filters,
             show_quick_filters=True,

@@ -212,7 +212,9 @@ export function UITable({
   onSelectionChange,
   onQuickFiltersChange,
   onSortsChange,
+  defaultQuickFilters,
   quickFilters,
+  defaultSorts,
   sorts,
   isQuickFiltersReadOnly: isQuickFiltersReadOnlyProp,
   isSortsReadOnly: isSortsReadOnlyProp,
@@ -449,37 +451,29 @@ export function UITable({
     [onSortsChange]
   );
 
-  // Providing a change callback makes the corresponding value prop controlled.
-  const isSortsControlled = onSortsChange != null;
-  const isQuickFiltersControlled = onQuickFiltersChange != null;
+  // Providing a value prop makes it controlled; the change callbacks are
+  // independent and can be listened to in either mode.
+  const isSortsControlled = sorts !== undefined;
+  const isQuickFiltersControlled = quickFilters !== undefined;
 
-  // Without a change callback, the value props are user-owned defaults.
-  // Capture them once on mount. These provide the initial values only when
-  // there is no persisted client state; after that, the user's own changes take over.
-  const initialSortsRef = useRef(isSortsControlled ? undefined : sorts);
-  const initialQuickFiltersRef = useRef(
-    isQuickFiltersControlled ? undefined : quickFilters
-  );
+  // The default props are user-owned initial values. Capture them once on mount.
+  // These provide the initial values only when there is no persisted client state;
+  // after that, the user's own changes take over.
+  const initialSortsRef = useRef(defaultSorts);
+  const initialQuickFiltersRef = useRef(defaultQuickFilters);
 
   // Controlled values remain live IrisGrid props.
-  // An omitted controlled value means empty, not client-owned.
   const hydratedControlledSorts = useMemo(() => {
-    if (!isSortsControlled || utils == null || columns.length === 0) {
+    if (sorts === undefined || utils == null || columns.length === 0) {
       return undefined;
     }
     log.debug('Hydrating controlled sorts', sorts);
-    return utils.hydrateSort(columns, sorts ?? EMPTY_ARRAY);
-  }, [isSortsControlled, sorts, utils, columns]);
+    return utils.hydrateSort(columns, sorts);
+  }, [sorts, utils, columns]);
 
   const hydratedControlledQuickFilters = useMemo(
-    () =>
-      hydrateUITableQuickFilters(
-        isQuickFiltersControlled ? quickFilters ?? EMPTY_OBJECT : undefined,
-        model,
-        columns,
-        utils
-      ),
-    [isQuickFiltersControlled, quickFilters, model, columns, utils]
+    () => hydrateUITableQuickFilters(quickFilters, model, columns, utils),
+    [quickFilters, model, columns, utils]
   );
 
   // Lock the initial state once the model is ready. Recomputing it would pass
@@ -673,12 +667,11 @@ export function UITable({
       showSearchBar,
       sorts: hydratedControlledSorts,
       isSortsControlled,
-      onSortsChange: isSortsControlled ? handleSortsChange : undefined,
+      onSortsChange: onSortsChange != null ? handleSortsChange : undefined,
       quickFilters: hydratedControlledQuickFilters,
       isQuickFiltersControlled,
-      onQuickFiltersChange: isQuickFiltersControlled
-        ? handleQuickFiltersChange
-        : undefined,
+      onQuickFiltersChange:
+        onQuickFiltersChange != null ? handleQuickFiltersChange : undefined,
       isFilterBarShown: showQuickFilters,
       reverse,
       density,
@@ -732,6 +725,8 @@ export function UITable({
     hydratedControlledQuickFilters,
     isSortsControlled,
     isQuickFiltersControlled,
+    onSortsChange,
+    onQuickFiltersChange,
     handleSortsChange,
     handleQuickFiltersChange,
     reverse,
