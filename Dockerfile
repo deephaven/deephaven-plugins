@@ -2,7 +2,7 @@
 # Dockerfile for starting up a deephaven-server with these latest plugins built and installed
 # Expects to be run from the root of the deephaven-plugins repo
 # First lets build and install the JS plugins
-FROM node:24.10.0 AS base
+FROM node:24.22.1 AS base
 WORKDIR /work/
 
 # Update packages list and install python python
@@ -15,10 +15,10 @@ RUN set -eux; \
 # The copy --from=copy-plugins command will be a cache hit if the package.json files didn't change
 FROM alpine AS copy-plugins
 WORKDIR /work/
-COPY plugins /tmp/deephaven-plugins
+COPY plugins /tmp/deephaven-plugins/plugins
 COPY package.json package-lock.json requirements.txt ./
 # cd first so the cp doesn't include /tmp/deephaven-plugins in the paths
-RUN cd /tmp/deephaven-plugins && cp --parents ./*/src/js/package.json /work/ && cp --parents ./*/setup.* /work/
+RUN cd /tmp/deephaven-plugins && cp --parents ./plugins/*/src/js/package.json /work/ && cp --parents ./plugins/*/setup.* /work/
 
 FROM base AS build
 WORKDIR /work/

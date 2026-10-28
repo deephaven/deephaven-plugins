@@ -61,6 +61,13 @@ module.exports = {
     ),
     // Handle monaco worker files
     '\\.worker.*$': 'identity-obj-proxy',
+    // rehype-mathjax uses the package.json `browser` field to swap in the
+    // browser adaptor, which jest doesn't support. Use it so we don't load jsdom.
+    '^\\./create-adaptor\\.js$': path.join(
+      __dirname,
+      'node_modules',
+      'rehype-mathjax/lib/create-adaptor.browser.js'
+    ),
     // All packages use src/js/src code
     '^@deephaven/js-plugin-(.*)$': path.join(
       __dirname,
