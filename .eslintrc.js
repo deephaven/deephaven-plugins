@@ -9,5 +9,15 @@ module.exports = {
         tsconfigRootDir: __dirname,
       },
     },
+    {
+      // *TestUtils files are only imported by tests, so devDependencies are expected
+      files: ['**/*TestUtils.@(js|jsx|ts|tsx)'],
+      rules: {
+        'import/no-extraneous-dependencies': [
+          'error',
+          { devDependencies: true },
+        ],
+      },
+    },
   ],
 };
