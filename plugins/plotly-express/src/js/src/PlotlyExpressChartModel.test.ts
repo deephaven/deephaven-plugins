@@ -219,7 +219,9 @@ describe('table subscription warning', () => {
       subscribe,
     });
     const widget = createMockWidget(Array(tableCount).fill(table), type);
-    const api = enterprise ? { ...mockDh, coreplus: {} } : mockDh;
+    const api = enterprise
+      ? ({ ...mockDh, coreplus: {} } as unknown as typeof mockDh)
+      : mockDh;
     const model = new PlotlyExpressChartModel(api, widget, jest.fn());
     const listener = jest.fn();
     return { model, widget, table, subscribe, listener };
