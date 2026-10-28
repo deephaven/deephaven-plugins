@@ -202,6 +202,215 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+describe('table subscription warning', () => {
+  const defaultThreshold =
+    PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD;
+
+  function createModel(
+    tableCount: number,
+    enterprise = true,
+    type = 'scatter'
+  ) {
+    const subscribe = jest.fn(SMALL_TABLE.subscribe);
+    const table = TestUtils.createMockProxy<DhType.Table>({
+      columns: SMALL_TABLE.columns,
+      size: SMALL_TABLE.size,
+      addEventListener: jest.fn(() => jest.fn()),
+      subscribe,
+    });
+    const widget = createMockWidget(Array(tableCount).fill(table), type);
+    const api = enterprise ? { ...mockDh, coreplus: {} } : mockDh;
+    const model = new PlotlyExpressChartModel(api, widget, jest.fn());
+    const listener = jest.fn();
+    return { model, widget, table, subscribe, listener };
+  }
+
+  afterEach(() => {
+    PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD =
+      defaultThreshold;
+  });
+
+  it.each([
+    [true, 50, false],
+    [true, 51, true],
+    [true, 129, true],
+    [false, 51, false],
+    [false, 129, false],
+  ])(
+    'enterprise=%s, tables=%s blocks subscriptions=%s',
+    async (enterprise, count, blocked) => {
+      const { model, subscribe, listener } = createModel(count, enterprise);
+      await model.subscribe(listener);
+      await new Promise(process.nextTick);
+
+      expect(subscribe).toHaveBeenCalledTimes(blocked ? 0 : count);
+      expect(model.tableSubscriptionMap.size).toBe(blocked ? 0 : count);
+      checkEventTypes(listener, blocked ? [ChartModel.EVENT_BLOCKER] : []);
+      if (blocked) {
+        expect(listener.mock.calls[0][0].detail[0]).toContain(
+          `subscribes to ${count} tables`
+        );
+        expect(listener.mock.calls[0][0].detail[0]).toContain(
+          'http2.maxConcurrentStreams'
+        );
+      }
+    }
+  );
+
+  it('uses the configurable threshold', async () => {
+    PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD = 1;
+    const { model, subscribe, listener } = createModel(2);
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+
+    expect(subscribe).not.toHaveBeenCalled();
+    checkEventTypes(listener, [ChartModel.EVENT_BLOCKER]);
+  });
+
+  it('counts unique mapped tables, not traces or unused references', async () => {
+    const { model, widget, subscribe, listener } = createModel(51);
+    const data = getWidgetData(widget);
+    data.figure.deephaven.mappings = data.figure.deephaven.mappings.map(
+      mapping => ({ ...mapping, table: 0 })
+    );
+    data.figure.deephaven.mappings.push({ table: 1, data_columns: {} });
+    jest.spyOn(widget, 'getDataAsString').mockReturnValue(JSON.stringify(data));
+
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+
+    expect(model.getTableSubscriptionCount()).toBe(1);
+    expect(subscribe).toHaveBeenCalledTimes(1);
+    checkEventTypes(listener, []);
+  });
+
+  it('subscribes exactly once after confirmation and remembers it for this chart', async () => {
+    const { model, widget, subscribe, listener } = createModel(51);
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+
+    model.fireBlockerClear();
+    expect(subscribe).toHaveBeenCalledTimes(51);
+    expect(model.hasAcknowledgedSubscriptionWarning).toBe(true);
+
+    model.fireBlockerClear();
+    model.handleWidgetUpdated(getWidgetData(widget), widget.exportedObjects);
+    await new Promise(process.nextTick);
+    expect(subscribe).toHaveBeenCalledTimes(51);
+    checkEventTypes(listener, [
+      ChartModel.EVENT_BLOCKER,
+      ChartModel.EVENT_BLOCKER_CLEAR,
+      ChartModel.EVENT_BLOCKER_CLEAR,
+    ]);
+  });
+
+  it('allows confirmation before the table fetches finish', async () => {
+    const { model, widget, table, subscribe, listener } = createModel(51);
+    let resolveTable!: (value: DhType.Table) => void;
+    const pendingTable = new Promise<DhType.Table>(resolve => {
+      resolveTable = resolve;
+    });
+    widget.exportedObjects.forEach(reference => {
+      jest.spyOn(reference, 'fetch').mockReturnValue(pendingTable);
+    });
+    await model.subscribe(listener);
+    model.fireBlockerClear();
+    expect(subscribe).not.toHaveBeenCalled();
+
+    resolveTable(table);
+    await new Promise(process.nextTick);
+    expect(subscribe).toHaveBeenCalledTimes(51);
+  });
+
+  it('does not bypass the warning via automatic clears or WebGL settings', async () => {
+    const { model, subscribe, listener } = createModel(51, true, 'scatter3d');
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+    model.setRenderOptions({ webgl: false });
+    const warning = listener.mock.lastCall[0].detail[0];
+    expect(warning).toContain('subscribes to 51 tables');
+    expect(warning).toContain('WebGL is disabled');
+
+    model.setRenderOptions({ webgl: true });
+    model.fireBlockerClear(false);
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(model.hasAcknowledgedSubscriptionWarning).toBe(false);
+    expect(model.hasAcknowledgedWebGlWarning).toBe(false);
+    expect(
+      listener.mock.calls.every(
+        ([event]) => event.type === ChartModel.EVENT_BLOCKER
+      )
+    ).toBe(true);
+
+    model.setRenderOptions({ webgl: false });
+    model.fireBlockerClear();
+    expect(subscribe).toHaveBeenCalledTimes(51);
+    expect(model.hasAcknowledgedWebGlWarning).toBe(true);
+  });
+
+  it('blocks new subscriptions when a widget update crosses the threshold', async () => {
+    const { model, table, subscribe, listener } = createModel(50);
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+    expect(subscribe).toHaveBeenCalledTimes(50);
+
+    const updatedWidget = createMockWidget(Array(51).fill(table));
+    const updatedData = getWidgetData(updatedWidget);
+    updatedData.new_references = [50];
+    model.handleWidgetUpdated(
+      updatedData,
+      updatedWidget.exportedObjects.slice(50)
+    );
+    await new Promise(process.nextTick);
+    expect(subscribe).toHaveBeenCalledTimes(50);
+    checkEventTypes(listener, [ChartModel.EVENT_BLOCKER]);
+
+    model.fireBlockerClear();
+    expect(subscribe).toHaveBeenCalledTimes(51);
+  });
+
+  it('does not acknowledge WebGL by confirming only the subscription warning', async () => {
+    const { model, listener } = createModel(51, true, 'scatter3d');
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+    model.fireBlockerClear();
+    expect(model.hasAcknowledgedWebGlWarning).toBe(false);
+
+    model.setRenderOptions({ webgl: false });
+    expect(listener.mock.lastCall[0].detail[0]).toContain('WebGL is disabled');
+    expect(listener.mock.lastCall[0].detail[0]).not.toContain('subscribes to');
+  });
+
+  it('resumes without acknowledgement when an update drops below the threshold', async () => {
+    const { model, table, subscribe, listener } = createModel(51);
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+
+    const updatedData = getWidgetData(createMockWidget(Array(50).fill(table)));
+    updatedData.new_references = [];
+    updatedData.removed_references = [50];
+    model.handleWidgetUpdated(updatedData, []);
+
+    expect(subscribe).toHaveBeenCalledTimes(50);
+    expect(model.hasAcknowledgedSubscriptionWarning).toBe(false);
+    checkEventTypes(listener, [
+      ChartModel.EVENT_BLOCKER,
+      ChartModel.EVENT_BLOCKER_CLEAR,
+    ]);
+  });
+
+  it('does not start subscriptions after unsubscribing from a blocked chart', async () => {
+    const { model, subscribe, listener } = createModel(51);
+    await model.subscribe(listener);
+    await new Promise(process.nextTick);
+    model.unsubscribe(listener);
+    model.fireBlockerClear();
+
+    expect(subscribe).not.toHaveBeenCalled();
+    expect(model.tableSubscriptionMap.size).toBe(0);
+  });
+});
+
 describe('PlotlyExpressChartModel', () => {
   it('should create a new instance of PlotlyExpressChartModel', () => {
     const mockWidget = createMockWidget([]);
@@ -416,13 +625,15 @@ describe('PlotlyExpressChartModel', () => {
 
     expect(chartModel.hasAcknowledgedWebGlWarning).toBe(false);
     // if user had accepted the rendering (simulated by fireBlockerClear), no EVENT_BLOCKER event should be emitted again
+    chartModel.setRenderOptions({ webgl: false });
     chartModel.fireBlockerClear();
     chartModel.setRenderOptions({ webgl: false });
-    expect(mockSubscribe).toHaveBeenCalledTimes(3);
+    expect(mockSubscribe).toHaveBeenCalledTimes(4);
 
     checkEventTypes(mockSubscribe, [
       ChartModel.EVENT_BLOCKER,
       ChartModel.EVENT_BLOCKER_CLEAR,
+      ChartModel.EVENT_BLOCKER,
       ChartModel.EVENT_BLOCKER_CLEAR,
     ]);
   });
