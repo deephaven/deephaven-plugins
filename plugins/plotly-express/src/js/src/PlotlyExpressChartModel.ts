@@ -58,6 +58,12 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   static MAX_FETCH_SIZE = 1_000_000;
 
+  /**
+   * Enterprise charts requiring more table subscriptions must be acknowledged
+   * before subscribing.
+   */
+  static TABLE_SUBSCRIPTION_WARNING_THRESHOLD = 50;
+
   static canFetch(table: DhType.Table): boolean {
     return table.size <= PlotlyExpressChartModel.MAX_FETCH_SIZE;
   }
@@ -164,6 +170,10 @@ export class PlotlyExpressChartModel extends ChartModel {
    * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
    */
   hasAcknowledgedWebGlWarning = false;
+
+  hasAcknowledgedSubscriptionWarning = false;
+
+  hasRenderBlocker = false;
 
   /**
    * A calendar object that is used to set rangebreaks on a time axis.
@@ -338,42 +348,110 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setRenderOptions(renderOptions: RenderOptions): void {
-    this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
+    this.handleWebGlAllowed(renderOptions.webgl);
     super.setRenderOptions(renderOptions);
+  }
+
+  /**
+   * Count tables with data mappings, stopping early once the count exceeds `limit`.
+   * @param limit Stop counting after exceeding this value
+   * @returns The number of mapped tables, capped at `limit + 1`
+   */
+  getTableSubscriptionCount(limit = Infinity): number {
+    let count = 0;
+    const values = this.tableColumnReplacementMap.values();
+    for (let next = values.next(); next.done !== true; next = values.next()) {
+      if (next.value.size > 0) {
+        count += 1;
+        if (count > limit) {
+          break;
+        }
+      }
+    }
+    return count;
+  }
+
+  shouldBlockTableSubscriptions(): boolean {
+    const threshold =
+      PlotlyExpressChartModel.TABLE_SUBSCRIPTION_WARNING_THRESHOLD;
+    return (
+      // Only enterprise needs to block table subscriptions due to the http2.maxConcurrentStreams limit
+      (this.dh as { coreplus?: unknown }).coreplus != null &&
+      !this.hasAcknowledgedSubscriptionWarning &&
+      this.getTableSubscriptionCount(threshold) > threshold
+    );
   }
 
   /**
    * Handle the WebGL option being set in the render options.
    * If WebGL is enabled, traces have their original types as given.
    * If WebGL is disabled, replace traces that require WebGL with non-WebGL traces if possible.
-   * Also, show a dismissible warning per-chart if there are WebGL traces that cannot be replaced.
    * @param webgl The new WebGL value. True if WebGL is enabled.
-   * @param prevWebgl The previous WebGL value
    */
-  handleWebGlAllowed(webgl = true, prevWebgl = true): void {
+  handleWebGlAllowed(webgl = true): void {
     setWebGlTraceType(
       this.plotlyData,
       webgl && this.isWebGlSupported,
       this.webGlTraceIndices
     );
+    this.updateRenderBlocker(webgl);
+  }
 
-    const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
+  /**
+   * Show or clear the render blocker based on all unacknowledged warnings.
+   * Warnings are combined so clearing one cannot hide the other.
+   * @param webgl The current WebGL value. True if WebGL is enabled.
+   */
+  updateRenderBlocker(webgl = true): void {
+    const warnings: string[] = [];
+
+    if (this.shouldBlockTableSubscriptions()) {
+      warnings.push(
+        `This chart subscribes to ${this.getTableSubscriptionCount()} tables. Together with other open charts and tables, this may exceed the server's http2.maxConcurrentStreams limit and disconnect your session.`
+      );
+    }
 
     // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
-    if (needsBlocker && !webgl && !this.hasAcknowledgedWebGlWarning) {
-      this.fireBlocker([
-        'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
-      ]);
-    } else if (webgl && !prevWebgl && needsBlocker) {
-      // clear the blocker but not the acknowledged flag in case WebGL is disabled again
+    if (
+      hasUnreplaceableWebGlTraces(this.plotlyData) &&
+      !webgl &&
+      !this.hasAcknowledgedWebGlWarning
+    ) {
+      warnings.push(
+        'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.'
+      );
+    }
+
+    if (warnings.length > 0) {
+      this.hasRenderBlocker = true;
+      this.fireBlocker([warnings.join('\n\n')]);
+    } else if (this.hasRenderBlocker) {
       this.fireBlockerClear(false);
     }
   }
 
   override fireBlockerClear(isAcknowledged = true): void {
-    super.fireBlockerClear();
+    const wereSubscriptionsBlocked = this.shouldBlockTableSubscriptions();
     this.hasAcknowledgedWebGlWarning =
-      isAcknowledged || this.hasAcknowledgedWebGlWarning;
+      (isAcknowledged &&
+        this.renderOptions?.webgl === false &&
+        hasUnreplaceableWebGlTraces(this.plotlyData)) ||
+      this.hasAcknowledgedWebGlWarning;
+    this.hasAcknowledgedSubscriptionWarning =
+      (isAcknowledged && wereSubscriptionsBlocked) ||
+      this.hasAcknowledgedSubscriptionWarning;
+
+    if (this.shouldBlockTableSubscriptions()) {
+      this.updateRenderBlocker(this.renderOptions?.webgl);
+      return;
+    }
+
+    this.hasRenderBlocker = false;
+    super.fireBlockerClear();
+
+    if (wereSubscriptionsBlocked && this.isSubscribed) {
+      this.tableReferenceMap.forEach((_, id) => this.subscribeTable(id));
+    }
   }
 
   updateLayout(data: PlotlyChartWidgetData): void {
@@ -556,6 +634,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     } = data;
     const { plotly, deephaven } = figure;
     const { layout: plotlyLayout = {} } = plotly;
+    const wereSubscriptionsBlocked = this.shouldBlockTableSubscriptions();
     this.tableColumnReplacementMap = getDataMappings(data);
 
     this.plotlyData = plotly.data;
@@ -596,6 +675,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     });
 
     removedReferences.forEach(id => this.removeTable(id));
+
+    if (
+      wereSubscriptionsBlocked &&
+      !this.shouldBlockTableSubscriptions() &&
+      this.isSubscribed
+    ) {
+      this.tableReferenceMap.forEach((_, id) => this.subscribeTable(id));
+    }
 
     // title and legend title are the only things expected to be updated after init from the layout
     if (
@@ -854,6 +941,10 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   subscribeTable(id: number): void {
+    if (this.shouldBlockTableSubscriptions()) {
+      return;
+    }
+
     const table = this.tableReferenceMap.get(id);
     const columnReplacements = this.tableColumnReplacementMap.get(id);
 
