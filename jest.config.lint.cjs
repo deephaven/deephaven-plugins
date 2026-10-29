@@ -11,11 +11,8 @@ module.exports = {
     {
       displayName: 'stylelint',
       runner: 'jest-runner-stylelint',
-      testMatch: [
-        '<rootDir>/packages/*/src/js/src/**/*.scss',
-        '<rootDir>/packages/*/src/js/scss/**/*.scss',
-      ],
-      moduleFileExtensions: ['scss'],
+      testMatch: ['<rootDir>/plugins/*/src/js/src/**/*.css'],
+      moduleFileExtensions: ['css'],
       testEnvironment: 'node',
     },
   ],

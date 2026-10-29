@@ -15,7 +15,7 @@
   --dh-color-gray-600: #886da0;
   --dh-color-gray-700: #a185b4;
   --dh-color-gray-800: #bca0c8;
-  --dh-color-gray-900: #ffffff;
+  --dh-color-gray-900: #fff;
 
   /* ============ RED PALETTE ============ */
   /* SynthWave red (#fe4450) anchored at 600 - used for errors, types */
@@ -272,11 +272,11 @@
   --dh-color-grid-row-1-bg: var(--dh-color-gray-75);
 
   /* Chart colorway using SynthWave neon colors */
-  --dh-color-chart-colorway: var(--dh-color-fuchsia-800) var(--dh-color-cyan-800)
-    var(--dh-color-green-900) var(--dh-color-yellow-1000)
-    var(--dh-color-orange-700) var(--dh-color-purple-700)
-    var(--dh-color-red-600) var(--dh-color-blue-700) var(--dh-color-magenta-800)
-    var(--dh-color-indigo-700);
+  --dh-color-chart-colorway: var(--dh-color-fuchsia-800)
+    var(--dh-color-cyan-800) var(--dh-color-green-900)
+    var(--dh-color-yellow-1000) var(--dh-color-orange-700)
+    var(--dh-color-purple-700) var(--dh-color-red-600) var(--dh-color-blue-700)
+    var(--dh-color-magenta-800) var(--dh-color-indigo-700);
 
   /* ============ EDITOR SEMANTIC - SYNTHWAVE SYNTAX ============ */
   /* Based on SynthWave '84 token colors */
@@ -289,19 +289,31 @@
   --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-200);
 
   /* Code syntax highlighting per SynthWave spec */
-  --dh-color-editor-comment: var(--dh-color-blue-700); /* Comments - #848BBD (bluish gray) */
-  --dh-color-editor-keyword: var(--dh-color-yellow-1000); /* Keywords - Yellow #FEDE5D */
-  --dh-color-editor-storage: var(--dh-color-yellow-1000); /* Storage types - Yellow */
-  --dh-color-editor-number: var(--dh-color-orange-700); /* Numbers, constants - Coral #F97E72 */
-  --dh-color-editor-string: var(--dh-color-orange-700); /* Strings - Orange #FF8B39 */
-  --dh-color-editor-string-delim: var(--dh-color-orange-700); /* String delimiters */
-  --dh-color-editor-identifier: var(--dh-color-fuchsia-800); /* Variables - Pink #FF7EDB */
-  --dh-color-editor-identifier-js: var(--dh-color-fuchsia-800); /* JS Variables - Pink */
-  --dh-color-editor-identifier-namespace: var(--dh-color-red-600); /* Types, classes - Red #FE4450 */
-  --dh-color-editor-predefined: var(--dh-color-cyan-800); /* Functions - Cyan #36F9F6 */
-  --dh-color-editor-operator: var(--dh-color-yellow-1000); /* Operators - Yellow */
+  /* Comments - #848BBD (bluish gray) */
+  --dh-color-editor-comment: var(--dh-color-blue-700);
+  /* Keywords - Yellow #FEDE5D */
+  --dh-color-editor-keyword: var(--dh-color-yellow-1000);
+  /* Storage types - Yellow */
+  --dh-color-editor-storage: var(--dh-color-yellow-1000);
+  /* Numbers, constants - Coral #F97E72 */
+  --dh-color-editor-number: var(--dh-color-orange-700);
+  /* Strings - Orange #FF8B39 */
+  --dh-color-editor-string: var(--dh-color-orange-700);
+  /* String delimiters */
+  --dh-color-editor-string-delim: var(--dh-color-orange-700);
+  /* Variables - Pink #FF7EDB */
+  --dh-color-editor-identifier: var(--dh-color-fuchsia-800);
+  /* JS Variables - Pink */
+  --dh-color-editor-identifier-js: var(--dh-color-fuchsia-800);
+  /* Types, classes - Red #FE4450 */
+  --dh-color-editor-identifier-namespace: var(--dh-color-red-600);
+  /* Functions - Cyan #36F9F6 */
+  --dh-color-editor-predefined: var(--dh-color-cyan-800);
+  /* Operators - Yellow */
+  --dh-color-editor-operator: var(--dh-color-yellow-1000);
   --dh-color-editor-delimiter: var(--dh-color-gray-800); /* Delimiters */
-  --dh-color-editor-error-fg: var(--dh-color-red-600); /* Errors - Red #FE4450 */
+  /* Errors - Red #FE4450 */
+  --dh-color-editor-error-fg: var(--dh-color-red-600);
 
   /* Bracket colors - SynthWave style cycling through neon colors */
   --dh-color-editor-bracket-fg1: var(--dh-color-fuchsia-800); /* Pink */

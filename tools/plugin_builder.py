@@ -28,7 +28,7 @@ REBUILD_REGEXES = [
     r".*\.svg$",
     r".*\.ts$",
     r".*\.tsx$",
-    r".*\.scss$",
+    r".*\.css$",
 ]
 
 # ignore these patterns in particular

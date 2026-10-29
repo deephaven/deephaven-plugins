@@ -247,6 +247,7 @@
   --dh-color-accent-key-focus-bg: var(--dh-color-red-600);
   --dh-color-accent-contrast: var(--dh-color-gray-900);
 
+  /* Visual */
   --dh-color-visual-positive: var(--dh-color-green-1100);
   --dh-color-visual-negative: var(--dh-color-red-700);
 
@@ -288,6 +289,7 @@
   --dh-color-editor-bracket-fg6: var(--dh-color-cyan-900);
   --dh-color-editor-unexpected-bracket-fg: var(--dh-color-red-700);
 
+  /* Grid */
   --dh-color-grid-row-0-bg: var(--dh-color-gray-100);
   --dh-color-grid-row-1-bg: var(--dh-color-gray-50);
 }

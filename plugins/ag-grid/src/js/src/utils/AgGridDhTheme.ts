@@ -20,7 +20,8 @@ export class AgGridDhTheme {
       headerTextColor: AgGridThemeColors.headerTextColor,
       headerColumnResizeHandleColor:
         AgGridThemeColors.headerColumnResizeHandleColor,
-      headerFontFamily: 'var(--font-family-sans-serif)',
+      headerFontFamily:
+        'var(--dh-font-family-sans, var(--font-family-sans-serif))',
       headerFontSize: '12px',
       headerFontWeight: 600,
       headerHeight: 30,
@@ -36,7 +37,7 @@ export class AgGridDhTheme {
 
       /* Text */
       textColor: AgGridThemeColors.textColor,
-      fontFamily: 'var(--font-family-sans-serif)',
+      fontFamily: 'var(--dh-font-family-sans, var(--font-family-sans-serif))',
       fontSize: 14,
 
       /* Menu */

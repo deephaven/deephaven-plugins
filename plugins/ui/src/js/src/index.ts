@@ -1,7 +1,7 @@
 import { PluginType } from '@deephaven/plugin';
 import { UIWidgetPlugin } from './UIWidgetPlugin';
 import { DashboardPlugin } from './DashboardPlugin';
-import styles from './styles.scss?inline';
+import styles from './styles.css?inline';
 
 // We need to inject the styles into the document when we're loaded... we only want to do this once.
 const styleElement = document.createElement('style');

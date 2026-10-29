@@ -39,6 +39,7 @@
     "@deephaven/babel-preset": "^1.8.0",
     "@deephaven/eslint-config": "^1.1.0",
     "@deephaven/prettier-config": "^1.1.0",
+    "@deephaven/stylelint-config": "^1.1.0",
     "@deephaven/tsconfig": "^1.1.0",
     "@playwright/test": "^1.44.1",
     "@testing-library/jest-dom": "^5.17.0",
@@ -67,7 +68,7 @@
     "prettier": "3.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "sass": "^1.99.0",
+    "stylelint": "^17.16.0",
     "typescript": "^5.9.3",
     "vite": "^5.4.6"
   },
@@ -125,5 +126,17 @@
       "eslint-import-resolver-typescript": "3.5.0"
     }
   },
-  "prettier": "@deephaven/prettier-config"
+  "prettier": "@deephaven/prettier-config",
+  "stylelint": {
+    "ignoreFiles": [
+      "**/node_modules/**",
+      "*.*",
+      "!*.css",
+      "**/dist/**",
+      "**/build/**"
+    ],
+    "extends": [
+      "@deephaven/stylelint-config"
+    ]
+  }
 }
