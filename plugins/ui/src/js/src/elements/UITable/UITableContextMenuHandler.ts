@@ -19,6 +19,7 @@ import {
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
+import Log from '@deephaven/log';
 import { ensureArray } from '@deephaven/utils';
 import {
   asRangedSelection,
@@ -29,6 +30,8 @@ import {
 import { getIcon } from '../utils/IconElementUtils';
 import { ELEMENT_PREFIX, type ElementPrefix } from '../model/ElementConstants';
 import { byReference, type ByReference } from '../../widget/ReferenceUtils';
+
+const log = Log.module('@deephaven/js-plugin-ui/UITableContextMenuHandler');
 
 type ModelTable = DhType.Table | DhType.TreeTable;
 
@@ -68,7 +71,7 @@ interface UIContextItemParams {
 }
 
 type UIContextItem = Omit<ContextAction, 'action' | 'actions' | 'icon'> & {
-  action?: (params: UIContextItemParams) => void;
+  action?: (params: UIContextItemParams) => void | Promise<unknown>;
   actions?: ResolvableUIContextItem[];
   icon?: string;
 };
@@ -102,19 +105,25 @@ function wrapUIContextItem(
         ? getIcon(`${ELEMENT_PREFIX.icon}${item.icon}` as ElementPrefix['icon'])
         : undefined,
     action: item.action
-      ? () => {
-          item.action?.({
-            value: data.value,
-            text: data.valueText,
-            column_name: data.column.name,
-            is_column_header: data.rowIndex == null,
-            is_row_header: data.columnIndex == null,
-            always_fetch_columns: alwaysFetchColumns,
-            selected_ranges: selectedRanges,
-            selected_keys: selectedKeys,
-            _visible_columns: visibleColumns,
-            ...getTableParam(table),
-          });
+      ? async () => {
+          try {
+            await item.action?.({
+              value: data.value,
+              text: data.valueText,
+              column_name: data.column.name,
+              is_column_header: data.rowIndex == null,
+              is_row_header: data.columnIndex == null,
+              always_fetch_columns: alwaysFetchColumns,
+              selected_ranges: selectedRanges,
+              selected_keys: selectedKeys,
+              _visible_columns: visibleColumns,
+              ...getTableParam(table),
+            });
+          } catch (e) {
+            // A server error carries the Python exception's message in `data`.
+            const { data: errorData } = e as { data?: { message?: unknown } };
+            log.error('Context menu action failed:', errorData?.message ?? e);
+          }
         }
       : undefined,
     actions: item.actions
