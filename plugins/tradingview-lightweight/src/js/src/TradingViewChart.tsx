@@ -1936,7 +1936,7 @@ function TradingViewChart(props: TradingViewChartProps): JSX.Element | null {
     <div
       ref={containerRef}
       // `chart-wrapper` is the class plotly-express's chart root uses, which
-      // deephaven.ui targets (e.g. styles.scss strips panel padding when a
+      // deephaven.ui targets (e.g. styles.css strips panel padding when a
       // `.chart-wrapper` is a panel's only child). Carrying it lets the tvl
       // chart get the same host-side treatment. `dh-tvl-chart` stays first —
       // the plugin's own CSS and the e2e/unit selectors key on it.
