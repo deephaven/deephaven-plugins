@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.43.2 - 2026-11-04
+
+#### Bug Fixes
+
+- npm audit critical vulnerabilities ([#1446](https://github.com/deephaven/deephaven-plugins/pull/1446)) - (2db9ecc) - mofojed
+- DH-24196: Log correct error to browser when selection exceeds 10k rows ([#1443](https://github.com/deephaven/deephaven-plugins/pull/1443)) - (163e747) - dgodinez-dh
+
+- - -
+
+
 ## ui-v0.43.1 - 2026-10-26
 
 #### Bug Fixes
