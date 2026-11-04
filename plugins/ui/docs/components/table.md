@@ -991,7 +991,7 @@ t_string_sort = ui.table(
 
 Use the `sorts` prop to control the sorts from your own state. The table always shows the sorts in `sorts`; changes the user makes are passed to `on_sorts_change` and are only applied once you update `sorts`. The callback is invoked with the complete ordered sort state the user proposed, as a list of dictionaries with `column`, `direction`, and `is_abs` keys.
 
-In this example, a `picker` selects the sort column, and the callback keeps the picker in sync when the user sorts from the column header.
+In this example, the complete sort list is kept in state so that user changes to the direction and absolute-value flag are preserved. A `picker` selects the primary sort column, and its selection is derived from the sort list so it stays in sync when the user sorts from the column header.
 
 ```python order=t,_stocks
 from deephaven import ui
@@ -1002,10 +1002,8 @@ _stocks = dx.data.stocks()
 
 @ui.component
 def ui_sorted_table(table):
-    sort_column, set_sort_column = ui.use_state("Sym")
-
-    def handle_sorts_change(sorts):
-        set_sort_column(sorts[0]["column"] if sorts else None)
+    sorts, set_sorts = ui.use_state([{"column": "Sym"}])
+    sort_column = sorts[0]["column"] if sorts else None
 
     return [
         ui.picker(
@@ -1014,12 +1012,12 @@ def ui_sorted_table(table):
             "Price",
             label="Sort column",
             selected_key=sort_column,
-            on_change=set_sort_column,
+            on_change=lambda column: set_sorts([{"column": column}]),
         ),
         ui.table(
             table,
-            sorts=ui.TableSort(column=sort_column) if sort_column else [],
-            on_sorts_change=handle_sorts_change,
+            sorts=sorts,
+            on_sorts_change=set_sorts,
         ),
     ]
 
