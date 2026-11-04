@@ -2,7 +2,7 @@
  * Pivot builder styles. Injected once as a <style> tag from index.ts so the
  * plugin ships a single JS bundle (no separate CSS asset). All colors come
  * from the design-system theme tokens so the UI tracks light / dark / custom
- * themes. Size tokens have fallbacks for hosts that predate them. The
+ * themes. Size tokens have fallbacks for hosts that predate them (below). The
  * marching-ants drop-zone decoration matches iris-grid's RollupRows.
  *
  * "Content" classes (cards, rows, popovers) are declared at the top level
@@ -10,6 +10,17 @@
  * column / aggregation pickers and the drag overlay preview) and so fall
  * outside the `.pivot-config-section` root.
  */
+
+/*
+ * Size tokens with the values hosts before deephaven/web-client-ui#2780 used,
+ * since those hosts don't define them. On :root rather than a component root
+ * because some content renders through portals.
+ */
+:root {
+  --pivot-spacer-1: var(--dh-spacer-1, 0.25rem);
+  --pivot-spacer-2: var(--dh-spacer-2, 0.5rem);
+  --pivot-border-radius: var(--dh-border-radius, 4px);
+}
 
 .pivot-card {
   /*
@@ -21,8 +32,8 @@
    */
   position: relative;
   border: 1px solid var(--dh-color-border);
-  border-radius: var(--dh-border-radius, 4px);
-  padding: var(--dh-spacer-1, 0.25rem) var(--dh-spacer-2, 0.5rem);
+  border-radius: var(--pivot-border-radius);
+  padding: var(--pivot-spacer-1) var(--pivot-spacer-2);
   background: var(--dh-color-gray-300);
 }
 
@@ -57,8 +68,8 @@
  */
 .pivot-card-header--with-body {
   border-bottom: 1px solid var(--dh-color-border);
-  padding-bottom: var(--dh-spacer-1, 0.25rem);
-  margin-bottom: var(--dh-spacer-1, 0.25rem);
+  padding-bottom: var(--pivot-spacer-1);
+  margin-bottom: var(--pivot-spacer-1);
 }
 
 .pivot-card-title {
@@ -85,7 +96,7 @@
 .pivot-row {
   display: flex;
   align-items: center;
-  gap: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-1);
   padding: 0 2px;
 }
 
@@ -98,8 +109,8 @@
   background-color: var(--dh-color-accent);
   color: var(--dh-color-accent-contrast);
   box-shadow: var(--dh-box-shadow, 0 0.1rem 1rem var(--dh-color-dropshadow));
-  border-radius: var(--dh-border-radius, 4px);
-  padding: var(--dh-spacer-1, 0.25rem) var(--dh-spacer-2, 0.5rem);
+  border-radius: var(--pivot-border-radius);
+  padding: var(--pivot-spacer-1) var(--pivot-spacer-2);
 }
 
 /*
@@ -141,7 +152,7 @@
   align-items: center;
   justify-content: center;
   cursor: grab;
-  padding: 0 var(--dh-spacer-1, 0.25rem);
+  padding: 0 var(--pivot-spacer-1);
   color: var(--dh-color-icon-fg);
 }
 
@@ -163,16 +174,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-1);
   color: var(--dh-color-fg);
-  padding: var(--dh-spacer-2, 0.5rem);
+  padding: var(--pivot-spacer-2);
 }
 
 /* Toolbar row above the cards (global Toggle + undo/redo + overflow). */
 .pivot-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-1);
   padding: 0 2px;
 }
 
@@ -181,7 +192,7 @@
  * part of the focusable container (see CreatePivotPage's focus handling).
  */
 .pivot-create-page {
-  padding: var(--dh-spacer-2, 0.5rem);
+  padding: var(--pivot-spacer-2);
   height: 100%;
   box-sizing: border-box;
 
@@ -206,8 +217,8 @@
 .pivot-create-page-content {
   display: flex;
   flex-direction: column;
-  gap: var(--dh-spacer-2, 0.5rem);
-  padding-bottom: var(--dh-spacer-2, 0.5rem);
+  gap: var(--pivot-spacer-2);
+  padding-bottom: var(--pivot-spacer-2);
 }
 
 /*
@@ -236,11 +247,11 @@
 }
 
 .pivot-popover-search {
-  padding: var(--dh-spacer-2, 0.5rem);
+  padding: var(--pivot-spacer-2);
 }
 
 .pivot-popover-empty {
-  padding: var(--dh-spacer-2, 0.5rem) var(--dh-spacer-2, 0.5rem);
+  padding: var(--pivot-spacer-2);
   opacity: 0.6;
   font-style: italic;
 }
@@ -261,13 +272,13 @@
   flex-direction: column;
   min-height: 0;
   max-height: inherit;
-  padding: var(--dh-spacer-2, 0.5rem);
-  gap: var(--dh-spacer-2, 0.5rem);
+  padding: var(--pivot-spacer-2);
+  gap: var(--pivot-spacer-2);
 }
 
 .pivot-agg-field-label {
   font-size: 12px;
-  margin-bottom: var(--dh-spacer-1, 0.25rem);
+  margin-bottom: var(--pivot-spacer-1);
 }
 
 .pivot-agg-required {
@@ -281,7 +292,7 @@
 .pivot-agg-column-group {
   display: flex;
   flex-direction: column;
-  gap: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-1);
   flex: 1;
   min-height: 0;
 }
@@ -290,8 +301,8 @@
   flex: 1;
   overflow-y: auto;
   border: 1px solid var(--dh-color-border);
-  border-radius: var(--dh-border-radius, 4px);
-  padding: var(--dh-spacer-1, 0.25rem) var(--dh-spacer-2, 0.5rem);
+  border-radius: var(--pivot-border-radius);
+  padding: var(--pivot-spacer-1) var(--pivot-spacer-2);
   min-height: 120px;
   display: flex;
   flex-direction: column;
@@ -301,8 +312,8 @@
 .pivot-agg-footer {
   display: flex;
   align-items: center;
-  gap: var(--dh-spacer-2, 0.5rem);
-  margin-top: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-2);
+  margin-top: var(--pivot-spacer-1);
   flex-shrink: 0;
 }
 
@@ -313,7 +324,7 @@
 .pivot-agg-row-line {
   display: flex;
   align-items: center;
-  gap: var(--dh-spacer-1, 0.25rem);
+  gap: var(--pivot-spacer-1);
 }
 
 .pivot-agg-row-picker {
@@ -326,7 +337,7 @@
 .pivot-config-section {
   display: flex;
   flex-direction: column;
-  gap: var(--dh-spacer-2, 0.5rem);
+  gap: var(--pivot-spacer-2);
   /*
    * Labels, card titles, and row text are not meant to be selected (they're
    * drag handles / controls), and stray selection during a drag looks broken.
@@ -446,7 +457,7 @@
     border-bottom: 1px solid var(--dh-color-gray-400);
 
     .pivot-agg-row-picker {
-      margin-bottom: calc(-1 * var(--dh-spacer-1, 0.25rem));
+      margin-bottom: calc(-1 * var(--pivot-spacer-1));
     }
   }
 
@@ -455,7 +466,7 @@
    * visually separated, skipping the first entry (no gap above the top row).
    */
   .pivot-droppable-aggregations > .pivot-row:not(:first-child) {
-    margin-top: var(--dh-spacer-1, 0.25rem);
+    margin-top: var(--pivot-spacer-1);
   }
 
   /*

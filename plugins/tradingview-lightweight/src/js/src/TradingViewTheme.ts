@@ -55,7 +55,7 @@ function resolveChartTheme(): TvlChartTheme {
     theme[key] = get(cssVar);
   });
 
-  // Hosts before @deephaven/components v2 only define Bootstrap's variable
+  // Hosts before deephaven/web-client-ui#2780 only define Bootstrap's variable
   const fontFamily =
     get('--dh-font-family-sans') || get('--font-family-sans-serif');
 
