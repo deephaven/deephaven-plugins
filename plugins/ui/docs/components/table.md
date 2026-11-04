@@ -887,7 +887,7 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 Use the `quick_filters` prop to control the filters from your own state. The table always shows the filters in `quick_filters`; changes the user makes are passed to `on_quick_filters_change` and are only applied once you update `quick_filters`. The callback is invoked with the complete filter state the user proposed, as a dictionary of column name to filter expression. Columns the user cleared are omitted from the dictionary.
 
-In this example, a `picker` drives the `Sym` filter, and the callback keeps the picker in sync when the user edits the filter bar directly.
+In this example, the complete filter dictionary is kept in state so that filters the user adds to other columns are preserved. A `picker` drives the `Sym` filter, and its selection is derived from the filter state so it stays in sync when the user edits the filter bar directly.
 
 ```python order=t,_stocks
 from deephaven import ui
@@ -898,29 +898,24 @@ _stocks = dx.data.stocks()
 
 @ui.component
 def ui_filtered_table(table):
-    sym, set_sym = ui.use_state("CAT")
+    filters, set_filters = ui.use_state({"Sym": "CAT"})
+    syms = ui.use_memo(lambda: table.select_distinct("Sym"), [table])
 
-    def handle_quick_filters_change(filters):
-        set_sym(filters.get("Sym"))
-
-    return [
+    return ui.flex(
         ui.picker(
-            "CAT",
-            "DOG",
-            "FISH",
-            "BIRD",
-            "LIZARD",
+            syms,
             label="Sym filter",
-            selected_key=sym,
-            on_change=set_sym,
+            selected_key=filters.get("Sym"),
+            on_change=lambda sym: set_filters({**filters, "Sym": sym}),
         ),
         ui.table(
             table,
             show_quick_filters=True,
-            quick_filters={"Sym": sym} if sym else {},
-            on_quick_filters_change=handle_quick_filters_change,
+            quick_filters=filters,
+            on_quick_filters_change=set_filters,
         ),
-    ]
+        direction="column",
+    )
 
 
 t = ui_filtered_table(_stocks)
