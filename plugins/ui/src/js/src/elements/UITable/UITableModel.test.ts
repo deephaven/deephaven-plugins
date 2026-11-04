@@ -210,3 +210,50 @@ describe('Formatting', () => {
     });
   });
 });
+
+describe('Read only', () => {
+  function makeModel(): UITableModel {
+    return new UITableModel({
+      dh: MOCK_DH,
+      model: MOCK_BASE_MODEL,
+      format: [],
+      displayNameMap: {},
+    });
+  }
+
+  beforeEach(() => {
+    (MOCK_BASE_MODEL.isFilterable as jest.Mock).mockReturnValue(true);
+    (MOCK_BASE_MODEL.isColumnSortable as jest.Mock).mockReturnValue(true);
+    (MOCK_BASE_MODEL.getClearFilterRange as jest.Mock).mockReturnValue([0, 0]);
+  });
+
+  test('delegates to the base model by default', () => {
+    const model = makeModel();
+    expect(model.isFilterable(0)).toBe(true);
+    expect(model.isColumnSortable(0)).toBe(true);
+    expect(model.getClearFilterRange(0)).toEqual([0, 0]);
+  });
+
+  test('blocks filtering when quick filters are read only', () => {
+    const model = makeModel();
+    model.setQuickFiltersReadOnly(true);
+    expect(model.isFilterable(0)).toBe(false);
+    expect(model.getClearFilterRange(0)).toBeNull();
+    expect(model.isColumnSortable(0)).toBe(true);
+  });
+
+  test('blocks sorting when sorts are read only', () => {
+    const model = makeModel();
+    model.setSortsReadOnly(true);
+    expect(model.isColumnSortable(0)).toBe(false);
+    expect(model.isFilterable(0)).toBe(true);
+  });
+
+  test('defers to the base model when it disallows filtering or sorting', () => {
+    (MOCK_BASE_MODEL.isFilterable as jest.Mock).mockReturnValue(false);
+    (MOCK_BASE_MODEL.isColumnSortable as jest.Mock).mockReturnValue(false);
+    const model = makeModel();
+    expect(model.isFilterable(0)).toBe(false);
+    expect(model.isColumnSortable(0)).toBe(false);
+  });
+});

@@ -858,7 +858,7 @@ Quick filters are an easy way to filter the table while also showing the user wh
 
 Quick filters may be preferred if you have multiple servers or workers hosting your data. If, for example, the table is on another Deephaven instance, performing a `where` operation on the table may require copying all of the data from the host server into the server running Deephaven UI. With a quick filter, the filter can instead be applied directly on the server hosting the table.
 
-Quick filters can be added to the table using the `quick_filters` prop. The `quick_filters` prop takes a dictionary where the key is the column and the value is the filter to apply.
+Initial quick filters can be added with the `default_quick_filters` prop, a dictionary where the key is the column and the value is the filter to apply. Any changes the user makes to default quick filters are retained and persisted. Use `quick_filters` instead for [controlled quick filters](#controlled-quick-filters). In either case, `on_quick_filters_change` is called with the complete filter state whenever the user changes the filters.
 
 The quick filter bar can be expanded by default with the `show_quick_filters` prop.
 
@@ -873,7 +873,7 @@ t = _stocks.where("Sym = `CAT`") # Applied when query is run
 t2 = ui.table( # Filters applied when table is opened on the client
     _stocks,
     show_quick_filters=True,
-    quick_filters={
+    default_quick_filters={
         "Sym": "CAT",
         "Exchange": "TPET",
         "Price": ">=100"
@@ -883,17 +883,71 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ![Example of quick filters](../_assets/table_quick_filter.png)
 
+### Controlled quick filters
+
+Use the `quick_filters` prop to control the filters from your own state. The table always shows the filters in `quick_filters`; changes the user makes are passed to `on_quick_filters_change` and are only applied once you update `quick_filters`. The callback is invoked with the complete filter state the user proposed, as a dictionary of column name to filter expression. Columns the user cleared are omitted from the dictionary.
+
+In this example, the complete filter dictionary is kept in state so that filters the user adds to other columns are preserved. A `picker` drives the `Sym` filter, and its selection is derived from the filter state so it stays in sync when the user edits the filter bar directly.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+
+@ui.component
+def ui_filtered_table(table):
+    filters, set_filters = ui.use_state({"Sym": "CAT"})
+    syms = ui.use_memo(lambda: table.select_distinct("Sym"), [table])
+
+    return ui.flex(
+        ui.picker(
+            syms,
+            label="Sym filter",
+            selected_key=filters.get("Sym"),
+            on_change=lambda sym: set_filters({**filters, "Sym": sym}),
+        ),
+        ui.table(
+            table,
+            show_quick_filters=True,
+            quick_filters=filters,
+            on_quick_filters_change=set_filters,
+        ),
+        direction="column",
+    )
+
+
+t = ui_filtered_table(_stocks)
+```
+
+Set `is_quick_filters_read_only` to prevent the user from changing the quick filters. Applied filters are still visible, but the filter bar is not editable and filter actions are disabled. This is useful alongside `quick_filters` to make it clear that the filters are controlled by the server.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+t = ui.table(
+    _stocks,
+    show_quick_filters=True,
+    quick_filters={"Sym": "CAT"},
+    is_quick_filters_read_only=True,
+)
+```
+
 ## Sort
 
-You can set the initial sort state of a `ui.table` with the `sorts` prop. This controls table UI state (similar to `quick_filters` and `reverse`) without changing the underlying table definition.
+You can set the initial sort state of a `ui.table` with the `default_sorts` prop. Use `sorts` instead for [controlled sorts](#controlled-sorts). These props control table UI state without changing the underlying table definition.
 
-The `sorts` prop accepts:
+The `default_sorts` and `sorts` props accept:
 
 - A single column name string (ascending sort)
 - A `ui.TableSort` object
 - A list mixing column names and `ui.TableSort` objects
 
-When you pass `sorts`, those values seed the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload.
+`default_sorts` seeds the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload. In either case, `on_sorts_change` is called with the complete ordered sort state whenever the user changes the sorts.
 
 ```python order=data,t_mixed_sort_list,t_string_sort
 from deephaven import ui, new_table
@@ -909,7 +963,7 @@ data = new_table(
 
 t_mixed_sort_list = ui.table(
     data,
-    sorts=[
+    default_sorts=[
         "Category",
         ui.TableSort(column="Name", direction="DESC"),
         ui.TableSort(column="SepalLength", direction="ASC", is_abs=True),
@@ -918,7 +972,7 @@ t_mixed_sort_list = ui.table(
 
 t_string_sort = ui.table(
     data,
-    sorts="Name",
+    default_sorts="Name",
 )
 ```
 
@@ -928,9 +982,49 @@ t_string_sort = ui.table(
 - `direction`: `"ASC"` or `"DESC"`.
 - `is_abs`: If `True`, sort by absolute value.
 
+### Controlled sorts
+
+Use the `sorts` prop to control the sorts from your own state. The table always shows the sorts in `sorts`; changes the user makes are passed to `on_sorts_change` and are only applied once you update `sorts`. The callback is invoked with the complete ordered sort state the user proposed, as a list of dictionaries with `column`, `direction`, and `is_abs` keys.
+
+In this example, the complete sort list is kept in state so that user changes to the direction and absolute-value flag are preserved. A `picker` selects the primary sort column, and its selection is derived from the sort list so it stays in sync when the user sorts from the column header.
+
+```python order=t,_stocks
+from deephaven import ui
+import deephaven.plot.express as dx
+
+_stocks = dx.data.stocks()
+
+
+@ui.component
+def ui_sorted_table(table):
+    sorts, set_sorts = ui.use_state([{"column": "Sym"}])
+    sort_column = sorts[0]["column"] if sorts else None
+
+    return [
+        ui.picker(
+            "Sym",
+            "Exchange",
+            "Price",
+            label="Sort column",
+            selected_key=sort_column,
+            on_change=lambda column: set_sorts([{"column": column}]),
+        ),
+        ui.table(
+            table,
+            sorts=sorts,
+            on_sorts_change=set_sorts,
+        ),
+    ]
+
+
+t = ui_sorted_table(_stocks)
+```
+
+Set `is_sorts_read_only` to prevent the user from changing the sorts. Applied sorts are still visible, but sorting actions are disabled. This is useful alongside `sorts` to make it clear that the sorts are controlled by the server. Note that this does not affect `reverse`.
+
 ## Reverse
 
-The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client. If both `sorts` and `reverse` are set, reverse is applied after sorting.
+The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client. If both sorts and `reverse` are set, reverse is applied after sorting.
 
 ```python
 from deephaven import ui
