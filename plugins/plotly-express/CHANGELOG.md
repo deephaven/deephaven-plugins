@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## plotly-express-v0.22.0 - 2026-11-04
+
+#### Features
+
+- DH-24208: dx high subscription count warning ([#1445](https://github.com/deephaven/deephaven-plugins/pull/1445)) - (e664c17) - jnumainville
+
+- - -
+
+
 ## plotly-express-v0.21.0 - 2026-10-26
 
 #### Features
