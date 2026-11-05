@@ -13,6 +13,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Set,
     Tuple,
     TypeVar,
     Generator,
@@ -363,9 +364,15 @@ class RenderContext:
     Call site of each hook slot, recorded on the first successful render and saved with the state.
     """
 
-    _restored_sites: Dict[StateKey, str]
+    _restored_sites: Dict[StateKey, Optional[str]]
     """
     Saved call sites of imported values that haven't been checked against the current hooks yet.
+    The site is None if the value was saved without one.
+    """
+
+    _unpersisted_keys: Set[StateKey]
+    """
+    State keys whose values should not be exported to the client.
     """
 
     def __init__(self, root: RootRenderContextProtocol):
@@ -393,6 +400,7 @@ class RenderContext:
         self._hook_setters = {}
         self._hook_sites = {}
         self._restored_sites = {}
+        self._unpersisted_keys = set()
 
     def __del__(self):
         logger.debug("Deleting context")
@@ -692,23 +700,40 @@ class RenderContext:
             setter = set_value
         return setter
 
-    def record_hook_site(self, key: StateKey, frame: FrameType | None) -> None:
+    def record_hook_site(
+        self, key: StateKey, frame: FrameType | None, persist: bool = True
+    ) -> None:
         """
-        Record where the hook at `key` was called from, and discard an imported value for `key` if it was saved by
-        a hook called from somewhere else. Only does work until the first successful render.
+        Record where the hook at `key` was called from and whether its value is persisted to the client.
+        Until the first successful render, also discard an imported value for `key` if it was saved by a hook
+        called from somewhere else, or if the hook's value is no longer persisted.
 
         Args:
             key: The state key (hook index) of the hook.
             frame: The frame that called the hook.
+            persist: Whether the value of this hook should be exported to the client.
         """
+        if persist:
+            self._unpersisted_keys.discard(key)
+        else:
+            self._unpersisted_keys.add(key)
+
         if self._hook_count >= 0:
             return
 
         site = _get_hook_site(frame)
         self._hook_sites[key] = site
 
-        restored_site = self._restored_sites.pop(key, None)
-        if restored_site is not None and restored_site != site:
+        if key not in self._restored_sites:
+            return
+
+        restored_site = self._restored_sites.pop(key)
+        if not persist:
+            logger.info(
+                "Discarding restored value for hook %s, it is not persisted", key
+            )
+            self._state.pop(key, None)
+        elif restored_site is not None and restored_site != site:
             logger.info(
                 "Discarding restored value for hook %s, it was saved by a different hook",
                 key,
@@ -828,7 +853,7 @@ class RenderContext:
         # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
         def retained_values(state: ContextState):
             for key, value in state.items():
-                if _should_retain_value(value):
+                if key not in self._unpersisted_keys and _should_retain_value(value):
                     yield key, value.value
 
         if len(state := dict(retained_values(self._state))) > 0:
@@ -874,8 +899,7 @@ class RenderContext:
                 if sites and index not in sites:
                     continue
                 self._state[index] = ValueWithLiveness(value=value, liveness_scope=None)
-                if index in sites:
-                    self._restored_sites[index] = sites[index]
+                self._restored_sites[index] = sites.get(index)
 
         if "children" in state:
             for key, child_state in state["children"].items():
@@ -898,6 +922,7 @@ class RenderContext:
         self._hook_setters.clear()
         self._hook_sites = {}
         self._restored_sites = {}
+        self._unpersisted_keys = set()
         self._cache = None
 
         # Run every cleanup even if one raises, so no removed context keeps its subscriptions alive
