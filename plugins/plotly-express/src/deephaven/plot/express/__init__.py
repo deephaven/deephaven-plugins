@@ -48,7 +48,7 @@ from .plots import (
     line_map,
 )
 
-from .data import data_generators
+from . import data
 
 
 NAME = "deephaven.plot.express.DeephavenFigure"

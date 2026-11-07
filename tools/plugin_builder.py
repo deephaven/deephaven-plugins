@@ -266,8 +266,10 @@ def install_with_all_extras(
         install: The command to use to install the plugins
         wheels: A glob pattern matching the wheels to install
     """
-    for wheel in glob.glob(wheels):
-        run_command([*install, f"{wheel}[all]"])
+    # Install in a single command so dependencies between plugins resolve to the local wheels
+    requirements = [f"{wheel}[all]" for wheel in glob.glob(wheels)]
+    if requirements:
+        run_command([*install, *requirements])
 
 
 def run_install(

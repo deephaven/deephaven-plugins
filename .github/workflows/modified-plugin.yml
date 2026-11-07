@@ -15,6 +15,7 @@ on:
       - 'ui-v*'
       - 'utilities-v*'
       - 'packaging-v*'
+      - 'sample-data-v*'
       - 'theme-pack-v*'
       - 'python-remote-file-source-v*'
       - 'tradingview-lightweight-v*'

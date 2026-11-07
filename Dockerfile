@@ -49,7 +49,8 @@ RUN find ./plugins -maxdepth 1 -mindepth 1 -type d -exec python3 -m build --whee
 FROM ghcr.io/deephaven/server:edge
 COPY --link --from=build /work/ /opt/deephaven/config/plugins/
 # Tagging with all ensures that every optional package is installed
-RUN find /opt/deephaven/config/plugins/plugins/*/dist/*.whl | xargs -I {} pip install {}[all]
+# Install all wheels in one command so dependencies between plugins (e.g. plotly-express on sample-data) resolve locally
+RUN pip install $(for whl in /opt/deephaven/config/plugins/plugins/*/dist/*.whl; do printf '%s[all] ' "$whl"; done)
 
 COPY --link docker/config/deephaven.prop /opt/deephaven/config/deephaven.prop
 
