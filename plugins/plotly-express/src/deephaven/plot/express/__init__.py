@@ -49,6 +49,7 @@ from .plots import (
 )
 
 from . import data
+from .data import data_generators
 
 
 NAME = "deephaven.plot.express.DeephavenFigure"

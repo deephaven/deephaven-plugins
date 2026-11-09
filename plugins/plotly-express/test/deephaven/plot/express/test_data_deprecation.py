@@ -35,6 +35,50 @@ class DataDeprecationTestCase(BaseTestCase):
             from deephaven.plot.express.data.data_generators import SECOND
         self.assertEqual(SECOND, 1_000_000_000)
 
+    def test_top_level_data_generators_alias(self):
+        from deephaven import sample_data
+        from deephaven.plot import express as dx
+        from deephaven.plot.express import data_generators
+
+        self.assertIs(data_generators, dx.data.data_generators)
+        with self.assertWarns(DeprecationWarning):
+            iris = dx.data_generators.iris
+        self.assertIs(iris, sample_data.iris)
+
+    def test_wildcard_imports(self):
+        from deephaven import sample_data
+
+        data_namespace: dict = {}
+        with self.assertWarns(DeprecationWarning):
+            exec("from deephaven.plot.express.data import *", data_namespace)
+        for name in sample_data.__all__:
+            self.assertIs(data_namespace[name], getattr(sample_data, name))
+        self.assertIn("data_generators", data_namespace)
+
+        generators_namespace: dict = {}
+        with self.assertWarns(DeprecationWarning):
+            exec(
+                "from deephaven.plot.express.data.data_generators import *",
+                generators_namespace,
+            )
+        self.assertIs(generators_namespace["stocks"], sample_data.stocks)
+        self.assertEqual(generators_namespace["SECOND"], 1_000_000_000)
+
+    def test_warning_points_to_valid_replacement(self):
+        from deephaven.plot import express as dx
+
+        def message(name: str) -> str:
+            with self.assertWarns(DeprecationWarning) as cm:
+                getattr(dx.data.data_generators, name)
+            return str(cm.warning)
+
+        self.assertIn("Use deephaven.sample_data.stocks", message("stocks"))
+        self.assertIn("Use deephaven.table.Table", message("Table"))
+        self.assertIn("Import pandas directly", message("pd"))
+        second = message("SECOND")
+        self.assertNotIn("deephaven.sample_data.SECOND", second)
+        self.assertIn("no public replacement", second)
+
     def test_module_access_does_not_warn(self):
         from deephaven.plot import express as dx
 

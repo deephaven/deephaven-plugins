@@ -5,9 +5,9 @@ Use :mod:`deephaven.sample_data` instead.
 
 from __future__ import annotations
 
-import importlib
 from typing import TYPE_CHECKING, Any
 
+from . import data_generators
 from ._deprecation import get_deprecated_attr, import_sample_data
 
 if TYPE_CHECKING:
@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 
 def __getattr__(name: str) -> Any:
-    if name == "data_generators":
-        return importlib.import_module(f"{__name__}.data_generators")
+    if name == "__all__":
+        return [*import_sample_data().__all__, "data_generators"]
     if name.startswith("__"):
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     sample_data = import_sample_data()

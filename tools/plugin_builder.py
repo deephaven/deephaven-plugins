@@ -257,17 +257,19 @@ def run_build(
 
 def install_with_all_extras(
     install: list[str],
-    wheels: str,
+    wheels: list[str],
 ) -> None:
     """
     Install all extras for the plugins
 
     Args:
         install: The command to use to install the plugins
-        wheels: A glob pattern matching the wheels to install
+        wheels: Glob patterns matching the wheels to install
     """
     # Install in a single command so dependencies between plugins resolve to the local wheels
-    requirements = [f"{wheel}[all]" for wheel in glob.glob(wheels)]
+    requirements = [
+        f"{wheel}[all]" for pattern in wheels for wheel in glob.glob(pattern)
+    ]
     if requirements:
         run_command([*install, *requirements])
 
@@ -292,13 +294,14 @@ def run_install(
         install += ["--force-reinstall", "--no-deps"]
 
     if plugins:
-        for plugin in plugins:
-            # a plugin would have failed in the build step if it didn't have a setup.cfg
-            click.echo(f"Installing {plugin}")
-            install_with_all_extras(install, f"{plugins_dir}/{plugin}/dist/*")
+        # a plugin would have failed in the build step if it didn't have a setup.cfg
+        click.echo(f"Installing {', '.join(plugins)}")
+        install_with_all_extras(
+            install, [f"{plugins_dir}/{plugin}/dist/*" for plugin in plugins]
+        )
     else:
         click.echo("Installing all plugins")
-        install_with_all_extras(install, f"{plugins_dir}/*/dist/*")
+        install_with_all_extras(install, [f"{plugins_dir}/*/dist/*"])
 
 
 def run_docs(
