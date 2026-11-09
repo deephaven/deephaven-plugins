@@ -12,7 +12,7 @@ import synthwave84StyleContent from './synthwave84-theme.css?inline';
 import tomorrowNightBlueStyleContent from './tomorrow-night-blue-theme.css?inline';
 
 const plugin: ThemePlugin = {
-  name: 'theme-pack', // match the plugin name in the package.json, and the folder name
+  name: 'theme-pack', // match the plugin folder name
   type: 'ThemePlugin',
   themes: [
     {
