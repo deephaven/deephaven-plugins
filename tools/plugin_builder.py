@@ -46,6 +46,12 @@ IGNORE_REGEXES = [
     r".*/plugins/python-remote-file-source/test-node-client/.*",
 ]
 
+# in-repo Python packages that each plugin depends on
+# they are built and installed alongside the plugin so the local versions are used instead of PyPI
+LOCAL_PYTHON_DEPENDENCIES = {
+    "plotly-express": ["sample-data"],
+}
+
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
     """
@@ -158,7 +164,7 @@ def clean_build_dist(plugin: str) -> None:
 
 
 def plugin_names(
-    plugins: tuple[str],
+    plugins: tuple[str, ...],
 ) -> Generator[str, None, None]:
     """
     Generate the plugins to use
@@ -175,6 +181,30 @@ def plugin_names(
     else:
         for plugin in os.listdir(plugins_dir):
             yield plugin
+
+
+def with_local_python_dependencies(plugins: tuple[str, ...]) -> tuple[str, ...]:
+    """
+    Add the in-repo Python dependencies of the selected plugins, ahead of the plugins that need them.
+
+    Args:
+        plugins: The selected plugins. If empty, all plugins are used, so nothing is added.
+
+    Returns:
+        The selected plugins with their in-repo Python dependencies, without duplicates
+    """
+    selected: list[str] = []
+
+    def add(plugin: str) -> None:
+        if plugin in selected:
+            return
+        for dependency in LOCAL_PYTHON_DEPENDENCIES.get(plugin, []):
+            add(dependency)
+        selected.append(plugin)
+
+    for plugin in plugins:
+        add(plugin)
+    return tuple(selected)
 
 
 def execute(command: list[str]) -> int:
@@ -228,7 +258,7 @@ def run_main_command(command: list[str]) -> None:
 
 
 def run_build(
-    plugins: tuple[str],
+    plugins: tuple[str, ...],
     error_on_missing: bool,
 ) -> None:
     """
@@ -275,7 +305,7 @@ def install_with_all_extras(
 
 
 def run_install(
-    plugins: tuple[str],
+    plugins: tuple[str, ...],
     reinstall: bool,
 ) -> None:
     """
@@ -457,13 +487,13 @@ def handle_args(
         return
 
     if build or install or reinstall:
-        run_build(plugins, len(plugins) > 0)
+        run_build(with_local_python_dependencies(plugins), len(plugins) > 0)
 
     if stop_event.is_set():
         return
 
     if install or reinstall:
-        run_install(plugins, reinstall)
+        run_install(with_local_python_dependencies(plugins), reinstall)
 
     if stop_event.is_set():
         return
