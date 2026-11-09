@@ -615,9 +615,11 @@ class table(Element):
             are only applied if `quick_filters` is updated.
         default_sorts: The initial sorts to apply to the table (uncontrolled).
             These are UI-controlled sorts (similar to reverse) rather than
-            engine-transformed table data. Accepts a column name, TableSort, or list
-            containing column names and TableSort instances. User changes are
-            retained and persisted when the table is reloaded.
+            engine-transformed table data. Accepts a column name, TableSort, sort
+            mapping (with `column` and optional `direction` and `is_abs` keys), or
+            list containing any of these. Sort mappings match the shape passed to
+            `on_sorts_change`. User changes are retained and persisted when the
+            table is reloaded.
         sorts: The sorts to apply to the table (controlled). Accepts the same values
             as `default_sorts`. The table always shows these sorts; user changes are
             passed to `on_sorts_change` and are only applied if `sorts` is updated.

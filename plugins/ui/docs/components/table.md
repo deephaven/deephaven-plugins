@@ -945,7 +945,8 @@ The `default_sorts` and `sorts` props accept:
 
 - A single column name string (ascending sort)
 - A `ui.TableSort` object
-- A list mixing column names and `ui.TableSort` objects
+- A dictionary with a required `column` key and optional `direction` (`"ASC"` or `"DESC"`, default `"ASC"`) and `is_abs` (default `False`) keys. This is the same shape passed to `on_sorts_change`, so its result can be passed directly back to `sorts`.
+- A list mixing column names, `ui.TableSort` objects, and dictionaries
 
 `default_sorts` seeds the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload. In either case, `on_sorts_change` is called with the complete ordered sort state whenever the user changes the sorts.
 
