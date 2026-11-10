@@ -885,7 +885,7 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 ### Controlled quick filters
 
-Use the `quick_filters` prop to control the filters from your own state. The table always shows the filters in `quick_filters`; changes the user makes are passed to `on_quick_filters_change` and are only applied once you update `quick_filters`. The callback is invoked with the complete filter state the user proposed, as a dictionary of column name to filter expression. Columns the user cleared are omitted from the dictionary.
+Use the `quick_filters` prop to control the filters from your own state. The table always shows the filters in `quick_filters`. Changes the user makes are passed to `on_quick_filters_change` and are only applied when you update `quick_filters`. The callback is invoked with the complete filter state the user proposed, as a dictionary of column name to filter expression. Columns the user cleared are omitted from the dictionary.
 
 In this example, the complete filter dictionary is kept in state so that filters the user adds to other columns are preserved. A `picker` drives the `Sym` filter, and its selection is derived from the filter state so it stays in sync when the user edits the filter bar directly.
 
@@ -946,7 +946,7 @@ The `default_sorts` and `sorts` props accept:
 - A single column name string (ascending sort)
 - A `ui.TableSort` object
 - A dictionary with a required `column` key and optional `direction` (`"ASC"` or `"DESC"`, default `"ASC"`) and `is_abs` (default `False`) keys. This is the same shape passed to `on_sorts_change`, so its result can be passed directly back to `sorts`.
-- A list mixing column names, `ui.TableSort` objects, and dictionaries
+- A list mixing column names, `ui.TableSort` objects, and dictionaries.
 
 `default_sorts` seeds the initial client sort state. If the user changes the sort, that client state is persisted and restored on reload. In either case, `on_sorts_change` is called with the complete ordered sort state whenever the user changes the sorts.
 
@@ -985,7 +985,7 @@ t_string_sort = ui.table(
 
 ### Controlled sorts
 
-Use the `sorts` prop to control the sorts from your own state. The table always shows the sorts in `sorts`; changes the user makes are passed to `on_sorts_change` and are only applied once you update `sorts`. The callback is invoked with the complete ordered sort state the user proposed, as a list of dictionaries with `column`, `direction`, and `is_abs` keys.
+Use the `sorts` prop to control the sorts from your own state. The table always shows the sorts in `sorts`; changes the user makes are passed to `on_sorts_change` and are applied only when you update `sorts`. The callback is invoked with the complete ordered sort state the user proposed, as a list of dictionaries with `column`, `direction`, and `is_abs` keys.
 
 In this example, the complete sort list is kept in state so that user changes to the direction and absolute-value flag are preserved. A `picker` selects the primary sort column, and its selection is derived from the sort list so it stays in sync when the user sorts from the column header.
 
@@ -1025,7 +1025,7 @@ Set `is_sorts_read_only` to prevent the user from changing the sorts. Applied so
 
 ## Reverse
 
-The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client. If both sorts and `reverse` are set, reverse is applied after sorting.
+The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server in response to a client request. If both sorts and `reverse` are set, reverse is applied after sorting.
 
 ```python
 from deephaven import ui
