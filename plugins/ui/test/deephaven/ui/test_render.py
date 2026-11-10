@@ -555,6 +555,71 @@ class RenderRestoreTestCase(BaseTestCase):
         render_component(restored, load_component(new_source))
         self.assertEqual(values[-1], ("Goodbye", "FOO"))
 
+    def test_unpersisted_state_is_not_exported(self):
+        from deephaven.ui.hooks import use_state
+
+        values: List[Any] = []
+
+        def component():
+            region, _ = use_state("Americas")
+            secret, _ = use_state("hidden", persist=False)
+            values.append((region, secret))
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(0, "Europe")
+        rc.set_state(1, "changed")
+        render_component(rc, component)
+        self.assertEqual(values[-1], ("Europe", "changed"))
+
+        exported = rc.export_state()
+        self.assertEqual(exported["state"], {0: "Europe"})
+        self.assertNotIn(1, exported["sites"])
+
+        render_component(save_and_restore(rc), component)
+        self.assertEqual(values[-1], ("Europe", "hidden"))
+
+    def test_unpersisted_state_discards_previously_saved_value(self):
+        from deephaven.ui.hooks import use_state
+
+        persist = True
+        values: List[Any] = []
+
+        def component():
+            value, _ = use_state("Americas", persist=persist)
+            values.append(value)
+
+        rc = make_render_context()
+        render_component(rc, component)
+        rc.set_state(0, "Europe")
+        saved = json.loads(json.dumps(rc.export_state()))
+        old_format = {"state": saved["state"]}
+
+        persist = False
+        for state in (saved, old_format):
+            restored = make_render_context()
+            restored.import_state(state)
+            render_component(restored, component)
+            self.assertEqual(values[-1], "Americas")
+            self.assertEqual(restored.export_state(), {})
+
+    def test_unpersisted_state_can_become_persisted(self):
+        from deephaven.ui.hooks import use_state
+
+        persist = False
+
+        def component():
+            use_state("Americas", persist=persist)
+
+        rc = make_render_context()
+        render_component(rc, component)
+        self.assertEqual(rc.export_state(), {})
+
+        persist = True
+        rc.mark_dirty()
+        render_component(rc, component)
+        self.assertEqual(rc.export_state()["state"], {0: "Americas"})
+
     def test_is_library_file(self):
         import inspect
         from deephaven.ui._internal.RenderContext import _is_library_file
