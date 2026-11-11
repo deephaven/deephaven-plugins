@@ -1,4 +1,5 @@
 import inspect
+import sys
 import unittest
 
 from deephaven.table import Table
@@ -7,11 +8,16 @@ from deephaven import sample_data
 
 
 class SampleDataTestCase(unittest.TestCase):
-    # Also re-exported by deephaven-plugin-plotly-express as deephaven.plot.express.data
+    # Moved from deephaven-plugin-plotly-express
     PLOTLY_EXPRESS_GENERATORS = [
+        sample_data.iris,
         sample_data.jobs,
         sample_data.marketing,
         sample_data.stocks,
+        sample_data.tips,
+        sample_data.election,
+        sample_data.wind,
+        sample_data.gapminder,
         sample_data.fish_market,
         sample_data.outages,
         sample_data.flights,
@@ -60,11 +66,28 @@ class SampleDataTestCase(unittest.TestCase):
     def test_static_tables_are_deterministic(self):
         from deephaven.pandas import to_pandas
 
-        for generator in [sample_data.jobs, sample_data.stocks, sample_data.ohlc]:
+        for generator in [sample_data.iris, sample_data.stocks, sample_data.ohlc]:
             with self.subTest(generator=generator.__name__):
                 first = to_pandas(generator(ticking=False))
                 second = to_pandas(generator(ticking=False))
                 self.assertTrue(first.equals(second))
+
+    def test_vendored_datasets(self):
+        from deephaven.sample_data._generators import _read_csv
+
+        expected_rows = {
+            "iris": 150,
+            "tips": 244,
+            "election": 58,
+            "wind": 128,
+            "gapminder": 1704,
+        }
+        for name, rows in expected_rows.items():
+            with self.subTest(name=name):
+                self.assertEqual(len(_read_csv(name)), rows)
+
+    def test_does_not_import_plotly(self):
+        self.assertNotIn("plotly", sys.modules)
 
     def test_map_centers(self):
         self.assertEqual(set(sample_data.OUTAGE_CENTER), {"lat", "lon"})

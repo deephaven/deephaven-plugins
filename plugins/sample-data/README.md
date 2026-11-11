@@ -1,6 +1,8 @@
 # Deephaven Sample Data
 
-Deterministic sample datasets for [Deephaven](https://deephaven.io). Each function returns a Deephaven table that ticks by default; pass `ticking=False` for a static table. The datasets only depend on Deephaven itself, so any plugin or script can use them.
+Deterministic sample datasets for [Deephaven](https://deephaven.io). Each function returns a Deephaven table that ticks by default; pass `ticking=False` for a static table. The package only depends on Deephaven and the libraries it already uses, so any plugin or script can use them.
+
+These datasets were previously part of the `deephaven-plugin-plotly-express` package as `deephaven.plot.express.data` and the `deephaven-plugin-tradingview-lightweight` package as `deephaven.plot.tradingview_lightweight.data`, both of which are now deprecated.
 
 ## Installation
 
@@ -13,7 +15,7 @@ pip install deephaven-sample-data
 ```python
 from deephaven import sample_data
 
-stocks = sample_data.stocks()
+iris = sample_data.iris()
 ohlc = sample_data.ohlc(ticking=False)
 ```
 
@@ -21,9 +23,14 @@ ohlc = sample_data.ohlc(ticking=False)
 
 | Function        | Description                                                        |
 | --------------- | ------------------------------------------------------------------ |
+| `iris`          | The classic Iris flower dataset.                                   |
 | `jobs`          | Synthetic job/task timeline data, suitable for timeline charts.    |
 | `marketing`     | Synthetic marketing funnel data, suitable for funnel charts.       |
 | `stocks`        | Synthetic stock trade data across several symbols and exchanges.   |
+| `tips`          | The restaurant Tips dataset.                                       |
+| `election`      | 2013 Montreal mayoral election results by district.                |
+| `wind`          | Wind strength frequencies by direction, suitable for wind roses.   |
+| `gapminder`     | Gapminder country statistics, interpolated to monthly values.      |
 | `fish_market`   | Synthetic fish market data.                                        |
 | `outages`       | Synthetic power outage data with locations, suitable for maps.     |
 | `flights`       | Synthetic flight path data with locations, suitable for maps.      |
@@ -39,11 +46,29 @@ The `OUTAGE_CENTER` and `FLIGHT_CENTER` constants provide map centers for the `o
 
 Setting the environment variable `DEEPHAVEN_PLUGINS_STATIC_DATA=1` forces `ohlc`, `stock_trades`, `volume`, `yields`, `options_chain`, `values` and `large_prices` to be static.
 
-Deephaven Express (`deephaven-plugin-plotly-express`) re-exports `jobs`, `marketing`, `stocks`, `fish_market`, `outages` and `flights` from `deephaven.plot.express.data`, alongside datasets built from plotly's bundled data.
+## Data sources
+
+`iris`, `tips`, `election`, `wind` and `gapminder` are based on public datasets that are vendored in this package, with synthetic ticking rows added. See [NOTICE](./NOTICE) for their sources and licenses. The other datasets are generated.
+
+## Migrating from `deephaven.plot.express.data`
+
+Replace `dx.data.<dataset>()` with `sample_data.<dataset>()`:
+
+```python
+# Before (deprecated)
+from deephaven.plot import express as dx
+
+iris = dx.data.iris()
+
+# After
+from deephaven import sample_data
+
+iris = sample_data.iris()
+```
 
 ## Migrating from `deephaven.plot.tradingview_lightweight.data`
 
-The TradingView Lightweight example tables have moved here, and `deephaven.plot.tradingview_lightweight.data` is deprecated. Replace `tvl.data.<dataset>()` with `sample_data.<dataset>()`. `tvl.data.stocks()` is now `sample_data.stock_trades()`, since `sample_data.stocks()` is the Deephaven Express dataset.
+Replace `tvl.data.<dataset>()` with `sample_data.<dataset>()`. `tvl.data.stocks()` is now `sample_data.stock_trades()`, since `sample_data.stocks()` is the Deephaven Express dataset.
 
 ```python
 # Before (deprecated)

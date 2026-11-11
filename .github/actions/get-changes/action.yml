@@ -16,7 +16,7 @@ runs:
         filters: |
           plotly-express:
             - plugins/plotly-express/**
-            # plotly-express re-exports sample-data and tests against the local copy
+            # plotly-express re-exports sample-data (deprecated) and tests against the local copy
             - plugins/sample-data/**
             - .github/workflows/test-*.yml
             - sphinx_ext/*

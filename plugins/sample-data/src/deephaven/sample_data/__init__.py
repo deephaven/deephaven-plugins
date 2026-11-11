@@ -1,17 +1,22 @@
 """
 Deterministic, optionally ticking sample datasets for Deephaven.
-The datasets only depend on Deephaven itself.
+Datasets based on public data are vendored in this package; see NOTICE for their sources.
 
 Each function returns a :class:`deephaven.table.Table`. Tables are ticking by
 default; pass ``ticking=False`` to get a static table.
 """
 
-# The deprecated deephaven.plot.tradingview_lightweight.data shim imports the private
-# _tradingview module directly; do not rename it.
+# The deprecated deephaven.plot.express.data and deephaven.plot.tradingview_lightweight.data
+# shims import the private _generators and _tradingview modules directly; do not rename them.
 from ._generators import (
+    iris,
     jobs,
     marketing,
     stocks,
+    tips,
+    election,
+    wind,
+    gapminder,
     fish_market,
     outages,
     flights,
@@ -29,9 +34,14 @@ from ._tradingview import (
 )
 
 __all__ = [
+    "iris",
     "jobs",
     "marketing",
     "stocks",
+    "tips",
+    "election",
+    "wind",
+    "gapminder",
     "fish_market",
     "outages",
     "flights",
