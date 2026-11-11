@@ -50,6 +50,7 @@ IGNORE_REGEXES = [
 # they are built and installed alongside the plugin so the local versions are used instead of PyPI
 LOCAL_PYTHON_DEPENDENCIES = {
     "plotly-express": ["sample-data"],
+    "tradingview-lightweight": ["sample-data"],
 }
 
 

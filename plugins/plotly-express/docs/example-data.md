@@ -2,115 +2,112 @@
 
 The Deephaven Express package includes several built-in, deterministically generated ticking datasets for testing and experimentation. These datasets initialize with a default number of rows and are designed to demonstrate a range of plot types and pivot table use cases.
 
-These datasets are provided by the `deephaven-sample-data` package, which is installed as a dependency of Deephaven Express. Import them from `deephaven.sample_data`.
-
-> [!WARNING]
-> Accessing the datasets through `dx.data` (`deephaven.plot.express.data`) is deprecated and will be removed in a future release. Replace `dx.data.<dataset>()` with `sample_data.<dataset>()`.
+The `jobs`, `marketing`, `stocks`, `fish_market`, `outages`, and `flights` datasets come from the `deephaven-sample-data` package, which is installed with Deephaven Express. They are also available from `deephaven.sample_data` for use without Deephaven Express.
 
 ### `iris` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-iris = sample_data.iris()
+iris = dx.data.iris()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.iris
+.. dhautofunction:: deephaven.plot.express.data.iris
 ```
 
 ### `marketing` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-marketing = sample_data.marketing()
+marketing = dx.data.marketing()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.marketing
+.. dhautofunction:: deephaven.plot.express.data.marketing
 ```
 
 ### `jobs` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-jobs = sample_data.jobs()
+jobs = dx.data.jobs()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.jobs
+.. dhautofunction:: deephaven.plot.express.data.jobs
 ```
 
 ### `stocks` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-stocks = sample_data.stocks()
+stocks = dx.data.stocks()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.stocks
+.. dhautofunction:: deephaven.plot.express.data.stocks
 ```
 
 ### `tips` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-tips = sample_data.tips()
+tips = dx.data.tips()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.tips
+.. dhautofunction:: deephaven.plot.express.data.tips
 ```
 
 ### `election` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-election = sample_data.election()
+election = dx.data.election()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.election
+.. dhautofunction:: deephaven.plot.express.data.election
 ```
 
 ### `wind` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-wind = sample_data.wind()
+wind = dx.data.wind()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.wind
+.. dhautofunction:: deephaven.plot.express.data.wind
 ```
 
 ### `gapminder` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-gapminder = sample_data.gapminder()
+gapminder = dx.data.gapminder()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.gapminder
+.. dhautofunction:: deephaven.plot.express.data.gapminder
 ```
 
 ### `fish_market` dataset
 
 ```python
-from deephaven import sample_data
+from deephaven.plot import express as dx
 
-fish_market = sample_data.fish_market()
+fish_market = dx.data.fish_market()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.sample_data.fish_market
+.. dhautofunction:: deephaven.plot.express.data.fish_market
 ```

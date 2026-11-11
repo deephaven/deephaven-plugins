@@ -48,7 +48,6 @@ from .plots import (
     line_map,
 )
 
-from . import data
 from .data import data_generators
 
 

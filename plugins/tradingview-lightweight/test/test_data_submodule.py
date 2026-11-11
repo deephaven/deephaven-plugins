@@ -1,17 +1,16 @@
-"""Smoke tests for the ``tvl.data`` example-data submodule.
+"""Tests for the deprecated ``tvl.data`` submodule.
 
-These tests only check that the public API surface is present and well-formed
-(callable, documented, correct signature). They do NOT invoke the functions —
-that requires a live Deephaven server, since the underlying Java backend
-must be running to build tables via ``empty_table``/``new_table``.
+The example datasets moved to ``deephaven.sample_data`` (the
+``deephaven-sample-data`` package); ``tvl.data`` forwards to it with a
+``DeprecationWarning``. The datasets themselves are tested in that package.
 """
 
 from __future__ import annotations
 
-import inspect
 import os
 import sys
 import unittest
+import warnings
 from unittest.mock import MagicMock
 
 # Wire up src/ on the path and mock the plugin host modules so the package
@@ -25,60 +24,66 @@ sys.modules.setdefault("deephaven.plugin.utilities", MagicMock())
 from deephaven.plot.tradingview_lightweight import data  # noqa: E402
 
 
-EXPECTED_FUNCTIONS = [
-    "ohlc",
-    "stocks",
-    "volume",
-    "yields",
-    "options_chain",
-    "values",
-    "large_prices",
-]
+# Legacy tvl.data names mapped to their deephaven.sample_data replacements
+RENAMED = {
+    "ohlc": "ohlc",
+    "stocks": "stock_trades",
+    "volume": "volume",
+    "yields": "yields",
+    "options_chain": "options_chain",
+    "values": "values",
+    "large_prices": "large_prices",
+}
 
 
 class TestDataSubmodule(unittest.TestCase):
-    def test_all_exports_expected_names(self) -> None:
-        self.assertEqual(sorted(data.__all__), sorted(EXPECTED_FUNCTIONS))
+    def test_all_exports_legacy_names(self) -> None:
+        self.assertEqual(sorted(data.__all__), sorted(RENAMED))
 
-    def test_each_function_exists_and_is_callable(self) -> None:
-        for name in EXPECTED_FUNCTIONS:
-            with self.subTest(function=name):
-                self.assertTrue(
-                    hasattr(data, name),
-                    f"data submodule is missing {name!r}",
-                )
-                fn = getattr(data, name)
-                self.assertTrue(callable(fn), f"{name!r} is not callable")
+    def test_forwards_to_sample_data_with_warning(self) -> None:
+        from deephaven import sample_data
 
-    def test_each_function_has_ticking_signature(self) -> None:
-        for name in EXPECTED_FUNCTIONS:
-            with self.subTest(function=name):
-                sig = inspect.signature(getattr(data, name))
-                params = list(sig.parameters.values())
-                self.assertEqual(
-                    [p.name for p in params],
-                    ["ticking"],
-                    f"{name!r} should take a single 'ticking' argument",
-                )
-                self.assertIs(
-                    params[0].default,
-                    True,
-                    f"{name!r} ticking default should be True",
-                )
+        for name, new_name in RENAMED.items():
+            with self.subTest(name=name):
+                with self.assertWarns(DeprecationWarning) as cm:
+                    value = getattr(data, name)
+                self.assertIs(value, getattr(sample_data, new_name))
+                self.assertIn(f"Use deephaven.sample_data.{new_name}", str(cm.warning))
 
-    def test_each_function_has_non_empty_docstring(self) -> None:
-        for name in EXPECTED_FUNCTIONS:
-            with self.subTest(function=name):
-                doc = inspect.getdoc(getattr(data, name))
-                self.assertIsNotNone(doc, f"{name!r} has no docstring")
-                assert doc is not None  # for type-checkers
-                self.assertGreater(len(doc.strip()), 0, f"{name!r} has empty docstring")
-                # Google-style docstrings should describe the schema.
-                self.assertIn(
-                    "Returns:",
-                    doc,
-                    f"{name!r} docstring is missing a 'Returns:' block",
-                )
+    def test_from_import_warns(self) -> None:
+        from deephaven import sample_data
+
+        with self.assertWarns(DeprecationWarning):
+            from deephaven.plot.tradingview_lightweight.data import stocks
+        self.assertIs(stocks, sample_data.stock_trades)
+
+    def test_wildcard_import(self) -> None:
+        from deephaven import sample_data
+
+        namespace: dict = {}
+        with self.assertWarns(DeprecationWarning):
+            exec("from deephaven.plot.tradingview_lightweight.data import *", namespace)
+        for name, new_name in RENAMED.items():
+            self.assertIs(namespace[name], getattr(sample_data, new_name))
+
+    def test_other_names_forward_to_source_module(self) -> None:
+        with self.assertWarns(DeprecationWarning) as cm:
+            second = data.SECOND
+        self.assertEqual(second, 1_000_000_000)
+        self.assertIn("no public replacement", str(cm.warning))
+
+        with self.assertWarns(DeprecationWarning) as cm:
+            data.Table
+        self.assertIn("Use deephaven.table.Table", str(cm.warning))
+
+    def test_module_access_does_not_warn(self) -> None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            self.assertIn("stocks", dir(data))
+
+    def test_unknown_attribute_raises(self) -> None:
+        with self.assertRaises(AttributeError):
+            data.not_a_dataset
 
 
 if __name__ == "__main__":

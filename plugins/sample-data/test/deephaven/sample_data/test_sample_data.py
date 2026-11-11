@@ -1,3 +1,4 @@
+import inspect
 import unittest
 
 from deephaven.table import Table
@@ -6,19 +7,40 @@ from deephaven import sample_data
 
 
 class SampleDataTestCase(unittest.TestCase):
-    GENERATORS = [
-        sample_data.iris,
+    # Also re-exported by deephaven-plugin-plotly-express as deephaven.plot.express.data
+    PLOTLY_EXPRESS_GENERATORS = [
         sample_data.jobs,
         sample_data.marketing,
         sample_data.stocks,
-        sample_data.tips,
-        sample_data.election,
-        sample_data.wind,
-        sample_data.gapminder,
         sample_data.fish_market,
         sample_data.outages,
         sample_data.flights,
     ]
+    # Moved from deephaven-plugin-tradingview-lightweight
+    TRADINGVIEW_GENERATORS = [
+        sample_data.ohlc,
+        sample_data.stock_trades,
+        sample_data.volume,
+        sample_data.yields,
+        sample_data.options_chain,
+        sample_data.values,
+        sample_data.large_prices,
+    ]
+    GENERATORS = PLOTLY_EXPRESS_GENERATORS + TRADINGVIEW_GENERATORS
+
+    def test_all_exports_generators(self):
+        exported = [getattr(sample_data, name) for name in sample_data.__all__]
+        for generator in self.GENERATORS:
+            with self.subTest(generator=generator.__name__):
+                self.assertIn(generator, exported)
+
+    def test_tradingview_signature_and_docstring(self):
+        for generator in self.TRADINGVIEW_GENERATORS:
+            with self.subTest(generator=generator.__name__):
+                params = list(inspect.signature(generator).parameters.values())
+                self.assertEqual([p.name for p in params], ["ticking"])
+                self.assertIs(params[0].default, True)
+                self.assertIn("Returns:", inspect.getdoc(generator) or "")
 
     def test_static_tables(self):
         for generator in self.GENERATORS:
@@ -38,7 +60,7 @@ class SampleDataTestCase(unittest.TestCase):
     def test_static_tables_are_deterministic(self):
         from deephaven.pandas import to_pandas
 
-        for generator in [sample_data.iris, sample_data.stocks]:
+        for generator in [sample_data.jobs, sample_data.stocks, sample_data.ohlc]:
             with self.subTest(generator=generator.__name__):
                 first = to_pandas(generator(ticking=False))
                 second = to_pandas(generator(ticking=False))
