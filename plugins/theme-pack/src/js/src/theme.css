@@ -5,7 +5,7 @@
   GRAY 50, 75, 100, 200, 300, 400, 500, 600, 700, 800, 900
 
   RED, ORANGE, YELLOW, CHARTREUSE, CELERY, GREEN, SEAFOAM,
-  CYAN, BLUE, INDIGO, PURPLE, FUCHSIA AND MAGENTA
+  CYAN, BLUE, INDIGO, PURPLE, FUSCIA AND MAGENTA
   100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400
 
   Use any srgb color space value (hex, rgb, hsl, etc) to define a color.
@@ -123,7 +123,7 @@
   --dh-color-grid-row-1-bg: var(--dh-color-gray-100);
   --dh-color-grid-date: var(--dh-color-black);
 
-  /* Chart colorway is special in that it contains a space separated 
+  /* Chart colorway is special in that it contains a space seperated 
   list of colors to assign in order for each series in a chart. 
   Consider including at least 10 colors. */
   --dh-color-chart-colorway: var(--dh-color-accent-bg)
@@ -136,7 +136,7 @@
 
 /*
 ============ CUSTOM CLASS OVERRIDES ===========
-Example of overriding specific class color variables for one off customizations.
+Exampe of overriding specific class color variables for one off customizations.
 Use sparingly as these are not guaranteed to be stable across releases.
 */
 
