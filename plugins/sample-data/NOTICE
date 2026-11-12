@@ -1,0 +1,80 @@
+Deephaven Sample Data
+Copyright (c) 2016-2026 Deephaven Data Labs and Patent Pending
+
+This product includes datasets from third parties, vendored in
+src/deephaven/sample_data/_data. The CSV files were exported unmodified from the
+copies bundled with the plotly Python package (https://github.com/plotly/plotly.py),
+version 6.9.0, which is licensed under the MIT License reproduced at the end of this
+file. The original sources and licenses of each dataset are listed below. The
+functions in deephaven.sample_data rename columns and add synthetic ticking rows.
+
+--------------------------------------------------------------------------------
+iris.csv
+
+Source: UCI Machine Learning Repository, "Iris" dataset
+(https://archive.ics.uci.edu/dataset/53/iris), donated 1988.
+Original measurements: Fisher, R.A. (1936), "The use of multiple measurements in
+taxonomic problems", Annals of Eugenics, 7(2), 179-188.
+Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+
+--------------------------------------------------------------------------------
+tips.csv
+
+Source: Bryant, P. G. and Smith, M. (1995), Practical Data Analysis: Case Studies
+in Business Statistics, Richard D. Irwin Publishing.
+Redistributed via the reshape2 R package (Hadley Wickham, MIT License) and Rdatasets
+(https://vincentarelbundock.github.io/Rdatasets/doc/reshape2/tips.html).
+The original authors publish no explicit data license; this dataset is included
+based on its long-standing open redistribution by reshape2, seaborn-data, Rdatasets
+and plotly.
+
+--------------------------------------------------------------------------------
+election.csv
+
+Source: Ville de Montréal, "Résultats des élections municipales générales de 2013"
+(https://donnees.montreal.ca), aggregated by district.
+© Ville de Montréal. Licensed under CC BY 4.0
+(https://creativecommons.org/licenses/by/4.0/).
+
+--------------------------------------------------------------------------------
+wind.csv
+
+Source: Plotly Technologies Inc., plotly/datasets repository
+(https://github.com/plotly/datasets/blob/master/wind_rose.csv), used in Plotly's
+wind rose chart documentation example.
+Copyright (c) 2016-2024 Plotly Technologies Inc. Licensed under the MIT License
+reproduced below.
+
+--------------------------------------------------------------------------------
+gapminder.csv
+
+Source: Gapminder.org (https://www.gapminder.org/data/), excerpted via the
+gapminder R package by Jennifer Bryan (https://github.com/jennybc/gapminder),
+License: CC0.
+Based on free material from GAPMINDER.ORG, CC-BY LICENSE
+(https://creativecommons.org/licenses/by/4.0/).
+
+--------------------------------------------------------------------------------
+plotly MIT License
+
+MIT License
+
+Copyright (c) 2016-2024 Plotly Technologies Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

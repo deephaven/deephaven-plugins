@@ -56,4 +56,5 @@ python tools/plugin_builder.py --install --server ui
 - Assumes Python `.venv` is already sourced (`source .venv/bin/activate`)
 - Use `--reinstall` during development when version hasn't changed
 - Running with no flags defaults to `--js --install` for all plugins
+- Selected plugins also build and install their in-repo Python dependencies (`LOCAL_PYTHON_DEPENDENCIES` in `plugin_builder.py`), e.g. `plotly-express` includes `sample-data`
 - First run may take longer to install dependencies

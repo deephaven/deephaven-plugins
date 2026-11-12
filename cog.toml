@@ -85,6 +85,7 @@ pivot-builder = { path = "plugins/pivot-builder", public_api=false }
 plotly = { path = "plugins/plotly", public_api=false }
 plotly-express = { path = "plugins/plotly-express", public_api=false }
 python-remote-file-source = { path = "plugins/python-remote-file-source", public_api=false }
+sample-data = { path = "plugins/sample-data", public_api=false }
 table-example = { path = "plugins/table-example", public_api=false }
 theme-pack = { path = "plugins/theme-pack", public_api=false }
 tradingview-lightweight = { path = "plugins/tradingview-lightweight", public_api=false }

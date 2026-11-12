@@ -16,6 +16,8 @@ runs:
         filters: |
           plotly-express:
             - plugins/plotly-express/**
+            # plotly-express re-exports sample-data (deprecated) and tests against the local copy
+            - plugins/sample-data/**
             - .github/workflows/test-*.yml
             - sphinx_ext/*
           matplotlib:
@@ -30,6 +32,9 @@ runs:
             - .github/workflows/test-*.yml
           packaging:
             - plugins/packaging/**
+            - .github/workflows/test-*.yml
+          sample-data:
+            - plugins/sample-data/**
             - .github/workflows/test-*.yml
           ag-grid:
             - plugins/ag-grid/**
@@ -57,5 +62,7 @@ runs:
             - .github/workflows/test-*.yml
           tradingview-lightweight:
             - plugins/tradingview-lightweight/**
+            # tradingview-lightweight re-exports sample-data (deprecated) and tests against the local copy
+            - plugins/sample-data/**
             - .github/workflows/test-*.yml
             - sphinx_ext/*

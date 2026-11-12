@@ -52,6 +52,10 @@ jobs:
       - name: Install requirements
         run: pip install -r sphinx_ext/sphinx-requirements.txt
 
+      # Install in-repo Python dependencies first so unreleased versions resolve locally instead of from PyPI
+      - name: Install local dependencies
+        run: pip install plugins/sample-data
+
       - name: Install wheel
         run: pip install plugins/${{ inputs.package }}/dist/*.whl
 

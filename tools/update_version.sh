@@ -113,7 +113,7 @@ function update_file() {
 extra=
 [ "$dev" = true ] && extra=".dev0"
 case "$package" in
-        ag-grid | matplotlib | pivot | plotly | plotly-express | python-remote-file-source | theme-pack | tradingview-lightweight | ui | utilities | packaging)
+        ag-grid | matplotlib | pivot | plotly | plotly-express | python-remote-file-source | sample-data | theme-pack | tradingview-lightweight | ui | utilities | packaging)
             update_file "${package}/setup.cfg" 'version = ' '' "$extra"
             ;;
         auth-keycloak | pivot-builder | table-example)
@@ -134,7 +134,7 @@ if [ "$dev" != true ]; then
             # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
             npm version "$npm_version" --workspace=src/js
             ;;
-        packaging | utilities)
+        packaging | sample-data | utilities)
             # Packages that don't have any JS to publish, just ignore
             ;;
         *)

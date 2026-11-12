@@ -2,8 +2,9 @@
 
 Creating (not starting) a Server instance initializes the JVM. Importing
 anything from the `deephaven` namespace checks that the JVM is ready, and
-this package imports `deephaven` core at import time (e.g. the `data`
-submodule). Skipped when deephaven-server is unavailable (pure-mock runs).
+the deprecated `data` submodule forwards to `deephaven.sample_data`, which
+imports `deephaven` core. Skipped when deephaven-server is unavailable
+(pure-mock runs).
 """
 
 try:
