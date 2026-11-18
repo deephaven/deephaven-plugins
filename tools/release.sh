@@ -22,7 +22,7 @@ function log_info() {
     { echo "$log_prefix $(date "+%Y-%m-%d %H:%M:%S")$tab |--- $*" ; } 2>/dev/null
 } 2>/dev/null
 
-if ! which cog >/dev/null; then
+if ! command -v cog >/dev/null; then
     {
     log_error "cog command not found!"
     log_error "Installation instructions are here: https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation"
@@ -30,6 +30,13 @@ if ! which cog >/dev/null; then
     log_error "Note that cog must be on your PATH. An alias will not work."
     } 2>/dev/null
     exit 99
+fi
+if ! command -v gh >/dev/null; then
+    {
+    log_error "gh command not found!"
+    log_error "Installation instructions are here: https://github.com/cli/cli?tab=readme-ov-file#installation"
+    } 2>/dev/null
+    exit 98
 fi
 
 all_plugins="$(cd "$ROOT_DIR/plugins" ; find . -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
@@ -40,25 +47,15 @@ function usage() {
     log_info ""
     log_info "--help | -h $tab-> Prints this help message"
     log_info "--debug | -d $tab-> Turn on xtrace debugging"
-    log_info "--remote | -r $tab-> Specify the git remote to push to (default: origin)"
+    log_info "--remote | -r $tab-> Specify the git remote to push to (default: the remote for gh's default repo)"
     log_info "<plugin name> $tab-> Runs the version bump + release for a given plugin"
     log_info "Valid <plugin name> choices are:
 $all_plugins"
 } 2> /dev/null
 
-if [ -n "$(git status --short)" ]; then
-    {
-        log_error "Detected uncommitted files via git status:"
-        git status --short
-        log_error "Releases can only be performed with a clean git status"
-        log_error 'You must commit/stash your changes, or `git reset --hard` to erase them'
-        exit 95
-    } 2>/dev/null
-fi
-
 # Collect arguments
 package=
-remote="origin"
+remote=
 while (( $# > 0 )); do
     case "$1" in
         --debug | -d)
@@ -81,7 +78,7 @@ while (( $# > 0 )); do
                 } 2>/dev/null
                 exit 94
             fi
-            if grep -qE "^$1\$" <<< "$all_plugins"; then
+            if grep -qxF -- "$1" <<< "$all_plugins"; then
                 package="$1"
             else
                 {
@@ -105,7 +102,7 @@ $all_plugins"
     exit 92
 fi
 
-if ! grep -q "plugins/$package" "$ROOT_DIR/cog.toml"; then
+if ! grep -qF "\"plugins/$package\"" "$ROOT_DIR/cog.toml"; then
     {
     log_error "Did not see plugins/$package in cog.toml"
     log_error "Make sure to list your plugins under the [plugins] section of cog.toml"
@@ -113,14 +110,48 @@ if ! grep -q "plugins/$package" "$ROOT_DIR/cog.toml"; then
     exit 91
 fi
 
-# Validate remote exists
-if ! git remote get-url "$remote" >/dev/null 2>&1; then
+# Tags and main are pushed to $remote, but `gh release create` targets gh's default repo, so they must match
+if ! gh_repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null | tr '[:upper:]' '[:lower:]')" || [ -z "$gh_repo" ]; then
+    {
+    log_error "Could not determine the GitHub repo that gh creates releases in"
+    log_error "Set it with: gh repo set-default"
+    } 2>/dev/null
+    exit 89
+fi
+
+function remote_repo() {
+    git remote get-url "$1" | sed -E 's#^(https://|ssh://)?([^@/]+@)?github\.com[:/]##; s#\.git$##; s#/$##' | tr '[:upper:]' '[:lower:]'
+}
+
+if [ -z "$remote" ]; then
+    for candidate in $(git remote); do
+        if [ "$(remote_repo "$candidate")" = "$gh_repo" ]; then
+            remote="$candidate"
+            break
+        fi
+    done
+    if [ -z "$remote" ]; then
+        {
+        log_error "No git remote points to '$gh_repo', the repo gh creates releases in"
+        log_error "Add one with: git remote add upstream git@github.com:$gh_repo.git"
+        log_error "Available remotes:"
+        git remote -v
+        } 2>/dev/null
+        exit 89
+    fi
+elif ! git remote get-url "$remote" >/dev/null 2>&1; then
     {
     log_error "Git remote '$remote' does not exist"
     log_error "Available remotes:"
     git remote -v
     } 2>/dev/null
     exit 90
+elif remote_target="$(remote_repo "$remote")" && [ "$remote_target" != "$gh_repo" ]; then
+    {
+    log_error "Git remote '$remote' points to '$remote_target', but gh creates releases in '$gh_repo'"
+    log_error "Omit --remote to use the remote for '$gh_repo', or change gh's default with: gh repo set-default"
+    } 2>/dev/null
+    exit 89
 fi
 
 if [ -n "$(git status --short)" ]; then
@@ -133,8 +164,38 @@ if [ -n "$(git status --short)" ]; then
     } 2>/dev/null
 fi
 
+# cog commits and tags HEAD, but the bump hooks push `main`, so HEAD must be main and match the remote exactly
+if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
+    {
+    log_error "Releases must be run from the main branch, but you are on '$(git rev-parse --abbrev-ref HEAD)'"
+    log_error "Run: git checkout main"
+    } 2>/dev/null
+    exit 88
+fi
+
+{ log_info "Fetching $remote/main" ; } 2>/dev/null
+git fetch --quiet "$remote" main
+if [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]; then
+    {
+    if git merge-base --is-ancestor HEAD FETCH_HEAD; then
+        log_error "Local main is behind $remote/main"
+        log_error "Run: git pull --ff-only $remote main"
+    else
+        log_error "Local main has commits that are not on $remote/main:"
+        git --no-pager log --oneline FETCH_HEAD..HEAD
+        log_error "Releases must be cut from $remote/main. Run: git reset --hard $remote/main"
+    fi
+    } 2>/dev/null
+    exit 87
+fi
+
 # Perform release
-{ log_info "Releasing package '$package' using remote '$remote'" ; } 2>/dev/null
+{
+log_info "Releasing package '$package'"
+log_info "  Commit:  $(git --no-pager log -1 --format='%h %s')"
+log_info "  Push to: $remote ($(git remote get-url "$remote"))"
+log_info "  Release: https://github.com/$gh_repo/releases"
+} 2>/dev/null
 (
 cd "$ROOT_DIR"
 RELEASE_REMOTE="$remote" cog bump --package "$package" --auto
