@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.44.0 - 2026-11-18
+
+#### Breaking Changes
+
+- DH-22976: ui.table event handlers and read-only for filters/sorts ([#1408](https://github.com/deephaven/deephaven-plugins/pull/1408)) - (c43b75a) - mofojed
+
+#### Features
+
+- DH-22976: ui.table event handlers and read-only for filters/sorts ([#1408](https://github.com/deephaven/deephaven-plugins/pull/1408)) - (c43b75a) - mofojed
+
+- - -
+
+
 ## ui-v0.43.2 - 2026-11-04
 
 #### Bug Fixes
