@@ -1,8 +1,11 @@
 # Example data
 
-The Deephaven TradingView Lightweight package includes built-in example tables. Each function returns a fresh `deephaven.table.Table` generated from a fixed seed, so the same call always produces the same rows.
+Deephaven TradingView Lightweight examples use built-in example tables. Each function returns a fresh `deephaven.table.Table` generated from a fixed seed, so the same call always produces the same rows.
 
-Import the module under the `tvl` alias and call any of the functions below.
+These tables are provided by the `deephaven-sample-data` package, which is installed as a dependency of Deephaven TradingView Lightweight. Import them from `deephaven.sample_data` and call any of the functions below.
+
+> [!WARNING]
+> Accessing the tables through `tvl.data` (`deephaven.plot.tradingview_lightweight.data`) is deprecated and will be removed in a future release. Replace `tvl.data.<table>()` with `sample_data.<table>()`, and `tvl.data.stocks()` with `sample_data.stock_trades()`.
 
 ## Ticking and static tables
 
@@ -11,10 +14,10 @@ Every function takes a `ticking` argument, default `True`. A ticking table start
 Pass `ticking=False` to any of them for a static table holding only the seed block.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-live = tvl.data.values()  # 90 seed rows, then one row per second
-snapshot = tvl.data.values(ticking=False)  # the 90 seed rows only
+live = sample_data.values()  # 90 seed rows, then one row per second
+snapshot = sample_data.values(ticking=False)  # the 90 seed rows only
 ```
 
 ## The `Index` column
@@ -22,9 +25,9 @@ snapshot = tvl.data.values(ticking=False)  # the 90 seed rows only
 Each time-series fixture has an `Index` column: a `long` row counter that starts at zero and keeps counting as rows tick in. Read it when a formula needs a row position. The query-language `ii` pseudo-column is not refresh-safe on a ticking table.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-values = tvl.data.values()
+values = sample_data.values()
 weekly = values.where("Index % 7 == 0")
 ```
 
@@ -37,29 +40,29 @@ The `yields` and `options_chain` snapshots are keyed by tenor and strike rather 
 Columns: `Timestamp`, `Open`, `High`, `Low`, `Close`, `Volume`, `Ema`, `Index`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-ohlc = tvl.data.ohlc()
+ohlc = sample_data.ohlc()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.ohlc
+.. dhautofunction:: deephaven.sample_data.ohlc
 ```
 
-## stocks
+## stock_trades
 
 360 trade-style rows across three symbols (`AAA`, `BBB`, `CCC`), 120 each, interleaved round-robin. Every symbol has its own price level and volatility, so a `by="Sym"` chart draws three clearly separate series.
 
 Columns: `Timestamp`, `Sym`, `Price`, `Size`, `Index`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-stocks = tvl.data.stocks()
+stock_trades = sample_data.stock_trades()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.stocks
+.. dhautofunction:: deephaven.sample_data.stock_trades
 ```
 
 ## volume
@@ -69,13 +72,13 @@ stocks = tvl.data.stocks()
 Columns: `Timestamp`, `Volume`, `Index`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-volume = tvl.data.volume()
+volume = sample_data.volume()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.volume
+.. dhautofunction:: deephaven.sample_data.volume
 ```
 
 ## yields
@@ -85,13 +88,13 @@ An 11-point Treasury yield curve: 3M, 6M, 1Y, 2Y, 3Y, 5Y, 7Y, 10Y, 20Y, 30Y, and
 Columns: `Tenor`, `Yield`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-yields = tvl.data.yields()
+yields = sample_data.yields()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.yields
+.. dhautofunction:: deephaven.sample_data.yields
 ```
 
 ## options_chain
@@ -101,13 +104,13 @@ A 21-strike options chain with call and put quotes, stepping by 5 from 50 to 150
 Columns: `Strike`, `CallBid`, `CallAsk`, `PutBid`, `PutAsk`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-options_chain = tvl.data.options_chain()
+options_chain = sample_data.options_chain()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.options_chain
+.. dhautofunction:: deephaven.sample_data.options_chain
 ```
 
 ## values
@@ -117,13 +120,13 @@ options_chain = tvl.data.options_chain()
 Columns: `Timestamp`, `Value`, `Index`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-values = tvl.data.values()
+values = sample_data.values()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.values
+.. dhautofunction:: deephaven.sample_data.values
 ```
 
 ## large_prices
@@ -133,11 +136,11 @@ A 1,000,000-row price series spanning ~10 years, one row every ~315 seconds from
 Columns: `Timestamp`, `Price`, `Index`.
 
 ```python
-import deephaven.plot.tradingview_lightweight as tvl
+from deephaven import sample_data
 
-large_prices = tvl.data.large_prices()
+large_prices = sample_data.large_prices()
 ```
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.plot.tradingview_lightweight.data.large_prices
+.. dhautofunction:: deephaven.sample_data.large_prices
 ```
