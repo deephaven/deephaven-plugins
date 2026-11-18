@@ -14,6 +14,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
 
+# All git and gh checks must inspect the same checkout that cog releases from
+cd "$ROOT_DIR"
+
 function log_error() {
     { echo -e "\033[31m$log_prefix $(date "+%Y-%m-%d %H:%M:%S")$tab |--- [ERROR] $* \033[0m" ; } 2> /dev/null
 } 2>/dev/null
@@ -196,7 +199,4 @@ log_info "  Commit:  $(git --no-pager log -1 --format='%h %s')"
 log_info "  Push to: $remote ($(git remote get-url "$remote"))"
 log_info "  Release: https://github.com/$gh_repo/releases"
 } 2>/dev/null
-(
-cd "$ROOT_DIR"
 RELEASE_REMOTE="$remote" cog bump --package "$package" --auto
-)
