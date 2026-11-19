@@ -847,6 +847,55 @@ class UITableTestCase(BaseTestCase):
         # Only row 1 is null, so a single match means where_in is null-safe.
         self.assertEqual(result.size, 1)
 
+    def test_resolve_keyed_selection_long_key_from_string(self):
+        from deephaven import empty_table
+
+        # 2^53 + 2 cannot be represented exactly as a JS number, so the client
+        # sends long keys as strings.
+        big = 2**53 + 2
+        source = empty_table(3).update(f"Key = {big}L + i")
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [[str(big)]], "inverted": False},
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Key"), [big])
+
+    def test_resolve_keyed_selection_instant_key_from_string(self):
+        from deephaven import empty_table
+
+        epoch_nanos = 1_794_306_601_000_000_001
+        source = empty_table(3).update(f"Key = epochNanosToInstant({epoch_nanos}L + i)")
+
+        result = self._resolve_keyed(
+            {
+                "key_columns": ["Key"],
+                "key_values": [[str(epoch_nanos + 1)]],
+                "inverted": False,
+            },
+            source,
+        )
+
+        self.assertEqual(result.size, 1)
+        self.assertEqual(
+            self._column_values(result.update("Nanos = epochNanos(Key)"), "Nanos"),
+            [epoch_nanos + 1],
+        )
+
+    def test_resolve_keyed_selection_string_key_not_converted(self):
+        from deephaven import empty_table
+
+        # A numeric-looking string in a String column must stay a string.
+        source = empty_table(3).update("Key = `` + (i * 10)")
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [["10"]], "inverted": False},
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Key"), ["10"])
+
     def test_selection_over_max_rows_raises(self):
         from deephaven import empty_table
         from deephaven.ui.components.table import _MAX_SELECTED_ROWS, _resolve_selection

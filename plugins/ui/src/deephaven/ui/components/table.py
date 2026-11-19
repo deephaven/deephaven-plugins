@@ -310,6 +310,27 @@ def _resolve_selection(
     return _snapshot_selection(combined)
 
 
+def _convert_key_value(value: Any, data_type: Any) -> Any:
+    """Convert a key value from the client to a type accepted by the key column.
+
+    The client sends ``long`` and ``Instant`` key values as exact decimal strings,
+    as a JS number cannot hold every 64-bit value. Instants are epoch nanoseconds.
+
+    Args:
+        value: The key value received from the client.
+        data_type: The dtype of the key column in the source table.
+
+    Returns:
+        The value converted to an ``int`` for ``long`` and ``Instant`` columns,
+        otherwise the value unchanged.
+    """
+    from deephaven import dtypes
+
+    if isinstance(value, str) and data_type in (dtypes.long, dtypes.Instant):
+        return int(value)
+    return value
+
+
 def _resolve_keyed_selection(
     selected_keys: dict,
     tbl: Table,
@@ -350,7 +371,9 @@ def _resolve_keyed_selection(
             InputColumn(
                 name=name,
                 data_type=source_types[name],
-                input_data=[row[i] for row in key_values],
+                input_data=[
+                    _convert_key_value(row[i], source_types[name]) for row in key_values
+                ],
             )
             for i, name in enumerate(key_columns)
             if name in source_types
