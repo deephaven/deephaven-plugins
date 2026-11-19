@@ -392,13 +392,11 @@ After completing the above, you should be able to run the release script in the 
 
 Releases should be done weekly on Wednesday, unless there is an urgent need. Check which plugins have changes since the last release, by running the `tools/check_changes.sh` script. In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.
 
-This must be done on the `main` branch and will publish to the remote that points to `gh`'s default repository. You can specify which remote to use with the `--remote` (or `-r`) flag:
+This must be done on the `main` branch and will publish to the remote that points to `gh`'s default repository. You can specify a different remote using the `--remote` (or `-r`) flag; the GitHub release is then created in the repository that remote points to:
 
 ```bash
 tools/release.sh --remote upstream <pluginName>
 ```
-
-This is only needed if several remotes point to that repository.
 
 `tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
 which will invoke the necessary programs and scripts to automate a version bump and GitHub release.

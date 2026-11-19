@@ -35,7 +35,7 @@ post_package_bump_hooks = [
     # push the tag and the commits to main atomically, so the tag (which triggers publishing) is never pushed without main
     "git push --atomic ${RELEASE_REMOTE:-origin} {{package}}-v{{version}} main",
     # cut a github release using our conventional-commit changelog
-    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title {{package}}-v{{version}} --verify-tag"
+    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title {{package}}-v{{version}} --verify-tag ${RELEASE_REPO:+--repo $RELEASE_REPO}"
 ]
 
 [git_hooks]

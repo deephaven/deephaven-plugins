@@ -50,7 +50,7 @@ function usage() {
     log_info ""
     log_info "--help | -h $tab-> Prints this help message"
     log_info "--debug | -d $tab-> Turn on xtrace debugging"
-    log_info "--remote | -r $tab-> Specify the git remote to push to (default: the remote for gh's default repo)"
+    log_info "--remote | -r $tab-> Specify the git remote to push to and release in (default: the remote for gh's default repo)"
     log_info "<plugin name> $tab-> Runs the version bump + release for a given plugin"
     log_info "Valid <plugin name> choices are:
 $all_plugins"
@@ -113,20 +113,19 @@ if ! grep -qF "\"plugins/$package\"" "$ROOT_DIR/cog.toml"; then
     exit 91
 fi
 
-# Tags and main are pushed to $remote, but `gh release create` targets gh's default repo, so they must match
-if ! gh_repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null | tr '[:upper:]' '[:lower:]')" || [ -z "$gh_repo" ]; then
-    {
-    log_error "Could not determine the GitHub repo that gh creates releases in"
-    log_error "Set it with: gh repo set-default"
-    } 2>/dev/null
-    exit 89
-fi
-
 function remote_repo() {
     git remote get-url "$1" | sed -E 's#^(https://|ssh://)?([^@/]+@)?github\.com[:/]##; s#\.git$##; s#/$##' | tr '[:upper:]' '[:lower:]'
 }
 
+# Without --remote, release to gh's default repo through whichever remote points to it
 if [ -z "$remote" ]; then
+    if ! gh_repo="$(gh repo set-default --view 2>/dev/null | tr '[:upper:]' '[:lower:]')" || [ -z "$gh_repo" ]; then
+        {
+        log_error "No --remote given and gh has no default repo to release to"
+        log_error "Set it with: gh repo set-default, or pass --remote"
+        } 2>/dev/null
+        exit 89
+    fi
     for candidate in $(git remote); do
         if [ "$(remote_repo "$candidate")" = "$gh_repo" ]; then
             remote="$candidate"
@@ -149,12 +148,16 @@ elif ! git remote get-url "$remote" >/dev/null 2>&1; then
     git remote -v
     } 2>/dev/null
     exit 90
-elif remote_target="$(remote_repo "$remote")" && [ "$remote_target" != "$gh_repo" ]; then
+fi
+
+# The GitHub release is created in the repo that $remote points to, so the tag, main, and release always land together
+release_repo="$(remote_repo "$remote")"
+if ! [[ "$release_repo" =~ ^[a-z0-9._-]+/[a-z0-9._-]+$ ]]; then
     {
-    log_error "Git remote '$remote' points to '$remote_target', but gh creates releases in '$gh_repo'"
-    log_error "Omit --remote to use the remote for '$gh_repo', or change gh's default with: gh repo set-default"
+    log_error "Could not determine the GitHub repo for remote '$remote' from its URL: $(git remote get-url "$remote")"
+    log_error "The remote must use a github.com URL"
     } 2>/dev/null
-    exit 89
+    exit 86
 fi
 
 if [ -n "$(git status --short)" ]; then
@@ -197,6 +200,6 @@ fi
 log_info "Releasing package '$package'"
 log_info "  Commit:  $(git --no-pager log -1 --format='%h %s')"
 log_info "  Push to: $remote ($(git remote get-url "$remote"))"
-log_info "  Release: https://github.com/$gh_repo/releases"
+log_info "  Release: https://github.com/$release_repo/releases"
 } 2>/dev/null
-RELEASE_REMOTE="$remote" cog bump --package "$package" --auto
+RELEASE_REMOTE="$remote" RELEASE_REPO="$release_repo" cog bump --package "$package" --auto
