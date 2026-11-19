@@ -165,6 +165,7 @@ if ! [[ "$release_repo" =~ ^[a-z0-9._-]+/[a-z0-9._-]+$ ]]; then
     } 2>/dev/null
     exit 86
 fi
+push_url="$(git remote get-url --push "$remote")"
 
 if [ -n "$(git status --short)" ]; then
     {
@@ -185,17 +186,18 @@ if [ "$(git rev-parse --abbrev-ref HEAD)" != "main" ]; then
     exit 88
 fi
 
-{ log_info "Fetching $remote/main" ; } 2>/dev/null
-git fetch --quiet "$remote" main
+# Compare against main at the push URL, since that's what the release fast-forwards; the fetch URL may point elsewhere
+{ log_info "Fetching main from $release_repo" ; } 2>/dev/null
+git fetch --quiet "$push_url" main
 if [ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]; then
     {
     if git merge-base --is-ancestor HEAD FETCH_HEAD; then
-        log_error "Local main is behind $remote/main"
-        log_error "Run: git pull --ff-only $remote main"
+        log_error "Local main is behind main in $release_repo"
+        log_error "Run: git pull --ff-only $push_url main"
     else
-        log_error "Local main has commits that are not on $remote/main:"
+        log_error "Local main has commits that are not on main in $release_repo:"
         git --no-pager log --oneline FETCH_HEAD..HEAD
-        log_error "Releases must be cut from $remote/main. Run: git reset --hard $remote/main"
+        log_error "Releases must be cut from main in $release_repo. Run: git fetch $push_url main && git reset --hard FETCH_HEAD"
     fi
     } 2>/dev/null
     exit 87
@@ -205,7 +207,7 @@ fi
 {
 log_info "Releasing package '$package'"
 log_info "  Commit:  $(git --no-pager log -1 --format='%h %s')"
-log_info "  Push to: $remote ($(git remote get-url --push "$remote"))"
+log_info "  Push to: $remote ($push_url)"
 log_info "  Release: https://github.com/$release_repo/releases"
 } 2>/dev/null
 RELEASE_REMOTE="$remote" RELEASE_REPO="$release_repo" cog bump --package "$package" --auto
