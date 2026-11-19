@@ -113,8 +113,14 @@ if ! grep -qF "\"plugins/$package\"" "$ROOT_DIR/cog.toml"; then
     exit 91
 fi
 
+# Tags and main go to the push URL, which can differ from the fetch URL; a remote with several push URLs has no single repo
 function remote_repo() {
-    git remote get-url "$1" | sed -E 's#^(https://|ssh://)?([^@/]+@)?github\.com[:/]##; s#\.git$##; s#/$##' | tr '[:upper:]' '[:lower:]'
+    local urls
+    urls="$(git remote get-url --push --all "$1")"
+    if [ "$(wc -l <<< "$urls")" -ne 1 ]; then
+        return 0
+    fi
+    sed -E 's#^(https://|ssh://)?([^@/]+@)?github\.com[:/]##; s#\.git$##; s#/$##' <<< "$urls" | tr '[:upper:]' '[:lower:]'
 }
 
 # Without --remote, release to gh's default repo through whichever remote points to it
@@ -154,8 +160,8 @@ fi
 release_repo="$(remote_repo "$remote")"
 if ! [[ "$release_repo" =~ ^[a-z0-9._-]+/[a-z0-9._-]+$ ]]; then
     {
-    log_error "Could not determine the GitHub repo for remote '$remote' from its URL: $(git remote get-url "$remote")"
-    log_error "The remote must use a github.com URL"
+    log_error "Could not determine the GitHub repo for remote '$remote' from its push URL: $(git remote get-url --push --all "$remote" | paste -sd ' ' -)"
+    log_error "The remote must have exactly one github.com push URL"
     } 2>/dev/null
     exit 86
 fi
@@ -199,7 +205,7 @@ fi
 {
 log_info "Releasing package '$package'"
 log_info "  Commit:  $(git --no-pager log -1 --format='%h %s')"
-log_info "  Push to: $remote ($(git remote get-url "$remote"))"
+log_info "  Push to: $remote ($(git remote get-url --push "$remote"))"
 log_info "  Release: https://github.com/$release_repo/releases"
 } 2>/dev/null
 RELEASE_REMOTE="$remote" RELEASE_REPO="$release_repo" cog bump --package "$package" --auto
