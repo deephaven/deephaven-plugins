@@ -4,6 +4,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import {
   augmentPivotBuilderModel,
   isPivotBuilderIrisGridModel,
+  PIVOT_BUILDER_CONFIG_CHANGED,
   PIVOT_BUILDER_STALE_COLUMNS,
   type PivotBuilderConfig,
   type PivotBuilderProxyModel,
@@ -200,7 +201,11 @@ class FakeHostModel {
   }
 }
 
-function makeProxy(columns: DhType.Column[]): {
+function makeProxy(
+  columns: DhType.Column[],
+  getPspWidget: () => Promise<DhType.Widget> = () =>
+    Promise.reject(new Error('no psp'))
+): {
   proxy: PivotBuilderProxyModel;
   host: FakeHostModel;
   original: FakeOriginalModel;
@@ -213,7 +218,7 @@ function makeProxy(columns: DhType.Column[]): {
   const proxy = augmentPivotBuilderModel(
     {} as never,
     host as unknown as IrisGridModel,
-    () => Promise.reject(new Error('no psp'))
+    getPspWidget
   );
   return { proxy, host, original };
 }
@@ -1008,6 +1013,176 @@ describe('applyPivotBuilderConfig — totals sanitization + write ordering', () 
     expect(
       (original.totalsWrites[0] as { operationMap: unknown }).operationMap
     ).toEqual({ price: ['Sum'] });
+  });
+});
+
+describe('schema change re-apply', () => {
+  const columnsChanged = (host: FakeHostModel): void => {
+    host.dispatchEvent({ type: IrisGridModel.EVENT.COLUMNS_CHANGED } as Event);
+  };
+
+  const totalsConfig: PivotBuilderConfig = {
+    pivot: null,
+    rollup: null,
+    totals: makeTotals({ price: ['Sum'], Foo: ['Sum'] }) as never,
+  };
+
+  it('re-sanitizes the same intent when a stale column comes back, without re-persisting', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    const configChanged = jest.fn();
+    proxy.addEventListener(PIVOT_BUILDER_CONFIG_CHANGED, configChanged);
+
+    await proxy.applyPivotBuilderConfig(totalsConfig);
+    expect(original.totalsWrites).toHaveLength(1);
+    expect(
+      (original.totalsConfig as { operationMap: unknown }).operationMap
+    ).toEqual({ price: ['Sum'] });
+    expect(configChanged).toHaveBeenCalledTimes(1);
+
+    original.table.columns.push(col('Foo', DOUBLE));
+    columnsChanged(host);
+
+    expect(original.totalsWrites).toHaveLength(2);
+    expect(
+      (original.totalsConfig as { operationMap: unknown }).operationMap
+    ).toEqual({ price: ['Sum'], Foo: ['Sum'] });
+    expect(configChanged).toHaveBeenCalledTimes(1);
+    expect(proxy.builderConfig).toBe(totalsConfig);
+  });
+
+  it('does not re-apply on COLUMNS_CHANGED when the source schema is unchanged', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig(totalsConfig);
+    original.table.columns.push(col('Foo', DOUBLE));
+    columnsChanged(host);
+    expect(original.totalsWrites).toHaveLength(2);
+    const applied = original.totalsConfig;
+
+    columnsChanged(host);
+
+    expect(original.totalsWrites).toHaveLength(2);
+    expect(original.totalsConfig).toBe(applied);
+  });
+
+  it('does not re-apply while a model swap is in flight', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig(totalsConfig);
+    original.table.columns.push(col('Foo', DOUBLE));
+    host.modelPromise = new Promise(() => {
+      // never settles: simulates an in-flight swap
+    });
+
+    columnsChanged(host);
+
+    expect(original.totalsWrites).toHaveLength(1);
+  });
+
+  it('picks up a change skipped during a swap on the TABLE_CHANGED that ends it', async () => {
+    const { proxy, host, original } = makeProxy([col('price', DOUBLE)]);
+    await proxy.applyPivotBuilderConfig(totalsConfig);
+    original.table.columns.push(col('Foo', DOUBLE));
+    host.modelPromise = new Promise(() => {
+      // in-flight same-columns swap
+    });
+    columnsChanged(host);
+    expect(original.totalsWrites).toHaveLength(1);
+
+    host.modelPromise = null;
+    host.dispatchEvent({ type: IrisGridModel.EVENT.TABLE_CHANGED } as Event);
+
+    expect(
+      (original.totalsConfig as { operationMap: unknown }).operationMap
+    ).toEqual({ price: ['Sum'], Foo: ['Sum'] });
+  });
+
+  describe('pivot restored after hydration without a PivotService probe', () => {
+    const hydratedConfig: PivotBuilderConfig = {
+      pivot: null,
+      rollup: null,
+      totals: null,
+      ui: makeUi(makeAggregationSettings('Sum', ['price']), {
+        rollupRows: ['region'],
+        pivotColumns: ['Foo'],
+      }),
+    };
+
+    const hydrate = async (
+      getPspWidget: () => Promise<DhType.Widget>
+    ): Promise<{
+      proxy: PivotBuilderProxyModel;
+      host: FakeHostModel;
+      original: FakeOriginalModel;
+    }> => {
+      const result = makeProxy(
+        [col('region', STRING), col('price', DOUBLE)],
+        getPspWidget
+      );
+      // `makePivotModelTransform` skips the probe when `ui` doesn't pivot
+      // against the load-time schema and passes `pivotAvailable: false`.
+      const applied = result.proxy.applyPivotBuilderConfig(hydratedConfig, {
+        pivotAvailable: false,
+      });
+      expect(result.proxy.pivotConfig).toBeNull();
+      expect(result.host.hostRollupWrites).toHaveLength(1);
+      result.host.settleSwap();
+      await applied;
+      return result;
+    };
+
+    it('probes PivotService and builds the pivot when the column comes back', async () => {
+      const getPspWidget = jest.fn(() => Promise.resolve({} as DhType.Widget));
+      const { proxy, host, original } = await hydrate(getPspWidget);
+
+      original.table.columns.push(col('Foo', STRING));
+      columnsChanged(host);
+      await flushMicrotasks();
+
+      expect(getPspWidget).toHaveBeenCalled();
+      expect(proxy.pivotConfig).toEqual({
+        rowKeys: ['region'],
+        columnKeys: ['Foo'],
+        aggregations: [{ operation: 'Sum', columns: ['price'] }],
+      });
+    });
+
+    it('keeps the rollup when the probe fails', async () => {
+      const getPspWidget = jest.fn(() => Promise.reject(new Error('no psp')));
+      const { proxy, host, original } = await hydrate(getPspWidget);
+
+      original.table.columns.push(col('Foo', STRING));
+      columnsChanged(host);
+      await flushMicrotasks();
+      await flushMicrotasks();
+
+      expect(getPspWidget).toHaveBeenCalled();
+      expect(proxy.pivotConfig).toBeNull();
+    });
+  });
+
+  it('rebuilds an unchanged legacy pivot when a stale key column comes back', async () => {
+    const { proxy, host, original } = makeProxy([
+      col('region', STRING),
+      col('side', STRING),
+      col('price', DOUBLE),
+    ]);
+    const setNextModel = jest.spyOn(host, 'setNextModel');
+    await proxy.applyPivotBuilderConfig({
+      pivot: makePivot({
+        rowKeys: ['region'],
+        columnKeys: ['side', 'Foo'],
+        aggregations: [{ operation: 'Sum', columns: ['price'] }],
+      }),
+      rollup: null,
+      totals: null,
+    });
+    await flushMicrotasks();
+    const buildsBefore = setNextModel.mock.calls.length;
+    expect(buildsBefore).toBeGreaterThan(0);
+
+    original.table.columns.push(col('Foo', STRING));
+    columnsChanged(host);
+
+    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
   });
 });
 
