@@ -647,6 +647,21 @@ class UITableTestCase(BaseTestCase):
             [{k: v["value"] for k, v in r.items()} for r in received_rows], [expected]
         )
 
+    def test_wrapped_callback_accepts_zero_argument_callback(self):
+        import deephaven.ui as ui
+        from deephaven.ui._internal.utils import wrap_callable
+
+        called = Mock()
+
+        # Typed callbacks take the row, but zero-argument callbacks must still work.
+        props = ui.table(
+            self.source, on_row_press=lambda: called()  # type: ignore
+        ).render()
+        # The message stream wraps registered callables the same way.
+        wrap_callable(props["onRowPress"])({"X": {"value": 1, "type": "int"}})
+
+        called.assert_called_once()
+
     def test_wrapped_callback_keeps_identity_across_renders(self):
         import deephaven.ui as ui
 

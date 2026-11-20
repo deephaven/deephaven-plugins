@@ -19,7 +19,7 @@ from ..types import (
     SelectionChangeCallback,
     TableLike,
 )
-from .._internal import dict_to_react_props, validate_key
+from .._internal import dict_to_react_props, validate_key, wrap_callable
 
 logger = logging.getLogger(__name__)
 
@@ -367,9 +367,12 @@ class _ConvertingCallback:
     ) -> None:
         self.callback = callback
         self._convert = convert
+        # The renderer drops unused args by inspecting this wrapper's signature, so
+        # do the same for the wrapped callback (e.g. `lambda: refresh()`).
+        self._call = wrap_callable(callback)
 
     def __call__(self, data: Any) -> Any:
-        return self.callback(self._convert(data))
+        return self._call(self._convert(data))
 
     def __eq__(self, other: object) -> bool:
         return (

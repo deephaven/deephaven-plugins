@@ -270,7 +270,9 @@ class CellData(TypedDict):
 
     value: Any
     """
-    Raw value of the cell data
+    Raw value of the cell data.
+    Values from ``long`` columns are ``int``. Values from ``Instant`` columns are
+    ``int`` nanoseconds since the epoch.
     """
 
 
@@ -323,11 +325,18 @@ class ContextMenuActionParams(TypedDict):
     value: Any
     """
     Value of the cell.
+    Values from ``long`` columns are ``int``. Values from ``Instant`` columns are
+    ``int`` nanoseconds since the epoch.
     """
 
     text_value: str
     """
     Rendered text for the cell.
+    """
+
+    type: str
+    """
+    Type of the column.
     """
 
     column_name: str
