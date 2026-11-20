@@ -1115,17 +1115,56 @@ export function augmentPivotBuilderModel(
   const sourceSchemaKey = (): string =>
     table.columns.map(c => `${c.name}\u0000${c.type}`).join('\u0001');
   let appliedSchemaKey = sourceSchemaKey();
+  // Hydration only probes PivotService when the saved `ui` pivots against the
+  // load-time schema, so `lastKnownPivotAvailable` can be an unprobed `false`.
+  // A restored column that makes the `ui` pivot again needs a real probe first.
+  const needsPivotProbe = (intent: PivotBuilderConfig): boolean =>
+    !lastKnownPivotAvailable &&
+    intent.ui != null &&
+    resolveEffectiveBuilderConfig(intent.ui, table.columns, {
+      pivotAvailable: true,
+      rollupAvailable:
+        (proxy as unknown as { isRollupAvailable?: boolean })
+          .isRollupAvailable === true,
+    }).pivot != null;
   const reapplyOnSchemaChange = (): void => {
     if (proxyAsAny.modelPromise != null) return;
     const key = sourceSchemaKey();
     if (key === appliedSchemaKey) return;
     appliedSchemaKey = key;
-    applyPivotBuilderConfigInternal(lastIntent, { schemaChanged: true }).catch(
-      () => undefined
-    );
+    const intent = lastIntent;
+    if (!needsPivotProbe(intent)) {
+      applyPivotBuilderConfigInternal(intent, { schemaChanged: true }).catch(
+        () => undefined
+      );
+      return;
+    }
+    getPspWidget()
+      .then(
+        () => true,
+        () => false
+      )
+      .then(pivotAvailable => {
+        // A user apply or newer schema change during the probe already
+        // re-derived against the live schema.
+        if (intent !== lastIntent || sourceSchemaKey() !== key) {
+          return undefined;
+        }
+        return applyPivotBuilderConfigInternal(intent, {
+          schemaChanged: true,
+          pivotAvailable,
+        });
+      })
+      .catch(() => undefined);
   };
+  // Like `flushPendingTotals`: a change skipped during a same-columns swap is
+  // only picked up by the TABLE_CHANGED that ends it.
   proxy.addEventListener(
     IrisGridModel.EVENT.COLUMNS_CHANGED,
+    reapplyOnSchemaChange
+  );
+  proxy.addEventListener(
+    IrisGridModel.EVENT.TABLE_CHANGED,
     reapplyOnSchemaChange
   );
 
