@@ -310,25 +310,82 @@ def _resolve_selection(
     return _snapshot_selection(combined)
 
 
-def _convert_key_value(value: Any, data_type: Any) -> Any:
-    """Convert a key value from the client to a type accepted by the key column.
+_INT_STRING_TYPES = frozenset({"long", "java.time.Instant"})
+"""Column types whose values the client sends as exact decimal strings."""
 
-    The client sends ``long`` and ``Instant`` key values as exact decimal strings,
-    as a JS number cannot hold every 64-bit value. Instants are epoch nanoseconds.
+
+def _convert_client_value(value: Any, type_name: str | None) -> Any:
+    """Convert a column value received from the client to its Python value.
+
+    The client sends ``long`` and ``Instant`` values as exact decimal strings, as a
+    JS number cannot hold every 64-bit value. Instants are epoch nanoseconds.
 
     Args:
-        value: The key value received from the client.
-        data_type: The dtype of the key column in the source table.
+        value: The value received from the client.
+        type_name: The Java type name of the value's column, as sent by the client
+            in a cell's ``type`` or given by a dtype's ``j_name``.
 
     Returns:
         The value converted to an ``int`` for ``long`` and ``Instant`` columns,
         otherwise the value unchanged.
     """
-    from deephaven import dtypes
-
-    if isinstance(value, str) and data_type in (dtypes.long, dtypes.Instant):
+    if isinstance(value, str) and type_name in _INT_STRING_TYPES:
         return int(value)
     return value
+
+
+def _convert_cell_data(cell: Any) -> Any:
+    """Convert the ``value`` of a ``CellData`` dict using its ``type``."""
+    if not isinstance(cell, Mapping) or "value" not in cell:
+        return cell
+    return {**cell, "value": _convert_client_value(cell["value"], cell.get("type"))}
+
+
+def _convert_row_data(row: Any) -> Any:
+    """Convert every cell of a ``RowDataMap``."""
+    if not isinstance(row, Mapping):
+        return row
+    return {name: _convert_cell_data(cell) for name, cell in row.items()}
+
+
+def _convert_selection(rows: Any) -> Any:
+    """Convert every row of a selection."""
+    if not isinstance(rows, list):
+        return rows
+    return [_convert_row_data(row) for row in rows]
+
+
+class _ConvertingCallback:
+    """Wraps a ``ui.table`` callback so it receives converted cell values.
+
+    Equal to, and hashed like, any other wrapper of the same callback and converter,
+    so a callback that stays the same across renders keeps the same callable id.
+    """
+
+    def __init__(
+        self, callback: Callable[[Any], Any], convert: Callable[[Any], Any]
+    ) -> None:
+        self.callback = callback
+        self._convert = convert
+
+    def __call__(self, data: Any) -> Any:
+        return self.callback(self._convert(data))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, _ConvertingCallback)
+            and self.callback == other.callback
+            and self._convert is other._convert
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.callback, self._convert))
+
+
+def _wrap_callback(
+    callback: Callable[[Any], Any] | None, convert: Callable[[Any], Any]
+) -> _ConvertingCallback | None:
+    return None if callback is None else _ConvertingCallback(callback, convert)
 
 
 def _resolve_keyed_selection(
@@ -372,7 +429,8 @@ def _resolve_keyed_selection(
                 name=name,
                 data_type=source_types[name],
                 input_data=[
-                    _convert_key_value(row[i], source_types[name]) for row in key_values
+                    _convert_client_value(row[i], source_types[name].j_name)
+                    for row in key_values
                 ],
             )
             for i, name in enumerate(key_columns)
@@ -435,6 +493,9 @@ def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> _ContextMenuD
     Keyed tables (created with ``with_keys``) send ``selected_keys`` and are matched
     by value; all other tables send ``selected_ranges`` and are matched by position.
 
+    Also converts ``value`` and ``always_fetch_columns`` cell values that the client
+    sends as strings (``long`` and ``Instant`` columns) to ``int``.
+
     Args:
         data: Raw callback params dict received from the JS callable invocation.
         tbl: The Python-side source passed to ``ui.table``, used as a fallback when
@@ -445,6 +506,10 @@ def _add_selected_rows(data: dict, tbl: TableLike | UriElement) -> _ContextMenuD
         A copy of *data* with ``selected_rows`` available and internal keys removed.
     """
     data = dict(data)
+    if "value" in data:
+        data["value"] = _convert_client_value(data["value"], data.get("type"))
+    if "always_fetch_columns" in data:
+        data["always_fetch_columns"] = _convert_row_data(data["always_fetch_columns"])
     # Use the model table injected by JS (sorted/filtered) when available.
     model_tbl = data.pop("_table", tbl)
     visible_columns = data.pop("_visible_columns", None)
@@ -818,6 +883,17 @@ class table(Element):
             props["sorts"] = _normalize_table_sorts(sorts)
 
         props["table"] = resolve(table) if isinstance(table, str) else table
+        props["on_cell_press"] = _wrap_callback(on_cell_press, _convert_cell_data)
+        props["on_cell_double_press"] = _wrap_callback(
+            on_cell_double_press, _convert_cell_data
+        )
+        props["on_row_press"] = _wrap_callback(on_row_press, _convert_row_data)
+        props["on_row_double_press"] = _wrap_callback(
+            on_row_double_press, _convert_row_data
+        )
+        props["on_selection_change"] = _wrap_callback(
+            on_selection_change, _convert_selection
+        )
         props["context_menu"] = _wrap_context_menu(context_menu, props["table"])
         props["context_header_menu"] = _wrap_context_menu(
             context_header_menu, props["table"]

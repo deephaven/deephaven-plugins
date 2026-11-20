@@ -67,12 +67,7 @@ class UITableTestCase(BaseTestCase):
 
         t = ui.table(self.source, on_row_double_press=callback)
 
-        self.expect_render(
-            t,
-            {
-                "onRowDoublePress": callback,
-            },
-        )
+        self.assertIs(t.render()["onRowDoublePress"].callback, callback)
 
     def test_always_fetch_columns(self):
         import deephaven.ui as ui
@@ -604,12 +599,93 @@ class UITableTestCase(BaseTestCase):
             always_fetch_columns=["X"],
         )
 
-        self.expect_render(
-            t,
-            {
-                "alwaysFetchColumns": ["X"],
-                "onSelectionChange": on_change,
+        self.expect_render(t, {"alwaysFetchColumns": ["X"]})
+        self.assertIs(t.render()["onSelectionChange"].callback, on_change)
+
+    def test_press_callbacks_convert_long_and_instant_values(self):
+        import deephaven.ui as ui
+
+        # 2^53 + 2 cannot be represented exactly as a JS number, so the client
+        # sends long and Instant (epoch nanos) values as strings.
+        big = 2**53 + 2
+        row = {
+            "L": {"value": str(big), "text": "", "type": "long"},
+            "I": {
+                "value": "1794306601000000001",
+                "text": "",
+                "type": "java.time.Instant",
             },
+            "S": {"value": "10", "text": "10", "type": "java.lang.String"},
+            "N": {"value": None, "text": "", "type": "long"},
+        }
+        on_cell_press = Mock()
+        on_row_press = Mock()
+        on_selection_change = Mock()
+
+        props = ui.table(
+            self.source,
+            on_cell_press=on_cell_press,
+            on_row_press=on_row_press,
+            on_selection_change=on_selection_change,
+            always_fetch_columns=True,
+        ).render()
+        props["onCellPress"](row["L"])
+        props["onRowPress"](row)
+        props["onSelectionChange"]([row])
+
+        self.assertEqual(on_cell_press.call_args.args[0]["value"], big)
+        expected = {
+            "L": big,
+            "I": 1794306601000000001,
+            "S": "10",
+            "N": None,
+        }
+        received_row = on_row_press.call_args.args[0]
+        self.assertEqual({k: v["value"] for k, v in received_row.items()}, expected)
+        received_rows = on_selection_change.call_args.args[0]
+        self.assertEqual(
+            [{k: v["value"] for k, v in r.items()} for r in received_rows], [expected]
+        )
+
+    def test_wrapped_callback_keeps_identity_across_renders(self):
+        import deephaven.ui as ui
+
+        def callback(data):
+            pass
+
+        first = ui.table(self.source, on_cell_press=callback).render()["onCellPress"]
+        second = ui.table(self.source, on_cell_press=callback).render()["onCellPress"]
+        other = ui.table(self.source, on_row_press=callback).render()["onRowPress"]
+
+        # Equal wrappers keep the same callable id across renders.
+        self.assertEqual(first, second)
+        self.assertEqual(hash(first), hash(second))
+        # A different converter or the raw callback must get a different id.
+        self.assertNotEqual(first, other)
+        self.assertNotEqual(first, callback)
+
+    def test_context_menu_converts_long_and_instant_values(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        big = 2**53 + 2
+        data = _add_selected_rows(
+            {
+                "value": str(big),
+                "type": "long",
+                "always_fetch_columns": {
+                    "I": {
+                        "value": "1794306601000000001",
+                        "text": "",
+                        "type": "java.time.Instant",
+                    },
+                },
+            },
+            self.source,
+        )
+
+        self.assertEqual(data["value"], big)
+        self.assertEqual(
+            data["always_fetch_columns"]["I"]["value"], 1794306601000000001
         )
 
     def test_databar_full_options(self):
