@@ -205,6 +205,26 @@ export function getAggregationOperation(agg: string): AggregationOperation {
   return operation;
 }
 
+/**
+ * Converts a cell value from the JS API into a value that serializes exactly.
+ * Long, Instant, BigInteger and BigDecimal values are JS API wrapper objects, which
+ * `JSON.stringify` would serialize as their internal fields. They are sent as their
+ * exact decimal string instead, as a JS number cannot hold every 64-bit value.
+ * Instants are epoch nanoseconds.
+ * @param value The cell value to convert
+ * @returns The decimal string for a wrapper, otherwise the value unchanged
+ */
+export function serializeCellValue(value: unknown): unknown {
+  if (
+    value != null &&
+    typeof value === 'object' &&
+    typeof (value as Partial<dh.LongWrapper>).asNumber === 'function'
+  ) {
+    return (value as dh.LongWrapper).valueOf();
+  }
+  return value;
+}
+
 export function getCellData(
   columnIndex: ModelIndex,
   rowIndex: ModelIndex,
@@ -212,7 +232,7 @@ export function getCellData(
 ): CellData {
   const column = model.columns[columnIndex];
   const { type } = column;
-  const value = model.valueForCell(columnIndex, rowIndex);
+  const value = serializeCellValue(model.valueForCell(columnIndex, rowIndex));
   const text = model.textForCell(columnIndex, rowIndex);
   return {
     value,

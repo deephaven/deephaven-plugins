@@ -65,7 +65,7 @@ const MOCK_MODEL = TestUtils.createMockProxy<IrisGridModel>({
 const CLIENT_CELL_DATA = {
   value: 'cellValue',
   valueText: 'cellText',
-  column: { name: 'cellName' } as dh.Column,
+  column: { name: 'cellName', type: 'java.lang.String' } as dh.Column,
   rowIndex: 0,
   columnIndex: 0,
   modelRow: 1,
@@ -76,6 +76,7 @@ const CLIENT_CELL_DATA = {
 const SERVER_CELL_DATA = {
   value: CLIENT_CELL_DATA.value,
   text: CLIENT_CELL_DATA.valueText,
+  type: CLIENT_CELL_DATA.column.type,
   column_name: CLIENT_CELL_DATA.column.name,
   is_column_header: false,
   is_row_header: false,
@@ -88,7 +89,7 @@ const SERVER_CELL_DATA = {
 const CLIENT_HEADER_DATA = {
   value: 'headerValue',
   valueText: 'headerText',
-  column: { name: 'headerName' } as dh.Column,
+  column: { name: 'headerName', type: 'java.lang.String' } as dh.Column,
   rowIndex: null,
   columnIndex: 0,
   modelRow: null,
@@ -99,6 +100,7 @@ const CLIENT_HEADER_DATA = {
 const SERVER_HEADER_DATA = {
   value: CLIENT_HEADER_DATA.value,
   text: CLIENT_HEADER_DATA.valueText,
+  type: CLIENT_HEADER_DATA.column.type,
   column_name: CLIENT_HEADER_DATA.column.name,
   is_column_header: true,
   is_row_header: false,
@@ -107,6 +109,18 @@ const SERVER_HEADER_DATA = {
   selected_keys: null,
   _visible_columns: [],
 };
+
+/** 2^53 + 2, which a JS number cannot represent exactly. */
+const BIG_LONG = '9007199254740994';
+
+/** Stand-in for a JS API LongWrapper, which hides its value in internal fields. */
+function makeLongWrapper(value: string) {
+  return {
+    value_0: { l: 2, m: 0, h: 512 },
+    asNumber: () => Number(value),
+    valueOf: () => value,
+  };
+}
 
 async function resolveContextAction(
   action: ResolvableContextAction = [] as ResolvableContextAction
@@ -124,6 +138,40 @@ function serialize(params: unknown) {
 }
 
 describe('wrapContextActions', () => {
+  test('sends a long cell value as an exact string with its type', async () => {
+    const action = { action: jest.fn() };
+    const data = {
+      ...CLIENT_CELL_DATA,
+      value: makeLongWrapper(BIG_LONG),
+      column: { name: 'L', type: 'long' } as dh.Column,
+    };
+    const [wrapped] = await resolveContextAction(
+      wrapContextActions(action, data, [], [], [], null)[0]
+    );
+
+    await wrapped.action?.(null as unknown as Event);
+
+    expect(action.action).toHaveBeenCalledWith(
+      expect.objectContaining({ value: BIG_LONG, type: 'long' })
+    );
+  });
+
+  test('sends a long cell value to an item generator', async () => {
+    const generator = jest.fn().mockResolvedValue([]);
+    const data = {
+      ...CLIENT_CELL_DATA,
+      value: makeLongWrapper(BIG_LONG),
+      column: { name: 'L', type: 'long' } as dh.Column,
+    };
+
+    await resolveContextAction(
+      wrapContextActions(generator, data, [], [], [], null)[0]
+    );
+
+    expect(generator).toHaveBeenCalledWith(
+      expect.objectContaining({ value: BIG_LONG, type: 'long' })
+    );
+  });
   test('handles cell item', async () => {
     const action = {
       action: jest.fn(),
@@ -552,6 +600,27 @@ describe('getSelectedKeys', () => {
       ],
       inverted: false,
     });
+  });
+
+  test('sends long and Instant key values as exact strings', () => {
+    const instantNanos = '1794306601000000001';
+    const selection = makeKeyedSelection(
+      new Map([
+        [
+          `["${BIG_LONG}","${instantNanos}"]`,
+          [makeLongWrapper(BIG_LONG), makeLongWrapper(instantNanos)],
+        ],
+      ])
+    );
+
+    expect(
+      getSelectedKeys(
+        makeIrisGrid(),
+        makeContextMenuData(selection, KEYED_MODEL)
+      )
+    ).toEqual(
+      expect.objectContaining({ key_values: [[BIG_LONG, instantNanos]] })
+    );
   });
 
   test('propagates inverted selections', () => {
