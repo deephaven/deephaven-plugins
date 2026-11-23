@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections import UserDict
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import Literal, Any, Callable, Mapping, NoReturn, Union
 import logging
 from deephaven.table import Table, RollupTable, TreeTable
@@ -360,33 +361,39 @@ class _ConvertingCallback:
 
     Equal to, and hashed like, any other wrapper of the same callback and converter,
     so a callback that stays the same across renders keeps the same callable id.
+    The encoder may keep calling an earlier equal wrapper, so every attribute that
+    affects behavior must take part in equality.
     """
 
     def __init__(
-        self, callback: Callable[[Any], Any], convert: Callable[[Any], Any]
+        self, callback: Callable[..., Any], convert: Callable[[Any], Any]
     ) -> None:
         self.callback = callback
-        self._convert = convert
+        self.convert = convert
+
+    @cached_property
+    def _call(self) -> Callable[..., Any]:
         # The renderer drops unused args by inspecting this wrapper's signature, so
-        # do the same for the wrapped callback (e.g. `lambda: refresh()`).
-        self._call = wrap_callable(callback)
+        # do the same for the wrapped callback (e.g. `lambda: refresh()`). Computed
+        # lazily since a new wrapper is created on every render.
+        return wrap_callable(self.callback)
 
     def __call__(self, data: Any) -> Any:
-        return self._call(self._convert(data))
+        return self._call(self.convert(data))
 
     def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, _ConvertingCallback)
             and self.callback == other.callback
-            and self._convert is other._convert
+            and self.convert is other.convert
         )
 
     def __hash__(self) -> int:
-        return hash((self.callback, self._convert))
+        return hash((self.callback, self.convert))
 
 
 def _wrap_callback(
-    callback: Callable[[Any], Any] | None, convert: Callable[[Any], Any]
+    callback: Callable[..., Any] | None, convert: Callable[[Any], Any]
 ) -> _ConvertingCallback | None:
     return None if callback is None else _ConvertingCallback(callback, convert)
 
