@@ -55,7 +55,7 @@ fi
 # so, we'll prepare the user for some noise.
 echo
 log_info "Listing previous release to ensure gh is setup correctly:"
-if ! gh release list --limit 1 2>/dev/stdout; then
+if ! gh release list --limit 1 ${RELEASE_REPO:+--repo "$RELEASE_REPO"} 2>/dev/stdout; then
     {
     log_error "You must select the correct gh repo to continue!"
     log_error 'Run `gh repo set-default git@github.com:deephaven/deephaven-plugins.git`'
