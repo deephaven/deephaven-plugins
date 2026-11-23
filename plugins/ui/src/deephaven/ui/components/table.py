@@ -311,7 +311,7 @@ def _resolve_selection(
     return _snapshot_selection(combined)
 
 
-_INT_STRING_TYPES = frozenset({"long", "java.time.Instant"})
+_INT_STRING_TYPES = frozenset({"long", "java.lang.Long", "java.time.Instant"})
 """Column types whose values the client sends as exact decimal strings."""
 
 

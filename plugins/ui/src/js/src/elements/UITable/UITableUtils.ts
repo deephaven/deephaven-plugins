@@ -221,7 +221,8 @@ export function serializeCellValue(value: unknown): unknown {
   if (
     value != null &&
     typeof value === 'object' &&
-    typeof (value as Partial<dh.LongWrapper>).asNumber === 'function'
+    typeof (value as Partial<dh.LongWrapper>).asNumber === 'function' &&
+    typeof (value as { valueOf?: unknown }).valueOf === 'function'
   ) {
     return (value as dh.LongWrapper).valueOf();
   }

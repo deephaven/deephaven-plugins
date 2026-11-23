@@ -610,6 +610,7 @@ class UITableTestCase(BaseTestCase):
         big = 2**53 + 2
         row = {
             "L": {"value": str(big), "text": "", "type": "long"},
+            "BoxedL": {"value": str(big + 1), "text": "", "type": "java.lang.Long"},
             "I": {
                 "value": "1794306601000000001",
                 "text": "",
@@ -636,6 +637,7 @@ class UITableTestCase(BaseTestCase):
         self.assertEqual(on_cell_press.call_args.args[0]["value"], big)
         expected = {
             "L": big,
+            "BoxedL": big + 1,
             "I": 1794306601000000001,
             "S": "10",
             "N": None,
@@ -688,6 +690,11 @@ class UITableTestCase(BaseTestCase):
                 "value": str(big),
                 "type": "long",
                 "always_fetch_columns": {
+                    "BoxedL": {
+                        "value": str(big + 1),
+                        "text": "",
+                        "type": "java.lang.Long",
+                    },
                     "I": {
                         "value": "1794306601000000001",
                         "text": "",
@@ -699,6 +706,7 @@ class UITableTestCase(BaseTestCase):
         )
 
         self.assertEqual(data["value"], big)
+        self.assertEqual(data["always_fetch_columns"]["BoxedL"]["value"], big + 1)
         self.assertEqual(
             data["always_fetch_columns"]["I"]["value"], 1794306601000000001
         )
