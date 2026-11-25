@@ -270,7 +270,9 @@ class CellData(TypedDict):
 
     value: Any
     """
-    Raw value of the cell data
+    Raw value of the cell data.
+    Values from ``long`` columns are ``int``. Values from ``Instant`` columns are
+    ``int`` nanoseconds since the epoch.
     """
 
 
@@ -323,11 +325,18 @@ class ContextMenuActionParams(TypedDict):
     value: Any
     """
     Value of the cell.
+    Values from ``long`` columns are ``int``. Values from ``Instant`` columns are
+    ``int`` nanoseconds since the epoch.
     """
 
-    text_value: str
+    text: str
     """
     Rendered text for the cell.
+    """
+
+    type: str
+    """
+    Type of the column.
     """
 
     column_name: str
@@ -343,6 +352,11 @@ class ContextMenuActionParams(TypedDict):
     is_row_header: bool
     """
     Whether the context menu was opened on a row header.
+    """
+
+    always_fetch_columns: Dict[str, RowDataValue]
+    """
+    Values of the row's ``always_fetch_columns`` columns, keyed by column name.
     """
 
     selected_rows: Table

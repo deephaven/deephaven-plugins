@@ -205,6 +205,39 @@ export function getAggregationOperation(agg: string): AggregationOperation {
   return operation;
 }
 
+/**
+ * Shape shared by the JS API numeric wrappers with required methods for serialization
+ */
+export type NumericWrapper = {
+  asNumber: () => number;
+  valueOf: () => string;
+};
+
+/**
+ * Checks if a value is a JS API numeric wrapper, structurally.
+ * @param value The value to check
+ * @returns True if the value is a numeric wrapper
+ */
+export function isNumericWrapper(value: unknown): value is NumericWrapper {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    typeof (value as Partial<NumericWrapper>).asNumber === 'function'
+  );
+}
+
+/**
+ * Converts a cell value from the JS API into a value that serializes exactly.
+ * `JSON.stringify` would serialize a numeric wrapper as its internal fields, so it is
+ * sent as its exact decimal string instead, as a JS number cannot hold every 64-bit
+ * value. Instants are epoch nanoseconds.
+ * @param value The cell value to convert
+ * @returns The decimal string for a numeric wrapper, otherwise the value unchanged
+ */
+export function serializeCellValue(value: unknown): unknown {
+  return isNumericWrapper(value) ? value.valueOf() : value;
+}
+
 export function getCellData(
   columnIndex: ModelIndex,
   rowIndex: ModelIndex,
@@ -212,7 +245,7 @@ export function getCellData(
 ): CellData {
   const column = model.columns[columnIndex];
   const { type } = column;
-  const value = model.valueForCell(columnIndex, rowIndex);
+  const value = serializeCellValue(model.valueForCell(columnIndex, rowIndex));
   const text = model.textForCell(columnIndex, rowIndex);
   return {
     value,

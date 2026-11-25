@@ -67,12 +67,7 @@ class UITableTestCase(BaseTestCase):
 
         t = ui.table(self.source, on_row_double_press=callback)
 
-        self.expect_render(
-            t,
-            {
-                "onRowDoublePress": callback,
-            },
-        )
+        self.assertIs(t.render()["onRowDoublePress"].callback, callback)
 
     def test_always_fetch_columns(self):
         import deephaven.ui as ui
@@ -604,12 +599,116 @@ class UITableTestCase(BaseTestCase):
             always_fetch_columns=["X"],
         )
 
-        self.expect_render(
-            t,
-            {
-                "alwaysFetchColumns": ["X"],
-                "onSelectionChange": on_change,
+        self.expect_render(t, {"alwaysFetchColumns": ["X"]})
+        self.assertIs(t.render()["onSelectionChange"].callback, on_change)
+
+    def test_press_callbacks_convert_long_and_instant_values(self):
+        import deephaven.ui as ui
+
+        # 2^53 + 1 cannot be represented exactly as a JS number, so the client
+        # sends long and Instant (epoch nanos) values as strings.
+        big = 2**53 + 1
+        row = {
+            "L": {"value": str(big), "text": "", "type": "long"},
+            "BoxedL": {"value": str(big + 1), "text": "", "type": "java.lang.Long"},
+            "I": {
+                "value": "1794306601000000001",
+                "text": "",
+                "type": "java.time.Instant",
             },
+            "S": {"value": "10", "text": "10", "type": "java.lang.String"},
+            "N": {"value": None, "text": "", "type": "long"},
+        }
+        on_cell_press = Mock()
+        on_row_press = Mock()
+        on_selection_change = Mock()
+
+        props = ui.table(
+            self.source,
+            on_cell_press=on_cell_press,
+            on_row_press=on_row_press,
+            on_selection_change=on_selection_change,
+            always_fetch_columns=True,
+        ).render()
+        props["onCellPress"](row["L"])
+        props["onRowPress"](row)
+        props["onSelectionChange"]([row])
+
+        self.assertEqual(on_cell_press.call_args.args[0]["value"], big)
+        expected = {
+            "L": big,
+            "BoxedL": big + 1,
+            "I": 1794306601000000001,
+            "S": "10",
+            "N": None,
+        }
+        received_row = on_row_press.call_args.args[0]
+        self.assertEqual({k: v["value"] for k, v in received_row.items()}, expected)
+        received_rows = on_selection_change.call_args.args[0]
+        self.assertEqual(
+            [{k: v["value"] for k, v in r.items()} for r in received_rows], [expected]
+        )
+
+    def test_wrapped_callback_accepts_zero_argument_callback(self):
+        import deephaven.ui as ui
+        from deephaven.ui._internal.utils import wrap_callable
+
+        called = Mock()
+
+        # Typed callbacks take the row, but zero-argument callbacks must still work.
+        props = ui.table(
+            self.source, on_row_press=lambda: called()  # type: ignore
+        ).render()
+        # The message stream wraps registered callables the same way.
+        wrap_callable(props["onRowPress"])({"X": {"value": 1, "type": "int"}})
+
+        called.assert_called_once()
+
+    def test_wrapped_callback_keeps_identity_across_renders(self):
+        import deephaven.ui as ui
+
+        def callback(data):
+            pass
+
+        first = ui.table(self.source, on_cell_press=callback).render()["onCellPress"]
+        second = ui.table(self.source, on_cell_press=callback).render()["onCellPress"]
+        other = ui.table(self.source, on_row_press=callback).render()["onRowPress"]
+
+        # Equal wrappers keep the same callable id across renders.
+        self.assertEqual(first, second)
+        self.assertEqual(hash(first), hash(second))
+        # A different converter or the raw callback must get a different id.
+        self.assertNotEqual(first, other)
+        self.assertNotEqual(first, callback)
+
+    def test_context_menu_converts_long_and_instant_values(self):
+        from deephaven.ui.components.table import _add_selected_rows
+
+        big = 2**53 + 1
+        data = _add_selected_rows(
+            {
+                "value": str(big),
+                "type": "long",
+                "always_fetch_columns": {
+                    "BoxedL": {
+                        "value": str(big + 1),
+                        "text": "",
+                        "type": "java.lang.Long",
+                    },
+                    "I": {
+                        "value": "1794306601000000001",
+                        "text": "",
+                        "type": "java.time.Instant",
+                    },
+                },
+            },
+            self.source,
+        )
+
+        self.assertEqual(data["value"], big)
+        self.assertEqual(data["always_fetch_columns"]["BoxedL"]["value"], big + 1)
+        self.assertEqual(
+            data["always_fetch_columns"]["I"]["value"], 1794306601000000001
         )
 
     def test_databar_full_options(self):
@@ -846,6 +945,55 @@ class UITableTestCase(BaseTestCase):
 
         # Only row 1 is null, so a single match means where_in is null-safe.
         self.assertEqual(result.size, 1)
+
+    def test_resolve_keyed_selection_long_key_from_string(self):
+        from deephaven import empty_table
+
+        # 2^53 + 1 cannot be represented exactly as a JS number, so the client
+        # sends long keys as strings.
+        big = 2**53 + 1
+        source = empty_table(3).update(f"Key = {big}L + i")
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [[str(big)]], "inverted": False},
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Key"), [big])
+
+    def test_resolve_keyed_selection_instant_key_from_string(self):
+        from deephaven import empty_table
+
+        epoch_nanos = 1_794_306_601_000_000_001
+        source = empty_table(3).update(f"Key = epochNanosToInstant({epoch_nanos}L + i)")
+
+        result = self._resolve_keyed(
+            {
+                "key_columns": ["Key"],
+                "key_values": [[str(epoch_nanos + 1)]],
+                "inverted": False,
+            },
+            source,
+        )
+
+        self.assertEqual(result.size, 1)
+        self.assertEqual(
+            self._column_values(result.update("Nanos = epochNanos(Key)"), "Nanos"),
+            [epoch_nanos + 1],
+        )
+
+    def test_resolve_keyed_selection_string_key_not_converted(self):
+        from deephaven import empty_table
+
+        # A numeric-looking string in a String column must stay a string.
+        source = empty_table(3).update("Key = `` + (i * 10)")
+
+        result = self._resolve_keyed(
+            {"key_columns": ["Key"], "key_values": [["10"]], "inverted": False},
+            source,
+        )
+
+        self.assertEqual(self._column_values(result, "Key"), ["10"])
 
     def test_selection_over_max_rows_raises(self):
         from deephaven import empty_table

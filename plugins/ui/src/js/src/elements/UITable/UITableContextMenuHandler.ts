@@ -24,6 +24,7 @@ import { ensureArray } from '@deephaven/utils';
 import {
   asRangedSelection,
   getRowDataMap,
+  serializeCellValue,
   type RowDataMap,
   type UITableProps,
 } from './UITableUtils';
@@ -38,6 +39,7 @@ type ModelTable = DhType.Table | DhType.TreeTable;
 interface UIContextItemParams {
   value: unknown;
   text: string | null;
+  type: string;
   column_name: string;
   is_column_header: boolean;
   is_row_header: boolean;
@@ -108,8 +110,9 @@ function wrapUIContextItem(
       ? async () => {
           try {
             await item.action?.({
-              value: data.value,
+              value: serializeCellValue(data.value),
               text: data.valueText,
+              type: data.column.type,
               column_name: data.column.name,
               is_column_header: data.rowIndex == null,
               is_row_header: data.columnIndex == null,
@@ -198,8 +201,9 @@ export function wrapContextActions(
       return async () =>
         wrapUIContextItems(
           (await item({
-            value: data.value,
+            value: serializeCellValue(data.value),
             text: data.valueText,
+            type: data.column.type,
             column_name: data.column.name,
             is_column_header: data.rowIndex == null,
             is_row_header: data.columnIndex == null,
@@ -303,9 +307,9 @@ export function getSelectedKeys(
     key_columns: isKeyedGridModel(model)
       ? model.selectionKeyColumnIndices.map(i => model.columns[i].name)
       : [],
-    key_values: Array.from(selectedKeyValues.values()).map(values => [
-      ...values,
-    ]),
+    key_values: Array.from(selectedKeyValues.values()).map(values =>
+      values.map(serializeCellValue)
+    ),
     inverted: selection.invertedSelection,
   };
 }
