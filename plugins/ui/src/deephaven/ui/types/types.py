@@ -329,7 +329,7 @@ class ContextMenuActionParams(TypedDict):
     ``int`` nanoseconds since the epoch.
     """
 
-    text_value: str
+    text: str
     """
     Rendered text for the cell.
     """
@@ -352,6 +352,11 @@ class ContextMenuActionParams(TypedDict):
     is_row_header: bool
     """
     Whether the context menu was opened on a row header.
+    """
+
+    always_fetch_columns: Dict[str, RowDataValue]
+    """
+    Values of the row's ``always_fetch_columns`` columns, keyed by column name.
     """
 
     selected_rows: Table

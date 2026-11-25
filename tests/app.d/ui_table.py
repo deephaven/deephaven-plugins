@@ -4,6 +4,7 @@ from deephaven import ui
 from deephaven import empty_table, new_table
 from deephaven.column import int_col, string_col
 from deephaven.table import Table
+from deephaven.ui.types import ContextMenuActionParams, RowDataMap
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
@@ -236,6 +237,56 @@ t_context_menu_selection = t_context_menu_selection_component(_context_menu_sour
 t_context_menu_keyed_selection = t_context_menu_selection_component(
     _context_menu_source.with_keys("Idx")
 )
+
+# 2^53 + 2 cannot be represented exactly as a JS number. Keyed on Big so the
+# context menu selection also round-trips long key values. Idx is only a narrow
+# first column for clicks to land on (see _context_menu_source), so it is not
+# described.
+_numeric_source = (
+    empty_table(3)
+    .update(
+        [
+            "Idx = i",
+            f"Big = {2**53 + 2}L + i",
+            "Small = 10000000000L + i",
+            "Inst = epochNanosToInstant(1794306601000000001L + i)",
+        ]
+    )
+    .with_keys("Big")
+)
+
+
+def _describe_values(cells: RowDataMap) -> str:
+    return " ".join(
+        f"{name}={type(cell['value']).__name__}:{cell['value']}"
+        for name, cell in cells.items()
+        if name != "Idx"
+    )
+
+
+@ui.component
+def t_numeric_values_component():
+    row_text, set_row_text = ui.use_state("None")
+    menu_text, set_menu_text = ui.use_state("None")
+
+    def describe_menu(d: ContextMenuActionParams):
+        selected = [row["Big"] for row in d["selected_rows"].iter_dict()]
+        set_menu_text(f"{_describe_values(d['always_fetch_columns'])} {selected}")
+
+    return ui.flex(
+        ui.text(f"Row: {row_text}"),
+        ui.text(f"Menu: {menu_text}"),
+        ui.table(
+            _numeric_source,
+            on_row_press=lambda row: set_row_text(_describe_values(row)),
+            always_fetch_columns=["Big", "Inst"],
+            context_menu={"title": "Describe values", "action": describe_menu},
+        ),
+        direction="column",
+    )
+
+
+t_numeric_values = t_numeric_values_component()
 
 
 t_databar_basic = ui.table(

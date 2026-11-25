@@ -367,3 +367,39 @@ test('UI table context menu selection', async ({ page }) => {
 test('UI table context menu selection with keys', async ({ page }) => {
   await expectContextMenuSelection(page, 't_context_menu_keyed_selection');
 });
+
+test('UI table sends long and Instant values to Python as ints', async ({
+  page,
+}) => {
+  await gotoPage(page, '');
+  await openPanel(
+    page,
+    't_numeric_values',
+    SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE
+  );
+
+  const panelEl = page.locator(SELECTORS.WIDGET_LOADER_ELEMENT_VISIBLE);
+  const grid = panelEl.locator('.iris-grid');
+
+  // Big is above 2^53, so an exact value proves it was not sent as a JS number.
+  await clickGridRow(grid, 2);
+  await expect(
+    panelEl.getByText(
+      'Row: Big=int:9007199254740996 Small=int:10000000002 Inst=int:1794306601000000003'
+    )
+  ).toBeVisible();
+
+  // The table is keyed on Big, so selected_rows resolves by long key values.
+  await clickGridRow(grid, 0, { modifiers: ['ControlOrMeta'] });
+  await clickGridRow(grid, 2, { button: 'right' });
+  await expect(page.locator('.loading-spinner-vertical-align')).toHaveCount(0);
+  await page
+    .locator('.btn-context-menu', { hasText: 'Describe values' })
+    .click();
+
+  await expect(
+    panelEl.getByText(
+      'Menu: Big=int:9007199254740996 Inst=int:1794306601000000003 [9007199254740994, 9007199254740996]'
+    )
+  ).toBeVisible();
+});
