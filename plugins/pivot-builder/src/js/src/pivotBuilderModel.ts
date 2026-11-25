@@ -696,9 +696,6 @@ class SupersededError extends Error {
   }
 }
 
-/** Source columns that determine what a builder config sanitizes to. */
-type SourceSchema = readonly { name: string; type: string }[];
-
 /**
  * Augment a host-built `IrisGridProxyModel` (the model the host's
  * `IrisGridPanel` / `GridWidgetPlugin` constructs from the source table)
@@ -1113,12 +1110,9 @@ export function augmentPivotBuilderModel(
   );
   proxy.addEventListener(IrisGridModel.EVENT.TABLE_CHANGED, flushPendingTotals);
 
-  // What the current intent sanitizes to depends on the source schema, so a
-  // custom column added/removed after apply must re-derive. Compared on the
-  // source table's column names and types: inner-model swaps and our own
-  // synthetic COLUMNS_CHANGED dispatches don't change them, so they fall
-  // through.
-  const snapshotSourceSchema = (): SourceSchema =>
+  // Re-derive the intent when source columns change (e.g. custom columns).
+  // Inner-model swaps and our own synthetic COLUMNS_CHANGED leave them as is.
+  const snapshotSourceSchema = (): { name: string; type: string }[] =>
     table.columns.map(({ name, type }) => ({ name, type }));
   let appliedSchema = snapshotSourceSchema();
   // Hydration only probes PivotService when the saved `ui` pivots against the
@@ -1133,10 +1127,7 @@ export function augmentPivotBuilderModel(
         (proxy as unknown as { isRollupAvailable?: boolean })
           .isRollupAvailable === true,
     }).pivot != null;
-  const probeAndReapply = async (
-    intent: PivotBuilderConfig,
-    schema: SourceSchema
-  ): Promise<void> => {
+  const probeAndReapply = async (intent: PivotBuilderConfig): Promise<void> => {
     let pivotAvailable = true;
     try {
       await getPspWidget();
@@ -1144,11 +1135,8 @@ export function augmentPivotBuilderModel(
       // Still re-apply so rollup/totals re-sanitize against the new schema
       pivotAvailable = false;
     }
-    // A user apply or newer schema change during the probe already
-    // re-derived against the live schema.
-    if (intent !== lastIntent || !deepEqual(snapshotSourceSchema(), schema)) {
-      return;
-    }
+    // A user apply during the probe already re-derived the newer intent.
+    if (intent !== lastIntent) return;
     await applyPivotBuilderConfigInternal(intent, {
       schemaChanged: true,
       pivotAvailable,
@@ -1161,7 +1149,7 @@ export function augmentPivotBuilderModel(
     appliedSchema = schema;
     const intent = lastIntent;
     const reapply = needsPivotProbe(intent)
-      ? probeAndReapply(intent, schema)
+      ? probeAndReapply(intent)
       : applyPivotBuilderConfigInternal(intent, { schemaChanged: true });
     reapply.catch(() => undefined);
   };
@@ -1189,11 +1177,11 @@ export function augmentPivotBuilderModel(
       if (deepEqual(v, storedRollup)) return;
       log.debug2('storing rollupConfig (no inner-model write)', v);
       storedRollup = v;
-      // `IrisGridPanel` hydration waits for COLUMNS_CHANGED after writing a
-      // saved rollup (the event the host's own rollup setter emits after
-      // `setNextModel` resolves). Since we suppressed the inner-model swap,
-      // emit it ourselves so hydration completes for legacy
-      // rollup+aggregations layouts.
+      // `IrisGridPanel`'s pre-`modelInitialized` `modelQueue` advances
+      // on COLUMNS_CHANGED (the event the host's own rollup setter
+      // emits after `setNextModel` resolves). Since we suppressed the
+      // inner-model swap, emit it ourselves so the queue advances and
+      // hydration completes for legacy rollup+aggregations layouts.
       proxy.dispatchEvent(
         new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
           detail: proxy.columns,
@@ -1304,8 +1292,6 @@ export function augmentPivotBuilderModel(
       // must not be seen as a "different" config that re-notifies.
       const notifyKey = staleNotifyKey(config);
       if (!hasStale) {
-        // Once the references resolve, the same config going stale again (e.g.
-        // a custom column removed a second time) is a new problem to report.
         lastStaleNotifiedConfig = null;
       } else if (!deepEqual(notifyKey, lastStaleNotifiedConfig)) {
         lastStaleNotifiedConfig = notifyKey;
@@ -1323,14 +1309,13 @@ export function augmentPivotBuilderModel(
 
     // No-op when the config is unchanged. `CreatePivotPage` reconciles
     // on mount (and on every relevant state change), so reopening the
-    // sidebar page re-applies the already-applied intent. This guard exists
-    // to avoid dispatching `PIVOT_BUILDER_CONFIG_CHANGED`, which calls
-    // `setPersistedConfig` upstream and re-renders the host `IrisGrid` one
-    // frame after the sidebar's slide-in starts — tearing down the in-flight
-    // push/pop animation (the page snaps in instead of sliding, and the
-    // Stack's view hook flickers). A schema-change re-apply of the same
-    // intent skips only that dispatch; the sanitized diffs below still run
-    // (and already no-op when the sanitized result is unchanged).
+    // sidebar page re-applies the already-applied intent. Without this
+    // guard we'd still dispatch `PIVOT_BUILDER_CONFIG_CHANGED`, which
+    // calls `setPersistedConfig` upstream and re-renders the host
+    // `IrisGrid` one frame after the sidebar's slide-in starts —
+    // tearing down the in-flight push/pop animation (the page snaps in
+    // instead of sliding, and the Stack's view hook flickers).
+    // A `schemaChanged` re-apply of the same intent skips only that dispatch.
     const intentUnchanged = deepEqual(config, lastIntent);
     if (intentUnchanged && options.schemaChanged !== true) {
       log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
