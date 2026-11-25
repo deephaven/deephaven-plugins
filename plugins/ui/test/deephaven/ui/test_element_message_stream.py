@@ -566,6 +566,8 @@ class ElementMessageStreamCloseTestCase(BaseTestCase):
         self._run_tasks()
 
     def test_send_failure_unmounts_and_leaves_the_render_loop(self):
+        from deephaven.ui._internal.EventContext import get_event_context
+        from deephaven.ui._internal.NoContextException import NoContextException
         from deephaven.ui.object_types.ElementMessageStream import _RenderState
 
         self._render()
@@ -580,6 +582,10 @@ class ElementMessageStreamCloseTestCase(BaseTestCase):
         self.assertIs(self.stream._render_state, _RenderState.IDLE)
         self.assertEqual(self.events, ["mounted", "unmounted"])
         self.connection.on_close.assert_called_once()
+
+        # The thread must not keep the closed stream's event context
+        with self.assertRaises(NoContextException):
+            get_event_context()
 
         # Updates from listeners that haven't been removed yet are dropped instead of queued forever
         update = Mock()

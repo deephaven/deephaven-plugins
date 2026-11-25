@@ -365,10 +365,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         Args:
             callable: The callable to queue
         """
-        if self._is_closed:
-            # Nothing will process it, and it may hold onto large objects such as table data
-            return
-        self._callable_queue.put(callable)
+        # Check and queue under the lock, so this can't race with on_close and leave work in a queue nothing drains
+        with self._render_lock:
+            if self._is_closed:
+                # Nothing will process it, and it may hold onto large objects such as table data
+                return
+            self._callable_queue.put(callable)
         self._queue_render()
 
     def get_url(self) -> str:
