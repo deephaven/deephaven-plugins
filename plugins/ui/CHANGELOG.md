@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. See [conven
 
 - - -
 
+## ui-v0.44.1 - 2026-11-25
+
+#### Bug Fixes
+
+- DH-24440: Clean up deephaven.ui component when its connection closes mid-render ([#1456](https://github.com/deephaven/deephaven-plugins/pull/1456)) - (4a6bf22) - mofojed
+
+- - -
+
+
 ## ui-v0.44.0 - 2026-11-18
 
 #### Breaking Changes
