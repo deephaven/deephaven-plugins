@@ -32,3 +32,4 @@ file_25=tradingview_lightweight.py
 file_26=tvl_events.py
 file_27=tvl_tooltip.py
 file_28=tvl_legend.py
+file_29=ui_render_cleanup.py

@@ -525,3 +525,108 @@ class ElementMessageStreamReferencesOnDataTestCase(BaseTestCase):
 
         self.assertIn("error", response)
         self.assertEqual(len(self.received), 1)
+
+
+class ElementMessageStreamCloseTestCase(BaseTestCase):
+    def setUp(self) -> None:
+        import deephaven.ui as ui
+        from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
+
+        self.events: List[str] = []
+        self.on_render: Any = lambda: None
+
+        @ui.component
+        def component():
+            def effect():
+                self.events.append("mounted")
+                return lambda: self.events.append("unmounted")
+
+            ui.use_effect(effect, [])
+            self.on_render()
+            return ui.text("hello")
+
+        self.tasks: List[Any] = []
+        submit_patcher = patch(
+            "deephaven.ui.object_types.ElementMessageStream.submit_task",
+            lambda _executor, task: self.tasks.append(task),
+        )
+        submit_patcher.start()
+        self.addCleanup(submit_patcher.stop)
+
+        self.connection = Mock()
+        self.stream = ElementMessageStream(component(), self.connection)
+
+    def _run_tasks(self) -> None:
+        """Run submitted render loops inline, as the render thread would."""
+        while self.tasks:
+            self.tasks.pop(0)()
+
+    def _render(self) -> None:
+        self.stream._mark_dirty()
+        self._run_tasks()
+
+    def test_send_failure_unmounts_and_leaves_the_render_loop(self):
+        from deephaven.ui.object_types.ElementMessageStream import _RenderState
+
+        self._render()
+        self.connection.on_data.side_effect = ConnectionError("client went away")
+
+        with self.assertLogs(
+            "deephaven.ui.object_types.ElementMessageStream", level="ERROR"
+        ):
+            self.stream._context.mark_dirty()
+            self._render()
+
+        self.assertIs(self.stream._render_state, _RenderState.IDLE)
+        self.assertEqual(self.events, ["mounted", "unmounted"])
+        self.connection.on_close.assert_called_once()
+
+        # Updates from listeners that haven't been removed yet are dropped instead of queued forever
+        update = Mock()
+        self.stream.on_queue_render(update)
+        self._run_tasks()
+        update.assert_not_called()
+        self.assertTrue(self.stream._callable_queue.empty())
+
+    def test_close_during_render_unmounts_once_the_render_is_done(self):
+        from deephaven.ui.object_types.ElementMessageStream import _RenderState
+
+        self._render()
+        self.connection.on_data.reset_mock()
+
+        def close_during_render():
+            self.stream.on_close()
+            # Unmounting now would race with the render still in progress
+            self.assertEqual(self.events, ["mounted"])
+
+        self.on_render = close_during_render
+        self.stream._context.mark_dirty()
+        self._render()
+
+        self.assertIs(self.stream._render_state, _RenderState.IDLE)
+        self.assertEqual(self.events, ["mounted", "unmounted"])
+        self.connection.on_data.assert_not_called()
+
+    def test_close_while_sending_unmounts_once_the_render_is_done(self):
+        from deephaven.ui.object_types.ElementMessageStream import _RenderState
+
+        # The server can close the stream from within the send when the client has gone away
+        self.connection.on_data.side_effect = lambda *args: self.stream.on_close()
+        self.stream.on_queue_render(lambda: self.events.append("queued"))
+        self._render()
+
+        self.assertIs(self.stream._render_state, _RenderState.IDLE)
+        self.assertEqual(self.events, ["queued", "mounted", "unmounted"])
+
+        self.stream.on_queue_render(lambda: self.events.append("queued after close"))
+        self._run_tasks()
+        self.assertEqual(self.events, ["queued", "mounted", "unmounted"])
+
+    def test_close_when_idle_unmounts_immediately(self):
+        self._render()
+
+        self.stream.on_close()
+        self.stream.on_close()
+
+        self.assertEqual(self.events, ["mounted", "unmounted"])
+        self.assertEqual(self.tasks, [])
