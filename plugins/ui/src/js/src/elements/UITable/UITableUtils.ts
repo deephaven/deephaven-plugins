@@ -206,27 +206,36 @@ export function getAggregationOperation(agg: string): AggregationOperation {
 }
 
 /**
- * Converts a cell value from the JS API into a value that serializes exactly.
- * Some JS API values (e.g. Long, Instant, BigInteger, BigDecimal) are wrapper objects.
- * `JSON.stringify` would otherwise serialize them as their internal fields. Any JS API
- * numeric wrapper object that exposes `asNumber()` (i.e., matches the `dh.LongWrapper`
- * shape) is instead serialized via `valueOf()` so it round-trips exactly (typically as
- * an exact decimal string), since a JS number cannot hold every 64-bit value.
- *
- * For Instant wrappers, the value is epoch nanoseconds.
- * @param value The cell value to convert
- * @returns The exact serialized form for a wrapper (via `valueOf()`), otherwise the value unchanged
+ * Shape shared by the JS API numeric wrappers with required methods for serialization
  */
-export function serializeCellValue(value: unknown): unknown {
-  if (
+export type NumericWrapper = {
+  asNumber: () => number;
+  valueOf: () => string;
+};
+
+/**
+ * Checks if a value is a JS API numeric wrapper, structurally.
+ * @param value The value to check
+ * @returns True if the value is a numeric wrapper
+ */
+export function isNumericWrapper(value: unknown): value is NumericWrapper {
+  return (
     value != null &&
     typeof value === 'object' &&
-    typeof (value as Partial<dh.LongWrapper>).asNumber === 'function' &&
-    typeof (value as { valueOf?: unknown }).valueOf === 'function'
-  ) {
-    return (value as dh.LongWrapper).valueOf();
-  }
-  return value;
+    typeof (value as Partial<NumericWrapper>).asNumber === 'function'
+  );
+}
+
+/**
+ * Converts a cell value from the JS API into a value that serializes exactly.
+ * `JSON.stringify` would serialize a numeric wrapper as its internal fields, so it is
+ * sent as its exact decimal string instead, as a JS number cannot hold every 64-bit
+ * value. Instants are epoch nanoseconds.
+ * @param value The cell value to convert
+ * @returns The decimal string for a numeric wrapper, otherwise the value unchanged
+ */
+export function serializeCellValue(value: unknown): unknown {
+  return isNumericWrapper(value) ? value.valueOf() : value;
 }
 
 export function getCellData(
