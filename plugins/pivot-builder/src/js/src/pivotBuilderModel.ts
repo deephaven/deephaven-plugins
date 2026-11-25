@@ -1181,11 +1181,11 @@ export function augmentPivotBuilderModel(
       if (deepEqual(v, storedRollup)) return;
       log.debug2('storing rollupConfig (no inner-model write)', v);
       storedRollup = v;
-      // `IrisGridPanel`'s pre-`modelInitialized` `modelQueue` advances
-      // on COLUMNS_CHANGED (the event the host's own rollup setter
-      // emits after `setNextModel` resolves). Since we suppressed the
-      // inner-model swap, emit it ourselves so the queue advances and
-      // hydration completes for legacy rollup+aggregations layouts.
+      // `IrisGridPanel` hydration waits for COLUMNS_CHANGED after writing a
+      // saved rollup (the event the host's own rollup setter emits after
+      // `setNextModel` resolves). Since we suppressed the inner-model swap,
+      // emit it ourselves so hydration completes for legacy
+      // rollup+aggregations layouts.
       proxy.dispatchEvent(
         new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
           detail: proxy.columns,
