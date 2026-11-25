@@ -1107,7 +1107,8 @@ describe('schema change re-apply', () => {
     };
 
     const hydrate = async (
-      getPspWidget: () => Promise<DhType.Widget>
+      getPspWidget: () => Promise<DhType.Widget>,
+      config: PivotBuilderConfig = hydratedConfig
     ): Promise<{
       proxy: PivotBuilderProxyModel;
       host: FakeHostModel;
@@ -1119,7 +1120,7 @@ describe('schema change re-apply', () => {
       );
       // `makePivotModelTransform` skips the probe when `ui` doesn't pivot
       // against the load-time schema and passes `pivotAvailable: false`.
-      const applied = result.proxy.applyPivotBuilderConfig(hydratedConfig, {
+      const applied = result.proxy.applyPivotBuilderConfig(config, {
         pivotAvailable: false,
       });
       expect(result.proxy.pivotConfig).toBeNull();
@@ -1145,17 +1146,28 @@ describe('schema change re-apply', () => {
       });
     });
 
-    it('keeps the rollup when the probe fails', async () => {
+    it('still re-sanitizes the rollup when the probe fails', async () => {
       const getPspWidget = jest.fn(() => Promise.reject(new Error('no psp')));
-      const { proxy, host, original } = await hydrate(getPspWidget);
+      const { proxy, host, original } = await hydrate(getPspWidget, {
+        ...hydratedConfig,
+        ui: makeUi(makeAggregationSettings('Sum', ['price', 'qty']), {
+          rollupRows: ['region'],
+          pivotColumns: ['Foo'],
+        }),
+      });
 
-      original.table.columns.push(col('Foo', STRING));
+      original.table.columns.push(col('Foo', STRING), col('qty', DOUBLE));
       columnsChanged(host);
       await flushMicrotasks();
       await flushMicrotasks();
 
       expect(getPspWidget).toHaveBeenCalled();
       expect(proxy.pivotConfig).toBeNull();
+      expect(host.hostRollupWrites).toHaveLength(2);
+      expect(
+        (host.hostRollupWrites[1] as { aggregations: Record<string, string[]> })
+          .aggregations.Sum
+      ).toEqual(['price', 'qty']);
     });
   });
 

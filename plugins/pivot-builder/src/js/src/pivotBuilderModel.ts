@@ -694,6 +694,9 @@ class SupersededError extends Error {
   }
 }
 
+/** Source columns that determine what a builder config sanitizes to. */
+type SourceSchema = readonly { name: string; type: string }[];
+
 /**
  * Augment a host-built `IrisGridProxyModel` (the model the host's
  * `IrisGridPanel` / `GridWidgetPlugin` constructs from the source table)
@@ -1113,7 +1116,7 @@ export function augmentPivotBuilderModel(
   // source table's column names and types: inner-model swaps and our own
   // synthetic COLUMNS_CHANGED dispatches don't change them, so they fall
   // through.
-  const snapshotSourceSchema = (): readonly { name: string; type: string }[] =>
+  const snapshotSourceSchema = (): SourceSchema =>
     table.columns.map(({ name, type }) => ({ name, type }));
   let appliedSchema = snapshotSourceSchema();
   // Hydration only probes PivotService when the saved `ui` pivots against the
@@ -1128,38 +1131,37 @@ export function augmentPivotBuilderModel(
         (proxy as unknown as { isRollupAvailable?: boolean })
           .isRollupAvailable === true,
     }).pivot != null;
+  const probeAndReapply = async (
+    intent: PivotBuilderConfig,
+    schema: SourceSchema
+  ): Promise<void> => {
+    let pivotAvailable = true;
+    try {
+      await getPspWidget();
+    } catch {
+      // Still re-apply so rollup/totals re-sanitize against the new schema
+      pivotAvailable = false;
+    }
+    // A user apply or newer schema change during the probe already
+    // re-derived against the live schema.
+    if (intent !== lastIntent || !deepEqual(snapshotSourceSchema(), schema)) {
+      return;
+    }
+    await applyPivotBuilderConfigInternal(intent, {
+      schemaChanged: true,
+      pivotAvailable,
+    });
+  };
   const reapplyOnSchemaChange = (): void => {
     if (proxyAsAny.modelPromise != null) return;
     const schema = snapshotSourceSchema();
     if (deepEqual(schema, appliedSchema)) return;
     appliedSchema = schema;
     const intent = lastIntent;
-    if (!needsPivotProbe(intent)) {
-      applyPivotBuilderConfigInternal(intent, { schemaChanged: true }).catch(
-        () => undefined
-      );
-      return;
-    }
-    getPspWidget()
-      .then(
-        () => true,
-        () => false
-      )
-      .then(pivotAvailable => {
-        // A user apply or newer schema change during the probe already
-        // re-derived against the live schema.
-        if (
-          intent !== lastIntent ||
-          !deepEqual(snapshotSourceSchema(), schema)
-        ) {
-          return undefined;
-        }
-        return applyPivotBuilderConfigInternal(intent, {
-          schemaChanged: true,
-          pivotAvailable,
-        });
-      })
-      .catch(() => undefined);
+    const reapply = needsPivotProbe(intent)
+      ? probeAndReapply(intent, schema)
+      : applyPivotBuilderConfigInternal(intent, { schemaChanged: true });
+    reapply.catch(() => undefined);
   };
   // Like `flushPendingTotals`: a change skipped during a same-columns swap is
   // only picked up by the TABLE_CHANGED that ends it.
