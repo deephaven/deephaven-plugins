@@ -1109,12 +1109,13 @@ export function augmentPivotBuilderModel(
   proxy.addEventListener(IrisGridModel.EVENT.TABLE_CHANGED, flushPendingTotals);
 
   // What the current intent sanitizes to depends on the source schema, so a
-  // custom column added/removed after apply must re-derive. Keyed on the source
-  // table's columns: inner-model swaps and our own synthetic COLUMNS_CHANGED
-  // dispatches don't change it, so they fall through.
-  const sourceSchemaKey = (): string =>
-    table.columns.map(c => `${c.name}\u0000${c.type}`).join('\u0001');
-  let appliedSchemaKey = sourceSchemaKey();
+  // custom column added/removed after apply must re-derive. Compared on the
+  // source table's column names and types: inner-model swaps and our own
+  // synthetic COLUMNS_CHANGED dispatches don't change them, so they fall
+  // through.
+  const snapshotSourceSchema = (): readonly { name: string; type: string }[] =>
+    table.columns.map(({ name, type }) => ({ name, type }));
+  let appliedSchema = snapshotSourceSchema();
   // Hydration only probes PivotService when the saved `ui` pivots against the
   // load-time schema, so `lastKnownPivotAvailable` can be an unprobed `false`.
   // A restored column that makes the `ui` pivot again needs a real probe first.
@@ -1129,9 +1130,9 @@ export function augmentPivotBuilderModel(
     }).pivot != null;
   const reapplyOnSchemaChange = (): void => {
     if (proxyAsAny.modelPromise != null) return;
-    const key = sourceSchemaKey();
-    if (key === appliedSchemaKey) return;
-    appliedSchemaKey = key;
+    const schema = snapshotSourceSchema();
+    if (deepEqual(schema, appliedSchema)) return;
+    appliedSchema = schema;
     const intent = lastIntent;
     if (!needsPivotProbe(intent)) {
       applyPivotBuilderConfigInternal(intent, { schemaChanged: true }).catch(
@@ -1147,7 +1148,10 @@ export function augmentPivotBuilderModel(
       .then(pivotAvailable => {
         // A user apply or newer schema change during the probe already
         // re-derived against the live schema.
-        if (intent !== lastIntent || sourceSchemaKey() !== key) {
+        if (
+          intent !== lastIntent ||
+          !deepEqual(snapshotSourceSchema(), schema)
+        ) {
           return undefined;
         }
         return applyPivotBuilderConfigInternal(intent, {
@@ -1454,7 +1458,7 @@ export function augmentPivotBuilderModel(
       // Mirror intent into proxy storage so dehydration is correct.
       storedRollup = config.rollup;
       storedTotals = config.totals;
-      appliedSchemaKey = sourceSchemaKey();
+      appliedSchema = snapshotSourceSchema();
       lastIntent = config;
       raisePendingIfSwapping('Applying pivot...');
       dispatchConfigChanged();
@@ -1582,7 +1586,7 @@ export function augmentPivotBuilderModel(
     // card (which would otherwise show a phantom config the user never set).
     storedTotals = config.totals;
 
-    appliedSchemaKey = sourceSchemaKey();
+    appliedSchema = snapshotSourceSchema();
     lastIntent = config;
     // Only the rollup change queues a model swap here (a totals-only change
     // writes synchronously and leaves `modelPromise` null), so the scrim,
