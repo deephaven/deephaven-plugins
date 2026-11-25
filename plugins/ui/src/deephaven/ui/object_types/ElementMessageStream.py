@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import json
-import sys
 
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
@@ -278,13 +277,13 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         """
         Process any queued callables, then re-renders the element if it is dirty.
         """
+        with self._render_lock:
+            self._render_thread = threading.current_thread()
+            self._render_state = _RenderState.RENDERING
+
         try:
             with self._exec_context, self._event_context.open():
-                with self._render_lock:
-                    self._render_thread = threading.current_thread()
-                    self._render_state = _RenderState.RENDERING
-
-                while not self._callable_queue.empty():
+                while not self._is_closed and not self._callable_queue.empty():
                     item = self._callable_queue.get()
                     with liveness_scope():
                         try:
@@ -292,23 +291,42 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
                         except Exception as e:
                             logger.exception(e)
 
-                if self._is_dirty:
+                if self._is_dirty and not self._is_closed:
                     self._render()
-
-                with self._render_lock:
-                    self._render_thread = None
-                    if not self._callable_queue.empty() or self._is_dirty:
-                        # There are still callables to process, so queue up another render
-                        self._render_state = _RenderState.QUEUED
-                        submit_task("concurrent", self._process_callable_queue)
-                    else:
-                        self._render_state = _RenderState.IDLE
         except Exception as e:
-            # Something catastrophic happened, log it and close the connection
+            # Something catastrophic happened, such as the connection failing. Log it and close the connection
             # We're just being safe to make sure there is an error logged if something unexpected does occur,
             # as `submit_task` does not log any uncaught exceptions currently: https://github.com/deephaven/deephaven-core/issues/5192
             logger.exception(e)
-            self._connection.on_close()
+            with self._render_lock:
+                self._is_closed = True
+            try:
+                self._connection.on_close()
+            except Exception:
+                logger.exception("Error closing connection")
+        finally:
+            # Always leave the render loop, otherwise it never runs again and the queues grow without bound
+            self._finish_render_loop()
+
+    def _finish_render_loop(self) -> None:
+        """
+        Queue up another render if there's more to process, otherwise mark the render loop as idle.
+        Unmounts the element if the stream was closed while the render loop was running.
+        """
+        with self._render_lock:
+            self._render_thread = None
+            if not self._is_closed and (
+                not self._callable_queue.empty() or self._is_dirty
+            ):
+                # There are still callables to process, so queue up another render
+                self._render_state = _RenderState.QUEUED
+                submit_task("concurrent", self._process_callable_queue)
+                return
+            self._render_state = _RenderState.IDLE
+            is_closed = self._is_closed
+
+        if is_closed:
+            self._unmount()
 
     def _mark_dirty(self) -> None:
         """
@@ -321,7 +339,7 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
 
     def _queue_render(self) -> None:
         with self._render_lock:
-            if self._render_state is _RenderState.IDLE:
+            if self._render_state is _RenderState.IDLE and not self._is_closed:
                 self._render_state = _RenderState.QUEUED
                 submit_task("concurrent", self._process_callable_queue)
 
@@ -347,7 +365,12 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         Args:
             callable: The callable to queue
         """
-        self._callable_queue.put(callable)
+        # Check and queue under the lock, so this can't race with on_close and leave work in a queue nothing drains
+        with self._render_lock:
+            if self._is_closed:
+                # Nothing will process it, and it may hold onto large objects such as table data
+                return
+            self._callable_queue.put(callable)
         self._queue_render()
 
     def get_url(self) -> str:
@@ -372,15 +395,35 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
         self._connection.on_data(b"", [])
 
     def on_close(self) -> None:
-        assert not self._is_closed
-
         logger.debug("Closing ElementMessageStream")
 
+        with self._render_lock:
+            if self._is_closed:
+                return
+            self._is_closed = True
+            # This may be called from another thread while rendering, or from within the render loop when sending
+            # fails. Unmounting now would race with the render, so the render loop unmounts once it's done instead.
+            is_render_loop_active = self._render_state is not _RenderState.IDLE
+
+        if not is_render_loop_active:
+            self._unmount()
+
+    def _unmount(self) -> None:
+        """
+        Unmount the element, releasing its listeners and any work still queued.
+        Must only be called once the stream is closed and the render loop is idle.
+        """
         # The connection is closed, so this component will not update anymore
         # delete the context so the objects in the collected scope are released
-        self._context.unmount()
-        del self._context
-        self._is_closed = True
+        try:
+            with self._exec_context:
+                self._context.unmount()
+        except Exception:
+            logger.exception("Error unmounting element")
+        finally:
+            del self._context
+            self._callable_queue = Queue()
+            self._update_queue = Queue()
 
     def on_data(self, payload: bytes, references: list[Any]) -> None:
         """
@@ -605,8 +648,8 @@ class ElementMessageStream(MessageStream, RootRenderContextProtocol):
             state: The state of the node to preserve
         """
         if self._is_closed:
-            logger.error("Stream is closed, cannot render document")
-            sys.exit()
+            logger.debug("Stream is closed, not sending document")
+            return
 
         encoder_result = self._encoder.encode_node(root)
         document = encoder_result["encoded_node"]

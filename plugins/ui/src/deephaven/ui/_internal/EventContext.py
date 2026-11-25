@@ -75,8 +75,11 @@ class EventContext:
         except NoContextException:
             pass
         _set_event_context(self)
-        yield self
-        _set_event_context(old_context)
+        try:
+            yield self
+        finally:
+            # Restore even on error, or the thread keeps this context (and everything it references) alive
+            _set_event_context(old_context)
 
     def send_event(self, name: str, params: Dict[str, Any]) -> None:
         """
