@@ -85,7 +85,9 @@ export interface PivotBuilderErrorDetail {
  *
  * Fires at most once per distinct bad config (deduped against
  * `lastStaleNotifiedConfig`), so re-applying the same unchanged stale intent
- * on every sidebar reconcile does not re-toast. See also the
+ * on every sidebar reconcile does not re-toast. An apply with no stale
+ * references resets the dedupe, so the same config going stale again fires
+ * again. See also the
  * {@link PivotBuilderProxyModel.staleColumnReport} getter, which the
  * middleware reads synchronously to catch the hydration-time firing that
  * happens before any listener can be attached.
@@ -1301,7 +1303,11 @@ export function augmentPivotBuilderModel(
       // (e.g. flipping a card switch) while the same stale reference persists
       // must not be seen as a "different" config that re-notifies.
       const notifyKey = staleNotifyKey(config);
-      if (hasStale && !deepEqual(notifyKey, lastStaleNotifiedConfig)) {
+      if (!hasStale) {
+        // Once the references resolve, the same config going stale again (e.g.
+        // a custom column removed a second time) is a new problem to report.
+        lastStaleNotifiedConfig = null;
+      } else if (!deepEqual(notifyKey, lastStaleNotifiedConfig)) {
         lastStaleNotifiedConfig = notifyKey;
         const detail: PivotBuilderStaleColumnsDetail = {
           rollupColumns: report.rollupColumns,
