@@ -605,9 +605,9 @@ class UITableTestCase(BaseTestCase):
     def test_press_callbacks_convert_long_and_instant_values(self):
         import deephaven.ui as ui
 
-        # 2^53 + 2 cannot be represented exactly as a JS number, so the client
+        # 2^53 + 1 cannot be represented exactly as a JS number, so the client
         # sends long and Instant (epoch nanos) values as strings.
-        big = 2**53 + 2
+        big = 2**53 + 1
         row = {
             "L": {"value": str(big), "text": "", "type": "long"},
             "BoxedL": {"value": str(big + 1), "text": "", "type": "java.lang.Long"},
@@ -684,7 +684,7 @@ class UITableTestCase(BaseTestCase):
     def test_context_menu_converts_long_and_instant_values(self):
         from deephaven.ui.components.table import _add_selected_rows
 
-        big = 2**53 + 2
+        big = 2**53 + 1
         data = _add_selected_rows(
             {
                 "value": str(big),
@@ -949,9 +949,9 @@ class UITableTestCase(BaseTestCase):
     def test_resolve_keyed_selection_long_key_from_string(self):
         from deephaven import empty_table
 
-        # 2^53 + 2 cannot be represented exactly as a JS number, so the client
+        # 2^53 + 1 cannot be represented exactly as a JS number, so the client
         # sends long keys as strings.
-        big = 2**53 + 2
+        big = 2**53 + 1
         source = empty_table(3).update(f"Key = {big}L + i")
 
         result = self._resolve_keyed(

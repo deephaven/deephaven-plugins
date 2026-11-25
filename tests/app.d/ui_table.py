@@ -238,10 +238,10 @@ t_context_menu_keyed_selection = t_context_menu_selection_component(
     _context_menu_source.with_keys("Idx")
 )
 
-# 2^53 + 2 cannot be represented exactly as a JS number. Keyed on Big so the
-# context menu selection also round-trips long key values. Idx is only a narrow
-# first column for clicks to land on (see _context_menu_source), so it is not
-# described.
+# Odd values above 2^53, such as Big in row 1, cannot be represented exactly as
+# a JS number. Keyed on Big so the context menu selection also round-trips long
+# key values. Idx is only a narrow first column for clicks to land on (see
+# _context_menu_source), so it is not described.
 _numeric_source = (
     empty_table(3)
     .update(

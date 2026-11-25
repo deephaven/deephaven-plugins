@@ -110,13 +110,13 @@ const SERVER_HEADER_DATA = {
   _visible_columns: [],
 };
 
-/** 2^53 + 2, which a JS number cannot represent exactly. */
-const BIG_LONG = '9007199254740994';
+/** 2^53 + 1, which a JS number cannot represent exactly. */
+const BIG_LONG = '9007199254740993';
 
 /** Stand-in for a JS API LongWrapper, which hides its value in internal fields. */
 function makeLongWrapper(value: string) {
   return {
-    value_0: { l: 2, m: 0, h: 512 },
+    value_0: { l: 1, m: 0, h: 512 },
     asNumber: () => Number(value),
     valueOf: () => value,
   };
