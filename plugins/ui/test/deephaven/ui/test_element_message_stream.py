@@ -529,6 +529,8 @@ class ElementMessageStreamReferencesOnDataTestCase(BaseTestCase):
 
 class ElementMessageStreamCloseTestCase(BaseTestCase):
     def setUp(self) -> None:
+        import sys
+
         import deephaven.ui as ui
         from deephaven.ui.object_types.ElementMessageStream import ElementMessageStream
 
@@ -546,8 +548,10 @@ class ElementMessageStreamCloseTestCase(BaseTestCase):
             return ui.text("hello")
 
         self.tasks: List[Any] = []
-        submit_patcher = patch(
-            "deephaven.ui.object_types.ElementMessageStream.submit_task",
+        # Patch the module object: before Python 3.11, a dotted patch target resolves to the re-exported class
+        submit_patcher = patch.object(
+            sys.modules[ElementMessageStream.__module__],
+            "submit_task",
             lambda _executor, task: self.tasks.append(task),
         )
         submit_patcher.start()
