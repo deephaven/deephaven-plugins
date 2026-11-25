@@ -871,18 +871,39 @@ export function augmentPivotBuilderModel(
   };
 
   let appliedPivotRequest: SanitizedPivotRequest | null = null;
+  let appliedPivotColumnTypes: Record<string, string> = {};
+
+  // The pivot is built from the source table as it was at build time, so a
+  // column the request uses changing type needs a rebuild. Unused columns don't.
+  const pivotColumnTypes = (
+    request: SanitizedPivotRequest | null
+  ): Record<string, string> => {
+    const types: Record<string, string> = {};
+    if (request == null) return types;
+    const names = new Set([...request.rowKeys, ...request.columnKeys]);
+    Object.values(request.aggregations).forEach(columns =>
+      columns.forEach(name => names.add(name))
+    );
+    table.columns.forEach(({ name, type }) => {
+      if (names.has(name)) types[name] = type;
+    });
+    return types;
+  };
 
   const applyPivotConfig = (config: PivotConfig | null): void => {
     const sanitized = config != null ? sanitizePivotBuild(config) : null;
+    const columnTypes = pivotColumnTypes(sanitized);
     // Same raw pivot can need a rebuild when a stale key/aggregation column comes back
     if (
       deepEqual(current, config) &&
-      deepEqual(sanitized, appliedPivotRequest)
+      deepEqual(sanitized, appliedPivotRequest) &&
+      deepEqual(columnTypes, appliedPivotColumnTypes)
     ) {
       return;
     }
     current = config;
     appliedPivotRequest = sanitized;
+    appliedPivotColumnTypes = columnTypes;
     pivotToken += 1;
     const token = pivotToken;
 
@@ -1127,7 +1148,9 @@ export function augmentPivotBuilderModel(
         (proxy as unknown as { isRollupAvailable?: boolean })
           .isRollupAvailable === true,
     }).pivot != null;
+  let schemaReapplyToken = 0;
   const probeAndReapply = async (intent: PivotBuilderConfig): Promise<void> => {
+    const token = schemaReapplyToken;
     let pivotAvailable = true;
     try {
       await getPspWidget();
@@ -1135,8 +1158,8 @@ export function augmentPivotBuilderModel(
       // Still re-apply so rollup/totals re-sanitize against the new schema
       pivotAvailable = false;
     }
-    // A user apply during the probe already re-derived the newer intent.
-    if (intent !== lastIntent) return;
+    // A user apply or a newer schema re-apply supersedes this probe's result.
+    if (intent !== lastIntent || token !== schemaReapplyToken) return;
     await applyPivotBuilderConfigInternal(intent, {
       schemaChanged: true,
       pivotAvailable,
@@ -1147,6 +1170,7 @@ export function augmentPivotBuilderModel(
     const schema = snapshotSourceSchema();
     if (deepEqual(schema, appliedSchema)) return;
     appliedSchema = schema;
+    schemaReapplyToken += 1;
     const intent = lastIntent;
     const reapply = needsPivotProbe(intent)
       ? probeAndReapply(intent)

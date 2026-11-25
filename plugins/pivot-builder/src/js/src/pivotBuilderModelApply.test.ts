@@ -1194,6 +1194,37 @@ describe('schema change re-apply', () => {
         (host.hostRollupWrites[1] as { aggregations: Record<string, string[]> })
           .aggregations.Sum
       ).toEqual(['price', 'qty']);
+
+      host.settleSwap();
+      columnsChanged(host);
+      expect(getPspWidget).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores an older PivotService check that finishes after a newer one', async () => {
+      const probes: {
+        resolve: (widget: DhType.Widget) => void;
+        reject: (error: Error) => void;
+      }[] = [];
+      const getPspWidget = jest.fn(
+        () =>
+          new Promise<DhType.Widget>((resolve, reject) => {
+            probes.push({ resolve, reject });
+          })
+      );
+      const { proxy, host, original } = await hydrate(getPspWidget);
+      original.table.columns.push(col('Foo', STRING));
+      columnsChanged(host);
+      original.table.columns.push(col('Bar', DOUBLE));
+      columnsChanged(host);
+      expect(probes).toHaveLength(2);
+
+      probes[1].resolve({} as DhType.Widget);
+      await flushMicrotasks();
+      probes[0].reject(new Error('no psp'));
+      await flushMicrotasks();
+      await flushMicrotasks();
+
+      expect(proxy.pivotConfig).not.toBeNull();
     });
 
     it("keeps the user's newer config when the PivotService check finishes late", async () => {
@@ -1245,8 +1276,43 @@ describe('schema change re-apply', () => {
     expect(buildsBefore).toBeGreaterThan(0);
 
     original.table.columns.push(col('Foo', STRING));
+    host.modelPromise = new Promise(() => {
+      // in-flight swap
+    });
     columnsChanged(host);
+    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore);
 
+    host.modelPromise = null;
+    host.dispatchEvent({ type: IrisGridModel.EVENT.TABLE_CHANGED } as Event);
+
+    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
+  });
+
+  it('rebuilds a pivot when a column it uses changes type, but not for unrelated columns', async () => {
+    const { proxy, host, original } = makeProxy([
+      col('region', STRING),
+      col('side', STRING),
+      col('price', DOUBLE),
+    ]);
+    const setNextModel = jest.spyOn(host, 'setNextModel');
+    await proxy.applyPivotBuilderConfig({
+      pivot: makePivot({
+        rowKeys: ['region'],
+        columnKeys: ['side'],
+        aggregations: [{ operation: 'Sum', columns: ['price'] }],
+      }),
+      rollup: null,
+      totals: null,
+    });
+    await flushMicrotasks();
+    const buildsBefore = setNextModel.mock.calls.length;
+
+    original.table.columns.push(col('Unused', DOUBLE));
+    columnsChanged(host);
+    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore);
+
+    original.table.columns[2] = col('price', INT);
+    columnsChanged(host);
     expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
   });
 });
