@@ -85,7 +85,9 @@ export interface PivotBuilderErrorDetail {
  *
  * Fires at most once per distinct bad config (deduped against
  * `lastStaleNotifiedConfig`), so re-applying the same unchanged stale intent
- * on every sidebar reconcile does not re-toast. See also the
+ * on every sidebar reconcile does not re-toast. An apply with no stale
+ * references resets the dedupe, so the same config going stale again fires
+ * again. See also the
  * {@link PivotBuilderProxyModel.staleColumnReport} getter, which the
  * middleware reads synchronously to catch the hydration-time firing that
  * happens before any listener can be attached.
@@ -868,13 +870,39 @@ export function augmentPivotBuilderModel(
     return cachedPivotServicePromise;
   };
 
+  let appliedPivotColumnTypes: { name: string; type: string }[] = [];
+
+  // The pivot is built from the source table as it was at build time, so a
+  // column the request uses coming back or changing type needs a rebuild.
+  // Unused columns don't.
+  const pivotColumnTypes = (
+    request: SanitizedPivotRequest | null
+  ): { name: string; type: string }[] => {
+    if (request == null) return [];
+    const names = new Set([...request.rowKeys, ...request.columnKeys]);
+    Object.values(request.aggregations).forEach(columns =>
+      columns.forEach(name => names.add(name))
+    );
+    return table.columns
+      .filter(({ name }) => names.has(name))
+      .map(({ name, type }) => ({ name, type }));
+  };
+
   const applyPivotConfig = (config: PivotConfig | null): void => {
-    if (deepEqual(current, config)) return;
+    const sanitized = config != null ? sanitizePivotBuild(config) : null;
+    const columnTypes = pivotColumnTypes(sanitized);
+    if (
+      deepEqual(current, config) &&
+      deepEqual(columnTypes, appliedPivotColumnTypes)
+    ) {
+      return;
+    }
     current = config;
+    appliedPivotColumnTypes = columnTypes;
     pivotToken += 1;
     const token = pivotToken;
 
-    if (config == null) {
+    if (config == null || sanitized == null) {
       // Flat-source swap always succeeds — clear any in-flight recovery guard.
       isRecoveringPivot = false;
       proxy.setNextModel(Promise.resolve(proxy.originalModel));
@@ -884,7 +912,6 @@ export function augmentPivotBuilderModel(
     // Sanitize row/column keys + aggregations against the live schema before
     // building. `current` already holds the raw config (persistence intent);
     // only the build inputs are sanitized.
-    const sanitized = sanitizePivotBuild(config);
     if (sanitized.isEmpty) {
       // Defense-in-depth: `applyPivotBuilderConfigInternal` now routes any
       // all-keys-stale pivot away from this setter before it's ever called
@@ -1099,6 +1126,62 @@ export function augmentPivotBuilderModel(
   );
   proxy.addEventListener(IrisGridModel.EVENT.TABLE_CHANGED, flushPendingTotals);
 
+  // Re-derive the intent when source columns change (e.g. custom columns).
+  // Inner-model swaps and our own synthetic COLUMNS_CHANGED leave them as is.
+  const snapshotSourceSchema = (): { name: string; type: string }[] =>
+    table.columns.map(({ name, type }) => ({ name, type }));
+  let appliedSchema = snapshotSourceSchema();
+  // Hydration only probes PivotService when the saved `ui` pivots against the
+  // load-time schema, so `lastKnownPivotAvailable` can be an unprobed `false`.
+  // A restored column that makes the `ui` pivot again needs a real probe first.
+  const needsPivotProbe = (intent: PivotBuilderConfig): boolean =>
+    !lastKnownPivotAvailable &&
+    intent.ui != null &&
+    resolveEffectiveBuilderConfig(intent.ui, table.columns, {
+      pivotAvailable: true,
+      rollupAvailable:
+        (proxy as unknown as { isRollupAvailable?: boolean })
+          .isRollupAvailable === true,
+    }).pivot != null;
+  let schemaReapplyToken = 0;
+  const probeAndReapply = async (intent: PivotBuilderConfig): Promise<void> => {
+    const token = schemaReapplyToken;
+    let pivotAvailable = true;
+    try {
+      await getPspWidget();
+    } catch {
+      // Still re-apply so rollup/totals re-sanitize against the new schema
+      pivotAvailable = false;
+    }
+    // A user apply or a newer schema re-apply supersedes this probe's result.
+    if (intent !== lastIntent || token !== schemaReapplyToken) return;
+    await applyPivotBuilderConfigInternal(intent, {
+      schemaChanged: true,
+      pivotAvailable,
+    });
+  };
+  const reapplyOnSchemaChange = (): void => {
+    if (proxyAsAny.modelPromise != null) return;
+    const schema = snapshotSourceSchema();
+    if (deepEqual(schema, appliedSchema)) return;
+    appliedSchema = schema;
+    schemaReapplyToken += 1;
+    const intent = lastIntent;
+    const reapply = needsPivotProbe(intent)
+      ? probeAndReapply(intent)
+      : applyPivotBuilderConfigInternal(intent, { schemaChanged: true });
+    reapply.catch(() => undefined);
+  };
+  // Same-columns swaps end with only TABLE_CHANGED (see `flushPendingTotals`).
+  proxy.addEventListener(
+    IrisGridModel.EVENT.COLUMNS_CHANGED,
+    reapplyOnSchemaChange
+  );
+  proxy.addEventListener(
+    IrisGridModel.EVENT.TABLE_CHANGED,
+    reapplyOnSchemaChange
+  );
+
   Object.defineProperty(proxy, 'rollupConfig', {
     configurable: true,
     enumerable: true,
@@ -1176,6 +1259,8 @@ export function augmentPivotBuilderModel(
     options: {
       skipStaleSnapshotUpdate?: boolean;
       pivotAvailable?: boolean;
+      /** Re-sanitize the unchanged intent; don't re-persist. */
+      schemaChanged?: boolean;
     } = {}
   ): Promise<void> {
     // Remember the caller's PivotService availability so the internal revert
@@ -1224,7 +1309,9 @@ export function augmentPivotBuilderModel(
       // (e.g. flipping a card switch) while the same stale reference persists
       // must not be seen as a "different" config that re-notifies.
       const notifyKey = staleNotifyKey(config);
-      if (hasStale && !deepEqual(notifyKey, lastStaleNotifiedConfig)) {
+      if (!hasStale) {
+        lastStaleNotifiedConfig = null;
+      } else if (!deepEqual(notifyKey, lastStaleNotifiedConfig)) {
         lastStaleNotifiedConfig = notifyKey;
         const detail: PivotBuilderStaleColumnsDetail = {
           rollupColumns: report.rollupColumns,
@@ -1246,10 +1333,20 @@ export function augmentPivotBuilderModel(
     // `IrisGrid` one frame after the sidebar's slide-in starts —
     // tearing down the in-flight push/pop animation (the page snaps in
     // instead of sliding, and the Stack's view hook flickers).
-    if (deepEqual(config, lastIntent)) {
+    // A `schemaChanged` re-apply of the same intent skips only that dispatch.
+    const intentUnchanged = deepEqual(config, lastIntent);
+    if (intentUnchanged && options.schemaChanged !== true) {
       log.debug2('applyPivotBuilderConfig no-op (unchanged)', config);
       return settle();
     }
+    const dispatchConfigChanged = (): void => {
+      if (intentUnchanged) return;
+      proxy.dispatchEvent(
+        new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
+          detail: config,
+        })
+      );
+    };
 
     // Decide what to APPLY. A modern config carries raw card state (`ui`); we
     // re-derive the effective pivot/rollup/totals from it against the CURRENT
@@ -1359,7 +1456,9 @@ export function augmentPivotBuilderModel(
       // APPLIED pivot. Either way capture the RAW `config` in
       // `pendingPivotBuilderConfig` for the failure-revert machinery.
       const pivotChanged =
-        useUiDerivation || !deepEqual(effective.pivot, lastIntent.pivot);
+        useUiDerivation ||
+        options.schemaChanged === true ||
+        !deepEqual(effective.pivot, lastIntent.pivot);
       if (pivotChanged) {
         log.debug('Applying pivotConfig', effective.pivot);
         // Remember the full intent driving this build so a build failure
@@ -1372,11 +1471,7 @@ export function augmentPivotBuilderModel(
       storedTotals = config.totals;
       lastIntent = config;
       raisePendingIfSwapping('Applying pivot...');
-      proxy.dispatchEvent(
-        new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
-          detail: config,
-        })
-      );
+      dispatchConfigChanged();
       return settle();
     }
 
@@ -1506,11 +1601,7 @@ export function augmentPivotBuilderModel(
     // writes synchronously and leaves `modelPromise` null), so the scrim,
     // when raised, is always for rollup.
     raisePendingIfSwapping('Applying rollup...');
-    proxy.dispatchEvent(
-      new EventShimCustomEvent(PIVOT_BUILDER_CONFIG_CHANGED, {
-        detail: config,
-      })
-    );
+    dispatchConfigChanged();
     return settle();
   }
 
