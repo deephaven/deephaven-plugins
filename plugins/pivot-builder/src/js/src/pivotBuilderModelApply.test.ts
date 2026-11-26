@@ -1288,33 +1288,36 @@ describe('schema change re-apply', () => {
     expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
   });
 
-  it('rebuilds a pivot when a column it uses changes type, but not for unrelated columns', async () => {
-    const { proxy, host, original } = makeProxy([
-      col('region', STRING),
-      col('side', STRING),
-      col('price', DOUBLE),
-    ]);
-    const setNextModel = jest.spyOn(host, 'setNextModel');
-    await proxy.applyPivotBuilderConfig({
-      pivot: makePivot({
-        rowKeys: ['region'],
-        columnKeys: ['side'],
-        aggregations: [{ operation: 'Sum', columns: ['price'] }],
-      }),
-      rollup: null,
-      totals: null,
-    });
-    await flushMicrotasks();
-    const buildsBefore = setNextModel.mock.calls.length;
+  it.each(['price', '__proto__'])(
+    'rebuilds a pivot when a column it uses (%s) changes type, but not for unrelated columns',
+    async aggColumn => {
+      const { proxy, host, original } = makeProxy([
+        col('region', STRING),
+        col('side', STRING),
+        col(aggColumn, DOUBLE),
+      ]);
+      const setNextModel = jest.spyOn(host, 'setNextModel');
+      await proxy.applyPivotBuilderConfig({
+        pivot: makePivot({
+          rowKeys: ['region'],
+          columnKeys: ['side'],
+          aggregations: [{ operation: 'Sum', columns: [aggColumn] }],
+        }),
+        rollup: null,
+        totals: null,
+      });
+      await flushMicrotasks();
+      const buildsBefore = setNextModel.mock.calls.length;
 
-    original.table.columns.push(col('Unused', DOUBLE));
-    columnsChanged(host);
-    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore);
+      original.table.columns.push(col('Unused', DOUBLE));
+      columnsChanged(host);
+      expect(setNextModel).toHaveBeenCalledTimes(buildsBefore);
 
-    original.table.columns[2] = col('price', INT);
-    columnsChanged(host);
-    expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
-  });
+      original.table.columns[2] = col(aggColumn, INT);
+      columnsChanged(host);
+      expect(setNextModel).toHaveBeenCalledTimes(buildsBefore + 1);
+    }
+  );
 });
 
 describe('applyPivotBuilderConfig — stale-columns event dispatch', () => {

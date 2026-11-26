@@ -870,39 +870,34 @@ export function augmentPivotBuilderModel(
     return cachedPivotServicePromise;
   };
 
-  let appliedPivotRequest: SanitizedPivotRequest | null = null;
-  let appliedPivotColumnTypes: Record<string, string> = {};
+  let appliedPivotColumnTypes: { name: string; type: string }[] = [];
 
   // The pivot is built from the source table as it was at build time, so a
-  // column the request uses changing type needs a rebuild. Unused columns don't.
+  // column the request uses coming back or changing type needs a rebuild.
+  // Unused columns don't.
   const pivotColumnTypes = (
     request: SanitizedPivotRequest | null
-  ): Record<string, string> => {
-    const types: Record<string, string> = {};
-    if (request == null) return types;
+  ): { name: string; type: string }[] => {
+    if (request == null) return [];
     const names = new Set([...request.rowKeys, ...request.columnKeys]);
     Object.values(request.aggregations).forEach(columns =>
       columns.forEach(name => names.add(name))
     );
-    table.columns.forEach(({ name, type }) => {
-      if (names.has(name)) types[name] = type;
-    });
-    return types;
+    return table.columns
+      .filter(({ name }) => names.has(name))
+      .map(({ name, type }) => ({ name, type }));
   };
 
   const applyPivotConfig = (config: PivotConfig | null): void => {
     const sanitized = config != null ? sanitizePivotBuild(config) : null;
     const columnTypes = pivotColumnTypes(sanitized);
-    // Same raw pivot can need a rebuild when a stale key/aggregation column comes back
     if (
       deepEqual(current, config) &&
-      deepEqual(sanitized, appliedPivotRequest) &&
       deepEqual(columnTypes, appliedPivotColumnTypes)
     ) {
       return;
     }
     current = config;
-    appliedPivotRequest = sanitized;
     appliedPivotColumnTypes = columnTypes;
     pivotToken += 1;
     const token = pivotToken;
@@ -1177,8 +1172,7 @@ export function augmentPivotBuilderModel(
       : applyPivotBuilderConfigInternal(intent, { schemaChanged: true });
     reapply.catch(() => undefined);
   };
-  // Like `flushPendingTotals`: a change skipped during a same-columns swap is
-  // only picked up by the TABLE_CHANGED that ends it.
+  // Same-columns swaps end with only TABLE_CHANGED (see `flushPendingTotals`).
   proxy.addEventListener(
     IrisGridModel.EVENT.COLUMNS_CHANGED,
     reapplyOnSchemaChange
@@ -1265,7 +1259,7 @@ export function augmentPivotBuilderModel(
     options: {
       skipStaleSnapshotUpdate?: boolean;
       pivotAvailable?: boolean;
-      /** Same intent, different source schema: re-sanitize but don't re-persist. */
+      /** Re-sanitize the unchanged intent; don't re-persist. */
       schemaChanged?: boolean;
     } = {}
   ): Promise<void> {
@@ -1475,7 +1469,6 @@ export function augmentPivotBuilderModel(
       // Mirror intent into proxy storage so dehydration is correct.
       storedRollup = config.rollup;
       storedTotals = config.totals;
-      appliedSchema = snapshotSourceSchema();
       lastIntent = config;
       raisePendingIfSwapping('Applying pivot...');
       dispatchConfigChanged();
@@ -1603,7 +1596,6 @@ export function augmentPivotBuilderModel(
     // card (which would otherwise show a phantom config the user never set).
     storedTotals = config.totals;
 
-    appliedSchema = snapshotSourceSchema();
     lastIntent = config;
     // Only the rollup change queues a model swap here (a totals-only change
     // writes synchronously and leaves `modelPromise` null), so the scrim,
